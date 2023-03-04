@@ -31,3 +31,7 @@ Alternatively, to constrain line ending conversions to specific file types, such
 If this rule is added to a project retrospectively, one contributor MUST run `git add --renormalize .` from the root directory of the repository, and commit and distribute the resulting changeset. This will apply the new line ending normalization rule to everything to everything that's already under source control. (The `--renormalize` option is available since Git v2.16.)
 
 In addition, it is strongly RECOMMENDED that all projects have an `.editorconfig` file, which is recognized by most modern code editors and prompts them to automatically create new files with the desired line endings. See **[EditorConfig](//github.com/kieranpotts/standards/blob/dev/src/tools/code-editors/editorconfig.md)**.
+
+## Related links
+
+- [Configuring Git to handle line endings](https://docs.github.com/en/get-started/getting-started-with-git/configuring-git-to-handle-line-endings) – GitHub Docs
