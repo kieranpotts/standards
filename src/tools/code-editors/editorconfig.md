@@ -1,8 +1,8 @@
 # EditorConfig
 
-[EditorConfig](https://editorconfig.org/) is a standard for defining a baseline configuration for code editing environments that can be shared via code repositories and automatically plugged in to each developer's preferred development environment.
+[EditorConfig](https://editorconfig.org/) is a standard for defining a baseline configuration for code editing environments that can be shared via code repositories and automatically plugged in to each developer's preferred programming application.
 
-The project consists of a file format and a suite of plugins for the most popular IDEs and text/code editors.
+The project consists of a file format and a suite of plugins for the most popular IDEs and text editors.
 
 It is RECOMMENDED that every Git repository has an `.editorconfig` file in the root directory, with contents based on the following configuration:
 
