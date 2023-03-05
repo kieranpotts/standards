@@ -2,7 +2,7 @@
 
 - **[Software requirements specification](./requirements)**
 - **[System design and architecture](./design)**
-- **[Computer programming](./programming)**
+- **[Software development](./development)**
 - **[Software platforms](./platforms)**
 - **[Data management](./data)**
 - **[User interfaces](./ui)**
