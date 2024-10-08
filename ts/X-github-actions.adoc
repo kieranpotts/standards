@@ -1,17 +1,107 @@
 = TS-X GitHub Actions Standards
 
+This document serves as a collection of best practices for using (and making)
+GitHub Actions.
+
+== YAML syntax
+
+////
+TODO: Link to YAML best practices
+////
+
+Actions and workflows are defined in YAML files. YAML is designed to be a
+human-readable, as well as a machine-parsable, data serialization format. YAML
+files SHOULD, therefore, be written primarily with readability in mind.
+
+Consideration should also be given to the maintenance of the YAML files. Give
+thought, for example, to how diffs will be presented in source control and
+pull request systems. As Git is a line-based version control system, it is
+best practice to use YAML's multi-line syntax for lists. Instead of:
+
+[source,yaml]
+----
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+----
+
+This is better:
+
+[source,yaml]
+----
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+----
+
+== Inline documentation
+
+YAML comment syntax SHOULD be used to document anything that is not intuitively
+understood from the YAML data structure.
+
+== Expressions
+
+Expressions are commonly used in `if` attributes to make execution of an
+individual step or a whole job conditional.
+
+[source,yaml]
+----
+jobs:
+  production-deploy:
+    if: github.repository == 'owner/repo' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      - run: npm install -g bats
+----
+
+The value of the `if` attribute is treated as a JavaScript expression, rather
+than a string value. Expressions can be used in other attributes, which assume
+string values by default, using the `${{ <expression> }}` notation. Even in
+`if` values, if the expression starts with `!`, the whole expression MUST be
+encapsulated in the `${{ }}` syntax, or escaped with `''`, `""`, or `()`.
+That's because the exclamation mark is reserved notation in YAML.
+
+For consistency, it is RECOMMENDED this syntax be used to wrap all expressions,
+even those in `if` values where this syntax is not required.
+
+[source,yaml]
+----
+jobs:
+  production-deploy:
+    if: ${{ github.repository == 'owner/repo' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      - run: npm install -g bats
+----
+
 == Consuming open source actions
 
 There are many open source GitHub Actions that can be plugged in to your own
-GitHub automation workflows. However, just like with any open source software,
-open source actions MUST be carefully audited before integrating them into your
-development toolchain. The following steps are RECOMMENDED:
+workflows. However, just like with any open source software, open source actions
+MUST be carefully audited before integrating them into your development
+toolchain. The following steps are RECOMMENDED:
 
 * Use only actions that are published to the GitHub Marketplace, and only actions
   that have been verified by GitHub.
+
 * Review the action's `action.yml` file for inputs and outputs, and check that
   the code does what it says it does.
+
 * Include a specific version of the action, which you have audited. Best practice
   is to specify a commit SHA, rather than a branch or version tag. This ensures
-  that the action's code is locked down and cannot be changed without your
+  that the action's code is locked down and cannot be changed without you
   explicitly updating the version reference in your workflow configuration.
