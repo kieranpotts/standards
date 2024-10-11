@@ -2,11 +2,15 @@
 :toc: macro
 :toc-title: Contents
 
-toc::[]
-
+:link-docs-concurrency: https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#concurrency
+:link-docs-permissions: https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#permissions
+:link-docs-security: https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-third-party-actions
+:link-docs-security-lab: https://securitylab.github.com/resources/github-actions-preventing-pwn-requests/
 
 This document serves as a collection of best practices for using (and making)
 GitHub Actions.
+
+toc::[]
 
 == YAML syntax
 
@@ -20,10 +24,11 @@ Actions and workflows are defined in YAML files. YAML is designed to be a
 human-readable, as well as a machine-parsable, data serialization format. YAML
 files SHOULD, therefore, be written primarily with readability in mind.
 
-Consideration should also be given to the maintenance of the YAML files. Give
+Consideration should also be given to the maintenance of YAML files. Give
 thought, for example, to how diffs will be presented in source control and
-pull request systems. As Git is a line-based version control system, it is
-best practice to use YAML's multi-line syntax for lists. Instead of:
+pull request systems. For example, because Git is a line-based version control
+system, it is best practice to use YAML's multi-line syntax for lists. So,
+instead of:
 
 [source,yaml]
 ----
@@ -50,25 +55,9 @@ on:
 === Inline documentation
 
 YAML comment syntax SHOULD be used to document anything that is not intuitively
-understood from the YAML data structure.
+understood from the YAML data structure and the workflow/action schema.
 
-== Workflows
-
-=== Runners
-
-It is recommended to pin workflows to specific runner versions, such as
-`ubuntu-22.04` rather than `ubuntu-latest`. This means you must manually
-update workflow configurations when old runner versions are deprecated,
-but the benefit is your workflows will be more stable in the meantime.
-
-[source,yaml]
-----
-# Prefer:
-runs-on: ubuntu-22.04
-
-# To:
-runs-on: ubuntu-latest
-----
+== Workflows/actions schema
 
 === Expressions
 
@@ -96,8 +85,9 @@ string values by default, using the `${{ <expression> }}` notation. Even in
 encapsulated in the `${{ }}` syntax, or escaped with `''`, `""`, or `()`.
 That's because the exclamation mark is reserved notation in YAML.
 
-For consistency, it is RECOMMENDED this syntax be used to wrap all expressions,
-even those in `if` values where this syntax is not required.
+For consistency, it is RECOMMENDED the `${{ <expression> }}` syntax be used to
+wrap all expressions, even those in `if` values where this syntax is not
+required.
 
 [source,yaml]
 ----
@@ -117,35 +107,33 @@ jobs:
 
 === Minimalism
 
-Keep actions minimal. The more time an action takes to set up and run, the
-higher the costs of running your CI/CD infrastructure. Even shaving a few
-seconds off the run of a workflow can add up to significant cost savings over
-a month, a year.
+Keep individual workflows, and reusable actions, as minimal as possible. The
+more time something takes to set up and run, the higher the costs of running
+your CI/CD infrastructure. Even shaving a few seconds off the run of a
+workflow can add up to significant cost savings over a month, a year.
 
-Prefer lightweight actions over heavyweight ones. Prefer composite actions
-consisting shell scripts over JavaScript actions, and prefer JavaScript
-actions over container actions. Where container actions are essential – for
-example where you require a specific programming language or toolchain –
-prefer to use light images, such as alpine or alpine-node, over heavy ones.
+Prefer lightweight actions over heavyweight ones. Prefer JavaScript actions
+over container actions, and best of all are composite actions consisting of
+simple shell scripts. Where container actions are essential – for example where
+you require a specific programming language or toolchain – prefer to use light
+images, such as alpine or alpine-node, over heavy ones.
 
 Don't install unnecessary dependencies.
 
 === Caching
 
-Be sure to use caching features wherever possible. Have package managers
-cache dependencies, and cache any generated artifacts that can be reused
-between runs or shared between jobs.
+Be sure to use caching wherever possible. Have package managers cache
+dependencies, and cache any generated artifacts that can be reused between
+jobs or workflow runs.
 
 === Timeouts
 
 By default, GitHub kills jobs after 6 hours if they have not finished by
 then. Many jobs don't need nearly as much time to finish, but sometimes
-jobs can hang and the run consumes unnecessary minutes, which has a
+jobs can hang and the extended run consumes unnecessary minutes, which has a
 cost.
 
-Therefore it is recommended to specify shorter timeouts that are appropriate
-for each job.
-
+It is RECOMMENDED to specify shorter timeouts that are appropriate for each job.
 This is specified in minutes via the `jobs.<job_id>.timeout-minutes` attribute.
 Example:
 
@@ -165,7 +153,7 @@ It is RECOMMENDED to implement a concurrency strategy for workflows, especially
 long-running, resource-intensive ones. This will cancel running workflows in the
 same group when an event triggers a new run of the same workflow. For example,
 you can automatically cancel intermediate builds on a PR when a newer commit
-has been pushed to the PR's branch since the build run started.
+gets pushed to the PR's source branch.
 
 [source,yaml]
 ----
@@ -174,25 +162,38 @@ concurrency:
   cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
 ----
 
-See the GitHub Docs for further guidance:
-https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#concurrency
+See the {link-docs-concurrency}[GitHub Docs] for further guidance.
 
 == Security
 
-See also GitHub's Security Hardening for GitHub Actions guide:
-https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-third-party-actions
+See also {link-docs-security}[GitHub's Security Hardening for GitHub Actions]
+guide, and also the series of posts on {link-docs-security-lab}[GitHub's
+Security Lab] blog starting with "part 1: preventing pwn requests".
 
 === Secrets
 
-Never hard-code secrets in workflow files, even if those files are committed
-to private repositories. All sensitive data MUST be managed via GitHub Secrets.
+Do not hard-code API keys, tokens, passwords, or other such secrets in workflow
+files, even if those files are committed to private repositories.
+
+All sensitive data MUST be managed via GitHub Secrets. GitHub Secrets provides a
+safe way to store and use secrets in your workflows.
+
+[TIP]
+======
+CI workflows are also a good place to implement secrets detection using tools
+like https://github.com/GitGuardian/ggshield-action[GitGuardian].
+======
+
+Avoid storing long-lived secrets where possible. For example, rather than using
+API keys to authenticate with your infrastructure providers, prefer using
+OpenID Connect (OIDC).
 
 === Restricting permissions
 
-By default the workflow token, `GITHUB_TOKEN`, which is automatically generated
-on each run, is given wide-ranging permissions to GitHub resources and
-operations. The principle of least privilege should be applied to these tokens,
-which means restricting permissions to the minimum required for the job.
+By default, `GITHUB_TOKEN`, which is automatically generated on each run, is
+given wide-ranging permissions to GitHub resources and operations. The principle
+of least privilege should be applied to these tokens, which means restricting
+permissions to the minimum required to do the job.
 
 Permissions SHOULD be explicitly restricted on a per-workflow basis using
 the `permissions` attribute.
@@ -216,8 +217,76 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ----
 
-See the GitHub Docs for a full list of available permissions:
-https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#permissions
+See the GitHub Docs for a full {link-docs-permissions}[list of available
+permissions].
+
+=== Minimal scope
+
+To limit their scope, environment variables should be declared at the step
+level wherever possible. Elevate them to the job or (rarely) the workflow
+level only to solve the problem of sharing data between steps within a job,
+and between jobs within a workflow.
+
+=== Untrusted input
+
+Don't directly reference values you don't control, like:
+
+[source,yaml]
+----
+echo "${{github.event.pull_request.title}}"
+----
+
+This allows for injection of malicious code into the workflow. Instead, either
+use an action with arguments (this is the RECOMMENDED solution):
+
+[source,yaml]
+----
+uses: fakeaction/printtitle@v3
+with:
+  title: ${{ github.event.pull_request.title }}
+----
+
+Alternatively, bind the value to an intermediate environment variable:
+
+[source,yaml]
+----
+- name: Print title
+  env:
+    PR_TITLE: ${{ github.event.pull_request.title }}
+  run: |
+    echo "$PR_TITLE"
+----
+
+=== External PRs
+
+For public repositories, do not check out the code when using the
+`pull_request_target` event.
+
+[source,yaml]
+----
+on: pull_request_target
+#...
+  - uses: actions/checkout@v3
+    with:
+      ref: ${{ github.event.pull_request.head.sha }}
+----
+
+External PRs may trigger the workflow, and those workflows will be run in the
+context of the base branch of the PR. Although workflows from forks do not have
+access to your secrets, the code of the base branch is nevertheless considered
+untrusted, and therefore you MUST NOT check it out, build, or run it.
+
+There is more detail on this attack vector on {link-docs-security-lab}[GitHub's
+Security Lab] blog, but the TL;DR is that combining use of the
+`pull_request_target` trigger with explicit checkout of a public repository
+may open up security vulnerabilities.
+
+For all other workflow triggers in public repositories, it is RECOMMENDED to
+disable automatic workflow runs from forks. Workflows on pull requests to
+public repositories from outside contributors will not run automatically by
+default. Instead, the run needs to be triggered manually by a maintainer.
+Workflow approval requirements can be configured for a repository, organization,
+or at the enterprise level.
 
 === Consuming open source actions
 
@@ -241,7 +310,8 @@ The following steps are RECOMMENDED when using third-party actions:
 * Include a specific version of the action, which you have audited. Best practice
   is to specify a commit SHA, rather than a branch or version tag. This ensures
   that the action's code is locked down and cannot be changed without you
-  explicitly updating the version reference in your workflow configuration.
+  explicitly updating the version referenced from your workflow configuration,
+  protecting you from supply-chain compromises.
 
 [source,yaml]
 ----
@@ -249,24 +319,49 @@ The following steps are RECOMMENDED when using third-party actions:
   uses: actions/checkout@a12a3943b4bdde767164f792f33f40b04645d846
 ----
 
+=== GitHub-hosted runners
+
+It is recommended to pin workflows to specific runner versions, such as
+`ubuntu-22.04` rather than `ubuntu-latest`. This means you must manually
+update workflow configurations when old runner versions are deprecated,
+but the tradeoff is your workflows will be more stable in the meantime.
+(This is less an issue of security, more an issue of maintenance.)
+
+[source,yaml]
+----
+# Prefer:
+runs-on: ubuntu-22.04
+
+# To:
+runs-on: ubuntu-latest
+----
+
 === Self-hosted runners
 
-Use self-hosted runners only for workflows in private repositories. Actions
-that `runs-on` self-hosted runners MUST also be kept private.
+Use self-hosted runners only for workflows in private repositories. Anything
+that `runs-on: self-hosted` runners MUST also be kept private.
 
-This is because third parties could run malicious code on your self-hosted
-runners by forking the public repository and then creating a pull request
-that executes the code in a workflow.
+This is because, if in a public repository, third parties could run malicious
+code on your self-hosted runners by forking the public repository and then
+creating a pull request. The workflow would run in the context of the PR's base
+branch, which is considered untrusted. The attacker could modify the workflow's
+code, and this will be executed on your infrastructure (your self-hosted
+runner).
 
-This is not an issue with GitHub-hosted runners because those always run in
-clean, isolated virtual machines, each instance being destroyed at the end
-of a job run. Self-hosted runners may persist environments between jobs,
-posing security risks for the machine and its network if the workflow code
-cannot always be trusted.
+If you are using self-hosted runners, you are fully responsible for hardening
+your infrastructure to keep it secure from malicious use like this, for example
+by:
+
+* Configuring a dedicated low-privilege user.
+* Using isolated and ephemeral workloads to execute the jobs.
+* Implementing logging and monitoring to ensure visibility.
+
+But the ultimate security is to make sure that your self-hosted runners can only
+be used by trusted users inside your organization. That means keeping private
+the workflows and actions that run on them.
 
 [NOTE]
 ======
-GitHub doesn't allow individual accounts to use self-hosted runners on public
+GitHub doesn't allow personal accounts to use self-hosted runners on public
 repositories, but they do allow organizations to do so.
 ======
-
