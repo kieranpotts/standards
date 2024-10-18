@@ -57,7 +57,48 @@ on:
 YAML comment syntax SHOULD be used to document anything that is not intuitively
 understood from the YAML data structure and the workflow/action schema.
 
+== General guidelines
+
+* Keep workflows modular. Break down workflows into smaller jobs and steps.
+  This will make it easier to manage conditions and dependencies.
+
+* Test workflows thoroughly. Ensure that conditional logic and job dependencies
+  work as expected by testing different scenarios.
+
+== Naming conventions
+
+// TODO: conventions for secrets, config vars, and env vars.
+
+Choose descriptive and meaningful names for your secrets and variables. It
+SHOULD NOT be necessary to consult any out-of-band documentation to understand
+the purpose of a secret or variable referenced in a workflow. If the meaning
+of a variable cannot be easily deduced from its name and context, include
+an adjacent comment to explain its purpose.
+
+Names for workflows, jobs and steps should also be clear and consistent.
+
 == Workflows/actions schema
+
+=== Jobs
+
+A single job may, for example, compile, test and deploy an application. Though
+convenient, it is generally considered to be best practice for each job
+definition to be responsible for a single concern, and for complex workflows
+to be composed from multiple single-responsibility jobs. This has a number of
+advantages, for example workflows are easier to extend and maintain, and logging
+output is easier to analyze.
+
+=== Steps
+
+All steps SHOULD be given a unique name. This will help to identify the output
+of each step in the logs, and make it easier to debug failed workflows.
+
+[source,yaml]
+----
+steps:
+  - name: Say hello
+    run: echo "Hello, world!"
+----
 
 === Expressions
 
@@ -184,9 +225,68 @@ CI workflows are also a good place to implement secrets detection using tools
 like https://github.com/GitGuardian/ggshield-action[GitGuardian].
 ======
 
-Avoid storing long-lived secrets where possible. For example, rather than using
-API keys to authenticate with your infrastructure providers, prefer using
-OpenID Connect (OIDC).
+Secrets SHOULD be regularly rotated, and unused ones deleted. Restrict who has
+permissions to create and update secrets.
+
+Do not use complex data types for storing secrets. Secrets SHOULD be
+primitive values such as strings or numbers.
+
+[source,txt]
+----
+# Good
+SENSITIVE_VALUE1 = "abcdef"
+SENSITIVE_VALUE2 = 123456
+
+# Bad
+{
+  "sensitiveValue1": "abcdef",
+  "sensitiveValue2": 123456
+}
+----
+
+Be sure to mask any generated sensitive values in log output. Review the source
+code of third party actions to make sure they do the same.
+
+[source,yaml]
+----
+echo "::add-mask::$GENERATED_SENSITIVE_VALUE"
+----
+
+=== Tokens and long-lived secrets
+
+Avoid storing tokens and other long-lived secrets where possible. For example,
+rather than using API keys to authenticate with your infrastructure providers,
+prefer using OpenID Connect (OIDC).
+
+.How to use OpenID Connect
+****
+The following steps are done in your cloud provider:
+
+1.  Create a role to be use by the workflows. The role should contain the
+    minimum set of permissions for the workflows to accomplish their tasks.
+
+2.  Create an OIDC trust in the cloud provider. The trust should specify which
+    repositories are allowed to obtain tokens, as well as any additional
+    information necessary to increase security.
+
+The following steps are done in the GitHub Actions workflows:
+
+1.  Exchange GitHub's OIDC token for credentials. There are severeal actions
+    available from the marketplace that implement this exchange process.
+
+2.  Use the short-lived credential to manage resources. The short-lived
+    credentials will be valid only for a single job, and will expire after that.
+****
+
+DO NOT use classic Personal Access Tokens (PATS) to grant workflow access to
+code form another repository. Ideally, create a GitHub App and use its
+short-term credentials. If needed, use a fine-grained PAT and give it as few
+permissions as necessary for the workflow to do its job (ie. only read access,
+only to the necessary repos).
+
+When using a fine-grained PAT, rotate it regularly, and remember that it is
+bound to a specific user (so you might want to create a generic shared user
+account against which to create PATs).
 
 === Restricting permissions
 
@@ -219,6 +319,12 @@ jobs:
 
 See the GitHub Docs for a full {link-docs-permissions}[list of available
 permissions].
+
+[IMPORTANT]
+======
+DO NOT pass the workflow's `$GITHUB_TOKEN` to untrusted third-party software,
+including custom actions from untrusted sources.
+======
 
 === Minimal scope
 
@@ -275,8 +381,8 @@ context data:
 * `github.event.pull_request.head.repo.default_branch`
 * `github.head_ref`
 
-There are two possible solutions. The RECOMMENDED one is to use an action
-with arguments:
+There are two possible solutions. The RECOMMENDED one is to create custom
+actions with input arguments, rater than executing inline shell scripts:
 
 [source,yaml]
 ----
@@ -305,7 +411,10 @@ to GitHub Actions.
 
 More generally, be cautious when using any external input in your workflows.
 For example, avoid using untrusted data in API calls where the data could be
-interpreted as code (script injection).
+interpreted as code (script injection). Likewise, try as much as possible to
+avoid using untrusted data as input to custom actions.
+
+Finally, use code scanning tools to detect potential injection attacks.
 
 === Consuming open source actions
 
