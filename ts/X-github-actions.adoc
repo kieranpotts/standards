@@ -53,19 +53,16 @@ on:
 YAML comment syntax SHOULD be used to document anything that is not intuitively
 understood from the YAML data structure and the workflow/action schema.
 
-== Workflows and actions schema
+== Designing workflows and actions
 
 === General guidelines
 
 * Prefer to compose workflows from modules. Encourage reuse by breaking out
-  discrete parts of pipelines into actions or workflow templates.
+  discrete parts of pipelines into actions, reusable workflows, or workflow
+  templates.
 
-* Break down workflows into smaller jobs and steps. This will make it easier to
-  manage conditions and dependencies.
-
-* Test workflows thoroughly. Ensure that conditional logic and job dependencies
-  work as expected. Do this by testing all the possible scenarios that could
-  trigger each workflow.
+* Break down workflows into small, discrete jobs and steps. This will make it
+  easier to manage conditions and dependencies.
 
 * Choose descriptive and meaningful names for your secrets and variables. It
   SHOULD NOT be necessary to consult any out-of-band documentation to understand
@@ -74,6 +71,10 @@ understood from the YAML data structure and the workflow/action schema.
   an adjacent comment to explain its purpose.
 
 * Names for workflows, jobs and steps should also be clear and consistent.
+
+* Test workflows thoroughly. Ensure that conditional logic and job dependencies
+  work as expected. Do this by testing all the possible scenarios that could
+  trigger each workflow.
 
 === Jobs
 
@@ -88,7 +89,7 @@ and maintain, and logging output will be easier to analyze.
 === Steps
 
 All steps SHOULD be given a unique name. This will help to identify the output
-of each step in the logs, and make it easier to debug failed workflows.
+of each step in the logs, and so make it easier to debug failed workflows.
 
 [source,yaml]
 ----
@@ -109,21 +110,24 @@ jobs:
     if: github.repository == 'owner/repo' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup Nodes
+        uses: actions/setup-node@v2
         with:
           node-version: '14'
-      - run: npm install -g bats
+      - name: Install bats
+        run: npm install -g bats
 ----
 
 The value of the `if` attribute is treated as a JavaScript expression, rather
 than a string value. Expressions can be used in other attributes, which assume
-string values by default, using the `${{ <expression> }}` notation. Even in
+string values by default, using the `${{ <expression> }}` notation. But even in
 `if` values, if the expression starts with `!`, the whole expression MUST be
 encapsulated in the `${{ }}` syntax, or escaped with `''`, `""`, or `()`.
 That's because the exclamation mark is reserved notation in YAML.
 
-For consistency, it is RECOMMENDED the `${{ <expression> }}` syntax be used to
+So, for consistency, it is RECOMMENDED the `${{ <expression> }}` syntax be used to
 wrap all expressions, even those in `if` values where this syntax is not
 required.
 
@@ -134,11 +138,14 @@ jobs:
     if: ${{ github.repository == 'owner/repo' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup Nodes
+        uses: actions/setup-node@v2
         with:
           node-version: '14'
-      - run: npm install -g bats
+      - name: Install bats
+        run: npm install -g bats
 ----
 
 == Performance
@@ -240,7 +247,7 @@ SENSITIVE_VALUE2 = 123456
 }
 ----
 
-Be sure to mask any generated sensitive values in log output. Review the source
+Be sure to mask any generated sensitive values in log output. Audit the source
 code of third party actions to make sure they do the same.
 
 [source,yaml]
@@ -248,9 +255,9 @@ code of third party actions to make sure they do the same.
 echo "::add-mask::$GENERATED_SENSITIVE_VALUE"
 ----
 
-=== Tokens and long-lived secrets
+=== Tokens
 
-Avoid storing tokens and other long-lived secrets where possible. For example,
+Avoid storing tokens (and other long-lived secrets) where possible. For example,
 rather than using API keys to authenticate with your infrastructure providers,
 prefer using OpenID Connect (OIDC).
 
@@ -286,7 +293,7 @@ When using fine-grained PATs, rotate then regularly. PATs are bound to specific
 GitHub users, so it is RECOMMENDED to create a generic shared user account
 against which to create your PATs.
 
-=== Restricting permissions
+=== `GITHUB_TOKEN` permissions
 
 By default, `GITHUB_TOKEN`, which is automatically generated on each run, is
 given wide-ranging permissions to GitHub resources and operations. The principle
@@ -320,11 +327,16 @@ permissions].
 
 [IMPORTANT]
 ======
-DO NOT pass the workflow's `$GITHUB_TOKEN` to untrusted third-party software,
-including custom actions from untrusted sources.
+Workflows MUST OT pass the `$GITHUB_TOKEN` value to untrusted third-party
+software, including actions from untrusted sources.
 ======
 
-=== Minimal scope
+The same practices apply for all kinds of tokens you create to authenticate
+with any kind of service, and which you store in GitHub Secrets. Always restrict
+permissions to the bare essentials, and rotate tokens regularly – whatever those
+tokens are used for.
+
+=== Environment variable scope
 
 To limit their scope, environment variables should be declared at the step
 level wherever possible. Elevate them to the job or (rarely) the workflow
@@ -406,8 +418,8 @@ This practice is relevant to shell scripting in general, and is not specific
 to GitHub Actions.
 ======
 
-It is RECOMMENDED to use code scanning tools to help detect potential exploits
-in your workflow code.
+In addition, it is RECOMMENDED to use code scanning tools to help detect
+potential exploits in your workflow code.
 
 === Consuming open source actions
 
@@ -420,7 +432,7 @@ integration of third party components into your applications.
 The following steps are RECOMMENDED when using third-party actions:
 
 * Use only actions that are actively maintained. Check that bugs are triaged
-  and fixed, and that security vulnerabilities are patched – and quickly.
+  and fixed, and that reported security vulnerabilities are quickly patched.
 
 * Use only actions that are published to the GitHub Marketplace, and only actions
   that have been verified by GitHub.
@@ -441,55 +453,16 @@ The following steps are RECOMMENDED when using third-party actions:
   uses: actions/checkout@a12a3943b4bdde767164f792f33f40b04645d846
 ----
 
-=== External PRs
+=== PRs from forks
 
-For public repositories only, workflows MUST NOT check out code when the
-workflow is triggered by a `pull_request_target` event. *This is very
-dangerous.*
+It is RECOMMENDED to disable automatic workflow runs from events triggered from
+forks.
 
-[source,yaml]
-----
-on: pull_request_target
-#...
-  - uses: actions/checkout@v3
-    with:
-      ref: ${{ github.event.pull_request.head.sha }}
-----
+Workflows on pull requests to public repositories from _first-time_ outside
+contributors will not run automatically by default, but it is RECOMMENDED that
+you disable automatic workflow runs from being triggered by external
+contributors _all of the time_.
 
-Normally, workflow runs triggered from forks do not have access to secrets,
-or write access to the repository, because the runs happen in the context of the
-_base_ branch of the PR. However, the `pull_request_target` event is a special
-case. GitHub introduced this event type at the request of the open source
-community so that workflows could be run in the context of the _target_ branch
-of a PR. But this has important security implications.
-
-Using the `pull_request_target` events means the workflow will have access to
-your secrets, and write access to your code. If the workflow is also checking out
-and running code from the repository, that code can't be trusted because it has
-come from the external contributor (via a fork of your repository). You're
-opening up your workflow to remote code execution.
-
-This security vulnerability is known as a "pwn request". It is a type of attack
-where an attacker forks a public repository, creates a pull request to the
-original repository, and then triggers a workflow run on the original repository
-but which checks out and run the attacker's code from their forked repository.
-The attacker can use their own code in the context of the original repository.
-This can be used to extract secrets, modify _your_ repository's code, or even
-take over your repository.
-
-Therefore, whenever you use `pull_request_target` in a workflow, the workflow's
-jobs MUST NOT check out, build, or run the repository's code. All code executed
-in a `pull_request_target` workflow MUST be defined within the workflow
-configuration itself.
-
-There is more detail on this attack vector on {link-docs-security-lab}[GitHub's
-Security Lab] blog.
-
-For all other workflow triggers in public repositories, it is RECOMMENDED to
-disable automatic workflow runs from forks. Workflows on pull requests to
-public repositories from _first-time_ outside contributors will not run
-automatically by default, but it is RECOMMENDED that you disable automatic
-workflow runs from being triggered by external contributors _all of the time_.
 Project maintainers MUST review code coming from external PRs before triggering
 the CI to run on those changes. Workflow approval requirements can be configured
 for a repository, organization, or at the enterprise level.
@@ -502,6 +475,51 @@ security implications by asking yourself the following questions:
 * What inputs are given to the workflow? Can _that_ be trusted?
 * What data, secrets, and services does that code access?
 
+Use of the `pull_request_target` event is especially dangerous and its usage
+MUST be restricted to a few specific use cases Specifically, when workflows
+runs are triggered by this event type, the workflows MUST NOT check out code,
+build or run code from the repository.
+
+[source,yaml]
+----
+on: pull_request_target
+#...
+  - uses: actions/checkout@v3
+    with:
+      ref: ${{ github.event.pull_request.head.sha }}
+----
+
+Normally, workflow runs triggered from forks do not have access to secrets,
+or write access to the repository. But the `pull_request_target` event is a
+special case. For this event, the runner will be given the _base_ repository's
+secrets and by default the `GITHUB_TOKEN` will be granted write permissions
+on the PR's base repository. This opens up more potential attack vectors than
+the conventional `pull_request` event (for which `GITHUB_TOKEN` has only read
+access to the base repository and no other secrets are given to the runner).
+
+Even though workflow runs triggered by `pull_request_target` events happen
+in the context of the base repository, rather than the head branch of the
+fork repository (which is what the `pull_request` event does), GitHub
+nevertheless RECOMMENDS that workflow runs triggered by `pull_request_target`
+events do not checkout, build or run any code from the base repository. In
+addition, to prevent cache poisoning, such workflows SHOULD NOT save any caches.
+
+The purpose of these recommendations is to protect against a security
+vulnerability known as a "pwn request", which is when an attacker has gained
+access to a system and has compromised the passwords of users, or other secrets,
+of that system.
+
+There is more detail on this attack vector on {link-docs-security-lab}[GitHub's
+Security Lab] blog. Although the risks are low (because workflows triggered by
+`pull_request_target` events run on _your_ code not _their_ code), this event
+type SHOULD be reserved for limited use cases. GitHub's documentation states
+that this event type was introduced "to enable workflows to label PRs (eg. needs
+review) or to comment on the PR" and is not intended to be used for any kind
+of building, running, or other processing of the PR's changeset.
+
+In summary, whenever you use `pull_request_target` in a workflow, the workflow's
+jobs MUST NOT check out, build, or run the repository's code.
+
 === Self-hosted runners
 
 Use self-hosted runners only for running workflows defined in private
@@ -509,10 +527,9 @@ repositories. Any code that `runs-on: self-hosted` runners MUST be kept private.
 
 This is because, if in a public repository, third parties could run malicious
 code on your self-hosted runners by forking the public repository and then
-creating a pull request. The workflow would run in the context of the PR's base
-branch, which is considered untrusted. The attacker could modify the workflow's
-code, and this will be executed on your infrastructure (your self-hosted
-runner).
+opening a pull request that triggers a workflow to run on the _their_ code in
+the head branch of their fork. Thus, the code executed in _your_ self-hosted
+runner is untrusted.
 
 If you are using self-hosted runners, you are fully responsible for hardening
 your infrastructure to keep it secure from malicious use like this, for example
