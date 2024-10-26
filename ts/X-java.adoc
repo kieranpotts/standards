@@ -39,9 +39,9 @@ the following code style recommendations.
 
 Each source file SHOULD contain exactly one class-like construct. In special
 circumstances, a source file MAY have exactly one top-level public class and
-additional class-like constructs that are tightly coupled to that class and
-shared with no other classes. The top-level public class MUST be the first
-construct within the file.
+additional class-like constructs, which are deliberately tightly coupled to that
+class and shared with no other classes. The top-level public class MUST be the
+first construct within the file.
 
 Source files are distinguished by the `.java` file extension. Java bytecode
 files have the `.class` extension. Source file names MUST match exactly
@@ -91,7 +91,7 @@ determined by the readability and understandability of the code.
 This code is perfectly clear. The "μ" character can be printed verbatim, rather
 then represented by an escape sequence, and no comments are necessary.
 */
-`String unitAbbrev = "μs";`
+String unitAbbrev = "μs";
 ----
 
 For all characters that are encoded using escape sequences, except for those
@@ -101,7 +101,7 @@ SHOULD be used for this purpose.
 
 [source,java]
 ----
-`return '\ufeff' + content; // byte order mark`
+return "\ufeff" + content; // byte order mark
 ----
 
 === Indentation
@@ -203,6 +203,9 @@ prevailing industry standard, the K&R convention MUST be used to format braces.
 Classes MUST be named using UpperCamelCase. Methods and variables MUST be named
 using lowerCamelCase. Constants MUST be named using ALL_CAPS_SLUGS.
 
+All code, comments, and Javadocs MUST be written in English, with American
+English preferred for spelling.
+
 === Class and interface declarations
 
 Method declarations MUST be separated by a blank line.
@@ -211,15 +214,82 @@ Method declarations MUST be separated by a blank line.
 
 Java supports three comment notations:
 
-* `//` MUST be used for commenting-out code, and MAY be used for short
-  end-of-line comments that decode or explain a value assigned or returned
-  by the statement.
+* `//`
+* `/* … */`
+* `/** … */`
 
-* `/* … */` MUST be used for multi-line comments.
+The code below represents this style guide's RECOMMENDATIONS for using Java's
+single-line (`//`) and multi-line (`/* … */`) comment syntax. The single-line
+comment syntax is used in two use cases:
 
-* `/** … */` MUST be used for Javadocs.
+* To comment-out code.
+
+* For short end-of-line comments that decode or explain a value assigned,
+  returned, or printed by the statement.
+
+Java's multi-line comment syntax, `/* … */`, SHOULD in fact be used for both
+single-line and multi-line comments. For short comments that can fit between
+the indentation level and the soft line limit, the opening `/*` and closing
+`*/` SHOULD be written on the same line as the comment. As soon as the comment
+text needs to be wrapped to two or more lines, the opening `/*` and closing
+`*/` SHOULD also be bumped to their own lines, too.
+
+[source,java]
+----
+int num1 = 7;
+int num2 = 5;
+// int num0 = 0;
+
+/*
+Modulus operator (%) returns the remainder after the first operand is
+*evenly* divided by the second operand. In this case, 7 / 5 = 1, with
+a remainder of 2.
+*/
+
+int modulus = num1 % num2;
+System.out.println(modulus); // 2
+
+/* 7 divides evenly into 3 twice (3x2=6) with a reminder of 1 (7-6=1). */
+System.out.println(7 % 3); // 2
+
+/*
+The modulus operator is often used to determine whether a number is
+even or odd. If x % 2 is 0, then x is even, otherwise it is odd.
+*/
+
+System.out.println(6 % 2); // 0
+System.out.println(7 % 2); // 1
+----
+
+The single-line comment syntax `//` MUST be followed by exactly one space and
+then the code or value. Where the multi-line comment syntax `/* … */` is used
+to encapsulate a single-line comment, there MUST be exactly one space after the
+opening `/*` and another before the closing `*/`.
+
+Multi-line comments SHOULD have an empty line both before and after the comment
+block. Optionally, additional empty lines MAY be written within the comment
+text itself, to break it out into paragraphs. This is particularly beneficial
+for the readability of very long comments.
+
+All text within `/* … */` comment MUST be written in full sentences, each
+starting with a capitalized word and terminated by a period (full stop).
 
 See below for further information on formatting Javadocs.
+
+== Access modifiers
+
+For classes, the `public` access modifier MUST be added only if the class is
+intended to be used outside of its package.
+
+For members, access modifiers SHOULD be added in most cases. It is good practice
+to be explicit about the access level of class methods and data members. Omitted
+access modifiers are a code smell (but not an anti-pattern, because there will
+always be use cases where the default access level is appropriate).
+
+Most instance variables SHOULD be `private`, to adhere to the principle of data
+hiding. Methods, most of the time, will be `public`, unless the method is intended
+to be used only within the current class or a derived classes, in which case it
+SHOULD be `protected` (or `private` on `final` classes).
 
 == Javadoc
 
