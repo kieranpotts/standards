@@ -1,13 +1,139 @@
-= TS-X Functional Testing Standards
+= TS-X: Functional Testing Standards
 
+All testing is some form of measurement. We evaluate something of interest to
+us in the system-under-test, and measure it against some criteria for success.
+If it meets the criteria, it passes the test, else it fails the test.
+
+We conduct different types of tests to measure different things. The most
+common types of tests are:
+
+* Unit tests
+* Integration tests
+* Functional or end-to-end (e2e) tests
+
+There are many other forms of testing, including but not limited to: soak
+testing, approval testing, performance testing, acceptance testing,
+regression testing, manual testing, smoke testing, load testing, and sanity
+testing.
+
+In reality, most types of functional testing fall into one of the above three
+testing "levels".
+
+This standards document focuses on testing strategies that help us to evaluate
+the functionality of a software system. TS-X focuses on testing strategies
+for non-functional requirements.
+
+*Unit testing and acceptance testing* are the two most important testing levels,
+and these should be at the very centre of any testing strategy. When we take
+this approach, we will drive the whole development process from these two forms
+of tests. First, we define acceptance tests that describe the behavior of the
+system from the perspective of the user. Then we write unit tests that drive
+the implementation of the solution, in small increments, until the acceptance
+tests eventually pass.
+
+*The best testing strategies are build on acceptance tests supplemented by
+unit tests, and with both approaches driven by test-driven development.*
+Other forms of tests are best use tactically, to solve specific problems,
+rather than as a core part of the testing strategy.
+
+Testing MUST be treated as a fundamental and integral part of the development
+process itself.
+
+////
 All test code is subject to the same coding standards as application code.
+////
 
 == Unit tests
+
+Unit tests are incredibly valuable. They are designed to fail fast and give
+us immediate feedback on the correctness of our code, and to give us the
+confidence to proceed with development.
+
+Unit tests are a developer aid. They help developers to answer the question:
+"Does my code do what I think it does?"
+
+Unit tests are our main defensive line. They are the most thorough, the most
+detailed tests of our system.
+
+Another way that unit tests are so valuable is due to their speed. They are
+computationally efficient. So we can, and should, have lots of them. Unit tests
+should run the minimum amount of code necessary to verify its correctness.
+But we want to do that for pretty much every piece of code - as close to 100%
+coverage as reasonably practical.
+
+Studies have shown that as much as 60% of _catastrophic failures_ in software
+systems are a result of simple defects in code – the sort of bugs that we
+all introduce into our code, because they are so easy to do. Unit tests are
+what help us to catch these bugs.
+
+As well as reducing production bugs, there are supplementary benefits to unit
+testing, notably in the improved quality of the design of testable systems.
 
 Working unit tests MUST be developed for every change, inclusive of back-end
 and front-end changes.
 
 Unit test coverage MUST be measured and SHOULD be ≥ 90% in trunk.
+
+=== Test-driven development
+
+Unit tests are best generated as an outcome of test-driven development (TDD).
+Test-driven development is commonly misunderstood to mean code that is covered
+by tests. But actually it is a very particular approach to writing software,
+in which tests are written before the code that they test. The design of the
+code is thus driven by the requirements of the tests, which is to say the
+code is _testable by design_. And code that is testable by design also tends
+to be more modular, more maintainable, more reusable, and (critically) easier
+to change (which is the ultimate quality of any software system).
+
+[quote, W Edwards Deming]
+____
+You can't inspect quality into a product. You must build it in.
+____
+
+In practice, it is _not_ always practical, or even possible, to write tests
+first. This is particularly true in so-called "legacy" systems that do not
+already have good test coverage. And sometimes it may feel perfectly natural
+to experiment with different designs in code, and to settle on a final design,
+before writing tests. This can save time. If the design is in a state of flux,
+refactoring can take longer if you have to change both the code and the tests.
+
+So TDD is fine as long as you can be confident that the _design_ of the code
+will be the optimal design as an outcome of that process.
+
+The goal, really, is what Martin Fowler called self-testing code. Test-driven
+development is the RECOMMENDED approach to achieving that; but it is not
+the only approach. The end goal is more important than the means of getting
+there.
+
+Nevertheless, TDD SHOULD be the preferred approach to writing software. Where
+this approach is not taken, it tends to produce poorer quality software. Non-TDD
+approaches often result in more tactical and complex tests, more tightly
+coupled to the implementation.
+
+Developers SHOULD adopt the approach of always writing tests _before_ making
+changes to any code. This is a good habit to get into, even if sometimes you
+find yourself deviating from it.
+
+''''
+
+Done properly, test-driven development might be better described as test-driven
+_design_.
+
+TDD is a process in which we _design_ our software in a series of small –
+actually, tiny – steps, which incrementally evolve our software into a higher
+quality solution.
+
+This is the real skill of TDD: to learn to take a more incremental approach to
+design.
+
+This is a million miles away from clever developers intuiting perfect solutions
+before they start.
+
+TDD creates a constraint/pressure on us to work in small steps. This is TDD's
+real code value.
+
+The more you practice TDD, the better you get at reactively steering the design,
+rather than attempting to intuit it from the start.
 
 === Mocking in unit tests
 
@@ -53,7 +179,178 @@ Functional test packs MUST be suitable for use in regression testing.
 For web applications, e2e browser tests SHOULD be done automatically, with
 regular manual testing.
 
-== API integration testing
+=== Acceptance tests
+
+Acceptance tests are a form of functional test that are written in collaboration
+with the business stakeholders (eg. product managers).
+
+Really, the only distinction between acceptance tests and other functional
+tests is that acceptance tests are decidedly business-facing, often written
+using the language of the business and from the perspective of distinct groups
+of end users.
+
+Acceptance tests work best as *executable specifications*.
+
+Security testing, performance testing, and resilience testing, and others,
+are all forms of acceptance testing. Acceptance testing is not limited to
+functional testing. These are all specialist forms of acceptance test, as
+they can still be specified - and those specifications can even be executed.
+
+The job of an acceptance test is to answer the question: "Is this code
+releasable?" In that sense, acceptance tests can cover any kind of test
+that adds to our confidence to release. For example, data migration tests,
+performance tests, security tests, and so on… all these can be seen as falling
+under the category of acceptance tests.
+
+But in all cases, acceptance tests SHOULD be written in the form of executable
+specifications that define what the code is supposed to achieve from a
+user's perspective. These are the classic BDD style acceptance tests.
+
+As with unit tests, acceptance tests work best when they are written _before_
+development, ie. before we implement a new or changed feature as specified by
+the executable specification.
+
+The first act of starting on a new feature should be to identify one or more
+examples that demonstrate the feature in action.
+
+This should be treated as a normal, everyday part of the feature development
+process.
+
+Acceptance tests are also the easiest kind of test to retrofit to existing code.
+Much easier than trying to retrofit unit tests, for example. That's because
+acceptance tests are black box tests that interact with the system-under-test
+in the same way that a user would – ie. only via its public interfaces. So they
+are also a great tool for stabilizing legacy systems and starting the process of
+refactoring those systems.
+
+Acceptance tests work best when they are written in the language of the domain
+and when they do not refer _at all_ to any implementation details. The
+executable specifications SHOULD not mention forms or buttons or URLs. The same
+acceptance test should work whether the system is implemented in Java,
+Ruby, or Python, and whether the application has a CLI, GUI, or API.
+
+Acceptance tests give us a crystal clear focus on the problem that we're trying
+to solve, with a clear separation from particular details of the solution we
+eventually come up with.
+
+This is _enormously_ valuable. It means the test cases are always right! Even
+when acceptance tests fail because of changes to the system (for example), it is
+the acceptance tests that are right, and the system that is wrong.
+
+It means the development teams have a strengthened specification of what
+_really_ matters: what the software is meant to do. And yet the technical teams
+have the freedom to innovate in their solution, because whatever works to
+achieve the goal should make the tests pass.
+
+*Acceptance tests are the genuine specification of our system.*
+
+=== Mistakes in acceptance testing
+
+The most common mistakes in acceptance tests are usually a result of efforts to
+try to optimize things in the wrong places.
+
+Perhaps the most common mistake is to try to make acceptance tests _fast_. But,
+by their nature, acceptance tests are expensive to run both in terms of the
+resources required to run them, and their execution time.
+
+Acceptance tests are meant to evaluate independently-deployable units of
+software - basically, complete applications deployed into a production-like
+test environment, complete with test databases and mocks of external services
+on which the application depends.
+
+This is why acceptance tests are best run in conjunction with unit tests.
+
+Acceptance tests are not meant to be used to evaluate detailed nuances of
+behavior, like all the different scenarios of input validation, for example.
+Much better to find a way to unit test those fine-grained behaviors.
+
+Acceptance tests work best when they evaluate that the system does what we
+think users need, and to confirm that the various pieces of the application work
+together to achieve the user's goals.
+
+Acceptance tests and unit tests compliment each other, and are both necessary
+for a complete testing strategy.
+
+Use acceptance tests to initiate and validate the development of new features,
+and to stabilize legacy systems. Use unit tests to drive the design of the
+solution, and to ensure that the implementation is correct in all its details.
+
+=== Test data
+
+For acceptance tests to be comprehensive, and therefore genuinely useful, there
+MUST be sufficient test data to be able to demonstrate *all the capabilities*
+of the application. This means that the capabilities of the software will be
+easy to demonstrate, eg. by non-technical teams such as sales.
+
+== (API) integration testing
+
+Integration tests sit somewhere between unit and functional tests.
+
+.The test pyramid
+[source,txt]
+----
+        /\
+       /  \ Manual tests
+      /----\
+     /      \ Functional tests
+    /--------\
+   /          \ Integration tests
+  /------------\
+ /              \ Unit tests
+/----------------\
+----
+
+Integration tests are commonly defined as part of the testing pyramid, a
+model intended to represent the approximate distribution/volume of tests in
+a good testing strategy.
+
+In reality, integration tests are useful in a fairly limited number of
+scenarios. If you have good functional tests, then by definition you are
+already testing the integration of all the components of the
+system-under-test through those tests.
+
+Integration tests are often tactical tests, written to test the integration
+of two or more components of a system. They are often written to test the
+integration of a system with an external system, such as a database, a
+message queue, or a web service. In other words, integration tests tend to
+be added to solve a specific kind of problem.
+
+But maybe that's okay. Not all tests have to be purely strategic in their
+intentions. Ultimately, whatever tests will give us the confidence we want
+before deploying changes, then we should write those tests.
+
+An the boundary between unit and integration tests is somewhat blurry.
+Ultimately, a unit test cover whatever "unit" of software we want to verify.
+That unit may well be a single class or function, but it could also be a
+a whole subsystem or module, and its external dependencies such as databases
+or filesystems.
+
+TODO: Another form of integration tests is _between_ services in a
+distributed system. But again, acceptance tests should cover this. You may
+have lower order functional tests that verify the functionality of individual
+services, and your acceptance tests will sit higher in the architecture
+and verify integrations (eg. data sharing) between services.
+
+Acceptance tests fulfil the role of a kind of super integration test!
+
+So the role of integration tests is distinct from acceptance tests. They are
+only there to allow us to fail faster. For example, if we have a common
+source of failures that trips up our acceptance tests, then it might be
+useful to replicate some of those tests in integration tests, which are more
+narrowly scoped to the brittle part of the system but which run faster. These
+would then provide an early warning system.
+
+So, integration tests MAY be used as lightweight acceptance tests that run
+alongside the unit tests.
+
+But it we have all our features covered by acceptance tests, we should not need
+any integration tests _by default_, though we might add them tactically over
+time.
+
+A common mistake is to write integration tests _instead_ of doing a good
+job of acceptance testing.
+
+////
 
 Testing API integrations – ie. between services – MUST be done prior to
 applications being released to production.
@@ -62,32 +359,57 @@ All integrations MUST be testable in dev/QA environments.
 
 Applications SHOULD mock integrations in dev/QA environments.
 
-== Test data
+////
 
-There MUST be sufficient test data to be able to demonstrate all the capabilities
-of the application. This means that the capabilities of the software will be
-easy to demonstrate, eg. by non-technical teams such as sales.
+== Approval tests
 
-== Test-driven development
+Approval tests validate that the code produces exactly the same output/result
+each time it is run. They do this by running in two modes:
 
-The goal is self-testing code. Test-driven development is the RECOMMENDED
-approach to achieving that is test-driven development.
+1. A benchmark run, in which the tests produce a reference result from the
+   system-under-test.
+2. Comparison runs, in which the test suite interacts with the system-under-test
+   in exactly the same way, and verifies that the output matches the reference
+   result. If there's a difference, the test fails.
 
-Done properly, test-driven development might be better described as test-driven
-_design_.
+This is a great methodology for stabilizing brittle code, and it particularly
+valuable for code that we do not understand very well.
 
-TDD is a process in which we _design_ our software in a series of small –
-actually, tiny – steps, which incrementally evolve our software into a higher
-quality solution.
+The limitation of this type of test is obvious: they only verify that the code
+does what the code did before. They do not verify that the code does what it
+should do!
 
-This is the real skill of TDD: to learn to take a more incremental approach to
-design.
+Approval tests are less useful for new development, where acceptance tests
+should be preferred.
 
-This is a million miles away from clever developers intuiting perfect solutions
-before they start.
+Nevertheless, approval tests are particularly useful in evaluating the _look_
+of a user interface, particularly graphical ones. Tools exist to literally
+snapshot UIs, and then compare changes in that UI pixel-by-pixel over time.
+We can then keep these tests running to test for unexpected regressions in the
+UI.
 
-TDD creates a constraint/pressure on us to work in small steps. This is TDD's
-real code value.
+Like integration tests, approval tests tends to be implemented as tactical
+solutions to specific problems, rather than being key parts of testing
+strategies.
 
-The more you practice TDD, the better you get at reactively steering the design,
-rather than attempting to intuit it from the start.
+== Manual testing
+
+Manual regression testing is ineffective and expensive!
+
+Machines are much better at this sort of thing!
+
+*All manual regression testing should be replaced by automated acceptance tests.*
+
+Nevertheless, manual testing has some value, particularly in exploratory
+testing, and in testing the user experience.
+
+Humans are better at exploration and the sort of _fuzzier_ aspects of quality
+assurance.
+
+The best role for human (manual testing) is exploratory testing, and looking
+at the overall usability of a system.
+
+For example, not all aspects of accessibility can be tested in an automated
+way.
+
+Automated tests are better at finding defects and regressions.
