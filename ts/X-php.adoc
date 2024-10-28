@@ -3,23 +3,37 @@
 
 :link-per-coding-2: https://www.php-fig.org/per/coding-style/
 
-PHP code SHOULD follow PER Coding Style 2.0, which is summarized and extended
-in this document.
+PHP code SHOULD follow the PER Coding Style v2.0, which is summarized and 
+extended in this document.
 
 It is RECOMMENDED to use automated linting tools, with automatic code fixing
-enabled, to enforce consistent coding standards.
+enabled where available, to enforce consistent coding standards.
 
 toc::[]
 
 == Type hinting in PHP
 
 PHP is a dynamically typed language, but it is possible to add type hints to
-functions and methods. It is strongly RECOMMENDED to use type hints extensively.
-Specifically:
+functions and methods. Type hinting -- introduced in PHP 5 but not genuinely
+useful until PHP 7 -- allows developers to specify the expected data types for 
+arguments and return values in function declarations.
+
+The type hints in the following code snippet declare that both `$a` and `$b`
+must be integers, and that the function should also return an integer.
+
+[source,php]
+----
+function sum(int $a, int $b): int {
+  return $a + $b;
+}
+----
+
+Although use of type hints is optional in the PHP language, it is strongly 
+RECOMMENDED to use them extensively. Specifically:
 
 * Class properties SHOULD be typed.
 * Method parameters SHOULD be typed.
-* Method return types SHOULD be declared.
+* Method return types SHOULD be typed
 
 Type safety – the practice of using strict typing – has multiple advantages. It
 helps to catch bugs early, and static analysis tools can pick up on those
@@ -28,7 +42,45 @@ documentation, helping to make the code easier to understand.
 
 Unfortunately, although PHP's type hinting capability has improved over time,
 there remain some gaps in PHP's type system. Most notably is the inability to
-declare the data types that can be held in arrays and iterables. Some static
+declare the data types that can be held in arrays and iterables. 
+
+=== Strict mode
+
+PHP has two type checking modes: coercive (the default) and strict. To enforce
+strict type checking, you need to add a `declare()` statement to the beginning
+of every PHP file.
+
+[source,php]
+----
+declare(strict_types=1);
+----
+
+Strict typing mode ensures that the types are _exactly_ as specified. It is
+strongly RECOMMENDED to opt-in to strict type checking.
+
+=== Nullable types
+
+Since PHP 7.1 it has been possible to specify an argument or return type as 
+being "nullable", which means the value could be `null` as an alternative to
+the declared type. THe syntax uses a `?` prefixed to the type:
+
+[source,php]
+----
+function getUser(int $id): ?User {
+  return findByUserId($id) ?: null;
+}
+----
+
+=== The void type
+
+PHP 7.1 also introduced the `void` return type, which may be used to indicate
+that a function does not return any value. Although PHP does not require
+`void` return declarations, it is RECOMMENDED to include this wherever
+relevant.
+
+
+////
+Some static
 analysis tools fill in the gaps. Some will allow you to use docblocks to extend
 PHP's native type hints with additional metadata, which is understood by the
 analysis tool. It is RECOMMENDED to use these tools to implement stricter type
@@ -44,13 +96,14 @@ public function toArray(): array {
 
 Where extended type hints are provided, the docblocks MUST NOT repeat native
 type declarations - this is redundant.
+////
 
 == Magic methods
 
 PHP has class life cycle hooks for attaching functionality in dynamic ways.
 These hooks are called magic methods.
 
-While some application frameworks rely on the magic methods to provide elegant
+While some application frameworks rely on magic methods to provide elegant
 ways for application code to interact with the framework's functions, magic
 methods – by their nature – make code less explicit and therefore harder to
 understand.
