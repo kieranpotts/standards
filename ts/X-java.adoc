@@ -1,8 +1,11 @@
 = TS-X: Java Standards
+:toc: macro
 
 :link-google-style-guide: https://google.github.io/styleguide/javaguide.html
 :link-oracle-style-guide: https://www.oracle.com/java/technologies/javase/codeconventions-introduction.html
 :link-escape-sequences: http://docs.oracle.com/javase/tutorial/java/data/characters.html
+
+toc::[]
 
 .Terminology
 ****
@@ -11,6 +14,10 @@ Throughout this document, the following works shall have the following meanings:
 * "Class-like constructs" means any ordinary classes, enums, interfaces, or
   annotation types (`@interface`).
 
+* "Block-like construct" refers to the body of a class, method, or constructor,
+  and also to array initializers, static initializers, and other similar
+  constructs.
+
 * "Members" means all fields, methods, constructors, and nested classes within
   a class or other class-like structure.
 
@@ -18,24 +25,7 @@ Throughout this document, the following works shall have the following meanings:
   to _API documentation_ comments.
 ****
 
-== Code style
-
-The most common coding standard for Java is {link-google-style-guide}[Google's
-Java Style Guide]. It is widely adopted in the industry as is the basis for
-the following code style recommendations.
-
-.Summary
-****
-* Source files: `<ClassName>.java`.
-* Indentation: 2 spaces.
-* Line lengths: 80 soft limit, 100 hard limit.
-* Braces: K&R style.
-* Classes and interfaces: UpperCamelCase.
-* Methods and variables: lowerCamelCase.
-* Constants: ALL_UPPER_CASE.
-****
-
-=== Source files
+== Source files
 
 Each source file SHOULD contain exactly one class-like construct. In special
 circumstances, a source file MAY have exactly one top-level public class and
@@ -104,9 +94,178 @@ SHOULD be used for this purpose.
 return "\ufeff" + content; // byte order mark
 ----
 
+== Spelling
+
+All code, comments, and Javadocs MUST be written in English, with American
+English preferred for spelling.
+
+== Naming conventions
+
+.Summary
+****
+* Classes and interfaces: UpperCamelCase.
+* Methods and variables: lowerCamelCase.
+* Constants: ALL_UPPER_CASE.
+****
+
+All identifiers MUST be composed only of ASCII letters and digits and, in a
+small number of cases, underscores. Thus, each valid identifier is matched
+by the regular expression `\w+`.
+
+Special prefixes or suffixes SHOULD NOT, generally, be used on identifiers.
+For example, do not prefix variables with `s_` to indicate that they are
+static, or suffix interfaces with `I` to indicate that they are interfaces.
+
+=== Package names
+
+Package names MUST use all lower case letters and digits, and no underscores.
+Consecutive words are simply concatenated together with no special formatting
+for word delimitation. For example, `com.example.deepspace`, not
+`com.example.deepSpace` or `com.example.deep_space`.
+
+=== Class and interface names
+
+Classes and interfaces MUST be named using UpperCamelCase.
+
+Class names are typically nouns or noun phrases. They SHOULD be descriptive
+and unambiguous, and SHOULD NOT be overly long. Good examples of class names
+include `Character`, `ImmutableList`, `PriorityQueue`, and `UrlConnection`.
+
+Interface names MAY also be nouns or noun phrases, eg. `List`, but MAY also be
+adjectives or adjective phrases, eg. `Readable`, `Closeable`, or `Runnable`.
+
+Test classes MUST have a name that ends with `Test`. If the test covers a single
+class, the test class name SHOULD be the name of the class being tested, with
+`Test` appended.
+
+=== Method names
+
+Methods MUST be named using lowerCamelCase.
+
+Method names SHOULD, typically, be verbs or verb phrases, eg. `sendMessage`,
+`stop`, `computeTotal`.
+
+Underscores MAY be used in JUnit test methods to separate logical components
+of the name, with each component written lowerCamelCase, eg.
+`transferMoney_deductsFromSource`.
+
+=== Field, variable and parameter names
+
+Fields, variables (including local variables) and parameters MUST use the same
+naming convention as methods: lowerCamelCase.
+
+These names are typically nouns or noun phrases, eg. `index`, `height`,
+`computedValues`.
+
+One-character parameter names in public methods SHOULD be avoided.
+
+=== Constant names
+
+****
+A "constant" is defined here as a static final field whose contents are deeply
+immutable and whose methods have no detectable side effects (merely _intending)
+to never mutate the object is not sufficient). Examples include primitives,
+strings, immutable value classes, and anything set to `null`.
+****
+
+Constants MUST be named using UPPER_SNAKE_CASE: all uppercase letters, with words
+delimited by a single underscore. Constant names are typically nouns or noun
+phrases.
+
+[source,java]
+----
+/*
+Constants.
+*/
+
+static final int NUMBER = 5;
+
+static final ImmutableList<String> NAMES = ImmutableList.of("Ed", "Ann");
+
+static final Map<String, Integer> AGES = ImmutableMap.of("Ed", 35, "Ann", 32);
+
+/* Joiner is immutable. */
+static final Joiner COMMA_JOINER = Joiner.on(',');
+
+static final SomeMutableType[] EMPTY_ARRAY = {};
+
+/*
+Not constants.
+*/
+
+static String nonFinal = "non-final";
+
+final String nonStatic = "non-static";
+
+static final Set<String> mutableCollection = new HashSet<String>();
+
+static final ImmutableSet<SomeMutableType> mutableElements = ImmutableSet.of(mutable);
+
+static final ImmutableMap<String, SomeMutableType> mutableValues =
+    ImmutableMap.of("Ed", mutableInstance, "Ann", mutableInstance2);
+
+static final Logger logger = Logger.getLogger(MyClass.getName());
+
+static final String[] nonEmptyArray = {"these", "can", "change"};
+----
+
+NOTE: Even when final and immutable, local variables are not considered to be
+constants, and SHOULD NOT therefore styled as constants.
+
+=== Type variable names
+
+Type variables SHOULD be named in one of two ways:
+
+* A single capital letter, optionally followed by a single numeral, eg.
+  `T`, `E`, `X`, `T2`, `T3`.
+
+* The class or interface name from which the type variable is derived, with
+  the capital letter `T` appended, eg. `RequestT`.
+
+=== Annotation names
+
+Surprisingly, there are no well-established conventions for naming annotation
+types in Java. The prevailing convention seems to be UpperCamelCase, but this
+is far from universal. Nevertheless, this style guide RECOMMENDS that annotation
+types be named using UpperCamelCase, eg. `@CheckReturnValue`.
+
+Annotation names MAY be verbs or nouns, depending on their purpose.
+
+.How to camel case
+****
+To write a name in camel case, convert every letter to lower case except the
+first letter of every word which should be capitalized.
+
+|===
+| lowerCamelCase | UpperCamelCase
+
+| `thisIsCamelCase` | `ThisIsCamelCase`
+| `xmlHttpRequest` | `XmlHttpRequest`
+| `getCustomerId` | `GetCustomerId`
+| `supportsIpv6OnIos` | `SupportsIpv6OnIos`
+|===
+****
+
+== Code style
+
+The most common coding standard for Java is {link-google-style-guide}[Google's
+Java Style Guide]. It is widely adopted in the industry as is the basis for
+the following code style recommendations.
+
+.Summary
+****
+* Indentation: 2 spaces.
+* Continuation lines: 4 spaces.
+* Line lengths: 80 soft limit, 100 hard limit.
+* Braces: K&R style.
+****
+
 === Indentation
 
-Use two spaces to represent one level of indentation. Do not use tabs.
+Each time a new block or block-like construct is opened, the code MUST be
+indented by an additional two spaces.
+
+*Do not use tabs for indentation.*
 
 Increase the indentation by one level for each nested block or block-like
 construct. When the nested block ends, the indent returns to the previous
@@ -115,15 +274,151 @@ level.
 Indentation of comments and Javadocs MUST align with the code to which they
 are related.
 
-=== Line length
+=== Line length (column limits)
 
 There MUST be no more than one statement per line.
 
 Line lengths SHOULD be limited to 80 characters (including preceding whitespace
-for indentation) and MUST NOT exceed 100 characters.
+for indentation) and SHOULD NOT exceed 100 characters. Lines that exceed the
+hard limit SHOULD be line-wrapped (see below).
+
+Package and import statements MAY exceed the column limits. Package and import
+statements MUST NOT be line-wrapped.
+
+Other code MAY exceed the column limits, but only where implementing
+line-wrapping will reduce its readability and understandability (eg. command
+lines written in a comment) or where obeying the line-length rules is simply
+not possible (eg. for long URLs in comments).
+
+=== Line-wrapping
+
+The term line-wrapping refers to the practice of breaking a single statement
+across multiple lines. This is typically done to keep line lengths short, but
+authors MAY use line-wrapping at their discretion, eg. to improve the
+readability of a piece of code even if that code does not exceed the column
+limits.
+
+There are no deterministic rules for line-wrapping in Java, but the following
+guidelines SHOULD be followed:
+
+* Look to refactor the code before line-wrapping is implemented. Can long
+  statements be broken into multiple shorter ones? Can some of the code be
+  extracted into methods?
+
+* Otherwise, prefer to break at a *higher syntactic level* rather than on
+  lower-level breaks. Examples:
+
+  ** Break _before_ non-assignment operators as well as operator-like symbols
+      such as the dot separator (`.`) and double colons for method references
+      (`::`)
+
+  ** Break _after_ assignment operators.
+
+  ** Break _after_ the arrow in a lambda expression if the lambda body is a
+      single un-braced statement.
+
+  ** Commas SHOULD stay attached to the token that precedes them.
+
+  ** Constructors and method names SHOULD stay attached to their opening
+      parentheses.
+
+[source,java]
+----
+MyLambda<String, Long, Object> lambda =
+    (String label, Long value, Object obj) -> {
+      // …
+    };
+
+Predicate<String> predicate = str ->
+    longExpressionInvolving(str);
+----
+
+In line-wraps, the continuation lines SHOULD be indented by an additional
+*four spaces* – double the normal indentation level, for better clarity.
 
 === Brace style
 
+Braces MUST be used with `if`, `else`, `for`, `do`, and `while` statements,
+even when the body of the statement is empty or contains only a single
+statement.
+
+For empty block-like constructs, the block SHOULD be written as `{}` on the
+same line as the statement that opens the block.
+
+[source,java]
+----
+void doNothing() {}
+----
+
+It is also okay to use this style for empty blocks within multi-block
+statements. (This is a relaxation of the Google Java Style Guide, which
+forbids this.)
+
+[source,java]
+----
+try {
+  doSomething();
+} catch (Exception e) {}
+----
+
+For non-empty block-like structures, the K&R style – also known as "Egyptian
+brackets" – MUST be used. The rules of this style are:
+
+* No "hanging opening bracket", ie. no line break before the opening brace,
+  in most cases. The opening is placed at the end of the line that begins the
+  block-like construct.
+
+* A line break after the opening brace.
+
+* A line break before the closing brace.
+
+* A line break after the closing brace, but only if that brace terminates a
+  statement or the body of a method, constructor, or _named_ class. However,
+  `else`, `catch`, `finally`, and `while` keywords go immediately after the
+  closing brace of the preceding block.
+
+Authors MAY deviate from the K&R style where doing so improves readability
+without sacrificing consistency. For example, opening braces MAY be placed on
+a new line after very long statements, or where blocks are used only to limit
+the scope of local variables. And where a closing brace is followed by a comma,
+semicolon, or other punctuation, normally that punctuation would be placed on
+the same line as the closing brace.
+
+Examples from the Google Java Style Guide:
+
+[source,java]
+----
+return () -> {
+  while (condition()) {
+    method();
+  }
+};
+
+return new MyClass() {
+  @Override
+  public void method() {
+    if (condition()) {
+      try {
+        something();
+      } catch (ProblemException e) {
+        recover();
+      }
+    } else if (otherCondition()) {
+      somethingElse();
+    } else {
+      lastThing();
+    }
+
+    {
+      int x = foo();
+      frob(x);
+    }
+  }
+};
+----
+
+.Common brace styles
+****
 In Java code, the most common formatting options for braces are:
 
 * Kernighan and Ritchie (K&R) style.
@@ -197,20 +492,373 @@ class Example
 Of these three, it is the K&R style that is most widely used and which is the
 most widely recommended in Java coding style guides. For consistency with the
 prevailing industry standard, the K&R convention MUST be used to format braces.
+****
 
-=== Naming conventions
+=== Vertical whitespace
 
-Classes MUST be named using UpperCamelCase. Methods and variables MUST be named
-using lowerCamelCase. Constants MUST be named using ALL_CAPS_SLUGS.
+A single blank line SHOULD be included in the following scenarios between
+consecutive members or initializers of a class or other class-like constructs:
+fields, constructors, methods, nested classes, static initializers, and instance
+initializers.
 
-All code, comments, and Javadocs MUST be written in English, with American
-English preferred for spelling.
+Logical groupings of fields MAY be created by omitting blank lines between two
+or more consecutive fields.
 
-=== Class and interface declarations
+Single blank lines MAY be added wherever doing so improves the readability of
+the code (for example by using vertical whitespace to separate logical sections
+of a method) or helps to make clearer the code's structure (eg. organizing
+fields into logical groupings).
 
-Method declarations MUST be separated by a blank line.
+Multiple consecutive blank lines SHOULD NOT be included in any Java code.
 
-=== Comments
+=== Horizontal whitespace
+
+Besides what is required by the Java language, a single ASCII space character
+SHOULD appear in the following scenarios:
+
+* To separate reserved words such as `if`, `for`, and `catch`, from the opening
+  parenthesis that follows them on the same line.
+
+* To separate reserved words such as `else` and `catch` from the closing curly
+  braces that precede them on the same line.
+
+* Before most opening curly braces, with a couple of exceptions:
+
+  ** `@SomeAnnotation({a, b})`
+  ** `String[][] x = {{"foo"}};`
+
+* Between the type and variable of a declaration: `List<String> list`.
+
+* Inside the curly braces of an array initializer: `new int[] { 1, 2, 3 }`.
+
+* After `,`, `;`, and `:`.
+
+* After the closing parenthesis of a cast.
+
+* On both sides of binary and ternary operators.
+
+* Around the following operator-like symbols:
+
+  ** The ampersand in a conjunctive type bound: `<T extends Foo & Bar>`.
+
+  ** The pipe for a catch block that handles multiple exceptions:
+      `catch (FooException | BarException e)`.
+
+  ** The colon (`:`) in an enhanced `for` statement.
+
+  ** The arrow in a lambda expression: `(String str) -> str.length()`
+
+* Before and after a double slash (`//`) that begins an end-of-line comments,
+  and between the double slash and the code where this comment notation is
+  used to comment-out code.
+
+Authors MAY include additional spaces before end-of-line comments to achieve
+vertical alignment.
+
+[source,java]
+----
+System.out.println(sorted);   // [15, 23, 51, 80]
+System.out.println(unsorted); // [80, 51, 23, 15]
+----
+
+But in general, whitespace SHOULD NOT be used to achieve vertical alignment
+of code. Though such formatting can help to improve the readability of code, it
+brings other problems, notably increased risk of merge conflicts in version
+control (because more code tends to get pulled into each refactoring).
+
+There MUST NOT be any superfluous whitespace at the end of lines. It is
+strongly RECOMMENDED to configure both IDEs and automation pipelines to
+automatically remove trailing whitespace, which can otherwise creep in as a
+byproduct of refactoring and can produce unnecessary diffs in version control.
+
+== Import statements
+
+Wildcard imports, static or otherwise, SHOULD NOT be used.
+
+Imports SHOULD be grouped by:
+
+* Static imports.
+* Non-static imports.
+
+There SHOULD be exactly one blank line between the two groups to separate them.
+Within each group, imports SHOULD be sorted alphabetically based on the names
+of the imports. There SHOULD NOT be any other blank lines between import
+statements.
+
+Import statements SHOULD NOT be line-wrapped. Import statements MAY exceed the
+column limits.
+
+Static import SHOULD NOT be used for static nested classes. They SHOULD be
+imported with normal imports.
+
+== Variable declarations
+
+Each variable declaration (field or local) MUST be on its own line and declare
+exactly one variable. Declarations such as `int a, b;` MUST NOT be used, except
+in the header of a `for` loop.
+
+Local variables SHOULD NOT be habitually declared at the beginning of their
+containing block. Instead, local variables SHOULD be declared close to the point
+they are first used. The aim is to minimize the scope of variables.
+
+Local variable declarations SHOULD typically have initializers, or SHOULD be
+initialized immediately after the declaration.
+
+== Classes and interfaces
+
+There SHOULD be a logical ordering to the contents of classes and other
+class-like constructs. There is no single "correct" ordering that works well
+for all classes, but the following order is a good starting point:
+
+1. Class (`static`) variables
+2. Instance variables
+3. Constructors
+4. Methods
+
+Class and instance fields MAY be ordered by visibility: first public, then
+protected, then package-scoped (no modifier), then private.
+
+But methods SHOULD be ordered and grouped logically, rather than by visibility
+(public, protected, private), type (static, instance), or by name (eg.
+alphabetical ordering).
+
+Authors MAY deviate from this order if it makes sense for the class in question,
+ie. if it improves understanding of the class's purpose and logic.
+
+The only REQUIREMENT is that methods of a class that share the same name (but
+have different parameters) MUST be grouped together. This rule also applies to
+variadic constructors.
+
+Constructor and method declarations MUST be separated by a blank line. Constants
+and fields MAY be. (See below for more information on vertical whitespace.)
+
+== Enums
+
+An enum class with no methods and no documentation on its constants MAY be
+formatted as a single line, similar to an array initialize.
+
+[source,java]
+----
+private enum Suit { CLUBS, HEARTS, SPADES, DIAMONDS }
+----
+
+Otherwise, the enum constants SHOULD be listed on separate lines, with a comma
+after each constant, and the opening brace on the same line as the enum name.
+There SHOULD NOT be any blank lines within enum bodies, except where required
+around comments.
+
+[source,java]
+----
+private enum Answer {
+  YES {
+    @Override
+    public String toString() {
+      return "yes";
+    }
+  },
+  NO,
+  MAYBE
+}
+----
+
+== Modifiers
+
+Class and member modifiers, when present, SHOULD appear in the order recommended
+by the Java Language Specification, which is:
+
+----
+public protected private abstract default static final transient volatile synchronized native strictfp
+----
+
+For classes, the `public` access modifier MUST be added only if the class is
+intended to be used outside of its package.
+
+For members, access modifiers SHOULD be added in most cases. It is good practice
+to be explicit about the access level of class methods and data members. Omitted
+access modifiers are a code smell (but not an anti-pattern, because there will
+always be use cases where the default access level is appropriate).
+
+Most instance variables SHOULD be `private`, to adhere to the principle of data
+hiding. Methods, most of the time, will be `public`, unless the method is intended
+to be used only within the current class or a derived classes, in which case it
+SHOULD be `protected` (or `private` on `final` classes).
+
+== Annotations
+
+Type-use annotations MUST appear immediately before the type they are
+annotating. (An annotation is a type-use annotation if it is meta-annotated
+with `@Target(ElementType.TYPE_USE)`.)
+
+[source,java]
+----
+final @Nullable String name;
+
+public @Nullable Person getPersonByName(String name);
+----
+
+Other annotations MUST appear on the line above the annotated construct.
+
+Annotations applying to a class MUST appear immediately after any Javadoc
+or other block-level comments for the class. Each class annotation MUST be
+listed on a separate line.
+
+[source,java]
+----
+@Deprecated
+@CheckReturnValue
+public final class Frozzler {
+  // …
+}
+----
+
+The rules for method and constructor annotations are the same.
+
+[source,java]
+----
+@Deprecated
+@Override
+public String getNameIfPresent() {
+  // …
+}
+----
+
+Annotations applying to a field SHOULD appear immediately after any adjoining
+documentation block, but in this case multiple annotations (even paramterized
+ones) MAY be listed on the same line.
+
+[source,java]
+----
+@Partial @Mock DataLoader loader;
+----
+
+There are no specific rules for formatting annotations on parameters or local
+variables.
+
+=== `@Override`
+
+The `@Override` annotation MUST be used on all methods that are intended to
+override a method in a superclass or an interface.
+
+There is one exception: `@Override` MAY be omitted when the parent method is
+`@Deprecated`.
+
+== Static members
+
+References to static class members MUST be qualified with the name of the class,
+not with a reference or expression of that class's type.
+
+[source,java]
+----
+Foo myFoo = new Foo();
+
+Foo.doSomething(); // Good
+myFoo.doSomething(); // Bad
+somethingThatReturnsFoo().doSomething(); // Very bad
+----
+
+== Exceptions
+
+It is very rarely correct to do nothing in response to a caught exception.
+Where you do this, the reason MUST be documented in a comment within the
+`catch` block.
+
+[source,java]
+----
+try {
+  int i = Integer.parseInt(response);
+  return handleNumericResponse(i);
+} catch (NumberFormatException ok) {
+  /* It's not numeric; that's fine, just continue. */
+}
+
+return handleTextResponse(response);
+----
+
+In tests, the following is a very common idiom for ensuring that the code
+under test _does_ throw an exception of the `expected` type. A comment within
+the `catch` block is not necessary here.
+
+[source,java]
+----
+try {
+  emptyStack.pop();
+  fail();
+} catch (NoSuchElementException expected) {
+}
+----
+
+== Switch statements
+
+After a switch label (`case <label>:`, `default:`), there SHOULD be a line
+break, and then the indentation increased by one level (ie. two spaces) for
+the statement group.
+
+The comment `// fall through` SHOULD be included at the bottom of any
+statement group where execution will or _might_ continue into the next
+statement group. This special comment is NOT REQUIRED for the last
+statement group. It is also NOT REQUIRED for empty statement groups.
+
+[source,java]
+----
+switch (input) {
+  case 1:
+  case 2:
+    prepareOneOrTwo();
+    // fall through
+  case 3:
+    handleOneTwoOrThree();
+    break;
+  default:
+    handleLargeNumber(input);
+}
+----
+
+Each switch statement MUST include a `default` statement group, even if it
+has no code. Only a switch statement for an `enum` type MAY omit the `default`
+statement group, and only if it includes explicit cases that cover all possible
+values of the type (this enables static analysis tools to issue warnings if
+cases are missed).
+
+== Numeric literals
+
+An uppercase `L` suffix MUST be used for long literals, eg. `3000000000L`,
+not `3000000000l`. This is because the lowercase `l` can be easily confused
+with the digit `1`.
+
+== Arrays
+
+Array initializers MAY be treated as block-like constructs. The following
+styles are all valid.
+
+[source,java]
+----
+new int[] { 0, 1, 2, 3 }
+
+new int[] {
+  0, 1, 2, 3
+}
+
+new int[] {
+  0,
+  1,
+  2,
+  3
+}
+----
+
+Authors SHOULD NOT write C-style array declarations. The square brackets SHOULD
+form part of the _type_, not the _variable_:
+
+[source,java]
+----
+/* Yes. */
+String[] args
+
+/*No. */
+String args[]
+----
+
+== Comments
 
 Java supports three comment notations:
 
@@ -219,20 +867,24 @@ Java supports three comment notations:
 * `/** … */`
 
 The code below represents this style guide's RECOMMENDATIONS for using Java's
-single-line (`//`) and multi-line (`/* … */`) comment syntax. The single-line
-comment syntax is used in two use cases:
+single-line (`//`) and multi-line (`/* … */`) comment syntax. These are used
+for _implementation_ comments, while Javadoc comments (`/** … */`) are used
+for _documentation_ comments.
+
+The single-line implementation comment syntax is used in two use cases:
 
 * To comment-out code.
 
 * For short end-of-line comments that decode or explain a value assigned,
   returned, or printed by the statement.
 
-Java's multi-line comment syntax, `/* … */`, SHOULD in fact be used for both
-single-line and multi-line comments. For short comments that can fit between
-the indentation level and the soft line limit, the opening `/*` and closing
-`*/` SHOULD be written on the same line as the comment. As soon as the comment
-text needs to be wrapped to two or more lines, the opening `/*` and closing
-`*/` SHOULD also be bumped to their own lines, too.
+Java's multi-line implementation comment syntax, `/* … */`, SHOULD in fact be
+used for both single-line and multi-line implementation comments. For short
+comments that can fit between the indentation level and the soft line limit,
+the opening `/*` and closing `*/` SHOULD be written on the same line as the
+comment. As soon as the comment text needs to be wrapped to two or more lines,
+the opening `/*` and closing `*/` SHOULD also be bumped to their own lines,
+too.
 
 [source,java]
 ----
@@ -266,36 +918,116 @@ then the code or value. Where the multi-line comment syntax `/* … */` is used
 to encapsulate a single-line comment, there MUST be exactly one space after the
 opening `/*` and another before the closing `*/`.
 
-Multi-line comments SHOULD have an empty line both before and after the comment
-block. Optionally, additional empty lines MAY be written within the comment
-text itself, to break it out into paragraphs. This is particularly beneficial
-for the readability of very long comments.
+Block-level comments MUST be indented to the same level as the code to which
+they relate.
 
-All text within `/* … */` comment MUST be written in full sentences, each
+Multi-line block-level comments SHOULD have an empty line both before and after
+the comment block. Single-line block-level comments SHOULD have an empty line
+before them, and MAY have a blank line after.
+
+Optionally, additional empty lines MAY be written within the text of block-level
+comments, to break it up into paragraphs. This is particularly beneficial for
+the readability of very long comments.
+
+All text within `/* … */` comments MUST be written in full sentences, each
 starting with a capitalized word and terminated by a period (full stop).
 
-See below for further information on formatting Javadocs.
+Implementation comments SHOULD only communicate information that is not readily
+available from the code itself, but which is relevant to the understanding of
+that code. For example, implementation comments SHOULD be used to document the
+reasons behind a particular choice of design pattern that, without context,
+may seem unusual or even counterintuitive to some developers who are looking
+at the code for the first time. Implementation comments SHOULD NOT be used to
+specify the API or behavior of the code (that's the purpose of Javadocs), not
+should they be used to explain things like how to build or test the code (that
+sort of documentation is better placed in READMEs or other out-of-band
+documentation).
 
-== Access modifiers
-
-For classes, the `public` access modifier MUST be added only if the class is
-intended to be used outside of its package.
-
-For members, access modifiers SHOULD be added in most cases. It is good practice
-to be explicit about the access level of class methods and data members. Omitted
-access modifiers are a code smell (but not an anti-pattern, because there will
-always be use cases where the default access level is appropriate).
-
-Most instance variables SHOULD be `private`, to adhere to the principle of data
-hiding. Methods, most of the time, will be `public`, unless the method is intended
-to be used only within the current class or a derived classes, in which case it
-SHOULD be `protected` (or `private` on `final` classes).
-
-== Javadoc
+=== Javadoc
 
 Javadoc comments are used to document the internal API of a Java program. They
 are parsed by various tools, including those embedded in IDEs, to generate
 developer documentation.
+
+[IMPORTANT]
+======
+Javadoc is used to document the purpose, behavior, specification, and usage of
+program elements.
+
+Javadoc is a developer tool, intended to help yourself and other developers to
+understand, maintain, change, and extend the code. Javadoc MUST NOT be used
+to document implementation details, such as the algorithms used in a method.
+Standard comments MUST be used for that purpose.
+======
+
+Javadoc SHOULD be used to document all `public` classes and every `public` or
+`protected` member of such classes. Javadoc MAY be skipped for methods that
+override a supertype method that is already documented; the supertype method's
+documentation is inherited.
+
+Additional Javadoc content MAY be added to other block-level constructs, as
+needed or desired. Javadoc content SHOULD NOT duplicate the information encoded
+in method names or signatures, or other adjacent code. This is redundant:
+
+[source,java]
+----
+/**
+ * Returns the canonical name of this object.
+ */
+public string getCanonicalName() {
+  // …
+}
+----
+
+This Javadoc would be better used to explain the meaning of "canonical name"
+in this context.
+
+There are two notations for Javadocs: multi-line and single-line:
+
+[source,java]
+----
+/**
+ * Multiple lines of Javadoc text are written here,
+ * wrapped normally...
+ */
+public int method(String p1) { ... }
+
+/** An especially short bit of Javadoc. */
+----
+
+The single-line form SHOULD be used for very short comments and there are
+no block tags such as `@return`.
+
+In the multi-line form, the Javadoc content MAY be formatted into multiple
+paragraphs, with each paragraph separated by a blank line (that is, a line
+containing only the aligned leading asterisk, `*`).
+
+The first paragraph SHOULD be a brief summary fragment. This MUST be written
+as a complete sentence, but it SHOULD NOT be a detailed description.
+
+After the first summary paragraph, each subsequent paragraph MUST be prefixed
+with `<p>`, immediately before the first word and with no space between it and
+the first word. Alternatively, the `<p>` MAY be substituted for other
+block-level tags such as `<ul>`.
+
+The standard block tags are:
+
+* `@param` for method parameters.
+* `@return` for the return value of a method.
+* `@throws` for exceptions thrown by a method.
+* `@deprecated` to indicate that a method is deprecated.
+
+The block tags MUST be each written on a separate line, in the order above. All
+block tags MUST be followed by a space and then a text description. When the
+description is long, it SHOULD be wrapped with continuation lines indented four
+spaces from the position of the `@` symbol.
+
+[NOTE]
+======
+A common mistake is to use block tags in single-line Javadoc comments, eg.
+`/** @return the customer ID */`. This is invalid Javadoc syntax. This should
+be `/** Returns the customer ID. */`.
+======
 
 ''''
 
