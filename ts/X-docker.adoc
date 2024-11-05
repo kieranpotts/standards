@@ -1,1 +1,106 @@
-= TS-X Docker Standards
+= TS-X: Docker Standards
+
+This document provides guidance on building Docker containers to company
+standards.
+
+== Base images
+
+All containers SHOULD be built from our standard library of company-approved
+base images.
+
+== Build process
+
+Container builds SHOULD be designed to keep the image size to a minimum.
+
+Each instruction in a Dockerfile adds a layer to the image. You SHOULD clean up
+any artifacts you don't need before moving on to the next layer.
+
+We RECOMMEND using multi-stage builds. This design approach will help you to
+keep the layers as small as possible, and it also reduces security attack
+vectors. For more information on multi-stage builds, see the Docker Docs:
+https://docks.docker.com/build/building/multi-stage/
+
+== Image labels
+
+Image meta data SHOULD follow the Label Schema convention, which is the most
+popular Docker labelling convention:
+
+http://label-schema.org/
+
+Variables may need to be passed at runtime so that labels are up-to-date.
+
+All labels are OPTIONAL, although `org.label-schema.schema-version` is
+RECOMMENDED for all containers.
+
+.Recommended labels
+|===
+| Name | Description
+
+| `org.label-schema.build-date`
+| The date/time the image was built, formatted as per RFC 3339.
+
+| `org.label-schema.name`
+|  A human-friendly name for the image
+
+| `org.label-schema.description`
+| Text description for the image, maximum 300 characters.
+
+| `org.label-schema.vcs-url`
+| URL for code repository from which the container image was built.
+
+| `org.label-schema.vcs-ref`
+| Identifier for the version from which the container was built, eg. Git commit SHA.
+
+| `org.label-schema.version`
+| Release identifier for the contents of the image, eg. a Git branch or version tag.
+
+| `org.label-schema.schema-version`
+| THe version of Schema Label in use, usually version 1.0.
+
+| `org.label-schema.docker.cmd`
+| How to run a container based on the image, eg. `docker run -d -p 80:80 example`
+
+|===
+
+== Security
+
+Access keys and other secrets SHOULD NOT be stored within Docker containers.
+This would allow anyone with access to an image to inspect the layers and view
+the credentials.
+
+If the application requires credentials such as database passwords, these SHOULD
+be mounted at runtime.
+
+== Monitoring
+
+Application containers SHOULD contain a healthcheck, which will verify that the
+container has started and is able to execute requests.
+
+An example implementation, seen in the example below, would be a simple curl
+request against localhost, to ensure that the server returns an expected 
+message. Other healthchecks may confirm that SSL certifications are valid and
+current, and that database ports are open and responding. The specifics of the 
+check will vary by service, but it SHOULD be  simple and run frequently in 
+production.
+
+.Dockerfile with healthcheck
+[source,Dockerfile]
+----
+# Base image
+FROM registry.eu.lnrm.net/docker/images/php72 as build
+ 
+ 
+# Health Check
+HEALTHCHECK --interval=5m --timeout=3s \
+  CMD curl -f http://localhost/ || exit 1
+ 
+ 
+# Apache Entrypoint
+EXPOSE 80
+ENTRYPOINT ["/usr/sbin/apachectl", "-D", "FOREGROUND"]
+----
+
+These healthchecks SHOULD be container-specific. A container's healthcheck
+SHOULD NOT monitor the health of dependent services, such as databases. They
+should report only on the status of the container.
+
