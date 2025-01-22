@@ -2,9 +2,104 @@
 
 The following technical standards cover the use of source code management (SCM), also known as source control or version control systems.
 
-https://git-scm.com/[Git] is the _de facto_ industry standard for source control. These technical standards assume that Git is used, but any similar decentralized version control systems, such as Mercurial or Fossil, MAY be used instead.
+https://git-scm.com/[Git] is the _de facto_ industry standard for source control. These technical standards assume that Git is used, but any similar decentralized source control systems, such as Mercurial or Fossil, MAY be used instead.
 
 Source control SHOULD be tightly integrated with issue tracking. Using a combination of the two systems make it much easier to manage changes in source code and configuration. All-in-one development operations services like GitHub, GitLab, Azure DevOps, and Atlassian's software suite, provide deep integrations between source control and issue tracking out-of-the-box. See also link:./018-issue-tracking.adoc[TS-18: Issue Tracking].
 
 Source control is also the cornerstone of continuous integration and continuous delivery practices. Neither are really possible without a well-designed process for using source control systems. See also link:./018-issue-tracking.adoc[TS-20: GitHub Actions].
+
+
+== Git configuration
+
+It is RECOMMENDED that developers set the following configurations in their user-level `.gitconfig` file.
+
+=== `core.autocrlf`
+
+[source,ini]
+----
+[core]
+  autocrlf = false
+----
+
+This setting tells Git to not transform line endings to CRLF when files are checked out from a remote repository to a local repository on a Windows system. Doing such a transformation is unnecessary since all modern code editors can be configured to support Unix line endings (LF), and this can also be enforced at the repository-level using tools like https://editorconfig.org/[EditorConfig].
+
+=== `core.eol`
+
+[source,ini]
+----
+[core]
+  eol = lf
+----
+
+This setting tells Git to normalize line endings to the Unix standard (LF) on all files that Git auto-detects as being text-based. This is equivalent to adding the following rule to `.gitattributes`.
+
+[source,ini]
+----
+* text=auto eol=lf
+----
+
+=== `init.defaultBranch`
+
+The branching-and-working described in this technical standards recommends the use of a default branch named `dev`. The following setting will tell Git to use this name for the default branch (replacing `main` or `master`) whenever you create a new empty repository.
+
+[source,ini]
+----
+[init]
+  defaultBranch = dev
+----
+
+This option can also be set via the installation wizard for Git for Windows.
+
+image::./_/git-config-001.png[This screenshot shows the option to "Change the default branch name for new repositories", with the default branch name set to "dev".]
+
+=== `pull.rebase`
+
+On `git pull` operations, it is RECOMMENDED to always rebase the current branch on top of the upstream branch after fetching. This helps to maintain a clean, linear history, and to ensure a consistent chronology of commits between local branches and the remote branches they track.
+
+But this is not Git's default out-of-the-box behavior, so to perform a pull operation with the rebase strategy you need to run the following command:
+
+[source]
+----
+$ git pull --rebase
+----
+
+You can make the `--rebase` flag the default behavior by adding the following setting to your `.gitconfig.
+
+[source,ini]
+----
+[pull]
+  rebase = true
+----
+
+Now every `git pull` operation that you run locally will use the rebase strategy, as though you had explicitly provided the `--rebase` option.
+
+[NOTE]
+======
+Even with this option set in your `.gitconfig`, this may not change the default behavior of Git GUIs such as those builds into code editors like IntelliJ or VS Code. You may need to adjust equivalent settings for your preferred Git GUIs, too.
+======
+
+An alternative strategy is to use the `--ff-only` flag on `git pull` operations.
+
+[source]
+----
+$ git pull --ff-only
+----
+
+This ensures that the current branch will be fast-forwarded to the upstream branch, and there will not be an explicit merge commit. If there is divergent work in the upstream branch, the pull operation will fail, forcing you to do an initial `git rebase` on the upstream branch.
+
+The end result is the same: a linear commit history is maintained, and the chronology remains consistent between local branches and the remote branches they track.
+
+If you prefer the fast-forward-only strategy, you make the `--ff-only` option the default for all `git pull` operations by using the following configuration.
+
+[source,ini]
+----
+[pull]
+  ff = only
+----
+
+This option overrides both the `pull.rebase` and `merge.ff` options.
+
+Both strategies – rebase or fast-forward-only – can be enabled via the installation wizard for Git for Windows.
+
+image::./_/git-config-002.png[This screenshot shows the option to "Rebase the current branch onto the fetched branch. If there are no local commits to rebase, this is equivalent to a fast-forward."]
 
