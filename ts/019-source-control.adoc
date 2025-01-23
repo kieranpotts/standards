@@ -230,3 +230,105 @@ zeus__website--db
 zeus__website--infra
 ----
 
+=== Preparing new repositories
+
+To prepare new Git repositories, it is RECOMMENDED to first create the upstream reference repository. This is done via GitHub, or what Git hosting service is being used.
+
+Clone the reference repository on your local machine. It is RECOMMENDED to use the SSH protocol. Example:
+
+----
+$ git clone git@github.com:/[team]/[repo].git
+----
+
+Alternatively, create an empty directory on your computer, change to that empty directory, and then initialize a blank Git repository within it.
+
+----
+$ mkdir [repo]
+$ cd [repo]
+$ git init
+----
+
+When you directly `git clone` an upstream repository, Git assigns the identifier "origin" to reference the upstream repository from where the clone originated. This doesn't happen when you initialize a Git repository from scratch, so you must run the following command to manually configure the location of the upstream repository.
+
+----
+$ git remote add origin git@github.com:/[team]/[repo].git
+----
+
+Before you can set up the branches, you need to have some files to commit. Start by creating the project's README.
+
+----
+$ touch README.adoc
+$ echo "= [Project Title] >> README.adoc"
+----
+
+Now stage it.
+
+----
+$ git add README.adoc
+----
+
+And commit it.
+
+----
+$ git commit -m "maintenance: add readme"
+----
+
+When you committed the README file, Git would have created a default branch called `master` or `main`, depending on how Git is configured on your computer. As per the branching conventions documented below, it is RECOMMENDED to use a default branch called `dev`. You can use the `git branch -m` command to force the current branch to be moved (ie. rename it).
+
+----
+$ git branch -m dev
+----
+
+Push the new branch up to the reference repository. Use the `--set-upstream` option, or its alias `-a`, to have the local `dev` branch track a branch of the same name in the remote repository.
+
+----
+$ git push --set-upstream|-u origin dev
+----
+
+Because this will have been the first time that anything is committed to the upstream repository, the `dev` branch should have been automatically set as the default branch. You can check this by inspecting the settings for the repository in GitHub or GitLab.
+
+These are the minimum requirements to prepare a new repository. Optionally, additional branches can be created, as required. See the *Branches* section, below, for details on OPTIONAL branches. For example, to create the `stable` branch:
+
+----
+$ git branch stable
+$ git checkout stable
+----
+
+These two commands can be combined into one:
+
+----
+$ git checkout -b stable
+----
+
+Alternatively, from Git v2.23 you can use the new `git switch` command with the `--create` or `-c` option:
+
+----
+$ git switch --create|-c stable
+----
+
+Remember to push all the branches you create into the reference repository, setting up tracking with your local repository.
+
+----
+$ git push --set-upstream|-u origin stable
+----
+
+Use the `git branch` command to view all the local branches you have created. Use the `--all` or `-a` option to view remote-tracked branches, too.
+
+----
+$ git branch --all|-a
+----
+
+=== Branch protection rules
+
+Finally, it is RECOMMENDED to configure *branch protection rules* in the reference repository. These are access controls that restrict what changes can be introduced to certain branches in the reference repository. The purpose is to prevent accidental misuse, such as pushing directly to the `stable` branch or changing the history of the `dev` branch.
+
+Branch protection rules are not a feature of Git itself, but rather are a wrapping feature provided by code repository hosting services. Branch protection rules are set up in the repository settings on GitHub or GitLab.
+
+////
+
+TODO: List recommended branch protection rules, which help to enforce the branching-and-merging strategy described below.
+
+For example, you may want to enforce the the main line tracks are protected from direct commits (and therefore changes can be added only via pull requests), that these branches cannot be deleted, and that they must have a linear commit history (which means explicit merge commits, which have two or more parent commits, will not be allowed).
+
+////
+
