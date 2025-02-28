@@ -1,2 +1,406 @@
 = TS-19: Issue Tracking
+:toc: macro
+:toc-title: Contents
+
+This technical standard defines how issues (aka. tasks, tickets, or work items) should be tracked.
+
+The purpose of issue tracking is to manage work-in-progress and to plan future work.
+
+toc::[]
+
+== Issue tracking systems
+
+Software projects MUST have an issue tracking system (aka. issue tracker).
+
+Every significant change to the source code or configuration of a software component MUST be initiated with the opening of a new issue in the issue tracker associated with the software project. The exception is for small "chores" that do not alter the configuration or behavior of the system.
+
+=== Relationship to code repositories
+
+It is best practice to have one issue tracker per source control repository. However, it is also common to have a single issue tracker that is used to manage changes across multiple source control repositories. The optimum approach will vary depending on how a software system is segmented, and how a project's development and operations teams are organized.
+
+It is RECOMMENDED to use issue trackers that are integrated with a project's upstream reference repositories. This facilitates a greater degree of automation. For example, issues can be automatically closed when their associated branches are merged. See *link:./020-source-control.adoc[TS-20: Source Control]*.
+
+=== Ownership of issue trackers
+
+Issue trackers are a development tool. Their purpose is to help manage the fine-grained nuances of development and operations tasks. For this reason, issue trackers SHOULD be owned by the development and operations teams; they SHOULD NOT be controlled by product managers, delivery managers, or other business-oriented roles.
+
+Issue trackers SHOULD NOT be used as broader project management tools. Other tools are more appropriate for planning and prioritizing business requirements, managing product roadmaps, and other product-oriented and concerns.
+
+Product managers, or other representatives of the customer or business, SHOULD NOT have write access to the issue trackers – except to log bugs and incidents, as any other user would. Tasks to track the implementation of business requirements SHOULD be added to the issue trackers by the development teams, in collaboration with product managers.
+
+== Issue types
+
+Each issue MUST be scoped to exactly one small, discrete change – an incremental update to the behavior or configuration of the system under source control, or a small iteration in its internal design (code structure, design patterns, data structures, etc.).
+
+An issue may or may not be small enough to be implemented in a single *atomic commit*. If not, an *issue branch* MAY be used to implement the changes over multiple commits. See also *link:./020-source-control.adoc[TS-20: Source Control]*.
+
+Each issue MUST clearly define the goal for implementing the change. Having a reason for every change is important for a number of reasons. Not least it helps to keep the scope of changes small and focused. To emphasize this constraint, each issue MUST be exactly one of the following types:
+
+* Bug
+* Feature
+* Improvement
+* Incident
+* Maintenance
+* Performance
+* Support
+
+Some issue tracking systems support the creation of custom issue types, each with unique input fields and templates. It is RECOMMENDED to use such features where available.
+
+=== Bug
+
+Bugs are defects, errors, or regressions in the expected behavior of a computer program, either in terms of its functionality and behaviors, or its non-functional attributes such as latency or availability. The defects are discovered in production or a production-like environment, or in a production-grade branch.
+
+Bugs are caused by changes in a program's business logic or its configuration, causing the system to behave in unintended ways, to produce incorrect results, or to otherwise not work as expected.
+
+Every identified bug MUST be logged in the issue tracker. There SHOULD be one issue per bug, unless multiple bugs are thought likely to have the same root cause then those bugs MAY be grouped into a single issue.
+
+Bug issues SHOULD capture step-by-step instructions to reproduce the error, followed by the expected versus actual outcomes of following those steps.
+
+If relevant, bug issues SHOULD also record the runtime environments in which the errors were discovered. In the context of web applications, the runtime environment is the web browser and the underlying operating system on which the browser is installed. For errors seen in remote services, it may be useful to capture the client devices used to access those services. Bug tickets should capture any other relevant materials, such as screenshots or the stderr output, and any other context that may help the development and operations teams to replicate the error.
+
+.Bug issue template
+----
+---
+name: Bug
+about: Report an error or regression in an expected behavior
+title: ""
+labels: BUG
+assignees: ""
+---
+
+## Description
+
+Write a concise description of the bug.
+
+## Steps to Reproduce
+
+1. Go to …
+2. Click on …
+3. Scroll down to …
+
+## Outcomes
+
+- **Expected**: …
+
+- **Actual**: …
+
+## Environment
+
+Please describe the environments in which you installed the software, or the client devices from which you accessed it? Example:
+
+- **OS**: [e.g. Windows 10, macOS Big Sur, Ubuntu 20.04]
+- **Browser**: [e.g. Chrome 89, Firefox 86]
+- **Version**: [e.g. 1.0.0]
+
+## Additional artifacts
+
+Please attach screenshots, stderr output, or other artifacts that may help the project's maintainers to diagnose the issue.
+----
+
+=== Feature
+
+Feature issues MUST be used to specify new or modified functionality, or to propose that existing operations or behaviors be deprecated, removed or superseded, before such changes are implemented in  the software.
+
+The purpose of functional changes is to provide specific capabilities to end users. Changes may be made to external interfaces such as APIs, CLIs and GUIs, or be scoped to internal processes or algorithms that will have an impact on the user-facing behavior of the system.
+
+If the changes do not have implications for the operations or behaviors of the system, it is not a feature. More likely, the changes being introduced qualify as a bug or improvement work (eg. refactoring).
+
+Features originate from *functional requirements (FRs)* defined as part of the *system requirements specification (SRS)*. Features SHOULD be specified using a consistent convention for *acceptance criteria*, such as user stories or use cases, which describe the features from the perspective of the users to whom they provide value. See *link:./002-requirements-specification.adoc[TS-2: Requirements Specification]*.
+
+.Feature issue template
+----
+---
+name: Feature
+about: Propose an idea for a new or improved operation or behavior
+title: ""
+labels: FEATURE
+assignees: ""
+---
+
+## Description
+
+Write a concise description of the feature you're requesting.
+
+## Use cases
+
+Explain why this feature would be useful, and how it would be used. Which users would benefit from this feature?
+
+## Benefits
+
+List the benefits of this feature, such as improved user experience, increased efficiency, or new capabilities.
+
+## Requirements
+
+Outline any specific requirements or criteria for the feature, such as performance considerations, compatibility with existing systems, or any other relevant factors.
+
+## Mock-ups
+
+If applicable, include mock-ups or other design artifacts that help to illustrate the proposed changes.
+
+## Alternatives
+
+What alternative solutions were considered, if any?
+
+## Additional notes
+
+Add any other context, background information, or references that might be helpful in understanding the requirements.
+----
+
+=== Improvement
+
+Improvement issues typically cover work to refactor code or configuration with the aim of making the system easier to further develop and maintain, without changing the existing features or performance of the system.
+
+Good architecture and clean code is the foundation on which high quality systems are built. It is necessary to continuously iterate the design of a system to support its evolving requirements. Refactoring will ultimately benefit the users and owners of the software, for example through faster delivery of features, greater robustness, and higher scalability. But the focus of this category of work is on the needs of the developers and maintainers of the software.
+
+Refactoring SHOULD be undertaken as a normal part of the implementation of features, performance enhancements, and bug fixes. This refactoring work SHOULD be scoped only to the changes necessary to support the features, performance enhancements, or bug fixes being implemented. The objective is that, after every change, the design of the system should have been iterated in such a way that it looks like it had been designed to support its current featureset from the beginning. Including refactoring work in the scope of other changes keeps the internal quality consistent over time. It also gives an accurate measure of the _true_ cost of changing the system, which in turn allows more accurate estimation of future changes.
+
+However, it is not always possible to refactor a system as features are added. Sometimes, up-front design changes are required before new features can be supported. In such cases, refactoring work SHOULD be undertaken as a separate issue, and linked to any related feature issues that are dependent upon the design changes. The purpose of improvement issues is to tack this up-front refactoring work.
+
+*Technical debt* (aka. design debt) is a popular metaphor for explaining the value of standalone refactoring work to customers.
+
+When writing an improvement ticket, consider the short-term costs and potential risks versus the longer-term benefits to be gained by implementing the proposed changes. Is there any data that can be generated to measure the impact of these changes, such as extensions to test coverage, reductions in the number of lines of code, or improvements to code complexity metrics such as Cyclomatic Complexity or NPath?
+
+.Improvement issue template
+----
+---
+name: Improvement
+about: |
+  Record design debt or suggest how the internal structure of the program might
+  be improved
+title: ""
+labels: IMPROVEMENT
+assignees: ""
+---
+
+## Description
+
+Write a concise description of the code or module that needs improvement.
+
+## Business case
+
+What is the business case for investing in this work?
+
+## Current state
+
+List the specific files or functions that are targeted for refactoring. Describe the current issues or pain points in this code, such as complexity, redundancy, or maintainability.
+
+## Goals
+
+Describe the desired state of the code after refactoring. Specify what improvements are expected, such as better maintainability, reduced code duplication, or enhanced performance.
+
+## Impact
+
+List any dependencies or other parts of the codebase that might be affected by the refactoring.
+
+## Risks
+
+Assess the potential risks associated with the refactoring, and how they will be mitigated.
+
+## Methodology
+
+Outline the steps or strategies for refactoring. This may include breaking down large functions, renaming variables, improving code structure, etc. Mention any tools or techniques that could be used during the refactoring process, such as code analysis tools or design patterns that could be used as a bridge to the new design.
+
+Suggest a testing strategy that will give sufficient confidence that the refactoring does not introduce regressions. Which tests will be the most important to protect from regressions - eg. unit, integration, or system tests? Will test coverage need to be extended beforehand? If so, which tests will need to be added?
+
+## Additional notes
+
+Add any other context, background information, or references that might be helpful in understanding the requirements.
+----
+
+=== Incident
+
+An incident is an unplanned event that leads to a disruption in the normal operations of a system in production. Incidents include outages, security breaches, and data loss. Any event that causes a production system to become unavailable, to degrade in its performance, or to otherwise not function as expected, should be recorded as an incident.
+
+Special types of issues MUST be used to track the analysis and resolution of incidents. Ideally, these tasks SHOULD be added to the issue trackers in an automated way.
+
+This issue type is relevant only to software services, and not to software-as-a-product, shrinkwrap software, libraries, or other such software components.
+
+.Incident issue template
+----
+---
+name: Incident
+about: Log an event that caused unexpected disruption to production services
+title: ""
+labels: INCIDENT
+assignees: ""
+---
+
+## Summary
+
+Write a brief summary of the incident.
+
+## Detail
+
+Write a more detailed description of the incident, including what happened, how it was discovered, and any immediate impacts.
+
+## Impact
+
+List the systems, applications, or services affected by the incident. Describe how users were impacted, eg. downtime, latency, data loss.
+
+## Timeline
+
+Record when the incident was first detected, how it was discovered (eg. through monitoring tools or user reports), and write a chronology of actions taken to address the incident.
+
+## Analysis
+
+Write an analysis of the cause of the incident. Include other contributing factors, besides the root cause.
+
+## Resolution
+
+Describe the immediate fixes applied to resolve the incident.
+
+## Communication
+
+List the stakeholders who were informed about the incident, including a summary of communications sent to users or internal teams (eg. status dashboard updates, email notifications).
+
+## Mitigation strategies
+
+Summarize the actions to be taken following the post-mortem analysis. These should be focused on long-term improvements to prevent similar incidents in the future, rather than the immediate fixes applied to resolve this particular incident.
+
+## Additional Information
+
+Add any additional information or context that may be relevant. Add links to any relevant documentation or reports related to this incident.
+----
+
+=== Maintenance
+
+Maintenance work covers any general housekeeping and _ad hoc_ chores that are necessary in the upkeep of a software system.
+
+This category of work includes the routine upgrading of dependencies and changes to the configuration of tools and infrastructure. It also includes improvements made to artifacts such as documentation, test scripts, and requirements specifications – anything except source code and configuration from which executable programs are compiled.
+
+In some cases maintenance work may involve the refactoring of source code and configuration, for example to maintain compatibility with breaking API changes in updated dependencies. If this is the case, this work might be better logged as an improvement task.
+
+.Maintenance issue template
+----
+---
+name: Maintenance
+about: |
+  Plan routine housekeeping and other tasks related to the upkeep of the
+  software system
+title: ""
+labels: MAINTENANCE
+assignees: ""
+---
+
+## Description
+
+Write a concise description of the maintenance work that needs to be done.
+
+## Priority
+
+Indicate the priority of the task – high, medium, or low.
+
+## Due
+
+What's the deadline for this, if the work needs to be completed by a specific date – eg. before EOL of a dependency.
+
+## Steps to complete
+
+1. …
+2. …
+3. …
+
+## Additional notes
+
+Add any additional information or context that might be helpful for completing the task.
+----
+
+=== Performance
+
+The user experience of a software system will be influenced by two things:
+
+1. The operations of the software, or what it does – its features.
+2. How well those operations work – its performance.
+
+While feature issues track the implementation of *functional requirements (FRs)*, a separate type of issue SHOULD be used to track the implementation of *non-functional requirement (NFRs)*, also known as quality requirements (QRs).
+
+Both FRs and NFRs originate in the *system requirements specification*. FRs describe expected operations and behaviors, while NFRs describe the constraints within which those operations are expected to perform. For example, a functional requirement may be that a system allows users to search for a product by its stock keeping unit (SKU) code, and a non-functional requirement may be that it returns search results in less than one second while supporting up to 10 concurrent searches.
+
+Non-functional attributes of a software system include availability, consistency, latency, security, and compliance requirements. These are external quality attributes of a system, because they impact the user experience. They are also dynamic quality attributes, because they emerge at runtime. By comparison, refactoring and other improvement work tends to focus on the internal, static qualities of a system – qualities that emerge at compile time (or earlier) and that impact the developer experience. The focus of improvement work is on the needs of the developers and maintainers of the software, whereas the focus of performance work is on delivering better quality user experiences.
+
+An important difference between functional and non-functional requirements is that NFRs are *cross-cutting concerns*. Their implementation tends to impact fundamentals such as internal code structure, data structures, and choices of database systems and other infrastructure. Therefore, it can be relatively more expensive to retrofit tighter non-functional requirements into an existing system, than it is to add new features. For this reason, performance constraints SHOULD be specified early in a software project's life cycle. Ideally, the up-front system design will be undertaken with an understanding of the non-functional requirements.
+
+Still, quality requirements may emerge over time. For example, as usage of a system grows, it may be necessary to support up to 1,000 concurrent searches, rather than the original 10, while still maintaining the performance target of one second in the request-response cycle. Dedicated issues SHOULD be raised to track the implementation of the necessary changes.
+
+If possible, performance issues should specify metrics against which the system can be benchmarked, such as Mean Time Between Failures (MTBF), Mean Time to Recover/Repair (MTTR), or the application's crash rate and time to recovery. More indirect measurements such as the open/close rates of incidents, and even user analytics such as shopping cart abandonment rate, may also be useful.
+
+Alternatively, it may be possible to define acceptance criteria in terms of conformance to published standards, such as the 256-bit Advanced Encryption Standard (for encrypting sensitive data in storage), 256-bit SSL/TLS encryption (for data in transit), Web Content Accessibility Guidelines (for usability), and the EU General Data Protection Regulations (for the handling of personally-identifiable data).
+
+.Performance issue template
+----
+---
+name: Performance
+about: |
+  Define parameters within which the system must perform, such as speed,
+  security, and availability
+title: ""
+labels: PERFORMANCE
+assignees: ""
+---
+
+## Description
+
+Write a concise description of the runtime performance improvements that need to be made.
+
+## Current state
+
+Describe the current state of the relevant non-functional quality attributes, such as security, scalability, reliability, latency, usability, and availability. If possible, provide current performance metrics, such as response time, throughput, CPU usage.
+
+## Desired state
+
+Define the criteria for considering the performance improvements to be successful. If possible, specify measurable performance metrics.
+
+## Proposed solutions
+
+Outline the steps or strategies for achieving the desired performance improvements. Mention any tools, techniques, or methodologies to be used, such as code profiling, load testing, refactoring, or security audits.
+
+## Impact
+
+List the components or modules that are expected to be need to be changed to achieve the desired performance improvements. Identify any dependencies that need to be considered, too.
+
+## Risks
+
+Identify potential risks and describe mitigation strategies.
+
+## Validation
+
+Describe the testing strategy that will be used to validate the improvements, eg. benchmarking, stress tests, security tests. Establish a baseline for comparison.
+
+## Additional notes
+
+Add any other context, background information, or references that might be helpful in understanding the requirements.
+----
+
+=== Support
+
+In open source software projects, support tickets may be raised by end users. Even in proprietary, distributed software-as-a-service systems, support requests may originate from downstream users in the same organization.
+
+The purpose of this type of issue is to provide a mechanism for users to request technical help, such as troubleshooting, configuration assistance, or advice on how to use the software. These types of issues may be generated automatically from helpdesk systems, or they may be raised manually by users or customer support staff.
+
+.Support issue template
+----
+---
+name: Support
+about: Request technical help
+title: ""
+labels: SUPPORT
+assignees: ""
+---
+
+## How can we help?
+
+## Checklist
+
+Please check the boxes `[x]`:
+
+- [ ] I have tried to find a solution in the documentation.
+- [ ] I have searched for similar questions in this issue tracker.
+- [ ] I have looked elsewhere online, such as StackOverflow.
+----
+
+== Epics
+
+Related issues SHOULD be linked together. Where multiple issues need to be completed to deliver value to end users, the issues SHOULD be grouped under a single parent "epic" issue.
+
+Epics MAY span multiple repositories.
 
