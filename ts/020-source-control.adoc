@@ -423,39 +423,48 @@ The smaller individual commits, the better. If your commits are too granular, yo
 
 === Commit types
 
-To help enforce the constraint of atomic commits, each commit MUST be scoped to exactly one of the following six concerns. It is expected that all changes to code and configuration can be categorized into one of these types:
+To help enforce the constraint of atomic commits, each commit MUST be scoped to exactly one of the following ten types:
 
-1. Chore
-2. Dev
-3. Feature
-4. Fix
-5. Refactor
-6. Release
+1.  *feature*
+2.  *performance*
+3.  *fix*
+4.  *dev*
+5.  *refactor*
+6.  *maintenance*
+7.  *chore*
+8.  *release*
+9.  *merge*
+10. *revert*
 
-It is expected that all changes to code and configuration can be categorized into one of these types.
+A *feature* is a change in user-facing function or operation of the software. Feature commits will typically toggle on of an external feature, such as enabling a new API endpoint. This type of commit also covers changes and extensions to existing features, and the deprecation and removal of old features.
 
-Most changes to the code and configuration of the software can be categorized as *dev* work. This covers changes to code and configuration that represent an increment toward changes to the features – operations and behaviors – of the software, but which themselves do not impact user-facing functionality or performance.
+While feature commits implement new functional requirements, *performance* commits capture the implementation of non-functional requirements. The term "performance" is used broadly here, to refer to all operational qualities, also known as quality attributes, such as security, responsiveness, reliability, resilience, and so on. Changes in performance are not necessarily experienced by users. For example, implementation of more concurrent processing may not result in measurable changes in performance from the perspective of the end user, but it may reduce operational costs for the software vendor, or bring other benefits.
 
-A *feature* is a change in user-facing functional or non-functional behaviors of the software. This category of change includes the toggling on (or off) of new external features of the system, such as the enabling of a new API endpoint, as well as the enabling of operational qualities such as improved security and resilience. This category also covers the deprecation and removal of existing features.
+A *fix* is any change that resolves some sort of bug, error, regression, or incident. It is not necessarily the case that the error was exposed to users. This type of change corrects any kind of error in the software.
 
-A *fix* is any change that resolves some sort of bug, error, regression, or incident – not necessarily a user-facing issue.
+Features, qualities, and fixes will typically be associated with issues logged in the issue tracking system. They will also be of interest to users and other stakeholders, and may therefore be recorded in user-facing artifacts such as release notes and changelogs. The remaining seven commit types capture changes that are not directly user-facing and which are mostly of interest to the developers and maintainers of the software.
 
-A *chore* is any general housekeeping, maintenance, and other work required in the upkeep of the system under source control. This covers a broad range of tasks including, but not limited to, the updating of dependencies, tooling configuration, improvements to tests, and edits to READMEs and other documentation.
+Typically, there would be a number of incremental changes to code and configuration before a feature, quality, or fix is complete and enabled in the software. These incremental steps are general *dev* work. Individual dev commits should not change the user-facing operations or performance of the software, but rather represent increments toward those changes being enabled.
 
-A *refactor* is a change that improves the format, design, or structure of code, without changing the system's operations or behavior. Refactoring of code covers automated tests and build scripts, as well as the source code and configuration for the production system.
+A *refactor* is any improvement to the formatting, design, or structure of code or configuration, without changing its features or regressing its performance. Refactoring work includes changes to automated tests and build scripts, as well as to source code and configuration.
 
-Finally, a *release* captures a set of changes made in preparation of a new software release.
+*Maintenance* commits capture changes that are required to in the upkeep of the software – to keep it in good running order. Maintenance work includes the updating of dependencies and improvements to automated tests. These tasks will typically be recurring, and they may be scheduled in advance (for example, using the issue tracking system) or triggered by external events (for example, a security scanning tool revealing a vulnerability in a dependency).
 
-[NOTE]
-======
-Semantically, some of these commit types map to issue types defined in *link:./019-issue-tracking.adoc[TS-19: Issue Tracking]*. For example, a *refactor* commit is conceptually similar to an *improvement* issue, and a *fix* commit may be associated with a *bug* ticket or *incident*.
+There also tend to be a lot of smaller housekeeping *chores* around the maintenance of a code repository, such as the updating of READMEs and changes to the configuration of CI/CD pipelines.
 
-But there is not necessarily a one-to-one mapping between commits and issues. For example, resolution of a bug may require multiple discrete fixes, and a feature may require a sequence of incremental dev changes, and perhaps some refactoring too, before the feature can be enabled for users.
-======
+Finally, a *release* captures a set of changes made in preparation of a new software release. The remaining two commit types, *merge* and *revert*, are required to capture specific Git operations.
 
 Separating discrete development concerns into separate commit objects has many advantages. For example, separating refactoring work from the implementation of functional changes will make it easier to understand the functional changes and to review them. For the same reason, two distinct refactorings SHOULD be committed separately, too.
 
-This also makes it easier to revert specific changes, which may be the quickest way to resolve a bug that has slipped through to production.
+.Relationship to issue types
+*****
+Semantically, some of these commit types map to issue types defined in *link:./019-issue-tracking.adoc[TS-19: Issue Tracking]*.
+
+For example, a *refactor* commit is conceptually similar to an *improvement* issue, and a *fix* commit may be associated with a *bug* ticket or *incident*.
+
+But there is not necessarily a one-to-one mapping between commits and issues. For example, resolution of a bug may require multiple discrete fixes, and a feature may require a sequence of incremental dev changes, and perhaps some refactoring too, before the feature can be enabled for users.
+*****
+
 
 === Commit message formats
 
@@ -508,6 +517,11 @@ b9r5y8t refactor: move openapi spec to resources directory
 c2c6a8w chore: proofread readme content
 b3e5r7t feature: enable route to openapi spec
 e3r5t7y release: v0.0.0
+
+[TIP]
+======
+Use `git log --no-merges` to see recent commits, and the particular commit message conventions for the current repository.
+======
 ----
 
 The `<type> : ` prefix in the header line MAY be omitted in repositories that contain only documentation, specifications, or other non-executable, non-software artifacts. These repositories MAY adopt their own commit messages conventions. Example:
@@ -519,7 +533,7 @@ cf16b24 ts-32: update notes on breaking changes convention
 ----
 
 ==== Breaking changes
-
+24b3g40 feature: *BREAKING* remove password field from login endpoint
 Breaking changes must be clearly signposted in the commit header. To do this, the capitalized word "BREAKING" is appended to the end of the header, demarcated from the description by a spaced hyphen. Example:
 
 ----
