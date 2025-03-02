@@ -2,52 +2,53 @@
 :toc: macro
 :toc-title: Contents
 
-The following technical standards cover the use of source code management (SCM), also known as source control or version control systems.
+This technical standard covers the use of source code management (SCM), also known as source control or version control systems.
 
 https://git-scm.com/[Git] is the _de facto_ industry standard for source control, and is strongly RECOMMENDED for use in software projects. However, similar decentralized source control systems such as https://www.mercurial-scm.org/[Mercurial] and https://fossil-scm.org/[Fossil] MAY be used instead.
 
-Source control SHOULD be integrated with issue tracking. Using a combination of the two systems makes it much easier to manage and track changes in source code and configuration. All-in-one development operations services like https://github.com/[GitHub], https://about.gitlab.com/[GitLab], https://azure.microsoft.com/en-us/products/devops/[Azure DevOps], and https://www.atlassian.com/[Atlassian]'s software suite, provide deep integrations between source control and issue tracking, and are RECOMMENDED for this reason. Alternatively, https://fossil-scm.org/[Fossil] integrates bug tracking directly in its source control system. See also *link:./019-issue-tracking.adoc[TS-19: Issue Tracking]*.
+Source control SHOULD be integrated with issue tracking. Using a combination of the two systems makes it much easier to manage and track changes in source code and configuration. All-in-one development operations services such as https://github.com/[GitHub], https://about.gitlab.com/[GitLab], https://azure.microsoft.com/en-us/products/devops/[Azure DevOps], and https://www.atlassian.com/[Atlassian]'s software suite, provide deep integrations between source control and issue tracking. https://fossil-scm.org/[Fossil] integrates bug tracking directly in its source control system. It is RECOMMENDED to use tools like these, as they allow for a higher level of automation in development and operations workflows. See also *link:./019-issue-tracking.adoc[TS-19: Issue Tracking]*.
 
 Source control is also the cornerstone of continuous integration and continuous delivery practices. Neither are really possible without a well-designed process for using source control. See also *link:./021-github-actions.adoc[TS-21: GitHub Actions]*.
 
 toc::[]
 
+== Terminology
+
+This technical standard uses railway metaphors in its explanations of branching-and-merging strategies. *Mainline tracks* are perpetual branches that represent the main line of development. Many Git workflows have just a single mainline track, which is invariably named `main`, `master`, `develop`, or `trunk`. But it is also possible, as with railway lines, to have multiple mainline tracks running alongside each other, with *merge points* along their routes where they are synchronized.
+
+Continuing the railway metaphors, *side branches* are short-lived branches that branch off the mainline tracks before merging back in later along the line. Side branches are used for parallel development of features, fixes, and other development tasks.
+
 == Objectives
 
 Git is unopinionated about how it is used. There are many different ways to organize repositories, manage branches, handle merges, and log revisions. The conventions set out in this technical standard are designed with the following objectives in mind.
 
-* *Parallel development*: One of the primary use cases for source control is to support multiple parallel work streams on the same codebase. A source control workflow should not overly restrict this, but parallel development should not be entirely unbounded, either. A well-designed source control workflow should introduce _just enough_ friction to avoid some of the risks associated with parallel development, which manifest as merge conflicts and other issues.
+* *Parallel development*: One of the primary use cases for source control is to support multiple parallel work streams on the same codebase. A source control workflow should not overly restrict this, but parallel development should not be entirely unbounded, either. A well-designed source control workflow should introduce _just enough_ friction to avoid some of the risks associated with parallel development, such as the occurrence of merge conflicts between multiple branches of diverging changes.
 
-* *Low risk*: Merge conflicts can be time-consuming to resolve and they increase the likelihood of bugs and regressions reaching production. The distributed nature of Git, which gives us the flexibility to check out and make different changes to the same files at the same time, places the responsibility on development teams to reduce the occurrence of merge conflicts. This requires careful planning of the sequencing of changes and their subsequent integration.
+* *Low risk*: Merge conflicts can be time-consuming to resolve and they increase the likelihood of bugs and regressions reaching production. They should, therefore, be avoided. But the distributed nature of Git, which gives us the flexibility to check out and make different changes to the same files at the same time, places the responsibility on development teams to reduce the occurrence of merge conflicts. This requires careful planning of the sequencing of changes and their subsequent integration.
 
-* *Keep it simple*: Software projects are more likely to be successful if the development process is robust. Robustness is achieved by keeping the process simple and intuitive. Good workflows can be repeated over and over again with low likelihood of error. Individual contributors should need to know only a small subset of `git` CLI commands, and they should need to perform only a small number of manual operations.
+* *Keep it simple*: Software projects are more likely to be successful if the development process is robust. Robustness is achieved by keeping the process simple and intuitive. Good workflows can be repeated over and over again with low likelihood of error. In practical terms, this means that individual contributors should need to know only a small subset of `git` CLI commands, and they should need to perform only a small number of manual operations.
 
-* *Continuous integration*: All work-in-progress SHOULD be integrated into shared mainline tracks at regular intervals. Ideally, the work-in-progress of each contributor should be integrated at least once a day. Side branches SHOULD be short-lived – with limited exceptions, such as for proof-of-concept development. Continuous integration has many, many benefits, one of which is to further reduce the occurrence of time-sucking merge conflicts between parallel development streams.
+* *Continuous integration*: All work-in-progress should be integrated into shared mainline tracks at regular intervals. Ideally, the work-in-progress of each individual contributor should be integrated at least once a day. This means that most side branches should be short-lived (with limited exceptions, such as for proof-of-concept development). Continuous integration has many, many benefits, one of which is to further reduce the occurrence of time-sucking merge conflicts between parallel development streams.
 
-* *Continuous delivery*: There MUST be a single mainline track, the last commit of which MUST always reference a revision of stable, production-grade artifacts. Furthermore, we MUST be able to deploy to production (or production-like environments such as staging servers or canary channels) the latest stable revision _immediately_, without even needing to wait for builds to complete or tests to pass. This constraint is intended to allow production services to be rebuilt quickly. For example, in response to an incident, a recent production release can be rolled back immediately.
+* *Continuous delivery*: It should be possible to _immediately_ deploy to production (or to production-like environments such as staging servers or canary channels) the latest stable revision of the software under source control. Production deployments should be fast and highly automated. It should not be necessary to wait for builds to complete or tests to pass. This allows production services to be rebuilt quickly. For example, fast rollbacks can be done in response to incidents.
 
-* *Continuous deployment*: Continuous deployment is not appropriate for every software product, but where it is appropriate we SHOULD deploy changes to all production and production-like environments frequently. We certainly MUST avoid big bang releases, by shipping lots of smaller, incremental changes instead. Our target is for the last commit of the stable branch to never be more than one week older than any other commit in any other branch. Shipping to production regularly reduces the risk of regressions and makes it easier to identify the root cause of any issues that do arise in production (because the last release's diff is always small).
+* *Continuous deployment*: Continuous deployment is not appropriate for every software product, but where it is appropriate the source control workflow needs to support frequent deployments to production (or other production-like environments). The aim is to avoid big bang releases. Instead, a continuous deployment process ships lots and lots of very small changes. Shipping to production regularly reduces risks of regressions and incidents, and makes it easier to identify the root cause of any issues that do arise in production (because the last release's diff is always small).
 
-* *Fast rollback*: Continuous deployment also requires fast reproducibility of _prior_ versions. If an incident occurs in production after a release, we MUST be able to rollback to the last known good version _as quickly as possible_, and with a high degree of confidence that the rollback will be successful. This depends on prior versions maintaining stability indefinitely. A goal of this source control workflow is to be able to recreate a system, or any prior version of it, at any time.
+* *Fast rollback*: Continuous deployment also requires fast reproducibility of _prior_ versions of the software under source control. If an incident occurs in production after a release, it needs to be easy to rollback to the last known good version _as quickly as possible_, and with a high degree of confidence that the rollback will be successful. This process should be automated as much as reasonably possible. The alternative, to fix forward, always requires some degree of manual labour, and can therefore never be as automated as rollbacks. Fast rollbacks depend on prior versions maintaining stability indefinitely. In other words, it should be possible to recreate _any prior version_ of a system, at any time now or in the future.
 
-* *Fast feedback*: Besides continuous integration, delivery, and deployment, our source control workflow MUST support a high degree of automation throughout the development and operations processes. In particular, we are interested in using tools to get fast feedback on the quality of our evolving software. It is RECOMMENDED that both static and runtime tests be run on every commit, rather than be delayed until the point of integration (this recommendation may be relaxed to reduce excessive devops infrastructure costs).
+* *Fast feedback*: The source control workflow should support the automated use of tools that give us fast feedback on the _quality_ of our evolving software. Static and runtime tests should be run on every commit, rather than be delayed until the point of integration. (This constraint may be relaxed to reduce excessive devops infrastructure costs.)
 
-* *Quality gates*: Out-of-the-box, the source control workflow should be lightweight and as frictionless as possible. But the trick to optimizing development velocity is to build in _just enough_ friction to maintain stability in the evolving software. After all, development velocity will decrease if the quality of the system is allowed to incrementally deteriorate. So, the source control workflow should be designed to maximize the utility of Git's lightweight branching and merging operations, but also to allow quality gates to be added as appropriate for each project.
+* *Automation*: Source control workflows should be designed to support a high degree of automation of other recurring development and operations procedures. For example, we should be able ot easily automate repetitive tasks such as the generation of release notes and changelogs, the bumping of version numbers, the management of secrets and feature flags, and so on. Automation is a key enabler of our ability to deliver software quickly and safely. It reduces the risk of human error and allows us to focus on the problem-solving and creative aspects of our work, and less on the mundane bits. Automation increases productivity and makes development work more enjoyable and rewarding. To optimize the potential for automation, sufficient metadata needs to be embedded in commit objects, branches, and tags.
 
-* *Automation*: We SHOULD also automate repetitive tasks such as the generation of release notes and changelogs, the bumping of version numbers, the management of secrets and feature flags, and so on. Automation is a key enabler of our ability to deliver software quickly and safely. It reduces the risk of human error and allows us to focus on the problem-solving and creative aspects of our work, and less on the mundane bits. Automation increases productivity and makes development work more enjoyable and rewarding. To optimize the potential for automation, sufficient metadata needs to be embedded in commit objects, branches, and tags.
+* *Quality gates*: Out-of-the-box, a source control workflow should be lightweight and as frictionless as possible. But the trick to optimizing development velocity is to build in _just enough_ friction to maintain stability in the evolving software. After all, development velocity will decrease if the quality of the system is allowed to incrementally deteriorate. A source control workflow should be designed to maximize the utility of Git's lightweight branching and merging operations, but also to allow quality gates to be added as appropriate for each project.
 
-* *Provenance*: Each and every feature in our production services MUST be traceable back to a business requirement, bug report, or incident that initiated them. We can achieve this by tightly integrating our source control and issue tracking systems. If we enforce a strict two-way binding between tasks in the issue tracker and changes in the source control system, we'll be able to query Git for all changes related to a particular issue, and we'll be able to query the issue tracking system for all requirements related to particular changes logged in a repository's revision history.
+* *Provenance*: Each and every feature deployed to production should be traceable back to a business requirement, bug report, or incident that initiated the change. This can be achieved by tightly integrating the source control and issue tracking systems. If we enforce a strict two-way binding between tasks in the issue tracker and changes in the source control system, we'll be able to query Git for all changes related to a particular issue, and we'll be able to query the issue tracking system for all requirements related to particular changes logged in a repository's revision history.
 
-* *Clean history*: The output from `git log` MUST produce a clean and meaningful changelog, with clearly signposted release points. This log output MUST be both human-readable and machine-parsable, so changelogs can be auto-generated in other presentation formats such as web pages. This is necessary to be able to meet the previous objectives of automation and provenance. More than this, a repository's log is an important artifact in its own right. Clean code and clean logs complement each other. A clean codebase helps to understand the current state of a system, but this is only a snapshot in time. A clean commit log gives us visibility of a project's history, and so helps us to understand the context in which the current code exists.
+* *Clean history*: The output from `git log` should produce a clean and meaningful changelog, with clearly signposted release points. This log output should be both human-readable and machine-parsable, so changelogs can be auto-generated in other presentation formats such as web pages. This is necessary to be able to meet the previous objectives of automation and provenance. More than this, a repository's log is an important artifact in its own right. Clean code and clean logs complement each other. A clean codebase helps to understand the current state of a system, but this is only a snapshot in time. A clean commit log gives us visibility of a project's history, and so helps us to understand the context in which the current code exists.
 
 * *Scalable*: Finally, it should be possible to scale the Git workflow from small hobby-scale projects to large-scale enterprise applications. The idea is that a baseline workflow – which requires just a single branch – can be incrementally extended with opt-in features and procedures, as necessary to scale a project.
 
-Not all of these objectives can be met exclusively through design of the source control workflow. For example, achieving continuous integration and delivery, and especially continuous deployment, has implications for the design of the software system under source control itself. It will certainly be necessary to integrate into the software some kind of feature flag system, for example.
-
-[IMPORTANT]
-======
-Some aspects of these objectives are covered by *link:./031-releasing.adoc[TS-31: Releasing]*.
-======
+Not all of these objectives can be met exclusively through design of the source control workflow. For example, there are implications for the architecture of a software solution. Achieving continuous integration and delivery, and especially continuous deployment, will require some kind of feature flag system to be built-in to the software, for example. Other aspects of these objectives are covered by *link:./031-releasing.adoc[TS-31: Releasing]*.
 
 == Git configuration
 
@@ -61,7 +62,7 @@ It is RECOMMENDED that developers set the following configurations in their user
   autocrlf = false
 ----
 
-This setting tells Git to not transform line endings to CRLF when files are checked out from a remote repository to a local repository on a Windows system. Doing such a transformation is unnecessary since all modern code editors can be configured to support Unix line endings (LF), and this can also be enforced at the repository-level using tools like https://editorconfig.org/[EditorConfig].
+This setting tells Git not to transform line endings to CRLF (Windows' native line ending format) when files are checked out from a remote repository to a local repository on a Windows system. Doing such a transformation is unnecessary since all modern code editors can be configured to support Unix line endings (LF), and this can also be enforced at the repository-level using tools like https://editorconfig.org/[EditorConfig].
 
 === core.eol
 
@@ -80,7 +81,7 @@ This setting tells Git to normalize line endings to the Unix standard (LF) on al
 
 === init.defaultBranch
 
-The branching-and-merging workflow described in this technical standards recommends the use of a default branch named `dev`. The following setting will tell Git to use this name for the default branch (replacing `main` or `master`) whenever you create a new empty repository.
+The branching-and-merging workflow described in this technical standard recommends the use of a default branch named `dev` (or `latest/dev` where multiple software versions are maintained in parallel). The following setting will tell Git to use this name for the default branch (replacing `main` or `master`) whenever you initialize (`git init`) a new repository.
 
 [source,ini]
 ----
@@ -96,13 +97,13 @@ image::./_/git-config-001.png[This screenshot shows the option to "Change the de
 
 On `git pull` operations, it is RECOMMENDED to always rebase the current branch on top of the upstream branch after fetching. This helps to maintain a clean, linear history, and to ensure a consistent chronology of commits between local branches and the remote branches they track.
 
-But this is not Git's default behavior, so to perform a pull operation with the rebase strategy you need to run the following command:
+But this is not Git's default behavior, so to perform a pull operation with the rebase strategy you need to explicitly add the `--rebase` flag:
 
 ----
 $ git pull --rebase
 ----
 
-You can make the `--rebase` flag the default behavior by adding the following setting to your `.gitconfig.
+You can make the `--rebase` flag the default behavior by adding the following setting to your `.gitconfig`:
 
 [source,ini]
 ----
@@ -112,11 +113,6 @@ You can make the `--rebase` flag the default behavior by adding the following se
 
 Now every `git pull` operation that you run locally will use the rebase strategy, as though you had explicitly provided the `--rebase` option.
 
-[NOTE]
-======
-Even with this option set in your `.gitconfig`, this may not change the default behavior of Git GUIs such as those built into code editors like IntelliJ or VS Code. You may need to adjust equivalent settings for your preferred Git GUIs, too.
-======
-
 An alternative strategy is to use the `--ff-only` flag on `git pull` operations.
 
 [source]
@@ -124,11 +120,9 @@ An alternative strategy is to use the `--ff-only` flag on `git pull` operations.
 $ git pull --ff-only
 ----
 
-This ensures that the current branch will be fast-forwarded to the upstream branch, and there will not be an explicit merge commit. If there is divergent work in the upstream branch, the pull operation will fail, forcing you to do an initial `git rebase` on the upstream branch.
+This ensures that the local branch will be fast-forwarded to the upstream branch, and there will not be an explicit merge commit added to the local branch. If there is divergent work in the upstream branch, the pull operation will simply fail, forcing you to do an initial `git rebase` on the upstream branch. The end result is the same: a linear commit history is maintained, and the chronology remains consistent between local branches and the remote branches they track.
 
-The end result is the same: a linear commit history is maintained, and the chronology remains consistent between local branches and the remote branches they track.
-
-If you prefer the fast-forward-only strategy, you can make the `--ff-only` option the default for all `git pull` operations by using the following configuration.
+If you prefer the fast-forward-only strategy, you can make the `--ff-only` option the default for all `git pull` operations by using the following configuration. This option overrides both the `pull.rebase` and `merge.ff` options.
 
 [source,ini]
 ----
@@ -136,11 +130,14 @@ If you prefer the fast-forward-only strategy, you can make the `--ff-only` optio
   ff = only
 ----
 
-This option overrides both the `pull.rebase` and `merge.ff` options.
-
 Both strategies – rebase or fast-forward-only – can be enabled via the installation wizard for Git for Windows.
 
 image::./_/git-config-002.png[This screenshot shows the option to "Rebase the current branch onto the fetched branch. If there are no local commits to rebase, this is equivalent to a fast-forward.", width=500]
+
+[NOTE]
+======
+Even with these options set in your `.gitconfig`, this may not change the default behavior of Git GUIs, such as those built into code editors like IntelliJ or VS Code. You may need to adjust equivalent settings for the Git GUIs you use, too.
+======
 
 == Repositories
 
@@ -150,7 +147,7 @@ For each repository, there MUST be a single centralized repository that is the "
 
 All contributors MUST implement changes in copies of the reference repository, which are downloaded ("cloned" in Git-speak) to the developers' local development environments. These clones are called *local repositories* or *downstream repositories*.
 
-For public open source software projects, some contributors will have read-only access to the reference repository. In this case, the contributors must fork the reference repository to another upstream repository under their control, before cloning their fork to their local development environment. This is known as the *fork-and-clone workflow*.
+For public open source software projects, some contributors will have read-only access to the reference repository. In this case, the external contributors must fork the reference repository to another upstream repository under their control, before cloning their fork to their local development environment. This is known as the *fork-and-clone workflow*.
 
 The reference repository and its forks are collectively known as *upstream repositories*. The upstream repositories are hosted on central servers, usually managed by a hosting service provider such as GitHub or GitLab.
 
@@ -170,9 +167,9 @@ Within multi-team organizations, the boundaries of repositories should also map 
 
 === Mono-repos
 
-The scope of a repository SHOULD correspond to the boundaries of a discrete software component. That component MAY be part of a wider system of components, perhaps a distributed system, but each repository MUST encapsulate _one or more_ components that can be started and run together, without requiring other components or dependencies from other repositories to be presents.
+The scope of a repository SHOULD correspond to the boundaries of a discrete software component. That component MAY be part of a wider system of components, perhaps a distributed system, but each repository MUST encapsulate _one or more_ components that can be started and run together, without requiring other components or dependencies from other repositories to be present.
 
-Mono-repos MAY be used to encapsulate two or more related software components, and mono-repos are REQUIRED where two or more software components are so tightly coupled that they must always coexist – ie. the components must be used together, or built, run, tested, and deployed together.
+Mono-repos MAY be used to encapsulate two or more related software components. Mono-repos are REQUIRED where two or more software components are so tightly coupled that they must always coexist – ie. the components must be built, run, tested, and deployed together.
 
 Keeping coupled components together means that changes to one component can be easily made in the context of the other components that depend on it. This can help to manage breaking changes, and it maintains the principle of each repository encapsulating everything that is needed to build, run, test, and deploy a complete working application (even if that application is actually one subsystem of a larger distributed application).
 
@@ -204,7 +201,7 @@ A clear repository naming convention, standardized across teams and projects, ma
 
 It is RECOMMENDED to:
 
-* Prefix repositories with the name of the team, subdomain, or project. Betters still, use internal codenames to identify projects, which will not change even if a team name changes, or if the public-facing branding for a product changes. So, for the website for a product branded "Initech", the repository name might be `zeus__website`.
+* Prefix repositories with the name of the team, subdomain, or project. Betters still, use internal codenames to identify projects, which will not change even if a team name changes or if the public-facing branding of a product changes. For example, a repository named `zeus_website` may encapsulate the source code for a website for a company called "Initech", where "zeus" is the internal codename for that company. The company can changes its brand name and you won't need to update lots of code and configuration to reflect that change.
 
 * For repositories that are not scoped to any particular project or team, but which are relevant to the whole organization, use a generic prefix like `common__`, `shared__`, or `global__`, or the name of the organization itself.
 
@@ -230,7 +227,7 @@ zeus__website--infra
 
 === Preparing new repositories
 
-To prepare new Git repositories, it is RECOMMENDED to first create the upstream reference repository. This is done via GitHub, or what Git hosting service is being used.
+To prepare new Git repositories, it is RECOMMENDED to first create the upstream reference repository. This is done via GitHub, or whatever Git hosting service is being used.
 
 Clone the reference repository on your local machine. It is RECOMMENDED to use the SSH protocol. Example:
 
@@ -271,7 +268,7 @@ And commit it.
 $ git commit -m "chore: add readme"
 ----
 
-When you committed the README file, Git would have created a default branch called `master` or `main`, depending on how Git is configured on your computer. As per the branching conventions documented below, it is RECOMMENDED to use a default branch called `dev`. You can use the `git branch -m` command to force the current branch to be moved (ie. rename it).
+When you committed the README file, Git would have created a default branch called `master` or `main`, depending on how Git is configured on your computer. As per the branching conventions documented below, it is RECOMMENDED to use a default branch called `dev` (or `latest/dev` if multiple versions of the software will need to be maintained in parallel, eg. for long-term support). You can use the `git branch -m` command to force the current branch to be moved (ie. renaming it).
 
 ----
 $ git branch -m dev
@@ -285,29 +282,29 @@ $ git push --set-upstream|-u origin dev
 
 Because this will have been the first time that anything is committed to the upstream repository, the `dev` branch should have been automatically set as the default branch. You can check this by inspecting the settings for the repository in GitHub or GitLab.
 
-These are the minimum requirements to prepare a new repository. Optionally, additional branches can be created, as required. See the *Branches* section, below, for details on OPTIONAL branches. For example, to create the `stable` branch:
+These are the minimum requirements to prepare a new repository. Optionally, additional branches can be created, as required. See the *Branches* section, below, for details on OPTIONAL branches. For example, to create the production branch:
 
 ----
-$ git branch stable
-$ git checkout stable
+$ git branch prod
+$ git checkout prod
 ----
 
 These two commands can be combined into one:
 
 ----
-$ git checkout -b stable
+$ git checkout -b prod
 ----
 
 Alternatively, from Git v2.23 you can use the new `git switch` command with the `--create` or `-c` option:
 
 ----
-$ git switch --create|-c stable
+$ git switch --create|-c prod
 ----
 
 Remember to push all the branches you create into the reference repository, setting up tracking with your local repository.
 
 ----
-$ git push --set-upstream|-u origin stable
+$ git push --set-upstream|-u origin prod
 ----
 
 Use the `git branch` command to view all the local branches you have created. Use the `--all` or `-a` option to view remote-tracked branches, too.
@@ -318,7 +315,7 @@ $ git branch --all|-a
 
 === Branch protection rules
 
-Finally, it is RECOMMENDED to configure *branch protection rules* in the reference repository. These are access controls that restrict what changes can be introduced to certain branches in the reference repository. The purpose is to prevent accidental misuse, such as pushing directly to the `stable` branch or changing the history of the `dev` branch.
+Finally, it is RECOMMENDED to configure *branch protection rules* in the reference repository. These are access controls that restrict what changes can be introduced to certain branches in the reference repository. The purpose is to prevent accidental misuse, such as pushing directly to the `prod` branch or changing the history of the `dev` branch.
 
 Branch protection rules are not a feature of Git itself, but rather are a wrapping feature provided by code repository hosting services. Branch protection rules are set up in the repository settings on GitHub or GitLab.
 
