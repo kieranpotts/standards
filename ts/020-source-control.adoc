@@ -4,31 +4,31 @@
 
 The following technical standards cover the use of source code management (SCM), also known as source control or version control systems.
 
-https://git-scm.com/[Git] is the _de facto_ industry standard for source control. These technical standards assume that Git is used, but any similar decentralized source control systems, such as Mercurial or Fossil, MAY be used instead.
+https://git-scm.com/[Git] is the _de facto_ industry standard for source control, and is strongly RECOMMENDED for use in software projects. However, similar decentralized source control systems such as https://www.mercurial-scm.org/[Mercurial] and https://fossil-scm.org/[Fossil] MAY be used instead.
 
-Source control SHOULD be tightly integrated with issue tracking. Using a combination of the two systems make it much easier to manage changes in source code and configuration. All-in-one development operations services like GitHub, GitLab, Azure DevOps, and Atlassian's software suite, provide deep integrations between source control and issue tracking out-of-the-box. See also *link:./019-issue-tracking.adoc[TS-19: Issue Tracking]*.
+Source control SHOULD be integrated with issue tracking. Using a combination of the two systems makes it much easier to manage and track changes in source code and configuration. All-in-one development operations services like https://github.com/[GitHub], https://about.gitlab.com/[GitLab], https://azure.microsoft.com/en-us/products/devops/[Azure DevOps], and https://www.atlassian.com/[Atlassian]'s software suite, provide deep integrations between source control and issue tracking, and are RECOMMENDED for this reason. Alternatively, https://fossil-scm.org/[Fossil] integrates bug tracking directly in its source control system. See also *link:./019-issue-tracking.adoc[TS-19: Issue Tracking]*.
 
-Source control is also the cornerstone of continuous integration and continuous delivery practices. Neither are really possible without a well-designed process for using source control systems. See also *link:./021-github-actions.adoc[TS-21: GitHub Actions]*.
+Source control is also the cornerstone of continuous integration and continuous delivery practices. Neither are really possible without a well-designed process for using source control. See also *link:./021-github-actions.adoc[TS-21: GitHub Actions]*.
 
 toc::[]
 
 == Objectives
 
-Git is unopinionated about how it is used. There are many different ways to organize repositories, manage branches, handle merges, and to log revisions. The conventions set out in this technical standard are designed with the following objectives in mind.
+Git is unopinionated about how it is used. There are many different ways to organize repositories, manage branches, handle merges, and log revisions. The conventions set out in this technical standard are designed with the following objectives in mind.
 
-* *Parallel development*: One of the primary use cases for source control systems is to support multiple parallel work streams on the same codebase. The source control workflow should not overly restrict this, but parallel development should not be entirely unbounded, either. A well-designed source control workflow should introduce just enough friction to avoid some of the risks associated with parallel development, notably the costs of merge conflicts.
+* *Parallel development*: One of the primary use cases for source control is to support multiple parallel work streams on the same codebase. A source control workflow should not overly restrict this, but parallel development should not be entirely unbounded, either. A well-designed source control workflow should introduce _just enough_ friction to avoid some of the risks associated with parallel development, which manifest as merge conflicts and other issues.
 
 * *Low risk*: Merge conflicts can be time-consuming to resolve and they increase the likelihood of bugs and regressions reaching production. The distributed nature of Git, which gives us the flexibility to check out and make different changes to the same files at the same time, places the responsibility on development teams to reduce the occurrence of merge conflicts. This requires careful planning of the sequencing of changes and their subsequent integration.
 
-* *Keep it simple*: Software projects are more likely to be successful if the development process is robust. And robustness is achieved by keeping the process simple and intuitive. Good workflows can be repeated over and over again with low likelihood of error. Contributors should need to know only a small subset of `git` CLI commands, and they should need to perform only a small number of manual operations.
+* *Keep it simple*: Software projects are more likely to be successful if the development process is robust. Robustness is achieved by keeping the process simple and intuitive. Good workflows can be repeated over and over again with low likelihood of error. Individual contributors should need to know only a small subset of `git` CLI commands, and they should need to perform only a small number of manual operations.
 
-* *Continuous integration*: All work-in-progress SHOULD be integrated into shared mainline tracks at regular intervals, ideally at least once a day. Side branches SHOULD be short-lived – with limited exceptions, such as for proof-of-concept development. Continuous integration has many, many benefits, one of which is to further reduce the occurrence of time-sucking merge conflicts between parallel development streams.
+* *Continuous integration*: All work-in-progress SHOULD be integrated into shared mainline tracks at regular intervals. Ideally, the work-in-progress of each contributor should be integrated at least once a day. Side branches SHOULD be short-lived – with limited exceptions, such as for proof-of-concept development. Continuous integration has many, many benefits, one of which is to further reduce the occurrence of time-sucking merge conflicts between parallel development streams.
 
 * *Continuous delivery*: There MUST be a single mainline track, the last commit of which MUST always reference a revision of stable, production-grade artifacts. Furthermore, we MUST be able to deploy to production (or production-like environments such as staging servers or canary channels) the latest stable revision _immediately_, without even needing to wait for builds to complete or tests to pass. This constraint is intended to allow production services to be rebuilt quickly. For example, in response to an incident, a recent production release can be rolled back immediately.
 
 * *Continuous deployment*: Continuous deployment is not appropriate for every software product, but where it is appropriate we SHOULD deploy changes to all production and production-like environments frequently. We certainly MUST avoid big bang releases, by shipping lots of smaller, incremental changes instead. Our target is for the last commit of the stable branch to never be more than one week older than any other commit in any other branch. Shipping to production regularly reduces the risk of regressions and makes it easier to identify the root cause of any issues that do arise in production (because the last release's diff is always small).
 
-* *Fast rollback*: Continuous deployment also requires fast reproducibility of _prior_ versions. If an incident occurs in production after a release, we MUST be able to rollback to the last known good version _as quickly as possible_, and with a high degree of confidence that the rollback will work and the prior version will still be stable. A goal of this source control workflow is to be able to recreate a system, or any prior version of it, at any time.
+* *Fast rollback*: Continuous deployment also requires fast reproducibility of _prior_ versions. If an incident occurs in production after a release, we MUST be able to rollback to the last known good version _as quickly as possible_, and with a high degree of confidence that the rollback will be successful. This depends on prior versions maintaining stability indefinitely. A goal of this source control workflow is to be able to recreate a system, or any prior version of it, at any time.
 
 * *Fast feedback*: Besides continuous integration, delivery, and deployment, our source control workflow MUST support a high degree of automation throughout the development and operations processes. In particular, we are interested in using tools to get fast feedback on the quality of our evolving software. It is RECOMMENDED that both static and runtime tests be run on every commit, rather than be delayed until the point of integration (this recommendation may be relaxed to reduce excessive devops infrastructure costs).
 
@@ -80,7 +80,7 @@ This setting tells Git to normalize line endings to the Unix standard (LF) on al
 
 === init.defaultBranch
 
-The branching-and-working described in this technical standards recommends the use of a default branch named `dev`. The following setting will tell Git to use this name for the default branch (replacing `main` or `master`) whenever you create a new empty repository.
+The branching-and-merging workflow described in this technical standards recommends the use of a default branch named `dev`. The following setting will tell Git to use this name for the default branch (replacing `main` or `master`) whenever you create a new empty repository.
 
 [source,ini]
 ----
@@ -96,7 +96,7 @@ image::./_/git-config-001.png[This screenshot shows the option to "Change the de
 
 On `git pull` operations, it is RECOMMENDED to always rebase the current branch on top of the upstream branch after fetching. This helps to maintain a clean, linear history, and to ensure a consistent chronology of commits between local branches and the remote branches they track.
 
-But this is not Git's default out-of-the-box behavior, so to perform a pull operation with the rebase strategy you need to run the following command:
+But this is not Git's default behavior, so to perform a pull operation with the rebase strategy you need to run the following command:
 
 ----
 $ git pull --rebase
@@ -114,7 +114,7 @@ Now every `git pull` operation that you run locally will use the rebase strategy
 
 [NOTE]
 ======
-Even with this option set in your `.gitconfig`, this may not change the default behavior of Git GUIs such as those builds into code editors like IntelliJ or VS Code. You may need to adjust equivalent settings for your preferred Git GUIs, too.
+Even with this option set in your `.gitconfig`, this may not change the default behavior of Git GUIs such as those built into code editors like IntelliJ or VS Code. You may need to adjust equivalent settings for your preferred Git GUIs, too.
 ======
 
 An alternative strategy is to use the `--ff-only` flag on `git pull` operations.
@@ -128,7 +128,7 @@ This ensures that the current branch will be fast-forwarded to the upstream bran
 
 The end result is the same: a linear commit history is maintained, and the chronology remains consistent between local branches and the remote branches they track.
 
-If you prefer the fast-forward-only strategy, you make the `--ff-only` option the default for all `git pull` operations by using the following configuration.
+If you prefer the fast-forward-only strategy, you can make the `--ff-only` option the default for all `git pull` operations by using the following configuration.
 
 [source,ini]
 ----
@@ -148,27 +148,25 @@ All changes in code and configuration MUST be captured in a source code manageme
 
 For each repository, there MUST be a single centralized repository that is the "source of truth" for the codebase. This is known as the *reference repository*.
 
-All contributors MUST implement changes in copies of the reference repository, which are downloaded ("cloned" in Git-speak) to the developers' local development environments. These clones are called *local repositories*.
+All contributors MUST implement changes in copies of the reference repository, which are downloaded ("cloned" in Git-speak) to the developers' local development environments. These clones are called *local repositories* or *downstream repositories*.
 
 For public open source software projects, some contributors will have read-only access to the reference repository. In this case, the contributors must fork the reference repository to another upstream repository under their control, before cloning their fork to their local development environment. This is known as the *fork-and-clone workflow*.
 
 The reference repository and its forks are collectively known as *upstream repositories*. The upstream repositories are hosted on central servers, usually managed by a hosting service provider such as GitHub or GitLab.
 
-Local repositories, which are cloned from the upstream repositories, are known as *downstream repositories*.
-
 A local repository provides an isolated development environment, allowing multiple contributors to work in parallel. Changes MUST be committed first to local repositories before they are synchronized with ("pushed" to) the upstream reference repositories they track.
 
-=== Repository scope
-
-The boundaries of code repositories SHOULD NOT be arbitrary. A repository is not merely a container for a random assortment of code. Rather, the boundaries of repositories SHOULD reflect the boundaries of software components – whether software applications, services, or libraries – with a repository encapsulating all relevant application code and configuration, tests, requirements specifications, developer documentation and user documentation, infrastructure configuration, and any other artifacts that are relevant to a single component.
-
-Within multi-team organizations, the boundaries of repositories should also map to the boundaries of responsibilities of teams. Each repository SHOULD be owned by exactly one team. One team MAY own more than one repository, but all repositories under a single team's ownership SHOULD be closely related (eg. fall under the same bounded context).
-
-The goal of this constraint is for a developer to be able to check out a repository, run some scripts contained within the repository, and have a complete working application running in a local development environment (also configured in the repository) without any external dependencies. In addition, a developer SHOULD be able to checkout any version from a repository's history and be able to build, run, test, and deploy that version – again, without relying on any external dependencies that are not configured at the same version point in the same repository.
+The goal of these constraints is for developers to be able to check out a repository, run some scripts contained within the repository, and have a complete working application running in their local development environments (also configured in the repository) without any external dependencies. In addition, developers SHOULD be able to checkout any version from a repository's history and be able to build, run, test, and deploy that version – again, without relying on any external dependencies that are not configured at the same version point in the same repository.
 
 Thus, if an application calls other external systems or services, the application MUST operate without error when those external systems are unavailable. It SHOULD also be possible to run the application in "development mode" or "test mode", which mocks all those external dependencies.
 
 These constraints ensure the reproducibility of builds and deployments, supporting continuous deployment and automated rollback practices. For the ultimate guarantees over stability of prior releases, development teams may consider checking in all local dependencies to source control, instead of relying on a checked-in package manager configuration to be able to recreate such dependencies in the future.
+
+=== Repository scope
+
+The boundaries of code repositories SHOULD NOT be arbitrary. A repository is not merely a container for a random assortment of code. Rather, the boundaries of repositories SHOULD reflect the boundaries of software components – applications, services, or libraries – with a repository encapsulating all relevant application code and configuration, tests, requirements specifications, developer documentation, user documentation, infrastructure configuration, and any other artifacts that are relevant to that software component.
+
+Within multi-team organizations, the boundaries of repositories should also map to the boundaries of responsibilities of the teams. Each repository SHOULD be owned by exactly one team. One team MAY own more than one repository, but all repositories under a single team's ownership SHOULD be closely related (eg. fall under the same bounded context).
 
 === Mono-repos
 
@@ -270,7 +268,7 @@ $ git add README.adoc
 And commit it.
 
 ----
-$ git commit -m "maintenance: add readme"
+$ git commit -m "chore: add readme"
 ----
 
 When you committed the README file, Git would have created a default branch called `master` or `main`, depending on how Git is configured on your computer. As per the branching conventions documented below, it is RECOMMENDED to use a default branch called `dev`. You can use the `git branch -m` command to force the current branch to be moved (ie. rename it).
@@ -400,28 +398,32 @@ Different branch types represent different stages of the software development an
 
 == Committing
 
+The following is a guide to the best practices for committing changes to a source code repository.
+
 === Atomic commits
 
 The foundation of a clean and searchable commit log is the concept of atomic commits.
 
-An atomic commit is a small, self-contained, incremental change to the codebase that does not break the build or tests. A commit does not necessarily represent a "complete" feature or fix, but it does represent a small logical step toward that goal.
+An atomic commit is a small, self-contained, incremental change to a codebase that does not break the build or tests. A commit does not necessarily represent a "complete" feature or fix, but it does represent a small logical step toward that goal.
 
 When implementing changes, developers SHOULD commit one small change at a time. Large changes SHOULD be split into smaller partial, but stable, changes. Lots of small, discrete changes are  preferred to a smaller number of large, monolithic changes.
 
 Each commit SHOULD be a coherent change. A commit SHOULD be scoped to a single concern and technology layer. For example, database schema changes SHOULD be committed separately from application code changes, and back-end service changes SHOULD be committed separately from front-end GUI changes, and so on.
 
-In each commit, tests SHOULD pass and the build SHOULD succeed. This means avoiding commits that "fix the tests that were broken in the previous commit". However, issue branches MAY be used to implement changes, and these MAY break the rules for commit messages, as long as the commits are eventually fixed up, for example by using squashing, `git commit --amend`, interactive rebasing, or other techniques for rewriting commit histories.
+In each commit, tests SHOULD pass and the build SHOULD succeed. This means avoiding commits that "fix the tests that were broken in the previous commit".
 
 [quote, The Git project]
 ____
 Each commit is a minimal coherent idea.
 ____
 
-Small, incremental changes are easier to understand. They make it easier to track the history of the codebase and to identify the purpose of each change.
+Small, incremental changes are easier to understand when it comes to code review. They also make it easier to track the history of the codebase and to identify the purpose of each change.
 
 Atomic commits also allow for continuous integration. Small, incremental, stable changes can be regularly integrated into shared mainline tracks, reducing the risk of integration issues and conflicts. Where issue branches are used to implement changes, it is RECOMMENDED that those branches be merged or squashed into the development branch at least once per day.
 
-The smaller individual commits, the better. If your commits are too granular, you can always squash them together. But it is harder to do the opposite: splitting a large commit into smaller ones.
+Atomic commits also make it easier to revert specific changes – and "fixing forward" by adding revert commits is often the quickest way to resolve production issues.
+
+The smaller individual commits, the better. If your commits are too granular, you can always squash them together. But it is harder to do the opposite, to split a large commit into smaller ones.
 
 === Commit types
 
