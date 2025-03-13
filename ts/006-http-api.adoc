@@ -293,13 +293,40 @@ There are two ways to update resources:
 * Using `PUT` to fully replace the resource.
 * Using `PATCH` to partially update the resource.
 
-In both cases, the shape of the input data SHOULD be consistent with the shape of the resource representation returned by the API via the corresponding GET requests.
+In both cases, the shape of the input data SHOULD be consistent with the shape of the resource representation returned by the API via the corresponding GET requests. The only difference is that `PATCH` may submit fewer fields — essentially a diff of what's changed since the last `GET`.
 
-For `PUT` requests, system-calculated values such as `create_time` and `update_time` SHOULD be optional and SHOULD be ignored on deserialization by the server. For `PATCH` requests, clients SHOULD be expected to omit these fields from the request body.
+For `PUT` requests, system-calculated values such as `create_time` and `update_time` SHOULD be optional and SHOULD be ignored on deserialization by the server. For `PATCH` requests, clients SHOULD be expected to omit these fields from the request body, and the server SHOULD return `400 Bad Request` if they are included.
 
 .URI template
 ----
 PUT|PATCH /v[major]/[namespace]/[resource]/[resource_id]
+----
+
+Alternatively, standards such as https://datatracker.ietf.org/doc/html/rfc6902[JSON Patch] MAY be implemented for PATCH requests. Rather than sending a partial representation of the resource, clients instead send a list of operations to be made on particular members or fields of the resource — identified by a "path". The supported operations are "add", "remove", "replace", "move", "copy", and "test".
+
+[source,http]
+----
+PATCH /widgets/abc123 HTTP/1.1
+Host: api.example.com
+Content-Length: ...
+Content-Type: application/json-patch
+
+[
+  {
+    "op": "replace",
+    "path": "/a/b/c",
+    "value": 42
+  },
+  {
+    "op": "remove",
+    "path": "/a/b/c"
+  },
+  {
+    "op": "move",
+    "from": "/a/b/c",
+    "path": "/a/b/d"
+  }
+]
 ----
 
 In most use cases, after a successful update, both `PUT` and `PATCH` operations SHOULD respond with `204 No Content` status, with no response body. However, there may be use cases where it is preferable to return `200 OK` with an updated resource in the response body. For example, this may be required where clients need updates to system-calculated fields.
