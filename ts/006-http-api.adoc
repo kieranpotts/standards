@@ -6,6 +6,8 @@ This document outlines standards for designing and implementing HTTP APIs.
 
 These standards are applicable to both private HTTP APIs between services within distributed software systems ("inter-service communication protocols") and to public HTTP APIs that are made available for integration into client applications ("web services").
 
+In this technical standard, URIs containing variable blocks are specified according to https://tools.ietf.org/html/rfc6570[IETF RFC 6570: URI Template]. For example, a URL containing a variable called `account_id` would be shown as `https://api.example.com/v1/accounts/{account_id}`.
+
 toc::[]
 
 == General design consideration
@@ -152,7 +154,7 @@ The first segment of the URI path SHOULD be `/v{major}` where `{major}` is the m
 
 === Namespaces
 
-The next part of the URI path SHOULD be treated as a "namespace" in which related resources will be grouped. Namespaces SHOULD reflect the customer's perspective of how the product works, which may not necessarily reflect the scope and boundaries of the back-end services that will be responsible for fulfilling requests for different resources.
+The next part of the URI path SHOULD be treated as a "namespace" in which related resources will be grouped. Namespaces SHOULD reflect the customer's perspective of how the product works, and SHOULD map to a domain or sub-domain. Namespaces are used to create logical groups of resources, collections, and actions. But they do not necessarily map directly to modules or back-end services that are responsible for fulfilling requests.
 
 .Template
 ----
@@ -263,15 +265,61 @@ GET /v1/vault/credit-cards
 
 === Pagination
 
-Pages of results SHOULD be referred to consistently by the query parameters `page` and `page_size`, where `page_size` refers to the amount of results per response, and `page` refers to the requested page (which starts at page 1, not page zero).
+Any collection that could contain a large, potentially unbounded list of resources SHOULD implement pagination using the patterns described below.
 
-Additionally, responses SHOULD include `total_items` and `total_pages` where possible. `total_items` indicates then total number of items in the collection, and `total_pages` is the number of pages (interpolated from `total_items`/`page_size`).
+----
+/accounts?page_size={page_size}&page={page}
+----
 
-Hypermedia links SHOULD be included in paginated collections, as they make it easier for clients to navigate through collections. The `page` and `page_size` query parameters, inputted by the client, MUST be maintained for each link, to enable consistent client behavior. Links SHOULD be provided with `rel` attributes for "next", "previous", "first", and "last" pages.
+Pages of results SHOULD be referred to consistently by the query parameters `page` and `page_size`, where `page_size` is a non-zero positive integer representing the number of results per response, and `page` is a number of 1 or more that represents the requested page.
+
+The `page_size` query parameter SHOULD be optional. If not provided by the client, the server should fallback to a sensible, specified default.
+
+The `page` query parameter SHOULD also be optional. If not provided by the client, the server should return the first page of results (ie. the default value for `page` is 1).
+
+The values of both `page` and `page_size` MUST be validated by the server. A `400 Bad Request` SHOULD be returned for semantically invalid values. If the requested range if outside of the available range of results (eg. `page_size=100&page=2` is requested but there are only 50 results) a `200 OK` response SHOULD be returned with an empty result list, not a `404 Not Found`.
+
+In certain cases, such as querying on a large data set, in order to optimize the query execution while paginating, querying and retrieving the data based on the result set of the previous page might be appropriate. A `page_token` parameter MAY be used for this purpose. This could be, for example, an encrypted value of primary keys to navigate to the next and previous pages, along with directions.
+
+Additionally, responses MAY include `total_items` and `total_pages` metadata fields. `total_items` indicates then total number of items in the collection, and `total_pages` is the number of pages (interpolated from `total_items`/`page_size`). This will help clients to implement better user experiences, for example by disabling navigation to pages that are outside of the available range. Where providing the `total_items` and `total_pages` requires expensive queries on the server-side, the client SHOULD be able to opt-in to receiving this information using a query parameter, for example `?include_totals=true`.
+
+Hypermedia links with `rel` attributes for "next", "previous", "first", and "last" pages SHOULD be included in paginated collections, to make it easier for clients to navigate through collections. The `page` and `page_size` query parameters, inputted by the client, MUST be maintained for each link, to ensure consistent client behavior.
+
+.Page navigation
+|===
+|Relationship |Description
+
+|`self`
+|Refers to the current page of the result list.
+
+|`first`
+|Refers to the first page of the result list. This link type MUST NOT be returned when page tokens are used instead.
+
+|`last`
+|Refers to to the last page of the result list. Returning this link is OPTIONAL, but it MUST be included if the client explicitly requests the server to "include totals". This link type MUST NOT be returned when page tokens are used instead.
+
+|`next`
+|Refers to the next page of the result list. This link MAY be omitted if it is known that the current page is the last in the available range (but note that this is not always known, because available resources may dynamically change between requests).
+
+|`prev`
+|Refers to the previous page of the result list. This link MUST NOT be provided where the current page is the first.
+|===
 
 === Filtering
 
-If time selection is needed, `start_time` or `{property_name}_after`, and `end_time` or `{property_name}_before` query parameters SHOULD be supported. These parameters SHOULD be used consistently across different endpoints.
+Collections MAY be filtered by default. For example, resources to which a user is not authorized to access MUST NOT be included in a collection. If all resources in a collection are not authorized, returning a `403 Forbidden` response would be appropriate.
+
+Additional, optional filtering may be applied by clients using query parameters.
+
+==== Time selection
+
+Query parameters with regard to time range MAY be used to select a subset of resources in the following manner:
+
+* `start_time` or `{property_name}_after`: An ISO-8601 date and time string that represents the start of a temporaal range. `start_time` may be used when there is only one unambiguous time dimension, otherwise the property name should be used, eg, `processed_after`, `uploaded_after`. THe property SHOULD map to a time field in the representation.
+
+* `end_time` or `{property_name}_before`: An ISO-8601 date and time string indicating the end of a temporal range. `end_time` may be used when there is only one unambiguous time dimension, otherwise the property name should be used, eg. `processed_before`, `uploaded_before`. The property SHOULD map to a time field in the representation.
+
+These query parameters SHOULD be used consistently across all endpoints that support time-based filtering.
 
 === Searching
 
@@ -279,7 +327,15 @@ Search query parameters MAY be supported on collections, to allow clients to fil
 
 === Sorting
 
-`sort_by` and `sort_order` can be provided to allow for collection results ot be sorted. The `sort_by` field SHOULD be a field that exists within the individual resources of the collection, and `sort_order` SHOULD be either "asc" or "desc".
+Results could be ordered according to sorting-related instructions given by the client. This includes sorting by a specific field's value, and sorting order.
+
+The following URI parameters SHOULD be used for this purpose:
+
+* `sort_by`: A dimension by which items should be sorted. The dimensions SHOULD be an attribute in the item's representation.
+
+* `sort_order`: The order, one of "asc" or "desc", indicating ascending or descending order.
+
+The default sort field and sort order MUST be documented for each collection. All collections have a default sorting, except in use cases where the order is deliberately randomized (if so, this still needs to be specified).
 
 === HTTP statuses
 
@@ -384,13 +440,13 @@ There are two ways to create resources:
 POST|PUT /v{major}/{namespace}/{resource}/{resource_id}
 ----
 
-`PUT` operations are idempotent by default, because the request payload has a built-in unique identifier in the form of the resource ID.
+`PUT` operations are idempotent by default, because the request payload has a built-in unique identifier in the form of the resource ID, generated by the client.
 
 `POST` operations are not idempotent by default, and therefore there is risk that duplicates of the same resource may be created if the client retries a `POST` request. Where it is necessary to prevent this, clients MUST include a unique identifier for the _request_ message (eg. `request_id`). The server will use the request ID to make sure it processes only the first instance that it receives of each distinct request.
 
-For `PUT` requests, system-calculated values such as `create_time` and `update_time` SHOULD be made optional and SHOULD be ignored on deserialization by the server. For `POST` requests, clients SHOULD be expected to omit these fields from the request body.
+For `PUT` requests, system-calculated values such as `create_time` and `update_time` SHOULD be made optional and SHOULD be ignored on deserialization by the server. For `POST` requests, clients SHOULD be expected to omit these fields from the request body, and therefore the server SHOULD return `400 Bad Request` when such fields are included in the request content.
 
-Otherwise, both operations SHOULD behave in the same way. Both `POST` and `PUT` payloads MAY include only a subset of input fields (only the required fields, for example), with the server filling in optional fields with default values.
+Otherwise, both operations SHOULD behave in the same way. Both `POST` and `PUT` payloads MAY include only a subset of input fields (only the required fields, for example), with the server filling in optional fields with default values. The number of required fields SHOULD be minimized as much as reasonably possible for the business case.
 
 For both `POST` and `PUT` creation operations, successful outcomes MUST be signalled by a `201 Created` response, and a representation of the created resource MUST be returned in the response body — including any server-generated fields such as `create_time`.
 
