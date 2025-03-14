@@ -2,7 +2,9 @@
 :toc: macro
 :toc-title: Contents
 
-This document outlines standards for designing and implementing HTTP APIs. These standards are applicable to private HTTP APIs between services within distributed software systems ("inter-service communication protocols"), and public HTTP APIs that are made available for integration into client applications ("web services").
+This document outlines standards for designing and implementing HTTP APIs.
+
+These standards are applicable to both private HTTP APIs between services within distributed software systems ("inter-service communication protocols") and to public HTTP APIs that are made available for integration into client applications ("web services").
 
 toc::[]
 
@@ -16,116 +18,126 @@ Authentication and authorization is especially important for operations that mod
 
 All input MUST be validated and sanitized to prevent security vulnerabilities such as SQL injection, cross-site scripting (XSS), and cross-site request forgery (CSRF).
 
-Security measures MUST be implemented for both public and private APIs. Do not assume that private internal networks are secure.
+Security measures MUST be implemented for both public and private APIs.
+
+[IMPORTANT]
+======
+Do not assume that private/internal networks are secure.
+======
 
 == HTTP methods
 
-HTTP methods define actions to be performed on a resource, which is identified by the request URI. HTTP methods MUST be used for their designated purpose as specified by the HTTP standards. This aids in clarity of the API and makes it easier for client applications to integrate with the API.
+HTTP methods define actions to be performed on a resource.
 
-The following HTTP methods MUST be used:
+HTTP methods MUST be used for their designated purpose, as specified by the HTTP standards. This will make it much easier for client applications to be integrated with the API.
+
+HTTP APIs MUST use only the following subset of standard HTTP methods:
 
 |===
-|Verb |CRUD usage |Idempotent |Description
+|Verb |CRUD usage |Description
 
 |GET
 |Read
-|Yes
-|Used to retrieve the requested resource, identified by its URL. GET operations MUST NOT modify the state of the resource, and there MUST NOT be any other side effects.
+|Used to retrieve the requested resource. GET operations MUST NOT modify the state of the resource, and there MUST NOT be any other side effects.
+
+|HEAD
+|Read
+|Used to retrieve the only the headers of the resource, without the body.
 
 |POST
 |Create
-|No
 |Used to create a new resource. The server MUST generate a new resource identifier and return it in the response.
 
 |PUT
 |Create/Update
-|Yes
-|Used to fully replace a resource with the request payload. The request payload MUST contain the complete representation of the new version of the resource. Can also be used for creation when the client provides the resource identifier.
+|Used to fully replace a resource with the request payload, or to create a new resource in scenarios where the client takes over responsibility from the server for generating a unique identifier for the resource.
 
 |PATCH
 |Update
-|No
 |Used for partial updates to a resource. The request payload SHOULD contain only the fields that are being updated.
 
 |DELETE
 |Delete
-|Yes
 |Used to delete a resource. Should be repeatable, always with a positive response even if the resource is already deleted.
 |===
 
+Other standard HTTP methods are `OPTIONS`, `TRACE`, and `CONNECT`. These are technical methods used to support the HTTP protocol itself, and are not intended for use in HTTP APIs.
+
 === Idempotence
 
-GET, PUT and DELETE methods are idempotent, which means that multiple identical requests MUST have the same effect as a single request.
+Operations performed on GET, HEAD, PUT, PATCH, and DELETE requests MUST be idempotent. This means that multiple identical requests MUST have the same effect on the state of the resource as a single request.
 
-POST and PATCH methods are not idempotent.
+It is RECOMMENDED that most POST operations be also implemented to support idempotency. However, there will be use cases where this is not desirable. For example, a "like" operation on a social media post may not be required to be idempotent, as the desired behavior of issuing multiple instances the same request may be to toggle the user's "like" state of the post.
 
 == HTTP response codes
 
-Appropriate HTTP response status codes MUST be used to indicate the result of API requests.
+Appropriate HTTP response status codes MUST be used to indicate the result of API requests. Using the correct codes in responses is not just about adhering to the HTTP protocol, but also about facilitating the correct interpretation of the responses by clients.
 
-There are many standardized HTTP status codes. Most APIs will need only a subset of the standard codes. The supported subset of HTTP status codes MUST be documented as part of the API's interface specification.
-
-Using the correct codes in responses is not just about adhering to the HTTP protocol, but also about facilitating the correct interpretation of the responses by clients.
-
-Commonly-used status codes include:
+There are many standardized HTTP status codes. Most APIs will need only a subset of the standard codes. The supported subset of HTTP status codes MUST be documented as part of the API's interface specification. Commonly-used status codes include:
 
 * *1xx*: Informational response codes.
 
-  ** *100 Continue**: Indicates that the initial part of the request has been received and the client should continue sending the rest of the request.
+  ** `100 Continue`: Indicates that the initial part of the request has been received and the client should continue sending the rest of the request.
 
 * *2xx*: Success response codes.
 
-  ** *200 OK*: Indicates that the request was successful. This is the most widely-used success response code.
+  ** `200 OK`: Indicates that the request was successful. This is the most widely-used success response code.
 
-  ** *201 Created*: Indicates that the request was successful and, as a result, a new resources has been created.
+  ** `201 Created`: Indicates that the request was successful and, as a result, a new resource has been created.
 
-  ** *204 No Content*: Indicates that the request was successful but there is no content to return in the response message. This status code MUST be sent with an empty HTTP message body.
+  ** `204 No Content`: Indicates that the request was successful but there is no content to return in the response message. This status code MUST be sent with an empty HTTP message body.
 
 * *3xx*: Redirection response codes.
 
-  ** *301 Moved Permanently*: Indicates that the requested URL has been changed permanently. The new URL MUST be specified in the response.
+  ** `301 Moved Permanently`: Indicates that the requested URL has been changed permanently. The new URL MUST be specified in the response.
 
-  ** *302 Found*: Indicates that the requested resource is temporarily under a different URL.
+  ** `302 Found`: Indicates that the requested resource is temporarily under a different URL.
 
 * *4xx*: Client error response codes.
 
-  ** *400 Bad Request*: Indicates that the request cannot be understood or processed by the server due to a syntax error in the client's request message.
+  ** `400 Bad Request`: Indicates that the request cannot be understood or processed by the server due to a syntax error in the client's request message.
 
-  ** *401 Unauthorized*: Indicates that the request requires authentication but the client has not authenticated itself.
+  ** `401 Unauthorized`: Indicates that the request requires authentication but the client has not authenticated itself.
 
-  ** *403 Forbidden*: Indicates that the server understood the request but is refusing to authorize access to the specific resource requested.
+  ** `403 Forbidden`: Indicates that the server understood the request but is refusing to authorize access to the specific resource requested.
 
-  ** *404 Not Found*: Indicates that the server could not find the requested resource.
+  ** `404 Not Found`: Indicates that the server could not find the requested resource.
 
-  ** *405 Method Not Allowed*: Indicates that the HTTP method used in the request is not allowed for the specified resource (but the resource exists and other methods can be run on it).
+  ** `405 Method Not Allowed`: Indicates that the HTTP method used in the request is not allowed for the specified resource (but the resource exists and other methods can be run on it).
 
 * *5xx*: Server error response codes.
 
-  ** *500 Internal Server Error*: Indicates that the server encountered a situation it doesn't know how to handle.
+  ** `500 Internal Server Error`: Indicates that the server encountered a situation it doesn't know how to handle.
 
-  ** *502 Bad Gateway*: Indicates that the server, while acting as a gateway or proxy, received an invalid response from the upstream server.
+  ** `502 Bad Gateway`: Indicates that the server, while acting as a gateway or proxy, received an invalid response from an upstream server.
 
-  ** *503 Service Unavailable*: Indicates that the server is not ready to handle the request, typically due to maintenance or overload.
+  ** `503 Service Unavailable`: Indicates that the server is not ready to handle the request, typically due to maintenance or overload.
 
 == URI components
+
+URIs identify resources, collections of resources, and actions in HTTP APIs.
 
 === Path delimiters
 
 The forward slash (`/`) character is used to delimit between path segments in URIs.
 
-Documentation SHOULD be consistent in its use of trailing slashes. It is RECOMMENDED that trailing slashes be omitted in documentation.
+API documentation SHOULD be consistent in its use of trailing slashes. It is RECOMMENDED that trailing slashes be omitted in documentation. However, an API SHOULD accept requests with or without a trailing slash, and SHOULD NOT return a redirect response to the canonical version.
 
-However, an API SHOULD accept requests with or without a trailing slash, and SHOULD NOT return a redirect response to the canonical version.
+
+.Postel's Law (the Robustness Principle)
+****
+Be liberal in what you accept, and conservative in what you send.
+****
 
 === Versioning
 
 URL-based versioning SHOULD be used for its simplicity of use for API consumers, compared to the more complex header-based approach.
 
-The first segment of the URI path SHOULD be `/v[major]` where `[major]` is the major version number of the API, eg. `/v1`.
+The first segment of the URI path SHOULD be `/v{major}` where `{major}` is the major version number of the API, eg. `/v1`.
 
 .Template
 ----
-/v[major]
+/v{major}
 ----
 
 .Example
@@ -139,7 +151,7 @@ The next part of the URI path SHOULD be treated as a "namespace" in which relate
 
 .Template
 ----
-/v[major]/[namespace]
+/v{major}/{namespace}
 ----
 
 .Example
@@ -155,29 +167,29 @@ Consistent path components SHOULD be used to refer to the same resources and col
 
 .URI templates
 ----
-GET /v[major]/[namespace]/[resource]
-GET /v[major]/[namespace]/[resource]/[resource_id]
-POST /v[major]/[namespace]/[resource]/[resource_id]
-PUT /v[major]/[namespace]/[resource]/[resource_id]
-PATCH /v[major]/[namespace]/[resource]/[resource_id]
-DELETE /v[major]/[namespace]/[resource]/[resource_id]
+GET /v{major}/{namespace}/{resource}
+GET /v{major}/{namespace}/{resource}/{resource_id}
+POST /v{major}/{namespace}/{resource}/{resource_id}
+PUT /v{major}/{namespace}/{resource}/{resource_id}
+PATCH /v{major}/{namespace}/{resource}/{resource_id}
+DELETE /v{major}/{namespace}/{resource}/{resource_id}
 ----
 
 Sub-resources and sub-collections MAY also be supported.
 
 .URI templates
 ----
-GET /v[major]/[namespace]/[resource]/[resource_id]/[sub_resource]
-GET /v[major]/[namespace]/[resource]/[resource_id]/[sub_resource]/[sub_resource_id]
-POST /v[major]/[namespace]/[resource]/[resource_id]/[sub_resource]/[sub_resource_id]
-PUT /v[major]/[namespace]/[resource]/[resource_id]/[sub_resource]/[sub_resource_id]
-PATCH /v[major]/[namespace]/[resource]/[resource_id]/[sub_resource]/[sub_resource_id]
-DELETE /v[major]/[namespace]/[resource]/[resource_id]/[sub_resource]/[sub_resource_id]
+GET /v{major}/{namespace}/{resource}/{resource_id}/{sub_resource}
+GET /v{major}/{namespace}/{resource}/{resource_id}/{sub_resource}/{sub_resource_id}
+POST /v{major}/{namespace}/{resource}/{resource_id}/{sub_resource}/{sub_resource_id}
+PUT /v{major}/{namespace}/{resource}/{resource_id}/{sub_resource}/{sub_resource_id}
+PATCH /v{major}/{namespace}/{resource}/{resource_id}/{sub_resource}/{sub_resource_id}
+DELETE /v{major}/{namespace}/{resource}/{resource_id}/{sub_resource}/{sub_resource_id}
 ----
 
 == Collections
 
-A collection is a list of multiple resources, typically of the same type, and including any related metadata.
+A collection is a list of multiple resources of the same type, and including any related metadata.
 
 Collection resources and their metadata SHOULD be named consistently across different endpoints. This allows clients to implement generic data access handling. Arrays of resources SHOULD be returned in a field named `items`. Metadata fields such as `total_items` and `total_pages` SHOULD be included in a `meta` object.
 
@@ -185,7 +197,7 @@ In cases where individual resources contain a large object, providing a summariz
 
 .URI template
 ----
-GET /v[major]/[namespace]/[resource]
+GET /v{major}/{namespace}/{resource}
 ----
 
 .Example
@@ -196,8 +208,10 @@ GET /v1/vault/credit-cards
 .Example response
 ----
 {
-  "total_items": 1,
-  "total_pages": 1,
+  "meta": {
+    "total_items": 1,
+    "total_pages": 1
+  },
   "items": [
     {
       "id": "123e4567-e89b-12d3-a456-426614174000",
@@ -242,13 +256,13 @@ GET /v1/vault/credit-cards
 
 Pages of results SHOULD be referred to consistently by the query parameters `page` and `page_size`, where `page_size` refers to the amount of results per response, and `page` refers to the requested page (which starts at page 1, not page zero).
 
-Additionally, responses SHOULD include `total_items` and `total_pages` where possible. `total_items` indicates then total number of items in the collection, and `total_pages` is the number of pages based on the current `page_size` (interpolated from `total_items`/`page_size`).
+Additionally, responses SHOULD include `total_items` and `total_pages` where possible. `total_items` indicates then total number of items in the collection, and `total_pages` is the number of pages (interpolated from `total_items`/`page_size`).
 
-Hypermedia links SHOULD be included in paginated collections, as they make it easier for clients to navigate through the collection. The `page` and `page_size` query parameters, inputted by the client, MUST be maintained for each link. Links SHOULD be provided with `rel` attributes for "next", "previous", "first", and "last" pages.
+Hypermedia links SHOULD be included in paginated collections, as they make it easier for clients to navigate through collections. The `page` and `page_size` query parameters, inputted by the client, MUST be maintained for each link, to enable consistent client behavior. Links SHOULD be provided with `rel` attributes for "next", "previous", "first", and "last" pages.
 
 === Filtering
 
-If time selection is needed, `start_time` or `[property_name]_after`, and `end_time` or `[property_name]_before` query parameters SHOULD be supported. These parameters SHOULD be used consistently across different endpoints.
+If time selection is needed, `start_time` or `{property_name}_after`, and `end_time` or `{property_name}_before` query parameters SHOULD be supported. These parameters SHOULD be used consistently across different endpoints.
 
 === Searching
 
@@ -278,13 +292,18 @@ If the provided resource identifier is not found, even if the data is "soft dele
 
 .URI template
 ----
-GET /v[major]/[namespace]/[resource]/[resource_id]
+GET /v{major}/{namespace}/{resource}/{resource_id}
 ----
 
 .Example
 ----
 GET /v1/vault/customers/123e4567-e89b-12d3-a456-426614174000
 ----
+
+.GET versus HEAD
+****
+It is RECOMMENDED that all GET endpoints — for both resources and collections — in an HTTP API also support HEAD requests. HEAD responses are identical to GET responses, except that the server MUST NOT return a message body in the response. This can be useful for clients that need to check the existence of a resource without downloading the full representation.
+****
 
 === Updating
 
@@ -299,7 +318,7 @@ For `PUT` requests, system-calculated values such as `create_time` and `update_t
 
 .URI template
 ----
-PUT|PATCH /v[major]/[namespace]/[resource]/[resource_id]
+PUT|PATCH /v{major}/{namespace}/{resource}/{resource_id}
 ----
 
 Alternatively, standards such as https://datatracker.ietf.org/doc/html/rfc6902[JSON Patch] MAY be implemented for PATCH requests. Rather than sending a partial representation of the resource, clients instead send a list of operations to be made on particular members or fields of the resource — identified by a "path". The supported operations are "add", "remove", "replace", "move", "copy", and "test".
@@ -339,7 +358,7 @@ In order to enable retries (eg. due to patchy connectivity), `DELETE` operations
 
 .URI template
 ----
-DELETE /v[major]/[namespace]/[resource]/[resource_id]
+DELETE /v{major}/{namespace}/{resource}/{resource_id}
 ----
 
 For historical reasons, many web servers and HTTP client libraries do not expect a message body to be included in HTTP messages sent using the `DELETE` method. To support the widest possible range of clients, it remains good practice to not require DELETE requests to be accompanied by a payload.
@@ -353,7 +372,7 @@ There are two ways to create resources:
 
 .URI template
 ----
-POST|PUT /v[major]/[namespace]/[resource]/[resource_id]
+POST|PUT /v{major}/{namespace}/{resource}/{resource_id}
 ----
 
 `PUT` operations are idempotent by default, because the request payload has a built-in unique identifier in the form of the resource ID.
@@ -399,25 +418,25 @@ Sub-resources and sub-collections SHOULD be used sparingly and only where they a
 
 .URI templates
 ----
-GET /v[major]/[namespace]/[resource]/[resource_id]/[sub_resource]
-GET /v[major]/[namespace]/[resource]/[resource_id]/[sub_resource]/[sub_resource_id]
-POST /v[major]/[namespace]/[resource]/[resource_id]/[sub_resource]/[sub_resource_id]
-PUT /v[major]/[namespace]/[resource]/[resource_id]/[sub_resource]/[sub_resource_id]
-PATCH /v[major]/[namespace]/[resource]/[resource_id]/[sub_resource]/[sub_resource_id]
-DELETE /v[major]/[namespace]/[resource]/[resource_id]/[sub_resource]/[sub_resource_id]
+GET /v{major}/{namespace}/{resource}/{resource_id}/{sub_resource}
+GET /v{major}/{namespace}/{resource}/{resource_id}/{sub_resource}/{sub_resource_id}
+POST /v{major}/{namespace}/{resource}/{resource_id}/{sub_resource}/{sub_resource_id}
+PUT /v{major}/{namespace}/{resource}/{resource_id}/{sub_resource}/{sub_resource_id}
+PATCH /v{major}/{namespace}/{resource}/{resource_id}/{sub_resource}/{sub_resource_id}
+DELETE /v{major}/{namespace}/{resource}/{resource_id}/{sub_resource}/{sub_resource_id}
 ----
 
 Where a resource of one type can exist independently of other resources of other types, these resources SHOULD be elevated to top-level resources in most use cases. If one type of resource cannot exist without another, this is a candidate to be lowered to a sub-resource. However, the need to encode hierarchies of resources can increase the complexity of both server-side and client-side code. So, even where there is a tight coupling between two types of resources, look to promoting dependent resources to top-level resources where practical.
 
 Try to have no more than one level of sub-resources - so, two levels of resources in total. Any more levels, and the complexity of client application code grows exponentially. Server code, too, needs to validate each level of resources, including how sub-resources related to resources, increasing code complexity.
 
-Sub-resources MUST have a named type. `/v[major]/[namespace]/[resource]/[resource_id]/[sub_resource_id]` is not acceptable because `sub_resource_id` has ambiguous meaning. Linking resource identifiers to resource types in the URL scheme also supports extensibility; other sub-resources can be more easily added in the future. This constraint also makes it easier to support different identifier naming conventions being used for different types of resources, should that be necessary.
+Sub-resources MUST have a named type. `/v{major}/{namespace}/{resource}/{resource_id}/{sub_resource_id}` is not acceptable because `sub_resource_id` has ambiguous meaning. Linking resource identifiers to resource types in the URL scheme also supports extensibility; other sub-resources can be more easily added in the future. This constraint also makes it easier to support different identifier naming conventions being used for different types of resources, should that be necessary.
 
 Sub-resources MAY be used as a solution to reducing the size of the parent resource, segmenting a single large resource into multiple smaller resources. These types of sub-resources are known as *singleton sub-resource* and are identified by a *sub-resource name* rather than a conventional identifier. There will be a one-to-one relationship between a resource and each of its singleton sub-resources. Singleton sub-resources are expected to always exist if the parent resource exists, though they may have null values. Singleton sub-resources should be named in the singular form.
 
 .Path templates
 ----
-/v[major]/[namespace]/[resource]/[resource_id]/[sub_resource]/[sub_resource_name]
+/v{major}/{namespace}/{resource}/{resource_id}/{sub_resource}/{sub_resource_name}
 ----
 
 .Example
@@ -439,17 +458,17 @@ Action names should be like function names. Use lowerCamelCase with the first se
 
 .URI template
 ----
-POST|GET /v[version]/[namespace]/[action]
+POST|GET /v{major}/{namespace}/{action}
 ----
 
 Actions and resources MAY exist in the same namespaces. However, a good practice is to create a collection of actions within each namespace, which SHOULD be named "actions".
 
 .URI template
 ----
-POST /v[version]/[namespace]/actions/[action]
+POST /v{major}/{namespace}/actions/{action}
 ----
 
-This helps to distinguish actions from resources in each namespace. In addition, a `GET /v[version]/[namespace]/actions` endpoint MAY be provided to list all available actions in a namespace, similarly to how resource collections are retrieved.
+This helps to distinguish actions from resources in each namespace. In addition, a `GET /v{major}/{namespace}/actions` endpoint MAY be provided to list all available actions in a namespace, similarly to how resource collections are retrieved.
 
 A common use case for actions is to mutate the state of multiple resources within its namespace in the same operation. These are known as *composite actions*. An example would be a "refund" action that would change the state of a payment, the customer's account, and the merchant's account, and the action would not be considered to be fulfilled until all of these changes are committed.
 
@@ -465,7 +484,7 @@ There may also be use cases for attaching actions to specific resources, or even
 
 .URI template
 ----
-POST /v[version]/[namespace]/[resource]/[resource_id]/actions/[action]
+POST /v{major}/{namespace}/{resource}/{resource_id}/actions/{action}
 ----
 
 For successfully executed actions, `204 No Content` will be the most appropriate response status code in most cases (with no body content). However, if the client needs to capture some information from the result of an action a `200 OK` response with a response body MAY be returned. Actions MUST not return updated states for any resource, but MAY return things like statuses for discrete operations such as a payment transaction.
@@ -478,7 +497,9 @@ However, for most HTTP APIs, not everything fits neatly into the RESTful archite
 
 The preference is to design as much of an API as possible around a resource-oriented model, and augment the API with actions where specific operations do not fit neatly into that model. We should not try to force everything into the resource model just for the sake of purity of the API design.
 
+== Content
 
+The content or payload of an HTTP request or response message SHOULD be in the JSON format, for the majority of regular use cases. JSON is natively supported by most modern programming languages, it is human-readable as well as machine parsable, and has become the _de facto_ standard for encoding data in HTTP APIs.
 
 
 
