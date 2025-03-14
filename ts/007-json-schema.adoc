@@ -13,3 +13,308 @@ API developers are encourage to use the library of common types "as is". However
 * Use the `allOf` keyword from http://json-schema.org/latest/json-schema-validation.html#anchor82[JSON Schema Draft 4]. (This replaces the `extends` keyword that was proposed in JSON Schema Draft 3.) However, note that not all code and documentation generator tools recognize this keyword at this time.
 
 * Make a copy of the common type and modify it as needed. This is the least preferred option, as it can lead to duplication and inconsistency.
+
+=== Address
+
+The *address* content type is based on PayPal's"portable address" schema, which is designed to support addresses in any country, and to be backwards compatible with http://microformats.org/wiki/adr[the address hcard microformat], forward compatible with Google's open source https://github.com/googlei18n/libaddressinput/wiki/AddressValidationMetadata[address validation metadata] and the W3C's https://www.w3.org/TR/html51/sec-forms.html#autofill-field[HTML5.1 autofill fields], and for easy mapping to and from other common address schema.
+
+The general design intends to keep a fairly generic nomencalture, so as not to confuse with the many names and synonyms for the same entities. For example, `admin_area_level_1` is used instead or state, province, county, or prefecture, which are locale-specific terms.
+
+In addition to `country_code` and `postal_code`, there are only three parts:
+
+* *Street address*: Composed of `address_line_1` through `address_line_3`. This would be filled in with items such as street address, apartment number, building information, or additional guidance.
+
+* *Administrative area*: Composed of `admin_area_1` through `admin_area_4`. This would be composed of province, city, suburb information, as needed for each country. Note these are presented in reverse order in this schema, as in most Western address formats, adminstrative areas are presented from the smallest (`admin_area_4`) to the largest (`admin_area_1`). This is also the order used in HTML5.1. The nomenclature mirrors that from the HTML5.1 autofill fields specification, which is designed to be universal and to support the multi-level regional segmentation needed for countries like Brazil, China, India, Indonesia, and many other places.
+
+* *Address details*: Needed for specific applications that need non-portable, but detailed normalized information for risk, compliance, or other scenarios.
+
+The following provides more detailed guidance on how each field in the address schema SHOULD be used:
+
+* `address_line_1`: Line 1 of the address, eg. number, street, etc. Example: "173 Drury Lane". This is usually a required field, for compliance and risk checks.
+
+* `address_line_2`: Optional line 2 of the address, eg. suite, apt #, etc.
+
+* `address_line_3`: Optional line 3 of the address, if needed. May be mapped to "Street Complement" for Brazil, and "Directions" text such as "next to {landmark}" widely used in India.
+
+* `admin_area_4`: This may be a neighborhood, ward, or district. Smaller than `admin_area_3` (sub-locality). This may be mapped to "Postal Sorting Code" for Guernsey and many French territories such as French Guiana, for the fine-grained administrative levels in China.
+
+* `admin_area_3`: Usually used for sub-locality, suburb, neighbourhood, or district. Smaller than `admin_area_2` This could be a suburb, or "Bairro/Neighborhood" in Brazil. In India, street name information is often not available, but this can be replaced by the sub-locality/district whcih can be a very small area.
+
+* `admin_area_2`: Usually city, town, or village. Smaller than `admin_area_1`.
+
+* `admin_area_1`: This is the highest level of sub-division within a country. It usually corresponds to "Province", "State", or ISO-3166-2 subdivision. This will be a county in the UK, state in the USA, province in Canada, prefecture in Japan, and kanton in Switzerland. This is expected to be in the form that would appear in addresses formatted for delivery, eg. "CA" rather than "California".
+
+* `postal_code`: Postal code, ZIP code, CEP, etc.
+
+* `country_code`: The two-letter ISO territory code, as specified by the *Country Code* common type (see below).
+
+* `address_details`: This object captures non-portable address that may sometimes be needed for compliance, risk, and other scenarios where fine-grained additional address information may be needed. Redundant with core fields, eg. `address_line_1` is usually a combination of `address_details.street_number` + `address_details.street_name` + `address_details.street_type`.
+
+  ** `street_number`: Street number, eg. "173" from "173 Drury Lane".
+
+  ** `street_name`: Street name. Just "Drury" from "173 Drury Lane". If the street type is not available, then this could contain both the street name and its type, as in "Drury Lane".
+
+  ** `street_type`: Examples: "Lane", "Street", "Road", "Court", "Boulevard", etc.
+
+  ** `delivery_service`: Post office box number, bag number, post office name, etc.
+
+  ** `building_name`: Building name or number, or other premise description. Example: "Craven House". Named location, usually a building or collection of buildings with a common name.
+
+  ** `sub_building`: Sub-premise. First-order entity below a named building or location, usually a singular building within a collection of buildings with a common name, or could be a flat, storey, floor, room and/or apartment.
+
+A simple United States address such as 
+
+----
+2211 North First Street
+Building 17, 17.2.237
+San Jose, CA 95131
+----
+would be represented as
+
+[source,json]
+----
+{
+  "address_line_1": "2211 North First Street",
+  "address_line_2": "Building 17, 17.2.237",
+  "admin_area_2": "San Jose",
+  "admin_area_1": "CA",
+  "postal_code": "95131",
+  "country_code": "US"
+}
+----
+
+and from Brazil, where you need a _neighborhood_ within a city (in this example, Bela Vista):
+
+----
+Av. Paulista, 1098, 1º andar, apto. 101
+Bela Vista
+São Paulo - SP
+Brasil
+01310-000
+----
+
+would be represented as
+
+[source,json]
+----
+{
+  "address_line_1": "Av. Paulista, 1098",
+  "address_line_2": "1º andar, apto. 101",
+  "admin_area_3": "Bela Vista",
+  "admin_area_2": "São Paulo",
+  "admin_area_1": "SP",
+  "postal_code": "01310-000",
+  "country_code": "BR"
+}
+----
+
+Applications that need high confidence in their address data will want to validate the address objects.  Note that there is a difference between _validation_ and _verification_.  *Validation* makes sure that the address has data in all required fields, that entries for any fields covered by enums for known lists of areas such as provice or state names are valid, and that postal codes pass a regular expression match. *Verification* makes sure the address matches an actual physical location and is usually accomplished by sending the address object to a normalization or verification service that considers data from local postal authorities.
+
+The structure of the address schema is designed to enable easy validation of address data using the open source Google https://github.com/googlei18n/libaddressinput/wiki/AddressValidationMetadata[address validation metadata]. For required fields, the address validation metadata specifies the following codes:
+
+* *A*: Street address array, at least one line must have data.
+* *S*: State/province, usually `admin_area_1` in the address schema and HTML5.1 autocomplete fields.
+* *C*: City/Locality, usually `admin_area_2` in the address schema and HTML5.1 autocomplete fields.
+* *D*: District/suburb/neighborhood, usually `admin_area_3` in the address schema and HTML5.1.
+* *X*: Sort code, usually `admin_area_4` in the address schema.
+* *Z*: ZIP/Postal code.
+
+For example, the Google https://www.gstatic.com/chrome/autofill/libaddressinput/chromium-i18n/ssl-address/data/US[address validation metadata for the US] has the entry:
+
+[source,json]
+----
+"require": "ACSZ"
+----
+
+which tells us that at least `A` (`address_line_1`) plus `C` (`admin_area_2`), `S` (`admin_area_1`), and `Z` (`postal_code`) are all required fields. For Singapore, the required fields entry is only:
+
+[source,json]
+----
+"require": "AZ"
+----
+
+which tells us that only `address_line_1` and `postal_code` are required.
+
+For postal codes, a regular expression is used to be sure the pattern is well formed.  For the US, the pattern in the metadata is 
+
+[source,json]
+----
+"zip": "(\\d{5})(?:[ \\-](\\d{4}))?"
+----
+
+which means the postal code may be five digits, or optionally nine digits with a space or hyphen after the first five digits, so "95131" or "95131-1234".
+
+Note that if the `require` or `zip` field are missing from a country record, then it should inherit from the https://www.gstatic.com/chrome/autofill/libaddressinput/chromium-i18n/ssl-address/data/ZZ[ZZ default metadata], which has a validation field of `"require": "AC"`.
+
+Some applications need additional detail such as for risk and compliance, and need very specific address details for some countries. This additional detail is not backward compatible with legacy applications and is not portable to Google's open source address metadata or HTML 5.1, nor is it easily retrieved from contact databases. But it can be derived from address services such as [AddressDoctor] or an address normalization service.
+
+The two most common needs are for detailed street address or building information. For this, the `address_details` has been added as a separate object in the address schema. It is expected that all information in the `address_details` fields is duplicated in the main fields of the address schema.
+
+As an example, the San Jose address from above may be, for very specific, non-portable purposes:
+
+[source,json]
+----
+{
+  "address_line_1": "2211 North First Street",
+  "address_line_2": "Building 17, 17.2.237",
+  "admin_area_2": "San Jose",
+  "admin_area_1": "CA",
+  "postal_code": "95131",
+  "country_code": "US",
+  "address_details": {
+    "street_number": "2211",
+    "street_name": "North First",
+    "street_type": "Street"
+  }
+}
+----
+
+and the Brazil detailed address may become:
+
+[source,json]
+----
+{
+  "address_line_1": "Av. Paulista, 1098",
+  "address_line_2": "1º andar, apto. 101",
+  "admin_area_3": "Bela Vista",
+  "admin_area_2": "São Paulo",
+  "admin_area_1": "SP",
+  "postal_code": "01310-000",
+  "country_code": "BR",
+  "address_details": {
+    "street_number": "1098",
+    "street_name": "Paulista",
+    "street_type": "Avenida",
+    "building_name": "",
+    "sub_building": "1º andar, apto. 101"
+  }
+}
+----
+
+=== Country code
+
+// TODO
+
+=== Currency code
+
+// TODO
+
+=== Date (no time)
+
+// TODO
+
+=== Date and time
+
+// TODO
+
+=== Date (year and month only)
+
+// TODO
+
+=== Email address
+
+// TODO
+
+=== Error
+
+// TODO
+
+=== Error: Catalog Item
+
+// TODO
+
+=== Error: Catalog 
+
+// TODO
+
+=== Error: Details
+
+// TODO
+
+=== Error: Issue
+
+// TODO
+
+=== Error: Spec Issue 
+
+// TODO
+
+=== Error: Spec
+
+// TODO
+
+=== Expiration 
+
+// TODO
+
+=== Geocoordinates
+
+// TODO
+
+=== JSON Web Encryption 
+
+// TODO
+
+=== JSON Web Signature
+
+// TODO
+
+=== Language 
+
+// TODO
+
+=== Locale
+
+// TODO
+
+=== Money 
+
+// TODO
+
+=== Name 
+
+// TODO
+
+=== Patch Request 
+
+// TODO
+
+=== Patch
+
+// TODO
+
+=== Payer ID
+
+// TODO
+
+=== Percentage
+
+// TODO
+
+=== Phone Type 
+
+// TODO
+
+=== Phone
+
+// TODO
+
+=== Province 
+
+// TODO
+
+=== Time: Duration 
+
+// TODO
+
+=== Time: No Date
+
+// TODO
+
+=== Timezone
+
+// TODO
+
+=== UUID
+
+// TODO
