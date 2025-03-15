@@ -16,6 +16,102 @@ API developers are encourage to use the library of common types "as is". However
 
 === Address
 
+// TODO: Update all common types to latest version of JSON Schema.
+
+[source,json]
+----
+{
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Portable postal address",
+  "description": "Portable international postal address with medium-grained fields, which is the preferred successor to the international postal address. Maps to Google's open-source address metadata, [AddressValidationMetadata](https://github.com/googlei18n/libaddressinput/wiki/AddressValidationMetadata), and to [HTML 5.1](https://www.w3.org/TR/html51/semantics.html#attr-fe-autocomplete-street-address) auto-complete fields.",
+  "properties": {
+    "address_line_1": {
+      "type": "string",
+      "description": "Line 1 of the Address (eg. number, street, etc). Example: '173 Drury Lane'. Required for data entry. A[1] in i18napis and address-line1 in HTML5. Required for compliance and risk checks.  This should contain the full address line 1.",
+      "maxLength": 300
+    },
+    "address_line_2": {
+      "type": "string",
+      "description": "Optional line 2 of the Address (eg. suite, apt #, etc.). A[2] in i18napis and address-line2 in HTML5.1.",
+      "maxLength": 300
+    },
+    "address_line_3": {
+      "type": "string",
+      "description": "Optional Line 3 of the Address if needed. A[3] in i18napis, address-line3 in HTML5.1. Examples include Street Complement for Brazil, direction text such as 'next to Walmart' or landmark in Indian address.",
+      "maxLength": 300
+    },
+    "admin_area_4": {
+      "description": "May be neighborhood, ward or district. Smaller than admin_area_level_3. Smaller than sub_locality. May be X or (sort code) in i18napis and address-level4 in HTML5.1. Postal Sorting Code used in Guernsey, and many French territories such as French Guiana, and fine-grained administrative levels in China.",
+      "type": "string",
+      "maxLength": 300
+    },
+    "admin_area_3": {
+      "description": "Usually sub-locality, suburb, neighborhood, or district. Smaller than admin_area_level_2. D (dependant locality) in i18napis and address-level3 in HTML5.1. This could be suburb, or Bairro/Neighborhood in Brazil. In India, street name information is often not available, but a sublocality/district can be a very small area.",
+      "type": "string",
+      "maxLength": 300
+    },
+    "admin_area_2": {
+      "description": "Usually city, town or village. Smaller than admin_area_level_1. C (city) in i18napis and address-level2 in HTML5.1.",
+      "type": "string",
+      "maxLength": 300
+    },
+    "admin_area_1": {
+      "type": "string",
+      "description": "Usually corresponds to Province, State, or ISO-3166-2 subdivision. Highest level sub-division of a country. S (state/province) in i18napis and address-level1 in HTML5.1. This will be state in USA, province in Canada, prefecture in Japan, kanton in Switzerland, and may be county in UK. This would be expected to be the form that would appear in addresses formatted for postal delivery, e.g. 'CA' and not 'California'.  For full spelling and presentation forms of admin_area_2, use province.json",
+      "maxLength": 300
+    },
+    "postal_code": {
+      "type": "string",
+      "description": "Postal code. Z in i18napis and postal-code in HTML5.1.",
+      "maxLength": 60
+    },
+    "country_code": {
+      "$ref": "country_code.json"
+    },
+    "address_details": {
+      "type": "object",
+      "description": "Additional address details sometimes needed for compliance, risk, and other scenarios where fine-grain or high-resolution address information may be needed. Not portable with common 3rd party and opensource. Redundant with core fields. E.g., address_portable.address_line_1 is usually a combination of address_details.street_number + street_name + street_type.",
+      "properties": {
+        "street_number": {
+          "description": "street number.",
+          "type": "string",
+          "maxLength": 300
+        },
+        "street_name": {
+          "description": "street name.  Just 'Drury' in 'Drury Lane'. If street type is not available from a address service, then this should contain both the street name and type as in 'Drury Lane'.",
+          "type": "string",
+          "maxLength": 300
+        },
+        "street_type": {
+          "description": "The street type of the address. 'Street', 'Lane', 'Boulevard', 'Court', etc.",
+          "type": "string",
+          "maxLength": 300
+        },
+        "delivery_service": {
+          "description": "Delivery service. Post Office Box, Bag number, Post Office Name.",
+          "type": "string",
+          "maxLength": 300
+        },
+        "building_name": {
+          "description": "Premise. The building name or number. Example: 'Craven House'. Named location, usually a building or collection of buildings with a common name.",
+          "type": "string",
+          "maxLength": 300
+        },
+        "sub_building": {
+          "description": "Sub-premise. First-order entity below a named building or location, usually a singular building within a collection of buildings with a common name, or could be flat, storey, floor, unit number, room and/or apartment.",
+          "type": "string",
+          "maxLength": 300
+        }
+      }
+    }
+  },
+  "required": [
+    "country_code"
+  ]
+}
+----
+
 The *address* content type is based on PayPal's"portable address" schema, which is designed to support addresses in any country, and to be backwards compatible with http://microformats.org/wiki/adr[the address hcard microformat], forward compatible with Google's open source https://github.com/googlei18n/libaddressinput/wiki/AddressValidationMetadata[address validation metadata] and the W3C's https://www.w3.org/TR/html51/sec-forms.html#autofill-field[HTML5.1 autofill fields], and for easy mapping to and from other common address schema.
 
 The general design intends to keep a fairly generic nomencalture, so as not to confuse with the many names and synonyms for the same entities. For example, `admin_area_level_1` is used instead or state, province, county, or prefecture, which are locale-specific terms.
@@ -193,129 +289,526 @@ and the Brazil detailed address may become:
 
 === Country code
 
+[source,json]
+----
+{
+  "$schema":"http://json-schema.org/draft-04/schema#",
+  "description": "The [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) country code.<blockquote><strong>Note:</strong> The country code for Great Britain is <code>GB</code> and not <code>UK</code> as is used in that country's top-level domain names.</blockquote>.  Note that PayPal adds the proprietary code <code>C2</code> for Chinese international transactions.",
+  "type": "string",
+  "format": "paypal_common_country_code_v1",
+  "maxLength": 2,
+  "minLength": 2,
+  "pattern": "^([A-Z]{2}|C2)$"
+}
+----
+
 // TODO
 
 === Currency code
+
+[source,json]
+----
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Three-letter ISO 4217 alphabetical currency code.",
+  "type": "string",
+  "format": "paypal_common_currency_code_v1",
+  "minLength": 3,
+  "maxLength": 3
+}
+----
 
 // TODO
 
 === Date (no time)
 
+[source,json]
+----
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "A stand-alone date, as represented by the full-date chunk specified in RFC 3339, section 5.6. Dates with no associated time or time-zone data SHOULD be used to represent special legal values, such as date of birth. Implementers SHOULD consider using the standard date_time schema whenever possible instead. Note that this regular expression is not a complete validation: February 31, for example, is allowed, and nothing is known about leap years.",
+  "type": "string",
+  "format": "paypal_common_date_notime_v1",
+  "minLength": 10,
+  "maxLength": 10,
+  "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$"
+}
+----
+
 // TODO
 
 === Date and time
 
+[source,json]
+----
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "A valid date-time representation as defined by RFC 3339, section 5.6. Note that the regular expression cannot reject all invalid dates, but only provide guidance. Unlike RFC 3339, we do define a practical (if impractically precise) length limit on the number of fractional seconds. It's worth noting that RFC 3339 is a profile of the ISO 8601 date-time standard. This means, for instance, that seconds are mandatory, although fractional seconds are not.",
+  "type": "string",
+  "format": "paypal_date_time_v3",
+  "minLength": 20,
+  "maxLength": 64,
+  "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])[T,t]([0-1][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)([.][0-9]+)?([Zz]|[+-][0-9]{2}:[0-9]{2})$"
+}
+----
+
 // TODO
 
-=== Date (year and month only)
+=== Date: year and month only
+
+[source,json]
+----
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "A 7 character string representing a year and month in ISO 8601 YYYY-MM date format. This is a floating time and considered to be time zone independent",
+  "type": "string",
+  "format": "paypal_common_date_year_month_v1",
+  "minLength": 7,
+  "maxLength": 7,
+  "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+}
+----
 
 // TODO
 
 === Email address
 
-// TODO
-
-=== Error
-
-// TODO
-
-=== Error: Catalog Item
-
-// TODO
-
-=== Error: Catalog
-
-// TODO
-
-=== Error: Details
+[source,json]
+----
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "A valid internationalized email address, as defined by RFC 5322, RFC 6530, and other RFCs. To validate an email address, services must send an email to it and not rely on static validation of the address.<blockquote><strong>Note:</strong> Due to RFC 5321, an email address can be up to 254 characters long even though up to 64 characters are allowed before and 255 characters are allowed after the @ sign. It is nearly impossible to define a regular expression that validates email addresses correctly, especially after you take internationalization into account. This pattern verifies only that the string contains an unquoted @ sign.</blockquote>",
+  "type": "string",
+  "format": "paypal_common_email_address_v1",
+  "minLength": 3,
+  "maxLength": 254,
+  "pattern": "^.+@[^\"\\-].+$"
+}
+----
 
 // TODO
 
-=== Error: Issue
+=== Payment card expiration
 
-// TODO
-
-=== Error: Spec Issue
-
-// TODO
-
-=== Error: Spec
-
-// TODO
-
-=== Expiration
+[source,json]
+----
+{
+ "$schema": "http://json-schema.org/draft-04/schema#",
+"description": "Expiration month and year expressed as MM/YY or MM/YYYY. Typically used for credit card expiration. This value is time zone independent.",
+  "type": "string",
+  "format": "paypal_common_expiration_v1",
+  "minLength": 5,
+  "maxLength": 7,
+  "pattern": "^(0[1-9]|1[0-2])\/?([0-9]{4}|[0-9]{2})$"
+}
+----
 
 // TODO
 
 === Geocoordinates
 
+[source,json]
+----
+{
+  "type":"object",
+  "$schema":"http://json-schema.org/draft-04/schema#",
+  "title":"Geographic coordinates",
+  "description":"JSON schema for geocode in latitude and longitude.",
+  "properties":{
+    "longitude":{
+      "type":"string",
+      "pattern":"^-?([1]?[1-7][1-9]|[1]?[1-8][0]|[1-9]?[0-9])\\.{1}\\d{1,6}"
+    },
+    "latitude":{
+      "type":"string",
+      "pattern":"^-?([1-8]?[1-9]|[1-9]0)\\.{1}\\d{1,6}"
+    }
+  },
+  "required":[
+    "longitude",
+    "latitude"
+  ]
+}
+----
+
 // TODO
 
 === JSON Web Encryption
+
+[source,json]
+----
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "A [JSON Web Encryption](https://www.rfc-editor.org/rfc/rfc7516.txt) token used to represent encrypted values.",
+  "type": "string",
+  "format": "paypal_common_jwe_v1",
+  "pattern": "([A-Za-z0-9_-]+)[.](([A-Za-z0-9_-]*)[.]){2}([A-Za-z0-9_-]+)[.]([A-Za-z0-9_-]*)",
+  "minLength": 6
+}
+----
 
 // TODO
 
 === JSON Web Signature
 
+[source,json]
+----
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "A [JSON Web Signature](https://www.rfc-editor.org/rfc/rfc7515.txt) token used to represent signed content.",
+  "type": "string",
+  "format": "paypal_common_jws_v1",
+  "pattern": "([A-Za-z0-9_-]+)[.]([A-Za-z0-9_-]+)[.]([A-Za-z0-9_-]+)",
+  "minLength": 5
+}
+----
+
 // TODO
 
 === Language
+
+[source,json]
+----
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "The BCP-47 language tag. Composed of:<ul><li>The ISO-639 alpha-2 language code</li><li>(Optional) The ISO-15924 script tag</li><li>The ISO-3166 alpha-2 country code</li></ul>",
+  "type": "string",
+  "format": "paypal_common_language_v1",
+  "maxLength": 10,
+  "minLength": 2,
+  "pattern": "^[a-z]{2}(?:-[A-Z][a-z]{3})?(?:-(?:[A-Z]{2}))?$"
+}
+----
 
 // TODO
 
 === Locale
 
+[source,json]
+----
+{
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Locale",
+  "description": "JSON schema for locale. Based off the BCP-47 language tag, ISO-3166 alpha-2 country code, and Olsen IANA time zone ID.",
+  "properties": {
+    "country_code": {
+      "$ref": "country_code.json"
+    },
+    "language": {
+      "$ref": "language.json"
+    },
+    "timezone": {
+      "$ref": "time_zone.json"
+    }
+  },
+  "required": [
+    "country_code",
+    "language"
+  ]
+}
+----
+
 // TODO
 
 === Money
+
+[source,json]
+----
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "description": "A money type for all financial-related fields, such as balance, payment due, and so on.",
+  "title": "Money type",
+  "properties":
+  {
+    "currency_code":
+    {
+      "$ref": "currency_code.json"
+    },
+    "value":
+    {
+      "type": "string",
+      "description": "The value, which can be anything from:<ul><li>An integer. For currencies that are not typically fractional, such as `JPY`.</li><li>A three-place decimal fraction. For currencies that are subdivided into thousandths, such as `TND`.</li><li> An eight-place decimal fraction. For currencies such as Bitcoin.</li></li>For the required number of decimal places for a currency code, see ISO 4217.",
+      "maxLength": 32,
+      "pattern": "^((-?[0-9]+)|(-?([0-9]+)?[.][0-9]+))$"
+    }
+  },
+  "required":
+  [
+    "currency_code",
+    "value"
+  ]
+}
+----
 
 // TODO
 
 === Name
 
-// TODO
-
-=== Patch Request
+[source,json]
+----
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "description": "Name of a party",
+  "title": "Name of a party",
+  "properties": {
+    "prefix": {
+      "type": "string",
+      "description": "Prefix to the party name. Also known as title.",
+      "maxLength": 140
+    },
+    "given_name": {
+      "type": "string",
+      "description": "The given name of the party. Also known as first name or name. Required when the party name is for a person.",
+      "maxLength": 140
+    },
+    "surname": {
+      "type": "string",
+      "description": "The surname or family name of the party. Also known as last name. Required when the party name is for a person. Can also be used to store multiple surnames including matronymic surname, or mother's family name.",
+      "maxLength": 140
+    },
+    "middle_name": {
+      "type": "string",
+      "description": "The middle name of the party. Can also be used to store multiple middle names including patronymic name.",
+      "maxLength": 140
+    },
+    "suffix": {
+      "type": "string",
+      "description": "The name suffix for the party.",
+      "maxLength": 140
+    },
+    "alternate_full_name": {
+      "type": "string",
+      "description": "The alternate name for the party. Can be business name, nick name, or any other name that cannot be parsed into first, last name. Required when the party name is for a business. Can also be used to record yomikata or phonetic name in Japanese.",
+      "maxLength": 300
+    }
+  }
+}
+----
 
 // TODO
 
 === Patch
 
-// TODO
-
-=== Payer ID
+[source,json]
+----
+{
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "JSON patch",
+  "description": "A JSON patch object used to apply partial updates to resources.",
+  "properties": {
+    "op": {
+      "type": "string",
+      "description": "The operation to perform.",
+      "enum": [
+        "add",
+        "remove",
+        "replace",
+        "move",
+        "copy",
+        "test"
+      ]
+    },
+    "path": {
+      "type": "string",
+      "description": "String. Contains a JSON pointer value to a location within the target document where the operation is performed."
+    },
+    "value": {
+      "type":[ "number","integer", "string","boolean","null","array","object" ] ,
+      "description": "New value to apply based on the operation. `op=remove` does not require a value."
+    },
+    "from": {
+      "type": "string",
+      "description": "String. Contains a JSON pointer value to the location in the target document from which to move the value. Required for `op=move`."
+    }
+  },
+  "required": ["op"]
+}
+----
 
 // TODO
 
 === Percentage
 
+[source,json]
+----
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Percentages as fixed-point, signed decimal values. Use for all interest rates. Represent an interest rate of 19.99% as 19.99. Valid number formats are plain decimal numbers and whole numbers. Unlike a JSON number or JSON schema number type, this value MUST NOT be deserialized in JavaScript into a JavaScript Number object, which is 64-bit floating-point and cannot accurately represent all values transmitted by this type. Likewise, in Java, this type MUST be deserialized into a BigDecimal or other fixed-point numeric type.",
+  "type": "string",
+  "format": "paypal_common_percentage_v1",
+  "pattern": "^((-?[0-9]+)|(-?([0-9]+)?[.][0-9]+))$"
+}
+----
+
 // TODO
 
 === Phone Type
+
+[source,json]
+----
+{
+  "type": "string",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "List of supported phone types.",
+  "title": "Phone types for a person or business party",
+  "enum": [
+      "FAX",
+      "HOME",
+      "MOBILE",
+      "OTHER",
+      "PAGER"
+  ]
+}
+----
 
 // TODO
 
 === Phone
 
+[source,json]
+----
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Phone number. Must be represented in its canonical international format, as defined by the E.164 numbering plan.",
+  "type": "object",
+  "title": "Phone type",
+  "properties": {
+      "country_code": {
+          "type": "string",
+          "description": "Country calling code (CC) as defined by E.164. Combined length of CC+national must not be more than 15 digits. ",
+          "minLength": 1,
+          "maxLength": 3,
+          "pattern": "^[0-9]{1,3}?$"
+      },
+      "national_number": {
+          "type": "string",
+          "description": "National number as defined by E.164. Combined length of CC+national must not be more than 15 digits. National number consists of National Destination Code (NDC) and Subscriber Number (SN).",
+          "minLength": 1,
+          "maxLength": 14,
+          "pattern": "^[0-9]{1,14}?$"
+      },
+      "extension_number": {
+          "type": "string",
+          "description": "Extension number.",
+          "minLength": 1,
+          "maxLength": 15,
+          "pattern": "^[0-9]{1,15}?$"
+      }
+  },
+  "required" : ["country_code", "national_number"]
+}
+----
+
 // TODO
 
 === Province
 
+[source,json]
+----
+{
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "province",
+  "description": "An ISO 3166-2 based definition for state or province. Useful for statistical, market region or geolocation purposes.",
+  "properties": {
+    "province_code": {
+      "type": "string",
+      "description": "State or province code, as defined in ISO 3166-2. For example, US-CA, CN-11, GB-CAM, and so on.",
+      "maxLength": 6,
+      "minLength": 5,
+      "pattern": "^[A-Z]{2}-([A-Z]{2,3}|[0-9]{2,3})$"
+    },
+    "country_code": {
+      "$ref": "country_code.json"
+    },
+    "local_name": {
+      "type": "string",
+      "description": "Local province name. For example, California, Northern Ireland, 東京都, 北京, Москва́, and so on."
+    },
+    "latin_name": {
+      "type": "string",
+      "description": "Optional Latin or international province name, if local name is in non-Latin script. For example, `Tokyo` for the local_name `東京都`, or Beijing for `北京` for Beijing, Tianjin, or Moscow for `Москва́` and so on."
+    },
+    "abbreviation": {
+      "type": "string",
+      "description": "Abbreviation, if required. For example, `CA` for California."
+    }
+  },
+  "required": [
+    "province_code",
+    "country_code"
+  ]
+}
+----
+
 // TODO
 
-=== Time: Duration
+=== Time Duration
+
+[source,json]
+----
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "A duration expresses a length of time in terms of years, months, weeks, days, hours, minutes, and seconds. The ISO 8601 standard duration representation format is described as PyYmMdDThHmMsS. For more information, see [Durations](http://en.wikipedia.org/wiki/ISO_8601#Durations). Make provisions to incorporate the effects of daylight savings time. When an amount is zero, you can omit it. Because week cannot co-exist with other time components in ISO 8601 Duration, use P7D.",
+  "title": "ISO time duration",
+  "type": "string",
+  "format": "paypal_common_time_duration_v1",
+  "pattern": "^P([0-9]+Y)?([0-9]+M)?([0-9]+D)?(T([0-9]+H)?([0-9]+M)?([0-9]+S)?)?$"
+}
+----
 
 // TODO
 
-=== Time: No Date
+=== Time (No Date)
+
+[source,json]
+----
+{
+  "description": "A time, as represented by the full-time section of RFC 3339, section 5.6. Implementers SHOULD consider whether the `date_time` schema is more appropriate for their needs before using this schema. Unlike RFC 3339, we do define a practical if impractically precise length limit on the number of fractional seconds.",
+  "type": "string",
+  "format": "paypal_common_time_nodate_v1",
+  "minLength": 9,
+  "maxLength": 64,
+  "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]:([0-5][0-9]|60)(\\.[0-9]+)?([Zz]|[+-][0-9]{2}:[0-9]{2})$"
+}
+----
 
 // TODO
 
 === Timezone
 
+[source,json]
+----
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "A time zone, following the format defined in the IANA tz database (https://www.iana.org/time-zones). Valid examples are America/New_York and Etc/UTC. Do not use ambiguous, non-qualified values such as EST or GB. Before including this type in your interface, please consider whether it is actually appropriate to convey time zone information with your type. It is almost always the case that this should be transformed from UTC at the time of display to the user; this type might therefore be most associated with user-preference APIs.",
+  "type": "string",
+  "minLength": 1,
+  "maxLength": 127,
+  "format": "paypal_common_time_zone_v1"
+}
+----
+
 // TODO
 
 === UUID
+
+[source,json]
+----
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "Schema to represent a UUID per the format defined in RFC 4122 (https://tools.ietf.org/html/rfc4122).",
+  "type": "string",
+  "format": "paypal_common_uuid_v1",
+  "minLength": 36,
+  "maxLength": 36,
+  "pattern": "^[0-9a-zA-Z]{8}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{4}-[0-9a-zA-Z]{12}$"
+}
+----
 
 // TODO
 
