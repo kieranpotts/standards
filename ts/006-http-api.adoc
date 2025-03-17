@@ -225,12 +225,6 @@ A collection is a list of multiple resources of the same type, plus any related 
 
 Collections, and the resources they encapsulate, SHOULD be named consistently across different endpoints. This allows clients to implement generic data access handling.
 
-// TODO: Move this to the *Payloads* section.
-Arrays of resources SHOULD be returned in a field named `items`. Metadata fields such as `total_items` and `total_pages` SHOULD be included in a `meta` object.
-
-// TODO: Move this to the *Payloads* section.
-In cases where individual resources contain a large object, providing a summarized or minimized version of the data representation can help to reduce the bandwidth footprint. Support query parameters that allow clients to opt-in to receiving the full representation of a collection's resources. Alternatively, clients can read the resources individually to retrieve their full representations.
-
 .Template
 ----
 GET /v{major}/{namespace}/{resource}
@@ -756,7 +750,9 @@ HTTP APIs MAY support the `Prefer` header. This standard HTTP header is specifie
 
 The `Prefer` header is useful for a number of use cases. Perhaps the most common use case is to allow clients to opt-in to receiving a response body, encoding up-to-date resources, for requests that would not otherwise receive one. For example, instead of `PUT` and `PATCH` requests receiving a `204 No Content` response by default, clients can opt-in to receiving a `200 OK` response with the updated resource in the response body. This can be useful for clients that need to capture system-generated fields, such as `create_time` and `update_time`, or where clients benefit from receiving up-to-date representations of resources that are particularly volatile (they might have been updated by other clients).
 
-By default, HTTP APIs should return full representations of requested and updated resources. But sometimes the client does not need the full representation and the client-server interaction can be optimized by returning partial representations of resources. The `Prefer: return=minimal` header MAY be used for this purpose. The definition of a "minimal" representation is left to the discretion of the service, but it SHOULD be documented as part of the API's interface specification.
+By default, HTTP APIs should return full representations of requested and updated resources. But sometimes the client does not need the full representation and the client-server interaction can therefore be optimized by returning partial representations of resources. This can be particularly beneficial in collections in which individual resources are large objects in their complete representations. Clients may therefore choose to fetch minimal or summarized lists of resources, and then fetch the full representations of individual resources as-and-when needed.
+
+The `Prefer: return=minimal` header MAY be used for this purpose. The definition of a "minimal" representation is left to the discretion of the service, but it SHOULD be documented as part of the API's interface specification.
 
 To gives more clients more granular control over the subset of resource data that they receive, API services MAY support a query parameter named `fields`. This accepts a comma-separated list of field names that the client is interested in. The response body SHOULD include only the fields that are listed in the `fields` query parameter, plus any required fields that the server always provides.
 
@@ -770,8 +766,7 @@ The `fields` query parameter SHOULD NOT be used in conjunction with the `Prefer:
 
 == Content
 
-// TODO
-
+The content, or payload, of HTTP request and response messages SHOULD be in the JSON format, for the majority of regular use cases. JSON is natively supported by most modern programming languages, it is human-readable as well as machine parsable, and has become the _de facto_ standard for encoding data in HTTP APIs.
 
 
 The request and response payloads of an HTTP API SHOULD be composed from a consistent set of common types for representing data.
