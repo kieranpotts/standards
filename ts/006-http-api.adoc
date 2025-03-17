@@ -215,6 +215,8 @@ DELETE /v{major}/{namespace}/{resource}/{resource_id}/{sub_resource}/{sub_resour
 
 The `{resource}` and `{sub_resource}` components SHOULD be named using nouns. These SHOULD be in the singular form where there is only ever one instance of the resource, and never a collection of resources of the same type. More commonly, there will be collections of each type of resource and sub-resource, and these SHOULD be named in the plural form.
 
+Resource-oriented endpoints SHOULD use lowercase hyphen-delimited slugs to name resources and sub-resources. Examples: "account", "users", "billing", "charge-points", "charge-points/{charge_point_id}/sessions", "credit-cards", "credit-cards/{credit_card_id}/transactions".
+
 == Collections
 
 A collection is a list of multiple resources of the same type, plus any related metadata.
@@ -618,6 +620,58 @@ To implement idempotency, servers are required to cache response payloads agains
 
 Validity of idempotency keys HOULD be time-based, allowing for servers to optimize storage by periodically purging the cached response payloads associated with expired idempotency keys (which are persisted for longer). The key expiry time MAY vary depending on the use case, but a good default value is 24 hours. After this time, the server SHOULD return a `400 Bad Request` response for requests with expired idempotency keys.
 
+== Actions
+
+Some operations do not neatly fit into the RESTful model, in which CRUD-like operations are performed against discrete types of resources. Classic examples include endpoints to "login", "logout", "reset password", "charge a credit card", "send a notification", and to "receive a webhook event".
+
+These standalone operations, which are not scoped to any particular resource, are referred to as "actions" in this technical standard. Elsewhere, they may be referred to by other names such as "controllers", "procedures", "operations", or simply "endpoints".
+
+Actions tend to be mapped directly to specific controller methods in the server-side code, and for this reason they are the HTTP API equivalent of RPC (remote procedure call) methods.
+
+Actions MUST be performed using the HTTP's `POST` method, except for actions that retrieve read-only data, in which case `GET` MUST be used to support caching. The name of the action SHOULD suggest the type of CRUD operation to be be performed, rather than this being baked into the semantics of the HTTP method.
+
+Action names should be like function names. Use lowerCamelCase with the first segment being a verb. The rest of an action's name should, typically, be in the singular forms. Examples: `activateAccount`, `cancelSubscription`, `validateEmail`, `acceptInvitation`, `denyRequest`. This naming convention helps to distinguish actions from resource-oriented endpoints, which are named using hyphen-delimited slugs.
+
+.Template
+----
+POST|GET /v{major}/{namespace}/{action}
+----
+
+Actions and resources MAY coexist in the same namespaces. However, a good practice is to create a collection of actions within each namespace. Collections of actions SHOULD be named "actions".
+
+.Template
+----
+POST /v{major}/{namespace}/actions/{action}
+----
+
+This helps to distinguish actions from resources in each namespace. In addition, a `GET /v{major}/{namespace}/actions` endpoint MAY be provided to list all available actions in a namespace, similarly to how a list of available resources within a namespace is retrieved.
+
+A common use case for actions is to mutate the state of multiple resources within its namespace in the same operation. These are known as *composite actions*. An example would be a "refund" action that would change the state of a payment, the customer's account, and the merchant's account, and the action would not be considered to be fulfilled until all of these changes are committed. Another example of a composite action would be the implementation of a search function that operates across multiple resource types.
+
+Composite actions may be implemented for both performance optimization and usability reasons.
+
+Some actions may be transient — that is, they do not mutate the state of any resources, or create new ones. An example might be a "dry run" action that validates the input data for a subsequent operation, such as a payment.
+
+If actions return read-only data, such as logs or reports, these actions SHOULD use the `GET` method, instead of `POST`, to provide opportunities for caching. (`POST` responses are not cacheable.)
+
+There may be use cases for attaching actions to specific resources, or even to sub-resources. For example, where a particular state change requires a comment to be provided, it might make sense to require the client to input the comment via a dedicated action, subsequent to the state change being fulfilled via a conventional resource operation. There may be technical constraints for doing so (for example, message bodies SHOULD NOT be sent with `DELETE` requests, providing no opportunity to input a comment for that type of operation). More commonly, resource-scoped actions will be used to separate operations that are fundamentally _business processes_ from operations that change the core state of the resources themselves. For example, for auditing purposes the business may require freeform comments to be attached to subscription cancellations. Since the comments would not be part of the model of a subscription resource, a resource-scoped action would be appropriate here.
+
+.Template
+----
+POST /v{major}/{namespace}/{resource}/{resource_id}/actions/{action}
+----
+
+For successfully executed actions, `204 No Content` will be the most appropriate response status code in most cases (with no body content). However, if the client needs to capture some information from the result of an action, a `200 OK` response with a response body MAY be returned. Actions MUST not return updated states for any resource, but MAY return things like statuses for discrete operations such as a payment transaction.
+
+.Action-oriented APIs versus resource-oriented APIs
+****
+There are risks and benefits to using actions in HTTP APIs. Action-oriented APIs can be harder to scale than resource-oriented ones. The number of URLs can grow much more quickly, producing increased configuration complexity for routing and externalization, among other things. There tends also to be fewer opportunities to promote code reuse in automated tests (because actions tend to have greater variability in their inputs and outputs than operations performed on resources).
+
+However, for most HTTP APIs, not everything fits neatly into the RESTful architectural style. Some operations are simply better expressed as actions.
+
+The preference is to design as much of an API as possible around a resource-oriented model, and augment the API with actions where specific operations do not fit neatly into that model. We should not try to force everything into the resource model just for the sake of purity of the API design.
+****
+
 == Headers
 
 === Non-standard headers
@@ -650,64 +704,11 @@ The `fields` pattern, if implemented, SHOULD be supported globally across all re
 
 The `fields` query parameter SHOULD NOT be used in conjunction with the `Prefer: return=minimal` header. Clients SHOULD be expected to supply one or the other, or neither, but not both.
 
-== Actions
-
-Some operations do not neatly fit into the RESTful model, in which CRUD-like operations are performed against discrete types of resources. Classic examples include endpoints to "login" or "logout", or to "reset a password", "charge a credit card", "send a notification", or to "receive a webhook event".
-
-These standalone operations, which are not scoped to any particular resource, are known as actions.
-
-Actions tend to be mapped directly to specific controller methods in the server-side code, and for this reason they are the HTTP API equivalent of RPC (remote procedure call) methods.
-
-Actions MUST be performed using the HTTP's `POST` method, except for actions that retrieve read-only data, in which case `GET` MUST be used. The name of the action SHOULD instead suggest the type of CRUD operation that may be performed as a result of the action.
-
-Action names should be like function names. Use lowerCamelCase with the first segment being a verb. The rest of an action's name should, typically, be in the singular forms. Examples: `activateAccount`, `cancelSubscription`, `validateEmail`, `acceptInvitation`, `denyRequest`.
-
-.URI template
-----
-POST|GET /v{major}/{namespace}/{action}
-----
-
-Actions and resources MAY exist in the same namespaces. However, a good practice is to create a collection of actions within each namespace, which SHOULD be named "actions".
-
-.URI template
-----
-POST /v{major}/{namespace}/actions/{action}
-----
-
-This helps to distinguish actions from resources in each namespace. In addition, a `GET /v{major}/{namespace}/actions` endpoint MAY be provided to list all available actions in a namespace, similarly to how resource collections are retrieved.
-
-A common use case for actions is to mutate the state of multiple resources within its namespace in the same operation. These are known as *composite actions*. An example would be a "refund" action that would change the state of a payment, the customer's account, and the merchant's account, and the action would not be considered to be fulfilled until all of these changes are committed.
-
-Another example of a composite action would be the implementation of advanced search functionality, which operate across multiple resource types for example.
-
-Composite actions may be implemented for both performance optimization and usability reasons.
-
-Some actions may be transient — that is, they do not mutate the state of any resources, or create new ones. An example might be a "dry run" action that validates the input data for a subsequent operation, such as a payment.
-
-If actions return read-only data, such as logs or reports, these actions SHOULD use the `GET` method, instead of `POST`, to provide opportunities for caching (`POST` responses are not cacheable).
-
-There may also be use cases for attaching actions to specific resources, or even to sub-resources. For example, where a particular state change requires a comment — such as a cancellation reason — to be provided, it might make sense to require the client to input the comment via a dedicated action, subsequent to the state change being fulfilled via a resource operation. There may be technical constraints for doing so, for example message bodies SHOULD NOT be sent with `DELETE` requests, providing no opportunity to input a comment for that type of operation. But some operations are fundamentally _business processes_ that are related to resources but do not change the core state of the resource itself. In these cases, resource-scoped actions are appropriate.
-
-.URI template
-----
-POST /v{major}/{namespace}/{resource}/{resource_id}/actions/{action}
-----
-
-For successfully executed actions, `204 No Content` will be the most appropriate response status code in most cases (with no body content). However, if the client needs to capture some information from the result of an action a `200 OK` response with a response body MAY be returned. Actions MUST not return updated states for any resource, but MAY return things like statuses for discrete operations such as a payment transaction.
-
-=== Actions-oriented APIs versus resource-oriented APIs
-
-There are risks and benefits to using actions in HTTP APIs. Action-oriented APIs can be harder to scale than resource-oriented ones. The number of URIs can grow much more quickly, producing increased configuration complexity for routing and externalization, among other things. There tends also to be fewer opportunities to promote code reuse in automated tests (because actions tend to have greater variability in their inputs and outputs than operations performed on resources).
-
-However, for most HTTP APIs, not everything fits neatly into the RESTful architectural style. Some operations are simply better expressed as actions.
-
-The preference is to design as much of an API as possible around a resource-oriented model, and augment the API with actions where specific operations do not fit neatly into that model. We should not try to force everything into the resource model just for the sake of purity of the API design.
-
 == Content
 
-The content or payload of an HTTP request or response message SHOULD be in the JSON format, for the majority of regular use cases. JSON is natively supported by most modern programming languages, it is human-readable as well as machine parsable, and has become the _de facto_ standard for encoding data in HTTP APIs.
+// TODO
 
-== Common types
+
 
 The request and response payloads of an HTTP API SHOULD be composed from a consistent set of common types for representing data.
 
