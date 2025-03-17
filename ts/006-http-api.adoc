@@ -672,6 +672,27 @@ However, for most HTTP APIs, not everything fits neatly into the RESTful archite
 The preference is to design as much of an API as possible around a resource-oriented model, and augment the API with actions where specific operations do not fit neatly into that model. We should not try to force everything into the resource model just for the sake of purity of the API design.
 ****
 
+== Concurrent operations
+
+A common issue in network API design is how to manage concurrent operations. There is always the potential for multiple clients to attempt to modify the same resource at the same time. This can lead to data corruption or lost updates (where one client's changes are overwritten by another client's changes).
+
+These are not always issues, but where they are, APIs will need to implement concurrency control mechanisms. The appropriate mechanism will depend on the specific use case. But common patterns typically involve the use of ETags.
+
+ETags (Entity Tags) are used to implement a strategy known as *optimistic concurrency control*. They are used to prevent accidental overwrites — the "lost update" problem, in which the most recent update always wins — by allowing clients to check if a resource has already been modified before requesting further mutations to that resource.
+
+ETags themselves are unique identifiers assigned by a web server to a _specific version_ of a resource. When a resource changes, its ETag changes. ETags are returned in HTTP headers, allowing clients to detect changes to resources that originated from other clients.
+
+When a client requests a resource, it receives an `ETag` header with a value that represents the current version of the resource represented in the message body. This may be any arbitrary value, but it is typically implemented as a hash of the resource's content.
+
+----
+ETag: "<etag_value>"
+----
+
+When the client subsequently requests an update to the resource, it includes in the request the ETag of the last version of the resource that it has. This is sent in the `If-Match` header.
+
+The server then checks if the ETag in the request matches the current version of the resource known to the server. If they match, the update proceeds. If they do not match, it means another client has updated the resource in the meantime, and the update fails with a `412 Precondition Failed` status code.
+
+
 == Headers
 
 === Non-standard headers
