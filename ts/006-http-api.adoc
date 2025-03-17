@@ -104,6 +104,8 @@ There are many standardized HTTP status codes. Most APIs will need only a subset
 
   ** `201 Created`: Indicates that the request was successful and, as a result, a new resource has been created.
 
+  ** `202 Accepted`: For asynchronous operations that will be fulfilled by the server at a later time.
+
   ** `204 No Content`: Indicates that the request was successful but there is no content to return in the response message. This status code MUST be returned with an empty HTTP message body.
 
 * *3xx*: Redirection response codes.
@@ -691,6 +693,40 @@ ETag: "<etag_value>"
 When the client subsequently requests an update to the resource, it includes in the request the ETag of the last version of the resource that it has. This is sent in the `If-Match` header.
 
 The server then checks if the ETag in the request matches the current version of the resource known to the server. If they match, the update proceeds. If they do not match, it means another client has updated the resource in the meantime, and the update fails with a `412 Precondition Failed` status code.
+
+== Asynchronous operations
+
+Certain types of operations may require processing of requests in an asynchronous manner. In general, synchronous operations should be preferred over asynchronous ones, as they simplify implementations on both the server-side and client-side. But there are some use cases where asynchronous operations are necessary. Asynchronicity is particularly advantageous in long-running tasks, such as image processing and video transcoding. It is also useful in operations that require interaction with external systems, such as sending emails or SMS messages, where the response time of the external system is unpredictable and where the client requires only confirmation that the message we _sent_ and does not require an immediate understanding of the outcome of that operation.
+
+In implementing asynchronous operations, it is RECOMMENDED to conform to the following best practices.
+
+Responses to resource creation, update, and deletion operations SHOULD return the `202 Accepted` status code. This indicates that the request has been accepted for processing, but the processing has not been completed. 
+
+The response body MAY include hypermedia links to the created or updated resource, and there are two possible approaches to implementing this in the context of asynchronous operations. The first option is to include the final URL of the resource, from where clients can `GET` the latest representation of the resource in the normal way. This can be a good option in scenarios where the resource's ID and path are already known. If a newly-created resource is not yet ready, or if the resource has been deleted, the final URL SHOULD return the HTTP status code `404 Not Found`. Clients simply keep polling the provided endpoint until it is confirmed that the resource has been mutated as expected.
+
+[source,json]
+----
+{ 
+  "rel": "self",
+  "method": "GET",
+  "href": "/v1/namespace/resources/{resource_id}"
+}
+----
+
+A second option is to return a temporary URL where the status of the queued operation may be obtained via some kind of temporary identifier.
+
+[source,json]
+----
+{ 
+  "rel": "self",
+  "method": "GET",
+  "href": "/v1/queue/requests/{request_id}"
+}
+----
+
+It is RECOMMENDED that all HTTP APIs that implement asynchronous processing also support a single *webhook* that clients may optionally choose to implement to receive push notification of any asynchronously-updated resources, or the results of any asynchronously-processed actions. This offers a third option for clients to keep their state synchronized with changes — whether triggered by asynchronous operations or even other clients — on the server.
+
+It is possible to support both synchronous and asynchronous processing on the same endpoints. The RECOMMENDED design is to support synchronous processing by default but allow clients to opt-in to asynchronous processing using the `Prefer=respond-async` header.
 
 
 == Headers
