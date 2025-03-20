@@ -771,9 +771,214 @@ The content, or payload, of HTTP request and response messages SHOULD be in the 
 
 === Structure
 
-The structure of JSON payloads SHOULD be consistent across all endpoints in an API. This consistency makes it easier for clients to understand the API, and to write reusable code for interacting with it.
+The structure of JSON payloads SHOULD be consistent across all endpoints in an API. Consistency makes it easier for clients to understand the API, and to write reusable code for interacting with it.
 
-As for what that structure should look like, there is no universal standard. There have been some attempts to standardize JSON API structures, notably the Open Data (OData) protocol (https://www.odata.org/), which is the closest thing we have to an industry standard. But OData is an overly complex system for most use cases, and for this reason it is not widely adopted. Lighter weight standards include JSON API (https://jsonapi.org/), and indeed this is the main inspiration for the JSON payload structure documented below — which is this technical standard's RECOMMENDED structure for HTTP API message content.
+As for what that structure should look like, there is no universal standard. There have been some attempts to standardize JSON API structures, notably the Open Data (OData) protocol (https://www.odata.org/), which is the closest thing we have to an industry standard for application-level messaging in JSON. But OData is an overly complex system for most use cases, and for this reason it is not widely adopted. Lighter weight standards include JSON API (https://jsonapi.org/) and JSON RPC.
+
+An appropriate schema SHOULD be designed to meet the specific needs of the API. However, the following is a RECOMMENDED starting point. It is based on the JSON API standard, but is not compatible with it.
+
+// TODO: The JSON Schema is incomplete.
+.JSON Schema
+[source,json]
+----
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+
+  "type": "object",
+  "properties": {
+    "resources": {
+      "$ref": "#/$defs/Resources"
+    },
+    "metadata": {
+      "$ref": "#/$defs/Metadata"
+    },
+    "links": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Links"
+      }
+    },
+    "messages": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Messages"
+      }
+    }
+  },
+  "required": [], // None
+
+  "$defs": {
+    "Resources": {
+      "type": "object",
+      "patternProperties": {
+        "[a-z][a-z-/]*$": {
+          "$ref": "#/$defs/ResourceCollection"
+        }
+      },
+      "additionalProperties": false,
+    },
+    "ResourceCollection": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "type": "object"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ResourceItem"
+          }
+        },
+        "links": {
+          "type": "object"
+        }
+      },
+      "required": ["items"]
+    },
+    "ResourceItem": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        }
+      },
+      "required": ["id"]
+    },
+    "Metadata": {
+      "type": "object"
+    },
+    "Links": {
+      "type": "object"
+    },
+    "Messages": {
+      "type": "object"
+    }
+  }
+
+}
+----
+
+.Example
+[source,json]
+----
+{
+  "resources": {
+    "namespace/resource-type": {
+      "metadata": {
+        "total_items": 1,
+        "total_pages": 1,
+        "current_page": 1,
+        "per_page": 10
+      },
+      "items": [
+        {
+          "id": "123e4567-e89b-12d3-a456-426614174000",
+          "attributes": {
+            "type": "visa",
+            "number": "xxxxxxxxxxxx0331",
+            "expires": {
+              "month": "11",
+              "year": "2018",
+            },
+            "name": {
+              "first": "Joe",
+              "last": "Shopper"
+            }
+          },
+          "metadata": {
+            "created_at": "2014-01-13T07:23:15Z",
+            "updated_at": "2014-01-13T07:23:15Z"
+          },
+          "related": [
+            {
+              "type": "{namespace}/{resource}",
+              "id": "123e4567-e89b-12d3-a456-426614174000",
+            }
+          ],
+          "links": [
+            {
+              "rel": "self",
+              "method": "GET"
+              "href": "https://api.example.com/v1/vault/credit-cards/123e4567-e89b-12d3-a456-426614174000"
+            },
+            {
+              "rel": "delete",
+              "method": "DELETE",
+              "href": "https://api.example.com/v1/vault/credit-cards/123e4567-e89b-12d3-a456-426614174000"
+            },
+            {
+              "rel": "patch",
+              "method": "PATCH",
+              "href": "https://api.example.com/v1/vault/credit-cards/123e4567-e89b-12d3-a456-426614174000"
+            }
+          ]
+        }
+      ],
+      "links": {
+        {
+          "rel": "self",
+          "method": "GET",
+          "href": "https://api.example.com/v1/vault/credit-cards?page=3&per_page=10&sort_by=create_time&sort_order=asc"
+        },
+        {
+          "rel": "prev",
+          "method": "GET",
+          "href": "https://api.example.com/v1/vault/credit-cards/?page=2&per_page=10&sort_by=create_time&sort_order=asc"
+        },
+        {
+          "rel": "next",
+          "method": "GET",
+          "href": "https://api.example.com/v1/vault/credit-cards/?page=4&per_page=10&sort_by=create_time&sort_order=asc"
+        },
+        {
+          "rel": "first",
+          "method": "GET",
+          "href": "https://api.example.com/v1/vault/credit-cards/?per_page=10&sort_by=create_time&sort_order=asc"
+        },
+        {
+          "rel": "last",
+          "method": "GET",
+          "href": "https://api.example.com/v1/vault/credit-cards/?page=123&per_page=10&sort_by=create_time&sort_order=asc"
+        }
+      }
+    },
+    "namespace/resource-type-two": {
+      "items": [
+        {
+          "id": "123e4567-e89b-12d3-a456-426614174000",
+          "metadata": {},
+          "attributes": {
+            "{field}": {value},
+            "{field}": {value},
+            "{field}": {value}
+          },
+          "links": [
+            {
+              "rel": "self",
+              "method": "GET"
+              "href": "https://api.example.com/v1/{namespace}/{resource}/{uuid}"
+            }
+          ]
+        }
+      ],
+      "metadata": {},
+      "links": {}
+    }
+  },
+  "metadata": {
+    "cached_at": "2014-01-13T07:23:15Z",
+    "keep_until": "2014-01-13T07:53:15Z",
+  },
+  "links": [],
+  "messages": {
+    "errors": [],
+    "warnings": [],
+    "info": []
+  }
+}
+----
+
+==== `resources`
 
 Both request and response payloads, where a payload is included in the HTTP message, MUST have a field named "data". Its value MUST be an object, which MAY be empty. Therefore, the minimum REQUIRED payloads is as follows:
 
@@ -781,43 +986,169 @@ Both request and response payloads, where a payload is included in the HTTP mess
 [source,json]
 ----
 {
-  "data": {}
+  "resources": {}
 }
 ----
 
 OPTIONAL top-level fields and their types are:
 
-* "meta" (object)
+* "metadata" (object)
 * "links" (array)
 * "messages* (object)
 
 [source,json]
 ----
 {
-  "meta": {},
+  "metadata": {},
   "data": {},
   "links": [],
   "messages": {}
 }
 ----
 
-The "links" and "messages" fields MAY be included in HTTP response messages but MUST NOT be accepted by servers when included in clients' HTTP request messages. The "meta" field MAY be included in both HTTP request and response messages. The "data" field MUST be included in both HTTP request and response message that have a payload.
+The "links" and "messages" fields MAY be included in HTTP response messages but MUST NOT be accepted by servers when included in clients' HTTP request messages. The "metadata" field MAY be included in both HTTP request and response messages. The "data" field MUST be included in both HTTP request and response message that have a payload.
 
-==== "meta"
+==== "metadata"
 
-The "meta" field encapsulates metadata about the response or request. This metadata is not part of any representations of resources included in the "data" field, but it MAY hold additional information about those resources.
+The "metadata" field encapsulates metadata about the response or request. This metadata is not part of any representations of resources included in the "data" field, but it MAY hold additional information about those resources.
 
-The "meta" field is an object, which MAY be empty.
+The "metadata" field is an object, which MAY be empty.
 
-The "meta" field MAY include any number of key-value pairs. The keys SHOULD be strings. The values MAY be any native JSON type, including other objects and arrays.
+The "metadata" field MAY include any number of key-value pairs. The keys SHOULD be strings. The values MAY be any native JSON type, including other objects and arrays.
 
+// TODO: Extend this section.
 
+// TODO: Metadata can also be used to provide more granularity about the status of the response message, where HTTP status codes do not provide sufficient detail. For example, a `status` field could be included in the metadata to provide a more detailed status code than the HTTP status code alone. Alternatively reasons for the status code could be included in the "messages" field. This is particularly useful for error responses, where the client needs to know why a request failed.
+
+HTTP message content SHOULD NOT duplicate information that is already provided in the HTTP headers. For example, the `Content-Type` header SHOULD be used to indicate the media type of the response body, and the `Content-Length` header SHOULD be used to indicate the length of the response body. The response body SHOULD NOT replicate this information. But you MAY include this information, and related information, in the "metadata" field if it is significant to the client _application_ (rather than being required by the web server or HTTP client library to process the HTTP message into an object representation).
+
+==== "resources"
+
+The "resources" field encapsulates the main resource representations within an HTTP message. It MAY be empty.
+
+// TODO: The value of the "resources" field MUST conform to the following JSON Schema:
+
+// NOTE: The naming convention for resources fields (`{field}`) MAY differ from the naming convention for other properties of the response structure. For example, a resource field might be named `FirstName`, while a property of the response structure might be named `total_items`.
+
+==== "links"
+
+// TODO: See the *Hypermedia* section, below, for more information on the structure of embedded hypermedia links.
+
+==== "messages"
+
+// Arrays of resources SHOULD be returned in a field named `items`. Metadata fields such as `total_items` and `total_pages` SHOULD be included in a `metadata` object.
+
+=== Common types
 
 The request and response payloads of an HTTP API SHOULD be composed from a consistent set of common types for representing data.
 
 It is RECOMMENDED to use JSON Schema to define this library of common types. JSON Schema is a vocabulary that allows you to annotate and validate JSON documents. It is widely supported by many tools and libraries, and can be used to generate documentation, code, and tests.
 
-See link:./ts-7-json-schema.adoc[TS-7: JSON Schema] for more information.
+// See link:./ts-7-json-schema.adoc[TS-7: JSON Schema] for more information.
+
+=== Hypermedia
+
+It is strongly RECOMMENDED that response content includes hypermedia links. This has numerous benefits, including easier discoverability of resources and actions, improved extensibility of APIs, and reduced coupling between clients and servers.
+
+There are numerous standards and conventions for defining structured hypermedia links in JSON payloads, including https://stateless.group/hal_specification.html[HAL (Hypertext Application Language)], JSON API, and https://github.com/kevinswiber/siren[Siren]. The following convention is takes some design cues from each of these, but is primarily inspired by https://github.com/levid-gc/paypal-api-standards/blob/master/api-style-guide.md#hypermedia[PayPal's convention].
+
+////
+
+PayPal's API conventions for hypermedia links align with the principles of HATEOAS (Hypermedia as the Engine of Application State). They use hypermedia links to make their APIs self-descriptive and guide clients on how to interact with resources. Here's a general overview of their approach:
+
+rel: Indicates the relationship of the link to the current resource (e.g., "self" for the current resource, "next" for pagination).
+
+href: Specifies the URL of the resource.
+
+method: Defines the HTTP method (e.g., GET, POST) that can be used with the link.
+
+For example, a typical PayPal API response might include links like this:
+
+json
+{
+  "links": [
+    {
+      "rel": "self",
+      "href": "https://api.paypal.com/v1/payments/payment/PAY-123456789",
+      "method": "GET"
+    },
+    {
+      "rel": "approval_url",
+      "href": "https://www.paypal.com/checkoutnow?token=EC-123456789",
+      "method": "REDIRECT"
+    },
+    {
+      "rel": "execute",
+      "href": "https://api.paypal.com/v1/payments/payment/PAY-123456789/execute",
+      "method": "POST"
+    }
+  ]
+}
+This structure provides clear guidance on how to interact with the API, including links for retrieving, approving, or executing a payment.
+
+////
+
+Hypermedia links with `rel` attributes for "next", "previous", "first", and "last" pages SHOULD be included in paginated collections, to make it easier for clients to navigate through collections. The `page` and `per_page` query parameters, inputted by the client, MUST be maintained for each link, to ensure consistent client behavior.
+
+.Page navigation
+|===
+|Relationship |Description
+
+|`self`
+|Refers to the current page of the result list.
+
+|`first`
+|Refers to the first page of the result list. This link type MUST NOT be returned when page tokens are used instead.
+
+|`last`
+|Refers to to the last page of the result list. Returning this link is OPTIONAL, but it MUST be included if the client explicitly requests the server to "include totals". This link type MUST NOT be returned when page tokens are used instead.
+
+|`next`
+|Refers to the next page of the result list. This link MAY be omitted if it is known that the current page is the last in the available range (but note that this is not always known, because available resources may dynamically change between requests).
+
+|`prev`
+|Refers to the previous page of the result list. This link MUST NOT be provided where the current page is the first.
+|===
+
+.Example
+----
+{
+  "metadata": {
+    "total_items": 1,
+    "total_pages": 1
+  },
+  "items": [
+    // ...
+  ],
+  "links": [
+      {
+        "rel": "self",
+        "method": "GET",
+        "href": "https://api.example.com/v1/vault/credit-cards?page=3&per_page=10&sort_by=create_time&sort_order=asc"
+      },
+      {
+        "rel": "prev",
+        "method": "GET",
+        "href": "https://api.example.com/v1/vault/credit-cards/?page=2&per_page=10&sort_by=create_time&sort_order=asc
+      },
+      {
+        "rel": "next",
+        "method": "GET",
+        "href": "https://api.example.com/v1/vault/credit-cards/?page=4&per_page=10&sort_by=create_time&sort_order=asc"
+      },
+      {
+        "rel": "first",
+        "method": "GET",
+        "href": "https://api.example.com/v1/vault/credit-cards/?per_page=10&sort_by=create_time&sort_order=asc"
+      },
+      {
+        "rel": "last",
+        "method": "GET",
+        "href": "https://api.example.com/v1/vault/credit-cards/?page=123&per_page=10&sort_by=create_time&sort_order=asc"
+      }
+  ]
+}
+----
 
 == Versioning
 
