@@ -235,10 +235,11 @@ GET /v{major}/{namespace}/{resource}
 GET /v1/vault/credit-cards
 ----
 
+// TODO: Update to match standard schema.
 .Example response
 ----
 {
-  "meta": {
+  "metadata": {
     "total_items": 1,
     "total_pages": 1
   },
@@ -257,7 +258,7 @@ GET /v1/vault/credit-cards
           "last": "Shopper"
         }
       },
-      "meta": {
+      "metadata": {
         "create_time": "2014-01-13T07:23:15Z",
         "update_time": "2014-01-13T07:23:15Z",
       },
@@ -767,6 +768,49 @@ The `fields` query parameter SHOULD NOT be used in conjunction with the `Prefer:
 == Content
 
 The content, or payload, of HTTP request and response messages SHOULD be in the JSON format, for the majority of regular use cases. JSON is natively supported by most modern programming languages, it is human-readable as well as machine parsable, and has become the _de facto_ standard for encoding data in HTTP APIs.
+
+=== Structure
+
+The structure of JSON payloads SHOULD be consistent across all endpoints in an API. This consistency makes it easier for clients to understand the API, and to write reusable code for interacting with it.
+
+As for what that structure should look like, there is no universal standard. There have been some attempts to standardize JSON API structures, notably the Open Data (OData) protocol (https://www.odata.org/), which is the closest thing we have to an industry standard. But OData is an overly complex system for most use cases, and for this reason it is not widely adopted. Lighter weight standards include JSON API (https://jsonapi.org/), and indeed this is the main inspiration for the JSON payload structure documented below — which is this technical standard's RECOMMENDED structure for HTTP API message content.
+
+Both request and response payloads, where a payload is included in the HTTP message, MUST have a field named "data". Its value MUST be an object, which MAY be empty. Therefore, the minimum REQUIRED payloads is as follows:
+
+.Minimal REQUIRED payload.
+[source,json]
+----
+{
+  "data": {}
+}
+----
+
+OPTIONAL top-level fields and their types are:
+
+* "meta" (object)
+* "links" (array)
+* "messages* (object)
+
+[source,json]
+----
+{
+  "meta": {},
+  "data": {},
+  "links": [],
+  "messages": {}
+}
+----
+
+The "links" and "messages" fields MAY be included in HTTP response messages but MUST NOT be accepted by servers when included in clients' HTTP request messages. The "meta" field MAY be included in both HTTP request and response messages. The "data" field MUST be included in both HTTP request and response message that have a payload.
+
+==== "meta"
+
+The "meta" field encapsulates metadata about the response or request. This metadata is not part of any representations of resources included in the "data" field, but it MAY hold additional information about those resources.
+
+The "meta" field is an object, which MAY be empty.
+
+The "meta" field MAY include any number of key-value pairs. The keys SHOULD be strings. The values MAY be any native JSON type, including other objects and arrays.
+
 
 
 The request and response payloads of an HTTP API SHOULD be composed from a consistent set of common types for representing data.
