@@ -2,6 +2,153 @@
 :toc: macro
 :toc-title: Contents
 
-// TODO: Introductory text…
+:link-docs-concurrency: https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#concurrency
+:link-docs-permissions: https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#permissions
+:link-docs-security: https://docs.github.com/en/actions/security-guides/security-hardening-for-github-actions#using-third-party-actions
+:link-docs-security-lab: https://securitylab.github.com/resources/github-actions-preventing-pwn-requests/
+
+This this technical standard serves as a collection of best practices for using (and making) GitHub Actions.
 
 toc::[]
+
+== YAML syntax
+
+// TODO: Link to YAML best practices
+
+Actions and workflows are defined in YAML files. YAML is designed to be a human-readable, as well as a machine-parsable, data serialization format. YAML files SHOULD, therefore, be written primarily with readability in mind.
+
+Consideration SHOULD also be given to the maintenance of YAML files. Give thought, for example, to how diffs will be presented in source control and pull request systems. For example, because Git is a line-based version control system, it is RECOMMENDED to use YAML's multi-line syntax for lists. So, instead of this…
+
+[source,yaml]
+----
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+----
+
+… do this:
+
+[source,yaml]
+----
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+----
+
+YAML comment syntax SHOULD be used to document anything that is not intuitively understood from the YAML data structure and the workflow/action schema.
+
+== Designing workflows and actions
+
+=== General guidelines
+
+* Prefer to compose workflows from modules. Encourage reuse by breaking out discrete parts of pipelines into actions, reusable workflows, or workflow templates.
+
+* Break down workflows into small, discrete jobs and steps. This will make it easier to manage conditions and dependencies.
+
+* Choose descriptive and meaningful names for your secrets and variables. It SHOULD NOT be necessary to consult any out-of-band documentation to understand the purpose of a secret or variable referenced in a workflow. If the meaning of a variable cannot be easily deduced from its name and context, include an adjacent comment to explain its purpose.
+
+* Names for workflows, jobs and steps should also be clear and consistent.
+
+* Test workflows thoroughly. Ensure that conditional logic and job dependencies work as expected. Do this by testing all the possible scenarios that could trigger each workflow.
+
+=== Events
+
+For some event types such as `pull_request`, if you do not specify the _types_ of PR events on which you want your workflow to run, GitHub will assume default activity types. Better, then, to be explicit about the specific event types that you want to trigger your workflows.
+
+In the following example, event filters and activity types are used to refine the `pull_request` event trigger. This workflow will run only when a PR is opened or synchronized (ie. when the HEAD commit of the PR changes), and only for PRs whose base branch is either `main` or `dev`.
+
+[source,yaml]
+----
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+    branches:
+      - main
+      - dev
+
+jobs:
+  echo:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "A PR has been opened or synchronized AND base branch is (main OR dev)"
+----
+
+=== Jobs
+
+A single job may, for example, compile, test _and_ deploy an application. Though convenient, it is generally considered to be best practice for each job definition to be responsible for a single concern, and for complex workflows to be composed from multiple single-responsibility jobs.
+
+This has a number of advantages. For example, workflows will be easier to extend and maintain, and logging output will be easier to analyze.
+
+=== Steps
+
+All steps SHOULD be given a unique name. This will help to identify the output of each step in the logs, and so make it easier to debug failed workflows.
+
+[source,yaml]
+----
+steps:
+  - name: Say hello
+    run: echo "Hello, world!"
+----
+
+=== Expressions
+
+Expressions are commonly used in `if` attributes to make execution of an individual step or a whole job conditional.
+
+[source,yaml]
+----
+jobs:
+  production-deploy:
+    if: github.repository == 'owner/repo' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup Nodes
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      - name: Install bats
+        run: npm install -g bats
+----
+
+The value of the `if` attribute is treated as a JavaScript expression, rather than a string value. Expressions can be used in other attributes, which assume string values by default, using the `${{ <expression> }}` notation. But even in `if` values, if the expression starts with `!`, the whole expression MUST be encapsulated in the `${{ }}` syntax, or escaped with `''`, `""`, or `()`. That's because the exclamation mark is reserved notation in YAML.
+
+So, for consistency, it is RECOMMENDED the `${{ <expression> }}` syntax be used to wrap all expressions, even those in `if` values where this syntax is not required. Like this:
+
+[source,yaml]
+----
+jobs:
+  production-deploy:
+    if: ${{ github.repository == 'owner/repo' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup Nodes
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      - name: Install bats
+        run: npm install -g bats
+----
+
+=== Repository and environment variables
+
+Workflows SHOULD include fallback values for variables that are supposed to be configured via the repository itself. The purpose is to protect the workflow from those variables being accidentally deleted from the repository's configuration.
+
+[source,yaml]
+----
+env:
+  MY_ENV_VAR: ${{ vars.MY_ENV_VAR || 'default value' }}
+----
+
+For secrets, workflow scripts MUST check for a valid value and fail the step if a secret is missing.
+
