@@ -2,6 +2,55 @@
 :toc: macro
 :toc-title: Contents
 
-// TODO: Introductory text…
+This technical standard provides guidance on working with Docker.
 
 toc::[]
+
+== Base images
+
+Within an organization, all containers SHOULD be built from a standard library of organization-approved base images. This will ensure that all containers are built with the same security and compliance standards.
+
+It is RECOMMENDED to use lightweight Linux distributions for base images, such as https://alpinelinux.org/[Alpine Linux], to benefit from their small size and fast boot-up times.
+
+== Build process
+
+Container builds SHOULD be designed to keep the image size to a minimum.
+
+Each instruction in a Dockerfile adds a layer to the image. You SHOULD `RUN` commands to clean up any artifacts you don't need before moving on to building the next layer.
+
+In development environments, if you are using a volume to mount the source code to a guest path, pay particular attention to the ordering of commands in the Docker file. Consider the following example. If you are mounting the `/app` directory in the container to the current working directory of the host, what will happen when you save changes to local files? Docker will rebuild the image from the `COPY . .` instruction, rebuilding only that layer and any subsequent layers. But a consequence of this design is that `npm install` will be rerun inside the container with every file change – because that command is in a subsequent layer.
+
+.Dockerfile
+[source,Dockerfile]
+----
+FROM node:20
+
+RUN apt install imagemagick
+
+WORKDIR /app
+
+COPY . .
+
+RUN npm install
+----
+
+To solve this, we can can change the instructions such that `npm install` is re-run only when we make changes to the `package.json` or `package-lock.json` files. Because the `COPY . .` command is now in a layer after the `RUN npm install` instruction, Docker will use its cache of this lower layer and rebuild only from the `COPY` instruction.
+
+.Dockerfile
+[source,Dockerfile]
+----
+FROM node:20
+
+RUN apt install imagemagick
+
+WORKDIR /app
+
+COPY package*.json .
+
+RUN npm install
+
+COPY . .
+----
+
+It is also RECOMMENDED to use multi-stage builds. This is especially useful when you need to configure containers differently for different environments – dev, test, and prod for example. Multi-stage builds help to keep layers as small as possible. They also help to reduce security attack vectors in production. For more information on multi-stage builds, see the https://docks.docker.com/build/building/multi-stage/[Docker Docs].
+
