@@ -115,3 +115,28 @@ If the containerized application requires credentials such as database passwords
 
 See also *link:./038-security.adoc[TS-38: Security and Secrets Management]*.
 
+== Monitoring
+
+Application containers SHOULD contain a health check.
+
+A basic implementation, seen in the example below, would be a simple curl request against localhost to check that the server has started. Other health checks may confirm that SSL certifications are valid and current, and that database ports are open and responding. The appropriate checks will vary by service.
+
+.Dockerfile with health check
+[source,Dockerfile]
+----
+# Base image
+FROM registry.eu.lnrm.net/docker/images/php72 as build
+
+# Health check
+HEALTHCHECK --interval=5m --timeout=3s \
+  CMD curl -f http://localhost/ || exit 1
+
+# Apache entrypoint
+EXPOSE 80
+ENTRYPOINT ["/usr/sbin/apachectl", "-D", "FOREGROUND"]
+----
+
+A container's health check SHOULD NOT monitor the health of dependent services, such as databases. Health checks should report only on the status of the container and its application.
+
+Health checks SHOULD be run frequently in production.
+
