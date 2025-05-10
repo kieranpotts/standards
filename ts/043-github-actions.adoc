@@ -152,3 +152,45 @@ env:
 
 For secrets, workflow scripts MUST check for a valid value and fail the step if a secret is missing.
 
+== Performance optimization
+
+=== Minimalism
+
+Keep individual workflows, and reusable actions, as minimal as possible. The more time something takes to set up and run, the higher the costs of running your CI/CD infrastructure. Even shaving a few seconds off the run of a workflow can add up to significant cost savings over a month, a year.
+
+Prefer lightweight actions over heavyweight ones. Prefer JavaScript actions over container actions, and best of all are composite actions consisting of simple shell scripts. Where container actions are essential – for example where you require a specific programming language or toolchain – prefer to use light images, such as alpine or alpine-node, over heavy ones.
+
+Don't install unnecessary dependencies.
+
+=== Caching
+
+Be sure to use caching wherever possible. Have package managers cache dependencies, and cache any generated artifacts that can be reused between jobs or workflow runs.
+
+=== Timeouts
+
+By default, GitHub kills jobs after 6 hours if they have not finished by then. Many jobs don't need nearly as much time to finish, but sometimes jobs can hang and the extended run consumes unnecessary minutes, which has a cost.
+
+It is RECOMMENDED to specify shorter timeouts, appropriate for each job. This is specified in minutes via the `jobs.<job_id>.timeout-minutes` attribute.
+
+[source,yaml]
+----
+jobs:
+  set_config:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    steps:
+      - [...]
+----
+
+=== Concurrency
+
+It is RECOMMENDED to implement a concurrency strategy for workflows, especially long-running, resource-intensive ones. This will cancel running workflows in the same group when an event triggers a new run of the same workflow. For example, you can automatically cancel intermediate builds on a PR when a newer commit gets pushed to the PR's source branch.
+
+[source,yaml]
+----
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
+----
+
+See the {link-docs-concurrency}[GitHub Docs] for further guidance.
