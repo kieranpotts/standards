@@ -2,6 +2,45 @@
 :toc: macro
 :toc-title: Contents
 
-// TODO: Introductory text…
+This technical standard covers best practices for using AWS services.
 
 toc::[]
+
+== Identity and access management
+
+=== Root users
+
+Every AWS account has a root user, which is the most privileged user in the account. It has full access to all AWS services and resources.
+
+For security reasons, it is strongly RECOMMENDED that you do not use the root user for everyday tasks. Instead, it is best practice to create an administrative IAM user with the `AdministratorAccess` policy, and use it to administer your AWS account instead. Then, for the root user account, set a very strong password and enable multi-factor authentication. You SHOULD also make sure that the root user does not have any access keys, so restricting the root user's access to the web console only. You SHOULD also set alerts for root user activity.
+
+You can enable IAM user and role access to billing information (this can be done via Billing and Cost Management), so that costs can also be managed by a non-root user.
+
+There will remain a few use cases where you will need to access AWS using the root user. For example, when you want to close your AWS account, or when you want to change the primary email address associated with the account. Otherwise, all AWS activities SHOULD be undertaken by non-root users.
+
+=== IAM and IAM Identity Center
+
+The AWS *Identity and Access Management (IAM)* service is used to create *users*, *groups*, *roles*, and *policies*. The policies define which resources users can create and manage in the AWS account.
+
+The *IAM Identity Center*, which was previously known as the *AWS Single Sign-On (SSO)* service, serves a broader purpose. It is used for managing identities of all kinds, including but not limited to IAM users. AWS now recommends the use of the IAM Identity Center to manage all user identities from a single, centralized service.
+
+IAM Identity Center can have multiple identity sources. An identity source could be IAM itself, or it could be an external identity provider such as Active Directory (self-managed), Azure AD (hosted), Okta, or any other standard identity provider (IdP) that uses SAML 2.0.
+
+IAM Identity Center also supports built-in SSO integrations with many widely-used business applications, from Adobe Creative Cloud to Zoom, so you can very easily enable user access to lots of SaaS services.
+
+IAM Identity Center also integrates with *AWS Organizations*, which provides an alternative interface through which to manage IAM users.
+
+=== AWS Organizations
+
+It is a common pattern in large organizations to have multiple AWS accounts managed under one organization. This allows the control of resources and permissions to be delegated to separate business units or product divisions within the organization. *AWS Organizations* is the AWS service that you use to manage multiple AWS accounts under a single organization.
+
+To use AWS Organizations, you create a *Management Account*, which will be at the root of the AWS account hierarchy you create. You can then create additional AWS accounts, or invite existing accounts, into your organization.Additional accounts will be managed by the root Management Account.
+
+Even if your organization has a simple structure or just a single product, building out your infrastructure for that product under a sub-account will allow you to more easily scale to new products and services in the future, while keeping your cloud infrastructure clearly delimited by product.
+
+=== IAM policies
+
+IAM policies MAY be attached directly to IAM users, but it is RECOMMENDED to attach them to groups instead.
+
+This makes it much easier to manage permissions across multiple users. This is especially important for large organizations with lots of users, where it becomes impractical to manage the permissions of users individually.
+
