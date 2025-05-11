@@ -44,3 +44,206 @@ IAM policies MAY be attached directly to IAM users, but it is RECOMMENDED to att
 
 This makes it much easier to manage permissions across multiple users. This is especially important for large organizations with lots of users, where it becomes impractical to manage the permissions of users individually.
 
+== Resource naming conventions
+
+Names for cloud resources MUST follow a consistent format. A standardized naming convention will help you to identify, sort, and filter resources, and to quickly identify characteristics of resources such as the owner, deployment environment and location, and the associated software component or workload. This has numerous benefits, but perhaps it has the greatest utility in facilitating rapid responses to production incidents.
+
+A good resource naming policy is also a prerequisite for establishing cloud governance. And to automate policy enforcement – and, indeed, to ease the automation of all kinds of processes – resource names need to be machine-parsable. This means having a consistent, global naming schema shared by all resources across all your AWS accounts.
+
+The first step in designing a resource naming convention is to identify the key pieces of information that you want to embed directly in the names of resources. Categories of information that you will want to consider include:
+
+* *Account*: Name of the AWS account that owns the resource.
+
+* *Business unit*: The department within the organization that owns the workload associated with the resource.
+
+* *Workload, application, or project*: To identify how the resource fits into the overall architecture of your software system.
+
+* *Environment*: The stage of the development life cycle that the resource supports.
+
+* *Resource type*: The type of cloud resource or asset.
+
+* *Region, location, or scope*: The region into which the resource is deployed, or the parent resource that the resource is associated with (eg. VPC), if not a global resource.
+
+* *Instance*: The instance count for replicable resources, eg. `001`, `002`, etc.
+
+Resource information that is not embedded directly in resource names can instead be captured in metadata attached to resources (in AWS, tags are used for this purpose). The information you embed in your resource name schema should be limited to the information that is most useful for identifying the _purpose_ of a resource – why it exists.
+
+Think carefully, too, about the order in which the components appear in a resource name. The components that are most helpful in identifying the purpose of a resource SHOULD be listed first.
+
+Different information will be relevant to different types of resources, so your naming convention should be sufficiently flexible to accommodate all of its use cases. Consider which components you want to make compulsory, and which you want to make optional.
+
+Ideally, resource naming conventions SHOULD be agnostic to the cloud provider. This allows for the same naming convention to be used across all cloud providers, and also on-premises resources. This is especially useful for organizations that are using multiple cloud providers, or that are planning to migrate workloads between cloud providers, or from on-premises to the cloud, in the future. However, there are some differences in the constraints that different cloud providers place on the names of different categories of resources. For this reason, some variation in your resource naming convention may be necessary.
+
+The general rule of thumb is to keep resource names short and simple. Use only lower case ASCII letters and numbers for individual components. Avoid special characters, including underscores and periods (full stops). For delimiters, it is RECOMMENDED to use single hyphens (`-`), for the widest compatibility with all cloud providers and their resource types. This means hyphens SHOULD NOT be included in the resource name components themselves. For example, use `webserver` instead of `web-server`.
+
+=== Resource name template
+
+The optimum naming convention will depend on the specific needs of your organization, and the types of resources you are using. But the following is a good starting point. This is based on https://stepan.wtf/cloud-naming-convention/[Stepan Stipl's cloud naming convention], which was developed for GCP, and https://blog.avangards.io/my-quest-to-finding-the-perfect-aws-resource-naming-scheme[Anthony Wat's] variation for AWS.
+
+----
+{organization}-{account}-{project}-{description}-{environment}-{resource}-{location}-{instance}-{suffix}
+----
+
+|===
+|Component |Description |Required |Constraints
+
+|`{organization}`
+|Global identifier for the parent organization
+|Yes
+|[a-z][a-z0-9]{2,7}
+
+|`{account}`
+|Account identifier
+|Yes for multi-account AWS organizations
+|[a-z][a-z0-9]{3,4}
+
+|`{project}`
+|Project name
+|Yes, unless the account identifier serves this purpose
+|[a-z0-9]{4-12}
+
+|`{module}`
+|Software module or component name
+|No
+|[a-z0-9]{1,20}
+
+|`{environment}`
+|Deployment environment
+|Yes, except for domain names and other resources that are not environment-specific
+|[a-z]{3,4} from enum
+
+|`{resource}`
+|Resource type
+|Yes
+|[a-z]{3,4} from enum, or CSP-specific name
+
+|`{location}`
+|Region
+|No
+|Matches CSP region name + AZ
+
+|`{instance}`
+|Instance count
+|No
+|[0-9]{3}
+
+|`{suffix}`
+|Random hash or account ID
+|No
+|[a-z0-9]{7} or account ID
+|===
+
+It is RECOMMENDED to use a consistent `{organization}` identifier across all resources across all your AWS accounts. It is RECOMMENDED that this be a registered business name, or at least a unique trademark. The intention is to try to make resource names as unique as possible, not only to your organization but to the whole of AWS (even though there is no way to verify this for non-global resources). Otherwise resource names may come into conflict if environments merge in the future. This scenario might seem unlikely, but businesses are acquired and merged all the time. And there are other scenarios, such as clients working with a managed service provider, game publisher, or venture capital business, where accounts from different real-world organizations become part of a shared AWS Organization. By using a registered business name as a namespace (prefix) for all AWS resources associated with that business entity, these issues can be mitigated.
+
+The `{account}` component is REQUIRED for multi-account AWS organizations, where it is necessary to distinguish resources owned by different accounts. This component MAY be dropped for singular AWS accounts; alternatively, this component MAY be used to identify the business unit or product department that owns the resources, where multiple departments/products share the same AWS account but have distinct resources. It is RECOMMENDED to use a common set of short abbreviations such as `fin`, `mktg`, `prd`, `it`, and `corp`. The objective is to find a good balance between resource names being descriptive but also concise enough to be easily readable.
+
+The `{project}` component MUST be included, unless the `{account}` component fulfils an equivalent purpose (ie. if you have one account per project). A "project" will mean different things in different contexts. In a large-scale software system, this component may be used to reference components or subdomains within the same software system. Alternatively, this component may be used to identify a workload, application, team, or general usage.
+
+The `{module}` component is optional. It is used to identify a specific module or component within a software system, eg. "backend" and "frontend" components, or specific service names. Use this component of the resource name where it would not otherwise be possible to distinguish between two or more resources based on the other components alone. For storage systems, this part might be used to define the data type(s) stored, or the name of the database engine (eg. "mariadb", "oracle"). It's flexible.
+
+For the `{environment}` component, a common set of abbreviations such as `prod`, `dev`, `qa`, `stage`, and `test` SHOULD be used to refer to different deployment environments. This will not be applicable to all resource types, and it can be dropped where other components such as `{account}` identify the target environment.
+
+The `{resource}` component identifies the resource type. It is RECOMMENDED this be taken from a custom enum that references generic resource types from all major cloud service providers, eg. `vpc`, `vm` (eg. EC2 instance), `fn` (serverless function, eg. Lambda), `cntr` (container), `rdb` (relational database), `obj` (object storage or bucket), etc. Alternatively, this MAY be specific to the cloud provider, in which case it is RECOMMENDED to match the naming convention of the cloud provider itself. For AWS, take the third component of the ARN, eg. `ec2`, `rds`, `s3`, `lambda`, `iam`, etc.
+
+The `{location}` component SHOULD be included where there's a possibility that replicas of a resource could be launched into different locations. For AWS, regions and availability zones (AZs) will typically be used to identify the location. Region names SHOULD match the naming convention of the cloud service provider, minus any hyphens – so `us-east-1` becomes `useast1`. This MAY be combined with an AZ suffix, `a` to `f`, eg. `useast1a`, `useast1b`, etc. For global resources such as S3 buckets, an abbreviation such as "gbl" or "g" MAY be used, or the component MAY be dropped from the name altogether.
+
+The `{instance}` component SHOULD be used to identify replicated resources, eg. `001`, `002`, etc.
+
+Finally, the `{suffix}` component should be a random hash where there is a requirement for uniqueness (eg. `h7g30ij`). For global resources such as S3 bucket names, a common practice is to use your AWS account ID for the resource suffix, to increase the chances of making a globally-unique name.
+
+=== Resource-specific subsets
+
+You might want to define a subset of this global naming schema for each type of AWS resource that you use. For example, your naming schema for EC2 instances may be:
+
+----
+{organization}-{project}-{module}-{environment}-vm-{location}-{instance}
+----
+
+Example:
+
+----
+hackscorp-arundel-publicapi-prod-vm-useast1a-001
+----
+
+And for S3 buckets you might use this subset of the global naming schema:
+
+----
+{organization}-{project}-{module}-{environment}-obj-{accountid}
+----
+
+Example:
+
+----
+hackscorp-arundel-logos-prod-obj-123456789012
+----
+
+Don't be afraid to deviate from your global naming schema for specific resource types, where you need additional information to identify the purpose and ownership of a resource. There will inevitably be some exceptions where your default resource naming convention isn't adequately expressive. Things like DNS resources, CloudFormation changesets, and subnets may not neatly fit into the normal resource pattern. In addition, some AWS resource types have unique naming conventions. For example, AWS IAM resources are generally named using the `PascalCase` convention; you may decide to stay consistent with AWS's IAM naming convention, or define your own.
+
+Just be aware that the greater the variability in your resource naming, the greater the difficulty you will have in implementing automation and governance processes.
+
+.AWS resource-specific naming conventions – examples
+|===
+|Resource type |Schema |Examples
+
+|VPCs
+|`{org}-{project}-{module}-{env}-vpc-{region}`
+|`hackscorp-arundel-authapi-prod-vpc-useast1
+
+|Subnets
+|`{org}-{project}-{module}-{env}-vpc-{region}-subnet-{scope}`
+|`hackscorp-arundel-authapi-prod-vpc-useast1-subnet-public`
+
+|Route tables
+|`{org}-{project}-{module}-{env}-vpc-{region}-rt-{scope}`
+|`hackscorp-arundel-authapi-prod-vpc-useast1-rt-public`
+
+|NAT gateways
+|`{org}-{project}-{module}-{env}-vpc-{region}-nat
+|`hackscorp-arundel-authapi-prod-vpc-useast1-nat`
+
+|NACLs
+|`{org}-{project}-{module}-{env}-vpc-{region}-nacl
+|`hackscorp-arundel-authapi-prod-vpc-useast1-nacl`
+
+|EC2 instances
+|`{org}-{project}-{module}-{env}-vm-{location}-{instance}`
+|`hackscorp-arundel-authapi-prod-vm-useast1-001`
+
+|Load balancers
+|`{org}-{project}-{module}-{env}-lb-{location}-{instance}`
+|`hackscorp-arundel-authapi-prod-lb-useast1-001`
+
+|Auto-scaling groups
+|`{org}-{project}-{module}-{env}-asg-{location}`
+|`hackscorp-arundel-authapi-prod-asg-useast1`
+
+|Security Groups
+|`{org}-{project}-sg-{description}`
+|`hackscorp-arundel-sg-public`
+
+|IAM roles used for EC2 instances
+|`{org}-{project}-{module}-{env}-role`
+|`hackscorp-arundel-authapi-prod-role`
+
+|RDS instances
+|`{org}-{project}-{module}-{env}-rdb-{engine}-{master|slave}-{location}-{instance}`
+|`hackscorp-arundel-authapi-prod-rdb-mysql-slave-useast1-001`
+
+|Lambda functions
+|`{org}-{project}-{module}-{env}-fn`
+|`hackscorp-arundel-reportbatch-prod-fn`
+
+|S3 buckets
+|`{org}-{project}-{module}-{environment}-obj-{accountid}`
+|`hackscorp-arundel-logos-prod-obj-123456789012`
+|===
+
+=== Tools
+
+For Terraform, there is a https://registry.terraform.io/modules/cloudposse/label/null/latest[module] that can be used to define a consistent naming convention for generated resources and tags, and there's https://github.com/Azure/terraform-azurerm-naming[another] that's specific to Azure.
+
+.See also
+****
+* https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-naming[Microsoft Cloud Adoption Framework: Define your naming convention]
+* https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules[Naming rules and restrictions for Azure resources]
+****
