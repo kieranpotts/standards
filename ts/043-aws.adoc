@@ -242,8 +242,132 @@ Just be aware that the greater the variability in your resource naming, the grea
 
 For Terraform, there is a https://registry.terraform.io/modules/cloudposse/label/null/latest[module] that can be used to define a consistent naming convention for generated resources and tags, and there's https://github.com/Azure/terraform-azurerm-naming[another] that's specific to Azure.
 
-.See also
-****
+=== See also
+
 * https://learn.microsoft.com/en-us/azure/cloud-adoption-framework/ready/azure-best-practices/resource-naming[Microsoft Cloud Adoption Framework: Define your naming convention]
+
 * https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/resource-name-rules[Naming rules and restrictions for Azure resources]
-****
+
+== Resource tagging strategy
+
+Along with a resource naming convention, a good tagging strategy will help to improve the governance and management of your AWS resources.
+
+Tags should be used for adding supplementary metadata that does not need to be immediately apparent from the resource name itself. In AWS, a tag is a simple label consisting of a customer-defined key and an optional value.
+
+Tags enable AWS customers to categorize resources by any criteria of their choosing. Resources can then be searched and filtered based on these criteria. In the AWS Management Console, you can use Resource Groups to customize the view of your resources based on the tags you have assigned to them. This allows you to, for example, create views of resources (of multiple types) related to specific applications or departments.
+
+Tags are also used for billing purposes, so you can track costs by project, department, or other criteria. You can use the AWS Cost Explorer to analyze your costs and usage based on the tags you have assigned to your resources. For example, you may use tags to associate costs with technical, security, or compliance dimensions.
+
+Tags are also often used to filter resources in infrastructure automation processes. Tags can be used to opt resources into or out from automated tasks, such as backups, patching, or security scans. For example, many AWS customers run automated start/stop scripts that spin down non-production resources outside of business hours. Tags can be used to identify which resources should be included in these scripts.
+
+Finally, IAM policies support tag-based conditions, enabling customers to constrain permissions based on specific tags and their values. For example, IAM user or role permissions can include conditions to limit access to specific environments (eg. dev, test, prod) based on the tags assigned to the VPCs for those environments.
+
+Tags are used for a variety of other purposes, too. An organization's tagging strategy should be designed to meet the specific use cases of the organization. Nevertheless, the following offers some guidance and best practices for all kinds of tagging strategies.
+
+The key thing is consistency. If a portion of your AWS resources are missing tags for cost allocation, for example, then your cost analysis process will be more time consuming and/or less accurate. Likewise, if you are missing tags to identify resources that contain sensitive data, you may need to assume that all resources contain sensitive data – increasing your costs.
+
+So the _management_ of your tags – how you enforce and audit the use of your tags – is, arguably, more important than how you _define_ your tags.
+
+=== Identify your stakeholders
+
+IAM users who may need to be able to manage tags include:
+
+* Cloud administrators
+* Software developers / application owners
+* Infosec
+* Finance
+* Legal and compliance
+
+Each of these groups of stakeholders will be responsible for the management of different groups of tags, determined by the use cases of those tags.
+
+=== Identify your use cases
+
+The use cases for tags will vary from organization to organization. It is best to have different groups of tags for different use cases. Some common use cases include:
+
+* *Resource management*: How do you want to group your resources in the AWS Management Console? For example, do you wish to view all resources associated with a project, application, team, department, etc.?
+
+* *Cost allocation*: How do you want to break down your costs in analysis?
+
+* *Compliance*: For example, do you need to be able to identify resources that store personally-identifiable information or other sensitive data?
+
+* *Automation*: Do you want to use tags to drive automated processes such as patching, backup and restore, monitoring, job scheduling, and disaster recovery?
+
+And so on.
+
+For each use case, owners should be assigned to manage the associated tags. Tag owners have the responsibility to articulate the value proposition of the tags they manage.
+
+If cost allocation will be one of your use cases for tags, be aware that your monthly cost allocation reports will be calculated based on the tags that you had assigned to your resources over the whole month of the reporting period. Cost allocation reports will not be recalculated when cost allocation tags are changed. New cost allocation tags will be applicable only from the point in time they are applied to resources.
+
+For other use cases, tagging decisions are reversible.
+
+=== Identify required and conditionally-required tags
+
+Tags can be required, conditionally-required, or entirely optional.
+
+Conditionally-required tags are only mandatory under certain circumstances. For example, if an application processes sensitive data, you may require a tag to identify the corresponding data classification (eg. personally-identifiable information, protected health information).
+
+When identifying tagging requirements, focus on required and conditionally-required tags. But allow for optional tags, too – as long as they conform to your tag naming and governance policies. Optional tags can empower people to define new tags for unforeseen or bespoke application requirements.
+
+Start with a small set of tags hat are known to be needed, and create tags as new needs emerge. This approach is preferable to specifying an exhaustive list of tags at the outset, which may prove to be impractical to manage.
+
+=== Tag naming convention
+
+Some tags are predefined by AWS or created automatically by various AWS services. AWS-defined tags tend to be named using all lower case ASCII letters, with hyphens separating words, and colon-delimited prefixes to identify the source service. Examples:
+
+* `aws:ec2spot:fleet-request-id`: Identifies the Amazon EC2 Spot Instance request ID that launched the instance.
+
+* `aws:cloudformation:stack-name`: Identifies the AWS CloudFormation stack that created the resource.
+
+* `lambda-console:blueprint`: Identifies "blueprint" as a template for an AWS Lambda function.
+
+* `elasticbeanstalk:environment-name`: Identifies the application that created the resource.
+
+* `aws:servicecatalog:provisionedProductArn`: The provisioned product Amazon Resource Name (ARN).
+
+* `aws:servicecatalog:productArn`: The ARN of the product from which the provisioned product was launched.
+
+AWS-generated tags form a namespace. For example, in an AWS CloudFormation template, you define a set of resources to be deployed together in a stack, where `stack-name` is a descriptive name that you assign to identify it.
+
+It is RECOMMENDED to use a similar naming convention for your custom tags. In particular, it is RECOMMENDED to use a consistent prefix that identifies your business and account. This distinguishes your own tag schema from AWS's built-in tags, and it also reduces the risks associated with merged AWS accounts (as described in the section on resource naming, above).
+
+A simple starter template for a tag naming convention could be something like:
+
+----
+{organization}:{department}:{key}
+----
+
+This could scale to the following use cases:
+
+|===
+|Use case |Tag schema |Description |Example values
+
+|Data classification
+|`{organization}:infosec:data-classification`
+|Information security-defined set of data classifications.
+|`sensitive`,`confidential`,`personal`
+
+|Operations
+|`{organization}:ops:environment`
+|Implement scheduling of developing and testing environments.
+|`development`,`staging`,`qa`,`production`
+
+|Disaster recovery
+|`{organization}:dr:rpo`
+|Define the recovery point objective (RPO) for a resource.
+|`6h`,`24h`
+
+|Cost allocation
+|`{organization}:fin:cost-allocation`
+|Finance teams implement cost reporting on each team's usage and spend.
+|`corporate`,`recruitment`,`support`,`engineering`
+|===
+
+[IMPORTANT]
+======
+In AWS, tags are case-sensitive. So, `costCenter` and `costcenter` are treated as different tag keys. American English SHOULD be used for consistent spelling, too (in this case, "center", not "centre").
+======
+
+=== See also
+
+* https://docs.aws.amazon.com/whitepapers/latest/tagging-best-practices/tagging-best-practices.html[Best practices for tagging AWS resources]
+
