@@ -371,3 +371,31 @@ In AWS, tags are case-sensitive. So, `costCenter` and `costcenter` are treated a
 
 * https://docs.aws.amazon.com/whitepapers/latest/tagging-best-practices/tagging-best-practices.html[Best practices for tagging AWS resources]
 
+== Virtual Private Clouds (VPCs)
+
+=== CIDR blocks and subnet masks
+
+Choose a VPC CIDR block from the private IP address ranges defined in https://datatracker.ietf.org/doc/html/rfc1918[RFC 1918]. These are the ranges that are reserved for private networks, and are not routable on the public internet. These ranges are:
+
+* `10.0.0.0/8` (`10.0.0.0` - `10.255.255.255`)
+* `172.16.0.0/12` (`172.16.0.0` - `172.31.255.255`)
+* `192.168.0.0/16` (`192.168.0.0` - `192.168.255.255`)
+
+The allowed size for a VPC CIDR block is between `/16` (65,536 IP addresses) and `/28` (16 IP addresses).
+
+Avoid `172.17.0.0/16`. Some AWS services, like Cloud9 and SageMaker AI, use this CIDR range. Avoiding using it for your VPCs will prevent IP address conflicts with these services.
+
+Subnets should have smaller CIDR ranges than their VPC, and there MUST NOT by any overlaps in the IP ranges of subnets in the same VPC, to avoid routing issues. A common practice is to use a `/16` CIDR block for the VPC (eg. `10.0.0.0/16`) and then create subnets within that VPC using smaller CIDR blocks like `/24` or `/28`. For example, you could create a `/24` subnet (eg. `10.0.1.0/24`) for your web servers, a `/24` subnet (eg. `10.0.2.0/24`) for your application servers, and a `/24` subnet (eg. `10.0.3.0/24`) for your database servers. That gives each subnet about 200 possible private IP addresses – more than enough for most use cases.
+
+You can use the subnet allocation feature in a multi-VPC architecture to standardize on the IP sizing of subnets, for example, mandating a smaller CIDR size, like a `/27`, for public subnets, and a larger CIDR size, like a `/24` for private subnets.
+
+Plan your IP addressing scheme to ensure that your VPC and subnets are well-organized and scalable. You should plan for each subnet to have enough addresses not only for the resources you intend to deploy immediately, but also to allow room for future growth.
+
+Keep in mind that the first four IP addresses and the last IP address in each subnet CIDR block are not available for your use and cannot be assigned to a resource, such as an EC2 instance.
+
+[TIP]
+======
+Use the https://www.calculator.net/ip-subnet-calculator.html[IP Subnet Calculator] to help you calculate the CIDR ranges for your VPC and subnets.
+
+image::./_/ipv4-subnet-calculator.png[]
+======
