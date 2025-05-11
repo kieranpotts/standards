@@ -33,7 +33,264 @@ Acceptance criteria SHOULD capture _requirements_, not convey _instructions_ for
 
 This is a critically important distinction. Sometimes, the work of a software development team involves having difficult conversations and giving bad news to the customer, or to other stakeholders in a project. For example, it might be necessary to tell a customer that the requested changes cannot be made within the allocated time and budget constraints. Success in delivery of software projects depends on software development teams being able to represent their rationale viewpoint, so the customer can make better, informed decisions.
 
-Acceptance criteria MUST cover both the functional and non-functional (performance) requirements. The combination of software operations and functionality (specified via the functional requirements) and the constraints within which the software is expected to perform (specified via the non-functional requirements) make up the "features" of a system. A solution is said to be "correct" if it meets both its functional and performance acceptance criteria.
+Acceptance criteria MUST cover both the functional and non-functional (performance) requirements. The combination of software operations and functionality (specified via the functional requirements) and the constraints within which the software is expected to perform (specified via the non-functional requirements) make up the "features" of a system.
+
+A solution is said to be "correct" if it meets both its functional and performance acceptance criteria. See also *link:./007-functional-testing.adoc[TS-7: Functional Testing]*, which covers best practices for the verification of a software system against its functional requirements, and *link:./008-performance-testing.adoc[TS-8: Performance Testing]*, which covers best practices for verifying that software meets its performance requirements.
 
 Requirements SHOULD be specified using consistent acceptance criteria definition conventions. These conventions differ slightly between functional and non-functional requirements.
+
+== Functional requirements (FRs)
+
+There are two parts to the requirements of a software system: what it does (functional requirements, FRs) and how it does it (non-functional requirements, NFRs, also known as quality requirements, QRs). Functional requirements are the features of the software system that the end users interact with. They define what the software system does, from the perspective of the end users. Non-functional requirements are the constraints within which the software system must operate, such as performance, security, and availability.
+
+Acceptance criteria for functional requirements may be captured in a variety of ways. A basic, unstructured list of requirements is a perfectly good starting point. For example, one of the listed requirements might read: "As a newcomer I can register for an account by creating a login and providing my contact information". This may get translated by the development team into the following technical condition of satisfaction:
+
+* A username must be provided.
+  ** It must be between  4 and 20 characters long.
+  ** It must be unique.
+  ** The username is case sensitive.
+* A password must be provided.
+  ** It must be between 8 and 20 characters long.
+  ** It may contain numbers, letters, and special characters.
+  ** It must contain at least one letter and one number.
+* An email must be provided.
+  ** The email must be provided in a valid format.
+  ** The email must be confirmed by double entry.
+  ** The email must not already exist in the system.
+
+But this is not sufficient for complex systems. For complex systems, it is necessary to have a more structured approach to capturing requirements. It is RECOMMENDED to use the Gherkin language for this purpose.
+
+*Gherkin* is a https://martinfowler.com/bliki/BusinessReadableDSL.html[business-readable domain-specific language] that is intended for the specification and documentation of software requirements.
+
+Gherkin specifies a software system on a feature-by-feature basis from the point of view of different groups of users. The objective is to provide a unified specification that can be written and understood by technical and non-technical people alike. As such, Gherkin provides a common language for product managers and developers to discuss and document the business requirements.
+
+Gherkin provides a *testable specification* format. The language can be parsed by machines and used as the basis for automated acceptance testing.
+
+The Gherkin language was originally developed as part of the https://cucumber.io/[Cucumber] testing framework, but it has since been adopted by other testing frameworks including https://specflow.org/[SpecFlow], https://docs.behat.org/[Behat], https://jbehave.org/[JBehave], and https://lettuce.readthedocs.io/[Lettuce].
+
+The following documentation covers the basic features of the Gherkin language that are well supported by all these frameworks. Additional syntax is supported by Cucumber and other test frameworks.
+
+=== Basic structure
+
+Each discrete feature is described in a single plain text file with the `.feature` extension. Like YAML, Gherkin is a line-oriented language that uses indentation to define structure. Most lines in a Gherkin file start with a special word, such as `Given`, `When` or `Then`. Line endings terminate statements or open new blocks. Either spaces or tabs may be used for indentation, though spaces are generally preferred for better portability.
+
+Business rules are structured by features, scenarios, and steps. A software feature may have multiple scenarios, and a scenario may play out over multiple steps.
+
+.Template
+[source,feature]
+----
+Feature: {title}
+  In order to {realize some business value}
+  As a {user type}
+  I want to {achieve some goal}
+
+  Background:
+    Given {state}
+    (And {expectation})
+
+  Scenario: {title}
+    ({optional description})
+    Given {state or precondition}
+     (And {state or precondition})
+     When {event or action}
+     (And {event or action})
+     Then {expected outcome}
+     (And {expected outcome})
+
+  Scenario: {title}
+    ({optional description})
+    Given {state or precondition}
+     (And {state or precondition})
+     When {event or action}
+     (And {event or action})
+     Then {expected outcome}
+     (And {expected outcome})
+----
+
+.Simple example
+[source,feature]
+----
+Feature: Refund item
+  In order to be confident in my purchases
+  As a customer
+  I want to receive refunds for faulty goods
+
+  Scenario: A customer returns a faulty microwave
+    Given a customer has bought a microwave for $100
+    And the customer has a valid receipt
+    When the customer returns the microwave
+    Then the customer should be refunded $100
+----
+
+=== Features
+
+A `.feature` file is meant to describe a single feature of the system, or a particular aspect of a feature.
+
+The opening lines of each `.feature` file have the following structure:
+
+[source,feature]
+----
+Feature: {short description of feature}
+  In order to {realize some business value}
+  As a {user type}
+  I want to {achieve some goal}
+----
+
+This describes the business value derived from inclusion of the feature in the software. The business value is defined in the format of an *[acceptance test]*. This is a twist on the classic *[user story]* formula, which traditionally has the following structure:
+
+[source,feature]
+----
+As a {user type}, I want to {some goal} so that {some reason}
+----
+
+A user story tells us _who_ the feature is for, _what_ the user wants to achieve, and _why_. Gherkin flips this format around, putting the business value at the start of the acceptance criteria.
+
+[source,feature]
+----
+In order to {realize some business value}
+As a {user type}
+I want to {achieve some goal}
+----
+
+This top section is included for the benefit of humans. It is not intended to be used by machines in behavior-driven tests.
+
+=== Scenarios
+
+At this level, both user stories and Gherkin describe the problem, not the solution. But Gherkin goes further by describing how the problem will be solved in the software. This is done via one or more scenarios.
+
+A scenario is a concrete example that illustrates a business rule. It describes a journey, made up of a sequence of steps. Scenarios follow this pattern:
+
+* Describe an initial context.
+* Describe an event.
+* Describe an expected outcome.
+
+.Template
+[source,feature]
+----
+Scenario: {some determinable business situation}
+  ({optional description})
+  Given {state or precondition}
+   (And {state or precondition})
+   When {event or action}
+   (And {event or action})
+   Then {expected outcome}
+   (And {expected outcome})
+----
+
+Scenarios are also tests. Each scenario is an executable specification of the system. Examples:
+
+[source,feature]
+----
+Scenario: A user posts to their blog
+  Given a user is logged in
+  When the user publishes a new blog post
+  Then the user receives confirmation that the post was published
+  And the post is published immediately
+
+Scenario: A user schedules a post to be published in the future
+  Given a user is logged in
+  When the user publishes a new blog post
+  And the user sets the publication date to the future
+  Then the user receives confirmation that the post will be published on the requested date
+  And the post is not immediately published
+----
+
+=== Steps
+
+Scenarios are composed of multiple steps. The number of steps per scenario is unlimited, but it is good practice to aim for five or less steps per scenario. Any longer, and scenarios lose their expressive power as specification and documentation.
+
+Each step starts with one of the following keywords:
+
+* `Given`
+* `When`
+* `Then`
+* `And`
+* `But`
+
+Steps are also known as Givens, Whens, and Thens.
+
+*Givens* are preconditions that put the system in a known state before a user or some external system starts interacting with it. Things that "happened earlier" are also okay:
+
+[source,feature]
+----
+Given there are no users logged on to the site
+Given I am logged in as an administrator
+----
+
+Behavioral test frameworks will use the `Given` information to configure the system-under-test to an initial state. This may involve creating mock objects or adding records to a database, for example.
+
+*Whens* are used to describe a system event or user action. This can be a person interacting with the system, or it can be an event triggered by another part of the system, or a combination of both. Whatever happens, it causes a transition in state.
+
+[source,feature]
+----
+When I am on "/some/page"
+When I fill "username" with "admin"
+When I fill "password" with "123456"
+When I press "login"
+When I run "ls -la"
+----
+
+It is good practice to have no more than one or two `When` steps per scenario. Any more and you should think about splitting up the scenario into multiple smaller ones.
+
+*Thens* are assertions. Assertions are a concept in software testing in which _actual_ outcomes (what the system actually does) are compared against _expected_ outcomes (what the system is supposed to do). In Gherkin, each `Then` step describes a specific, verifiable (ie. testable) result or output, or an expected new state. Ideally, Thens are written as observations of outcomes related to the business value in the feature description – a report, user interface repaint, message, command output, etc. – rather than something deeply buried in the system such as a database change. Try to avoid making assertions about the system's internal state, on implementation details.
+
+It's possible to have multiple `Given`, multiple `When` and multiple `Then` steps within a single scenario (but they must always be grouped in that order.) For better readability, you can swap subsequent `Given`, `When` and `Then` keywords for `And` or `But`.
+
+Steps are the basis for automated behavior-driven testing. Test automation systems will take the trailing portion of each step – the text after the keywords `Given`, `When`, `Then`, `And` and `But` – and map it to a callback function, which is executed. Typically, the callbacks for each `Then` step will inspect some aspect of the system – a log entry, user interface repaint, command output, etc. – to verify the assertion made in the step.
+
+=== Backgrounds
+
+Occasionally you'll find yourself repeating the same `Given` steps in all the scenarios within a feature file. Repeated preparation steps are usually an indication they're not essential to describing individual scenarios, but rather are incidental details. Gherkin provides a solution to quite literally move these details to the background. A single `Background` section may be placed near the top of a feature file, sandwiched between the `Feature` block and the first `Scenario` section. It is written just like a scenario, except there's no title.
+
+[source,feature]
+----
+Background:
+  Given a $100 microwave was sold on 2020-11-03
+  And today is 2020-11-18
+----
+
+Background sections provide context to all subsequent scenarios. Test automation systems will run the background script immediately before testing each scenario, thus putting the system-under-test into the same preset state for every test.
+
+=== Scenario outlines
+
+When you have a complex business rule with severable variable inputs or outputs, you might end up creating several scenarios that only differ by their values.
+
+Copying-and-pasting scenarios to test different values creates duplication. A scenario outline is an alternative to a scenario that allows the expression of a scenario using a template with `<placeholders>` and a table of replacement values.
+
+[source,feature]
+----
+Scenario Outline: Eating
+  Given there are <start> cucumbers
+  When I eat <eat> cucumbers
+  Then I should have <left> cucumbers
+
+  Examples:
+    | start | eat | left |
+    |  12   |  5  |  7   |
+    |  20   |  5  |  15  |
+----
+
+In this case, two scenarios are generated from this scenario outline. It is the equivalent of writing:
+
+[source,feature]
+----
+Scenario Outline: Eating
+  Given there are 12 cucumbers
+  When I eat 5 cucumbers
+  Then I should have 7 cucumbers
+
+Scenario Outline: Eating
+  Given there are 20 cucumbers
+  When I eat 5 cucumbers
+  Then I should have 15 cucumbers
+----
+
+Variables in the scenario outline steps are marked up with < and >.
+
+A scenario outline section is always followed by one or more *Examples* sections. Examples are tabular data which is used to populate the scenario outline's variables. The table must have a header row with column names corresponding to the variables encoded in the scenario outline steps. Each table row will create a new scenario, with the variables filled in with its values.
+
+[IMPORTANT]
+======
+Automating scenario outlines using UI automation such as Selenium WebDriver is considered a bad practice. The only good reason to use scenario outlines is to validate the implementation of a business rule that behaves differently based on variable input parameters. Validating a business rule through a UI is slow, and when there is a failure it is difficult to pinpoint where the error is. The automation code for scenario outlines should communicate directly with the business rule implementation, going through as few layers as possible. This is fast, and errors become easy to diagnose fix.
+======
 
