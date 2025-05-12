@@ -300,3 +300,71 @@ While some application frameworks rely on magic methods to provide elegant ways 
 
 For this reason, application code SHOULD avoid using magic methods wherever possible. Prefer more direct execution of framework-level logic, and define all your class methods explicitly.
 
+== Exceptions
+
+Catch-and-rethrow patterns SHOULD be used to make exceptions more meaningful. Exceptions SHOULD be allowed to "bubble up", perhaps unmodified, until the exception is relevant to the level of abstraction.
+
+This strategy should also make error handling more secure, by avoiding unnecessary disclosure of information about modules underlying the abstraction.
+
+[source,php]
+----
+/**
+ * @throws UserNotFoundException
+ */
+public function getUser($username)
+{
+    // ...
+
+    try {
+        $user = $db->query('SELECT ...', $username);
+    } catch (DatabaseException $e) {
+
+        /*
+        The details of the DatabaseException are unlikely to be relevant
+        to the caller of this method. The exception should be re-thrown with
+        a more appropriate level of abstraction.
+        */
+        throw new UserNotFoundException();
+    }
+
+    return $user;
+}
+----
+
+== phpDoc
+
+=== Exceptions
+
+Where a method _explicitly_ throws something, the thrown type MUST be documented with an `@throws` annotation.
+
+[source,php]
+----
+/**
+ * @throws UserNotFoundException
+ */
+public function getById()
+{
+    // ...
+    throw new UserNotFoundException();
+}
+----
+
+Authors MUST NOT use `@throws` annotations on caller functions to document exception types that may be thrown by other callee functions, unless the caller catches and rethrows those exceptions.
+
+[source,php]
+----
+/**
+ * @throws UserNotFoundException
+ */
+public function getUser()
+{
+    // ...
+    try {
+      $user = $userRepository->getById($id);
+    } catch (UserNotFoundException $e) {
+        throw $e;
+    }
+}
+----
+
+If you tried to document every possible value that could be thrown during the runtime of a function, including those possibly thrown by lower abstraction levels, your phpDocs will quickly get out of control. For the purpose of internal API documentation, only exception types that are _relevant to the current abstraction level_ are relevant.
