@@ -2,7 +2,44 @@
 :toc: macro
 :toc-title: Contents
 
-// TODO: Introductory text…
+This technical standard covers the design and implementation of web-based graphical user interfaces (GUIs) for applications.
 
 toc::[]
 
+== Performance optimization
+
+Web GUIs SHOULD be designed to be as fast and responsive as possible.
+
+For the fastest possible web GUIs, the following optimizations are RECOMMENDED:
+
+* *Server-render* as much HTML as possible, preferably all of it. The browser's native HTML engine will always be able to render HTML faster than any custom client-side JavaScript can.
+
+* *Pre-fetch* as much HTML as possible. For example, when the user hovers over a link, the browser can pre-fetch the HTML for the linked page. Further performance optimization can be achieved by client-side JavaScript pre-fetching _partial_ HTML for the linked page, and then dynamically inserting it into application's *shell*. Global areas such as the navigation and footer do not usually require re-rendering when the user navigates to a new page.
+
+* Also use `<link rel="preload">` in the HTML `<head>` section to suggest the browser preload assets such as CSS, JavaScript, and web fonts. This will reduce the number of blocking requests the browser has to make before it can do an initial render of server-side HTML.
+
+* Use `<link rel="dns-prefetch">` to suggest the browser pre-fetch DNS records for third-party domains that are used by the application. This can reduce the time it takes to resolve domain names to servers. Use this for your CDN, any third-party services called from the client-side code, and for any other assets or resources that are not served from the same domain as the web page document.
+
+* Use a CDN to store and serve static assets.
+
+* Use a proxy tool such as Squid to cache dynamic content that is pre-rendered by the server.
+
+* Use client-side HTTP *caching* aggressively. For example, use the `Cache-Control` header to specify how long a resource should be cached by the browser.
+
+* On the client-side, use a *service worker* to cache pre-rendered HTML and other dynamically-fetched assets. The service worker intercepts requests and serves up a cached version of the resource, if it has one. This is also helpful to provide offline support.
+
+* *Inline CSS* in a `<style>` tag in the HTML `<head>` section, uglified. This SHOULD be restricted to just your *critical CSS*, which is the minimum CSS required to do an initial render of a page. Additional CSS, required only for an optional enhanced user experience, should be deferred to after the page is rendered. If the overall size of the CSS is small, it can all be inlined. This means the browser can start to render the page as soon as HTML is received, without waiting for separate CSS resources to be downloaded. This technique will give you the fastest possible time to first paint – a metric known as the (Largest Contentful Paint (LCP), which is the time is takes the browser to fully render the largest element on the page (ie. after all styles, fonts, images, and other dependencies are fetched).
+
+* Similarly, for JavaScript, try to serve only the subset of code that is required to enable dynamic functionality on the current page. This is known as *code splitting* and tools are available to do this automatically (at compile time or dynamically on the server-side). Avoid loading _all_ your JavaScript on _all_ your pages.
+
+* Consider *lazy loading* additional JavaScript that enhances the user experience but is not required to enable the core functionality.
+
+* Put fixed `width` and `height` attributes on images, or use an inline `style` attribute to set the `width` and `height` CSS properties of the images' containers. This allows the browser to allocate space for an image before it is downloaded, which prevents the page from jumping around as images are loaded – which counts as another re-render.
+
+* Don't be afraid to use age-old techniques such as *image sprites* to reduce the number of requests required to fetch things like product thumbnails, icons, and other small images.
+
+''''
+
+== References
+
+* https://www.youtube.com/watch?v=-Ln-8QM8KhQ[How is this website so fast?] (video) — Wes Bos reverse engineers the website for McMaster-Carr, a large industrial supply company, to show how they achieve fast page loads.
