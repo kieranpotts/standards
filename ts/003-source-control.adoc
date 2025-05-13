@@ -396,4 +396,68 @@ Use the `git branch` command to view all the local branches you have created. Us
 ----
 $ git branch --all|-a
 ----
+== Committing
+
+The following is a guide to the best practices for committing changes to a source code repository.
+
+=== Atomic commits
+
+The foundation of a clean and searchable commit log is the concept of atomic commits.
+
+An atomic commit is a small, self-contained, incremental change to a codebase that does not break the build or tests. A commit does not necessarily represent a "complete" feature or fix, but it does represent a small logical step toward that goal.
+
+When implementing changes, developers SHOULD commit one small change at a time. Large changes SHOULD be split into smaller partial, but stable, changes. Lots of small, discrete changes are  preferred to a smaller number of large, monolithic changes.
+
+Each commit SHOULD be a coherent change. A commit SHOULD be scoped to a single concern and technology layer. For example, database schema changes SHOULD be committed separately from application code changes, and back-end service changes SHOULD be committed separately from front-end GUI changes, and so on.
+
+In each commit, tests SHOULD pass and the build SHOULD succeed. This means avoiding commits that "fix the tests that were broken in the previous commit".
+
+[quote, The Git project]
+____
+Each commit is a minimal coherent idea.
+____
+
+Small, incremental changes are easier to understand when it comes to code review. They also make it easier to track the history of the codebase and to identify the purpose of each change.
+
+Atomic commits also allow for continuous integration. Small, incremental, stable changes can be regularly integrated into shared mainline tracks, reducing the risk of integration issues and conflicts. Where issue branches are used to implement changes, it is RECOMMENDED that those branches be merged or squashed into the development branch at least once per day.
+
+Atomic commits also make it easier to revert specific changes – and "fixing forward" by adding revert commits is often the quickest way to resolve production issues.
+
+The smaller the individual commits, the better. If your commits are too granular, you can always squash them together. But it is harder to do the opposite – to split a large commit into smaller ones.
+
+
+=== Commit types
+
+To help enforce the constraint of atomic commits, each commit MUST be scoped to exactly one of the following ten types:
+
+1.  *feature*
+2.  *performance*
+3.  *fix*
+4.  *dev*
+5.  *refactor*
+6.  *maintenance*
+7.  *chore*
+8.  *release*
+9.  *merge*
+10. *revert*
+
+A *feature* is a change in user-facing function or operation of the software. Feature commits will typically toggle on of an external feature, such as enabling a new API endpoint. This type of commit also covers changes and extensions to existing features, and the deprecation and removal of old features.
+
+While feature commits implement new functional requirements, *performance* commits capture the implementation of non-functional requirements. The term "performance" is used broadly here, to refer to all operational qualities, also known as quality attributes, such as security, responsiveness, reliability, resilience, and so on. Changes in performance are not necessarily experienced by users. For example, implementation of more concurrent processing may not result in measurable changes in performance from the perspective of the end user, but it may reduce operational costs for the software vendor, or bring other benefits.
+
+A *fix* is any change that resolves some sort of bug, error, regression, or incident. It is not necessarily the case that the error was exposed to users. This type of change corrects any kind of error in the software.
+
+Features, performance optimizations, and fixes will typically be associated with issues logged in the issue tracking system. They will also be of interest to users and other stakeholders, and may therefore be recorded in user-facing artifacts such as release notes and changelogs. The remaining seven commit types capture changes that are not directly user-facing and which are mostly of interest to the developers and maintainers of the software.
+
+Typically, there would be a number of incremental changes to code and configuration before a feature, performance optimization, or fix is complete and enabled in the software. These incremental steps are general *dev* work. Individual dev commits should not change the user-facing operations or performance of the software, but rather represent increments toward those changes being enabled.
+
+A *refactor* is any improvement to the formatting, design, or structure of code or configuration, without changing its features or regressing its performance. Refactoring work includes changes to automated tests and build scripts, as well as to source code and configuration.
+
+*Maintenance* commits capture changes that are required in the upkeep of the software – to keep it in good running order. Maintenance work includes the updating of dependencies and improvements to automated tests. These tasks will typically be recurring, and they may be scheduled in advance (for example, using the issue tracking system) or triggered by external events (for example, a security scanning tool revealing a vulnerability in a dependency).
+
+There also tend to be a lot of smaller housekeeping *chores* around the maintenance of a code repository, such as the updating of READMEs and changes to the configuration of CI/CD pipelines.
+
+Finally, a *release* captures a set of changes made in preparation of a new software release. The remaining two commit types, *merge* and *revert*, are required to capture specific Git operations.
+
+Separating discrete development concerns into separate commit objects has many advantages. For example, separating refactoring work from the implementation of functional changes will make it easier to understand the functional changes and to review them. For the same reason, two distinct refactorings SHOULD be committed separately, too.
 
