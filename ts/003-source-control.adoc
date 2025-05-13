@@ -552,7 +552,7 @@ refactor: remove deprecated prefixes from vars
 
 The difference is subtle, but the second makes more sense in most of the contexts in which a Git log is consumed. This style is also consistent with how Git itself generates messages – it writes "merge" not "merged", and "rebase" not "rebased".
 
-The maximum length of the header line (prefix + description) SHOULD be 50 characters and MUST NOT be more than 72. The purpose of this constraint is for `git log` output to play nicely with command line displays. If you use Vim as your commit message editor, it already knows about the 50 character soft limit, which is why the color changes after the 50th character.
+The maximum length of the header line (prefix + description) SHOULD be 50 characters and MUST NOT be more than 72. (Only `revert` commits, which are automated, are excluded from this rule.) The purpose of this constraint is for `git log` output to play nicely with command line displays. If you use Vim as your commit message editor, it already knows about the 50 character soft limit, which is why the color changes after the 50th character.
 
 ==== Breaking changes
 
@@ -567,6 +567,7 @@ Flags are a single word, written in full capital letters, which MAY be one of th
 
 * `BREAKING`
 * `WIP`
+* `EXPERIMENT`
 
 The "BREAKING" flag MUST be used to signpost breaking changes that are introduced to the software or its internal code. Example:
 
@@ -584,7 +585,7 @@ When the "BREAKING" suffix is added to a `feature` commit, it's semantic meaning
 
 Commit messages capture information that is primarily of interest to other software developers, not to the users, customers, or other stakeholders of the software. This is why breaking changes to both internal and external APIs ought to be flagged in commit messages. The "BREAKING" suffix on `feature` commits MAY be used by automation tools to automatically bump major version numbers, or to validate that a user-supplied version number is appropriate (see *link:./005-versioning.adoc[TS-5: Versioning]*). But, for users of the software, other artifacts such as changelogs, release notes, and interface definitions will often be more appropriate places to communicate breaking changes in external APIs. This requires manual intervention, rather than reliance on automation, which is more appropriate for such as important decision.
 
-==== WIP
+==== Work-in-progress (WIP)
 
 The "WIP" flag is used to signpost changes that are a work-in-progress.
 
@@ -616,6 +617,16 @@ All of these options involve changing the commit history, so this can be done on
 
 To synchronize your local changes with the tracked side branch in the upstream repository, you will need to use `git push --force-with-lease` to overwrite the WIP commits that still exist in the upstream branch.
 
+==== Experiments
+
+The "EXPERIMENT" flag MAY be used to signpost changes that are experimental in nature. Experimental changes are not intended to be permanent, and are expected to be reverted or otherwise discarded. Therefore, "EXPERIMENT" commits MUST be committed only to side branches and MUST NOT be integrated into the `dev` branch (not even via a stable squash merge).
+
+Use cases for experimental commits include adding temporary logging output to help debug a problem, to try an alternative design pattern to implement a feature, or to test a new library.
+
+----
+350ca59 revert: dev: add more logging - EXPERIMENT
+35c3aef dev: add more logging - EXPERIMENT
+----
 
 
 
