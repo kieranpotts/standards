@@ -479,7 +479,7 @@ Finally, a *release* captures a set of changes made in preparation of a new soft
 Separating discrete development concerns into separate commit objects has many advantages. For example, separating refactoring work from the implementation of functional changes will make it easier to understand the functional changes and to review them. For the same reason, two distinct refactorings SHOULD be committed separately, too.
 
 
-=== Commit message formats
+=== Commit message format
 
 To meet the objectives set out at the top of this technical standard, there must be very precise rules for the formatting of commit messages.
 
@@ -496,7 +496,7 @@ Each commit message consists of a header, a body, and a footer. Each block is se
 {footer}
 ----
 
-==== Header
+==== Commit message header
 
 The header has a special format that includes a type and a description, separated by a semi-colon and exactly one space.
 
@@ -550,7 +550,7 @@ refactor: removed deprecated prefixes from vars
 refactor: remove deprecated prefixes from vars
 ----
 
-The difference is subtle, but the second makes more sense in most of the contexts in which a Git log is consumed. This style is also consistent with how Git itself generates messages – it writes "merge" not "merged", and "rebase" not "rebased".
+The difference is subtle, but the second makes more sense in most of the contexts in which a Git log is consumed. This style is also consistent with how Git itself generates messages for operations like `merge`, `revert` and `rebase` – it writes "merge" not "merged", and "revert" not "reverts", etc.
 
 The maximum length of the header line (prefix + description) SHOULD be 50 characters and MUST NOT be more than 72. (Only `revert` commits, which are automated, are excluded from this rule.) The purpose of this constraint is for `git log` output to play nicely with command line displays. If you use Vim as your commit message editor, it already knows about the 50 character soft limit, which is why the color changes after the 50th character.
 
@@ -628,13 +628,44 @@ Use cases for experimental commits include adding temporary logging output to he
 35c3aef dev: add more logging - EXPERIMENT
 ----
 
+==== Commit message body
 
+The `{body}` component of a commit message is OPTIONAL.
+
+[source,txt]
+----
+{header}
+
+{body}
+
+{footer}
+----
+
+The message body MAY be used to provide a longer description of the changes included in the commit, or contextual or other background information about why the changes are necessary.
+
+Though optional, it is RECOMMENDED to include a message body for commits that implement anything that changes the behavior or interface of the software in any non-trivial way. Use the message body to explain the rationale behind the changes, why they were implemented the way they were, and how the new behavior or interface differs from that previously.
+
+The message body can be any freeform text. It should be written in full, proper sentences, terminated by periods (full stops). The body may consist of multiple paragraph, delimited by single blank lines. Bullet lists (in Markdown style) MAY also be included, using hanging indents for wrapped lines. The length of any individual line SHOULD NOT exceed 72 characters.
+
+.Example
+----
+fix: prevent racing of requests
+
+Introduce a request id and a reference to the latest request. Dismiss
+incoming responses other than from latest request.
+
+Remove timeouts which were previously used to mitigate the racing
+issue but which are now obsolete.
+
+Reviewed-by: Z
+Refs: #123
+----
 
 [IMPORTANT]
 ======
-Commit messages capture information that is of interest to other developers of the system, not to its users, clients, customers, or other external stakeholders.
+It is important to ensure the message body is delimited from the message header by a single blank line. Some Git operations, like `rebase`, can get confused if the two run together.
 ======
 
-The relaxed definition of a breaking change means that this commit message convention cannot be used for the purpose of auto-generating version numbers for new releases, where the version numbering system expresses breaking changes. See *link:./XXX-versioning.adoc[TS-XXX: Versioning]*. Other artifacts – changelogs, release notes, interface definitions, package manifests – SHOULD be used to capture major version changes in a system's public API. This requires manual intervention, rather than reliance on automation, which is more appropriate for such as important decision.
+////
 
 
