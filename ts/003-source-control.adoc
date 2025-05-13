@@ -10,7 +10,14 @@ toc::[]
 
 The scope of this technical standard is constrained to source code repositories that are used to encapsulate changes in the code and configuration of software applications, services, and libraries, and also infrastructure configuration.
 
-Code repositories may be used for other purposes, such as for technical documentation, requirements specifications, and other artifacts. These repositories do not need to adhere to the committing, branching, and merging strategies described in this technical standard. It is RECOMMENDED these repositories have a default branch named `main` and that their committing and branching conventions be documented in the repository README.
+Code repositories may be used for other purposes, such as for technical documentation, requirements specifications, and other artifacts. These repositories do not need to adhere to the committing, branching, and merging strategies described in this technical standard.
+
+It is RECOMMENDED that repositories that store only non-executable, non-software artifacts have a default branch named `main`, and that their committing and branching conventions be documented in the repository README.
+
+[TIP]
+======
+Use `git log --no-merges` to see recent commits, and the particular commit message conventions for the current repository.
+======
 
 == Terminology
 
@@ -465,9 +472,85 @@ A *refactor* is any improvement to the formatting, design, or structure of code 
 
 *Maintenance* commits capture changes that are required in the upkeep of the software – to keep it in good running order. Maintenance work includes the updating of dependencies and improvements to automated tests. These tasks will typically be recurring, and they may be scheduled in advance (for example, using the issue tracking system) or triggered by external events (for example, a security scanning tool revealing a vulnerability in a dependency).
 
-There also tend to be a lot of smaller housekeeping *chores* around the maintenance of a code repository, such as the updating of READMEs and changes to the configuration of CI/CD pipelines.
+There also tend to be a lot of smaller housekeeping *chores* around the maintenance of a code repository, such as the updating of READMEs and changes to the configuration of CI/CD pipelines. Typically, chores are not significant enough to be tracked via an issue tracker.
 
 Finally, a *release* captures a set of changes made in preparation of a new software release. The remaining two commit types, *merge* and *revert*, are required to capture specific Git operations.
 
 Separating discrete development concerns into separate commit objects has many advantages. For example, separating refactoring work from the implementation of functional changes will make it easier to understand the functional changes and to review them. For the same reason, two distinct refactorings SHOULD be committed separately, too.
+
+
+=== Commit message formats
+
+To meet the objectives set out at the top of this technical standard, there must be very precise rules for the formatting of commit messages.
+
+The following commit message convention is loosely based on https://www.conventionalcommits.org/[Conventional Commits], which in turn is based on the conventions of the https://github.com/angular/angular/blob/22b96b9/CONTRIBUTING.md#-commit-message-guidelines[Angular project].
+
+Each commit message consists of a header, a body, and a footer. Each block is separated by a single empty line.
+
+[source,txt]
+----
+{header}
+
+{body}
+
+{footer}
+----
+
+==== Header
+
+The header has a special format that includes a type and a description, separated by a semi-colon and exactly one space.
+
+[source,txt]
+----
+{type}: {description}
+
+{body}
+
+{footer}
+----
+
+The `{header}` is the only REQUIRED component. The `{type}` part MUST be one of the following words, which map to the different types of commit concerns listed above:
+
+1.  `feature`
+2.  `performance`
+3.  `fix`
+4.  `dev`
+5.  `refactor`
+6.  `maintenance`
+7.  `chore`
+8.  `release`
+9.  `merge`
+10. `revert`
+
+Using predefined type identifiers as a prefix for commit messages makes it easy to filter out unimportant changes using `git bisect`.
+
+The description SHOULD be a short message that summarizes the change. This SHOULD be written all lower case, with no period (full stop) or other punctuation to terminate the statement. Generally, there SHOULD NOT be multiple distinct changes in a commit, but if there are, the descriptions of each change SHOULD be separated by a comma.
+
+The objective is for the command `git log --oneline` – which only outputs the header part of commit messages – to produce an easily readable, high-level view of the sequence of incremental changes. Example:
+
+----
+a1b2c3d chore: initial commit, add readme
+d4e5f6g dev: add openapi specification
+h7i8j9k fix: invalid yaml formatting
+b9r5y8t refactor: move openapi spec to resources directory
+c2c6a8w chore: proofread readme content
+b3e5r7t feature: enable route to openapi spec
+e3r5t7y release: v0.0.0
+----
+
+Many other Git UIs will also show only the first line of the commit message. It functions a bit like a title for an email message. The header of a commit should convey just enough information for the reader to understand the contents of the rest of the commit.
+
+To improve the readability and usefulness of this output, commit headers SHOULD be written in the imperative, present tense, eg. "change", not "changed" or "changes". This written style is not intuitive at first, because you tend to write commit messages as a log of something that you've recently done. But it's better to think of a commit message as a description of the impact of applying the commit will have on the software under source control. Consider the following two examples:
+
+----
+✗
+refactor: removed deprecated prefixes from vars
+
+✓
+refactor: remove deprecated prefixes from vars
+----
+
+The difference is subtle, but the second makes more sense in most of the contexts in which a Git log is consumed. This style is also consistent with how Git itself generates messages – it writes "merge" not "merged", and "rebase" not "rebased".
+
+The maximum length of the header line (prefix + description) SHOULD be 50 characters and MUST not be more than 72. The purpose of this constraint is for `git log` output to play nicely with command line displays. If you use Vim as your commit message editor, it knows about the 50 character soft limit, which is why the color changes after the 50th character.
 
