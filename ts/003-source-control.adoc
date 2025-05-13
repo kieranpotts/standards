@@ -538,9 +538,9 @@ b3e5r7t feature: enable route to openapi spec
 e3r5t7y release: v0.0.0
 ----
 
-Many other Git UIs will also show only the first line of the commit message. It functions a bit like a title for an email message. The header of a commit should convey just enough information for the reader to understand the contents of the rest of the commit.
+Many other Git UIs will also show only the first line of the commit message. The header of a Git commit message functions a bit like the title for an email message. The header of a commit should convey just enough information for the reader to understand the contents of the commit object.
 
-To improve the readability and usefulness of this output, commit headers SHOULD be written in the imperative, present tense, eg. "change", not "changed" or "changes". This written style is not intuitive at first, because you tend to write commit messages as a log of something that you've recently done. But it's better to think of a commit message as a description of the impact of applying the commit will have on the software under source control. Consider the following two examples:
+To improve the readability and usefulness of this output, commit headers SHOULD be written in the imperative, present tense, eg. "change", not "changed" or "changes". This written style is not intuitive at first, because you tend to write commit messages as a log of something that you've recently done. But it's better to think of a commit message as a description of the impact that applying the commit will have on the software under source control. Consider the following two examples:
 
 ----
 ✗
@@ -552,5 +552,34 @@ refactor: remove deprecated prefixes from vars
 
 The difference is subtle, but the second makes more sense in most of the contexts in which a Git log is consumed. This style is also consistent with how Git itself generates messages – it writes "merge" not "merged", and "rebase" not "rebased".
 
-The maximum length of the header line (prefix + description) SHOULD be 50 characters and MUST not be more than 72. The purpose of this constraint is for `git log` output to play nicely with command line displays. If you use Vim as your commit message editor, it knows about the 50 character soft limit, which is why the color changes after the 50th character.
+The maximum length of the header line (prefix + description) SHOULD be 50 characters and MUST NOT be more than 72. The purpose of this constraint is for `git log` output to play nicely with command line displays. If you use Vim as your commit message editor, it already knows about the 50 character soft limit, which is why the color changes after the 50th character.
+
+==== Breaking changes
+
+Breaking changes MUST be clearly signposted in the commit header. To do this, the capitalized word "BREAKING" MUST be appended to the end of the header, demarcated from the description by a spaced hyphen. Example:
+
+----
+22a36c7 dev: remove password from login action - BREAKING
+----
+
+The concept of a breaking change differs depending on the context in which the "BREAKING" suffix is used. In the example above, the breaking change is applied to a `dev` commit. This denotes that the changes include one or more breaking changes to _internal_ APIs. Internal breaking changes include changes to function signatures, data structures, event schemas, and facades to dependencies and third-party systems. The purpose of marking internal breaking changes is to draw the attention of other developers who may be working on parallel changes that will break once their changes are integrated with yours, due to shared code and configuration.
+
+When the "BREAKING" suffix is added to a `feature` commit, it's semantic meaning changes. Features represent user-facing functionality, so a "breaking" feature is one that introduces a breaking change to a public API. Example:
+
+----
+24b3g40 feature: remove password from login endpoint - BREAKING
+----
+
+Commit messages capture information that is primarily of interest to other software developers, not to the users, customers, or other stakeholders of the software. This is why breaking changes to both internal and external APIs ought to be flagged in commit messages. The "BREAKING" suffix on `feature` commits MAY be used by automation tools to automatically bump major version numbers, or to validate that a user-supplied version number is appropriate (see *link:./005-versioning.adoc[TS-5: Versioning]*). But, for users of the software, other artifacts such as changelogs, release notes, and interface definitions will often be more appropriate places to communicate breaking changes in external APIs. This requires manual intervention, rather than reliance on automation, which is more appropriate for such as important decision.
+
+
+However, the purpose of the BREAKING label on commit messages is not to capture breaking changes in public APIs. Changelogs, release notes, interface definitions, and other such artifacts are more appropriate places to capture this information.
+
+[IMPORTANT]
+======
+Commit messages capture information that is of interest to other developers of the system, not to its users, clients, customers, or other external stakeholders.
+======
+
+The relaxed definition of a breaking change means that this commit message convention cannot be used for the purpose of auto-generating version numbers for new releases, where the version numbering system expresses breaking changes. See *link:./XXX-versioning.adoc[TS-XXX: Versioning]*. Other artifacts – changelogs, release notes, interface definitions, package manifests – SHOULD be used to capture major version changes in a system's public API. This requires manual intervention, rather than reliance on automation, which is more appropriate for such as important decision.
+
 
