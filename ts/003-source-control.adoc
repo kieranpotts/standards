@@ -396,6 +396,7 @@ Use the `git branch` command to view all the local branches you have created. Us
 ----
 $ git branch --all|-a
 ----
+
 == Committing
 
 The following is a guide to the best practices for committing changes to a source code repository.
@@ -404,27 +405,36 @@ The following is a guide to the best practices for committing changes to a sourc
 
 The foundation of a clean and searchable commit log is the concept of atomic commits.
 
-An atomic commit is a small, self-contained, incremental change to a codebase that does not break the build or tests. A commit does not necessarily represent a "complete" feature or fix, but it does represent a small logical step toward that goal.
+An atomic commit is a small, self-contained, incremental change to a codebase that does not break the build or tests. A commit does not necessarily represent a "complete" feature, bug fix, or performance optimization, but it does represent a small logical step toward one of those goals.
 
 When implementing changes, developers SHOULD commit one small change at a time. Large changes SHOULD be split into smaller partial, but stable, changes. Lots of small, discrete changes are  preferred to a smaller number of large, monolithic changes.
 
-Each commit SHOULD be a coherent change. A commit SHOULD be scoped to a single concern and technology layer. For example, database schema changes SHOULD be committed separately from application code changes, and back-end service changes SHOULD be committed separately from front-end GUI changes, and so on.
+For example, an atomic commit may add some new logic, hidden behind a feature flag, and associated unit tests. Additional commits may be required, however, for the feature to be considered "done". Further atomic commits may be needed to extend the coverage of the higher-level tests, update the technical documentation, and ultimately to disable the feature flag.
 
-In each commit, tests SHOULD pass and the build SHOULD succeed. This means avoiding commits that "fix the tests that were broken in the previous commit".
+Changes to application code SHOULD be committed alongside changes to automated tests – just enough to verify the correctness of the code changes.
+
+In each commit, both static and runtime tests SHOULD pass, and the build SHOULD succeed too. This means avoiding commits that "fix the tests that were broken in the previous commit". The golden rule for every commit is: _don't break the build_.
+
+It is RECOMMENDED to automate the running of tests and the build on every commit. https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks[Git hooks] can be used to enable this.
+
+In general, the smaller the individual commits, the better. If your commits are too granular, you can always squash them together. But it is harder to do the opposite – to split a large commit into smaller ones.
+
+Ideally, a commit SHOULD be scoped to a single concern and technology layer. For example, database schema changes SHOULD be committed separately from application code changes, and back-end service changes SHOULD be committed separately from front-end GUI changes, and so on. However, this constraint often comes into conflict with the other constraint of keeping the build stable. Authors SHOULD prefer larger commits, with changes across multiple technology layers if necessary, if that is what is required to not break the build.
 
 [quote, The Git project]
 ____
 Each commit is a minimal coherent idea.
 ____
 
+Achieving atomic commits requires a disciplined approach to implementing code changes. But there are numerous advantages for the extra effort.
+
 Small, incremental changes are easier to understand when it comes to code review. They also make it easier to track the history of the codebase and to identify the purpose of each change.
 
-Atomic commits also allow for continuous integration. Small, incremental, stable changes can be regularly integrated into shared mainline tracks, reducing the risk of integration issues and conflicts. Where issue branches are used to implement changes, it is RECOMMENDED that those branches be merged or squashed into the development branch at least once per day.
+Atomic commits also allow for continuous integration. Small, incremental, stable changes can be regularly integrated into shared mainline tracks, reducing the risk of integration issues and conflicts ("merge hell").
+
+// Where issue branches are used to implement changes, it is RECOMMENDED that those branches be merged or squashed into the development branch at least once per day.
 
 Atomic commits also make it easier to revert specific changes – and "fixing forward" by adding revert commits is often the quickest way to resolve production issues.
-
-The smaller the individual commits, the better. If your commits are too granular, you can always squash them together. But it is harder to do the opposite – to split a large commit into smaller ones.
-
 
 === Commit types
 
