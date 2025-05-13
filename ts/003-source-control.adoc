@@ -24,3 +24,105 @@ All-in-one devops toolchains such as https://github.com/[GitHub], https://about.
 
 Source control systems are also the basis for continuous integration and continuous delivery practices. CI/CD systems should be integrated with the source control system.
 
+== Objectives
+
+Git is unopinionated about how it is used. There are many different ways to organize repositories, manage branches, handle merges, and log revisions. The particular source control conventions recommended in this technical standard are designed with the following objectives in mind.
+
+****
+Not all of these objectives can be met exclusively through design of the source control workflow. There are implications for software architecture, for example. Achieving continuous integration and delivery, and especially continuous deployment, will require some kind of feature flag system to be built-in to the software.
+****
+
+=== Parallel development
+
+One of the primary use cases for source control is to support multiple parallel work streams on the same codebase.
+
+A source control workflow should not overly restrict this, but parallel development should not be entirely unbounded, either. A well-designed source control workflow should introduce _just enough_ friction to avoid some of the risks associated with parallel development, such as the occurrence of merge conflicts between multiple branches of diverging changes.
+
+=== Low risk
+
+Merge conflicts can be time-consuming to resolve and they increase the likelihood of bugs and regressions reaching production. They should, therefore, be avoided.
+
+The occurrence of merge conflicts is a failure of the software delivery process. But the distributed nature of Git, which gives us the flexibility to check out and make different changes to the same files at the same time, places the responsibility on development teams to reduce the occurrence of merge conflicts. This requires careful planning of the sequencing of changes and their subsequent integration.
+
+=== Keep it simple
+
+Software projects are more likely to be successful if the development process is robust. Robustness is achieved by keeping the process simple and intuitive. Good workflows can be repeated over and over again with low likelihood of error.
+
+In practical terms, this means that individual contributors should need to know only a small subset of `git` CLI commands, and they should need to perform only a small number of manual operations.
+
+=== Continuous integration
+
+All work-in-progress should be integrated into shared mainline tracks at regular intervals. Ideally, the work-in-progress of each individual contributor should be integrated at least once a day.
+
+This means that most side branches should be short-lived (with limited exceptions, such as for proof-of-concept work).
+
+Continuous integration has many, many benefits, one of which is to further reduce the occurrence of time-sucking merge conflicts between parallel development streams.
+
+=== Continuous delivery
+
+It should be possible to _immediately_ deploy to production – or to production-like environments such as staging servers or canary channels – the latest stable revision of the software under source control.
+
+Production deployments should be fast and highly automated. It should not be necessary to wait for builds to complete or tests to pass. This allows production services to be rebuilt quickly. For example, fast rollbacks can be done in response to incidents.
+
+=== Continuous deployment
+
+Continuous deployment is not appropriate for every software product, but where it is appropriate the source control workflow needs to support frequent deployments to production (or other production-like environments).
+
+The aim is to avoid big bang releases. Instead, a continuous deployment process ships lots and lots of very small changes.
+
+Shipping to production regularly reduces risks of regressions and incidents in production, and makes it easier to identify the root cause of any issues that _do_ arise in production (because the last release's diff is always small).
+
+=== Fast rollback
+
+Continuous deployment also requires fast reproducibility of _prior_ versions of the software under source control.
+
+If an incident occurs in production after a release, it needs to be easy to rollback to the last known good version _as quickly as possible_, and with a high degree of confidence that the rollback will be successful.
+
+This process should be automated as much as reasonably possible.
+
+The alternative, to fix forward, always requires some degree of manual labour, and can therefore never be as well automated as rollbacks.
+
+Fast rollbacks depend on prior versions maintaining stability indefinitely. In other words, it should be possible to recreate _any prior version_ of a system, at any time now or in the future.
+
+=== Fast feedback
+
+The source control workflow should support the automated use of tools that give us fast feedback on the _quality_ of our evolving software.
+
+In particular, static and runtime tests should be run on every commit, rather than be delayed until the point of integration. (This constraint may be relaxed to reduce excessive devops infrastructure costs.)
+
+=== Automation
+
+Source control workflows should be designed to support a high degree of automation of other recurring development and operations procedures. For example, we should be able to easily automate repetitive tasks such as the generation of release notes and changelogs, the bumping of version numbers, the management of secrets and feature flags, and so on.
+
+Automation is a key enabler of our ability to deliver software quickly and safely. It reduces the risk of human error and allows us to focus on the problem-solving and creative aspects of our work, and less on the mundane bits.
+
+Automation increases productivity and makes development work more enjoyable and rewarding.
+
+To optimize the potential for automation, sufficient metadata needs to be embedded in commit objects, branches, and tags.
+
+=== Quality gates
+
+Out-of-the-box, a source control workflow should be lightweight and as frictionless as possible. But the trick to optimizing development velocity is to build in _just enough_ friction to maintain stability in the evolving software. Development velocity will decrease if the quality of the system is allowed to incrementally deteriorate.
+
+So, a source control workflow should be designed to maximize the utility of Git's lightweight branching and merging operations, but also to allow quality gates to be added as appropriate for each project.
+
+=== Provenance
+
+Each and every feature deployed to production should be traceable back to a business requirement, bug report, or incident that initiated the change.
+
+This can be achieved by tightly integrating the source control and issue tracking systems.
+
+If we enforce a strict two-way binding between tasks in the issue tracker and changes in the source control system, we'll be able to query Git for all changes related to a particular issue, and we'll be able to query the issue tracking system for all requirements related to particular changes logged in a repository's revision history.
+
+=== Clean history
+
+The output from `git log` should produce a clean and meaningful changelog, with clearly signposted release points. This log output should be both human-readable and machine-parsable, so changelogs can be auto-generated in other presentation formats such as web pages.
+
+This is necessary to be able to meet the previous objectives of automation and provenance. More than this, a repository's log is an important artifact in its own right.
+
+Clean code and clean logs complement each other. A clean codebase helps to understand the current state of a system, but this is only a snapshot in time. A clean commit log gives us visibility of a project's history, and so helps us to understand the context in which the current code exists.
+
+=== Scalability
+
+Finally, it should be possible to scale the Git workflow from small hobby-scale projects to large-scale enterprise applications. The idea is that a baseline workflow – which requires just a single branch – can be incrementally extended with opt-in features and procedures, as necessary to scale a project.
+
