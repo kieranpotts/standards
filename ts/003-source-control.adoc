@@ -214,10 +214,186 @@ If you prefer the fast-forward-only strategy, you can make the `--ff-only` optio
 
 Both strategies – rebase or fast-forward-only – can be enabled via the installation wizard for Git for Windows.
 
-image::./_/git-config-002.png[This screenshot shows the option to "Rebase the current branch onto the fetched branch. If there are no local commits to rebase, this is equivalent to a fast-forward.", width=500]
+image::./_/git-config-002.png[This screenshot shows the option to "Rebase the current branch onto the fetched branch. If there are no local commits to rebase, this is equivalent to a fast-forward.", width=504]
 
 [NOTE]
 ======
 Even with these options set in your `.gitconfig`, this may not change the default behavior of Git GUIs, such as those built into code editors like IntelliJ or VS Code. You may need to adjust equivalent settings for the Git GUIs you use, too.
 ======
+
+== Repositories
+
+All changes in code and configuration MUST be captured in a source code management system, either Git or another SCM with an equivalent featureset.
+
+For each repository, there MUST be a single centralized repository that is the "source of truth" for the codebase. This is known as the *reference repository*.
+
+All contributors MUST implement changes in copies of the reference repository, which are downloaded ("cloned" in Git-speak) to the developers' local development environments. These clones are called *local repositories*.
+
+For public open source software projects, some contributors will have read-only access to the reference repository. In this case, the external contributors must fork the reference repository to another Git server under their control, before cloning their fork to their local development environment. This is known as the *fork-and-clone workflow*.
+
+The reference repository and its forks are collectively known as *upstream repositories*, because they are upstream to the local development environments where changes are implemented. The upstream repositories are hosted on central servers, usually managed by a hosting service provider such as GitHub or GitLab.
+
+A local repository provides an isolated development environment, allowing multiple contributors to work in parallel. Changes MUST be committed first to local repositories before they are synchronized with ("pushed" to) the upstream repositories they track.
+
+The goal is for developers to be able to check out a repository, run some scripts stored in the repository, and quickly have a complete working application running in a local development environment – all configured in the repository itself. This process should not be dependent on any external dependencies, including code and configuration from other repositories.
+
+In addition, developers SHOULD be able to checkout _any prior version_ from a repository's history and be able to build, run, test, and deploy that version – without relying on any external dependencies that are not configured at the same version point in the same repository.
+
+Thus, if an application calls other external systems or services, it MUST be possible to operate the application without error when those external systems are unavailable. One possible solution involves having a "development mode" or "test mode", under which the running application uses mocks in place of external dependencies.
+
+These constraints ensure the reproducibility of builds and deployments, supporting continuous deployment and automated rollback practices. For the ultimate guarantees over stability of prior releases, development teams may consider checking in to source control the _actual_ vendor libraries and other local dependencies used by the application, instead of checking in merely a package manager configuration. The latter approach does not guarantee that the dependencies can be recreated in the future (because there are no guarantees they will continue to be available from the configured package registry).
+
+=== Repository scope
+
+The boundaries of code repositories SHOULD NOT be arbitrary. A repository is not merely a container for a random assortment of code. Rather, the boundaries of repositories SHOULD reflect the boundaries of software components – applications, services, or libraries – with a repository encapsulating all relevant application code and configuration, tests, requirements specifications, technical documentation, user documentation, infrastructure configuration, and any other artifacts that are relevant to that software component.
+
+Within multi-team organizations, the boundaries of repositories should also map to the boundaries of responsibilities of the teams. Each repository SHOULD be owned by exactly one team. One team MAY own more than one repository, but all repositories under a single team's ownership SHOULD be closely related (eg. fall under the same business subdomain or bounded context).
+
+=== Mono-repos
+
+The scope of a repository SHOULD correspond to the boundaries of a discrete software component. That component MAY be part of a wider system of components, perhaps a distributed system, but each repository MUST encapsulate _one or more_ components that can be started and run together, without requiring other components or dependencies from other repositories to be present.
+
+Mono-repos MAY be used to encapsulate two or more related software components. Mono-repos are REQUIRED where two or more software components are so tightly coupled that they must always coexist – ie. the components must be built, run, tested, and deployed together.
+
+Keeping coupled components together means that changes to one component can be easily made in the context of the other components that depend on it. This can help to manage breaking changes, and it maintains the principle of each repository encapsulating everything that is needed to build, run, test, and deploy a complete working application (even if that application is actually one subsystem of a larger distributed application).
+
+[IMPORTANT]
+======
+The boundaries of repositories SHOULD represent the boundaries of highly coupled components.
+======
+
+All components in a mono-repo SHOULD have the same version numbers. Within a repository, everything at the same revision SHOULD work together. This means that the repository itself can be tagged with release points (rather than these being captured in code and configuration within the repository's contents, which would be necessary for multi-versioned components).
+
+Using repository-level versioning signifies the tight coupling between the software components maintained in the repository, and thus the need to version them together. A mono-repo may encapsulate the code and configuration for two distinct microservices that are each deployed to different infrastructure. If updates to those microservices must be coordinated due to some kind of tight coupling between their APIs, or perhaps due to shared persistence layers, then those microservices SHOULD be maintained together in the same repository.
+
+[IMPORTANT]
+======
+Use version control to control the versions that go together.
+======
+
+It SHOULD be possible to run a complete deployment operation from a single repository, without requiring coordination with other deployments from other repositories.
+
+Within a mono-repo, different components MAY be written in different programming languages and/or target different runtime environments. For this reason, the code and configuration of a mono-repo MAY follow differing coding standards.
+
+=== Repository naming conventions
+
+A clear repository naming convention, standardized across teams and projects, makes it easier to:
+
+* Quickly identify the purpose and content of a repository.
+* Search and retrieve repositories more effectively.
+* Share workflow automations (eg. CI/CD workflows could dynamically adjust based on a repository's name).
+
+It is RECOMMENDED to:
+
+* Prefix repositories with the name of the team, subdomain, or project. Betters still, use internal codenames to identify projects, which will not change even if a team name changes or if the public-facing branding of a product changes. For example, a repository named `zeus_website` may encapsulate the source code for a website for a company called "Initech", where "zeus" is the internal codename for that company. The company can change its brand name and you won't need to update lots of code and configuration to reflect that change.
+
+* For repositories that are not scoped to any particular project or team, but which are relevant to the whole organization, use a generic prefix like `common__`, `shared__`, or `global__`, or the name of the organization itself.
+
+* It is best practice to encapsulate all code and configuration for a discrete software component in a single repository, but where this is not possible consider using a consistent repository name but add a suffix to identify the specific contents of each repository, eg. `--app`, `--db`, `--config`, `--docs`, `--infra`, `--lib`, `--test`, `--tool`, etc.
+
+* If different versions of a software component are maintained in different repositories, append the repository with a version identifier, eg `-legacy`, `-next`.
+
+* Use lower case ASCII letters only. Avoid including numbers and do not include special characters. Use hyphens to separate words in the repository name.
+
+* Do not reference the technology stack in the repository name. The technology stack is an implementation detail that can change over time, and it does not really help to identify the contents of the repository. Repository names SHOULD be short but descriptive of the _domain_ of the software component, rather than descriptive of the solution or technology. If you want to identify the technology stack, hosted repository services like GitHub and GitLab also you to add descriptions, metadata, labels, tags, or topics to repositories.
+
+Examples:
+
+----
+global__requests-for-comments
+global__technical-standards
+zeus__http-api-v1
+zeus__http-api-next
+zeus__website--app
+zeus__website--db
+zeus__website--infra
+----
+
+=== Preparing new repositories
+
+To prepare new Git repositories, it is RECOMMENDED to first create the upstream reference repository. This is done via GitHub, or whatever Git hosting service is being used.
+
+Clone the reference repository on your local machine. It is RECOMMENDED to use the SSH protocol. Example:
+
+----
+$ git clone git@github.com:/{team}/{repo}.git
+----
+
+Alternatively, create an empty directory on your computer, change to that empty directory, and then initialize a blank Git repository within it.
+
+----
+$ mkdir {repo}
+$ cd {repo}
+$ git init
+----
+
+When you directly `git clone` an upstream repository, Git assigns the identifier "origin" to reference the upstream repository from where the clone originated. This doesn't happen when you initialize a Git repository from scratch, so you must run the following command to manually configure the location of the upstream repository.
+
+----
+$ git remote add origin git@github.com:/{team}/{repo}.git
+----
+
+Before you can set up the branches, you need to have some files to commit. Start by creating the project's README.
+
+----
+$ touch README.adoc
+$ echo "= [Project Title] >> README.adoc"
+----
+
+Now stage it.
+
+----
+$ git add README.adoc
+----
+
+And commit it.
+
+----
+$ git commit -m "chore: add readme"
+----
+
+When you committed the README file, Git would have created a default branch called `master` or `main`, depending on how Git is configured on your computer. As per the branching conventions documented below, it is RECOMMENDED to use a default branch called `dev` (or `latest/dev` if multiple versions of the software will need to be maintained in parallel, eg. to enable long-term support). You can use the `git branch -m` command to force the current branch to be moved (ie. renaming it).
+
+----
+$ git branch -m dev
+----
+
+Push the new branch up to the reference repository. Use the `--set-upstream` option, or its alias `-a`, to have the local `dev` branch track a branch of the same name in the remote repository.
+
+----
+$ git push --set-upstream|-u origin dev
+----
+
+Because this will have been the first time that anything is committed to the upstream repository, the `dev` branch should have been automatically set as the default branch. You can check this by inspecting the settings for the repository in GitHub or GitLab.
+
+These are the minimum requirements to prepare a new repository. Optionally, additional branches can be created, as required. See the *Branches* section, below, for details on OPTIONAL branches. For example, to create the production branch:
+
+----
+$ git branch prod
+$ git checkout prod
+----
+
+These two commands can be combined into one:
+
+----
+$ git checkout -b prod
+----
+
+Alternatively, from Git v2.23 you can use the new `git switch` command with the `--create` or `-c` option:
+
+----
+$ git switch --create|-c prod
+----
+
+Remember to push all the branches you create into the reference repository, setting up tracking with your local repository.
+
+----
+$ git push --set-upstream|-u origin prod
+----
+
+Use the `git branch` command to view all the local branches you have created. Use the `--all` or `-a` option to view remote-tracked branches, too.
+
+----
+$ git branch --all|-a
+----
 
