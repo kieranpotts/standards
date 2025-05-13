@@ -502,7 +502,7 @@ The header has a special format that includes a type and a description, separate
 
 [source,txt]
 ----
-{type}: {description}
+{type}: {description} (- {flag})
 
 {body}
 
@@ -556,7 +556,19 @@ The maximum length of the header line (prefix + description) SHOULD be 50 charac
 
 ==== Breaking changes
 
-Breaking changes MUST be clearly signposted in the commit header. To do this, the capitalized word "BREAKING" MUST be appended to the end of the header, demarcated from the description by a spaced hyphen. Example:
+The header line of a commit message MAY include an optional flag on the end. When included, the flag is demarcated from the description by a spaced hyphen:
+
+[source,txt]
+----
+{type}: {description} - {flag}
+----
+
+Flags are a single word, written in full capital letters, which MAY be one of the following:
+
+* `BREAKING`
+* `WIP`
+
+The "BREAKING" flag MUST be used to signpost breaking changes that are introduced to the software or its internal code. Example:
 
 ----
 22a36c7 dev: remove password from login action - BREAKING
@@ -572,8 +584,40 @@ When the "BREAKING" suffix is added to a `feature` commit, it's semantic meaning
 
 Commit messages capture information that is primarily of interest to other software developers, not to the users, customers, or other stakeholders of the software. This is why breaking changes to both internal and external APIs ought to be flagged in commit messages. The "BREAKING" suffix on `feature` commits MAY be used by automation tools to automatically bump major version numbers, or to validate that a user-supplied version number is appropriate (see *link:./005-versioning.adoc[TS-5: Versioning]*). But, for users of the software, other artifacts such as changelogs, release notes, and interface definitions will often be more appropriate places to communicate breaking changes in external APIs. This requires manual intervention, rather than reliance on automation, which is more appropriate for such as important decision.
 
+==== WIP
 
-However, the purpose of the BREAKING label on commit messages is not to capture breaking changes in public APIs. Changelogs, release notes, interface definitions, and other such artifacts are more appropriate places to capture this information.
+The "WIP" flag is used to signpost changes that are a work-in-progress.
+
+Commits that "break the build" – ie. when static or runtime tests fail, or compilation fails – MUST be flagged as "WIP".
+
+In the following example, a WIP commit is followed by a stable one.
+
+----
+c0d1e2f dev: extend search algorithms
+a1b2c3d refactor: rewire search algorithms - WIP
+----
+
+WIP commits serve a couple of purposes.
+
+First, it is not always possible to implement a clean, stable change in a single, small commit. Sometimes, no matter how disciplined you try to be in your committing, development tasks becomes necessarily messy. Including intermediate WIP commits, initially via side branches, provides a solution to keeping individual changes small while implementing large, destructive changes.
+
+Second, WIP commits can be used to backup work that you started, but did not complete, before the end of a working day. You can commit your WIP to a side branch, push to the upstream reference repository for backup purposes, and then resume your work the following day.
+
+[TIP]
+======
+If you end up with lots of changes in your working tree, which are not all stable, you might still be able to make some stable commits from them, by using `git add -p` to stage only some parts of changed files.
+======
+
+WIP commits MUST NOT be committed directly to the `dev` branch (see below for branching conventions). Instead, they MUST be added to side branches, and then merged into the `dev` branch only when subsequent commits "fix the build". Thus, the tip of the `dev` branch always points to a stable commit, though there may be individual WIP commits in the `dev` history that are unstable.
+
+Alternatively, WIP commits can be fixed up before integrating them into the `dev` branch. There are a few different Git techniques you can use to achieve this. One option is to soft reset (`git reset --soft {hash}`) to the nearest stable commit, once you've got a stable build, then create a stable commit to replace the WIP ones. Alternatively you can use `git commit --amend` to recreate the previous WIP commit with your new staged changes. The same result can be achieved using interactive rebasing. Alternatively, WIP commits from a side branch can be squashed into a single new stable commit on `dev`.
+
+All of these options involve changing the commit history, so this can be done only while the WIP commits exist in side branches. Once WIP commits have been integrated into the `dev` branch, it is too late to change them, because the commit history of the `dev` branch MUST be treated as being immutable.
+
+To synchronize your local changes with the tracked side branch in the upstream repository, you will need to use `git push --force-with-lease` to overwrite the WIP commits that still exist in the upstream branch.
+
+
+
 
 [IMPORTANT]
 ======
