@@ -408,6 +408,10 @@ $ git branch --all|-a
 
 The following is a guide to the best practices for committing changes to a source code repository.
 
+=== Language
+
+Commit messages MUST be written in American English using only ASCII-US characters.
+
 === Atomic commits
 
 The foundation of a clean and searchable commit log is the concept of atomic commits.
@@ -485,7 +489,7 @@ To meet the objectives set out at the top of this technical standard, there must
 
 The following commit message convention is loosely based on https://www.conventionalcommits.org/[Conventional Commits], which in turn is based on the conventions of the https://github.com/angular/angular/blob/22b96b9/CONTRIBUTING.md#-commit-message-guidelines[Angular project].
 
-Each commit message consists of a header, a body, and a footer. Each block is separated by a single empty line.
+Each commit message consists of a header, a body, and one or more footers. Each block is separated by a single empty line.
 
 [source,txt]
 ----
@@ -493,7 +497,7 @@ Each commit message consists of a header, a body, and a footer. Each block is se
 
 {body}
 
-{footer}
+{footers}
 ----
 
 ==== Commit message header
@@ -506,7 +510,7 @@ The header has a special format that includes a type and a description, separate
 
 {body}
 
-{footer}
+{footers}
 ----
 
 The `{header}` is the only REQUIRED component. The `{type}` part MUST be one of the following words, which map to the different types of commit concerns listed above:
@@ -535,7 +539,7 @@ h7i8j9k fix: invalid yaml formatting
 b9r5y8t refactor: move openapi spec to resources directory
 c2c6a8w chore: proofread readme content
 b3e5r7t feature: enable route to openapi spec
-e3r5t7y release: v0.0.0
+e3r5t7y release: v0.0.0-beta
 ----
 
 Many other Git UIs will also show only the first line of the commit message. The header of a Git commit message functions a bit like the subject line for an email message. The header of a commit should convey just enough information for the reader to understand the contents of the commit object.
@@ -551,6 +555,13 @@ refactor: remove deprecated prefixes from vars
 ----
 
 The difference is subtle, but the second makes more sense in most of the contexts in which a Git log is consumed. This style is also consistent with how Git itself generates messages for operations like `merge`, `revert` and `rebase` – it writes "merge" not "merged", and "revert" not "reverts", etc.
+
+Generally, the `{description}` SHOULD start with a verb describing the _action_ that is being takn by applying the commit. There are some exceptions. Bug fixes need only describe the _problem_ that is being fixed. And release commits can simply give the version number of the release.
+
+----
+fix: invalid yaml formatting
+release: v0.0.0-beta
+----
 
 The maximum length of the header line (prefix + description) SHOULD be 50 characters and MUST NOT be more than 72. (Only `revert` commits, which are automated, are excluded from this rule.) The purpose of this constraint is for `git log` output to be readable in most contexts. If the header line is long, it may be truncated in printed output. If you use Vim as your commit message editor, it already knows about 50 characters being the recommended soft limit for Git commit subject lines, which is why the color changes after the 50th character by default.
 
@@ -638,7 +649,7 @@ The `{body}` component of a commit message is OPTIONAL.
 
 {body}
 
-{footer}
+{footers}
 ----
 
 The message body MAY be used to provide a longer description of the changes included in the commit, than can be included within the 50-character soft limit on the message header. Use the message body to explain how the new behavior differs from the old, if this cannot be fully understood from the message header on its own.
@@ -667,6 +678,72 @@ It is important to ensure the message body is delimited from the message header 
 ======
 
 The length of any individual line SHOULD NOT exceed 72 characters. This is a bit longer than the RECOMMENDED maximum line length of the message header – 50 characters. It provides a bit more practical space for writing out lengthy descriptions, while still benefitting from good readability in terminal output. For example, `git log` doesn't do any special formatting of commit messages. The default pager is set to `less -S`, so long lines will simply flow off the edge of the window. In a traditional 80-column terminal, if we subtract 4 columns for the left indent and 4 more for symmetry on the right, we are left with 72 columns.
+
+==== Commit message footers
+
+One or more footers MAY be included in commit messages.
+
+The footers are a continuous block separated from the message body (or message header) by a single blank line. Individual footer entries within the block are delimited by a single line break.
+
+A footer entry is a key-value pair written in the following format:
+
+[source,txt]
+----
+{key}: {value}
+----
+
+The key-value pair is separated by a colon and exactly one space after the colon.
+
+The `{key}` is a string of contiguous characters, with words delimited by hyphens. The key is case insensitive, so `Reviewed-by` and `REVIEWED-BY` are equivalent. However, by convention, only the first letter of footer keys is upper case, the rest of the string is lower case.
+
+The `{value}` is any freeform text. Values are terminated by a single newline or the end of the document, unless the next line is indented by at least one space character, which denotes a continuation of the value from the previous line (like the "folding" in RFC 822).
+
+Keys do not need to be unique within a footer block. Multiple instances of the same key, each with different values, MAY be included in a commit message's footers.
+
+This format is inspired by the https://git-scm.com/docs/git-interpret-trailers[Git Trailer convention], which itself is inspired by the encoding of headers in email messages (as defined by RFC 822). The `git interpret-trailers` command can be used to parse structured information contained in commit messages in this format.
+
+.Examples
+----
+Closes: #123
+Reviewed-by: Charlie <charlie@example.com>, Dave <dave@example.com>,
+  Eve <eve@example.com>
+Signed-off-by: Alice <alice@example.com>
+Signed-off-by: Bob <bob@example.com>
+----
+
+Footers provide structured data used in automation. Therefore, you can specify whatever footers are required for each project's tools.
+
+If you are using GitHub, GitLab, or similar all-in-one DevOps systems, these tools support a `Closes` footer. If the value of the `Closes` header references one or more valid issues in the tracker attached to the repository, the issues will be automatically closed when the commit is integrated into the repository's default branch.
+
+----
+Closes: #123, #456
+----
+
+It is RECOMMENDED to cross-reference any issues or pull requests that are relevant to the changes being implemented in a commit. If you do not want to close the referenced issues automatically on integration of the changes, you can use the `Refs` footer instead.
+
+----
+Refs: #123, #456
+----
+
+TIP: Use the full URL if the issue, if the issue tracking system is not connected with the source control system in the upstream reference repository.
+
+This metadata is useful for finding the provenance of changes when auditing the history of a repository – for example, to understand the root cause of a bug that you're working on fixing, or why some changes recently introduced to the project mainline conflict with your work. It will also allow you to query Git for any commits related to a particular issue or PR. Thus, these cross-references help to create a two-way binding between the issue tracking and source control systems.
+
+`Signed-off-by` is another standard footer, which originated in the Linux Kernel project and which is built-in to Git itself. It can be included by adding the `--signoff|-s` option to the `git commit` operation:
+
+----
+git commit -s -m "fix: authorization error"
+----
+
+This will automatically add the `Signed-off-by` header with the value being composed from the `user.name` and `user.email` fields in the Git config. This is used in some open source software projects as a lightweight mechanism for external contributors to opt-in to "sign" the terms of the https://developercertificate.org/[Developer Certificate of Origin (DCO)], which states that the author has the right to submit the changes and agreed for them to be distributed under the terms of the project's license.
+
+Other footers that you may consider for your projects include:
+
+* `Co-authored-by`
+* `Reviewed-by`
+* `Tested-by`
+
+
 ////
 
 
