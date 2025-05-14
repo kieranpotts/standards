@@ -408,6 +408,14 @@ $ git branch --all|-a
 
 The following is a guide to the best practices for committing changes to a source code repository.
 
+Clear and structured commit messages make an important contribution to the internal quality of a software system. The output of `git log` is a valuable artifact in its own right. Most crucially, it is the most useful artifact for understanding the evolution of a codebase over time, and for discovering the rationale behind past design decisions. This all helps to understand the context in which the current code exists.
+
+A repository's commit history is also likely to endure for longer than other artifacts such as issues (issue trackers may be replaced) and decision logs (which can have a tendency to grow stale over time).
+
+Consistent commit message formats support greater automation of recurring development and operations tasks. And useful, detailed commit messages also make tools like `git blame` much more useful. Overall, good commit hygiene greatly improves the maintainability of a software system.
+
+_"Clean commits" is as important as "clean code"._ Committing SHOULD be done deliberately, strategically, and with the same care and attention to detail as given to the code itself.
+
 === Language
 
 Commit messages MUST be written in American English using only ASCII-US characters.
@@ -416,15 +424,15 @@ Commit messages MUST be written in American English using only ASCII-US characte
 
 The foundation of a clean and searchable commit log is the concept of atomic commits.
 
-An atomic commit is a small, self-contained, incremental change to a codebase that does not break the build or tests. A commit does not necessarily represent a "complete" feature, bug fix, or performance optimization, but it does represent a small logical step toward one of those goals.
+An atomic commit is a small, self-contained, incremental change to a codebase that does not break the build or fail any tests. A commit does not necessarily represent a "complete" feature, bug fix, or performance optimization, but it does represent a small logical step toward one of those outcomes.
 
 When implementing changes, developers SHOULD commit one small change at a time. Large changes SHOULD be split into smaller partial, but stable, changes. Lots of small, discrete changes are  preferred to a smaller number of large, monolithic changes.
 
-For example, an atomic commit may add some new logic, hidden behind a feature flag, and associated unit tests. Additional commits may be required, however, for the feature to be considered "done". Further atomic commits may be needed to extend the coverage of the higher-level tests, update the technical documentation, and ultimately to disable the feature flag.
+For example, an atomic commit may add a small piece of new logic, hidden behind a feature flag, and some unit tests to cover it. Additional commits may be required – eg. to extend the coverage of the higher-level tests, to update the technical documentation, and ultimately to disable the feature flag – for the feature to be considered "done".
 
-Changes to application code SHOULD be committed alongside changes to automated tests – just enough to verify the correctness of the code changes.
+Changes to application code SHOULD be committed alongside changes to automated tests – just enough to verify the correctness of the code changes. An important constraint of atomic commits is that each commit is self-contained and could therefore be reverted independently – without requiring any older commits to be reverted, too. If code and tests are committed independently, they're not atomic commits, because they are coupled.
 
-In each commit, both static and runtime tests SHOULD pass, and the build SHOULD succeed too. This means avoiding commits that "fix the tests that were broken in the previous commit". The golden rule for every commit is: _don't break the build_.
+Critically, in each commit, both static and runtime tests SHOULD pass, and the build SHOULD succeed, too. This means avoiding commits that "fix the tests that were broken in the previous commit". The golden rule for every commit is: _don't break the build_.
 
 It is RECOMMENDED to automate the running of tests and the build on every commit. https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks[Git hooks] can be used to enable this.
 
@@ -441,11 +449,9 @@ Achieving atomic commits requires a disciplined approach to implementing code ch
 
 Small, incremental changes are easier to understand when it comes to code review. They also make it easier to track the history of the codebase and to identify the purpose of each change.
 
-Atomic commits also allow for continuous integration. Small, incremental, stable changes can be regularly integrated into shared mainline tracks, reducing the risk of integration issues and conflicts ("merge hell").
+Atomic commits also allow for continuous integration. Small, incremental, stable changes can be regularly integrated into shared mainline tracks, reducing the risk of integration conflicts ("merge hell").
 
-// Where issue branches are used to implement changes, it is RECOMMENDED that those branches be merged or squashed into the development branch at least once per day.
-
-Atomic commits also make it easier to revert specific changes – and "fixing forward" by adding revert commits is often the quickest way to resolve production issues.
+Atomic commits also make it easier to revert specific changes, and "fixing forward" by adding revert commits is often the quickest way to resolve production issues.
 
 === Commit types
 
@@ -462,23 +468,38 @@ To help enforce the constraint of atomic commits, each commit MUST be scoped to 
 9.  *merge*
 10. *revert*
 
-A *feature* is a change in user-facing operation or behavior of the software. Feature commits will typically toggle on of an external feature, such as enabling a new API endpoint. This type of commit also covers changes and extensions to existing features, and the deprecation and removal of old features.
+A *feature* is a change in a user-facing operation or behavior of the software. Feature commits will typically toggle on an external feature, such as enabling a new API endpoint. This type of commit also covers changes and extensions to existing features, and the deprecation and removal of old features.
 
-While feature commits implement new functional requirements, *performance* commits capture the implementation of non-functional requirements. The term "performance" is used broadly here, to refer to all operational qualities, also known as quality attributes, such as security, responsiveness, reliability, resilience, and so on. Changes in performance are not necessarily experienced by users. For example, implementation of more concurrent processing may not result in measurable changes in performance from the perspective of the end user, but it may reduce operational costs for the software vendor, or bring other benefits.
+While feature commits implement new functional requirements, *performance* commits capture the implementation of non-functional requirements. The term "performance" is used broadly here, to refer to all operational qualities, also known as dynamic quality attributes, such as security, responsiveness, reliability, resilience, and so on.
 
-A *fix* is any change that resolves some sort of bug, error, regression, or incident. It is not necessarily the case that the error was exposed to users. This type of change corrects any kind of error in the software.
+Both features and performance optimizations are user-facing changes. However, not all performance optimizations will be observed by users in any kind of quantifiable way. For example, the implementation of more concurrent processing may reduce the operational costs for the software vendor, rather than reduce latency for users.
 
-Features, performance optimizations, and fixes will typically be associated with issues logged in the issue tracking system. They will also be of interest to users and other stakeholders, and may therefore be recorded in user-facing artifacts such as release notes and changelogs. The remaining seven commit types capture changes that are not directly user-facing and which are mostly of interest to the developers and maintainers of the software.
+A *fix* is any change that resolves some sort of defect – whether a bug, regression, incident, or just an entry in an error log. It is not necessarily the case that the defect was exposed to users, but it's something that needed fixing nonetheless.
+
+Features, performance optimizations, and fixes will typically be associated with issues logged in the project's issue tracking system. They will also be of interest to users and other stakeholders, and may therefore be recorded in user-facing artifacts such as release notes and changelogs.
+
+The remaining commit types capture changes that are not directly user-facing and which are mostly of interest to the developers and maintainers of the software.
+
+''''
 
 Typically, there would be a number of incremental changes to code and configuration before a feature, performance optimization, or fix is complete and enabled in the software. These incremental steps are general *dev* work. Individual dev commits should not change the user-facing operations or performance of the software, but rather represent increments toward those changes being enabled.
 
-A *refactor* is any improvement to the formatting, design, or structure of code or configuration, without changing its features or regressing its performance. Refactoring work includes changes to automated tests and build scripts, as well as to source code and configuration.
+A *refactor* is any improvement to the formatting, design, or internal structure of the code or the system configuration, without changing the software's features or regressing its performance. Refactoring work includes changes to automated tests and build scripts, as well as to source code and production configuration.
 
-*Maintenance* commits capture changes that are required in the upkeep of the software – to keep it in good running order. Maintenance work includes the updating of dependencies and improvements to automated tests. These tasks will typically be recurring, and they may be scheduled in advance (for example, using the issue tracking system) or triggered by external events (for example, a security scanning tool revealing a vulnerability in a dependency).
+.Performance optimization versus refactoring
+****
+Performance optimization and refactoring are both concerned with improving the _quality_ of the software, but they focus on different quality attributes (defined as non-functional requirements).
 
-There also tend to be a lot of smaller housekeeping *chores* around the maintenance of a code repository, such as the updating of READMEs and changes to the configuration of CI/CD pipelines. Typically, chores are not significant enough to be tracked via an issue tracker.
+Performance optimization addresses qualities like availability, consistency, latency, security, and compliance requirements. These are _external_ quality attributes of a system, because they impact the user experience. They are also _dynamic_ quality attributes, because they tend to emerge at runtime.
 
-Finally, a *release* captures a set of changes made in preparation of a new software release. The remaining two commit types, *merge* and *revert*, are required to capture specific Git operations.
+Refactoring is about making improvements to the _internal_, _static_ qualities of a system – things like choices of technologies, design patterns, data structures, and coding conventions. These are qualities that emerge at compile time (or earlier) and that impact the developer experience. The focus of refactoring work is on the needs of the developers and maintainers of the software, whereas the focus of performance optimization is on delivering better quality user experiences.
+****
+
+*Maintenance* commits capture changes that are required in the upkeep of the software – to keep it in good running order. This category of work includes the updating of dependencies and improvements to automated tests. These tasks will typically be recurring, and they may be scheduled in advance (for example, using the issue tracking system) or triggered by external events (for example, a security scanning tool revealing a vulnerability in a dependency).
+
+There also tends to be a lot of smaller housekeeping *chores* around the maintenance of a code repository, such as updating of READMEs and other documentation, applying code formatting rules to code, configuring tools like linters and test frameworks, and changing the configuration of CI/CD pipelines. Typically, chores are not significant enough to be tracked via an issue tracker, whereas larger maintenance tasks normally are. They may not even require peer review, and may therefore be committed directly to the `dev` branch (skipping the pull request process).
+
+Finally, a *release* commit captures a set of changes made in preparation of a new software release. The remaining two commit types, *merge* and *revert*, are required to capture specific Git operations.
 
 Separating discrete development concerns into separate commit objects has many advantages. For example, separating refactoring work from the implementation of functional changes will make it easier to understand the functional changes and to review them. For the same reason, two distinct refactorings SHOULD be committed separately, too.
 
@@ -502,7 +523,7 @@ Each commit message consists of a header, a body, and one or more footers. Each 
 
 ==== Commit message header
 
-The header has a special format that includes a type and a description, separated by a semi-colon and exactly one space.
+The header has a special format that includes a type and a description, separated by a semi-colon and exactly one space. There is an OPTIONAL flag on the end, delimited by a spaced hyphen.
 
 [source,txt]
 ----
@@ -513,7 +534,7 @@ The header has a special format that includes a type and a description, separate
 {footers}
 ----
 
-The `{header}` is the only REQUIRED component. The `{type}` part MUST be one of the following words, which map to the different types of commit concerns listed above:
+The `{header}` is the only REQUIRED component of a commit message. The `{type}` part MUST be one of the following words, which map to the different types of commit concerns listed above:
 
 1.  `feature`
 2.  `performance`
@@ -556,7 +577,7 @@ refactor: remove deprecated prefixes from vars
 
 The difference is subtle, but the second makes more sense in most of the contexts in which a Git log is consumed. This style is also consistent with how Git itself generates messages for operations like `merge`, `revert` and `rebase` – it writes "merge" not "merged", and "revert" not "reverts", etc.
 
-Generally, the `{description}` SHOULD start with a verb describing the _action_ that is being takn by applying the commit. There are some exceptions. Bug fixes need only describe the _problem_ that is being fixed. And release commits can simply give the version number of the release.
+Generally, the `{description}` SHOULD start with a verb describing the _action_ that is being taken by applying the commit. There are some exceptions. Bug fixes need only describe the _problem_ that is being fixed. And release commits can simply give the version number of the release.
 
 ----
 fix: invalid yaml formatting
@@ -743,6 +764,30 @@ Other footers that you may consider for your projects include:
 * `Reviewed-by`
 * `Tested-by`
 
+==== Merge commits
+
+Merge commits are generated automatically by Git on `git merge` operations. It is not possible to change the default message of merge commits, but it can be customized on a case-by-case basis using the `--message` or `-m` option.
+
+It is RECOMMENDED to use the `--edit` option to customize the message of merge commits. (This is the default behavior since Git v1.7.10, so the `--edit` option is no longer explicitly required. The raw `git merge` command will open a text editor, unless a custom message is explicitly inputted via the `--message|-m` option.)
+
+----
+git merge (--edit) {branch}
+----
+
+It is RECOMMENDED to edit the header line, to include the `merge:` prefix and to conform with other committing conventions described in this technical standard. However, the default body of the message SHOULD be maintained. This is generated by Git and it contains useful information about the merge operation, including the hashes of all the commits integrated via the merge commit.
+
+==== Revert commits
+
+If a commit reverts a previous commit, it's header should be prefixed with `revert: `, followed by the original header quoted in double quotes. There should be no body, and the footer should have a single `Reverts` header, as shown in the example below, where `{hash}` is the SHA of the commit that is being reverted.
+
+----
+revert: "refactor: move location of overlay component"
+
+Reverts: d7o8k8l
+----
+
+As with `git merge` operations, it is not possible to change the default message of revert commits, so you will need to edit it on a case-by-case basis.
+
 ==== Commit message templates
 
 It is RECOMMENDED to configure your local Git client to use a custom commit message template, which will make it easier to follow the commit message conventions when you use the `git commit` command (without the `--message` or `-m` option) to create a new commit object.
@@ -777,7 +822,7 @@ link:https://git-scm.com/book/en/v2/Customizing-Git-Git-Configuration#_commit_te
 #                  performance optimization.
 #   - refactor     An improvement to the static structure of the source code,
 #                  data, configuration, or tests.
-#   - maintenance  Updates to dependency configurations, improvements to 
+#   - maintenance  Updates to dependency configurations, improvements to
 #                  automated tests, extensions to technical documentation, and
 #                  other changes to support the upkeep of the software.
 #   - chore        Small, general housekeeping tasks that are not normally
