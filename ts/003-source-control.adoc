@@ -447,11 +447,9 @@ ____
 
 Achieving atomic commits requires a disciplined approach to implementing code changes. But there are numerous advantages for the extra effort.
 
-Small, incremental changes are easier to understand when it comes to code review. They also make it easier to track the history of the codebase and to identify the purpose of each change.
+Small, incremental changes are easier to understand when it comes to code review. They also make it easier to track the history of the codebase and to identify the purpose of each change. 
 
-Atomic commits also allow for continuous integration. Small, incremental, stable changes can be regularly integrated into shared mainline tracks, reducing the risk of integration conflicts ("merge hell").
-
-Atomic commits also make it easier to revert specific changes, and "fixing forward" by adding revert commits is often the quickest way to resolve production issues.
+Atomic commits also allow for continuous integration. Small, incremental, stable changes can be regularly integrated into shared mainline tracks, reducing the risk of integration conflicts ("merge hell"). Atomic commits also make it easier to revert specific changes, and "fixing forward" by adding revert commits is often the quickest way to resolve production issues.
 
 === Commit types
 
@@ -501,8 +499,7 @@ There also tends to be a lot of smaller housekeeping *chores* around the mainten
 
 Finally, a *release* commit captures a set of changes made in preparation of a new software release. The remaining two commit types, *merge* and *revert*, are required to capture specific Git operations.
 
-Separating discrete development concerns into separate commit objects has many advantages. For example, separating refactoring work from the implementation of functional changes will make it easier to understand the functional changes and to review them. For the same reason, two distinct refactorings SHOULD be committed separately, too.
-
+// TODO: Add information on mapping between issue types and commit types.
 
 === Commit message format
 
@@ -547,7 +544,7 @@ The `{header}` is the only REQUIRED component of a commit message. The `{type}` 
 9.  `merge`
 10. `revert`
 
-Using predefined type identifiers as a prefix for commit messages makes it easy to filter out unimportant changes using `git bisect`.
+Using predefined type identifiers as a prefix for commit messages makes it easy to filter out unimportant changes (like chores) using `git bisect`.
 
 The description SHOULD be a short message that summarizes the change. This SHOULD be written all lower case, with no period (full stop) or other punctuation to terminate the statement. Generally, there SHOULD NOT be multiple distinct changes in a commit, but if there are, the descriptions of each change SHOULD be separated by a comma.
 
@@ -563,9 +560,15 @@ b3e5r7t feature: enable route to openapi spec
 e3r5t7y release: v0.0.0-beta
 ----
 
+Separating discete development concerns – feature delivery, bug fixes, performance optimization, refactoring, etc. – into separate commit objects helps to enforce the principle of atomic commits, and all the benefits that go with that.
+
 Many other Git UIs will also show only the first line of the commit message. The header of a Git commit message functions a bit like the subject line for an email message. The header of a commit should convey just enough information for the reader to understand the contents of the commit object.
 
-To improve the readability and usefulness of this output, commit headers SHOULD be written in the imperative, present tense, eg. "change", not "changed" or "changes". This written style is not intuitive at first, because you tend to write commit messages as a log of something that you've recently done. But it's better to think of a commit message as a description of the impact that applying the commit will have on the software under source control. Consider the following two examples:
+To improve the readability and usefulness of this output, commit headers SHOULD be written in the imperative mood in the present tense. This means writing commit messages as though you're giving a current command or instruction. So you should write "change" not "changed" or "changes", and "update" not "updated" or "updates".
+
+This written style is not intuitive at first, because you tend to write commit messages as a log of something that _you_ have recently done (past tense). But it's better to think of a commit message as a description of the impact that applying the commit will have on the software under source control. Commits are not so much records of past actions, but rather they are states that can be checked out, merged, reverted, or cherry-picked at any time.
+
+Consider the following two examples:
 
 ----
 ✗
@@ -576,6 +579,13 @@ refactor: remove deprecated prefixes from vars
 ----
 
 The difference is subtle, but the second makes more sense in most of the contexts in which a Git log is consumed. This style is also consistent with how Git itself generates messages for operations like `merge`, `revert` and `rebase` – it writes "merge" not "merged", and "revert" not "reverts", etc.
+
+If written correctly, the `{description}` part fo the commit message should complete this sentence:
+
+[quote]
+____
+If applied, this commit will {description}.
+____
 
 Generally, the `{description}` SHOULD start with a verb describing the _action_ that is being taken by applying the commit. There are some exceptions. Bug fixes need only describe the _problem_ that is being fixed. And release commits can simply give the version number of the release.
 
@@ -616,6 +626,8 @@ When the "BREAKING" suffix is added to a `feature` commit, it's semantic meaning
 ----
 
 Commit messages capture information that is primarily of interest to other software developers, not to the users, customers, or other stakeholders of the software. This is why breaking changes to both internal and external APIs ought to be flagged in commit messages. The "BREAKING" suffix on `feature` commits MAY be used by automation tools to automatically bump major version numbers, or to validate that a user-supplied version number is appropriate (see *link:./005-versioning.adoc[TS-5: Versioning]*). But, for users of the software, other artifacts such as changelogs, release notes, and interface definitions will often be more appropriate places to communicate breaking changes in external APIs. This requires manual intervention, rather than reliance on automation, which is more appropriate for such as important decision.
+
+Where the "BREAKING" flag is included in the commit message header, use the message body to describe the change, the justification for breaking client APIs, and consequences for migrations, etc. See below for more information on writing commit message bodies.
 
 ==== Work-in-progress (WIP)
 
@@ -673,9 +685,15 @@ The `{body}` component of a commit message is OPTIONAL.
 {footers}
 ----
 
+The message body is separated from the header by a single empty line (ie. two consecutive line breaks). Multi-line commit messages are not easy to input inline via the `git commit` command. Instead, omit the `--message|-m` option from the commit command. Git will open your default text editor, where you can easily write a full commit message. Simply exit from the editor when you've finished making your changes, and Git will complete the commit operation with the provided message.
+
 The message body MAY be used to provide a longer description of the changes included in the commit, than can be included within the 50-character soft limit on the message header. Use the message body to explain how the new behavior differs from the old, if this cannot be fully understood from the message header on its own.
 
-But the focus of the message body should be on recording the motivation for the changes, any contextual background information that is relevant, and why the changes were implemented the way they were, and if other approaches were considered but rejected. While, the header line describes _what_ changed, the commit body goes into detail about the _why_. Use the message body to share any knowledge learnt through the life cycle of the change, that cannot be intuited from the changes to the artifacts under source control themselves. You might also consider including information about things that the code _does not do_, and why these things were omitted. Indeed, any information that _may_ be relevant to the future maintainers of the code should be included in the message body.
+But the focus of the message body should be on recording the motivation for the changes, any contextual background information that is relevant, and why the changes were implemented the way they were, and if other approaches were considered but rejected. While the header line describes _what_ changed (summarizing the commit's diff), the commit body goes into detail about the _why_. 
+
+Use the message body to share any knowledge learnt through the life cycle of the change, that cannot be intuited from the changes to the artifacts under source control themselves. You might also consider including information about things that the code does _not_ do, and why these things were omitted. Indeed, any information that may be relevant to the future maintainers of the code should be included in the message body.
+
+Do not write redundant information in the message body that can be extracted from the commit object itself. For example, there is no reason to list the files that changed – that can already be deduced from the commit's diff. The message body is for providing any other knowledge or context about the change that would not otherwise be available, and which would risk being lost if not recorded with the change.
 
 The message body can be any freeform text. It should be written in full, proper sentences, terminated by periods (full stops). The body may consist of multiple paragraph, delimited by single blank lines. Bullet lists (in Markdown style) MAY also be included, using hanging indents for wrapped lines.
 
@@ -746,7 +764,9 @@ It is RECOMMENDED to cross-reference any issues or pull requests that are releva
 Refs: #123, #456
 ----
 
-TIP: Use the full URL if the issue, if the issue tracking system is not connected with the source control system in the upstream reference repository.
+In all-in-one DevOps systems like GitHub and GitLab, this syntax creates a binding between issues and commits. In Git logs, the issue references will often be automatically linked to the relevant issue URLs. And vice versa: links will be automatically created from the issues to the relevant commits. This automation is incredibly useful.
+
+If the issue tracking system is not integrated with the source control system in your upstream reference repository, you should instead use the full URLs to relevant issues.
 
 This metadata is useful for finding the provenance of changes when auditing the history of a repository – for example, to understand the root cause of a bug that you're working on fixing, or why some changes recently introduced to the project mainline conflict with your work. It will also allow you to query Git for any commits related to a particular issue or PR. Thus, these cross-references help to create a two-way binding between the issue tracking and source control systems.
 
@@ -775,6 +795,8 @@ git merge (--edit) {branch}
 ----
 
 It is RECOMMENDED to edit the header line, to include the `merge:` prefix and to conform with other committing conventions described in this technical standard. However, the default body of the message SHOULD be maintained. This is generated by Git and it contains useful information about the merge operation, including the hashes of all the commits integrated via the merge commit.
+
+It is RECOMMENDED to avoid using the `git merge` operation. This is explained in the branching strategy section, below.
 
 ==== Revert commits
 
