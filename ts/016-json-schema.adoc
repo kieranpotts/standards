@@ -143,3 +143,62 @@ It is RECOMMENDED to reuse existing vocabularies, such as Schema.org, wherever t
 For example, Schema.org's https://schema.org/Person[Person type], which defines properties such as `givenName`, `familyName`, `jobTitle`, and `telephone`, is a good basis from which to design a schema for users, customers, or other such entities.
 
 For further guidance on using JSON-LD, the W3C maintains a https://w3c.github.io/json-ld-bp/[JSON-LD Best Practices] document.
+
+== JSON Pointer
+
+https://datatracker.ietf.org/doc/html/rfc6901[IETF RFC 6901] defines a syntax for identifying a specific value in a JSON document. A JSON Pointer is a string beginning with a forward slash `/`, with each subsequent slash separating path segments that identify nested objects and arrays:
+
+----
+/path/to/property
+----
+
+Elements of arrays can be referenced using zero-indexed numeric indices:
+
+----
+/users/0/name
+----
+
+An empty string `""` refers to an entire document.
+
+There are a couple of special characters. The `/` character in a property name is escaped as `~1`. The `~` character is escaped as `~0`. It is RECOMMENDED to not include these, or any other special characters, in property names, to make traversal of JSON data structures as easy as possible for all clients.
+
+JSON Pointer is used for data extraction, validation, and transformation. It is also used for partial updates via JSON Patch operations. Relevant to this technical standard, JSON Pointer syntax is RECOMMENDED for creating cross-references within JSON documents. Example:
+
+[source,json]
+----
+{
+  "categories": [
+    {
+      "id": "electronics",
+      "name": "Electronics"
+    },
+    {
+      "id": "computers",
+      "name": "Computers",
+      "parentCategory": "/categories/0"
+    },
+    {
+      "id": "laptops",
+      "name": "Laptops",
+      "parentCategory": "/categories/1"
+    }
+  ],
+  "products": [
+    {
+      "id": "laptop1",
+      "name": "UltraBook Pro",
+      "price": 1299.99,
+      "categoryRef": "/categories/2",
+      "relatedProducts": ["/products/1"]
+    },
+    {
+      "id": "laptop2",
+      "name": "DevBook Max",
+      "price": 1499.99,
+      "categoryRef": "/categories/2",
+      "relatedProducts": ["/products/0"]
+    }
+  ]
+}
+----
+
