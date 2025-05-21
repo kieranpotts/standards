@@ -5,3 +5,208 @@
 This this technical standard covers best practices for working with Terraform.
 
 toc::[]
+
+== Configuration files
+
+=== HashiCorp Configuration Language (HCL)
+
+HCL is a domain-specific language, developed by HashiCorp, designed for describing infrastructure resources in a declarative manner. It is used in Terraform's `.tf` files.
+
+HCL is designed to be human-readable and editable. Terraform also supports a https://developer.hashicorp.com/terraform/language/syntax/json[JSON schema] as an alternative way to input the configuration constructs it requires. These files MUST have the `.tf.json` file extension. HCL is generally preferred over JSON, because it is more concise and easier to read, and is a better fit for Terraform's use case. HCL SHOULD be used for all Terraform configuration files.
+
+.References
+****
+* https://developer.hashicorp.com/terraform/language/syntax/configuration[HCL syntax overview]
+* https://github.com/hashicorp/hcl/blob/main/hclsyntax/spec.md[HCL syntax specification]
+****
+
+=== Character encoding and line endings
+
+Terraform requires configuration files to be UTF-8 encoded.
+
+Both Unix-style (LF) and Windows-style (CRLF) line endings are supported. The idiomatic style is to use the Unix convention. Formatting tools MAY be configured to automatically "fix" line endings to the Unix style.
+
+=== Comments
+
+HCL supports three comment notations:
+
+----
+# Single-line comment.
+
+// Single-line comment.
+
+/* Multi-line
+      comment. */
+----
+
+Only the `/* ... */` notation SHOULD be used for comments, both single-line and multi-line.
+
+The `//` notation MAY be used to temporarily comment-out code.
+
+The `#` notation SHOULD NOT be used.
+
+=== Automatic formatting
+
+It is RECOMMENDED to use the `terraform fmt` command to automatically format Terraform configuration files. This command formats all `.tf` files in the current directory and its subdirectories, and rewrites them in a canonical format and style.
+
+Plugins are available for many IDEs to automatically format HCL files, eg. on save. These plugins use `terraform fmt` under-the-hood.
+
+== Source control
+
+It is RECOMMENDED to keep Terraform configurations under source control, to support versioning of infrastructure changes. To support collaboration, there MAY be a single centralized "reference" repository, which contains the "source of truth" for the infrastructure configuration. Any hosted repositories MUST be private, and not publicly accessible except to authorized users.
+
+The following machine-generated files SHOULD be committed to source control (but not edited directly by humans):
+
+* `.terraform.lock.hcl` — A lock file that guarantees that everyone will install the exact same dependencies when they run `terraform init` at the same commit point.
+
+* `terraform.tfsate` — The state file that Terraform uses to track the current state of the infrastructure that Terraform is managing. It maps real-world resources to configuration.
+
+The following filesystem paths SHOULD NOT be committed to source control:
+
+* `.terraform/` — Directory containing Terraform's working files (auto-generated).
+
+== Variables
+
+It is RECOMMENDED to define variables for all values that are likely to change between environments, and between deployments to the same environment.
+
+Good candidates for values to be extracted to variables include:
+
+* Names of resources.
+* CIDR ranges.
+* Tags.
+* Instance types.
+* AMI IDs.
+* Environment names.
+* Environment variables.
+
+== Descriptions
+
+It is RECOMMENDED to provide descriptions for all resources and other types that support them. This reduces the need for inline comments, and the descriptions are displayed in the AWS console. Descriptions can also be useful for auditing purposes.
+
+.main.tf
+[source]
+----
+resource "aws_security_group" "web_sg" {
+  name        = "web_sg"
+  description = "Allow HTTP/S traffic"
+
+  vpc_id      = aws_default_vpc.default.id
+
+  ingress {
+    description = "Allow HTTP traffic"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "Allow HTTPS traffic"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    description = "Allow all outbound traffic"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+----
+
+== Secrets
+
+Secrets MUST NOT be hard-coded in Terraform configuration files, even if committed to secure, private source control repositories.
+
+[source]
+----
+provider "aws" {
+  region = "eu-west-2"
+
+  access_key = "AKIA..."
+  secret_key = "yvDpm..."
+}
+----
+
+Access credentials SHOULD be retrieved from the environment. For example, the AWS Provider allows the importing of credentials for the AWS CLI's `~/.aws/credentials` file. In the following example, the credentials are loaded from the "default" profile defined in the AWS credentials file.
+
+[source]
+----
+provider "aws" {
+  profile = "default"
+  region = "eu-west-2"
+}
+----
+
+.~/.aws/credentials
+[source]
+----
+[default]
+aws_access_key_id = AKIA...
+aws_secret_access_key = yvDpm...
+----
+
+== User scripts
+
+Simple user scripts MAY be inlined using heredoc syntax.
+
+.main.tf
+[source]
+----
+resource "aws_instance" "web_server" {
+  ami           = "ami-0c55b159cbfafe1f0" # Amazon Linux 2
+  instance_type = "t3.micro"
+
+  vpc_security_group_ids = [aws_security_group.web_sg.id]
+
+  user_data = <<<EOF
+#!/bin/bash
+
+yum update -y
+yum install -y httpd
+
+MYIP=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
+echo "<h2>Web server with private IP: $MYIP</h2>" > /var/www/html/index.html
+
+service httpd start
+chkconfig httpd on
+
+EOF
+}
+----
+
+However, it is RECOMMENDED instead to load user scripts from separate files, for easier maintenance.
+
+.main.tf
+[source]
+----
+resource "aws_instance" "web_server" {
+  ami           = "ami-0c55b159cbfafe1f0" # Amazon Linux 2
+  instance_type = "t3.micro"
+
+  vpc_security_group_ids = [aws_security_group.web_sg.id]
+
+  user_data                   = file("user_data.sh")
+  user_data_replace_on_change = true
+}
+----
+
+.user_data.sh
+[source,bash]
+----
+#!/bin/bash
+
+yum -y update
+yum -y install httpd
+
+MYIP=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
+echo "<h2>WebServer with PrivateIP: $MYIP</h2>" > /var/www/html/index.html
+
+service httpd start
+chkconfig httpd on
+
+----
