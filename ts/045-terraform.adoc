@@ -59,7 +59,7 @@ The following machine-generated files SHOULD be committed to source control (but
 
 * `.terraform.lock.hcl` — A lock file that guarantees that everyone will install the exact same dependencies when they run `terraform init` at the same commit point.
 
-* `terraform.tfsate` — The state file that Terraform uses to track the current state of the infrastructure that Terraform is managing. It maps real-world resources to configuration.
+* `terraform.tfstate` — The state file that Terraform uses to track the current state of the infrastructure that Terraform is managing. It maps real-world resources to configuration.
 
 The following filesystem paths SHOULD NOT be committed to source control:
 
@@ -120,6 +120,8 @@ resource "aws_security_group" "web_sg" {
 
 == Secrets
 
+=== Secrets in configuration files
+
 Secrets MUST NOT be hard-coded in Terraform configuration files, even if committed to secure, private source control repositories.
 
 [source]
@@ -150,6 +152,8 @@ aws_access_key_id = AKIA...
 aws_secret_access_key = yvDpm...
 ----
 
+=== Secrets in outputs
+
 Secrets MUST NOT be exposed in output from `terraform apply` commands. To achieve this, secret values are given the `sensitive = true` argument in output blocks. This means the value will not be displayed in the console output when running `terraform apply`. This is a good practice for sensitive information like passwords.
 
 [source]
@@ -159,6 +163,14 @@ output "rds_password" {
   sensitive = true
 }
 ----
+
+=== Secrets in state files
+
+Secrets such as passwords for databases _will_ be printed in the `terraform.tfstate` file, whether or not those secrets are printed in output and marked as sensitive.
+
+Therefore, it is important to ensure that the state file is stored securely and access is restricted to authorized personnel only.
+
+It is RECOMMENDED to use encryption at rest for the state file. Files can be encrypted in Git repositories using tools such as `git-crypt` or `git-secret`. Alternatively, the state file can be excluded from source control and instead stored in a secure back-end system, such as an S3 bucket with server-side encryption enabled.
 
 == User scripts
 
