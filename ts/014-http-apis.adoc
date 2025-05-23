@@ -5,3 +5,63 @@
 // TODO: Introductory text…
 
 toc::[]
+
+== Webhooks
+
+Webhooks are API endpoints that are used to receive notifications from third-party systems that are integrated with the service. Webhooks are typically used to receive notifications about events that occur in a third-party system, such as when a payment has been successfully processed, when a subscription is cancelled, or when a service fails to send an SMS message.
+
+The design of webhooks requires special consideration. Webhooks are not really part of an HTTP API's public interface, but rather they are special-purpose private endpoints that sit alongside the main public endpoints of an HTTP API. Webhooks tend to have a different URL scheme, different payload schemas, and different authentication mechanisms than the main API endpoints.
+
+The following URL scheme is RECOMMENDED for webhooks.
+
+----
+/webhooks/{party}/{namespace}/v{version}/{event_type}/{…}
+----
+
+Where:
+
+* `{party}` is the name of the third-party service that is authorized to use the endpoint.
+
+* `{namespace}` is an optional path component used to scope a webhook to a particular service of the third-party.
+
+* `{version}` identifies the version number of the third-party's webhook API or event schema that is supported by the endpoint.
+
+* `{event_type}` is a component that identifies a particular type of event that the endpoint is designed to subscribe to. (This can simply be the word "event" if all that is needed is a single endpoint to process all kinds of events emitted by a third-party service.)
+
+* `{…}` refers to any additional URL path components that are required by the client in the webhook implementation, for example for the purpose of passing resource identifiers.
+
+Consider the following examples of webhook URLs, which use the above scheme:
+
+* `/webhooks/authentiq/v3/event`
+* `/webhooks/true-id/v1/event`
+* `/webhooks/transactify/v1/transaction-initiated`
+* `/webhooks/transactify/v1/transaction-complete`
+* `/webhooks/transactify/v2/transaction-initiated`
+* `/webhooks/transactify/v2/transaction-complete`
+
+This fictional API exposes six webhooks:
+
+* One webhook for a service called AthentiQ. A single endpoint is used to process all events emitted by this service. The endpoint supports version 3 of AuthentiQ's webhook event schema.
+
+* A similar webhook for a service called TrueID. The endpoint supports version 1 of TrueID's webhook event schema. (Perhaps TrueID is a legacy identity verification service that is being phased out, and eventually replaced by AuthentiQ.)
+
+* Four endpoints to handle notifications from a service called Transactify. There's one endpoint to process "transaction-initiated" events, and another endpoint to process "transaction-complete" events. The system supports two different versions of AlertPulse's event schema. (Perhaps most notifications are now sent to te v2 webhooks, but the system still needs to support the legacy v1 schema for a period of time before its deprecation – for example to handle retries and updates of historical events.)
+
+These examples demonstrate the following features of this webhook URL scheme.
+
+First, multiple third-party services can be supported simultaneously. It might be necessary, for example, to have one or more webhooks for a payment service gateway, other webhooks for a transactional email service, and yet more webhooks for an identity verification service. In addition, this design makes it possible to incrementally transition from one service provider to another (eg. swapping the payment service gateway) without breaking your own service.
+
+Second, the `{version}` component is independent of the HTTP API's own versioning scheme, and indeed this may vary between individual webhooks. In an HTTP API, most endpoints will be scoped to a particular version of the API service itself. But webhooks are an exception. These are scoped instead to the versions of the _clients_ that interact with the webhooks. After all, it is the client that specifies the interface contract for its webhooks: the HTTP methods, payload structures, authentication and authorization mechanisms, and so on. Usually, the only thing under the control of the server is the URL scheme.
+
+Thus, webhooks MUST be versioned independently to an API's main endpoints, and also to each other. Individual webhooks can thus be incremented independently. It becomes possible to handle two or more incompatible versions of a webhook's event schema in parallel. If a client makes breaking changes to their event schema, you will be able to transition to the new schema in an incremental, non-breaking way. You can do this by publishing a new handler for the new event schema alongside the existing handler for the existing schema, eg.
+
+* `/webhooks/idverse/v3/receive-event`
+* `/webhooks/idverse/v4/receive-event`
+
+[TIP]
+======
+If a client does not explicitly version their webhook payload schema – this happens often! – then it is RECOMMENDED to scope the webhook URLs to the current major version of the client's own web service API. If this is not possible either, you can invent your own versioning system for the client. The goal is to be able to handle multiple versions of a webhook in parallel.
+======
+
+Finally, multiple webhooks can be be supported for a single third-party service. It is often the case that client's require a single webhook via which they can notify subscribers of _all_ events. But sometimes it can be beneficial, or even necessary, to process different types of events (from the same client) in different ways. For example, you may want to process "transaction-initiated" events differently from "transaction-complete" events.
+
