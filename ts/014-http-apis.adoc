@@ -12,6 +12,8 @@ Webhooks are API endpoints that are used to receive notifications from third-par
 
 The design of webhooks requires special consideration. Webhooks are not really part of an HTTP API's public interface, but rather they are special-purpose private endpoints that sit alongside the main public endpoints of an HTTP API. Webhooks tend to have a different URL scheme, different payload schemas, and different authentication mechanisms than the main API endpoints.
 
+=== Webhook URL schemes
+
 The following URL scheme is RECOMMENDED for webhooks.
 
 ----
@@ -64,4 +66,14 @@ If a client does not explicitly version their webhook payload schema – this ha
 ======
 
 Finally, multiple webhooks can be be supported for a single third-party service. It is often the case that client's require a single webhook via which they can notify subscribers of _all_ events. But sometimes it can be beneficial, or even necessary, to process different types of events (from the same client) in different ways. For example, you may want to process "transaction-initiated" events differently from "transaction-complete" events.
+
+=== Webhook status codes
+
+Third-party services MAY require specific success status codes for their webhooks. Where this is not specified, it is RECOMMENDED to return a 2** status code for successful requests. The RECOMMENDED success status code for most webhook requests is `202 Accepted`, which indicates that the request has been accepted for processing, but the processing has not been completed yet. This is appropriate for most webhook requests, as it allows the server to process the request asynchronously.
+
+Other useful success status codes include `204 No Content` (used when the body of the response message has no content) and `200 OK` (used when the body of the response message contains a representation of the resource that was created or updated).
+
+For errors, the RECOMMENDED status codes are `400 Bad Request` (for client errors, such as invalid input data), `401 Unauthorized` (for authentication errors), `403 Forbidden` (for authorization errors), and `404 Not Found` (when the requested resource does not exist). The `500 Internal Server Error` status code is used for server errors.
+
+For the purpose of status codes, the relationship between client and server is _not_ reversed when it comes to webhooks. The client is still the one that initiates the request, and the server is the one that responds to the request – even if it is the client, in this case, that specifies the interface (eg. the payload schema and authentication mechanism) of the webhook endpoint. Therefore, the same status codes apply as for other HTTP API endpoints.
 
