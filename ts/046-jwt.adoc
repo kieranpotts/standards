@@ -1,0 +1,81 @@
+= TS-46: JSON Web Tokens (JWTs)
+:toc: macro
+:toc-title: Contents
+
+This this technical standard covers best practices for designing the schema for JSON Web Tokens (JWTs), which are used for the purpose of stateless authentication and authorization.
+
+// The goal is creating tokens that are secure, contain sufficient information for authorization decisions, but remain lightweight and don't expose sensitive data unnecessarily.
+
+toc::[]
+
+== Statelessness
+
+JWTs MUST be designed to contain all necessary claims for authentication and authorization, such that no external database lookups – or requests to external auth services – are required for authentication and validation of users.
+
+JWTs are specifically intended for stateless authentication and authorization. The stateless nature of JWT-based auth allows for low latency auth processes, easier horizontal scaling of applications, and reduced complexity in distributed systems.
+
+If stateful authentication is required, such as when needing to track user sessions or manage complex state, then JWTs are (probably) not the most appropriate solution.
+
+== Secrets and PII
+
+Secrets, such as API keys and passwords, and personally identifiable information (PII) MUST NOT be included in JWT payloads.
+
+JWTs are base64-encoded, not encrypted, and can be easily decoded by anyone with access to a compromised token.
+
+For the same reason, JWTs MUST be transmitted over secure channels (eg., HTTPS) to prevent interception during transmission. This rule applies for private networks as much as public networks like the internet.
+
+== Token size
+
+Since JWTs are sent with every request in stateless authentication scenarios, they MUST be kept as small as possible to reduce bandwidth usage.
+
+In addition to improving performance, smaller tokens are inherently less risky, because they expose less information if intercepted.
+
+The information encoded in a JWT MUST be limited only to what is absolutely necessary for an application to implement effective authentication and authorization, no more. There MUST NOT be any excessive or redundant data included in a token, even if the data is not sensitive or is encrypted.
+
+== Claims
+
+JWTs are composed of claims, which are pieces of information asserted about a subject (usually a user). The design of these claims is critical for effective authentication and authorization.
+
+It is RECOMMENDED to repurpose standard claims and structures where possible. Using standard JWT schema will mean higher interoperability with existing (and future) libraries and services.
+
+Standardized claims include:
+
+* `iss` (issuer): Identifies the entity that issued the token.
+* `sub` (subject): Typically the user ID or unique identifier for the subject of the token.
+* `aud` (audience): Specifies the intended recipients or services for which the token is valid.
+* `exp` (expiration): Sets the expiration time for the token, after which it is no longer valid.
+* `iat` (issued at): Indicates the time at which the token was issued.
+* `nbf` (not before): Indicates the time before which the token must not be accepted for processing.
+* `jti` (JWT ID): A unique identifier for the token, useful for preventing replay attacks and managing token revocation.
+
+== Roles and permissions
+
+A major consideration in JWT design is how to represent user roles and permissions.
+
+Best practice is to encode fine-grained _scopes_ rather than broad roles. Scopes are specific permissions that a user has, such as "read:posts" or "write:comments". This allows for more granular control over what actions a user can perform with a token. It means that tokens can be tailored to specific actions or resources, rather than relying on broad roles like "admin" or "user".
+
+You might also need to consider how to represent hierarchical permissions, where a user might inherit permissions from a parent role or group.
+
+== Token lifetime
+
+Another important aspect of JWT design is the token lifetime and refresh strategy. A balance must be found between security (shorter expiration times) and user experience (less frequent re-authentication). The optimum balance will depend on the application domain and its security requirements.
+
+Tokens MUST have a defined expiration time (using the `exp` claim) to restrict their validity period. This is crucial for security, as it reduces the window of opportunity for an attacker to use a compromised token.
+
+== Refresh strategy
+
+Refresh tokens are often used in conjunction with access tokens to allow users to maintain a session, even after token expiry, without needing to re-authenticate frequently. A refresh token is used to obtain a new access token when the current one expires.
+
+Refresh tokens are longer lived than access tokens. The lifetime of refresh tokens should be carefully considered – again, balancing security and user experience.
+
+Other considerations include which claims need to persist across token refreshes, and how to handle revocation of refresh tokens.
+
+== Other considerations
+
+* JWTs MUST be signed to ensure integrity and authenticity. Use a strong signing algorithm, such as RS256 or ES256, rather than weaker algorithms like HS256.
+
+* JWTs MAY be encrypted to protect sensitive information, but this is not a requirement for all use cases. If encryption is used, ensure that the encryption keys are managed securely. Normally, it is adequate to only transmit JWTs over secure channels (HTTPS). Encrypting JWTs themselves adds an additional layer of security but is likely only to be necessary in cases where tokens are persisted at rest in insecure environments – which could include the client's own device and file system.
+
+* For multi-tenancy scenarios, consider including tenant or organization identifiers in the JWT claims to ensure that tokens are scoped to the correct tenant. This is important in SaaS applications where users from different organizations share the same application instance.
+
+* Consider including device fingerprints or session identifiers in the JWT claims to provide additional context for a token. This can improve security, by scoping tokens to a particular client device.
