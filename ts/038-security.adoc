@@ -14,13 +14,13 @@ All data MUST be encrypted in transit (ie. TLS).
 
 == Vulnerabilities
 
-Source code MUST be scanned for vulnerabilities prior to release. It is recommended to use a combination of Static Application Security Testing (SAST), eg. Checkmarx, and Dynamic Application Security Testing (DAST), eg. OWASP ZAP.
+Source code MUST be scanned for vulnerabilities prior to release. It is recommended to use a combination of Static Application Security Testing (SAST), eg. https://checkmarx.com/[Checkmarx], and Dynamic Application Security Testing (DAST), eg. https://www.zaproxy.org/[ZAP].
 
 High-level issues identified by SAST/DAST tools SHOULD be prioritized similarly to incidents.
 
 Low-level issues identified by SAST/DAST tools SHOULD be prioritized with high priority.
 
-Third-party software components MUST be checked for security vulnerabilities and license changes, using a software composition analysis (SCA) tool such as Mend.
+Third-party software components MUST be checked for security vulnerabilities and license changes, using a software composition analysis (SCA) tool such as https://www.mend.io/[Mend].
 
 == Secrets
 
@@ -34,14 +34,24 @@ Secrets include, but are not limited to:
 * JWTs, session cookies, and signed URLs
 * Configuration strings that embed credentials, eg. for database connections
 
-*Secrets MUST NOT ever be hard-coded in source code.*
+*Secrets MUST NOT be hard-coded in source code.*
 
-Instead, secrets must be stored in a secure vault or secrets management system, and securely fetched then injected into the application at compile time or runtime.
+*Secrets MUST NOT be committed to code repositories or package registries.*
 
-Secrets management systems are designed to store, manage, and provide access to secrets in a secure manner.
+*Secrets MUST NOT be sent to log output.*
 
-Use secrets management systems like HashiCorp Vault or AWS Secrets Manager to store primary secrets that are required by applications at runtime. Examples include database connection credentials and encryption keys. The credentials should be configured to be automatically rotated on a regular basis, ideally at least once every 24 hours.
+Instead, secrets must be stored in a secure vault or secrets management system, and securely fetched then injected into the application at compile time or runtime (as appropriate for the application's deployment strategy).
+
+Secrets management systems are designed to store, manage, and provide access to secrets in a secure manner. Use secrets management systems like HashiCorp Vault or AWS Secrets Manager to store primary secrets that are required by applications at runtime. Examples include database connection credentials and encryption keys. The credentials should be configured to be automatically rotated on a regular basis, ideally at least once every 24 hours.
 
 Workflow secrets are another category of secrets that are used primarily in CI/CD pipelines. This category of secrets also include short-lived API keys and OIDC audience strings. These secrets are typically stored in the secrets management tools embedded in the CI/CD tools themselves, such as GitHub Secrets. The lifetime of these secrets should be less than 90 days, rotated in line with PAT cadence.
 
-Secrets MUST NOT be sent to log output.
+=== Handling compromised secrets
+
+Secrets MUST be considered to be compromised if they are ever leaked – including into code repositories (even private ones) and into logs (even if the logs are not publicly accessible).
+
+If a secret is compromised, it MUST be rotated immediately.
+
+It is NOT sufficient to simply remove the secret from the environment into which it has leaked. For example, it is not sufficient to remove a secret from a code repository, even if you rewrite the history of the repository to remove the secret from all commits (which, anyway, is difficult to do in shared repositories). The secret has already been compromised, so it must be rotated.
+
+For every secret, it is good practice to have a documented process for how the secret will be rotated, revoked, or otherwise invalidated in the event that it is compromised. For every secret, it SHOULD be documented how the secret is be stored, accessed, and managed throughout its lifecycle. What is the secret's purpose? How is it used? Who has access to it? How is it rotated, and how often? How will it be invalidated in the event of the secret being leaked?
