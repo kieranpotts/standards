@@ -10,23 +10,23 @@ In client-server systems such as web applications, the client-side application m
 
 toc::[]
 
-== Application layers
+== Horizontal layers
 
 Applications SHOULD adopt a layered architecture. A layered architecture involves organizing code into conceptual layers that each represent distinct concerns.
 
-An excellent model for separating concerns into layers is provided by Eric Evans in his "blue book" on domain-driven design. The following image is taken from that book.
+An excellent model for separating concerns into layers is provided by Eric Evans in his "blue book" on https://www.domainlanguage.com/ddd/blue-book/[domain-driven design]. The following image is taken from that book.
 
 image::./_/ddd-layered-architecture-from-the-blue-book.png[]
 
-Evans proposed four application layers:
+Evans proposed four conceptual layers in an application's architecture:
 
 * The *user interface* or *presentation* layer is responsible for showing information to the user and interpreting the user's commands. (The "user" may be any external actor, such as a person or another computer process.)
 
-* The *application* layer coordinates the application's jobs. This is a thin layer that does not contain business rules or business knowledge, but which coordinates tasks requested via the UI layer, delegating much of the work to services or objects in the domain layer below. The application layer may manage state related to the progress of operations, but should not manage state related to domain objects.
+* The *application* layer coordinates the application's jobs. This is a thin layer that does not contain any business rules, but which exists to coordinate tasks requested by users via the UI layer above, delegating much of the work to services or objects in the domain layer below. The application layer may manage state related to the progress of operations, but should not manage state related to domain objects.
 
 * The *domain* or *model* layer is where the business domain or problem space is modeled as a series of interconnected objects, using object-oriented programming constructs. The domain layer captures business rules and logic, and manages the state of business entities (though the technical details of persisting domain state is delegated to the infrastructure layer).
 
-* The *infrastructure* layer provides general technical capabilities that support the higher layers. For example, abstractions of the database and interfaces to messaging services, logging and monitoring tools, and other external systems are implemented in the infrastructure layer.
+* The *infrastructure* layer provides general technical capabilities that support the higher layers. For example, abstractions of the database access layer, file system access, and network communication protocol should be implemented in the infrastructure later. Interfaces for messaging services, logging tools and monitoring services, and other external systems, are other candidates for inclusion in an application's infrastructure layer.
 
 A key constraint of domain-oriented architecture is that software components within each conceptual layer depend only on components in the layers below it. The objective of this constraint is to isolate the domain model from the rest of the application code.
 
@@ -41,11 +41,11 @@ The following is an iteration on the domain-based layered architecture. It uses 
 
 The RECOMMENDED layers are:
 
-- *I/O*: Conceptually equivalent to the UI layer in domain-based architecture, the I/O layer is responsible for capturing input from users (or other clients) and returning responses. It parses incoming message formats, validates input data, and maps user requests to commands, event handlers, or services in the application kernel.
+- *I/O*: Conceptually equivalent to the UI layer in domain-based architecture, the I/O layer is responsible for capturing input from users (or other clients) and returning responses. It parses incoming message formats, validates input data, and maps user requests to commands, event handlers, or services in the application kernel. The I/O layer may handle communication with the outside world via multiple different protocols and technologies. For example, an API application may support I/O via a combination of HTTP, WebSockets, gRPC, and message queues. An application may also support a command line interface (CLI) alongside a graphical user interface (GUI), for example.
 
 - *Kernel*: The kernel is the core of the application. All input to, and all output from, the application should pass through this layer. The application kernel controls everything that happens in the application, just as an operating system kernel controls everything that happens in the operating system. Conceptually, the kernel is equivalent to the application layer in domain-driven design. The kernel should be relatively thin, acting mostly as a mediator between the I/O handlers (in the layer above) and the domain services and objects (in the model layer below). The application kernel should not hold state related to the domain model, but it may hold application state that reflects the progress of tasks being undertaken for users.
 
-- *Model*: This layer encapsulates a model of the business domain or problem space. The model is coded using object-oriented constructs, which encapsulate business rules and represent entities, events, and other concepts from the domain. This layer is also responsible for managing business state, though responsibility for persisting this state is delegated to external systems such as databases. (Models, in this context, are not _data models_, such as those generated by ORM tools. They are _domain models_, which are a representation of the business domain and its rules.)
+- *Model*: This layer encapsulates a model of the application's business domain or problem space. (Models, in this context, are not _data models_, such as those generated by ORM tools. They are _domain models_, which are a representation of the business domain and its rules.) The model is coded using object-oriented constructs, which encapsulate business rules and represent entities, events, and other concepts from the domain. This layer is also responsible for managing business state (though responsibility for persisting this state is delegated to external systems such as databases).
 
 - *System*: The system layer is analogous to the infrastructure layer in domain-driven designs. It provides abstractions to the runtime platform of the application, and to components in the wider system in which the application operates – things like databases, message queues, other services running on the same local network, external services running on remote networks, and so on.
 
@@ -58,13 +58,19 @@ Conceptually, the first four layers map directly to the four layers in the domai
 - Domain, model → Model
 - Infrastructure → System
 
-Only the concept of the application layer has somewhat changed. In domain-driven design, the only constraint is that components in a layer may only call components in the layers below them. But in the layered architecture proposed here, there is an additional constraint on the application's kernel (the equivalent of the application layer in domain-driven design), which is that _all input to, and all output from, the application should pass through its kernel_. This constraint is intended to make the application kernel the central point of control for the whole application. The kernel guarantees, therefore, to capture everything that the application does.
-
 The fifth layer – called "vendors" – is a pragmatic addition that recognizes the reality that modern software applications tend to have a very high dependence on application frameworks and third-party libraries. The inclusion of this layer is intended to encourage application developers to reduce coupling on vendor-specific APIs and libraries by abstracting them behind facades, the interfaces to which are defined by the application and captured in this layer.
 
 As in domain-driven design, components within each layer SHOULD depend only on components in the layers below them.
 
 image::./_/layered-architecture-monolith.svg[]
+
+In domain-driven design, there is a constraint that components in each later communicate only with components in layers below them (layers may be "skipped"). This technical standard adds an extra design constraint on the application kernel layer, which is that _all input to, and all output from, an application should pass through its kernel_. Thus, communication to and from the I/O layer MUST NOT skip the kernel.
+
+image::./_/layered-architecture-monolith-with-mandatory-kernel.svg[]
+
+This constraint is intended to make the application kernel the central point of control for the whole application.
+
+== Vertical slices
 
 An extension of this layered architecture adds vertical slices through the top three layers, organizing the main application-specific code into modules. For example, an application may be composed of three modules: users, products, and orders. Each module has its own I/O and application kernel, and also its own model that represents a subdomain of the overall domain.
 
