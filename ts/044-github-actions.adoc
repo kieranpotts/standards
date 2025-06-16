@@ -254,16 +254,21 @@ When using fine-grained PATs, rotate then regularly. PATs are bound to specific 
 
 By default, `GITHUB_TOKEN`, which is automatically generated on each run, is given wide-ranging permissions to GitHub resources and operations. The principle of least privilege should be applied to these tokens, which means restricting permissions to the minimum required to do the job.
 
-Permissions SHOULD be explicitly restricted on a per-workflow basis using the `permissions` attribute.
+Permissions SHOULD be explicitly restricted on a per-workflow or per-job basis using the `permissions` attribute.
 
 [source,yaml]
 ----
 name: Open new issue
 on: workflow_dispatch
 
+# Workflow-level permissions - applies to all jobs in the workflow.
+permissions:
+  contents: read
+
 jobs:
   open-issue:
     runs-on: ubuntu-latest
+    # Job-level permissions.
     permissions:
       contents: read
       issues: write
@@ -279,7 +284,7 @@ See the GitHub Docs for a full https://docs.github.com/en/actions/writing-workfl
 
 [IMPORTANT]
 ======
-Workflows MUST OT pass the `$GITHUB_TOKEN` value to untrusted third-party software, including actions from untrusted sources.
+Workflows MUST NOT pass the `$GITHUB_TOKEN` value to untrusted third-party software, including actions from untrusted sources.
 ======
 
 The same practices apply for all kinds of tokens you create to authenticate with any kind of service, and which you store in GitHub Secrets. Always restrict permissions to the bare essentials, and rotate tokens regularly – whatever those tokens are used for.
