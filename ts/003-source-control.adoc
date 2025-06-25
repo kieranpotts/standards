@@ -518,7 +518,7 @@ Each commit message consists of a header, a body, and one or more footers. Each 
 {footers}
 ----
 
-==== Commit message header
+=== Commit message header
 
 The header has a special format that includes a type and a description, separated by a semi-colon and exactly one space. There is an OPTIONAL flag on the end, delimited by a spaced hyphen.
 
@@ -596,7 +596,7 @@ release: v0.0.0-beta
 
 The maximum length of the header line (prefix + description) SHOULD be 50 characters and MUST NOT be more than 72. (Only `revert` commits, which are automated, are excluded from this rule.) The purpose of this constraint is for `git log` output to be readable in most contexts. If the header line is long, it may be truncated in printed output. If you use Vim as your commit message editor, it already knows about 50 characters being the recommended soft limit for Git commit subject lines, which is why the color changes after the 50th character by default.
 
-==== Breaking changes
+==== Flags
 
 The header line of a commit message MAY include an optional flag on the end. When included, the flag is demarcated from the description by a spaced hyphen:
 
@@ -610,6 +610,11 @@ Flags are a single word, written in full capital letters, which MAY be one of th
 * `BREAKING`
 * `WIP`
 * `EXPERIMENT`
+* `TEMPORARY`
+
+Additional flags MAY be added as required for a project.
+
+==== Breaking changes
 
 The "BREAKING" flag MUST be used to signpost breaking changes that are introduced to the software or its internal code. Example:
 
@@ -625,7 +630,7 @@ When the "BREAKING" suffix is added to a `feature` commit, it's semantic meaning
 24b3g40 feature: remove password from login endpoint - BREAKING
 ----
 
-Commit messages capture information that is primarily of interest to other software developers, not to the users, customers, or other stakeholders of the software. This is why breaking changes to both internal and external APIs ought to be flagged in commit messages. The "BREAKING" suffix on `feature` commits MAY be used by automation tools to automatically bump major version numbers, or to validate that a user-supplied version number is appropriate (see *link:./005-versioning.adoc[TS-5: Versioning]*). But, for users of the software, other artifacts such as changelogs, release notes, and interface definitions will often be more appropriate places to communicate breaking changes in external APIs. This requires manual intervention, rather than reliance on automation, which is more appropriate for such as important decision.
+Commit messages capture information that is primarily of interest to other software developers, not to the users, customers, or other stakeholders of the software. This is why breaking changes to both internal and external APIs ought to be flagged in commit messages. The "BREAKING" suffix on `feature` commits MAY be used by automation tools to automatically bump major version numbers, or to validate that a user-supplied version number is appropriate (see *link:./005-versioning.adoc[TS-5: Versioning]*). But, for users of the software, other artifacts such as changelogs, release notes, and interface definitions will often be more appropriate places to communicate breaking changes in external APIs. This requires manual intervention, rather than reliance on automation, which is more appropriate for such an important decision.
 
 Where the "BREAKING" flag is included in the commit message header, use the message body to describe the change, the justification for breaking client APIs, and consequences for migrations, etc. See below for more information on writing commit message bodies.
 
@@ -644,7 +649,7 @@ a1b2c3d refactor: rewire search algorithms - WIP
 
 WIP commits serve a couple of purposes.
 
-First, it is not always possible to implement a clean, stable change in a single, small commit. Sometimes, no matter how disciplined you try to be in your committing, development tasks becomes necessarily messy. Including intermediate WIP commits, initially via side branches, provides a solution to keeping individual changes small while implementing large, destructive changes.
+First, it is not always possible to implement a clean, stable change in a single, small, atomic commit. Sometimes, no matter how disciplined you try to be in your committing, development tasks becomes necessarily messy. Including intermediate WIP commits, initially via side branches, provides a solution to keeping individual changes small while implementing large, destructive changes.
 
 Second, WIP commits can be used to backup work that you started, but did not complete, before the end of a working day. You can commit your WIP to a side branch, push to the upstream reference repository for backup purposes, and then resume your work the following day.
 
@@ -663,7 +668,7 @@ To synchronize your local changes with the tracked side branch in the upstream r
 
 ==== Experiments
 
-The "EXPERIMENT" flag MAY be used to signpost changes that are experimental in nature. Experimental changes are not intended to be permanent, and are expected to be reverted or otherwise discarded. Therefore, "EXPERIMENT" commits MUST be committed only to side branches and MUST NOT be integrated into the `dev` branch (not even via a stable squash merge).
+The "EXPERIMENT" flag MAY be used to signpost changes that are experimental in nature. Experimental changes are not intended to be permanent, and are expected to be rolled back (through `git revert`) or otherwise undone. Therefore, "EXPERIMENT" commits MUST be committed only to side branches and MUST NOT be integrated into the `dev` branch (not even via a stable squash merge).
 
 Use cases for experimental commits include adding temporary logging output to help debug a problem, to try an alternative design pattern to implement a feature, or to test a new library.
 
@@ -672,7 +677,13 @@ Use cases for experimental commits include adding temporary logging output to he
 35c3aef dev: add more logging - EXPERIMENT
 ----
 
-==== Commit message body
+==== Temporary commits
+
+The "TEMPORARY" flag MAY be used to signpost commits that are not intended to be permanent, and which will be removed from the history before integration with the `dev` branch.
+
+The difference between a "TEMPORARY" commit and an "EXPERIMENT" commit is that the author fully intends to revert a temporary one, whereas an experiment may, in the end, be kept.
+
+=== Commit message body
 
 The `{body}` component of a commit message is OPTIONAL.
 
@@ -718,7 +729,7 @@ It is important to ensure the message body is delimited from the message header 
 
 The length of any individual line SHOULD NOT exceed 72 characters. This is a bit longer than the RECOMMENDED maximum line length of the message header – 50 characters. It provides a bit more practical space for writing out lengthy descriptions, while still benefitting from good readability in terminal output. For example, `git log` doesn't do any special formatting of commit messages. The default pager is set to `less -S`, so long lines will simply flow off the edge of the window. In a traditional 80-column terminal, if we subtract 4 columns for the left indent and 4 more for symmetry on the right, we are left with 72 columns.
 
-==== Commit message footers
+=== Commit message footers
 
 One or more footers MAY be included in commit messages.
 
@@ -784,7 +795,7 @@ Other footers that you may consider for your projects include:
 * `Reviewed-by`
 * `Tested-by`
 
-==== Merge commits
+=== Merge commits
 
 Merge commits are generated automatically by Git on `git merge` operations. It is not possible to change the default message of merge commits, but it can be customized on a case-by-case basis using the `--message` or `-m` option.
 
@@ -798,7 +809,7 @@ It is RECOMMENDED to edit the header line, to include the `merge:` prefix and to
 
 It is RECOMMENDED to avoid using the `git merge` operation. This is explained in the branching strategy section, below.
 
-==== Revert commits
+=== Revert commits
 
 If a commit reverts a previous commit, it's header should be prefixed with `revert: `, followed by the original header quoted in double quotes. There should be no body, and the footer should have a single `Reverts` header, as shown in the example below, where `{hash}` is the SHA of the commit that is being reverted.
 
@@ -810,7 +821,7 @@ Reverts: d7o8k8l
 
 As with `git merge` operations, it is not possible to change the default message of revert commits, so you will need to edit it on a case-by-case basis.
 
-==== Commit message templates
+=== Commit message templates
 
 It is RECOMMENDED to configure your local Git client to use a custom commit message template, which will make it easier to follow the commit message conventions when you use the `git commit` command (without the `--message` or `-m` option) to create a new commit object.
 
