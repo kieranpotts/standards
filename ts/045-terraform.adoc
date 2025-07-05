@@ -2,32 +2,56 @@
 :toc: macro
 :toc-title: Contents
 
-This this technical standard covers best practices for working with Terraform.
+This technical standard covers best practices for working with Terraform, HCL, and related technologies. This technical standard is focused on the Community Edition of Terraform, colloquially known as the Terraform CLI, and its drop-in fork, OpenTofu, rather than commercial services such as HPC Terraform (formerly known as Terraform Cloud).
 
 toc::[]
 
-== HashiCorp Configuration Language (HCL)
+== HCL style guide
 
-HCL is a domain-specific language, developed by HashiCorp, designed for describing infrastructure resources in a declarative manner. It is used in Terraform's `.tf` files.
+HashiCorp Configuration Language (HCL) is a domain-specific language, developed by HashiCorp, designed specifically for the purpose of describing infrastructure resources in a declarative manner. It is used in Terraform's `.tf` files.
 
-HCL is designed to be human-readable and editable. Terraform also supports a https://developer.hashicorp.com/terraform/language/syntax/json[JSON schema] as an alternative way to input the configuration constructs it requires. These files MUST have the `.tf.json` file extension. HCL is generally preferred over JSON, because it is more concise and easier to read, and is a better fit for Terraform's use case. HCL SHOULD be used for all Terraform configuration files.
+HCL is designed to be human-readable and editable. Terraform also supports a https://developer.hashicorp.com/terraform/language/syntax/json[JSON schema] as an alternative way to input the configuration constructs it requires. Terraform requires these files to have the `.tf.json` file extension. HCL is generally preferred over JSON, because it is more concise and easier to read, and it is a better fit for Terraform's use case. Infrastructure engineers SHOULD use HCL for all Terraform configuration files.
+
+HCL code SHOULD be formatted in a consistent style that follows the conventions outlined in https://developer.hashicorp.com/terraform/language/style[Terraform's own style guide]. It is RECOMMENDED to use the `terraform fmt` command to automatically format Terraform configuration files in the current working directory to adhere to Terraform's canonical style. It is RECOMMENDED to use pre-commit hooks to run `terraform fmt` automatically at the point that HCL code changes are checked-in to source control. In addition, plugins are available for many code editors to automatically format HCL files (these plugins run `terraform fmt` under-the-hood).
+
+* https://marketplace.visualstudio.com/items?itemName=HashiCorp.terraform[Visual Studio Code extension for Terraform]
+* https://github.com/hashicorp/terraform-ls[Terraform Language Server] for other text editors that support the Language Server Protocol (LSP)
+
+[TIP]
+======
+By default, `terraform fmt` will run on `.tf` files in the current working directory. To include subdirectories, add the `-recursive` flag.
+======
+
+In addition, a linter such as https://github.com/terraform-linters/tflint[TFLint] MAY be used to enforce an organization's own coding standards that extend from the Terraform canonical style.
+
+It is also RECOMMENDED to run `terraform validate` before committing changes to source control. This command checks that your configuration is syntactically valid and internally consistent. For example, it will verify that values are of the correct type (but not if a value is correct, ie. that it is recognized by the provider). The `terraform validate` command SHOULD be run frequently; it is RECOMMENDED to configure text editors to run the command as a post-save check, to run it via a pre-commit hook, and to add it as a step in relevant CI/CD workflows.
 
 .References
 ****
 * https://developer.hashicorp.com/terraform/language/syntax/configuration[HCL syntax overview]
 * https://github.com/hashicorp/hcl/blob/main/hclsyntax/spec.md[HCL syntax specification]
+* https://developer.hashicorp.com/terraform/language[Terraform configuration language documentation]
 ****
 
 === Character encoding and line endings
 
 Terraform requires configuration files to be UTF-8 encoded.
 
-Both Unix-style (LF) and Windows-style (CRLF) line endings are supported. The idiomatic style is to use the Unix convention. Formatting tools MAY be configured to automatically "fix" line endings to the Unix style.
+Both Unix-style (LF) and Windows-style (CRLF) line endings are supported. The idiomatic style is to use the Unix convention. Formatting tools SHOULD be configured to automatically fix line endings to the Unix style.
+
+=== Indentation
+
+Block contents SHOULD be indented with two spaces from the parent block.
+
+=== Line lengths
+
+Except for `variable` and `output` blocks, where single-line strings are preferred, most HCL code SHOULD follow a 120-column line-length limit.
 
 === Comments
 
 HCL supports three comment notations:
 
+[source,hcl]
 ----
 # Single-line comment.
 
@@ -37,30 +61,302 @@ HCL supports three comment notations:
       comment. */
 ----
 
-Only the `/* ... */` notation SHOULD be used for comments, both single-line and multi-line.
+The canonical style, as RECOMMENDED by Terraform's style guide, is to use the `#` notation for all comments – both block-level and inline. However, the `//` notation MAY be used to temporarily comment-out code. The `/* ... */` notation SHOULD NOT be used.
 
-The `//` notation MAY be used to temporarily comment-out code and for short end-of-line comments.
+Generally, comments SHOULD be written on the line(s) immediately preceding the code they refer to. However, short end-of-line comments MAY be used where doing so is considered to improve overall readability. Readability can be improved further by vertically aligning adjacent end-of-line comments, similar to the convention of aligning adjacent assignments.
 
-The `#` notation SHOULD NOT be used.
+[source,hcl]
+----
+variable "allow_port" {
+  default = {
+    prod = ["80", "443"]               # Ports to open in production.
+    rest = ["80", "443", "8080", "22"] # Ports to open in other environments.
+  }
+}
+----
 
-=== Automatic formatting
+=== Naming conventions
 
-It is RECOMMENDED to use the `terraform fmt` command to automatically format Terraform configuration files. This command formats all `.tf` files in the current directory and its subdirectories, and rewrites them in a canonical format and style.
+Block labels, variables, and outputs SHOULD be named using lower snake case: `example_instance`, not `ExampleInstance`, `exampleInstance`, or `example-instance`.
 
-Plugins are available for many IDEs to automatically format HCL files, eg. on save. These plugins use `terraform fmt` under-the-hood.
+[source,hcl]
+----
+resource "aws_instance" "example_instance" {}
+variable "vpc_id" {}
+output "instance_name" {}
+----
 
-== Filesystem
+Use nouns for resource names. Do not include the resource type in the name.
 
-The following represents a RECOMMENDED baseline directory structure for Terraform project files. This should be tailored to the needs of the project. For example, it may also be beneficial to organize configurations by region. Adjust the service names as appropriate for the cloud service provider.
+Wrap the resource type and name in double quotes in resource definitions.
 
-Modules SHOULD be imported from a shared upstream code repository, but MAY initially be developed in local modules.
+=== Blocks
+
+All blocks – both top-level ones and nested ones – SHOULD be separated from one another by a single blank line.
+
+There MAY be exceptions to this rule. For example, you may want to group together multiple `provisioner` sub-blocks in a resource.
+
+=== Arguments
+
+When multiple arguments with single-line values appear on consecutive lines at the same indentation level, align their assignment operators, for easier readability.
+
+[source,hcl]
+----
+ami           = "abc123"
+instance_type = "t2.micro"
+----
+
+Use empty lines to separate logical groups of arguments within a block.
+
+When both arguments and blocks appear together inside a block body, place all of the arguments together at the top and then place nested blocks below them. Use one blank line to separate the arguments from the blocks.
+
+For blocks that contain both arguments and meta-arguments, list the meta-arguments first and separate them from other arguments with one blank line. Place meta-argument blocks last and separate them from other blocks with one blank line.
+
+[source,hcl]
+----
+resource "aws_instance" "example" {
+  # Meta (Terraform-specific) arguments:
+  count = 2
+
+  # Regular (provider-specific) arguments:
+  ami           = "abc123"
+  instance_type = "t2.micro"
+
+  # Regular blocks (provider-specific):
+  network_interface {
+    # ...
+  }
+
+  # Meta-argument blocks (Terraform-specific):
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+----
+
+=== Heredocs
+
+// TODO: Can heredoc syntax be used for all kinds of values, not just user scripts?
+
+Multi-line string values MAY be inputted to Terraform configuration files using heredoc syntax. This is commonly used for injecting simple user scripts.
+
+.main.tf
+[source,hcl]
+----
+resource "aws_instance" "web_server" {
+  ami           = "ami-0c55b159cbfafe1f0" # Amazon Linux 2
+  instance_type = "t3.micro"
+
+  vpc_security_group_ids = [aws_security_group.web_sg.id]
+
+  user_data = <<<EOF
+#!/bin/bash
+
+yum update -y
+yum install -y httpd
+
+MYIP=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
+echo "<h2>Web server with private IP: $MYIP</h2>" > /var/www/html/index.html
+
+service httpd start
+chkconfig httpd on
+
+EOF
+}
+----
+
+However, it is RECOMMENDED instead to load user scripts – and other complex values – from separate files, for easier maintenance.
+
+.main.tf
+[source,hcl]
+----
+resource "aws_instance" "web_server" {
+  ami           = "ami-0c55b159cbfafe1f0" # Amazon Linux 2
+  instance_type = "t3.micro"
+
+  vpc_security_group_ids = [aws_security_group.web_sg.id]
+
+  user_data                   = file("user_data.sh")
+  user_data_replace_on_change = true
+}
+----
+
+.user_data.sh
+[source,bash]
+----
+#!/bin/bash
+
+yum -y update
+yum -y install httpd
+
+MYIP=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
+echo "<h2>WebServer with PrivateIP: $MYIP</h2>" > /var/www/html/index.html
+
+service httpd start
+chkconfig httpd on
+----
+
+In general, try to avoid using heredoc syntax. It breaks the indentation and syntax highlighting of the HCL code, making the configuration more difficult to read.
+
+== Source control
+
+It is RECOMMENDED to keep Terraform configurations under source control, to support versioning of infrastructure changes. To support collaboration, there SHOULD be a single centralized reference repository that contains the source-of-truth for a project's infrastructure configuration.
+
+Any hosted repositories MUST be private (ie. not publicly accessible except to authorized users).
+
+=== Excluded files
+
+The following files and directories MUST NOT be committed to source control:
+
+* `.terraform/` — The auto-generated directory containing Terraform's working files.
+
+* `terraform.tfstate` — The state file that Terraform uses to track the current state of the infrastructure that Terraform is managing. It maps real-world resources to the current configuration. It is a plain text file that is likely to contain access keys and other secrets. Backups of this file, which are also auto-generated by Terraform, MUST also be excluded from source control. See the section on *Secrets*, below, for guidance on secure storage of the state file.
+
+The following `.gitignore` configuration is RECOMMENDED as a baseline for Terraform projects is:
+
+----
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.backup
+*.local.hcl
+----
+
+The `.terraform.lock.hcl` file SHOULD be committed to source control. This file is machine-generated, created on `terraform init`. The lock file guarantees that everyone will install the exact same dependencies (basically, the same provider versions) when they run `terraform init` at the same revision. The file SHOULD NOT be edited directly by humans; use the command `terraform init -upgrade` to update dependencies to the latest versions.
+
+== Secrets
+
+=== Secrets in configuration files
+
+Secrets MUST NOT be hard-coded in Terraform configuration files – even if those files are committed to secure, private source control repositories.
+
+[source,hcl]
+----
+provider "aws" {
+  region = "eu-west-2"
+
+  access_key = "AKIA..."
+  secret_key = "yvDpm..."
+}
+----
+
+Access credentials SHOULD be retrieved from the environment. For example, the AWS provider allows the importing of credentials from the AWS CLI's `~/.aws/credentials` file. In the following example, the credentials are loaded from the "default" profile defined in that file.
+
+[source,hcl]
+----
+provider "aws" {
+  profile = "default"
+  region = "eu-west-2"
+}
+----
+
+.~/.aws/credentials
+[source,ini]
+----
+[default]
+aws_access_key_id = AKIA...
+aws_secret_access_key = yvDpm...
+----
+
+=== Secrets in outputs
+
+Secrets MUST NOT be exposed in output from `terraform apply` commands. To achieve this, secret values are given the `sensitive = true` argument in output blocks. This means the value will not be displayed in the console output when running `terraform apply`.
+
+[source,hcl]
+----
+output "rds_password" {
+  value     = data.aws_ssm_parameter.rds_password.value
+  sensitive = true
+}
+----
+
+This is a good practice for sensitive information like passwords. It means secrets will not leak into log files in, say, automation pipelines.
+
+=== Secrets in state files
+
+Secrets such as passwords for databases _will_ be printed in the `terraform.tfstate` file, whether or not those secrets are printed in output and marked as sensitive. Therefore, it is important to ensure that the state file is stored securely and access is restricted to only authorized personnel.
+
+It is RECOMMENDED to use encryption at rest for the state file. State files MAY be encrypted in private Git repositories using tools such as https://git-secret.io/[git-secret], https://github.com/AGWA/git-crypt[git-crypt], https://github.com/elasticdog/transcrypt[transcript], or https://github.com/mozilla/sops[SOPS]. But it is best practice to exclude state files from source control entirely, and instead store them in a secure back-end, such as an S3 bucket with server-side encryption. See the section on *Remote state and back-ends*, below, for more guidance on this topic.
+
+== Remote state and back-ends
+
+It is RECOMMENDED to use secure back-ends to store Terraform state remotely. Terraform's default behavior is to store state locally in the `terraform.tfstate` file. State can be moved to a remote back-end by configuring the `terraform.backend` block. The following configuration uses AWS S3.
+
+.main.tf
+[source,hcl]
+----
+terraform {
+  backend "s3" {
+    bucket = "terraform-remote-state-abcdef" # Bucket where to save Terraform state.
+    key    = "dev/network/terraform.tfstate" # Object name in the bucket to save Terraform state.
+    region = "us-west-2"                     # Region where bucket exists (does NOT need
+                                             #   to match infrastructure deployment).
+  }
+}
+----
+
+Remote back-ends are more secure and they allow team collaboration on infrastructure configuration. Remote back-ends also make it easier to implement infrastructure automation, eg. running Terraform in CI/CD pipelines.
+
+Because secrets are stored in state files in plain text, remote storage systems MUST be private and the state files MUST be encrypted at rest. For object storage systems, it is sufficient to enable filesystem encryption on the bucket.
+
+Another advantage of using remote back-ends is that you can use multiple state files, so splitting your infrastructure into components that can be managed independently – something that is particularly useful for enterprise-scale infrastructure, or in contexts where different teams are responsible for managing different bits of the infrastructure. Alternatively, you might want to split your infrastructure state by layers, eg. separating the networking configuration from the application layer – a common practice.
+
+However, one of the trade-offs is that, if multiple clients try to make divergent changes to the same infrastructure state at the same time, it becomes possible for infrastructure to end up in a corrupted or inconsistent state. To prevent this, remote state back-ends MUST enable the `use_lockfile` option. This will apply a lock to the remote state while a `terraform apply` operation is in progress. A file called `terraform.tfstate.tflock` will briefly appear in the back-end storage system; while it exists, it will not be possible for any other client to run another `terraform apply` operation in parallel.
+
+[source,hcl]
+----
+terraform {
+  backend "s3" {
+    bucket = "terraform-remote-state-abcdef"
+    key    = "network/terraform.tfstate"
+    region = "us-west-2"
+
+    # Enable lock files to prevent concurrent state changes.
+    use_lockfile = true
+  }
+}
+----
+
+However, users can still override this by running `terraform apply -lock=false`, which will skip the lock file check. So, ultimately, the only true protection against concurrent state changes is strong governance and well-designed change management procedures.
+
+== Organizing Terraform code
+
+How you organize your Terraform code is important for maintainability. It should be immediately clear, from the filesystem design, where a maintainer can find a specific resource or data source definition.
+
+=== Filesystem design
+
+As per the https://developer.hashicorp.com/terraform/language/style#file-names[Terraform style guide], the following files are RECOMMENDED as a starting point for organizing a new infrastructure-as-code project:
+
+* `terraform.tf` — Contains a single `terraform` block that defines your `required_version` and `required_providers`.
+
+* `backend.tf` — https://developer.hashicorp.com/terraform/language/backend[Back-end configuration] for remote state storage.
+
+* `providers.tf` — Cloud provider definitions.
+
+* `main.tf` — The project's main resources and data source blocks.
+
+* `variables.tf` — Variable blocks, in alphabetical order.
+
+* `locals.tf` — Local values.
+
+* `outputs.tf` — Output blocks, in alphabetical order.
+
+* `override.tf` or (better still) `*_override.tf` files — Override definitions.
+
+However, as the IaC code grows in size and complexity, it is necessary to incrementally refactor the filesystem to represent a higher logical granularity of the configuration
+
+The following is a RECOMMENDED baseline directory structure for large-scale Terraform projects. This should be tailored to the needs of the project. For example, it may be beneficial to organize configurations by region, too.
+
+The objective is for the design of the files and directories that capture a project's Terraform configuration to represent a model of the infrastructure.
+
+Adjust the service names as appropriate for the cloud service provider.
 
 ----
 .
 ├── modules
 │   ├── aws_network
 │   ├── aws_database
-│   └── aws_something
+│   └── globals
 │
 └── projects
     └── <project-a>
@@ -102,46 +398,48 @@ Modules SHOULD be imported from a shared upstream code repository, but MAY initi
                 └── vpn
 ----
 
-== Source control
+=== Providers
 
-It is RECOMMENDED to keep Terraform configurations under source control, to support versioning of infrastructure changes. To support collaboration, there MAY be a single centralized "reference" repository, which contains the "source of truth" for the infrastructure configuration. Any hosted repositories MUST be private, and not publicly accessible except to authorized users.
+A single default provider configuration MUST be included. The default provider is the block that does not have an `alias` argument.
 
-The following machine-generated files SHOULD be committed to source control (but not edited directly by humans):
+[source,hcl]
+----
+# This is the default provider.
+provider "aws" {
+  region = "us-west-1"
+}
 
-* `.terraform.lock.hcl` — A lock file that guarantees that everyone will install the exact same dependencies when they run `terraform init` at the same commit point.
+provider "aws" {
+  region = "eu-south-1"
+  alias  = "EUROPE"
+}
 
-* `terraform.tfstate` — The state file that Terraform uses to track the current state of the infrastructure that Terraform is managing. It maps real-world resources to configuration.
+provider "aws" {
+  region = "ap-northeast-1"
+  alias  = "ASIA"
+}
+----
 
-The following filesystem paths SHOULD NOT be committed to source control:
+=== Logical grouping of resources
 
-* `.terraform/` — Directory containing Terraform's working files (auto-generated).
+Individual `.tf` files should represent a logical grouping of resources. For example, all resources related to DNS configurations should be defined in a single file, such as `route53.tf` for Amazon, or a group of `.tf` files under a directory named, say, `dns`.
 
-== Variables
+Avoid grouping multiple blocks of the same type with other blocks of different types, unless the mixed block types form a semantic family – for example, `root_block_device`, `ebs_block_device`, and `ephemeral_block_device` on `aws_instance` form a family of resources that describe AWS block services.
 
-It is RECOMMENDED to define variables for all values that are likely to change between environments, and between deployments to the same environment.
+In any one `.tf` file, the configuration SHOULD build on itself, from top to bottom. Dependent resources SHOULD be defined _after_ the resources they reference.
 
-Good candidates for values to be extracted to variables include:
+=== Loops
 
-* Names of resources.
-* CIDR ranges.
-* Tags.
-* Instance types.
-* AMI IDs.
-* Environment names.
-* Environment variables.
+Use `count` and `for_each` sparingly.
 
-=== Default values
+Use loops to define resources that are _genuine_ replicas (eg. for the purpose of redundancy). Resources that _coincidentally_ share the same configuration SHOULD be defined separately. The objective is to be able to change configuration easily. Sometimes reducing duplication helps to achieve this, but sometimes duplication actually makes it easier to maintain things.
 
-If a variable does not have a default value, and if no value is assigned to it in `terraform.tfvars`, Terraform will prompt for a value when the configuration is applied using `terraform apply`.
+=== Descriptions
 
-It is RECOMMENDED that all variables have default values. This allows the configuration to be used without requiring any input from the user. This also makes it easier to automate deployment to different environments (eg. to test and staging environments).
-
-== Descriptions
-
-It is RECOMMENDED to provide descriptions for all resources and other types that support them. This reduces the need for inline comments, and the descriptions are displayed in the AWS console. Descriptions can also be useful for auditing purposes.
+It is RECOMMENDED to provide descriptions for all resources, all variables, all outputs, and all other block types thats support descriptions. This reduces the need for inline comments, and the descriptions will be displayed alongside the Terraform-controlled resources in the web console of the cloud provider. Descriptions can also be useful for auditing purposes.
 
 .main.tf
-[source]
+[source,hcl]
 ----
 resource "aws_security_group" "web_sg" {
   name        = "web_sg"
@@ -175,116 +473,82 @@ resource "aws_security_group" "web_sg" {
 }
 ----
 
-== Secrets
+=== Variables
 
-=== Secrets in configuration files
+It is RECOMMENDED to define variables for all values that are likely to change between environments, or between deployments to the same environment.
 
-Secrets MUST NOT be hard-coded in Terraform configuration files, even if committed to secure, private source control repositories.
+Good candidates for values to be extracted to variables include:
 
-[source]
+* Names of resources
+* CIDR ranges
+* Tags
+* Instance types
+* AMI IDs
+* Environment names
+* Environment variables
+
+Include a type and a description for every variable.
+
+==== Default values
+
+If a variable does not have a default value, and if no value is assigned to it in `terraform.tfvars`, Terraform will prompt for a value when the configuration is applied using `terraform apply`.
+
+It is RECOMMENDED that all variables have default values. This allows a Terraform configuration to be applied without requiring any input from the user, which in turn support automation of infrastructure configuration, eg. via CI/CD workflows.
+
+=== Local values
+
+Local values let you reference an expression or value multiple times.
+
+[source,hcl]
 ----
-provider "aws" {
-  region = "eu-west-2"
-
-  access_key = "AKIA..."
-  secret_key = "yvDpm..."
+locals {
+  name_suffix = "${var.region}-${var.environment}"
 }
-----
 
-Access credentials SHOULD be retrieved from the environment. For example, the AWS Provider allows the importing of credentials for the AWS CLI's `~/.aws/credentials` file. In the following example, the credentials are loaded from the "default" profile defined in the AWS credentials file.
-
-[source]
-----
-provider "aws" {
-  profile = "default"
-  region = "eu-west-2"
-}
-----
-
-.~/.aws/credentials
-[source]
-----
-[default]
-aws_access_key_id = AKIA...
-aws_secret_access_key = yvDpm...
-----
-
-=== Secrets in outputs
-
-Secrets MUST NOT be exposed in output from `terraform apply` commands. To achieve this, secret values are given the `sensitive = true` argument in output blocks. This means the value will not be displayed in the console output when running `terraform apply`. This is a good practice for sensitive information like passwords.
-
-[source]
-----
-output "rds_password" {
-  value     = data.aws_ssm_parameter.rds_password.value
-  sensitive = true
-}
-----
-
-=== Secrets in state files
-
-Secrets such as passwords for databases _will_ be printed in the `terraform.tfstate` file, whether or not those secrets are printed in output and marked as sensitive.
-
-Therefore, it is important to ensure that the state file is stored securely and access is restricted to authorized personnel only.
-
-It is RECOMMENDED to use encryption at rest for the state file. Files can be encrypted in Git repositories using tools such as `git-crypt` or `git-secret`. Alternatively, the state file can be excluded from source control and instead stored in a secure back-end system, such as an S3 bucket with server-side encryption enabled.
-
-== User scripts
-
-Simple user scripts MAY be inlined using heredoc syntax.
-
-.main.tf
-[source]
-----
-resource "aws_instance" "web_server" {
-  ami           = "ami-0c55b159cbfafe1f0" # Amazon Linux 2
+resource "aws_instance" "web" {
+  ami           = data.aws_ami.ubuntu.id
   instance_type = "t3.micro"
 
-  vpc_security_group_ids = [aws_security_group.web_sg.id]
-
-  user_data = <<<EOF
-#!/bin/bash
-
-yum update -y
-yum install -y httpd
-
-MYIP=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
-echo "<h2>Web server with private IP: $MYIP</h2>" > /var/www/html/index.html
-
-service httpd start
-chkconfig httpd on
-
-EOF
+  tags = {
+    Name = "web-${local.name_suffix}"
+  }
 }
 ----
 
-However, it is RECOMMENDED instead to load user scripts from separate files, for easier maintenance.
+If you reference the local value in multiple files, define it in a file named `locals.tf` within the root or module. If the local value is specific to a particular file, define it at the top of that file.
 
-.main.tf
-[source]
-----
-resource "aws_instance" "web_server" {
-  ami           = "ami-0c55b159cbfafe1f0" # Amazon Linux 2
-  instance_type = "t3.micro"
+Avoid overuse of local values. They increase the cognitive overhead required to understand a configuration. Oftentimes it is better to just repeat an expression wherever it is needed.
 
-  vpc_security_group_ids = [aws_security_group.web_sg.id]
+.References
+****
+* https://developer.hashicorp.com/terraform/language/values/locals[Local values]
+* https://developer.hashicorp.com/terraform/tutorials/configuration-language/locals[Simplify Terraform configuration with locals]
+****
 
-  user_data                   = file("user_data.sh")
-  user_data_replace_on_change = true
-}
-----
+=== Overrides
 
-.user_data.sh
-[source,bash]
-----
-#!/bin/bash
+Overrides are specially-named Terraform files that are loaded last, and are used to override configurations defined elsewhere in the Terraform files.
 
-yum -y update
-yum -y install httpd
+Use overrides sparingly. They make it harder to reason about the configuration – it becomes less clear where changes in configuration should be made.
 
-MYIP=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
-echo "<h2>WebServer with PrivateIP: $MYIP</h2>" > /var/www/html/index.html
+Where overrides are used, there MUST be prominent comments adjacent to the original resource definitions that declare that overrides exist for those definitions.
 
-service httpd start
-chkconfig httpd on
-----
+For small projects, all overrides may be grouped together into a single root-level `overrides.tf` file. For large projects, it is RECOMMENDED to add overrides in files named `[file]_override.tf`, where `[file]` is the name of the file (in the same directory) that contains the original definitions. This makes it very clear if a file has overrides, and where those overrides exist.
+
+=== Modules
+
+Modules SHOULD be imported from a shared upstream code repository, but MAY initially be developed in local modules.
+
+One valid use case for a perpetual local module is as a container for globals – global variables, global outputs, etc. – that are then imported to multiple projects (but managed in the same code repository).
+
+////
+
+TODO: Add guidance on testing
+
+== Testing
+
+`terraform validate` will not check if argument values are correct for a specific provider, and it will not evaluate any existing state.
+
+To validate that a configuration is _correct_, runtime testing is required.
+
+////
