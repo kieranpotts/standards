@@ -34,7 +34,7 @@ IAM Identity Center also integrates with *AWS Organizations*, which provides an 
 
 It is a common pattern in large organizations to have multiple AWS accounts managed under one organization. This allows the control of resources and permissions to be delegated to separate business units or product divisions within the organization. *AWS Organizations* is the AWS service that you use to manage multiple AWS accounts under a single organization.
 
-To use AWS Organizations, you create a *Management Account*, which will be at the root of the AWS account hierarchy you create. You can then create additional AWS accounts, or invite existing accounts, into your organization.Additional accounts will be managed by the root Management Account.
+To use AWS Organizations, you create a *Management Account*, which will be at the root of the AWS account hierarchy you create. You can then create additional AWS accounts, or invite existing accounts, into your organization. Additional accounts will be managed by the root Management Account.
 
 Even if your organization has a simple structure or just a single product, building out your infrastructure for that product under a sub-account will allow you to more easily scale to new products and services in the future, while keeping your cloud infrastructure clearly delimited by product.
 
@@ -89,47 +89,47 @@ The optimum naming convention will depend on the specific needs of your organiza
 
 |`{organization}`
 |Global identifier for the parent organization
-|Yes
+|RECOMMENDED
 |[a-z][a-z0-9]{2,7}
 
 |`{account}`
 |Account identifier
-|Yes for multi-account AWS organizations
+|REQUIRED for multi-account AWS organizations
 |[a-z][a-z0-9]{3,4}
 
 |`{project}`
 |Project name
-|Yes, unless the account identifier serves this purpose
+|REQUIRED unless the account identifier serves this purpose
 |[a-z0-9]{4-12}
 
 |`{module}`
 |Software module or component name
-|No
+|OPTIONAL
 |[a-z0-9]{1,20}
 
 |`{environment}`
 |Deployment environment
-|Yes, except for domain names and other resources that are not environment-specific
+|REQUIRED only for environment-specific resources (not global resources such as domain names)
 |[a-z]{3,4} from enum
 
 |`{resource}`
 |Resource type
-|Yes
+|REQUIRED
 |[a-z]{3,4} from enum, or CSP-specific name
 
 |`{location}`
 |Region
-|No
+|OPTIONAL
 |Matches CSP region name + AZ
 
 |`{instance}`
 |Instance count
-|No
+|OPTIONAL
 |[0-9]{3}
 
 |`{suffix}`
 |Random hash or account ID
-|No
+|OPTIONAL
 |[a-z0-9]{7} or account ID
 |===
 
@@ -147,7 +147,7 @@ The `{resource}` component identifies the resource type. It is RECOMMENDED this 
 
 The `{location}` component SHOULD be included where there's a possibility that replicas of a resource could be launched into different locations. For AWS, regions and availability zones (AZs) will typically be used to identify the location. Region names SHOULD match the naming convention of the cloud service provider, minus any hyphens – so `us-east-1` becomes `useast1`. This MAY be combined with an AZ suffix, `a` to `f`, eg. `useast1a`, `useast1b`, etc. For global resources such as S3 buckets, an abbreviation such as "gbl" or "g" MAY be used, or the component MAY be dropped from the name altogether.
 
-The `{instance}` component SHOULD be used to identify replicated resources, eg. `001`, `002`, etc.
+The `{instance}` component SHOULD be used to identify resources that are replicated for the purpose of redundancy, eg. `001`, `002`, etc.
 
 Finally, the `{suffix}` component should be a random hash where there is a requirement for uniqueness (eg. `h7g30ij`). For global resources such as S3 bucket names, a common practice is to use your AWS account ID for the resource suffix, to increase the chances of making a globally-unique name.
 
@@ -286,7 +286,7 @@ The use cases for tags will vary from organization to organization. It is best t
 
 * *Resource management*: How do you want to group your resources in the AWS Management Console? For example, do you wish to view all resources associated with a project, application, team, department, etc.?
 
-* *Cost allocation*: How do you want to break down your costs in analysis?
+* *Cost allocation*: How do you want to break down your costs for the purpose of analysis and reporting?
 
 * *Compliance*: For example, do you need to be able to identify resources that store personally-identifiable information or other sensitive data?
 
@@ -308,7 +308,7 @@ Conditionally-required tags are only mandatory under certain circumstances. For 
 
 When identifying tagging requirements, focus on required and conditionally-required tags. But allow for optional tags, too – as long as they conform to your tag naming and governance policies. Optional tags can empower people to define new tags for unforeseen or bespoke application requirements.
 
-Start with a small set of tags hat are known to be needed, and create tags as new needs emerge. This approach is preferable to specifying an exhaustive list of tags at the outset, which may prove to be impractical to manage.
+Start with a small set of tags that are known to be needed, and create tags as new needs emerge. This approach is preferable to specifying an exhaustive list of tags at the outset, which may prove to be impractical to manage.
 
 === Tag naming convention
 
@@ -333,7 +333,7 @@ It is RECOMMENDED to use a similar naming convention for your custom tags. In pa
 A simple starter template for a tag naming convention could be something like:
 
 ----
-{organization}:{department}:{key}
+{organization}:{key}:{value}
 ----
 
 This could scale to the following use cases:
@@ -342,22 +342,22 @@ This could scale to the following use cases:
 |Use case |Tag schema |Description |Example values
 
 |Data classification
-|`{organization}:infosec:data-classification`
-|Information security-defined set of data classifications.
+|`hackscorp:data:{classification}`
+|Infosec-defined set of data classifications.
 |`sensitive`,`confidential`,`personal`
 
-|Operations
-|`{organization}:ops:environment`
-|Implement scheduling of developing and testing environments.
+|Environments
+|`hackscorp:env:{environment}`
+|Tag resources as belonging to a specific environment.
 |`development`,`staging`,`qa`,`production`
 
 |Disaster recovery
-|`{organization}:dr:rpo`
+|`hackscorp:dr:rpo`
 |Define the recovery point objective (RPO) for a resource.
 |`6h`,`24h`
 
 |Cost allocation
-|`{organization}:fin:cost-allocation`
+|`hackscorp:fin:{cost-allocation}`
 |Finance teams implement cost reporting on each team's usage and spend.
 |`corporate`,`recruitment`,`support`,`engineering`
 |===
@@ -370,6 +370,28 @@ In AWS, tags are case-sensitive. So, `costCenter` and `costcenter` are treated a
 === See also
 
 * https://docs.aws.amazon.com/whitepapers/latest/tagging-best-practices/tagging-best-practices.html[Best practices for tagging AWS resources]
+
+== Environment isolation
+
+A common pattern in cloud computing is to isolate resources by environment. This is particularly important for security and compliance. It stops production data leaking into pre-production environments, and vice versa – it stops dummy data from contaminating production environments.
+
+Environment isolation also helps to reduce the risk of accidental changes to production services. It supports strategies such as blue-green deployments, where you can test new versions of your infrastructure and services in a pre-production environment before deploying them to production. And so on.
+
+In AWS, there are many different ways that environment isolation can be achieved.
+
+The most common approaches are to use separate AWS accounts, or to use separate VPCs within the same account.
+
+Using separate AWS accounts – each under a single AWS Organization – is probably the simplest solution to implement. This involves creating a separate AWS account for each environment, such as `dev`, `staging`, and `prod`. Each account can then be managed independently, with its own set of IAM users, roles, and policies. The risks of cross-environment contamination and breakages are minimized.
+
+Alternatively, if you prefer each AWS account to be scoped to a particular project or business unit, you can use separate VPCs within the same AWS account to isolate environments. This approach is a bit more involving to set up, but it affords a bit more flexibility; for example, it is easier to share resources between environments. You might use a centralized logging system for every environment, for example.
+
+It is RECOMMENDED to create distinct IAM roles within a product account for production and pre-production environments and workloads. It is RECOMMENDED to use tags to identify the environment of each resource, and then use IAM policies to restrict access to resources based on those environment tags. This ensures that both users and services/resources can access resources only in their designated environment.
+
+Deploy production and pre-production in completely separate VPCs, with no peering connections. This creates a hard network boundary between the environments.
+
+Use private subnets for data storage and processing, with environment-specific NAT gateways and routing tables. Use completely separate RDS instances, DynamoDB tables, and S3 buckets for each environment. And use different KMS keys for each environment to ensure encrypted data cannot be decrypted in another environment in the event that is does accidentally leak into that other environment. Use different parameter paths (`/prod/`, `/test/`) in Systems Manager Parameter Store, and separate secrets in AWS Secrets Manager. And so on.
+
+If building the infrastructure from code, use different Terraform state files for each environment, stored in separate S3 buckets with different access policies.
 
 == Virtual Private Clouds (VPCs)
 
