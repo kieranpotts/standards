@@ -8,9 +8,9 @@ toc::[]
 
 == Encryption
 
-Personal data, or any business-sensitive information, MUST be encrypted at rest.
+Personal data, and any business-sensitive information, MUST be encrypted at rest.
 
-All data MUST be encrypted in transit (ie. TLS).
+All data – sensitive or otherwise – MUST be encrypted in transit (ie. TLS).
 
 == Secrets
 
@@ -18,7 +18,7 @@ A *secret* is any value that grants access or trust when revealed. Secrets inclu
 
 * Passwords and passphrases
 * API access keys and fine-grained personal access tokens (PATs)
-* SSH keys, TLS private certs, and other encryption keys
+* Encryption keys, including symmetric keys and the private keys of asymmetric key pairs
 * JWTs, session cookies, and signed URLs
 * Configuration strings that embed credentials, eg. for database connections
 
@@ -28,22 +28,25 @@ A *secret* is any value that grants access or trust when revealed. Secrets inclu
 
 *Secrets MUST NOT be sent to log output.*
 
-Secrets management systems  like HashiCorp Vault or AWS Secrets Manager are designed to store, manage, and provide access to secrets in a secure manner. Such systems MUST be used to store *primary secrets*, and deployment strategies MUST be implemented to fetch and inject secrets into applications at compile time or runtime (as appropriate for the application).
+Secrets management systems like HashiCorp Vault or AWS Secrets Manager are designed to store, manage, and provide access to secrets in a secure manner. Such systems MUST be used to store *primary secrets*, and deployment strategies MUST be implemented to fetch and inject secrets from these stores and into applications at compile time or runtime (as appropriate for the application).
 
-It is RECOMMENDED that secrets be rotated at regular intervals. Rotation SHOULD be automated. Rotation intervals MAY vary as appropriate given the risk profile of individual secrets, but SHOULD NOT exceed one week in most cases.
+It is RECOMMENDED that secrets be rotated at regular intervals. Rotation intervals MAY vary as appropriate given the risk profile of individual secrets, but SHOULD NOT exceed one week in most cases. Rotation SHOULD be automated.
 
-Whereas primary secrets are required by an application at runtime, *secondary secrets* will often be required for development and operations. For example, some secrets may be required for the proper functioning of CI/CD pipelines, but not required by the applications under development themselves. These secondary secrets are typically stored in secrets management systems embedded in or linked to devops toolchains, eg. GitHub Secrets is typically used in conjunction with GitHub Actions. The lifetime of secondary secrets SHOULD be rotated in line with PAT cadence – typically less than 90 days.
+Whereas primary secrets are required by an application at runtime, *secondary secrets* may be required for development and operations, for example for the proper functioning of CI/CD pipelines. Secondary secrets are typically stored in secrets management systems embedded in or linked to devops toolchains, eg. GitHub Secrets is typically used in conjunction with GitHub Actions. The lifetime of secondary secrets SHOULD be rotated in line with PAT cadence – typically less than 90 days.
 
 === Handling compromised secrets
 
 Secrets MUST be considered to be compromised if they are ever leaked – including into code repositories (even private ones) and into logs (even if the logs are not publicly accessible).
 
-If a secret is compromised, it MUST be rotated immediately.
+If a secret is compromised, it MUST be rotated immediately. It is NOT sufficient to simply remove the secret from the environment into which it has leaked. For example, it is not sufficient to remove a secret from a code repository, even if you rewrite the history of the repository to remove the secret from all commits (which, anyway, is difficult to do in shared repositories). The secret has already been compromised, so it must be rotated.
 
-It is NOT sufficient to simply remove the secret from the environment into which it has leaked. For example, it is not sufficient to remove a secret from a code repository, even if you rewrite the history of the repository to remove the secret from all commits (which, anyway, is difficult to do in shared repositories). The secret has already been compromised, so it must be rotated.
+For every secret, it is good practice to have a documented process for how the secret will be stored, accessed, rotated, and revoked or invalidated somehow in the event that it is compromised. For every secret there SHOULD be a document that answers:
 
-For every secret, it is good practice to have a documented process for how the secret will be rotated, revoked, or otherwise invalidated in the event that it is compromised. For every secret, it SHOULD be documented how the secret is to be stored, accessed, and managed throughout its lifecycle. What is the secret's purpose? How is it used? Who has access to it? How is it rotated, and how often? How will it be invalidated in the event of the secret being leaked?
-
+* What is the secret's purpose?
+* How is it used?
+* Who has access to it?
+* How is it rotated, and how often?
+* How will it be invalidated in the event of the secret being leaked?
 
 == Vulnerability scanning
 
@@ -55,3 +58,145 @@ Third-party software components MUST be checked for security vulnerabilities and
 
 High-level issues identified by vulnerability scanning tools SHOULD be prioritized similarly to incidents. Low-level issues SHOULD be prioritized with high priority.
 
+== Threat modeling
+
+// TODO
+
+== Authentication
+
+For user authentication, token-based or certificate-based authentication is RECOMMENDED over password-based authentication.
+
+When users initially log in to a software system, before a token or certificate has issued, there MUST be strict requirements for user IDs and passwords, and two-factor authentication is strongly RECOMMENDED. See below for constraints on the inputs allowed for authentication.
+
+Authentication operations MUST happen over a secure, encrypted channel (eg. TLS). Session data from a prior non-encrypted connection MUST NOT be reused to authenticate a user.
+
+=== Re-authentication
+
+Re-authentication MUST be required prior to performing any destructive operations, such as deleting data, or performing any operation that is considered sensitive, such as changing a password or email address.
+
+=== Failed authentication attempts
+
+Failed authentication attempts MUST be logged, and the logs MUST be monitored for suspicious activity.
+
+There SHOULD be sensible restrictions on the number of failed authentication attempts permitted within a time window. This is to prevent brute-force attacks. For example, an account MAY be locked after three failed attempts in a 24 hour period.
+
+A user MUST NOT be informed exactly _why_ their authentication attempt failed. This is to prevent information leakage that could be exploited by an attacker. For example, the application MUST NOT indicate whether the user ID or password was incorrect, or if a CAPTCHA code was inputted correctly.
+
+=== User IDs
+
+User IDs MUST be at least four characters long and SHOULD be at least 7 characters long.
+
+User IDs MUST be unique.
+
+=== User passwords
+
+Users MUST be required to change their passwords on first login and after an administrative password reset.
+
+In addition, it is RECOMMENDED that users be _prompted_ (but not necessarily _required_) to change their passwords at regular intervals, such as every 90 days.
+
+New passwords SHOULD NOT match any of the user's previous 12 passwords.
+
+Passwords MUST be validated for their strength. Users MUST be required to set strong passwords. A strong password is defined as:
+
+* At least 8 characters long.
+* Contains at least one uppercase ASCII letter, one lowercase ASCII letter, one number, and one special ASCII character, such as a punctuation mark or symbol, or at least one Unicode character outside of the ASCII range.
+* Does not contain dictionary words, common phrases, or common patterns (eg. "12345678", "password", "qwerty", etc.)
+* Does not contain the user's user ID, first name, last name, or any other personal information that could be easily guessed.
+
+Applications SHOULD include both password generation tools and password strength meters to help users choose strong passwords.
+
+In graphical user interfaces, input fields for passwords (and other secrets) MUST be masked to prevent display.
+
+Stored passwords MUST be hashed and salted using a strong hashing algorithm. The following steps MUST be followed:
+
+* Concatenate a salt with the user's password.
+* Perform a hash on the result using the SHA-3 algorithm, if supported, else SHA-2 (minimum 256-bit hash output shall be used in either case).
+
+=== Reset password operations
+
+There SHOULD be sensible restrictions on the number of times a user can trigger a reset password operation on their account within a time window. For example, a user MAY be allowed to trigger a reset password operation no more than three times in any 24 hour period, without an administrative override.
+
+It MUST be possible for users to further secure their accounts by disabling the reset password functionality, or by requiring additional verification steps (such as mobile authentication) for reset password operations.
+
+Reset password operations should generate a short-lived one-time token that is sent to the user via out-of-band communication such as email or SMS, and whose scope is limited to a change password operation. It is RECOMMENDED that this token be valid for no more than 30 minutes.
+
+Reset password operations MUST be logged, and the logs MUST be monitored for suspicious activity.
+
+Users MUST be notified – via both out-of-band communication such as email or SMS, and also via an application's interface – when a reset password operation is triggered on their account. There MUST be a mechanism for users to report suspicious reset password requests and to immediately "lock" their account in the event of a suspected compromise.
+
+=== CAPTCHA
+
+reCAPTCHA v2 or v3 MAY be implemented for user authentication operations, for additional security.
+
+It is RECOMMENDED to display a CAPTCHA after a first failed authentication attempt. In addition, it is RECOMMENDED to display a CAPTCHA for transactions that require elevated permissions, such as for changing a password or performing a destructive operation such as deleting data.
+
+== Authorization and access controls
+
+Access MUST be based on the principle of *least privilege*. This means that clients (users and other systems) MUST only be granted only the minimum permissions necessary to perform their tasks.
+
+Access MUST be based on logical security roles such as user, super user, administrator, and so on. This applies for both human and non-human access.
+
+Access MUST always be verified on the server. Web applications MUST NOT rely on hidden fields, URL parameters, cookie values, HTTP headers, or other obscurity techniques as the basis of authorization decisions, unless such values are corroborated with server-side information.
+
+Access verification MUST take place prior to _any_ operation (eg. reading, writing, deleting) being performed.
+
+Access MUST always be verified. It is not sufficient to simply "hide" operations from clients, for example by not display a button in a user interface or by not documenting an API endpoint.
+
+== Network security
+
+Inbound access from the public internet MUST be limited to what is required by the application (ports, protocols, services).
+
+Outbound traffic MUST be limited to what is required by the application. It is RECOMMENDED that all outbound traffic be blocked by default and enabled only for specific IP addresses, or ranges of IP addresses, or specific domain names. An outbound proxy MAY be used to enforce this.
+
+== Web application security
+
+The following security measures are specific to web applications that are served over HTTP/S and accessed via web browsers.
+
+=== Security headers
+
+The `Strict-Transport-Security` header MUST be sent on each HTTP transaction. The `max-age` directive MUST be set to at least 86400 (1 day).
+
+Applications MUST return a `Content-Security-Policy` header. The RECOMMENDED baseline for this directive is:
+
+* `default-src 'self'`
+* `object-src 'none'`
+* `frame-ancestors 'deny'`
+* `frame-src 'none'`
+* `bse-url 'self'`
+* `form-action 'self'`
+
+The `X-XSS-Protection` header SHOULD be sent with each HTTP transaction in cases where `Content-Security-Policy` is not supported (in legacy browsers). The value MUST be set to `1; mode=block`, which enables XSS protection in browsers that support this header.
+
+The `X-Frame-Options` header MUST be sent with each HTTP transaction. Either the deny or the same origin directive SHOULD be used.
+
+The `X-Content-Type-Options` header MUST be sent on each HTTP transaction. The "no-sniff" directive MUST be set.
+
+=== Caching control
+
+The `Cache-Control` header MUST be sent with each HTTP transaction. The `max-age` directive MUST be sent, unless the `no-cache` directive is used. The `max-age` value must be set to a value determined by the sensitivity of the data being sent to the client. Higher sensitivity data should have a lower `max-age` value. The `max-age` MUST NOT be longer than 1 year.
+
+The `Expires` header MUST be sent with each HTTP transaction, with a value that is consistent with the `max-age` directive in the `Cache-Control` header.
+
+=== Other data controls
+
+Web applications MUST NOT operate in such a way that causes confidential or restricted data to be stored on the client after session termination, without explicit acknowledgement by the client/user. Examples include storage in browser caches, browser URL histories, persistent memory objects, form autocomplete histories, client-side JARs, Active-X controls, Flash shared objects, etc.
+
+Applications MUST disable browser and proxy caching if sending confidential or restricted information. A combination of all three of the following headers is RECOMMENDED, to satisfy different browsers:
+
+* `Pragma=nocache`
+* `Expires="01 Jan 1971 01:01:01 GMT"`
+* `Cache-Control="no-store"`
+
+In addition, applications MUST disable the browser auto-complete feature on forms via which confidential or restricted information may be inputted by the user.
+
+Interpreted client-side code MUST NOT contain hard-coded passwords, usernames, or database connection strings.
+
+If non-sensitive data needs to be stored on the client, the following procedures MUST be followed:
+
+* Data that is not intended for public access MUST be encrypted.
+* Data MUST NOT be stored in world readable/writeable locations.
+* Data MUST be purged when it is not longer required.
+
+Web applications that generate file-based content intended for one-time viewing MUST remove access to the file immediately after being retrieved by the user. The request to access the file MUST be validated to prevent unauthorized access.
+
+Confidential data MUST NOT be sent via SMS, email, or push notifications.
