@@ -1,0 +1,158 @@
+= TS-45: Docker
+:toc: macro
+:toc-title: Contents
+
+This technical standard provides guidance on working with Docker.
+
+toc::[]
+
+// TODO: https://github.com/nodejs/docker-node/blob/main/docs/BestPractices.md
+
+== Base images
+
+Within an organization, all containers SHOULD be built from a standard library of organization-approved base images. This will ensure that all containers are built with the same security and compliance standards.
+
+It is RECOMMENDED to use lightweight Linux distributions for base images, such as https://alpinelinux.org/[Alpine Linux], to benefit from their small size and fast boot-up times.
+
+== Build process
+
+Container builds SHOULD be designed to keep the image size to a minimum.
+
+Each instruction in a Dockerfile adds a layer to the image. You SHOULD `RUN` commands to clean up any artifacts you don't need before moving on to building the next layer.
+
+In development environments, if you are using a volume to mount the source code to a guest path, pay particular attention to the ordering of commands in the Docker file. Consider the following example. If you are mounting the `/app` directory in the container to the current working directory of the host, what will happen when you save changes to local files? Docker will rebuild the image from the `COPY . .` instruction, rebuilding only that layer and any subsequent layers. But a consequence of this design is that `npm install` will be rerun inside the container with every file change – because that command is in a subsequent layer.
+
+.Dockerfile
+[source,Dockerfile]
+----
+FROM node:20
+
+RUN apt install imagemagick
+
+WORKDIR /app
+
+COPY . .
+
+RUN npm install
+----
+
+To solve this, we can can change the instructions such that `npm install` is re-run only when we make changes to the `package.json` or `package-lock.json` files. Because the `COPY . .` command is now in a layer after the `RUN npm install` instruction, Docker will use its cache of this lower layer and rebuild only from the `COPY` instruction.
+
+.Dockerfile
+[source,Dockerfile]
+----
+FROM node:20
+
+RUN apt install imagemagick
+
+WORKDIR /app
+
+COPY package*.json .
+
+RUN npm install
+
+COPY . .
+----
+
+It is also RECOMMENDED to use multi-stage builds. This is especially useful when you need to configure containers differently for different environments – dev, test, and prod for example. Multi-stage builds help to keep layers as small as possible. They also help to reduce security attack vectors in production. For more information on multi-stage builds, see the https://docks.docker.com/build/building/multi-stage/[Docker Docs].
+
+== Image tags
+
+When creating images, it is RECOMMENDED to version them, and treat each version as immutable. Rather than deleting images and replacing them with new ones, prefer to bump to a new version.
+
+When consuming images, be explicit if you always want the latest version, even though `:latest` is the default tag:
+
+----
+FROM alpine:latest
+----
+
+However, using a specific version is best practice in most use cases. This will lock the container to a particular version of an image, preventing unexpected breaking changes.
+
+----
+FROM nginx:1.23
+----
+
+== Image labels
+
+Image meta data SHOULD follow the http://label-schema.org/[Label Schema] convention, which is the most popular Docker labelling convention
+
+Variables may need to be passed at runtime, so that labels are up-to-date.
+
+All labels are OPTIONAL, although `org.label-schema.schema-version` is RECOMMENDED for all containers.
+
+.Recommended labels
+|===
+|Name |Description
+
+|`org.label-schema.build-date`
+|The date/time the image was built, formatted as per RFC 3339.
+
+|`org.label-schema.name`
+|A human-friendly name for the image
+
+|`org.label-schema.description`
+|Text description for the image, maximum 300 characters.
+
+|`org.label-schema.vcs-url`
+|URL for the code repository from which the container image was built.
+
+|`org.label-schema.vcs-ref`
+|Identifier for the version from which the container was built, eg. Git commit SHA.
+
+|`org.label-schema.version`
+|Release identifier for the contents of the image, eg. a Git branch or version tag.
+
+|`org.label-schema.schema-version`
+|The version of Schema Label in use, usually v1.0.
+
+|`org.label-schema.docker.cmd`
+|How to run a container based on the image, eg. `docker run -d -p 80:80 example`
+|===
+
+== Security
+
+Access keys and other secrets SHOULD NOT be stored within Docker containers. This would allow anyone with access to an image to inspect the layers and view the credentials.
+
+If the containerized application requires credentials such as database passwords, these SHOULD be mounted at runtime.
+
+See also *link:./041-security.adoc[TS-41: Security and Secrets Management]*.
+
+== Monitoring
+
+Application containers SHOULD contain a health check.
+
+A basic implementation, seen in the example below, would be a simple curl request against localhost to check that the server has started. Other health checks may confirm that SSL certifications are valid and current, and that database ports are open and responding. The appropriate checks will vary by service.
+
+.Dockerfile with health check
+[source,Dockerfile]
+----
+# Base image
+FROM registry.eu.lnrm.net/docker/images/php72 as build
+
+# Health check
+HEALTHCHECK --interval=5m --timeout=3s \
+  CMD curl -f http://localhost/ || exit 1
+
+# Apache entrypoint
+EXPOSE 80
+ENTRYPOINT ["/usr/sbin/apachectl", "-D", "FOREGROUND"]
+----
+
+A container's health check SHOULD NOT monitor the health of dependent services, such as databases. Health checks should report only on the status of the container and its application.
+
+Health checks SHOULD be run frequently in production.
+
+== Running multiple processes
+
+In general, there should be one service or application per container. Multiple containers can be started and connected using user-defined networks and shared volumes, if necessary. But it is best practice to separate areas of concerns – such as databases, and services in distributed systems – into separate containers.
+
+A container has a single main process, which is defined in the `ENTRYPOINT` and/or `CMD` at the end of the Dockerfile. That service MAY fork into multiple processes. For example, a web server may spawn multiple worker processes.
+
+The container's main process is responsible for managing all the processes that it starts. However, sometimes the main process isn't well designed to gracefully stop child processes when the container exits. If this is the case for your application, you can pass the `--init` option when you run the container. This flag inserts a tiny init process into the container as the main process, which handles "reaping" of all processes when the container exits.
+
+If you really do need more than one service in a container, there are two main ways to achieve this:
+
+* Use a wrapper script as the main `CMD` process.
+* Use a process manager like `supervisord`.
+
+Documentation for both of these approach is available in https://docs.docker.com/engine/containers/multi-service_container/[dockerdocs].
