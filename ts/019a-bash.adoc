@@ -2,9 +2,15 @@
 :toc: macro
 :toc-title: Contents
 
-This technical standard extends link:./019-sh.adoc[TS-19: Unix Shells]  with specific guidelines for using the https://www.gnu.org/software/bash/[Bash shell].
+This technical standard extends link:./019-sh.adoc[TS-19: Unix Shells] with specific guidelines for using the https://www.gnu.org/software/bash/[Bash shell].
+
+This technical standard assumes that you are writing scripts that are specifically intended to be executed by Bash shells, and not by other Unix shells. If portability is a requirement, it is RECOMMENDED to write generic POSIX-compliant scripts that can be interpreted and executed by any POSIX-compliant shell. See link:./019-sh.adoc[TS-19: Unix Shells] for guidelines on writing POSIX-compliant shell scripts.
 
 toc::[]
+
+== Static analysis
+
+It is RECOMMENDED to run https://github.com/koalaman/shellcheck[ShellCheck] against all Bash scripts.
 
 == Files
 
@@ -45,6 +51,12 @@ If a script is written to be POSIX-compliant, use either of the following sheban
 #!/bin/env sh
 ----
 
+== Comments
+
+Use comments to explain the purpose of the script and any complex logic.
+
+// TODO: Explain how to document functions, etc.
+
 == Variables
 
 In scripts, try to define all the script's variables at the top of the script.
@@ -53,28 +65,73 @@ Use descriptive names, eg. `log_file` not `lf`.
 
 Use ALL_CAPS for exported variables – ie. environment variables that will be made available to all child processes spawned from the current shell. Example: `export PATH="/usr/local/bin:$PATH"`.
 
+Prefer the bracketed syntax for variable expansion:
+
+[source,bash]
+----
+# SHOULD NOT use:
+$var
+
+# RECOMMENDED:
+${var}
+----
+
+The bracketed syntax is more robust and flexible. Because the brackets clearly delimit the variable name, it is easier to append literal characters immediately after the variable expansion, eg. `${var}bar`. In addition, the bracketed syntax can be extended to query and manipulate values returned from variable substitution. For example, `${#var}` returns the length of a string value, `${var:0:1}` returns the first character of the value, and so on. It is also possible to provide default (fallback) value in case the variable is empty.
+
 Always quote variables with string values. This prevents word splitting and globbing issues.
 
 [source,bash]
 ----
-# SHOULD NOT:
-echo $var
+# SHOULD NOT do this for string values:
+echo ${var}
 
 # RECOMMENDED:
-echo "$var"
+echo "${var}"
 ----
 
-== Input variables
+The risk of not quoting variables is demonstrated by the following code example.
+
+[source,bash]
+----
+filename="My File.txt"
+
+rm ${filename}       # Interpreted as: `rm My File.txt` → error
+rm "${filename}"     # Interpreted as: `rm "My File.txt"` → correct
+----
+
+=== Input variables
 
 Always validate user input variables.
 
-== Comments
+=== Command substitution
 
-Use comments to explain the purpose of the script and any complex logic.
+Prefer the newer syntax, `var=$(command)`, over the older syntax (which still works), `var=`command``.
 
-== Static analysis
+== Conditionals
 
-It is RECOMMENDED to run https://github.com/koalaman/shellcheck[ShellCheck] against all Bash scripts.
+For conditional expressions, it is RECOMMENDED to use the Bash-specific double-bracket syntax, `[[ ... ]]`, over the POSIX-compliant single-bracket syntax, `[ ... ]`.
+
+In older version of Bash, using single bracket syntax with `&&` or `||` could cause syntax issues. Using the double bracket syntax is better, therefore, for backwards compatibility with older implementations of Bash.
+
+The double bracket syntax is preferred for other reasons, too. It prevents pathname expansion and word splitting, which eliminates a common class of bugs in shell scripts. It also allows for regular expression matching, which the single bracket syntax does not support.
+
+.Examples
+[source,bash]
+----
+if [[ "filename" =~ ^[[:alnum:]]+name ]]; then
+  echo "Match"
+fi
+
+if [[ "filename" == "f*" ]]; then
+  echo "Match"
+fi
+
+# For comparison, this gives a "too many arguments" error as
+# f* is expanded to the contents of the current directory.
+if [ "filename" == f* ]; then
+  echo "Match"
+fi
+----
 
 ''''
 
@@ -83,6 +140,12 @@ It is RECOMMENDED to run https://github.com/koalaman/shellcheck[ShellCheck] agai
 * https://www.gnu.org/savannah-checkouts/gnu/bash/manual/bash.html[Bash reference manual]
 
 * https://github.com/dylanaraps/pure-bash-bible[Pure Bash bible] by Dylan Araps
+
+* https://tldp.org/LDP/Bash-Beginners-Guide/html/[Bash guide for beginners] by Machtelt Garrels
+
+* https://tldp.org/LDP/abs/html/[Advanced Bash scripting guide] by Mendel Cooper
+
+* https://tldp.org/HOWTO/Bash-Prog-Intro-HOWTO.html[BASH Programming - Introduction HOW-TO] by Mike G
 
 * https://mywiki.wooledge.org/BashGuide[BashGuide], written by various authors.
 
@@ -94,8 +157,3 @@ It is RECOMMENDED to run https://github.com/koalaman/shellcheck[ShellCheck] agai
 
 * https://jvns.ca/blog/2017/03/26/bash-quirks/[Bash scripting quirks and safety tips] by Julia Evans
 
-* https://tldp.org/LDP/Bash-Beginners-Guide/html/[Bash guide for beginners] by Machtelt Garrels
-
-* https://tldp.org/LDP/abs/html/[Advanced Bash scripting guide] by Mendel Cooper
-
-* https://tldp.org/HOWTO/Bash-Prog-Intro-HOWTO.html[BASH Programming - Introduction HOW-TO] by Mike G
