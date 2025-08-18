@@ -1,0 +1,101 @@
+= TS-19a: Bash
+:toc: macro
+:toc-title: Contents
+
+This technical standard extends link:./019-sh.adoc[TS-19: Unix Shells]  with specific guidelines for using the https://www.gnu.org/software/bash/[Bash shell].
+
+toc::[]
+
+== Files
+
+The `.sh` file extension is not required for the Bash executable to run a Bash program file. It is RECOMMENDED to omit the extension on files that are intended to be used as executable commands, but to keep the `.sh` extension for Bash libraries (for easier identification of the language the libraries are written in).
+
+== Shebang (`#!`)
+
+The first line of a Bash file MUST be the shebang (`#!`, also known as a hashbang). This indicates to the shell which interpreter to use. The classic Bash shebang is:
+
+----
+#!/bin/bash
+----
+
+But the env-style shebang is RECOMMENDED:
+
+----
+#!/usr/bin/env bash
+----
+
+The difference between the two is that the classic shebang bets everything on one path, while the env shebang looks for the Bash binary in more places, and thus the script has a greater chance of being successfully run across different environments.
+
+[TIP]
+======
+If you're using the classic Bash shebang, and if you get an error similar to "command not found" when running the script, then almost certainly the path to the Bash interpreter is wrong for the current system. Use `whereis bash` or `find ./ -name bash` to find the path to the `bash` executable. Some possible locations include:
+
+* `/bin/bash`
+* `/sbin/bash`
+* `/usr/local/bin/bash`
+* `/usr/bin/bash`
+* `/usr/sbin/bash`
+* `/usr/local/sbin/bash`
+======
+
+If a script is written to be POSIX-compliant, use either of the following shebangs instead. This will trip the Bash program to executing the script in POSIX-compliant mode, equivalent to passing the `--posix` option to `bash` on the command line. Again, the second env-style shebang will have wider compatibility and is therefore RECOMMENDED.
+
+----
+#!/bin/sh
+#!/bin/env sh
+----
+
+== Variables
+
+In scripts, try to define all the script's variables at the top of the script.
+
+Use descriptive names, eg. `log_file` not `lf`.
+
+Use ALL_CAPS for exported variables – ie. environment variables that will be made available to all child processes spawned from the current shell. Example: `export PATH="/usr/local/bin:$PATH"`.
+
+Always quote variables with string values. This prevents word splitting and globbing issues.
+
+[source,bash]
+----
+# SHOULD NOT:
+echo $var
+
+# RECOMMENDED:
+echo "$var"
+----
+
+== Input variables
+
+Always validate user input variables.
+
+== Comments
+
+Use comments to explain the purpose of the script and any complex logic.
+
+== Static analysis
+
+It is RECOMMENDED to run https://github.com/koalaman/shellcheck[ShellCheck] against all Bash scripts.
+
+''''
+
+== References
+
+* https://www.gnu.org/savannah-checkouts/gnu/bash/manual/bash.html[Bash reference manual]
+
+* https://github.com/dylanaraps/pure-bash-bible[Pure Bash bible] by Dylan Araps
+
+* https://mywiki.wooledge.org/BashGuide[BashGuide], written by various authors.
+
+* https://guide.bash.academy/[The Bash guide] by Maarten Billemont (work-in-progress)
+
+* https://web.archive.org/web/20230331215718/https://wiki.bash-hackers.org/[The Bash hackers wiki], community-maintained documentation (archived).
+
+* https://en.wikibooks.org/wiki/Bash_Shell_Scripting[Bash shell scripting], a Creative Commons wiki-book by various authors.
+
+* https://jvns.ca/blog/2017/03/26/bash-quirks/[Bash scripting quirks and safety tips] by Julia Evans
+
+* https://tldp.org/LDP/Bash-Beginners-Guide/html/[Bash guide for beginners] by Machtelt Garrels
+
+* https://tldp.org/LDP/abs/html/[Advanced Bash scripting guide] by Mendel Cooper
+
+* https://tldp.org/HOWTO/Bash-Prog-Intro-HOWTO.html[BASH Programming - Introduction HOW-TO] by Mike G

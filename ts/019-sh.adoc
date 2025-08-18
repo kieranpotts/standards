@@ -2,30 +2,33 @@
 :toc: macro
 :toc-title: Contents
 
-A Unix shell is an interface that allows users to interact with the operating system, as well as other system and utility software. A Unix shell is both a command language (in which commands are typed and executed interactively via the command line) and a scripting language (in which a sequence of commands are written in a file and executed all at once like a program). The shell interprets user commands and translates them into actions performed by the operating system.
-
-This technical standard covers best practices for written Unix shell scripts, which are commonly used for system administration, automating tasks, and doing batch processing.
+This technical standard covers best practices for writing Unix shell scripts, which are commonly used for system administration, automating tasks, and doing batch processing. See also link:./019a-bash.adoc[TS-19a: Bash] for extended technical standards for the Bash shell specifically.
 
 toc::[]
 
 == Choice of shells
 
-Well-known Unix shells include the Bourne Shell (`sh`, one of the earliest shells), the Bourne Again Shell (`bash`, which provided a superset of Bourne Shell functionality), C Shell (`csh`) and the improved version tee-shell (`tcsh`), KornShell (`ksh`, which was backwards compatible with Bourne Shell and included many of the features of C Shell), and Z Shell (`zsh`, another popular shell based on Bourne).
+When writing shell scripts, it is important to consider the target environment and the particular Unix shell that will be available to execute the script in that environment.
+
+If in doubt, the Bourne Again Shell (`bash`) is a good choice, as it is widely available – it is the most common implementation of a Unix shell in Linux distributions, it's bundled with macOS (though not enabled by default), and a version is also available for Windows – and it has many custom features that make it particularly suitable for scripting.
 
 == Portability
 
-The Portable Operating System Interface (POSIX) is a family of standards maintained by the IEEE Computer Society that specify APIs for Unix shells and utility programs, promoting compatibility between various Unix shells and (by extension) the operating systems that use them.
+If portability between different Unix shells is a requirement, it is best to stick to POSIX-compliant features and avoid shell-specific extensions. For example, Bash's `[[ ... ]]` syntax is not POSIX compliant, and in fact this proprietary syntax has been adopted by other shells but it does not always do the same thing – which could lead to inconsistent behavior if the same script is run in different shells.
 
-A POSIX-compliant script can be executed with success on any Unix or Unix-like operating system that implements the POSIX standards – which includes Linux, OpenBSD, and others. Such scripts are considered to be "portable".
-
-Most Unix shells are POSIX-compliant, but they add their own proprietary features that are not part of the POSIX standard. These features may not be available in other shells, which can lead to portability issues.
-
-Therefore, when writing shell scripts, it is important to consider the target environment and the shell that will be used to execute the script. If portability between lots of different Unix shell environments is a requirement, it is best to stick to POSIX-compliant features and avoid shell-specific extensions.
-
-Many Unix shells have a "POSIX mode" that allow you to test a scripts POSIX compliance by disabling any non-POSIX features of the shell. For example, in Bash POSIX mode can be enabled by using `sh` or `bash --posix` for execution, or adding the following hashbang to the top of the script:
+Many Unix shells have a "POSIX mode" that allow you to test a script's POSIX compliance by disabling any non-POSIX features of the shell when the script is run. For example, Bash can be run in POSIX using the commands `sh` or `bash --posix`; alternatively, either of the following hashbangs can be added to the top of the script (the second one is a bit less portable).
 
 ----
-#! /bin/env sh
+#!/bin/env sh
+#!/bin/sh
 ----
 
-(`#!/bin/sh` can also be used, but it is less portable.)
+Dylan Araps's https://github.com/dylanaraps/pure-sh-bible[Pure SH bible], a collection of pure-POSIX shell scripts, is an invaluable resource, too.
+
+''''
+
+== References
+
+* https://google.github.io/styleguide/shell.xml[Google's shell style guide]
+
+* https://github.com/dylanaraps/pure-sh-bible[Pure SH bible] by Dylan Araps
