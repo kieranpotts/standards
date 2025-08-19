@@ -25,7 +25,52 @@ Many Unix shells have a "POSIX mode" that allow you to test a script's POSIX com
 
 Dylan Araps's https://github.com/dylanaraps/pure-sh-bible[Pure SH bible], a collection of pure-POSIX shell scripts, is an invaluable resource, too.
 
-''''
+=== Built-ins versus external commands
+
+Whatever the choice of target shell, prefer to write scripts that invoke shell built-ins rather than separate processes. For example, prefer the use of the shell's built-in parameter expansion functions over external commands like `sed` or `awk` for simple text manipulation tasks.
+
+Scripts that rely on external commands are less portable (because the external commands may not be available in all deployment environments). The scripts will also be less robust (ie. more prone to errors), and they may be less efficient, too.
+
+== Conditionals
+
+Prefer the syntax in which the `then` keyword is placed on the same line as the `if` statement, separated by a semicolon. This style is more conventional and improves readability.
+
+[source,bash]
+----
+count=99
+
+# ✅
+if [ $count -eq 100 ]; then
+  echo "Count is 100"
+elif [ $count -gt 100 ]; then
+  echo "Count is greater than 100"
+else
+  echo "Count is less than 100"
+fi
+
+# ❌
+if [ $count -eq 100 ]
+then
+  echo "Count is 100"
+elif [ $count -gt 100 ]
+then
+  echo "Count is greater than 100"
+else
+  echo "Count is less than 100"
+fi
+----
+
+Conditional blocks may be nested, but this reduces readability and maintainability. Look to refactor complex conditional logic into the flattest possible structure. The `&&` and `||` operators are useful tools here; they can be used to create shorthand conditional statement, executing commands based on the result of preceding commands.
+
+[source,bash]
+----
+if sudo apt-get update ; then
+  sudo apt-get install pyrenamer
+fi
+
+# Can be refactored to:
+sudo apt-get update && sudo apt-get install pyrenamer
+----
 
 == References
 
