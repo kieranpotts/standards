@@ -2,19 +2,11 @@
 :toc: macro
 :toc-title: Contents
 
-This technical standard extends link:./019-sh.adoc[TS-19: Unix Shells] with specific guidelines for using the https://www.gnu.org/software/bash/[Bash shell].
+This technical standard extends link:./019-sh.adoc[TS-19: Unix Shells] with guidelines for using the https://www.gnu.org/software/bash/[Bash shell] specifically.
 
-This technical standard assumes that you are writing scripts that are specifically intended to be executed by Bash shells, and not by other Unix shells. If portability is a requirement, it is RECOMMENDED to write generic POSIX-compliant scripts that can be interpreted and executed by any POSIX-compliant shell. See link:./019-sh.adoc[TS-19: Unix Shells] for guidelines on writing POSIX-compliant shell scripts.
+These guidelines assume that you are writing scripts that are specifically intended to be executed by Bash, and not other shells.
 
 toc::[]
-
-== Static analysis
-
-It is RECOMMENDED to run https://github.com/koalaman/shellcheck[ShellCheck] against all Bash scripts.
-
-== Files
-
-The `.sh` file extension is not required for the Bash executable to run a Bash program file. It is RECOMMENDED to omit the extension on files that are intended to be used as executable commands, but to keep the `.sh` extension for Bash libraries (for easier identification of the language the libraries are written in).
 
 == Shebang (`#!`)
 
@@ -51,75 +43,52 @@ If a script is written to be POSIX-compliant, use either of the following sheban
 #!/bin/env sh
 ----
 
-== Comments
-
-Use comments to explain the purpose of the script and any complex logic.
-
-// TODO: Explain how to document functions, etc.
-
 == Variables
 
-In scripts, try to define all the script's variables at the top of the script.
-
-Use descriptive names, eg. `log_file` not `lf`.
-
-Use ALL_CAPS for exported variables – ie. environment variables that will be made available to all child processes spawned from the current shell. Example: `export PATH="/usr/local/bin:$PATH"`.
-
-Prefer the bracketed syntax for variable expansion:
+In Bash, local variables can be used to scope data to the function the variable is declared in.
 
 [source,bash]
 ----
-# SHOULD NOT use:
-$var
+hello="hello"
 
-# RECOMMENDED:
-${var}
+hello() {
+  local hello="world"
+  echo $hello # → "world"
+}
+
+echo $hello # → "hello" (not modified).
 ----
 
-The bracketed syntax is more robust and flexible. Because the brackets clearly delimit the variable name, it is easier to append literal characters immediately after the variable expansion, eg. `${var}bar`. In addition, the bracketed syntax can be extended to query and manipulate values returned from variable substitution. For example, `${#var}` returns the length of a string value, `${var:0:1}` returns the first character of the value, and so on. It is also possible to provide default (fallback) value in case the variable is empty.
+This syntax is Bash-specific and it is RECOMMENDED to use `local` for all variable declarations within functions, so as not to unnecessarily pollute the global namespace and to prevent unexpected overwrites of global variables.
 
-Always quote variables with string values. This prevents word splitting and globbing issues.
+Where the `local` keyword is omitted, include a comment explaining why it is not used. There will be many use cases where functions are designed to update global variables – that's fine, just use comments to be explicit about your intent.
+
+Variable declaration and assignment MAY be on different lines, but try to always initialize variables with meaningful default values.
 
 [source,bash]
 ----
-# SHOULD NOT do this for string values:
-echo ${var}
+some_function() {
+  local code=0
+  # ...
+  code=2
 
-# RECOMMENDED:
-echo "${var}"
+  return ${code}
+}
 ----
-
-The risk of not quoting variables is demonstrated by the following code example.
-
-[source,bash]
-----
-filename="My File.txt"
-
-rm ${filename}       # Interpreted as: `rm My File.txt` → error
-rm "${filename}"     # Interpreted as: `rm "My File.txt"` → correct
-----
-
-=== Input variables
-
-Always validate user input variables.
-
-=== Command substitution
-
-Prefer the newer syntax, `var=$(command)`, over the older syntax (which still works), `var=`command``.
 
 == Functions
 
-Prefer Bash's implicit function declaration syntax over the POSIX-standard explicit syntax. It is cleaner, more readable, and more portable.
+Prefer the POSIX-compliant function declaration syntax. It is cleaner, more readable, and more portable.
 
 [source,bash]
 ----
-# Explicit declaration.
+# ❌ Explicit function declaration.
 function some_function () {
   return 0
 }
 
-# Implicit declaration.
-some_function () {
+# ✅ Implicit function declaration.
+some_function() {
   return 0
 }
 ----
@@ -128,7 +97,7 @@ some_function () {
 
 For conditional expressions, it is RECOMMENDED to use the Bash-specific double-bracket syntax, `[[ ... ]]`, over the POSIX-compliant single-bracket syntax, `[ ... ]`.
 
-In older version of Bash, using single bracket syntax with `&&` or `||` could cause syntax issues. Using the double bracket syntax is better, therefore, for backwards compatibility with older implementations of Bash.
+In older versions of Bash, using single bracket syntax with `&&` or `||` could cause syntax issues. Using the double bracket syntax is better, therefore, for backwards compatibility with older implementations of Bash.
 
 The double bracket syntax is preferred for other reasons, too. It prevents pathname expansion and word splitting, which eliminates a common class of bugs in shell scripts. It also allows for regular expression matching, which the single bracket syntax does not support.
 
@@ -173,4 +142,3 @@ fi
 * https://en.wikibooks.org/wiki/Bash_Shell_Scripting[Bash shell scripting], a Creative Commons wiki-book by various authors.
 
 * https://jvns.ca/blog/2017/03/26/bash-quirks/[Bash scripting quirks and safety tips] by Julia Evans
-
