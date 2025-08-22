@@ -6,6 +6,16 @@ This technical standard covers best practices for writing Unix shell scripts for
 
 toc::[]
 
+== Use cases
+
+Shell scripting SHOULD be used only for small utilities and simple wrapper scripts – basic automation tasks, in other words.
+
+If all the script is doing is mostly calling other utilities, and if its doing very little data manipulation, then shell is probably a good technology choice for the problem.
+
+However, if performance matters, there will probably be more optimum technology choices than shell. Likewise, if the logic include any non-trivial control flows, it may well be better to use a more structured language.
+
+Rewrite shells scripts, in other languages if necessary, if they grow too complex. A single shell script that is more than 200 lines of code (excluding comments and included all sourced files) is a *code smell* – it _may_ be time for a rewrite in another language.
+
 == Portability
 
 When writing shell scripts, it is important to consider the target environment, and the particular Unix shell that will be available to execute the script in that environment.
@@ -41,9 +51,42 @@ Whatever the choice of target shell, prefer to write scripts that invoke shell b
 
 Scripts that rely on external commands are less portable, because the external commands may not be available in all deployment environments.
 
-But often the use of external commands is unavoidable, especially for more complex tasks that require, for example, advanced text processing or system interaction. Where external commands are needed, prefer to use commands that are specified by the POSIX standard; these commands are more-or-less guaranteed to be widely available in all Unix and Unix-like systems.
+But often the use of external commands is unavoidable, especially for more complex tasks that require, for example, advanced text processing or system interaction. Where external commands are needed, prefer to use commands that are specified by the POSIX standard; these commands are (almost) guaranteed to be available in all Unix and Unix-like systems.
 
 All other dependencies – where a "dependency" is anything that is not part of the target shell language – SHOULD be documented, either in a file-level comment at the top of the script, or in an accompanying README.
+
+=== Options
+
+It is RECOMMENDED to use `set` at the top of scripts to set shell options, so that calling the script using `sh <script-name>` (without parameters) does not break its functionality.
+
+== Execution and permissions
+
+Scripts that are intended to executed directly, like commands, MUST be executable. This is achieved by setting the executable bit on the script file: `chmod +x <script-name>`.
+
+Libraries – shell scripts that are intended only to be sourced by other scripts – MUST NOT be executable. This is achieved by removing the executable bit on the script file: `chmod -x <script-name>`.
+
+SUID and SGID MUST NOT be applied to _any_ shell scripts, whether or not those scripts are executed directly. These permissions open up potential vulnerabilities. Programs with SUID (Set User ID) are run with the elevated permissions of the file owner, so increasing risk if the executed scripts are exploitable. And SGID (Set Group ID), when applied to a file, executes the file with the group permissions of the file rather than the user's current group. SGID is used to give group access to executables, but it can lead to unintended access if those groups are not managed carefully.
+
+[source,sh]
+----
+# In the below output, the `s` in the `rws` bit shows that
+# SUID is set on the user (owner) permission.
+$ ls -l /usr/bin/passwd
+-rwsr-xr-x 1 root root ...
+
+# In the below output, the `s` in the group section (`rws`)
+# shows that SGID is set on the directory.
+ls -ld shared_folder
+drwxrwsr-x 2 alice devteam ...
+----
+
+Use the following commands to group SUID and SGID from shell scripts:
+
+[source,sh]
+----
+chmod u-s filename # Remove SUID
+chmod g-s filename # Remove SGID
+----
 
 == General code style
 
@@ -53,12 +96,29 @@ The source code for shell scripts SHOULD follow this order:
 
 1. Shebang line
 2. File-level comments
-3. Includes
-4. Variables
-5. Functions
-6. Main program
+3. Variables
+4. Functions
+5. Main program
 
 Keep all custom functions together in one block. Try to avoid hiding executable code between functions. It makes the code hard to follow.
+
+The structure applies to a whole script, including all of its sourced files. This is also a useful structure for decomposing large scripts into smaller, more manageable files.
+
+[source,sh]
+----
+#!/bin/env sh
+
+# File description here.
+# Copyright: <Legal Name>
+# License: MIT
+
+. variables.sh
+. functions.sh
+
+main "$@"
+----
+
+For libraries – shell scripts that are intended only for sourcing into other scripts, rather than direct execution – the shebang line is optional but RECOMMENDED. Including the shebang in all shell scripts, including sourced ones, provides clarity over which shell the script targets for compatibility.
 
 === main()
 
@@ -95,7 +155,9 @@ The names of all things – functions, variables, etc. – SHOULD be descriptive
 
 Shell scripts SHOULD be named with all-lowercase ASCII letters, with words delimited by hyphens.
 
-The `.sh` extension MAY be omitted for files that are intended to be executed like binaries. The `.sh` extension SHOULD be kept for shell libraries (ie. files that are intended to be sourced by other shell scripts).
+The `.sh` extension MAY be omitted for files that are intended to be executed like binaries. The `.sh` extension SHOULD be kept for shell libraries – ie. files that are intended to be sourced by other shell scripts, or be executed by other build tools such as `make`.
+
+Thus, the omission of the `.sh` extension informs users that the script is intended to be directly executed as a command: `./<script-name> <arg1> <arg2> ...`.
 
 === Variable names
 
@@ -393,6 +455,24 @@ while getopts 'abf:v' flag; do
 done
 ----
 
+== Exit codes
+
+All executable scripts MUST return an exit code. Functions MAY return exit codes, too.
+
+Exit codes are limited to integers between 0 and 255.
+
+Return `0` to represent success. Any non-zero value denotes an error. Use `1` for a general, undocumented error. Use other custom error codes for each handled scenario.
+
+All error codes MUST be documented. They are an important part of the API of a script or function.
+
+In scripts, check the return values from error-prone commands, before continuing with the next operation. If the return value is unexpected, `exit` with a custom error code to represent that specific error condition. This is how exceptions are handled in shell scripts.
+
+== Error messages
+
+OPTIONALLY, non-zero exit codes may be accompanied by user-friendly error messages to aid in debugging and user feedback. Error messages are directed to `stderr`.
+
+Error messages SHOULD be prefixed with the name of the script or function that produced the error, to make it easier to identify the source of the error.
+
 == Comments
 
 In higher-level programming languages, the higher abstractions allow programmers to express their design through code structure, function and object names, data structures, and other constructs. Instead of relying on comments to explain the code, it is considered best practice to try to design the code in a way that it clearly articulates _what_ it does, without additional annotations. Therefore, in higher-level programming languages, inline comments tend to be used quite sparingly, used to explain only the most complex algorithms, or why certain design patterns where chosen over more obvious ones, and so on.
@@ -489,25 +569,9 @@ Use the following convention for TODO comments. The square brackets are OPTIONAL
 # TODO: Short description. [#34]
 ----
 
-== Exit codes
+== Miscellaneous
 
-All scripts MUST return an exit code. Functions MAY return exit codes, too.
-
-Exit codes are limited to integers between 0 and 255.
-
-Return `0` to represent success. Any non-zero value denotes an error. Use `1` for a general, undocumented error. Use other custom error codes for each handled scenario.
-
-All error codes MUST be documented. They are an important part of the API of a script or function.
-
-In scripts, check the return values from error-prone commands, before continuing with the next operation. If the return value is unexpected, `exit` with a custom error code to represent that specific error condition. This is how exceptions are handled in shell scripts.
-
-== Error messages
-
-OPTIONALLY, non-zero exit codes may be accompanied by user-friendly error messages to aid in debugging and user feedback. Error messages are directed to `stderr`.
-
-Error messages SHOULD be prefixed with the name of the script or function that produced the error, to make it easier to identify the source of the error.
-
-== eval
+=== eval
 
 Do not use `eval`. It munges the input when used for assignment to variables, and it can set variables without making it possible to check what those variables were.
 
