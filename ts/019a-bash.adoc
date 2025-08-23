@@ -246,6 +246,57 @@ for arg in "$@"; do
 done
 ----
 
+== Arithmetic
+
+Arithmetic expressions MUST be written using `(( … ))` or `$(( … ))`, and MUST NOT use the `$[ … ] syntax, the `expr` command, or the `let` built-in.
+
+[source,bash]
+----
+# ❌ This Bash syntax is deprecated and non-portable.
+i=$[2 * 10]
+
+# ❌ Unquoted assignments using `let` are subject to globbing word-splitting.
+let i="2 + 2"
+
+# ❌ The expr utility is an external program, not a shell built-in, and is
+# many times slower than the built-in `(( … ))` syntax for arithmetic. There
+# are other issues with using `expr` too, such as inconsistencies with the
+# handling of quoting.
+i=$( expr 4 '*' 4 )
+----
+
+Numerical comparison MUST NOT be performed inside `[[ … ]]` expressions, either. In this context, the `<` and `>` operators perform lexicographical comparison instead. For _all_ numeric comparisons use ` (( … ))`.
+
+[source,bash]
+----
+if (( a < b )); then
+  …
+fi
+----
+
+Variables MAY be referenced verbatim inside `$(( … ))`. Bash knows to look up `var` for you; you don't need to write `${var}` or even `$var`. Referencing variables consistently throughout a script is RECOMMENDED, but inside `$(( … ))` is the one exception where you MAY omit the `${…}` wrapping syntax. This produces slightly cleaner code and tends to read better in the context of arithmetic expressions.
+
+[source,bash]
+----
+hr=2
+min=5
+sec=30
+echo "$(( hr * 3600 + min * 60 + sec ))" # → 7530
+----
+
+In the following example, note the use of `$(( … ))` within a string.
+
+[source,bash]
+----
+echo "$(( 2 + 2 )) is 4"
+----
+
+It is recommended to avoid using `(( … ))` as a standalone statement. But it's okay sometimes. In the following example, the result of a calculation is assigned to a variable.
+
+[source,bash]
+----
+(( i = 10 * j + 400 ))
+----
 
 ''''
 
