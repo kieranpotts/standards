@@ -43,11 +43,29 @@ Dylan Araps's https://github.com/dylanaraps/pure-sh-bible[Pure SH bible] is an i
 
 === Built-ins versus external commands
 
-Whatever the choice of target shell, prefer to write scripts that invoke the shell's built-ins rather than separate processes. For example, for simple text manipulation prefer to use the shell's built-in parameter expansion functions rather than external commands like `sed` or `awk`.
+Whatever the choice of target shell, prefer to write scripts that invoke the shell's built-ins rather than external commands. For example, for simple text manipulation prefer to use the shell's built-in parameter expansion functions rather than external commands like `sed` or `awk`.
 
-Scripts that rely on external commands are less portable, because those commands may not be available in all deployment environments.
+Scripts that rely on external commands are less portable, because those commands may not be available in all deployment environments. Scripts that call external commands _may_ be slower too, because external utility programs are executed as separate processes (whereas built-in commands are run in the shell's process).
 
-But often the use of external commands is unavoidable, especially for more complex tasks that require, for example, advanced text processing or system interaction. Where external commands are needed, prefer to use commands that are specified by the POSIX standard; these commands are (almost) guaranteed to be available in all Unix and Unix-like systems.
+But often the use of external commands is unavoidable, especially for more complex tasks that require, for example, advanced text processing or system interaction. Where external commands are needed, prefer to use commands that are specified by the POSIX standard; these commands are (almost) guaranteed to be available in all Unix and Unix-like systems. Standard Unix utilities are listed in the https://pubs.opengroup.org/onlinepubs/9699919799/utilities/[POSIX Shell and Utilities specification].
+
+[TIP]
+======
+You can check whether a command is a shell built-in or an external command by typing:
+
+----
+type <command>
+----
+
+Example:
+
+----
+$ type rm
+rm is /bin/rm
+----
+
+This output shows that `rm` is an external command, not a shell built-in.
+======
 
 All other dependencies – where a "dependency" is anything that is not part of the target shell language – SHOULD be documented, either in a file-level comment at the top of the script, or in an accompanying README.
 
@@ -88,6 +106,8 @@ chmod g-s filename
 ----
 
 == General code style
+
+For legacy code, stay faithful to the existing prevailing code conventions. The following guidelines apply to new shell scripts.
 
 === Source order
 
@@ -134,6 +154,8 @@ main "$@"
 
 Use two spaces. Never use tabs for indentation.
 
+The only exception for use of tabs is in tab-indented here-documents, ie. in the body of `<<-`.
+
 === Blank lines
 
 Insert blank lines between discrete blocks of code, to improve readability.
@@ -142,15 +164,39 @@ Insert blank lines between discrete blocks of code, to improve readability.
 
 Most code lines – except literal strings that can't be wrapped – SHOULD be kept under 80 characters in length.
 
-Code lines MAY be longer where breaking the line decreases readability.
+It is RECOMMENDED to use continuation lines to break up long commands, expressions, and other statements that would otherwise exceed the line length limit.
 
-== Naming conventions
+[source,sh]
+----
+command1 \
+    && command2 \
+    && command3
+----
+
+Continuation lines MUST be indented to show that they are continuations of the preceding line. It is RECOMMENDED to use double indentation – four spaces – for continuation lines.
+
+Expressions SHOULD be broken _before_, not _after_.
+
+Pipelines are another good use case for continuation lines. Put the pipe symbol followed by the next command in the chain on a new line. Comments will need to precede the whole pipeline. If the pipeline is complex, and individual commands within it require extensive explanation, extract those commands into separate functions and use function-level comments to capture the information.
+
+[source,bash]
+----
+# Comment for the whole pipeline.
+command1 \
+    | command2 \
+    | command3 \
+    | command4
+----
+
+Code lines MAY be longer than 80 characters where breaking the line decreases readability.
+
+=== Naming conventions
 
 Generally, err on the side of clarity over brevity. Do not truncate or abbreviate the names of things where doing so would decrease understandability of the code.
 
 The names of all things – functions, variables, etc. – SHOULD be descriptive in the places in which those things are _used_, not only in the places where they are _defined_. This means you can't rely on adjacent comments to document the meaning of things where they are declared, because those names will appear in other code contexts where those descriptions are not present.
 
-=== File names
+==== File names
 
 Shell scripts SHOULD be named with all-lowercase ASCII letters, with words delimited by hyphens.
 
@@ -158,7 +204,7 @@ The `.sh` extension MAY be omitted for files that are intended to be executed li
 
 Thus, the omission of the `.sh` extension informs users that the script is intended to be directly executed as a command: `./<script-name> <arg1> <arg2> ...`.
 
-=== Variable names
+==== Variable names
 
 The names of variables should be composed from lowercase ASCII letters only, with underscores used to delimit words. Numbers (0-9) MAY be used in variable names in appropriate scenarios.
 
@@ -195,7 +241,7 @@ for zone in "${zones}"; do
 done
 ----
 
-=== Function names
+==== Function names
 
 Functions SHOULD follow the same naming convention as for variables; that is, function names SHOULD be composed from lowercase ASCII letters with underscores used to delimit words.
 
@@ -372,11 +418,9 @@ The opening curly brace SHOULD also be on the declaration line, preceded by a si
 
 ////
 
-== Conditionals
+== Control flow
 
-The inner content of conditional blocks – and other block-level structures such as loops – MUST be indented by two spaces.
-
-Prefer the syntax in which the `then` keyword is placed on the same line as the `if` statement, separated by a semicolon. This style is more conventional and improves readability.
+It is RECOMMENDED to use the syntax in which `; then` and `; do` is written on the end of `if`/`for`/`while`/`until`/`select` statements, rather than on new lines. `else` SHOULD be on a line on its own. And closing statement (`fi` and `done`) SHOULD also be on their own lines, vertically-aligned with the opening statement. This style is more conventional and improves readability.
 
 [source,sh]
 ----
@@ -402,6 +446,8 @@ else
   echo "Count is less than 100"
 fi
 ----
+
+The inner content of block-level structures, such as conditionals and loops, MUST be indented by two spaces.
 
 The whitespace padding within the square brackets is optional, but including it is RECOMMENDED. It is a common coding convention, and it improves readability.
 
@@ -438,6 +484,7 @@ esac
 
 However, simple commands may be put on the same line as the pattern and the `;;`, as long as the expression remains readable. Add a space after the closing parenthesis of the pattern and another before the `;;`. This is often appropriate for single-letter option processing.
 
+.Example from Google's Shell Guide
 [source,bash]
 ----
 verbose='false'
@@ -455,6 +502,10 @@ while getopts 'abf:v' flag; do
   esac
 done
 ----
+
+In general, there is no need to quote match expressions. Pattern expressions SHOULD NOT be preceded by an open parenthesis.
+
+Avoid the `;&` and `;;&` notations.
 
 == Exit codes
 
@@ -499,7 +550,7 @@ For this reason, it is strongly RECOMMENDED that shell scripts be liberally comm
 
 Use comments to express in plain English things that are not obvious from the code itself. This is especially important for complex logic, unusual syntax, and other non-obvious constructs.
 
-For shell scripts, it is okay for comments to describe _what_ the code does. Even for experienced shell programmers, it will often be quicker to read through the comments, rather than read through the code itself, to understand what the code does and how it works.
+For shell scripts, it is okay for comments to describe _what_ the code does. This is especially useful to draw attention to the most important bits of business logic. Even for experienced shell programmers, it will often be quicker to read through the comments, rather than read through the code itself, to understand what the code does and how it works.
 
 Remember, *the purpose of comments is to reduce cognitive overhead*. Whatever the language or level of abstraction, add comments where they make things easier to understand, or where you want to communicate important information that cannot be ascertained from the code alone. Remove comments that are superfluous, redundant, or that do not add any tangible value. If in doubt: leave a comment!
 
@@ -531,6 +582,7 @@ Function comments SHOULD contain:
 - A description of the function.
 - A list of global variables used (whether or not they are modified).
 - Arguments taken.
+- Outputs to `stdout` and `stderr`.
 - Returned values (ie. exit statuses).
 
 It is not necessary to document anything that is written to `stdout` or `stderr`.
@@ -547,6 +599,9 @@ The purpose of function comments is to make it easier for other programmers to u
 #
 # @param 1 - <Parameter description.>
 # @param 2 - <Parameter description.>
+#
+# @output stdout - <Description of the output to stdout.>
+# @output stderr - <Description of the output to stderr.>
 #
 # @return void - <Description required for non-void and non-zero return values.>
 #
@@ -566,6 +621,9 @@ my_func() {
 #
 # @param 1 - Message to print.
 #
+# @output stdout - Formatted success message.
+# @output stderr - None.
+#
 # @return void
 #
 print_success() {
@@ -579,7 +637,7 @@ The function description – at the top of a function's comment block – MUST b
 * Changes to the filesystem (eg. create directories, move files, etc.).
 * Exiting the process (`exit`).
 
-Writing to `stdout` and `stderr` are also side effects, but this does not need to be documented a function's API description. This is typical behavior for shell functions.
+Printing output to `stdout` and `stderr` is also considered to be a side effect. Document these via the `@output` tags in the function comment block.
 
 === TODOs
 
@@ -591,7 +649,20 @@ Use the following convention for TODO comments. The square brackets are OPTIONAL
 # TODO: Short description. [#34]
 ----
 
-== Miscellaneous
+If you intend to implement the fix or improvement yourself, you MAY include your unique identifier in brackets adjoining the `TODO` keyword, as below. Use a consistent identifier, so you can easily search for your personal TODOs across a codebase. Your unique identifier may be your email address, GitHub username, etc.
+
+----
+# TODO(username): Short description. [#34]
+----
+
+[TIP]
+======
+IDE extensions such as https://marketplace.visualstudio.com/items?itemName=Gruntfuggly.todo-tree[Todo Tree] can help you to manage code TODOs.
+======
+
+== Miscellaneous shell built-ins
+
+This section covers best practices for using various other shell built-ins. Examples of shell built-ins include `echo`, `read`, `set`, and `eval`.
 
 === eval
 
@@ -603,6 +674,40 @@ Do not use `eval`. It munges the input when used for assignment to variables, an
 # The script itself cannot answer these questions.
 eval $(set_my_variables)
 ----
+
+== Unix utilities
+
+This section covers best practices for using standard Unix utilities, which are implemented as external commands rather than being built-in to the shell itself, but which are commonly used in shell scripts. Examples of external Unix utilities include `rm`, `ls`, and `grep`.
+
+=== `rm`
+
+Be careful about using *wildcard expansion* of filenames. Consider a directory with the following contents:
+
+----
+-f (file)
+-r (file)
+somedir (dir)
+somefile (file)
+----
+
+Notice that we have files here named `-f` and `-r`. If you use `*` to expand the filepaths, like this:
+
+[source,sh]
+----
+# ❌
+rm -v *
+----
+
+This will delete almost everything in the directory by force, including the `somedir` directory. It is a lot safer to use `/*` for the path expansion:
+
+[source,sh]
+----
+# ✅
+rm -v /*
+----
+
+This will remove `somefile` and the `-f` and `-r` files, but it will not delete the subdirectory `somedir`.
+
 
 ''''
 

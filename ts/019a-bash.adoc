@@ -67,7 +67,15 @@ hello() {
 echo $hello # → "hello" (not modified).
 ----
 
-This syntax is Bash-specific and it is RECOMMENDED to use `local` for all variable declarations within functions, so as not to unnecessarily pollute the global namespace and to prevent unexpected overwrites of global variables.
+This syntax is Bash-specific and it is RECOMMENDED to use `local` for all variable declarations within functions, so as not to unnecessarily pollute the global namespace and to prevent unexpected overwrites of global variables. Pay particular attention to declaring loop variables as local, too – this is a common source of bugs:
+
+[source,bash]
+----
+local i
+for i in {1..5}; do
+  echo $i
+done
+----
 
 Where the `local` keyword is omitted, include a comment explaining why it is not used. There will be many use cases where functions are designed to update global variables – that's fine, just use comments to be explicit about your intent.
 
@@ -77,7 +85,7 @@ Variable declaration and assignment MAY be on different lines, but try to always
 ----
 some_function() {
   local code=0
-  # ...
+  # …
   code=2
 
   return ${code}
@@ -101,9 +109,9 @@ some_function() {
 }
 ----
 
-== Conditionals
+== Control flows
 
-For conditional expressions, it is RECOMMENDED to use the Bash-specific double-bracket syntax, `[[ ... ]]`, over the POSIX-compliant single-bracket syntax, `[ ... ]`.
+For conditional expressions, it is RECOMMENDED to use the Bash-specific double-bracket syntax, `[[ … ]]`, over `[ … ]`, `test`, and `/usr/bin/[`.
 
 In older versions of Bash, using single bracket syntax with `&&` or `||` could cause syntax issues. Using the double bracket syntax is better, therefore, for backwards compatibility with older implementations of Bash.
 
@@ -127,7 +135,82 @@ if [ "filename" == f* ]; then
 fi
 ----
 
-Be careful about porting Bash scripts, which use the double-bracket `[[ ... ]]` syntax, to other shells. Other shells have adopted this syntax, too, but the behavior is not consistent across all of them. Thus, the behavior of a script using this syntax could be inconsistent if executed in different shells.
+For clarity, use `==` for equality rather than `=`, even though both work. The former requires the use of the preferred Bash-specific `[[ … ]]` syntax. The latter can be confused with an assignment.
+
+[source,bash]
+----
+#  ✅
+if [[ "${my_var}" == "val" ]]; then
+  do_something
+fi
+
+# ❌
+if [[ "${my_var}" = "val" ]]; then
+  do_something
+fi
+----
+
+Be careful when using `<` and `>` in `[[ … ]]`, which performs a lexicographical comparison. Use `(( … ))` or `-lt` and `-gt` for numerical comparison.
+
+[source,bash]
+----
+#  ✅
+if (( my_var > 3 )); then
+  do_something
+fi
+
+#  ✅
+if [[ "${my_var}" -gt 3 ]]; then
+  do_something
+fi
+
+# ❌ Probably unintended lexicographical comparison.
+# True for 4, false for 22.
+if [[ "${my_var}" > 3 ]]; then
+  do_something
+fi
+----
+
+Prefer to use `-z` and `-n` to test for zero-length and non-empty strings respectively. Alternatively you can do an equality check against a literal `""` value, but if you do ensure that you quote on the empty side.
+
+[source,bash]
+----
+#  ✅
+if [[ -z "${my_var}" ]]; then
+  do_something
+fi
+
+# ✅
+if [[ -n "${my_var}" ]]; then
+  do_something
+fi
+
+# ✅ This is okay, but ensure quotes on the empty side.
+if [[ "${my_var}" == "" ]]; then
+  do_something
+fi
+
+# ❌ Be explicit and use `-n` here.
+if [[ "${my_var}" ]]; then
+  do_something
+fi
+
+# ❌ Do not use filler characters, like this. It feels a bit hacky.
+if [[ "${my_var}X" == "some_stringX" ]]; then
+  do_something
+fi
+----
+
+Be careful about porting Bash scripts, which use the double-bracket `[[ … ]]` syntax, to other shells. Other shells have adopted this syntax, too, but the behavior is not consistent across all of them. Thus, the behavior of a script using this syntax could be inconsistent if executed in different shells.
+
+In loops, Bash supports omitting the `in "$@"` part of a `for` loop. But it is RECOMMENDED to maintain this, for clarity.
+
+[source,bash]
+----
+for arg in "$@"; do
+  echo "${arg}"
+done
+----
 
 == Sourcing
 
