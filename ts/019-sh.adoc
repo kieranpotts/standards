@@ -10,21 +10,17 @@ toc::[]
 
 Shell scripting SHOULD be used only for small utilities and simple wrapper scripts – basic automation tasks, in other words.
 
-If all the script is doing is mostly calling other utilities, and if its doing very little data manipulation, then shell is probably a good technology choice for the problem.
+If the script is mostly calling other utilities, and if its doing very little data manipulation or complex logic, then shell is probably a good technology choice for the problem.
 
-However, if performance matters, there will probably be more optimum technology choices than shell. Likewise, if the logic include any non-trivial control flows, it may well be better to use a more structured language.
-
-Rewrite shells scripts, in other languages if necessary, if they grow too complex. A single shell script that is more than 200 lines of code (excluding comments and included all sourced files) is a *code smell* – it _may_ be time for a rewrite in another language.
+However, if performance matters, there will probably be more optimum technology choices. Likewise, if the logic includes any non-trivial control flows or if data integrity is paramount, then it may well be better to use a more structured programming language.
 
 == Portability
 
 When writing shell scripts, it is important to consider the target environment, and the particular Unix shell that will be available to execute the script in that environment.
 
-If in doubt, Bash – the "Bourne Again Shell" – is a good choice. It is widely available: it is the most common shell implementation in Linux; it's bundled with macOS (though it's no longer the default shell); and a version is even available for Windows (Git Bash). In addition, Bash has many customizations that make it particularly suitable for complex scripting – things like `local` variables, for example.
+If in doubt, Bash – the "Bourne Again Shell" – is a good choice. It is widely available: it is the most common shell implementation in Linux; it's bundled with macOS (though it's no longer the default shell there); and versions are even available for Windows (Git Bash, WSL, etc.). In addition, Bash has many customizations that make it particularly suitable for complex scripting – things like `local` variables.
 
 But, if portability between different Unix shells is a requirement – for example, if you do not control in which environments a script will be run – then it is best to stick to POSIX-compliant features and avoid shell-specific extensions.
-
-For example, Bash's `[[ ... ]]` syntax is not POSIX compliant. Worse, this proprietary syntax has been adopted by other shells but it does not always do the same thing in those other shells, meaning that the behavior of a script using this syntax could be inconsistent if executed in different shells.
 
 Many Unix shells have a "POSIX mode" that allows you to test a script's POSIX compliance by disabling the shell's non-POSIX features when the script is run. For example, Bash can be run in POSIX-mode using the commands `sh` or `bash --posix`. Alternatively, the following shebang can be added to the top of scripts to trip Bash into running them in POSIX-mode:
 
@@ -32,24 +28,24 @@ Many Unix shells have a "POSIX mode" that allows you to test a script's POSIX co
 #!/bin/env sh
 ----
 
-The following shebang will also tell Bash (and other shells) to run in POSIX-mode. However, this version is a little less portable, because it depends on the path to the `sh` executable being consistent in each runtime environment. The version above will instead lookup the `sh` executable in the user's `PATH`.
+The following shebang will also tell Bash (and other shells) to run in POSIX-mode. However, this version is a little less portable, because it depends on the path to the `sh` executable being consistent in each runtime environment. The version above will instead lookup the `sh` executable in a wider range of paths.
 
 ----
 #!/bin/sh
 ----
 
-Scripts that use either of these shebangs MUST NOT contain Bashisms – like `local` variables – or other shell-specific syntax or built-ins.
+Scripts that use either of these shebangs MUST NOT contain Bashisms – like `local` variables – or other shell-specific syntax or built-ins. A linter MUST but used to identify POSIX compliance issues; https://www.shellcheck.net/[ShellCheck] IS RECOMMENDED for this purpose.
 
 [TIP]
 ======
-Dylan Araps's https://github.com/dylanaraps/pure-sh-bible[Pure SH bible] is an invaluable reference resource for writing POSIX-compliant shell scripts. In addition, linters like https://www.shellcheck.net/[ShellCheck] can help to identify POSIX compliance issues.
+Dylan Araps's https://github.com/dylanaraps/pure-sh-bible[Pure SH bible] is an invaluable reference resource for writing POSIX-compliant shell scripts.
 ======
 
 === Built-ins versus external commands
 
-Whatever the choice of target shell, prefer to write scripts that invoke shell built-ins rather than separate processes. For example, for simple text manipulation prefer to use the shell's built-in parameter expansion functions rather than external commands like `sed` or `awk`.
+Whatever the choice of target shell, prefer to write scripts that invoke the shell's built-ins rather than separate processes. For example, for simple text manipulation prefer to use the shell's built-in parameter expansion functions rather than external commands like `sed` or `awk`.
 
-Scripts that rely on external commands are less portable, because the external commands may not be available in all deployment environments.
+Scripts that rely on external commands are less portable, because those commands may not be available in all deployment environments.
 
 But often the use of external commands is unavoidable, especially for more complex tasks that require, for example, advanced text processing or system interaction. Where external commands are needed, prefer to use commands that are specified by the POSIX standard; these commands are (almost) guaranteed to be available in all Unix and Unix-like systems.
 
@@ -57,15 +53,15 @@ All other dependencies – where a "dependency" is anything that is not part of 
 
 === Options
 
-It is RECOMMENDED to use `set` at the top of scripts to set shell options, so that calling the script using `sh <script-name>` (without parameters) does not break its functionality.
+It is RECOMMENDED to use `set` at the top of scripts to set shell options, so that calling the script using `sh <script-name>` does not break its functionality.
 
 == Execution and permissions
 
-Scripts that are intended to executed directly, like commands, MUST be executable. This is achieved by setting the executable bit on the script file: `chmod +x <script-name>`.
+Scripts that are intended to be executed directly MUST be executable. This is achieved by setting the executable bit on the script file: `chmod +x <script-name>`.
 
-Libraries – shell scripts that are intended only to be sourced by other scripts – MUST NOT be executable. This is achieved by removing the executable bit on the script file: `chmod -x <script-name>`.
+Libraries – shell scripts that are intended only to be sourced by other scripts – SHOULD NOT be executable. This is achieved by removing the executable bit on the script file: `chmod -x <script-name>`.
 
-SUID and SGID MUST NOT be applied to _any_ shell scripts, whether or not those scripts are executed directly. These permissions open up potential vulnerabilities. Programs with SUID (Set User ID) are run with the elevated permissions of the file owner, so increasing risk if the executed scripts are exploitable. And SGID (Set Group ID), when applied to a file, executes the file with the group permissions of the file rather than the user's current group. SGID is used to give group access to executables, but it can lead to unintended access if those groups are not managed carefully.
+SUID and SGID MUST NOT be applied to _any_ shell scripts, whether or not those scripts are executed directly. These permissions open up potential vulnerabilities. Programs with SUID (Set User ID) are run with the elevated permissions of the file owner, so increasing risk if the scripts are exploitable. And SGID (Set Group ID), when applied to a file, executes the file with the group permissions of the file rather than the user's current group. SGID is used to give group access to executables, but it can lead to unintended access if those groups are not managed carefully.
 
 [source,sh]
 ----
@@ -80,12 +76,15 @@ ls -ld shared_folder
 drwxrwsr-x 2 alice devteam ...
 ----
 
-Use the following commands to group SUID and SGID from shell scripts:
+Use the following commands to unset SUID and SGID from shell scripts:
 
 [source,sh]
 ----
-chmod u-s filename # Remove SUID
-chmod g-s filename # Remove SGID
+# Remove SUID.
+chmod u-s filename
+
+# Remove SGID.
+chmod g-s filename
 ----
 
 == General code style
@@ -102,7 +101,7 @@ The source code for shell scripts SHOULD follow this order:
 
 Keep all custom functions together in one block. Try to avoid hiding executable code between functions. It makes the code hard to follow.
 
-The structure applies to a whole script, including all of its sourced files. This is also a useful structure for decomposing large scripts into smaller, more manageable files.
+This structure also provides a useful framework for decomposing large scripts into smaller, more manageable files.
 
 [source,sh]
 ----
@@ -118,7 +117,7 @@ The structure applies to a whole script, including all of its sourced files. Thi
 main "$@"
 ----
 
-For libraries – shell scripts that are intended only for sourcing into other scripts, rather than direct execution – the shebang line is optional but RECOMMENDED. Including the shebang in all shell scripts, including sourced ones, provides clarity over which shell the script targets for compatibility.
+For libraries – ie. shell scripts that are intended only for sourcing into other scripts, rather than direct execution – the shebang line is optional but RECOMMENDED. Including the shebang in all shell scripts, including sourced ones, provides clarity over which shell the script targets for compatibility.
 
 === main()
 
@@ -165,7 +164,7 @@ The names of variables should be composed from lowercase ASCII letters only, wit
 
 A common convention is to use UPPER_SNAKE_CASE for variable names. This is bad practice. Using this naming convention risks collisions with shell-defined variables and environment variables.
 
-*Constants* – which are declared with the `readonly` keyword – also SHOULD NOT be capitalized. This is a common convention, but it is bad practice for the same reason.
+*Constants* – which are declared with the `readonly` keyword – also SHOULD NOT be capitalized. This too is a common convention, but it is bad practice for the same reason.
 
 [source,sh]
 ----
@@ -216,7 +215,7 @@ my_pkg::my_func() {
 
 == Variables
 
-Most variables in a script SHOULD be designed to be constants, which means their value SHOULD NOT change after being assigned the first time. Try to write scripts that always create new variables whenever a new value needs to be stored in memory, rather than overwrite existing variables.
+Most variables in a script SHOULD be designed to be constants, which means their values SHOULD NOT change after being assigned the first time. Err on the side of writing new variables, rather than overwriting existing ones, whenever you need to store a new value in memory. Scripts that follow this design principle tend to be a bit more robust and easier to understand and debug.
 
 Variables MUST be declared `readonly` unless they are required to be writable by the business logic. The `readonly` attribute SHOULD be applied immediately after the variable declaration. Alternatively, use `declare -r` to declare a variable and set its `readonly` attribute immediately. This improves the robustness of scripts by preventing the overwriting/reassignment of variables that are not intended to be changed.
 
@@ -234,7 +233,7 @@ fi
 
 === Bracket syntax
 
-Most variable references SHOULD use the bracketed syntax, `${var}`, over the unbracketed one, `$var`.
+Most variable references SHOULD use the bracketed syntax, `${var}`, over the unbracketed one, `$var`. The bracketed syntax is more readable, more, robust, and more flexible. Because the brackets clearly delimit the variable name, it is easier to identify the variable names, and it helps to avoid ambiguity in complex expressions. It also makes it easier to concatenate with other variables or literal string values, eg. `${var}bar`.
 
 [source,sh]
 ----
@@ -247,11 +246,9 @@ echo "$varbar"
 echo "${var}bar"
 ----
 
-The bracketed syntax is more readable, more, robust, and more flexible. Because the brackets clearly delimit the variable name, it is easier to identify the variable names and helps to avoid ambiguity in complex expressions. It also makes it easier to concatenate with other variables or literal string values, eg. `${var}bar`.
+In addition, the bracketed syntax can be extended to query and manipulate values returned from variable substitution. For example, `${#var}` returns the length of a string value, `${var:0:1}` returns the first character of the value, and so on. It is also possible to provide default (fallback) values.
 
-In addition, the bracketed syntax can be extended to query and manipulate values returned from variable substitution. For example, `${#var}` returns the length of a string value, `${var:0:1}` returns the first character of the value, and so on. It is also possible to provide default (fallback) value in case the variable is empty.
-
-However, the brackets MAY be omitted from positional parameters – `$1`, `$@`, etc. – and other simple special variables.
+However, the brackets MAY be omitted from positional parameters – `$1`, `$@`, etc. – and other special variables.
 
 === Quotes and variable expansion
 
@@ -262,33 +259,33 @@ For variable assignment, almost all values SHOULD be quoted. There are some exce
 # Quote most values on assignment for consistency, even if not required.
 flag="on"
 
-# However, literal integers may be unquoted.
+# Literal integers that will be used in mathematical expressions MAY be unquoted.
 val=42
 
-# Quote command substitution, even when you expect the output to
-# be an integer. Use single quotes for literal arguments.
+# Quote command substitutions, even when you expect the output to
+# be an integer. Use single quotes for literal arguments passed to
+# the command..
 result="$(some_command 'arg1' 'arg2')"
 
-# It is RECOMMENDED to quote string values "true" and "false" to be clear
-# they are strings being used as booleans by convention.
-bool="true"
-
-# This is also a string value, but that might not be obvious to
-# all programmers. Some may assume this is a genuine boolean value
-# – but this type is unsupported in Unix shells.
-bool=true
+# The following two statements are equivalent. In both cases, the value `true`
+# is a string. Shell script do not have a boolean type, but it is convention to
+# use the string values "true" and "false" to represent boolean values. However,
+# this may not be obvious to novice shell programmers, so better to be explicit
+# and include the quotes.
+bool="true" # ✅
+bool=true   # ❌
 ----
 
 Variable references SHOULD be quoted in almost all cases, even if the values are things like commands or path names. This prevents word splitting and globbing issues.
 
-Double quotes SHOULD be used in almost all cases; single quotes MUST be used only where you explicitly want to disable substitution.
+Double quotes SHOULD be used in almost all cases. Single quotes MUST be used only where you explicitly want to disable substitution.
 
 [source,sh]
 ----
-# ❌ SHOULD NOT do this for string values:
+# ❌ SHOULD NOT do this for string values, unless variable expansion is intended:
 echo ${var}
 
-# ✅ RECOMMENDED:
+# ✅ RECOMMENDED in almost all cases:
 echo "${var}"
 ----
 
@@ -298,8 +295,8 @@ The risk of not quoting variables is demonstrated by the following code example.
 ----
 filename="My File.txt"
 
-rm ${filename}       # Interpreted as: `rm My File.txt` → error
-rm "${filename}"     # Interpreted as: `rm "My File.txt"` → correct
+rm ${filename}    # Interpreted as: `rm My File.txt`   → error
+rm "${filename}"  # Interpreted as: `rm "My File.txt"` → correct
 ----
 
 Where variable expansion is required, the variable reference MUST NOT be quoted, and an adjacent comment MUST explain why the variable is being allowed to expand.
@@ -316,7 +313,7 @@ Positional parameters are the arguments passed to a script or function. They are
 
 It is RECOMMENDED to provide default values for positional parameters.
 
-When you want to pass on _all_ parameters, say from the script to a `main()` function, you probably want to use `"$@"` (quoted). This will replace all arguments as-is. By comparison, both `$@` and `$*` (unquoted) will split on spaces, clobbering arguments that contain spaces and dropping empty-string arguments. `"$*"` (quoted) is probably not what you want either; it will expand to just one string argument, with words in the value concatenated by spaces.
+When you want to pass on _all_ parameters, say from the script to a `main()` function, you probably want to use `"$@"` (quoted). This will forward all arguments as-is. By comparison, both `$@` and `$*` (unquoted) will split on spaces, clobbering arguments that contain spaces and dropping empty-string arguments. `"$*"` (quoted) is probably not what you want either; it will expand to just one string argument, with words in the value concatenated by spaces.
 
 [IMPORTANT]
 ======
@@ -336,7 +333,7 @@ var="$(command "$(command1)")"
 var="`command \`command1\``"
 ----
 
-However, both work in all modern POSIX-compliant shells. It is okay to maintain the older syntax is legacy scripts.
+However, both work in all modern POSIX-compliant shells. It is okay to maintain the older syntax in legacy scripts.
 
 == Functions
 
@@ -363,6 +360,8 @@ Braces MUST be on the same line as the function name, with no space between the 
 
 The opening curly brace SHOULD also be on the declaration line, preceded by a single space character.
 
+////
+
 === Function invocation
 
 // TODO
@@ -370,6 +369,8 @@ The opening curly brace SHOULD also be on the declaration line, preceded by a si
 === Function bodies
 
 // TODO
+
+////
 
 == Conditionals
 
@@ -416,7 +417,7 @@ fi
 sudo apt-get update && sudo apt-get install pyrenamer
 ----
 
-Use the second shorthand syntax only for nested conditionals. `if`/`else` blocks are still easier to understand, so they SHOULD be preferred for composing simple logic.
+Aim for there to be just one level of `if`/`else` conditions. If you needed nested conditions, consider using the shorthand syntax (`&&` and `||` operators), extracting nested logic into functions, or refactoring in other ways.
 
 === Case statements
 
@@ -465,17 +466,32 @@ Return `0` to represent success. Any non-zero value denotes an error. Use `1` fo
 
 All error codes MUST be documented. They are an important part of the API of a script or function.
 
-In scripts, check the return values from error-prone commands, before continuing with the next operation. If the return value is unexpected, `exit` with a custom error code to represent that specific error condition. This is how exceptions are handled in shell scripts.
+In scripts, check the return values from error-prone commands before continuing with the next operation. If the return value is unexpected, `exit` with a custom error code to represent that specific error condition. This is how exceptions are handled in shell scripts.
 
 == Error messages
 
-OPTIONALLY, non-zero exit codes may be accompanied by user-friendly error messages to aid in debugging and user feedback. Error messages are directed to `stderr`.
+OPTIONALLY, non-zero exit codes may be accompanied by user-friendly error messages to aid in debugging and user feedback. Error messages MUST BE directed to `stderr`, to keep actual issues separated from normal output.
 
 Error messages SHOULD be prefixed with the name of the script or function that produced the error, to make it easier to identify the source of the error.
 
+It is RECOMMENDED to implement a custom function to standardize error message formatting. Add any other information to error messages that may help with debugging.
+
+.Example from Google's Shell Guide
+[source,sh]
+----
+err() {
+  echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $*" >&2
+}
+
+if ! do_something; then
+  err "Unable to do_something"
+  exit 1
+fi
+----
+
 == Comments
 
-In higher-level programming languages, the higher abstractions allow programmers to express their design through code structure, function and object names, data structures, and other constructs. Instead of relying on comments to explain the code, it is considered best practice to try to design the code in a way that it clearly articulates _what_ it does, without additional annotations. Therefore, in higher-level programming languages, inline comments tend to be used quite sparingly, used to explain only the most complex algorithms, or why certain design patterns where chosen over more obvious ones, and so on.
+In higher-level programming languages, the higher abstractions allow programmers to express their design through modules, function and object names, data structures, and other constructs. Instead of relying on comments to explain the code, it is considered best practice to try to design the code in a way that it clearly articulates _what_ it does, without additional annotations. Therefore, in higher-level programming languages, inline comments tend to be used quite sparingly, used to explain only the most complex algorithms, or why certain design patterns where chosen over more obvious ones, and so on.
 
 Lower-level languages, like shells and other scripting languages, provide fewer opportunities to develop self-explanatory code. Indeed, the syntax of lower-level languages can often be cryptic and non-intuitive.
 
@@ -485,19 +501,25 @@ Use comments to express in plain English things that are not obvious from the co
 
 For shell scripts, it is okay for comments to describe _what_ the code does. Even for experienced shell programmers, it will often be quicker to read through the comments, rather than read through the code itself, to understand what the code does and how it works.
 
-Remember, *the purpose of comments is to reduce cognitive overhead*. Whatever the language or level of abstraction, add comments where they make things easier to understand, or where you want to communicate important information that cannot be ascertained from the code alone. Remove comments that are superfluous, redundant, or that do not add any tangible value.
+Remember, *the purpose of comments is to reduce cognitive overhead*. Whatever the language or level of abstraction, add comments where they make things easier to understand, or where you want to communicate important information that cannot be ascertained from the code alone. Remove comments that are superfluous, redundant, or that do not add any tangible value. If in doubt: leave a comment!
 
 === File-level comments
 
-All shell files should start with one or more lines of comments that provide an overview of the contents and purpose of the script. Include copyright, license and support notices as required for distributed libraries.
+All shell files should start with one or more lines of comments that provide an overview of the contents and purpose of the script. Include copyright, license and support notices as required for distributed libraries. List dependencies – that is, any commands or programs that the script calls but which are not built-in to the shell and which are not POSIX standards.
 
 [source,sh]
 ----
 #!/bin/env sh
 
 # File description here.
+#
 # Copyright: <Legal Name>
 # License: MIT
+#
+# Dependencies:
+# - <dep1>
+# - <dep2>
+# - <dep3>
 ----
 
 === Function comments
@@ -509,7 +531,7 @@ Function comments SHOULD contain:
 - A description of the function.
 - A list of global variables used (whether or not they are modified).
 - Arguments taken.
-- Returned values (exit statuses).
+- Returned values (ie. exit statuses).
 
 It is not necessary to document anything that is written to `stdout` or `stderr`.
 
@@ -526,7 +548,7 @@ The purpose of function comments is to make it easier for other programmers to u
 # @param 1 - <Parameter description.>
 # @param 2 - <Parameter description.>
 #
-# @return void - <Optional description for non-void and non-zero return values.>
+# @return void - <Description required for non-void and non-zero return values.>
 #
 my_func() {
   # ...
@@ -553,11 +575,11 @@ print_success() {
 
 The function description – at the top of a function's comment block – MUST be clear about any *side effects* of calling the function that might take a programmer by surprise. Examples of side effects that SHOULD be documented include:
 
-* Change the current working directory.
-* Change the filesystem (eg. create directories, move files, etc.).
-* Exit the process (`exit`).
+* Changes to the current working directory.
+* Changes to the filesystem (eg. create directories, move files, etc.).
+* Exiting the process (`exit`).
 
-(Side effects include writing to `stdout` and `stderr` – but this is typical behavior and does not need to be documented.)
+Writing to `stdout` and `stderr` are also side effects, but this does not need to be documented a function's API description. This is typical behavior for shell functions.
 
 === TODOs
 
@@ -577,11 +599,9 @@ Do not use `eval`. It munges the input when used for assignment to variables, an
 
 [source,sh]
 ----
-# What does this set? Did it succeed? In part or whole?
+# What does this set? Did the command `set_my_variables` succeed?
+# The script itself cannot answer these questions.
 eval $(set_my_variables)
-
-# What happens if one of the returned values has a space in it?
-variable="$(eval some_function)"
 ----
 
 ''''
