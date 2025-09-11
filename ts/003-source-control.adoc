@@ -503,7 +503,7 @@ Finally, a *release* commit captures a set of changes made in preparation of a n
 
 === Commit message format
 
-To meet the objectives set out at the top of this technical standard, there must be very precise rules for the formatting of commit messages.
+To meet the objectives set out at the top of this technical standard, there must be precise rules for the formatting of commit messages.
 
 The following commit message convention is loosely based on https://www.conventionalcommits.org/[Conventional Commits], which in turn is based on the conventions of the https://github.com/angular/angular/blob/22b96b9/CONTRIBUTING.md#-commit-message-guidelines[Angular project].
 
@@ -520,18 +520,20 @@ Each commit message consists of a header, a body, and one or more footers. Each 
 
 === Commit message header
 
-The header has a special format that includes a type and a description, separated by a semi-colon and exactly one space. There is an OPTIONAL flag on the end, delimited by a spaced hyphen.
+The header has a special format that includes a type and a description, separated by a semi-colon and exactly one space.
 
 [source,txt]
 ----
-{type}: {description} (- {flag})
+{type}: {description}
 
 {body}
 
 {footers}
 ----
 
-The `{header}` is the only REQUIRED component of a commit message. The `{type}` part MUST be one of the following words, which map to the different types of commit concerns listed above:
+The `{header}` is the only REQUIRED component of a commit message. It functions a bit like the subject line for an email message. The header of a commit should convey just enough information for the reader to understand the contents of the commit object.
+
+The `{type}` part MUST be one of the following words, which maps to the different types of commit concerns listed above:
 
 1.  `feature`
 2.  `performance`
@@ -544,25 +546,23 @@ The `{header}` is the only REQUIRED component of a commit message. The `{type}` 
 9.  `merge`
 10. `revert`
 
-Using predefined type identifiers as a prefix for commit messages makes it easy to filter out unimportant changes (like chores) using `git bisect`.
+Using predefined type identifiers as a prefix for commit messages makes it easy to filter out unimportant changes (like chores) using `git bisect`. Separating discrete development concerns – feature delivery, bug fixes, performance optimization, refactoring, etc. – into separate commit objects also helps to enforce the principle of atomic commits, and all the benefits that go with that.
 
-The description SHOULD be a short message that summarizes the change. This SHOULD be written all lower case, with no period (full stop) or other punctuation to terminate the statement. Generally, there SHOULD NOT be multiple distinct changes in a commit, but if there are, the descriptions of each change SHOULD be separated by a comma.
+The description part MUST be included, and it SHOULD be a short message that summarizes the change. This SHOULD be written all lower case, with no period (full stop) or other punctuation to terminate the statement.
 
-The objective is for the command `git log --oneline` – which only outputs the header part of commit messages – to produce an easily readable, high-level view of the sequence of incremental changes. Example:
+Generally, there SHOULD NOT be multiple distinct changes in a commit, but if there are, the descriptions of each change SHOULD be separated by a comma.
+
+The objective is for the command `git log --oneline` – which only outputs the header part of commit messages – to produce an easily readable, high-level view of the sequence of incremental changes. Many other Git UIs will also show only the first line of the commit message. Example:
 
 ----
-a1b2c3d chore: initial commit, add readme
-d4e5f6g dev: add openapi specification
-h7i8j9k fix: invalid yaml formatting
-b9r5y8t refactor: move openapi spec to resources directory
-c2c6a8w chore: proofread readme content
-b3e5r7t feature: enable route to openapi spec
-e3r5t7y release: v0.0.0-beta
+chore: initial commit, add readme
+dev: add openapi specification
+fix: invalid yaml formatting
+refactor: move openapi spec to resources directory
+chore: proofread readme content
+feature: enable route to openapi spec
+release: v0.0.0-beta
 ----
-
-Separating discete development concerns – feature delivery, bug fixes, performance optimization, refactoring, etc. – into separate commit objects helps to enforce the principle of atomic commits, and all the benefits that go with that.
-
-Many other Git UIs will also show only the first line of the commit message. The header of a Git commit message functions a bit like the subject line for an email message. The header of a commit should convey just enough information for the reader to understand the contents of the commit object.
 
 To improve the readability and usefulness of this output, commit headers SHOULD be written in the imperative mood in the present tense. This means writing commit messages as though you're giving a current command or instruction. So you should write "change" not "changed" or "changes", and "update" not "updated" or "updates".
 
@@ -578,7 +578,7 @@ refactor: removed deprecated prefixes from vars
 refactor: remove deprecated prefixes from vars
 ----
 
-The difference is subtle, but the second makes more sense in most of the contexts in which a Git log is consumed. This style is also consistent with how Git itself generates messages for operations like `merge`, `revert` and `rebase` – it writes "merge" not "merged", and "revert" not "reverts", etc.
+The difference is subtle, but the second makes more sense in most of the contexts in which a Git log is consumed. This style is also consistent with how Git itself generates messages for operations like `merge`, `revert`, and `rebase` – it writes "merge" not "merged", and "revert" not "reverts", etc.
 
 If written correctly, the `{description}` part fo the commit message should complete this sentence:
 
@@ -594,7 +594,27 @@ fix: invalid yaml formatting
 release: v0.0.0-beta
 ----
 
-The maximum length of the header line (prefix + description) SHOULD be 50 characters and MUST NOT be more than 72. (Only `revert` commits, which are automated, are excluded from this rule.) The purpose of this constraint is for `git log` output to be readable in most contexts. If the header line is long, it may be truncated in printed output. If you use Vim as your commit message editor, it already knows about 50 characters being the recommended soft limit for Git commit subject lines, which is why the color changes after the 50th character by default.
+The maximum length of the header line (prefix + description) SHOULD be 50 characters and MUST NOT be more than 72. (Only `merge` and `revert` commits, which are automated, are excluded from this rule.) The purpose of this constraint is for `git log` output to be readable in most contexts. If the header line is long, it may be truncated in printed output. If you use Vim as your commit message editor, it already knows about 50 characters being the recommended soft limit for Git commit subject lines, which is why the color changes after the 50th character by default.
+
+==== Mono-repos
+
+The header line MAY be extended with other optional elements: a project prefix and/or a flag suffix.
+
+For mono-repos, in which multiple discrete software components are maintained in the same Git repository, it is RECOMMENDED to prefix the commit message header with a unique identifier for the component that is being changed.
+
+----
+[{component}] {type}: {description}
+----
+
+Example:
+
+----
+[arundel] feature: enable route to openapi spec
+----
+
+The component identifier part is encapsulated in square brackets, and separated from the `{type}` by a single space.
+
+Component identifiers MUST be used consistently This allows Git log output to be filtered by component. Components identifiers SHOULD be taken from the name (or codename) of each discrete application, service, library, or module.
 
 ==== Flags
 
@@ -630,7 +650,7 @@ When the "BREAKING" suffix is added to a `feature` commit, it's semantic meaning
 24b3g40 feature: remove password from login endpoint - BREAKING
 ----
 
-Commit messages capture information that is primarily of interest to other software developers, not to the users, customers, or other stakeholders of the software. This is why breaking changes to both internal and external APIs ought to be flagged in commit messages. The "BREAKING" suffix on `feature` commits MAY be used by automation tools to automatically bump major version numbers, or to validate that a user-supplied version number is appropriate (see *link:./005-versioning.adoc[TS-5: Versioning]*). But, for users of the software, other artifacts such as changelogs, release notes, and interface definitions will often be more appropriate places to communicate breaking changes in external APIs. This requires manual intervention, rather than reliance on automation, which is more appropriate for such an important decision.
+Commit messages capture information that is primarily of interest to other software developers, not to the users, customers, or other stakeholders of the software. This is why breaking changes to both internal and external APIs ought to be flagged in commit messages. The "BREAKING" suffix on `feature` commits MAY be used by automation tools to programmatically bump major version numbers, or to validate that a user-supplied version number is appropriate (see *link:./005-versioning.adoc[TS-5: Versioning]*). But, for users of the software, other artifacts such as changelogs, release notes, and interface definitions will often be more appropriate places to communicate breaking changes in external APIs.
 
 Where the "BREAKING" flag is included in the commit message header, use the message body to describe the change, the justification for breaking client APIs, and consequences for migrations, etc. See below for more information on writing commit message bodies.
 
@@ -640,16 +660,16 @@ The "WIP" flag is used to signpost changes that are a work-in-progress.
 
 Commits that "break the build" – ie. when static or runtime tests fail, or compilation fails – MUST be flagged as "WIP".
 
-In the following example, a WIP commit is followed by a stable one.
+In the following example, a WIP commit is followed by a stable one (the chronological order is bottom-to-top).
 
 ----
-c0d1e2f dev: extend search algorithms
-a1b2c3d refactor: rewire search algorithms - WIP
+dev: extend search algorithms
+refactor: rewire search algorithms - WIP
 ----
 
 WIP commits serve a couple of purposes.
 
-First, it is not always possible to implement a clean, stable change in a single, small, atomic commit. Sometimes, no matter how disciplined you try to be in your committing, development tasks becomes necessarily messy. Including intermediate WIP commits, initially via side branches, provides a solution to keeping individual changes small while implementing large, destructive changes.
+First, it is not always possible to implement a clean, stable change in a single, small, atomic commit. Sometimes, no matter how disciplined you try to be in your committing, development tasks become necessarily messy. Including intermediate WIP commits, initially via side branches, provides a solution to keeping individual changes small while implementing large, destructive changes.
 
 Second, WIP commits can be used to backup work that you started, but did not complete, before the end of a working day. You can commit your WIP to a side branch, push to the upstream reference repository for backup purposes, and then resume your work the following day.
 
@@ -658,7 +678,7 @@ Second, WIP commits can be used to backup work that you started, but did not com
 If you end up with lots of changes in your working tree, which are not all stable, you might still be able to make some stable commits from them, by using `git add -p` to stage only some parts of changed files.
 ======
 
-WIP commits MUST NOT be committed directly to the `dev` branch (see below for branching conventions). Instead, they MUST be added to side branches, and then merged into the `dev` branch only when subsequent commits "fix the build". Thus, the tip of the `dev` branch always points to a stable commit, though there may be individual WIP commits in the `dev` history that are unstable.
+WIP commits MUST NOT be committed directly to the `dev` branch (see below for branching conventions). Instead, they MUST be added to side branches, and then merged into the `dev` branch only when subsequent commits "fix the build". Remember, the aim is for the tip of the `dev` branch to always point to a stable commit, though there may be individual WIP commits in the `dev` history that are unstable.
 
 Alternatively, WIP commits can be fixed up before integrating them into the `dev` branch. There are a few different Git techniques you can use to achieve this. One option is to soft reset (`git reset --soft {hash}`) to the nearest stable commit, once you've got a stable build, then create a stable commit to replace the WIP ones. Alternatively you can use `git commit --amend` to recreate the previous WIP commit with your new staged changes. The same result can be achieved using interactive rebasing. Alternatively, WIP commits from a side branch can be squashed into a single new stable commit on `dev`.
 
@@ -673,8 +693,8 @@ The "EXPERIMENT" flag MAY be used to signpost changes that are experimental in n
 Use cases for experimental commits include adding temporary logging output to help debug a problem, to try an alternative design pattern to implement a feature, or to test a new library.
 
 ----
-350ca59 revert: dev: add more logging - EXPERIMENT
-35c3aef dev: add more logging - EXPERIMENT
+revert: dev: add more logging - EXPERIMENT
+dev: add more logging - EXPERIMENT
 ----
 
 ==== Temporary commits
