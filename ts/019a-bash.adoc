@@ -66,6 +66,30 @@ source functions.sh
 . functions.sh
 ----
 
+In Bash, sourced files are not truly modular. Sourcing merely provides a way of breaking up long scripts into smaller chunks, for easier code management. When sourcing a file, all Bash does is copy the contents of the sourced file and implant them into the current script at runtime.
+
+Bash authors need to be careful about doing things like change directory (`cd`) within a child script, as doing so may break the relative paths for subsequent imports in the parent script. Best practice is for every sourced file to return the session to its pre-existing state. For example, if a source file uses `cd`, be sure to have the script `cd` back to the prior working directory before execution passes back to the parent script.
+
+Bash authors also must be careful about mutating variables, declared in the parent script, in sourced scripts. Any variables that are defined in the parent script and referenced in the child script are handled as though all the code had been written in a single file. This is a common source of bugs – when two distinct values are accidentally assigned to variables of the same name, but declared in different files.
+
+A good solution is to pass variables to source files, like this:
+
+[source,bash]
+----
+$hello="helloworld"
+. install.sh $hello
+----
+
+In `install.sh`:
+
+[source,bash]
+----
+# Prints "helloworld".
+echo $1
+----
+
+The ability to source a script with arguments is a Bashism. In other shells such as Dash, positional parameters like `$1` parameters will not be defined in this case.
+
 == Variables
 
 In Bash, local variables can be used to scope data to the functions the variables are declared in.
