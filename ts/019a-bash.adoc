@@ -14,7 +14,7 @@ For scripts that will be distributed outside of an organization, or otherwise to
 
 == File name extensions
 
-Bash file names may have the `.sh` extension or no extension. Bash file names MUST NOT have other extensions such as `.bash`. Use the shebang (see below) to identify the target interpreter instead.
+Bash file names may have the `.sh` extension or no extension. Bash file names MUST NOT have other extensions such as `.bash`. Instead, use the shebang (see below) to identify the target interpreter.
 
 == Shebang (`#!`)
 
@@ -44,12 +44,14 @@ If you're using the classic Bash shebang, and if you get an error similar to "co
 * `/usr/local/sbin/bash`
 ======
 
-If a script is written to be POSIX-compliant, use either of the following shebangs instead. This will trip the Bash program to executing the script in POSIX-compliant mode, equivalent to passing the `--posix` option to `bash` on the command line. Again, the second env-style shebang will have wider compatibility and is therefore RECOMMENDED.
+If a script is written to be POSIX-compliant, use either of the following shebangs instead. This will trip the Bash program to executing the script in POSIX-compliant mode, equivalent to passing the `--posix` option to `bash` on the command line (which in turn is equivalent to using the `sh` command to run Bash in POSIX-compliant mode).
 
 ----
 #!/bin/sh
 #!/bin/env sh
 ----
+
+Again, the second env-style shebang will have wider compatibility and is therefore RECOMMENDED.
 
 == Sourcing
 
@@ -66,7 +68,7 @@ source functions.sh
 
 == Variables
 
-In Bash, local variables can be used to scope data to the function the variable is declared in.
+In Bash, local variables can be used to scope data to the functions the variables are declared in.
 
 [source,bash]
 ----
@@ -80,7 +82,7 @@ hello() {
 echo $hello # → "hello" (not modified).
 ----
 
-This syntax is Bash-specific and it is RECOMMENDED to use `local` for all variable declarations within functions, so as not to unnecessarily pollute the global namespace and to prevent unexpected overwrites of global variables. Pay particular attention to declaring loop variables as local, too – this is a common source of bugs:
+This syntax is Bash-specific and it is RECOMMENDED to use it for all variable declarations within functions, so as not to unnecessarily pollute the global namespace and to prevent unexpected overwrites of global variables. Pay particular attention to declaring loop variables as local, too – this is a common source of bugs:
 
 [source,bash]
 ----
@@ -90,7 +92,7 @@ for i in {1..5}; do
 done
 ----
 
-Where the `local` keyword is omitted, include a comment explaining why it is not used. There will be many use cases where functions are designed to update global variables – that's fine, just use comments to be explicit about your intent.
+Where the `local` keyword is omitted, include a comment explaining why it is not used. There will be many use cases where functions are designed to update global variables – that's fine, just be sure to leave a comment to be explicit in your intent.
 
 Variable declaration and assignment MAY be on different lines, but try to always initialize variables with meaningful default values.
 
@@ -124,6 +126,15 @@ mybinary "${flags[@]}"              # Expand the flags to an arguments list.
 flags='--foo --bar=baz'
 flags+=' --greeting="Hello world"'
 mybinary ${flags}
+----
+
+The names of variables that hold array structures SHOULD be pluralized. In loops, the singular form of the array name SHOULD be used for the iteration variable.
+
+[source,sh]
+----
+for zone in "${zones}"; do
+  # Do something with "${zone}".
+done
 ----
 
 == Functions
@@ -229,7 +240,7 @@ if [[ "${my_var}" ]]; then
   do_something
 fi
 
-# ❌ Do not use filler characters, like this. It feels a bit hacky.
+# ❌ Do not use filler characters, like this.
 if [[ "${my_var}X" == "some_stringX" ]]; then
   do_something
 fi
