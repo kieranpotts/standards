@@ -10,6 +10,34 @@ In this technical standard, URLs containing variables are specified according to
 
 toc::[]
 
+== General design principles
+
+HTTP APIs, both public and private ones, SHOULD be formed from a consistent set of design patterns – a pattern library. This facilitates a better developer experience and supports greater reuse of code, for example through libraries and software development kits (SDKs), so making integrations quicker and easier.
+
+In broad terms, HTTP APIs SHOULD follow the https://www.ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm[RESTful architectural style]. This architecture describes the underlying design principles of the World Wide Web, but particularly of the HTTP protocol and HTML language. In practice, a RESTful API is one that repurposes the semantics of the HTTP protocol, using the full capabilities of HTTP as a messaging and encoding protocol, rather than merely as a transport protocol. In simple terms, a RESTful API uses URLs to represent resources and collections of resources, HTTP methods to represent different types of CRUD-like operations to be performed on those resources, and HTTP status codes to represent outcomes from those operations.
+
+A RESTful API is also:
+
+* *Stateless*: Each request from a client to a server SHOULD contain all the information necessary for the server to understand and fulfil the request. Most client requests SHOULD NOT be dependent upon any particular stored context on the server – with exceptions for things like security measures to protect against denial of service. This design constraint will simplify the server implementation and make it more scalable.
+
+* *Uniform*: A RESTFUL API SHOULD have a highly uniform interface, which means it uses a consistent subset of HTTP methods and status codes, composes message content from a common library of types, and uses a consistent URL structure to represent resources and collections. This constraint will help to simplify client implementations, promote code reuse, and make integrations easier.
+
+* *Cacheable*: As much as possible, responses from a RESTFUL API server SHOULD be cacheable. This helps to reduce load on the server, reduce latency for clients, and supports strategies for fault tolerance and availability.
+
+* *A layered system*: The server application SHOULD have a layered architecture, in which cross-cutting concerns such as security and caching are implemented in discrete layers that span all endpoints of the API.
+
+The following RESTful design constraints are OPTIONAL:
+
+* *Hypermedia as the engine of application state (HATEOAS)*: HTTP APIs MAY embed hypermedia links through which clients can explore the available resources and operations of the API. Clients MAY use the encoded hypermedia controls to read, query, and update application state. This design constraint is not commonly used in practice, but it can be beneficial for some use cases. HATEOAS may be appropriate for APIs that are intended to be consumed directly by human users, who interact with the API through a generic program to explore the available resources and operations, which themselves are constantly evolving. HATEOAS is less useful for APIs that are intended for programmatic integration into other computer systems.
+
+* *Code on demand*: The server MAY send executable code to the client, to extend the functionality of the client. Again, this design constraint is not commonly used in practice, but one possible use case would be for an API to serve updates to SDKs, written in various programming languages, that are dynamically integrated into client applications.
+
+Although most HTTP APIs should be primarily RESTful, or resource-oriented, there are many use cases where a RESTful design is not appropriate. For example, if an API is a thin layer around a legacy system that itself is not designed around resources or fits uncomfortably with the RESTful model, it may be necessary to deviate from RESTful design principles and focus on creating a functional abstraction of the underlying system.
+
+Even within an HTTP API that is predominantly RESTful in its design characteristics, it will often be beneficial to include operations that are more RPC-like in their design. For example, besides the usual create, read, update, and delete operations that are made available on a collection of resources, an HTTP API may augment these operations with additional "actions" that perform tasks on the resources that do not neatly fit the CRUD model, or which abstract multiple CRUD-like operations in a single request. See the section on *Actions* for more information.
+
+In designing an HTTP API, developers SHOULD prioritize creating an accurate model of the system that the API abstracts, rather than trying to religiously adhere to any particular architectural style. Remember, the goal of an HTTP API is to provide a useful and usable interface to a complex system. The best API design will be the one that makes it as easy as possible for clients to interact with the underlying system.
+
 == Webhooks
 
 Webhooks are API endpoints that are typically used to receive notifications about events that happen in third-party systems, such as when a payment has been successfully processed, when a subscription is cancelled, or when a service fails to send an SMS message.
