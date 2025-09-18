@@ -367,6 +367,160 @@ If a collection is empty (ie. it has zero items), returning `404 Not Found` is n
 
 Invalid query parameters SHOULD be signalled with a `404 Bad Request` response.
 
+== Resources
+
+=== Reading
+
+Single resources are typically discovered through a collection, and are identified by a unique identifier. When reading single resources, a more detailed representation of the resource MAY be returned than the default, minimized representations included in collections.
+
+A resource's unique identifier SHOULD be unique to all resources of all types, not only resources of the same type or in the same collection. UUIDs are RECOMMENDED for this purpose, as each generated UUID is more-or-less guaranteed to be unique globally.
+
+Identifiers for sensitive data SHOULD be non-sequential, and preferably non-numeric. In scenarios where this data might be used as a subordinate to other data, immutable string identifiers SHOULD be used for readability and debugging.
+
+If the provided resource identifier is not found, even if the data is "soft deleted" in the data source, the response status code should be `404 Not Found`. Otherwise, `200 OK` MUST be returned when the resource is found.
+
+.Template
+----
+GET /v{major}/{namespace}/{resource}/{resource_id}
+----
+
+.Example
+----
+GET /v1/vault/customers/123e4567-e89b-12d3-a456-426614174000
+----
+
+=== Updating
+
+There are two ways to update resources:
+
+* Using `PUT` to fully replace the resource.
+* Using `PATCH` to partially update the resource.
+
+In both cases, the shape of the input data SHOULD be consistent with the shape of the resource representation returned by the API via the corresponding GET requests. The only difference is that `PATCH` may submit fewer fields – essentially a diff of what's changed since the last `GET`.
+
+For `PUT` requests, system-calculated values such as `create_time` and `update_time` SHOULD be optional and SHOULD be ignored on deserialization by the server. For `PATCH` requests, clients SHOULD be expected to omit these fields from the request body, and the server SHOULD return `400 Bad Request` if they are included. For `PATCH` requests, the client is expected to submit only the fields that have been updated by the client, and since the client cannot update system-calculated values, trying to do so should be treated as a client error.
+
+.Template
+----
+PUT|PATCH /v{major}/{namespace}/{resource}/{resource_id}
+----
+
+Alternatively, standards such as https://datatracker.ietf.org/doc/html/rfc6902[JSON Patch] MAY be implemented for https://tools.ietf.org/html/rfc5789[PATCH] requests. Rather than sending a partial representation of the resource, clients instead send a list of operations to be made on particular members or fields of the resource.
+
+[source,http]
+----
+PATCH /widgets/abc123 HTTP/1.1
+Host: api.example.com
+Content-Length: ...
+Content-Type: application/json-patch
+
+[
+  {
+    "op": "replace",
+    "path": "/a/b/c",
+    "value": 42
+  },
+  {
+    "op": "remove",
+    "path": "/a/b/c"
+  },
+  {
+    "op": "move",
+    "from": "/a/b/c",
+    "path": "/a/b/d"
+  }
+]
+----
+
+The value of the "path" field is a https://tools.ietf.org/html/rfc6901[JSON Pointer] that references the location within the target document where the operation is to be performed. For example, the path `/a/b/c` refers to the element "c" in the below JSON:
+
+[source,json]
+----
+{
+  "a": {
+    "b": {
+      "c": "",
+      "d": ""
+    },
+    "e": ""
+  }
+}
+----
+
+The supported operations are "add", "remove", "replace", "move", "copy", and "test". To support partial updates to fixed-schema resources, APIs need to support only "add", "remove", and "replace" operations.
+
+After a successful update operation, both `PUT` and `PATCH` operations SHOULD normally respond with `204 No Content` status, with no accompanying response body. However, there may be use cases where it is preferable to instead return `200 OK` with an updated resource in the response body. For example, this may be required where clients need updates to system-calculated fields, or otherwise to optimize client-server interactions. Alternatively, clients may opt-in to receiving a `200 OK` response with a response body by including the request header `Prefer:return=representation`.
+
+Any update request (whether PUT or PATCH) that fails input validation MUST receive a `400 Bad Request` response. If clients attempt to modify read-only fields, or if the resource is in a non-updatable state, this is also a `400 Bad Request`. If there are business rules or validation constraints, eg. for data type, length, etc., that are not satisfied, a `400 Bad Request` response is appropriate. In addition, appropriate error codes and messages SHOULD be encoded in the response body.
+
+For situations that require interaction with downstream servers or external APIs or processes, returning the `422 Unprocessable Entity` status code may be more appropriate than `400 Bad Request`.
+
+=== Deleting
+
+In order to enable retries (eg. due to patchy connectivity), and for conformance with HTTP standards, `DELETE` operations MUST be implemented to be idempotent. This means that successful `DELETE` operations MUST always respond with `204 No Content`, even if the resource is already deleted. Returning `404 Not Found` is not appropriate for `DELETE` operations in this scenario, as it suggests that the resource never existed at all. If necessary, clients can use `GET` to verify the resource exists prior to `DELETE`.
+
+.Template
+----
+DELETE /v{major}/{namespace}/{resource}/{resource_id}
+----
+
+There may be use cases where a client expects resources to exist but they unexpectedly disappear. This could be because a resource expired, or because of some policy, such as a data retention operation that cleans-up stale data. In these use cases, services MAY return a `410 Gone` error code in response to a request for a resource that no longer exists. Doing so provides the client with extra information (it tells the client that the resource had already been deleted).
+
+For historical reasons, many web servers and HTTP client libraries do not expect a message body to be included in HTTP messages sent using the `DELETE` method. To support the widest possible range of clients, it remains good practice to _not_ require DELETE requests to be accompanied by a payload. This is an OPTIONAL constraint, and is only REQUIRED if there are known to be clients that will be unable to support DELETE requests with payloads.
+
+=== Creating
+
+There are two ways to create resources:
+
+* Using `POST` to create a resource but have the server create an identifier for it.
+* Using `PUT` to create a full resource, including a unique identifier that is generated client-side.
+
+.Template
+----
+POST|PUT /v{major}/{namespace}/{resource}/{resource_id}
+----
+
+`PUT` operations are idempotent by default, because the request payload has a built-in unique identifier in the form of the resource ID, generated by the client.
+
+`POST` operations are NOT idempotent by default, and therefore there is risk that duplicates of the same resource may be created if the client retries a `POST` request. Where it is necessary to prevent this, clients MUST include a unique identifier for the _request_ message (eg. `request_id`). The server will use the request ID to make sure it processes only the first instance that it receives of each distinct request.
+
+For `PUT` requests, system-calculated values such as `create_time` and `update_time` SHOULD be made optional and SHOULD be ignored on deserialization by the server. But for `POST` requests, clients SHOULD be expected to omit these fields from the request body, and therefore the server SHOULD return `400 Bad Request` when such fields are included in the request content.
+
+Otherwise, both operations SHOULD behave in the same way. Both `POST` and `PUT` payloads MAY include only a subset of input fields (only the required fields, for example), with the server filling in optional fields with default values.
+
+The number of required fields SHOULD be minimized as much as reasonably possible for the business case.
+
+For both `POST` and `PUT` creation operations, successful outcomes MUST be signalled by a `201 Created` response, and a representation of the created resource MUST be returned in the response body – including any server-generated fields such as `create_time`.
+
+Response messages SHOULD include a list of hypermedia links that represent all the available operations that can be performed on the newly-created resource. For example, if only `GET` and `DELETE` operations are available:
+
+.Example response
+----
+{
+  "data": {
+    "id": "123e4567-e89b-12d3-a456-426614174000",
+    "type": "visa",
+    "number": "xxxxxxxxxxxx0331",
+    "expire_month": "11",
+    "expire_year": "2018",
+    "first_name": "Joe",
+    "last_name": "Shopper",
+  },
+  "links": [
+    {
+      "href": "https://api.example.com/v1/vault/credit-cards/123e4567-e89b-12d3-a456-426614174000",
+      "rel": "self",
+      "method": "GET"
+    },
+    {
+      "href": "https://api.example.com/v1/vault/credit-cards/123e4567-e89b-12d3-a456-426614174000",
+      "rel": "delete",
+      "method": "DELETE"
+    }
+  ]
+}
+----
+
 == Webhooks
 
 Webhooks are API endpoints that are typically used to receive notifications about events that happen in third-party systems, such as when a payment has been successfully processed, when a subscription is cancelled, or when a service fails to send an SMS message.
