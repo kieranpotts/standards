@@ -134,6 +134,91 @@ There are many standardized HTTP status codes. Most APIs will need only a subset
 
   ** `503 Service Unavailable`: Indicates that the server is not ready to handle the request, typically due to maintenance or overload.
 
+== URLs
+
+URLs identify resources, collections of resources, and actions.
+
+=== Path delimiters
+
+The forward slash (`/`) character is used to delimit between path segments in URLs.
+
+API documentation SHOULD be consistent in its use of trailing slashes. It is RECOMMENDED that trailing slashes be omitted in documentation. However, an API SHOULD accept requests with or without a trailing slash, but SHOULD NOT respond with a redirect to the canonical version.
+
+.Postel's Law (aka. the Robustness Principle)
+****
+Be liberal in what you accept, and conservative in what you send.
+****
+
+=== Versioning
+
+HTTP APIs MUST be versioned, and version information SHOULD be encoded in the URL path. This pattern is widely used for its simplicity of use by clients and compatibility with caching and proxying systems (compared to alternative designs such as header-based versioning).
+
+HTTP APIs MUST use https://semver.org/[Semantic Versioning], as specified in *link:./005-versioning.adoc[TS-5: Versioning]*. However, only the major version number needs to be exposed in the URL schema.
+
+It is RECOMMENDED that the major version number be the first segment of the URL path, eg. `/v1`. This tends to make it easier for clients to implement version-specific behavior, and it also tends to make it easier to maintain and deploy multiple major versions of an API in parallel on the server side.
+
+.Template
+----
+/v{major}
+----
+
+.Example
+----
+/v1
+----
+
+See the *Versioning* section, below, for more guidance on HTTP API versioning.
+
+=== Namespaces
+
+The next part of the URL path SHOULD be treated as a "namespace" in which related resources will be grouped.
+
+Namespaces are used to create logical groups of resources, collections, and actions. But they do not necessarily map directly to modules or back-end services that are responsible for fulfilling requests. Namespaces SHOULD reflect the customer's perspective of how the product works. That perspective may not necessarily reflect the internal structure of the system, or the business domains and subdomains.
+
+.Template
+----
+/v{major}/{namespace}
+----
+
+.Example
+----
+/v1/vault
+----
+
+Namespaces SHOULD be nouns but MAY be either singular or plural, as appropriate for each grouping of resources, collections, and actions.
+
+=== Resources and collections
+
+The remaining segments of a URL path are used to identify resources and collections of resources,
+
+Consistent path components SHOULD be used to refer to the same resources, and collections of them, across different endpoints.
+
+.Templates
+----
+GET /v{major}/{namespace}/{resource}
+GET /v{major}/{namespace}/{resource}/{resource_id}
+POST /v{major}/{namespace}/{resource}/{resource_id}
+PUT /v{major}/{namespace}/{resource}/{resource_id}
+PATCH /v{major}/{namespace}/{resource}/{resource_id}
+DELETE /v{major}/{namespace}/{resource}/{resource_id}
+----
+
+Sub-resources and sub-collections MAY be supported, too.
+
+.Templates
+----
+GET /v{major}/{namespace}/{resource}/{resource_id}/{sub_resource}
+GET /v{major}/{namespace}/{resource}/{resource_id}/{sub_resource}/{sub_resource_id}
+POST /v{major}/{namespace}/{resource}/{resource_id}/{sub_resource}/{sub_resource_id}
+PUT /v{major}/{namespace}/{resource}/{resource_id}/{sub_resource}/{sub_resource_id}
+PATCH /v{major}/{namespace}/{resource}/{resource_id}/{sub_resource}/{sub_resource_id}
+DELETE /v{major}/{namespace}/{resource}/{resource_id}/{sub_resource}/{sub_resource_id}
+----
+
+The `{resource}` and `{sub_resource}` components SHOULD be named using nouns. These SHOULD be in the singular form where there is only ever one instance of the resource, and never a collection of resources of the same type. More commonly, there will be collections of each type of resource and sub-resource, and these SHOULD be named in the plural form.
+
+Resource-oriented endpoints SHOULD use lowercase hyphen-delimited slugs to name resources and sub-resources. Examples: "account", "users", "billing", "charge-points", "charge-points/{charge_point_id}/sessions", "credit-cards", "credit-cards/{credit_card_id}/transactions".
+
 == Webhooks
 
 Webhooks are API endpoints that are typically used to receive notifications about events that happen in third-party systems, such as when a payment has been successfully processed, when a subscription is cancelled, or when a service fails to send an SMS message.
