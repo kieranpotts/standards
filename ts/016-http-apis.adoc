@@ -314,8 +314,58 @@ To indicate errors, the RECOMMENDED return codes are:
 
 When designing your own outbound webhook messages, you will need to consider the status codes that you will want third-party services to return in response to your webhook messages. It is RECOMMENDED:
 
-* To accept any `2**` status code to indicate successful processing of a webhook message (ie. any `2**` code will be treated by you as `202 Accepted`).
-* To log any `4**` status codes for further investigation, 
-* To treat `5**` status codes as server errors, which will feed into your retry and dead-letter queue mechanisms.
-* To treat any `4**` client errors in the same way as `5**` server errors, but in addition log them for further investigation.
-* To treat `1**` and `3**` status codes as generic `500` server errors.
+
+== Versioning
+
+HTTP APIs SHOULD have a major version number that is incremented whenever there are breaking changes in the API. The major version number SHOULD be encoded in the first path segment of the URL.
+
+.Template
+----
+/v{major}
+----
+
+.Example
+----
+/v1
+----
+
+Use the *expanding contract* pattern to maintain backwards compatibility with clients, while incrementally evolving the API's design and capabilities. This is also known as the *additive* approach to building programmatic interfaces.
+
+In practice, this means:
+
+* Breaking changes MUST NOT be made to APIs that are already in use.
+
+* Developers MUST NOT add new required parameters to existing APIs.
+
+* Developers MUST NOT remove existing required parameters.
+
+* Developers MUST NOT change the meaning of existing parameters.
+
+* APIs MUST be designed to be extensible.
+
+A good example of a scalable API design is one that avoids array of scalar data types (strings, integers, etc.). Consider the following example:
+
+[source,json]
+----
+"countries": [
+  "Brazil",
+  "France"
+]
+----
+
+This data structure is impossible to extend without introducing breaking changes. Always prefer arrays of objects, eg.:
+
+[source,json]
+----
+"countries": [
+  { name: "Brazil" },
+  { name: "France" }
+]
+----
+
+Breaking changes include any changes to the request or response message formats, changes to the semantics of the API, or changes to the behavior of the API.
+
+Where breaking changes are unavoidable, the breaking changes MUST be implemented in a new major version of the API. The old version of the API MUST be maintained for a reasonable period of time to allow clients to migrate to the new version. 
+
+APIs MUST have a documented *lifecycle policy*, which describes the support and maintenance of each major version of the API.
+
