@@ -8,9 +8,17 @@ toc::[]
 
 == Webhooks
 
-Webhooks are API endpoints that are used to receive notifications from third-party systems. Webhooks are typically used to receive notifications about events that occur in a third-party system, such as when a payment has been successfully processed, when a subscription is cancelled, or when a service fails to send an SMS message.
+Webhooks are API endpoints that are typically used to receive notifications about events that happen in third-party systems, such as when a payment has been successfully processed, when a subscription is cancelled, or when a service fails to send an SMS message.
 
-The design of webhooks requires special consideration. Webhooks are not really part of an HTTP API's public interface, but rather they are special-purpose private endpoints that sit alongside the main public endpoints of an HTTP API. Webhooks tend to have a different URL scheme, different payload schemas, and different authentication mechanisms than the main API endpoints.
+Webhooks take two forms, each of which requires different design considerations:
+
+* *Inbound webhooks*: These are _private_ endpoints that your service exposes to receive notifications from one or more third-party services.
+
+* *Outbound webhooks*: These are messages sent out from a service to the webhook endpoints of other services.
+
+Inbound webhooks are not really part of an HTTP API's public interface, but rather they are special-purpose private endpoints that sit alongside the main public endpoints of an HTTP API. Their purpose is to facilitate integration with other services (usually services operated by third-parties). They are not used directly by the service's own users/customers. Inbound webhooks may be exposed via different URLs schemas and HTTP methods than the main API endpoints, and things like payload schema and authentication mechanisms will be determined by the third-party service.
+
+Outbound webhooks, on the other hand, are a form of event notification, and they are very much part of the application programming interface (API) of the service from which they are omitted. And yet they may sit apart from the main HTTP API endpoints of that service. Outbound webhooks may use different transport protocols, different message formats, different schemas, different methods of authentication, and they may even be versioned independently of the service's main API.
 
 ****
 See also link:./017-messages.adoc[TS-17: Messages and Events], which covers concerns related to event schema and asynchronous event handling – topics that are relevant to the implementation of webhooks.
@@ -18,7 +26,7 @@ See also link:./017-messages.adoc[TS-17: Messages and Events], which covers conc
 
 === Webhook URL schemes
 
-The following URL scheme is RECOMMENDED for webhooks.
+The following URL scheme is RECOMMENDED for inbound webhooks.
 
 ----
 /webhooks/{party}/{namespace}/v{version}/{event_type}/{…}
@@ -45,19 +53,19 @@ Consider the following examples of webhook URLs, which use the above scheme:
 * `/webhooks/transactify/v2/transaction-initiated`
 * `/webhooks/transactify/v2/transaction-complete`
 
-This fictional API exposes six webhooks:
+This fictional API exposes six webhook endpoints, which are used to receive notifications from three different third-party services:
 
-* One webhook for a service called AthentiQ. A single endpoint is used to process all events emitted by this service. The endpoint supports version 3 of AuthentiQ's webhook event schema.
+* One webhook is for a service called AthentiQ. A single endpoint is used to process all events emitted by this service. The endpoint supports version 3 of AuthentiQ's webhook event schema.
 
-* A similar webhook for a service called TrueID. The endpoint supports version 1 of TrueID's webhook event schema. We're pretending that TrueID is a legacy identity verification service that is being phased out, and eventually replaced by AuthentiQ. In this transition phase, the system needs to support both services in parallel.
+* A similar webhook is for a service called TrueID. The endpoint supports version 1 of TrueID's webhook event schema. We're pretending that TrueID is a legacy identity verification service that is being phased out, and eventually replaced by AuthentiQ. In this transition phase, the system needs to support both services in parallel.
 
-* Four endpoints to handle notifications from a service called Transactify. There's one endpoint to process "transaction-initiated" events, and another endpoint to process "transaction-complete" events. The system supports two different versions of Transactify's event schema. Perhaps most notifications are now sent to the v2 webhooks, but the system still needs to support the legacy v1 schema for a period of time, for example to handle retries and updates of historical events, before its deprecation.
+* Four endpoints handle notifications from a service called Transactify. There's one endpoint to process "transaction-initiated" events, and another endpoint to process "transaction-complete" events. The system supports two different versions of Transactify's event schema. Perhaps most notifications are now sent to the v2 webhooks, but the system still needs to support the legacy v1 schema for a period of time, for example to handle retries and updates of historical events, before its deprecation.
 
 These examples demonstrate the following features of this webhook URL scheme.
 
 First, multiple third-party services can be supported simultaneously. It might be necessary, for example, to have one or more webhooks for a payment service gateway, other webhooks for a transactional email service, and yet more webhooks for an identity verification service. In addition, this design makes it possible to incrementally transition from one service provider to another (eg. swapping the payment service gateway) without breaking your own service.
 
-Second, the `{version}` component is independent of the HTTP API's own versioning scheme, and indeed this may vary between individual webhooks. In an HTTP API, most endpoints will be scoped to a particular version of the API service itself. But webhooks are an exception. These are scoped instead to the versions of the _clients_ that interact with the webhooks. After all, it is the client that specifies the interface contract for its webhooks: the HTTP methods, payload structures, authentication and authorization mechanisms, and so on. Usually, the only thing under the control of the server is the URL scheme.
+Second, the `{version}` component is independent of the HTTP API's own versioning scheme, and indeed this may vary between individual webhooks. In an HTTP API, most endpoints will be scoped to a particular version of the API service itself. But webhooks are an exception. These are scoped instead to the versions of the _clients_ that interact with the webhook endpoints. After all, it is the client that specifies the interface contract for its webhooks: the HTTP methods, payload structures, authentication and authorization mechanisms, and so on. Usually, the only thing under the control of the server is the URL scheme.
 
 Thus, webhooks MUST be versioned independently to an API's main endpoints, and also to each other. Individual webhooks can thus be incremented independently. It becomes possible to handle two or more incompatible versions of a webhook's event schema in parallel. If a client makes breaking changes to their event schema, you will be able to transition to the new schema in an incremental, non-breaking way. You can do this by publishing a new handler for the new event schema alongside the existing handler for the existing schema, eg.
 
@@ -71,13 +79,29 @@ If a client does not explicitly version their webhook payload schema – this ha
 
 Finally, multiple webhooks can be be supported for a single third-party service. It is often the case that client's require a single webhook via which they can notify subscribers of _all_ events. But sometimes it can be beneficial, or even necessary, to process different types of events (from the same client) in different ways. For example, you may want to process "transaction-initiated" events differently from "transaction-complete" events.
 
+=== Outbound webhook event schema
+
+When designing outbound webhooks, the main consideration is the schema of the events that will be sent to the webhook endpoints of third-party services. The event schema defines the structure and format of the data that will be sent in the webhook payloads. A well-defined event schema is crucial for ensuring that webhook consumers can correctly interpret and process the events they receive.
+
+link:./017-messages.adoc[TS-17: Messages and Events] provides guidance on designing event schemas, including recommended metadata fields and payload structures.
+
 === Webhook status codes
 
-Third-party services MAY require specific success status codes for their webhooks. Where this is not specified, it is RECOMMENDED to return a 2** status code for successful requests. The RECOMMENDED success status code for most webhook requests is `202 Accepted`, which indicates that the request has been accepted for processing, but the processing has not been completed yet. This is appropriate for most webhook requests, as it allows the server to process the request asynchronously (the webhook message gets added to a queue and processed later).
+When integrating with third-party services via inbound webhooks, those third-party services MAY require you to return specific status codes to indicate success or failure in your processing of their webhook messages. If the third-party service specifies the status codes that it expects, then you MUST comply with those requirements to ensure proper integration with their systems. Processes such as retries and dead-letter queues will likely be triggered by particular status codes.
 
-Other useful success status codes include `204 No Content` (used when the body of the response message has no content) and `200 OK` (used when the body of the response message contains a representation of the resource that was created or updated).
+If a third-party service does not specify the status codes that it expects, then it is RECOMMENDED to return a `202 Accepted` for all success scenarios. This status code indicates that the request has been accepted for processing, but the processing has not been completed yet. This is appropriate for most webhook requests, as it allows the server to process the request asynchronously (the webhook message gets added to a queue and processed later).
 
-For errors, the RECOMMENDED status codes are `400 Bad Request` (for client errors, such as invalid input data), `401 Unauthorized` (for authentication errors), `403 Forbidden` (for authorization errors), and `404 Not Found` (when the requested resource does not exist). The `500 Internal Server Error` status code is used for server errors.
+To indicate errors, the RECOMMENDED status codes are:
 
-For the purpose of status codes, the relationship between client and server is _not_ reversed when it comes to webhooks. The client is still the one that initiates the request, and the server is the one that responds to the request – even if it is the client, in this case, that specifies the interface (eg. the payload schema and authentication mechanism) of the webhook endpoint. Therefore, the same status codes apply as for other HTTP API endpoints.
+* `400 Bad Request` for client errors, which you should return if the message failed to validate against the expected schema.
+* `401 Unauthorized` for failed authentication checks.
+* `403 Forbidden` for failed authorization (permissions, scopes) checks.
+* `404 Not Found` when the requested resource does not exist. 
+* `500 Internal Server Error` for any scenario in which your application encounters an unexpected condition that prevents it from fulfilling the request.
 
+When designing your own outbound webhook messages, you will need to consider the status codes that you will want third-party services to return in response to your webhook messages. It is RECOMMENDED:
+
+* To accept any `2**` status code to indicate successful processing of a webhook message (ie. any `2**` code will be treated by you as `202 Accepted`).
+* To log any `4**` status codes for further investigation.
+* To treat `5**` status codes as errors, which will feed into your retry and dead-letter queue mechanisms.
+* To treat `1**` and `3**` status codes as generic `500` server errors.
