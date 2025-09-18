@@ -311,6 +311,62 @@ GET /v1/vault/credit-cards
 }
 ----
 
+=== Pagination
+
+Any collection that could contain a large, potentially unbounded list of resources SHOULD implement pagination. The following design patterns are RECOMMENDED.
+
+----
+/accounts?per_page={per_page}&page={page}
+----
+
+Pages of results SHOULD be referred to consistently by the query parameters `page` and `per_page`, where `per_page` is a non-zero positive integer representing the number of results per paginated response, and `page` is a number of 1 or more that represents the current page of results requested.
+
+The `per_page` query parameter SHOULD be optional. If not provided by the client, the server should fallback to a sensible, specified default.
+
+The `page` query parameter SHOULD also be optional. If not provided by the client, the server MUST return the first page of results (ie. the default value for `page` MUST be 1).
+
+The values of both `page` and `per_page` MUST be validated by the server. A `400 Bad Request` SHOULD be returned for semantically invalid values. However, if the requested range if outside of the available range of results (eg. `per_page=100&page=2` is requested but there are only 50 results) a `200 OK` response SHOULD be returned with an empty result list, not a `404 Not Found`.
+
+In certain cases, such as querying on a large data set, in order to optimize the query execution with pagination, it may be appropriate to retrieve the data based on the result set of the previous page. A `page_token` parameter MAY be used for this purpose. This could be, for example, an encrypted value of primary keys to navigate to the next and previous pages, along with directions.
+
+Additionally, responses MAY include `total_items` and `total_pages` metadata fields. `total_items` indicates the total number of items in the collection, and `total_pages` is the number of pages (interpolated from `total_items`/`per_page`). This will help clients to implement better user experiences, for example by disabling navigation to pages that are outside of the available range. Where providing the `total_items` and `total_pages` requires expensive queries on the server-side, the client SHOULD be able to opt-in to receiving this information using a query parameter, for example `?include_totals=true`.
+
+Hypermedia links with `rel` attributes for "next", "previous", "first", and "last" pages SHOULD be included in paginated collections, to make it easier for clients to navigate through collections. The `page` and `per_page` query parameters, inputted by the client, MUST be maintained for each link, to ensure consistent client behavior. See the section on *Hypermedia* for more information.
+
+=== Filtering
+
+Collections MAY be filtered by default. For example, resources to which a user is not authorized to access MUST NOT be included in a collection. If all resources in a collection are not authorized, returning a `403 Forbidden` response would be appropriate.
+
+Additional, optional filtering may be applied by clients using query parameters. For example, the following query parameters MAY be available for clients to filter collections by a time range:
+
+* `start_time` or `{property_name}_after`: An ISO-8601 date and time string that represents the start of a temporaal range. `start_time` may be used when there is only one unambiguous time dimension, otherwise the property name should be used, eg, `processed_after`, `uploaded_after`. The property SHOULD map to a time field in the representation.
+
+* `end_time` or `{property_name}_before`: An ISO-8601 date and time string indicating the end of a temporal range. `end_time` may be used when there is only one unambiguous time dimension, otherwise the property name should be used, eg. `processed_before`, `uploaded_before`. The property SHOULD map to a time field in the representation.
+
+These query parameters SHOULD be used consistently across all endpoints that support time-based filtering.
+
+=== Searching
+
+Search query parameters MAY be supported on collections, to allow clients to filter collection lists based on freeform input. The query parameter SHOULD be named `q` and MAY be used to search across multiple fields of the resources.
+
+=== Sorting
+
+Results could be ordered according to sorting-related instructions given by the client. This includes sorting by a specific field's value, and sorting order.
+
+The following URL parameters SHOULD be used for this purpose:
+
+* `sort_by`: A dimension by which items should be sorted. The dimensions SHOULD be an attribute in the item's representation.
+
+* `sort_order`: The order, one of "asc" or "desc", indicating ascending or descending order.
+
+The default sort field and sort order MUST be documented for each collection. All collections have a default sorting, except in use cases where the order is deliberately randomized (if so, this still needs to be specified).
+
+=== HTTP statuses
+
+If a collection is empty (ie. it has zero items), returning `404 Not Found` is not appropriate. It was the collection that was requested, not a specific item in the collection. And the collection exists – it is just empty. Instead, return a `200 OK` response with an empty `items` array.
+
+Invalid query parameters SHOULD be signalled with a `404 Bad Request` response.
+
 == Webhooks
 
 Webhooks are API endpoints that are typically used to receive notifications about events that happen in third-party systems, such as when a payment has been successfully processed, when a subscription is cancelled, or when a service fails to send an SMS message.
