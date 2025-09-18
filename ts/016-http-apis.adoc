@@ -8,12 +8,12 @@ toc::[]
 
 == Webhooks
 
-Webhooks are API endpoints that are used to receive notifications from third-party systems that are integrated with the service. Webhooks are typically used to receive notifications about events that occur in a third-party system, such as when a payment has been successfully processed, when a subscription is cancelled, or when a service fails to send an SMS message.
+Webhooks are API endpoints that are used to receive notifications from third-party systems. Webhooks are typically used to receive notifications about events that occur in a third-party system, such as when a payment has been successfully processed, when a subscription is cancelled, or when a service fails to send an SMS message.
 
 The design of webhooks requires special consideration. Webhooks are not really part of an HTTP API's public interface, but rather they are special-purpose private endpoints that sit alongside the main public endpoints of an HTTP API. Webhooks tend to have a different URL scheme, different payload schemas, and different authentication mechanisms than the main API endpoints.
 
 ****
-See also link:./017-messages.adoc[TS-17: Messages and Events], which covers concerns related to event schema and asynchronous event handling, topics that are relevant to the implementation of webhooks.
+See also link:./017-messages.adoc[TS-17: Messages and Events], which covers concerns related to event schema and asynchronous event handling – topics that are relevant to the implementation of webhooks.
 ****
 
 === Webhook URL schemes
@@ -49,9 +49,9 @@ This fictional API exposes six webhooks:
 
 * One webhook for a service called AthentiQ. A single endpoint is used to process all events emitted by this service. The endpoint supports version 3 of AuthentiQ's webhook event schema.
 
-* A similar webhook for a service called TrueID. The endpoint supports version 1 of TrueID's webhook event schema. (Perhaps TrueID is a legacy identity verification service that is being phased out, and eventually replaced by AuthentiQ.)
+* A similar webhook for a service called TrueID. The endpoint supports version 1 of TrueID's webhook event schema. We're pretending that TrueID is a legacy identity verification service that is being phased out, and eventually replaced by AuthentiQ. In this transition phase, the system needs to support both services in parallel.
 
-* Four endpoints to handle notifications from a service called Transactify. There's one endpoint to process "transaction-initiated" events, and another endpoint to process "transaction-complete" events. The system supports two different versions of AlertPulse's event schema. (Perhaps most notifications are now sent to te v2 webhooks, but the system still needs to support the legacy v1 schema for a period of time before its deprecation – for example to handle retries and updates of historical events.)
+* Four endpoints to handle notifications from a service called Transactify. There's one endpoint to process "transaction-initiated" events, and another endpoint to process "transaction-complete" events. The system supports two different versions of Transactify's event schema. Perhaps most notifications are now sent to the v2 webhooks, but the system still needs to support the legacy v1 schema for a period of time, for example to handle retries and updates of historical events, before its deprecation.
 
 These examples demonstrate the following features of this webhook URL scheme.
 
@@ -73,7 +73,7 @@ Finally, multiple webhooks can be be supported for a single third-party service.
 
 === Webhook status codes
 
-Third-party services MAY require specific success status codes for their webhooks. Where this is not specified, it is RECOMMENDED to return a 2** status code for successful requests. The RECOMMENDED success status code for most webhook requests is `202 Accepted`, which indicates that the request has been accepted for processing, but the processing has not been completed yet. This is appropriate for most webhook requests, as it allows the server to process the request asynchronously.
+Third-party services MAY require specific success status codes for their webhooks. Where this is not specified, it is RECOMMENDED to return a 2** status code for successful requests. The RECOMMENDED success status code for most webhook requests is `202 Accepted`, which indicates that the request has been accepted for processing, but the processing has not been completed yet. This is appropriate for most webhook requests, as it allows the server to process the request asynchronously (the webhook message gets added to a queue and processed later).
 
 Other useful success status codes include `204 No Content` (used when the body of the response message has no content) and `200 OK` (used when the body of the response message contains a representation of the resource that was created or updated).
 
