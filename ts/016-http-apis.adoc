@@ -16,9 +16,9 @@ Webhooks take two forms, each of which requires different design considerations:
 
 * *Outbound webhooks*: These are messages sent out from a service to the webhook endpoints of other services.
 
-Inbound webhooks are not really part of an HTTP API's public interface, but rather they are special-purpose private endpoints that sit alongside the main public endpoints of an HTTP API. Their purpose is to facilitate integration with other services (usually services operated by third-parties). They are not used directly by the service's own users/customers. Inbound webhooks may be exposed via different URLs schemas and HTTP methods than the main API endpoints, and things like payload schema and authentication mechanisms will be determined by the third-party service.
+Inbound webhooks are not really part of an HTTP API's public interface, but rather they are special-purpose private endpoints that sit alongside the main public endpoints of an HTTP API. Their purpose is to facilitate integration with other services (usually services operated by third-parties). They are not used directly by the service's own users/customers. Inbound webhooks may be exposed via different URLs schemas and HTTP methods than the main API endpoints, and things like payload schema and authentication mechanisms will be determined by the third-party services.
 
-Outbound webhooks, on the other hand, are a form of event notification, and they are very much part of the application programming interface (API) of the service from which they are omitted. And yet they may sit apart from the main HTTP API endpoints of that service. Outbound webhooks may use different transport protocols, different message formats, different schemas, different methods of authentication, and they may even be versioned independently of the service's main API.
+Outbound webhooks, on the other hand, are a form of event notification, and they are very much part of the application programming interface (API) of the service from which they are emitted. And yet they may sit apart from the main HTTP API endpoints of that service. Outbound webhooks may use different transport protocols, different message formats, different schemas, different methods of authentication, and they may even be versioned independently of the service's main API.
 
 ****
 See also link:./017-messages.adoc[TS-17: Messages and Events], which covers concerns related to event schema and asynchronous event handling – topics that are relevant to the implementation of webhooks.
@@ -89,19 +89,20 @@ link:./017-messages.adoc[TS-17: Messages and Events] provides guidance on design
 
 When integrating with third-party services via inbound webhooks, those third-party services MAY require you to return specific status codes to indicate success or failure in your processing of their webhook messages. If the third-party service specifies the status codes that it expects, then you MUST comply with those requirements to ensure proper integration with their systems. Processes such as retries and dead-letter queues will likely be triggered by particular status codes.
 
-If a third-party service does not specify the status codes that it expects, then it is RECOMMENDED to return a `202 Accepted` for all success scenarios. This status code indicates that the request has been accepted for processing, but the processing has not been completed yet. This is appropriate for most webhook requests, as it allows the server to process the request asynchronously (the webhook message gets added to a queue and processed later).
+If a third-party service does not specify the status codes that it expects, then it is RECOMMENDED to return a `202 Accepted` for all success scenarios. This status code indicates that the request has been accepted for processing, but the processing has not been done yet. This is appropriate for most webhook requests, as it allows the server to process the request asynchronously – the webhook message gets added to a queue and processed later – which is a best practice.
 
-To indicate errors, the RECOMMENDED status codes are:
+To indicate errors, the RECOMMENDED return codes are:
 
-* `400 Bad Request` for client errors, which you should return if the message failed to validate against the expected schema.
+* `400 Bad Request` for client errors, which you should return when a message fails to validate against the expected schema.
 * `401 Unauthorized` for failed authentication checks.
 * `403 Forbidden` for failed authorization (permissions, scopes) checks.
 * `404 Not Found` when the requested resource does not exist. 
-* `500 Internal Server Error` for any scenario in which your application encounters an unexpected condition that prevents it from fulfilling the request.
+* `500 Internal Server Error` for any scenario in which your application encounters an unexpected condition that prevents it from completing its handling of the message. When you return a `5**` code, you are basically saying to the client "please retry this later".
 
 When designing your own outbound webhook messages, you will need to consider the status codes that you will want third-party services to return in response to your webhook messages. It is RECOMMENDED:
 
 * To accept any `2**` status code to indicate successful processing of a webhook message (ie. any `2**` code will be treated by you as `202 Accepted`).
-* To log any `4**` status codes for further investigation.
-* To treat `5**` status codes as errors, which will feed into your retry and dead-letter queue mechanisms.
+* To log any `4**` status codes for further investigation, 
+* To treat `5**` status codes as server errors, which will feed into your retry and dead-letter queue mechanisms.
+* To treat any `4**` client errors in the same way as `5**` server errors, but in addition log them for further investigation.
 * To treat `1**` and `3**` status codes as generic `500` server errors.
