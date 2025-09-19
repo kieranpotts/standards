@@ -574,6 +574,57 @@ There will be a one-to-one relationship between a resource and each of its singl
 
 Singleton sub-resources are not standalone resources, but are attached to their parent. Therefore, singleton sub-resources SHOULD be created and updated via the operations for their parent resource, rather than adding dedicated endpoints for them. Singleton sub-resources SHOULD NOT duplicate resources from other collections, but SHOULD be unique to their parent resource.
 
+== Safeness and idempotency
+
+The HTTP standards define the concepts of safeness and idempotency for HTTP methods.
+
+A *safe* operation is one that does not modify the state of the resource. The HTTP standards define the `GET` and `HEAD` methods as safe methods, as these methods are intended not to request any kind of action other than data retrieval.
+
+An *idempotent* operation is one that has the same effect on the state of the requested resources, regardless of how many times the operation is performed. Clients can therefore retry operations, sending identical requests multiple times, without worrying about data corruption or other unexpected side effects of doing the retries.
+
+There are many use cases for clients to send identical requests multiple times. Commonly, this is done in retry mechanisms in response to failed connection attempts.
+
+Building in idempotency is an important aspect of the design of any HTTP API. It makes it easier for clients to interact with the API, and improves the fault tolerance of the server-side system.
+
+The HTTP standards define the `GET`, `HEAD`, `PUT`, and `DELETE` methods as being idempotent methods. HTTP APIs therefore MUST implement these operations to be idempotent.
+
+The HTTP standards do not specify the `PATCH` method as being neither safe nor idempotent. However, it is strongly RECOMMENDED that `PATCH` operations be implemented as idempotent ones.
+
+`POST` operations are, by definition, neither safe nor idempotent. By default, executing an identical `POST` operation multiple times will create multiple discrete resources with different identifiers but duplicate data. There may be legitimate use cases where this is the desirable behavior. For example, a "like" operation on a social media post may not be required to be idempotent, as the desired behavior of sending multiple instances of the same request may be to toggle the user's "like" state of the post.
+
+However, for most use cases in most APIs it is expected that `POST` operations will need to be implemented to be idempotent, to avoid unwanted duplicates of data entities being created.
+
+Idempotency keys MUST be used to implement idempotency in `POST`, `PUT`, `PATCH`, and `DELETE` operations as required. An idempotency key is generated client-side and it is a unique identifier for each discrete request. It is used by the server to ensure that it processes only the first instance of each discrete request it receives. Subsequent requests with the same idempotency key are ignored, and the _same response is returned as for the first request_ (the server should assume that the client never received the first response).
+
+Idempotency keys have other use cases too. They can double up as identifiers to correlate requests with responses ("correlation IDs"), and they support the tracing of cause-and-effect throughout distributed systems ("trace IDs"). For this reason, it is RECOMMENDED that idempotency keys be implemented universally across all operations in an API, including `GET` and `HEAD` operations.
+
+In HTTP APIs, the header field `X-Request-Id` SHOULD be used as the idempotency key. This is a widely-used header field, and it is used by many client libraries and frameworks to generate unique identifiers for requests.
+
+[source,http]
+----
+POST /v1/payments/payouts HTTP/1.1
+Host: api.example.com
+Content-Type: application/json
+Authorization: Bearer {token}
+X-Request-Id: 123e4567-e89b-12d3-a456-426655440000
+
+{
+  // ...
+}
+----
+
+If a `X-Request-Id` header is not provided by the client, the server MAY generate a unique identifier for the request. However, for most use cases it will be more appropriate for the service to respond with a `400 Bad Request` and a link to the relevant documentation.
+
+Whether an idempotency key is generated client-side or server-side, it MUST be returned in response messages, also in the `X-Request-Id` header field.
+
+Each idempotency key MUST be unique and MUST NOT be reused with other requests with different payloads. For simplicity of implementation, idempotency keys SHOULD be unique across all clients, too. For this reason, it is RECOMMENDED to use the UUID version 4 algorithm to generate idempotency keys. This probability of generating the same UUID twice is so low that it can be considered to be zero for all practical purposes.
+
+If a client reused an idempotency key with a different request payload, the server MUST reply with a `422` status code.
+
+To implement idempotency, servers are required to cache response payloads against their idempotency keys. The server MUST return the cached response payload for each subsequent request with the same idempotency key, even if the response status code is not `200 OK`. This is to ensure that the client receives the same response as it would have received if the request had not been retried.
+
+Validity of idempotency keys SHOULD be time-based, allowing for servers to optimize storage by periodically purging the cached response payloads associated with expired idempotency keys (which are persisted for longer). The expiry time MAY vary depending on each key's use case, but a good default value is 24 hours. After this time, the server SHOULD return a `400 Bad Request` response for requests with expired idempotency keys.
+
 == Versioning and managing breaking changes
 
 HTTP APIs SHOULD have a major version number that is incremented whenever there are breaking changes in the API. The major version number SHOULD be encoded in the first path segment of the URL.
