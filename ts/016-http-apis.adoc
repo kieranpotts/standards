@@ -534,7 +534,45 @@ Response messages SHOULD include a list of hypermedia links that represent all t
 }
 ----
 
+== Sub-resources and sub-collections
 
+Sub-resources and sub-collections SHOULD be used sparingly and only where they are essential to expressing an accurate representation of an API's resource model.
+
+.Templates
+----
+GET /v{major}/{namespace}/{resource}/{resource_id}/{sub_resource}
+GET /v{major}/{namespace}/{resource}/{resource_id}/{sub_resource}/{sub_resource_id}
+POST /v{major}/{namespace}/{resource}/{resource_id}/{sub_resource}/{sub_resource_id}
+PUT /v{major}/{namespace}/{resource}/{resource_id}/{sub_resource}/{sub_resource_id}
+PATCH /v{major}/{namespace}/{resource}/{resource_id}/{sub_resource}/{sub_resource_id}
+DELETE /v{major}/{namespace}/{resource}/{resource_id}/{sub_resource}/{sub_resource_id}
+----
+
+Where a resource of one type can exist independently of other resources of other types, these resources SHOULD be elevated to top-level resources in most use cases. But if one type of resource cannot exist without another, this is a candidate to be lowered to a sub-resource.
+
+Sub-resources require multiple identifiers (*composite keys*, in database lexicon) to be uniquely identified. To identify a sub-resource, the parent resource's identifier is required, as well as the sub-resource's identifier. This is a potential source of complexity for client applications, as they need to manage multiple identifiers for essentially the same resource.
+
+For this reason, sub-resources SHOULD be used sparingly. The need to encode hierarchies of resources can increase the complexity of both server-side and client-side code. So, even where there is a tight coupling between two types of resources, look to promoting dependent resources to top-level resources (with single identifiers) where practical.
+
+Where sub-resources are necessary or beneficial, try to have no more than one level of sub-resources - that's two levels of resources in total. Any more levels, and the complexity of client application code grows exponentially. Server code, too, needs to validate each level of resources, including how sub-resources related to their parent resources, and this complexity also grows exponentially with each additional tier.
+
+Sub-resources MUST have a named type. `/v{major}/{namespace}/{resource}/{resource_id}/{sub_resource_id}` is not acceptable because `sub_resource_id` has ambiguous meaning. Linking sub-resource identifiers to sub-resource types in the URL scheme also supports extensibility; other sub-resources can be more easily added in the future. This constraint also makes it easier to support different identifier naming conventions being used for different types of sub-resources, should that be necessary.
+
+Sub-resources MAY be used as a solution to reducing the size of the parent resource, so segmenting a single large resource into multiple smaller resources. These types of sub-resources are known as *singleton sub-resources* and are identified by a static *sub-resource name* rather than a dynamically-generated identifier. Singleton sub-resources should be named using nouns in the singular form.
+
+.Template
+----
+/v{major}/{namespace}/{resource}/{resource_id}/{sub_resource}/{sub_resource_name}
+----
+
+.Example
+----
+GET /v1/customers/devices/123e4567-e89b-12d3-a456-426614174000/vendor-information
+----
+
+There will be a one-to-one relationship between a resource and each of its singleton sub-resources. Singleton sub-resources are expected to always exist if the parent resource exists, though they may have null values. (Do not return `404 Not Found` if a singleton sub-resource does not exist; simply return `null` for its value.)
+
+Singleton sub-resources are not standalone resources, but are attached to their parent. Therefore, singleton sub-resources SHOULD be created and updated via the operations for their parent resource, rather than adding dedicated endpoints for them. Singleton sub-resources SHOULD NOT duplicate resources from other collections, but SHOULD be unique to their parent resource.
 
 == Versioning and managing breaking changes
 
