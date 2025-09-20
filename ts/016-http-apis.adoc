@@ -723,6 +723,112 @@ The following response codes are appropriate for successful action operations:
 
 For errors, appropriate `4XX` or `5XX` error codes MAY be returned.
 
+== Asynchronous operations
+
+In general, synchronous operations SHOULD be preferred over asynchronous ones, as they simplify implementations on both the server-side and client-side. But there are some use cases where asynchronous operations are necessary or beneficial.
+
+Asynchronicity is particularly advantageous in long-running tasks, such as image processing and video transcoding. It is also useful in operations that require interactions with external systems, such as sending emails or SMS messages, where the response time of the external system is unpredictable and where the client requires only confirmation that the message was _sent_ and does not require an immediate understanding of the outcome of that operation.
+
+In implementing asynchronous operations, it is RECOMMENDED to conform to the following best practices.
+
+Responses to resource creation, update, and deletion operations SHOULD return the `202 Accepted` status code. This indicates that the request has been accepted for processing, but the processing has not yet been completed.
+
+The response body MAY include hypermedia links to any created or updated resources. There are two possible approaches to implementing this in the context of asynchronous operations. The first option is to include the final URL of the resource, from where clients can `GET` the latest representation of the resource in the normal way. This can be a good option in scenarios where the resource's ID and path are already known. If a newly-created resource is not yet ready, or if the resource has been deleted, the final URL SHOULD return the HTTP status code `404 Not Found`. Clients simply keep polling the provided endpoint until it is confirmed that the resource has been mutated as expected.
+
+[source,json]
+----
+{
+  "rel": "self",
+  "method": "GET",
+  "href": "/v1/namespace/resources/{resource_id}"
+}
+----
+
+A second option is to return a temporary URL where the status of the queued operation may be obtained via some kind of temporary identifier.
+
+[source,json]
+----
+{
+  "rel": "self",
+  "method": "GET",
+  "href": "/v1/queue/requests/{request_id}"
+}
+----
+
+It is RECOMMENDED that all HTTP APIs that implement asynchronous processing also support a single webhook that clients may optionally choose to implement to receive push notifications of any asynchronously-updated resources, or the results of any asynchronously-processed actions. This offers a third option for clients to keep their state synchronized with server changes – whether triggered by asynchronous operations or even by other clients. See the section on *Webhooks*, below, for further guidelines.
+
+It may be desirable to support both synchronous and asynchronous processing on the same endpoints. One possible design pattern is to support synchronous processing by default but allow clients to opt-in to asynchronous processing using the `Prefer=respond-async` header.
+
+== Concurrency control
+
+A common issue in network API design is how to manage concurrent operations. There is always the potential for multiple clients to attempt to modify the same resource at the same time. This can lead to data corruption or lost updates.
+
+These are not always issues, but where they are, APIs will need to implement concurrency control mechanisms. The appropriate mechanism will depend on the specific use case. But common patterns typically involve the use of ETags.
+
+ETags (Entity Tags) are used to implement a strategy known as *optimistic concurrency control*. They are used to prevent accidental overwrites – the "lost update" problem, in which the most recent update always wins – by allowing clients to check if a resource has already been modified before requesting further mutations to that resource.
+
+ETags themselves are unique identifiers assigned by a web server to a _specific version_ of a resource. When a resource changes, its ETag changes. ETags are returned in HTTP headers, allowing clients to detect changes to resources that originated from other clients.
+
+When a client requests a resource, it receives an `ETag` header with a value that represents the current version of the resource represented in the message body. This may be any arbitrary value, but it is typically implemented as a hash of the resource's content.
+
+----
+ETag: "<etag_value>"
+----
+
+When the client subsequently requests an update to the resource, it includes in the request the ETag of the last version of the resource that it has. This is sent in the `If-Match` header.
+
+The server then checks if the ETag in the request matches the current version of the resource known to the server. If they match, the update proceeds. If they do not match, it means another client has updated the resource in the meantime, and the update fails with a `412 Precondition Failed` status code.
+
+== Headers
+
+=== Non-standard headers
+
+Non-standard headers SHOULD be prefixed with `X-` to indicate that they are custom headers, and to avoid potential conflicts with future standard headers.
+
+Examples:
+
+* `X-Request-Id`: A unique identifier for the request, used for logging and tracing, and to implement idempotent operations.
+
+* `X-Correlation-Id`: A unique identifier to correlate requests and responses through distributed systems. This may be useful in scenarios where a client does not supply an `X-Request-Id` header, or where processes are initialized by the system (such as batch processes or scheduled jobs) rather than by a user.
+
+* `X-Client-Id`: A unique identifier for the client application making the request. This may be useful where you want to track the behavior of a specific client application, rather than a specific user.
+
+=== `Prefer` header
+
+HTTP APIs MAY support the `Prefer` header. This standard HTTP header is specified in https://tools.ietf.org/html/rfc7240[RFC 7240]. It is used by clients to opt-in to specific behaviors when the server is processing the client's requests.
+
+The `Prefer` header is useful for a number of use cases. Perhaps the most common use case is to allow clients to opt-in to receiving a response body, encoding up-to-date resources, for requests that would not otherwise receive one. For example, instead of `PUT` and `PATCH` requests receiving a `204 No Content` response by default, clients can opt-in to receiving a `200 OK` response with the updated resource in the response body. This can be useful for clients that need to capture system-generated fields, such as `create_time` and `update_time`, or where clients benefit from receiving up-to-date representations of resources that are particularly volatile.
+
+By default, HTTP APIs should return full representations of requested and updated resources. But sometimes the client does not need the full representation and the client-server interaction can therefore be optimized by returning partial representations of resources. This can be particularly beneficial in collections in which individual resources are large objects in their complete representations. Clients may therefore choose to fetch minimal or summarized lists of resources, and then fetch the full representations of individual resources as-and-when needed.
+
+The `Prefer: return=minimal` header MAY be used for this purpose. The definition of a "minimal" representation is left to the discretion of the service, but it SHOULD be documented as part of the API's interface specification.
+
+****
+To gives clients even more granular control over the subset of resource data that they receive, API services MAY instead support a query parameter named `fields`. This accepts a comma-separated list of field names that the client is interested in. The response body SHOULD include only the fields that are listed in the `fields` query parameter, plus any required fields that the server always provides.
+
+----
+GET https://api.example.com/v1/users/bob?fields=department,title,location
+----
+
+The `fields` pattern, if implemented, SHOULD be supported globally across all resources and collections.
+
+The `fields` query parameter SHOULD NOT be used in conjunction with the `Prefer: return=minimal` header. Clients SHOULD be expected to supply one or the other, or neither, but not both.
+****
+
+=== Response caching
+
+HTTP API servers MUST provide guidance to clients on appropriate caching of response messages. Clients MAY cache responses based on the guidance issued by the server.
+
+Client-side caching is typically guided using the `Cache-Control` header.
+
+// TODO: More details of possible implementation strategies.
+
+== Payloads
+
+The content, or payload, of HTTP request and response messages SHOULD be in the JSON format, for the majority of regular use cases. JSON is natively supported by most modern programming languages, it is human-readable as well as machine parsable, and has become the _de facto_ standard for encoding data in HTTP APIs.
+
+It is RECOMMENDED to _always_ return some kind of message to the client, except for `204 No Content` statuses. Even if the message is just `success: true`, and doesn't add any more semantic meaning than is conveyed through the status code, it can still be useful for the purpose of testing (eg. using tools like Postman). A little bit of redundancy between payload content, headers, and status codes is okay.
+
 == Versioning and managing breaking changes
 
 HTTP APIs SHOULD have a major version number that is incremented whenever there are breaking changes in the API. The major version number SHOULD be encoded in the first path segment of the URL.
