@@ -198,6 +198,12 @@ Namespaces are used to create logical groups of resources, collections, and acti
 
 Namespaces SHOULD be nouns but MAY be either singular or plural, as appropriate for each grouping of resources, collections, and actions.
 
+A good practice is to open a `GET` endpoint for the namespace root, which returns a list of availabel resources and corresponding operations within the namespace.
+
+----
+GET /v{major}/{namespace}
+----
+
 === Resources and collections
 
 The remaining segments of a URL path are used to identify resources and collections of resources,
@@ -625,6 +631,98 @@ To implement idempotency, servers are required to cache response payloads agains
 
 Validity of idempotency keys SHOULD be time-based, allowing for servers to optimize storage by periodically purging the cached response payloads associated with expired idempotency keys (which are persisted for longer). The expiry time MAY vary depending on each key's use case, but a good default value is 24 hours. After this time, the server SHOULD return a `400 Bad Request` response for requests with expired idempotency keys.
 
+== Actions
+
+In a RESTful-style of HTTP API, endpoints are resource-oriented. CRUD-like operations are performed against individual resources, and collections of resources, of various types. Resources are typically a conceptual mapping to a set of entities in a domain system.
+
+But some operations may not neatly fit into the RESTful model. It is sometimes quite difficult to model business processes in a pure RESTful service. Classic examples include endpoints to "login", "logout", "reset password", "charge a credit card", "resend a notification", and to "configure permissions and roles".
+
+These standalone operations are referred to as "actions" in this technical standard. Elsewhere, they may be referred to by other names such as "controllers", "procedures", "operations", or simply "endpoints".
+
+Actions tend to be mapped directly to specific controller methods in the server-side code, and for this reason they are the HTTP API equivalent of RPC (remote procedure call) protocols.
+
+A common use case for actions is to mutate the state of multiple resources in the same operation. These are known as *composite actions*. There will often be business operations that are not scoped to any one particular entity in the domain model. These are candidates for modelling as composite actions. Composite actions are a pattern for combining multiple atomic operations in a single transaction, abstracting away complex, multi-step processes behind a convenient facade for the client, so simplifying client-server interactions.
+
+An example would be a "refund" action that would change the state of a payment, the customer's account, and the merchant's account, and the action would not be considered to be fulfilled until all of these changes are committed. Another example of a composite action would be the implementation of a search function that operates across multiple resource types.
+
+Composite actions may be implemented for both performance optimization and usability reasons.
+
+Another use case for actions is to implement transient operations. A transient operation is one that does not mutate the state of any resources, or create new ones. An example might be a "dry run" action that validates the input data for a subsequent operation, such as a payment.
+
+There are many other use cases for augmenting HTTP APIs, which are predominantly resource-oriented, with standalone RPC-like actions. You can think of actions as fulfilling a similar role to services in domain-driven design. In DDD, services are a pattern that encapsulate business logic that operates across multiple entities in a domain model. Similarly, actions trigger logic that doesn't obviously belong to any one resource and/or any one CRUD operation.
+
+There are risks and benefits to using actions in HTTP APIs. Action-oriented APIs can be harder to scale than resource-oriented ones. The number of URLs can grow much more quickly, producing increased configuration complexity for routing and externalization, among other things. There tends also to be fewer opportunities to promote code reuse in automated tests (because actions tend to have greater variability in their inputs and outputs than operations performed on resources).
+
+However, for most HTTP APIs, not everything fits neatly into the RESTful architectural style. Some operations are simply better expressed as actions.
+
+The preference should be to design as much of an HTTP API as possible around a resource-oriented model, and augment the API with actions where specific operations do not fit neatly into that model. We should not try to force everything into the resource model just for the sake of purity of the API design.
+
+=== Implementing actions
+
+==== HTTP methods
+
+Actions MUST be performed using HTTP's `POST` method, except for actions that retrieve read-only data such as logs or reports, in which case the `GET` method MUST be used – to provide opportunities for client-side caching (`POST` responses are not cacheable.)
+
+==== URLs
+
+The name of an action SHOULD suggest the type of CRUD operation to be performed, rather than this being baked into the semantics of the HTTP method. Because actions represent a processing function on the server side, it is usually more intuitive to express them using verbs such as "activate", "cancel", "validate", "accept", and "deny".
+
+Action names should be like function names. Use lowerCamelCase with the first segment being a verb. The rest of an action's name should, typically, be in the singular form: `activateAccount`, `cancelSubscription`, `validateEmail`, `acceptInvitation`, `denyRequest`.
+
+This naming convention helps to distinguish actions from resource-oriented endpoints, which are named using hyphen-delimited slugs.
+
+==== Namespaces
+
+Actions that operate on resources across multiple namespaces SHOULD be placed in the root namespace of the API. For example, an action that sends a notification to a user might be placed at `/v1/sendNotification`, rather than in either of the "users" or "notifications" namespaces.
+
+.Template
+----
+POST|GET /v{major}/{action}
+----
+
+But it's better to scope actions to namespaces wherever possible. Actions and resources MAY coexist in the same namespaces. All actions within a namespace MUST only operate on the resources (including sub-resources) in the same namespace. If this design constraint cannot be achieved, better to elevate the actions to the API's global scope.
+
+.Template
+----
+POST|GET /v{major}/{namespace}/{action}
+----
+
+A good practice is to create a collection of actions within each namespace. Collections of actions SHOULD be named, simply, "actions". This helps to distinguish actions from resources in each namespace.
+
+.Template
+----
+POST /v{major}/{namespace}/actions/{action}
+----
+
+In addition, a `GET /v{major}/{namespace}/actions` endpoint MAY be provided to list all available actions in a namespace – similarly to how a list of available resources within a namespace can be retrieved.
+
+==== Resource-scoped actions
+
+There may be use cases for attaching actions to specific individual resources or collections, or even to sub-resources.
+
+.Template
+----
+POST /v{major}/{namespace}/{resource}/{resource_id}/actions/{action}
+----
+
+Resource-scoped actions may make sense to separate operations that are fundamentally _business processes_ from operations that change the core state of the resources themselves.
+
+A classic use case for resource-scoped actions is to avoid corrupting the entity model of a subdomain with transient data like comments. For example, for auditing purposes the business may require freeform comments to be attached to subscription cancellations. Since the comments would not be part of the model of a subscription resource, a resource-scoped action would be appropriate here. Users would post their comments to a `cancelSubscriptionComment` action, run subsequently to a `DELETE /subscriptions/{id}` request. This also works around a technical constraint with `DELETE` requests: you can't attach payloads to the message body of `DELETE` requests.
+
+Actions SHOULD be terminal resources within an HTTP API, which means they SHOULD NOT have sub-resources (including sub-actions) relative to them.
+
+==== Status codes
+
+The following response codes are appropriate for successful action operations:
+
+* `200` - The action was successfully executed, and the response body contains the result of the action, which may included updates to affected resources.
+
+* `201` – The action successfully created one or more new resources. This will be appropriate for composite actions that create a root entity plus all its dependencies.
+
+* `204` – Use this instead of `200` when there is no paylad in the response message. This will often be appropriate for actions that trigger out-of-band processes, such as sending notifications.
+
+For errors, appropriate `4XX` or `5XX` error codes MAY be returned.
+
 == Versioning and managing breaking changes
 
 HTTP APIs SHOULD have a major version number that is incremented whenever there are breaking changes in the API. The major version number SHOULD be encoded in the first path segment of the URL.
@@ -742,8 +840,8 @@ Second, the `{version}` component is independent of the HTTP API's own versionin
 
 Thus, webhooks MUST be versioned independently to an API's main endpoints, and also to each other. Individual webhooks can thus be incremented independently. It becomes possible to handle two or more incompatible versions of a webhook's event schema in parallel. If a client makes breaking changes to their event schema, you will be able to transition to the new schema in an incremental, non-breaking way. You can do this by publishing a new handler for the new event schema alongside the existing handler for the existing schema, eg.
 
-* `/webhooks/idverse/v3/receive-event`
-* `/webhooks/idverse/v4/receive-event`
+* `/webhooks/{party}/v3/receive-event`
+* `/webhooks/{party}/v4/receive-event`
 
 [TIP]
 ======
