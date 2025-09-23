@@ -2,9 +2,9 @@
 :toc: macro
 :toc-title: Contents
 
-This technical standard covers best practices for designing and implementing messages and events in event-driven architectures, including schema design, reliability, security, and developer experience.
+This technical standard covers best practices for designing and implementing messages and events in event-driven architectures.
 
-See also the *webhooks* section in link:./016-http-apis.adoc[TS-16: HTTP APIs].
+See also the *webhooks* section in link:./016-http-apis.adoc[TS-16: HTTP APIs]. Webhooks are a subset of message-driven communication patterns, in which event-oriented messages are exchanged via HTTP between systems owned and operated by different parties.
 
 toc::[]
 
@@ -14,15 +14,29 @@ In message-driven architectures, messages are the primary means of communication
 
 Ideally, all asynchronous communication between services within a distributed system should use a consistent, versioned JSON schema for all types of messages. Standardization on the high-level design of all messages across an entire system reduces overall complexity, encourages code reuse via shared libraries, and improves interoperability between services.
 
-It is RECOMMENDED to model all types of messages using a unified schema. This means defining an extensible structure that can scale to represent different kinds of messages. Broadly, there are three categories of messages: events, commands, and queries. Events represent things that have happened in the service emitting the event (eg., `user.created`, `order.placed`). Commands represent requests for operations to be performed by other services (eg. `sendEmail`, `refundOrder`). Queries are requests for data (eg., `getUserDetails`, `listOrders`). A well-designed message schema will accommodate all three types of messages in a consistent way.
+It is RECOMMENDED to model all types of messages using a unified schema. This means defining an extensible structure that can scale to represent different kinds of messages.
+
+=== Message types
+
+Broadly, there are three categories of messages: events, commands, and queries.
+
+* *Events* represent things that have happened in the service emitting the event (eg., `user.created`, `order.placed`).
+
+* *Commands* represent requests for operations to be performed by other services (eg. `sendEmail`, `refundOrder`).
+
+* *Queries* are requests for data (eg., `getUserDetails`, `listOrders`).
+
+As a general rule of thumb, message publishers would usually expect subscribers to process events and commands asynchronously (therefore, these types of messages will typically be delivered to an asynchronous messaging system such as a message queue. Queries would typically be made via synchronous request-response APIs, eg. HTTP or gRPC. The other distinguishing characteristic is that events and commands are likely to change state; queries will not.
+
+A well-designed message schema will accommodate all three types of message in a consistent way.
 
 === Standards
 
 Some industry standards are starting to emerge for message schema.
 
-https://www.standardwebhooks.com/[Standard Webhooks] is the most prominent initiative to establish common conventions for event schemas. The guidelines target webhooks – ie. messages transmitted between systems owned by different parties – though they are useful also for internal communication design. Standard Webhooks captures common conventions used for event naming, payload structure, security (signatures), and delivery patterns.
+https://www.standardwebhooks.com/[Standard Webhooks] is the most prominent initiative to establish common conventions for event schemas. The guidelines target webhooks – ie. event-oriented messages transmitted between systems owned by different parties – though there are many good ideas that are applicable to internal communication design, too. Standard Webhooks is a catalog of common patterns seen in public webhooks, rather than a standard. It captures common conventions for event naming, payload structure, security (signatures), and delivery patterns.
 
-https://cloudevents.io/[CloudEvents] is another standard for event schemas, developed under the https://github.com/cncf[Cloud Native Computing Foundation]. It's focus is on improving interoperability across different cloud providers and platforms. It does this by specifying a common format for event data and metadata that can be used across wide variety of messaging and transport protocols.
+https://cloudevents.io/[CloudEvents] is an effort to standardize event schemas. It is being actively developed under the https://github.com/cncf[Cloud Native Computing Foundation]. It's focus is on improving interoperability across different cloud providers and platforms. It does this by specifying a common format for event data and metadata that can be used across wide variety of messaging and transport protocols.
 
 The remainder of this technical standard draws inspiration from both of these standards, but does not mandate their use.
 
@@ -34,19 +48,20 @@ Other formats, such as XML or Protocol Buffers, may be used in specific scenario
 
 === High-level design
 
-There are two parts to a message schema: the main payload, and metadata for the message container itself. These two parts SHOULD be clearly differentiated in the schema.
+There are two parts to a message schema: the message's main payload, and metadata for the message container. These two parts SHOULD be clearly differentiated in the schema.
 
 The following high-level design achieves this separation.
 
+[source,jsonc]
 ----
 {
   // Metadata:
-  "messageId": "string",      // Unique identifier for the message.
-  "messageType": "string",    // Message type: "event", "command", or "query".
-  "timestamp": "string",      // Time of message delivery.
-  "schemaVersion": "string",  // Version of the message schema.
-  "correlationId": "string",  // Correlation ID for tracing.
+  "schema_version": "string",  // Version of the message schema.
+  "message_id": "string",      // Unique identifier for the message.
+  "created_at": "string",     // Time of message creation, RFC 3339/ISO 8601 format.
+  "correlation_id": "string",  // Correlation ID for tracing.
 
+  // Operation – one of:
   "event": "string",          // Event type (eg., "user.created").
   "command": "string",        // Command name (eg., "sendEmail").
   "query": "string",          // Query name (eg., "getUserDetails").
