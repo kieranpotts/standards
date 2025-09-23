@@ -827,7 +827,676 @@ Client-side caching is typically guided using the `Cache-Control` header.
 
 The content, or payload, of HTTP request and response messages SHOULD be in the JSON format, for the majority of regular use cases. JSON is natively supported by most modern programming languages, it is human-readable as well as machine parsable, and has become the _de facto_ standard for encoding data in HTTP APIs.
 
-It is RECOMMENDED to _always_ return some kind of message to the client, except for `204 No Content` statuses. Even if the message is just `success: true`, and doesn't add any more semantic meaning than is conveyed through the status code, it can still be useful for the purpose of testing (eg. using tools like Postman). A little bit of redundancy between payload content, headers, and status codes is okay.
+It is RECOMMENDED to _always_ return some kind of content to the client, except for `204 No Content` statuses. Even if the content is just a message that doesn't add any more semantic meaning than is conveyed through the status code, it can still be useful for the purpose of testing (eg. using tools like Postman). A little bit of redundancy between payload content, headers, and status codes is okay.
+
+=== Payload schema
+
+The structure of JSON payloads SHOULD be consistent across all endpoints in an API. Consistency makes it easier for clients to understand the API, and to write reusable code for interacting with it.
+
+As for what that structure should look like, there is no universal standard. There have been some attempts to standardize JSON API structures, notably the Open Data (OData) protocol (https://www.odata.org/), which is the closest thing we have to an industry standard for application-level messaging in JSON. But OData is an overly complex system for most use cases, and for this reason it is not widely adopted. Lighter weight, community-driven standards include JSON API (https://jsonapi.org/) and JSON RPC (https://www.jsonrpc.org/).
+
+An appropriate schema SHOULD be designed to meet the specific needs of each API's particular use cases.
+
+The following is a RECOMMENDED starting point for schema design. This describes a generic schema for the payloads of HTTP _response_ messages. A subset of this schema MAY also be adopted for HTTP _request_ message payloads. The schema design is heavily influenced by the JSON API standard, but is not compatible with it.
+
+==== Top-level properties
+
+This schema defines four top-level properties:
+
+* `resources`
+* `metadata`
+* `links`
+* `messages`
+
+The values of the first two properties are objects. The values of the third and fourth properties are arrays.
+
+[source,json]
+----
+{
+  "resources": {},
+  "metadata": {},
+  "links": [],
+  "messages": []
+}
+----
+
+Only the `resources` property is REQUIRED for response payloads, where the body of the HTTP message is not empty. However, the value of this property MAY be an empty object. Therefore, the minimum payload REQUIRED for response messages is:
+
+[source,json]
+----
+{
+  "resources": {}
+}
+----
+
+==== Resources
+
+The "resources" field encapsulates the main resource representations within an HTTP message.
+
+The value of this field MUST be a `ResourcesContainer` object (defined below), or an empty object if there are no relevant resource representations to supply to the client.
+
+.`ResourcesContainer` schema
+[source,json]
+----
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "patternProperties": {
+    "[a-z][a-z-/]*$": {
+      "$ref": "#/$defs/ResourceTypeContainer"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "ResourceTypeContainer": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "#/$defs/MetadataContainer"
+        },
+        "items": {
+          "$ref": "#/$defs/ResourceCollection"
+        },
+        "links": {
+          "$ref": "#/$defs/LinksCollection"
+        }
+      },
+      "required": ["items"],
+      "additionalProperties": false
+    },
+    "ResourceCollection": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ResourceItem"
+      }
+    },
+    "ResourceItem": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "attributes": {
+          "type": "object"
+        },
+        "metadata": {
+          "$ref": "#/$defs/MetadataContainer"
+        },
+        "related": {
+          "$ref": "#/$defs/RelatedCollection"
+        },
+        "links": {
+          "$ref": "#/$defs/LinksCollection"
+        }
+      },
+      "required": ["id"],
+      "additionalProperties": false
+    },
+    "MetadataContainer": {
+      "type": "object"
+    },
+    "LinksCollection": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/LinkItem"
+      }
+    },
+    "LinkItem": {
+      "type": "object",
+      "properties": {
+        "rel": {
+          "type": "string"
+        },
+        "method": {
+          "type": "string"
+        },
+        "href": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "RelatedCollection": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/RelatedItem"
+      }
+    },
+    "RelatedItem": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}
+----
+
+All the keys in a `ResourcesContainer` object map to the name of a resource type. Each key is a string representing the full name of a resource type, including its namespace and parent resource (if the resource is a sub-type). Resource keys SHOULD match exactly the URL paths of their corresponding resource types in resource-oriented endpoints.
+
+[source,json]
+----
+{
+  "resources": {
+    "{namespace}/{resource}": {},
+    "{namespace}/{resource}/{resource_id}/{sub_resource}": {},
+  }
+}
+----
+
+The value of each key in a `ResourcesContainer` object is another object that encapsulates one or more resources, plus associated metadata and links, of the referenced resource type. This object is of the type `ResourceTypeContainer`, which is defined in the JSON Schema above. This object is REQUIRED to have at least one property named "items". Other OPTIONAL properties are "metadata" and "links".
+
+[source,json]
+----
+{
+  "resources": {
+    "{namespace}/{resource}": {
+      "metadata": {},
+      "items": [],
+      "links": []
+    }
+  }
+}
+----
+
+The "items" key references a `ResourcesCollection` array. Each object in a `ResourcesCollection` is a `ResourceItem`, which is a representation of exactly one resource. Every `ResourceItem` instance MUST have a property named "id", whose value is a unique identifier for the resource. Other attributes of a resource MAY be listed in a hashmap referenced via an "attributes" property. Other OPTIONAL properties of `ResourceItem` objects are "metadata", "related", and "links".
+
+[source,json]
+----
+{
+  "resources": {
+    "{namespace}/{resource}": {
+      "metadata": {},
+      "items": [
+        {
+          "id": "{uuid}",
+          "metadata": {},
+          "attributes": {
+            "{field}": "{value}",
+            "{field}": "{value}",
+            "{field}": "{value}"
+          },
+          "related": [],
+          "links": [
+            {
+              "rel": "self",
+              "method": "GET",
+              "href": "https://api.example.com/v1/{namespace}/{resource}/{uuid}"
+            }
+          ]
+        }
+      ],
+      "links": []
+    }
+  }
+}
+----
+
+The "attributes" field of the `ResourceItem` object is important. This is an object whose data is derived from the business domain of the application. Normally, this will be a representation of a domain object or other entity. Conceptually, individual attributes map to fields in a domain object or columns in a relational database table.
+
+For this reason, the naming convention for `ResourceItem` "attributes" fields – shown using the `{field}` placeholder in the above code example – MAY differ from the naming convention for other properties of the response schema. For example, resource attributes might adopt a "lowerCamelCase" naming convention for their field names, differentiating them from the "lower_snake_case" convention for other fields in the schema.
+
+It is RECOMMENDED that `ResourceItem` attributes be composed from a consistent set of common types, defined separately using JSON Schema. See link:./018-json-schema.adoc[TS-18: JSON Schema] for further guidance on best practices for defining libraries of common types using JSON Schema.
+
+==== Metadata
+
+All instances of the "metadata" key in the schema reference either an empty object or a `MetadataContainer` object. A `MetadataContainer` object encapsulates metadata about the response, a resource collection, or an individual resource. Metadata is not part of any representations of resources, but it MAY provide additional information about resources.
+
+A `MetadataContainer` object is a hashmap of key-value pairs. The keys MUST be a string. The values can be the native JSON types string, number, or boolean.
+
+.`MetadataContainer` schema
+[source,json]
+----
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "patternProperties": {
+    "[a-z][a-z_.]*$": {
+      "type":  ["string", "number", "boolean"]
+    }
+  },
+  "additionalProperties": false
+}
+----
+
+The "metadata" field at the root level of the schema MAY be used to provide more granularity about the status of a response, where HTTP status codes do not provide sufficient detail on their own. For example, a "status" metadata field could be included to provide a more specific status code, perhaps one originating from the business domain.
+
+The "metadata" field of a `ResourceTypeContainer` object MAY be used to provide information about the collection of resources attached to the object's "items" property, such as pagination details. Metadata fields such as `total_items` and `total_pages` would be appropriate here.
+
+Metadata may also be attached to individual `ResourceItem` objects.
+
+Metadata SHOULD NOT duplicate information that is already provided in the parts of HTTP response messages, such as their headers. For example, the `Content-Type` header SHOULD be used to indicate the media type of the response body, and the `Content-Length` header SHOULD be used to indicate the length of the response body.
+
+==== Related resources
+
+`ResourceItem` instances have an optional property named "related". If included, the value is a `RelatedCollection` of `RelatedItem`s. 
+
+.`RelatedCollection` schema
+[source,json]
+----
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "array",
+  "items": {
+    "$ref": "#/$defs/RelatedItem"
+  },
+  "$defs": {
+    "RelatedItem": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "additionalProperties": false
+      }
+    }
+  }
+}
+----
+
+Each `RelatedItem` instance is used to create a relationship between entities of different types of resources, all of which MUST exist within the same `ResourcesContainer` instance.
+
+[source,json]
+----
+{
+  "resources": {
+    "{namespace}/{resource}": {
+      "items": [
+        {
+          "id": "{uuid}",
+          "attributes": {
+            "{field}": "{value}",
+            "{field}": "{value}",
+            "{field}": "{value}"
+          },
+          "related": [
+            {
+              "type": "{namespace}/resource}",
+              "id": "{uuid}"
+            }
+          ]
+        }
+      ]
+    },
+    "{namespace}/{resource}": {
+      "items": [
+        {
+          "id": "{uuid}",
+          "attributes": {
+            "{field}": "{value}",
+            "{field}": "{value}",
+            "{field}": "{value}"
+          },
+          "related": [
+            {
+              "type": "{namespace}/resource}",
+              "id": "{uuid}"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+----
+
+In the following example, the "related" field is used to create a relational link between a payment card and prior orders paid with the same card.
+
+[source,json]
+----
+{
+  "resources": {
+    "vault/payment-cards": {
+      "items": [
+        {
+          "id": "123e4567-e89b-12d3-a456-426614174000",
+          "attributes": {
+            "type": "visa",
+            "number": "xxxxxxxxxxxx0331",
+            "expires": {
+              "month": "11",
+              "year": "2028",
+            },
+            "name": {
+              "first": "Joe",
+              "last": "Shopper"
+            }
+          },
+          "related": [
+            {
+              "type": "history/orders",
+              "id": "792eb20b-159a-48d3-9d62-b3b28308a432",
+            }
+          ]
+        }
+      ]
+    },
+    "history/orders": {
+      "items": [
+        {
+          "id": "792eb20b-159a-48d3-9d62-b3b28308a432",
+          "attributes": {
+            "status": "shipped",
+            "total": 3999,
+            "currency": "USD"
+          }
+        }
+      ]
+    }
+  }
+}
+----
+
+==== Links
+
+This HTTP message schema supports the embedding of hypermedia controls, aka. links.
+
+Links may be associated with the response message itself, or a collection of resources, or individual resources within a collection.
+
+[source,json]
+----
+{
+  "resources": {
+    "{namespace}/{resource}": {
+      "items": [
+        {
+          "id": "{uuid}",
+          "links": [
+            // Links related to this resource
+          ]
+        }
+      ],
+      "links": [
+        // Links related to this collection of resources
+      ]
+    }
+  },
+  "links": [
+    // Links related to all collections of resources
+  ]
+}
+----
+
+Links related to a specific resource may encode instructions for clients to update and delete the resource, for example. Links related to a collection of resources may encode instructions for clients to add new resources to the collection, or to query or filter the collection. Links at the root of the schema may encode other instructions for clients that are not scoped to any particular collection or resource.
+
+Embedding hypermedia controls in HTTP response messages has numerous benefits, including easier discoverability of resources and actions, improved extensibility of APIs, and reduced coupling between clients and servers.
+
+There are numerous standards and conventions for defining structured hypermedia links in JSON payloads, including https://stateless.group/hal_specification.html[HAL (Hypertext Application Language)], https://jsonapi.org/[JSON API], and https://github.com/kevinswiber/siren[Siren]. The following convention takes some design cues from each of these, but is primarily inspired by https://github.com/levid-gc/paypal-api-standards/blob/master/api-style-guide.md#hypermedia[PayPal's convention].
+
+PayPal's API conventions for hypermedia links align with the principles of HATEOAS (Hypermedia as the Engine of Application State). In PayPal's API, hypermedia links are used to make the API self-descriptive, by embedding all the information that clients need to interact with the available resources. This is the proper use of hypermedia links in API design.
+
+Each hypermedia link is composed of an object with three properties:
+
+* `rel`: Indicates the relationship of the link to the current resource. For example, the word "self" is a self-reference to the current resource, while the word "next" is used to navigate to the next page of results in a paginated collection.
+
+* `href`: Specifies the URL of the resource.
+
+* `method`: Defines the HTTP method – eg. `GET`, `POST` – that can be used with the link.
+
+For example, a typical PayPal API response might include links like this:
+
+[source,json]
+----
+{
+  "links": [
+    {
+      "rel": "self",
+      "href": "https://api.paypal.com/v1/payments/payment/PAY-123456789",
+      "method": "GET"
+    },
+    {
+      "rel": "approval_url",
+      "href": "https://www.paypal.com/checkoutnow?token=EC-123456789",
+      "method": "REDIRECT"
+    },
+    {
+      "rel": "execute",
+      "href": "https://api.paypal.com/v1/payments/payment/PAY-123456789/execute",
+      "method": "POST"
+    }
+  ]
+}
+----
+
+This structure provides clear guidance on how to interact with the API, including links for retrieving, approving, or executing a payment.
+
+Hypermedia links with `rel` attributes for "next", "previous", "first", and "last" pages SHOULD be included in paginated collections, to make it easier for clients to navigate through collections. The `page` and `per_page` query parameters, inputted by the client, MUST be maintained for each link, to ensure consistent client behavior.
+
+.Page navigation
+|===
+|Relationship |Description
+
+|`self`
+|Refers to the current page of the collection.
+
+|`first`
+|Refers to the first page of the collection. (This link type MUST NOT be returned when page tokens are used for navigation instead.)
+
+|`last`
+|Refers to the last page of the collection. Returning this link is OPTIONAL. (It also MUST NOT be returned when page tokens are used for navigation instead.)
+
+|`next`
+|Refers to the next page of the collection. This link MAY be omitted if it is known that the current page is the last in the available range (but this is not always known, because available resources may dynamically change between requests).
+
+|`prev`
+|Refers to the previous page of the collection. This link MUST NOT be provided where the current page is the first.
+|===
+
+.Example
+----
+{
+  "metadata": {
+    "total_items": 1,
+    "total_pages": 1
+  },
+  "items": [
+    // ...
+  ],
+  "links": [
+    {
+      "rel": "self",
+      "method": "GET",
+      "href": "https://api.example.com/v1/vault/credit-cards?page=3&per_page=10&sort_by=create_time&sort_order=asc"
+    },
+    {
+      "rel": "prev",
+      "method": "GET",
+      "href": "https://api.example.com/v1/vault/credit-cards/?page=2&per_page=10&sort_by=create_time&sort_order=asc
+    },
+    {
+      "rel": "next",
+      "method": "GET",
+      "href": "https://api.example.com/v1/vault/credit-cards/?page=4&per_page=10&sort_by=create_time&sort_order=asc"
+    },
+   {
+      "rel": "first",
+      "method": "GET",
+      "href": "https://api.example.com/v1/vault/credit-cards/?per_page=10&sort_by=create_time&sort_order=asc"
+    },
+    {
+      "rel": "last",
+      "method": "GET",
+      "href": "https://api.example.com/v1/vault/credit-cards/?page=12&per_page=10&sort_by=create_time&sort_order=asc"
+    }
+  ]
+}
+----
+
+==== Messages
+
+// TODO
+
+==== Schema
+
+The payload structure described above can be validated against the following JSON schema.
+
+.Full JSON Schema
+[source,json]
+----
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+
+  "type": "object",
+  "properties": {
+    "resources": {
+      "$ref": "#/$defs/ResourcesContainer"
+    },
+    "metadata": {
+      "$ref": "#/$defs/MetadataContainer"
+    },
+    "links": {
+      "$ref": "#/$defs/LinksCollection"
+    },
+    "messages": {
+      "$ref": "#/$defs/MessagesCollection"
+    }
+  },
+  "required": [],
+  "additionalProperties": false,
+
+  "$defs": {
+    "ResourcesContainer": {
+      "type": "object",
+      "patternProperties": {
+        "[a-z][a-z-/]*$": {
+          "$ref": "#/$defs/ResourceTypeContainer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ResourceTypeContainer": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "#/$defs/MetadataContainer"
+        },
+        "items": {
+          "$ref": "#/$defs/ResourceCollection"
+        },
+        "links": {
+          "$ref": "#/$defs/LinksCollection"
+        }
+      },
+      "required": ["items"],
+      "additionalProperties": false
+    },
+    "ResourceCollection": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ResourceItem"
+      }
+    },
+    "ResourceItem": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "attributes": {
+          "type": "object"
+        },
+        "metadata": {
+          "$ref": "#/$defs/MetadataContainer"
+        },
+        "related": {
+          "$ref": "#/$defs/RelatedCollection"
+        },
+        "links": {
+          "$ref": "#/$defs/LinksCollection"
+        }
+      },
+      "required": ["id"],
+      "additionalProperties": false
+    },
+    "MetadataContainer": {
+      "type": "object",
+      "patternProperties": {
+        "[a-z][a-z_.]*$": {
+          "type": ["string", "number", "boolean"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "LinksCollection": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/LinkItem"
+      }
+    },
+    "LinkItem": {
+      "type": "object",
+      "properties": {
+        "rel": {
+          "type": "string"
+        },
+        "method": {
+          "type": "string"
+        },
+        "href": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "RelatedCollection": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/RelatedItem"
+      }
+    },
+    "RelatedItem": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "additionalProperties": false
+      }
+    },
+    "MessagesCollection": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/MessageItem"
+      }
+    },
+    "MessageItem": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "code": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
+----
+
+[TIP]
+======
+Use the online https://www.jsonschemavalidator.net/[JSON Schema Validator] to validate your JSON payloads against the schema above.
+======
 
 == Versioning and managing breaking changes
 
