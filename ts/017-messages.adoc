@@ -179,4 +179,63 @@ Payloads MUST be composed from a global library of common data types and structu
 
 The size of event payloads can impact delivery reliability and performance. Therefore, try to keep payloads small – under 1MB, as a general guideline – and focused on the essential data needed by consumers. Consider opening new API endpoints from which event consumers can fetch additional information about the events they receive, if needed.
 
+== Delivery and reliability
 
+It is never possible to guarantee delivery of messages, or the correct sequencing of messages, between nodes within distributed systems. Messages may be dropped or delayed, for example due to network issues.
+
+The following guidelines help to design systems that can handle the inherent unreliability of message delivery.
+
+Retries, timeouts, rate limiting, and other such policies for message delivery MUST be clearly defined in service level agreements (SLAs).
+
+=== Timeouts
+
+Message delivery systems MUST implement reasonable timeout values for message deliveries. Timeout values SHOULD typically be between 10 and 30 seconds. After the timeout has elapsed, the message delivery is marked as failed and enters the retry system.
+
+=== Retries and circuit breakers
+
+It is RECOMMENDED to implement *retry logic* with *exponential backoff* plus *jitter* for failed deliveries. A common pattern is immediate retry, then delays of 1min, 5min, 30min, 2hrs, and 8hrs, before giving up and marking the message's delivery as failed. Adjust the intervals based on the time-sensitivity of each message; much shorter initial intervals may be appropriate for some use cases.
+
+It is RECOMMENDED to add random jitter to retry intervals. When multiple clients experience failures simultaneously – which will be the case for a service outage – they may all retry at the same intervals:
+
+* Client A: Retry at 30sec, 1min, 2min, 5min...
+* Client B: Retry at 30sec, 1min, 2min, 5min...
+* Client C: Retry at 30sec, 1min, 2min, 5min...
+
+The effect is "retry storms", seemingly synchronized across multiple clients, that can overwhelm a service while it is still recovering from failure, preventing successful recovery or causing new failures. Adding randomness (jitter) to retry intervals helps to spread out retry requests more evenly over time.
+
+* Client A: Retry at 38s, 1min 15sec, 2min 5sec, 5min 35sec...
+* Client B: Retry at 42s, 1min 5sec, 2min 25sec, 4min 50sec...
+* Client C: Retry at 25s, 59sec, 2min 10sec, 5min 10sec...
+
+Producers MUST implement sensible defaults for retry intervals. In some cases it will be desirable to customize retry intervals for different types of message. Consumers SHOULD be able to configure the retry intervals for messages sent to them, overriding the defaults.
+
+In addition, consumers MUST be able to retrieve their "dead letters" (messages that could not be delivered after multiple retries). This will typically involve consumers requesting a *replay* of failed messages, via an API endpoint (or dashboard for human users). Alternatively, dead letters could be saved to a log, from which consumers can retrieve them as a collection, to *reconcile* their synchronized state.
+
+Message queues MUST implement *circuit breakers* to temporarily stop deliveries to consistently-failing endpoints, to avoid overwhelming them. As with retry intervals, circuit breaker timeouts SHOULD be configurable by consumers, to accommodate different failure-recovery characteristics of different systems.
+
+=== Rate limiting
+
+Consumers MAY implement rate limiting on incoming messages.
+
+Producers of messages, or intermediary message delivery systems, MAY implement rate limiting on outgoing messages, too. However, generally it is the responsibility of consumers to manage their own capacity to process incoming messages. Therefore, consumers SHOULD be able to configure their desired rate limits with producers (or intermediary message delivery systems). As with retry intervals and circuit breaks, rate limiting MAY be configurable on a per-customer basis.
+
+=== Idempotency
+
+It is strongly RECOMMENDED that messages be designed to be *idempotent*. This means that the same message can be resent to a consumer multiple times without causing unintended side effects. Idempotency is crucial for ensuring that consumers can safely process duplicate messages, which may occur due to retries or network issues.
+
+The `message_id` field serves as an *idempotency key*. Consumers store a log of the IDs for messages tey have already processed. If they receive the same message a second time, they know they can safely ignore it.
+
+=== Statelessness
+
+Where possible, design events to be *stateless*. This means that each message is *self-contained*. Each event contains all the information needed for the consumer to process it, without relying on any external state or context.
+
+It is especially beneficial when the processing of events is not dependent upon the processing of prior events – since there can be no guarantees that those prior events will have been received or processed successfully.
+
+Therefore, it is RECOMMENDED to avoid using `sequence` fields in event metadata, and not to require consumers to reconstruct state from the full sequence of events, processed in the right order without gaps.
+
+An alternative design is to transmit no state at all in events. Such messages would not have payloads. These events are simply notifications that something has changed in the publisher service. Consumers are required to synchronize their state by making regular requests to API endpoints, in response to those notifications.
+
+
+
+
+Message queues MUST implement *circuit breakers* to temporarily stop deliveries to consistently-failing endpoints, to avoid overwhelming them.
