@@ -2,19 +2,19 @@
 :toc: macro
 :toc-title: Contents
 
-This technical standard covers best practices for designing and implementing messages and events in event-driven architectures.
+This technical standard covers best practices for designing and implementing messages and events in message-driven architectures (MDA).
 
-See also the *webhooks* section in link:./016-http-apis.adoc[TS-16: HTTP APIs]. Webhooks are a subset of message-driven communication patterns, in which event-oriented messages are exchanged via HTTP between systems owned and operated by different parties.
+See also the *webhooks* section in link:./016-http-apis.adoc[TS-16: HTTP APIs]. Webhooks are a subset of message-driven communication patterns, in which event-oriented messages are exchanged via HTTP between systems owned and operated by different parties (ie. inter-organizational communication).
 
 toc::[]
 
 == Message schema
 
-In message-driven architectures, messages are the primary means of communication between different components and services. Designing a robust, flexible, scalable, and maintainable message schema is a crucial aspect of the design of distributed systems with asynchronous message-based communication patterns.
+In message-driven architectures, messages are the primary means of communication between different components and services. Therefore, designing a robust, flexible, scalable, and maintainable message schema is a crucial aspect of the design of distributed systems with asynchronous message-based communication patterns.
 
-Ideally, all asynchronous communication between services within a distributed system should use a consistent, versioned JSON schema for all types of messages. Standardization on the high-level design of all messages across an entire system reduces overall complexity, encourages code reuse via shared libraries, and improves interoperability between services.
+Ideally, all asynchronous communication between nodes within a distributed system should use a consistent, versioned JSON schema for all types of messages. Standardization on the high-level design of all messages across an entire system reduces overall complexity, encourages code reuse via shared libraries, and improves interoperability between services.
 
-It is RECOMMENDED to model all types of messages using a unified schema. This means defining an extensible structure that can scale to represent different kinds of messages.
+It is RECOMMENDED to model all types of messages using a unified schema. This means defining an extensible structure that can scale to represent all kinds of messages.
 
 === Message types
 
@@ -26,17 +26,25 @@ Broadly, there are three categories of messages: events, commands, and queries.
 
 * *Queries* are requests for data (eg., `getUserDetails`, `listOrders`).
 
-As a general rule of thumb, message publishers would usually expect subscribers to process events and commands asynchronously (therefore, these types of messages will typically be delivered to an asynchronous messaging system such as a message queue. Queries would typically be made via synchronous request-response APIs, eg. HTTP or gRPC. The other distinguishing characteristic is that events and commands are likely to change state; queries will not.
+Commands and events are closely related. The difference is mostly in the statement of intent that underpins their semantics, whether the message is telling another component to do something (a command), or informing other components that something has happened (an event). A command, when it is complete, will typically spawn one or more new events that inform other components of the results of executing the command. Thus, a cascade of commands and events may be triggered by a single initial command.
 
-A well-designed message schema will accommodate all three types of message in a consistent way.
+Queries can be thought of as a type of command. They are used by components to requests data from other components. Thus, queries trigger commands that search, retrieve, and return data. Queries differ from commands in that they are read-only; they are not expected to change state. And it is also expected that producers of queries will also be consumers of events that result from the execution of the queries and return the requested data.
+
+All three types of message are used in message-driven architectures. A good message schema will accommodate all three types of message in a consistent way.
+
+=== Delivery mechanisms
+
+Message schema MUST NOT be tightly coupled to any particular delivery mechanism.
+
+It is expected that most messages will be processed asynchronously. Therefore, most messages will be delivered to an asynchronous message system such as a message queue. But if it is desirable for particular messages to be processed synchronously – some time-sensitive queries, for example – then messages may be delivered via synchronous request-response APIs, such as HTTP or gRPC. Therefore, the same message schema SHOULD support both asynchronous and synchronous delivery mechanisms, to maintain consistency across all communication patterns and to allow for delivery mechanisms to evolve independently of message schema.
 
 === Standards
 
 Some industry standards are starting to emerge for message schema.
 
-https://www.standardwebhooks.com/[Standard Webhooks] is the most prominent initiative to establish common conventions for event schemas. The guidelines target webhooks – ie. event-oriented messages transmitted between systems owned by different parties – though there are many good ideas that are applicable to internal communication design, too. Standard Webhooks is a catalog of common patterns seen in public webhooks, rather than a standard. It captures common conventions for event naming, payload structure, security (signatures), and delivery patterns.
+https://www.standardwebhooks.com/[Standard Webhooks] is the most prominent initiative to document common conventions for event schemas. The guidelines target webhooks – ie. event-oriented messages transmitted over the public internet between organizations – though there are many good ideas here that are applicable to internal communication design, too. Standard Webhooks is a catalog of common patterns seen in public webhooks, rather than a standard. It captures common conventions for event naming, payload structure, security (signatures), and delivery patterns.
 
-https://cloudevents.io/[CloudEvents] is an effort to standardize event schemas. It is being actively developed under the https://github.com/cncf[Cloud Native Computing Foundation]. It's focus is on improving interoperability across different cloud providers and platforms. It does this by specifying a common format for event data and metadata that can be used across wide variety of messaging and transport protocols.
+https://cloudevents.io/[CloudEvents] is an effort by the https://github.com/cncf[Cloud Native Computing Foundation] to standardize event schemas. It's focus is on improving interoperability across different cloud providers and platforms. It does this by specifying a generic specification for event data and metadata that can be mapped to a wide variety of messaging and transport protocols and message encoding formats.
 
 The remainder of this technical standard draws inspiration from both of these standards, but does not mandate their use.
 
@@ -44,27 +52,24 @@ The remainder of this technical standard draws inspiration from both of these st
 
 It is RECOMMENDED to use JSON as the data interchange format for messages, due to its widespread adoption, human readability, and compatibility with all mainstream programming languages and platforms.
 
-Other formats, such as XML or Protocol Buffers, may be used in specific scenarios where their features are desired. But JSON SHOULD be the default go-to choice for most services.
+Other formats, such as XML or Protocol Buffers, may be used in specific scenarios where their features are desired. But JSON SHOULD be the default go-to choice for asynchronous communication between most services.
 
 === High-level design
 
 There are two parts to a message schema: the message's main payload, and metadata for the message container. These two parts SHOULD be clearly differentiated in the schema.
 
-The following high-level design achieves this separation.
+The following high-level design achieves this separation by placing the payload inside a `data` field, with other fields at the top-level of the data structure capturing metadata.
 
 [source,jsonc]
 ----
 {
-  // Metadata:
-  "schema_version": "string",  // Version of the message schema.
-  "message_id": "string",      // Unique identifier for the message.
-  "created_at": "string",     // Time of message creation, RFC 3339/ISO 8601 format.
-  "correlation_id": "string",  // Correlation ID for tracing.
+  "spec_version": "string",   // Message schema version number.
 
-  // Operation – one of:
-  "event": "string",          // Event type (eg., "user.created").
-  "command": "string",        // Command name (eg., "sendEmail").
-  "query": "string",          // Query name (eg., "getUserDetails").
+  // Metadata:
+  "message_id": "string",     // Unique identifier for the message.
+  "created_at": "string",     // Time of message creation, RFC 3339/ISO 8601 format
+  "type": "string",           // One of: "event", "command", "query".
+  "name": "string",           // Name of the event, command, or query.
 
   "data": {
     // Payload:
@@ -75,6 +80,103 @@ The following high-level design achieves this separation.
 }
 ----
 
+=== Schema
 
+The above message schema can be validated against the following JSON Schema.
+
+// TODO: Requires refinement, eg. datetime values.
+[source,json]
 ----
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+
+  "type": "object",
+  "properties": {
+    "spec_version": {
+      "type": "string"
+    },
+    "message_id": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "data": {
+      "type": "object",
+      "patternProperties": {
+        "[a-z][a-zA-Z0-9_.]*$": {
+          "type": ["string", "number", "boolean", "object"]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "spec_version",
+    "message_id",
+    "created_at",
+    "type",
+    "name",
+    "data"
+  ],
+  "additionalProperties": true
+}
+----
+
+It is RECOMMENDED that consumers implement validation of incoming messages against a schema.
+
+=== Metadata
+
+The metadata fields capture all the essential information needed to support the tracking and processing of messages.
+
+Besides the recommended fields shown in the example above, other metadata fields MAY be included as needed, such as `source` and `correlation_id` (for tracing). The metadata fields MUST be chosen carefully, to accommodate changing metadata requirements over time.
+
+=== Spec version
+
+The `spec_version` field indicates the version of the message schema. Consumers can use the `spec_version` field to differentiate their processing of messages encoded to different schema versions.
+
+Transitions to new schema versions SHOULD be done incrementally. This is done by having producers emit duplicate messages in both the old and new schema versions for a period of time, while consumers are migrated to the new schema. This process allows breaking changes to be introduced to schema designs if required. But better to evolve event schema in a non-breaking way wherever possible.
+
+Message schema versioning SHOULD follow semantic versioning principles. See link:./005-versioning.adoc[TS-5: Versioning].
+
+Message schema SHOULD evolve separately to the public API of the service producing the events. Therefore message schema versioning SHOULD be independent of API versioning. See also link:./016-http-apis.adoc[TS-16: HTTP APIs].
+
+=== Message ID
+
+The `message_id` value serves as an *idempotency key*, allowing consumers to safely process duplicate messages. In turn, this supports retries and other mechanisms that improve the reliability of message delivery.
+
+=== Message type and name
+
+The value of the `type` field indicates whether the message is an "event", "command", or "query". The value of the `name` field indicates the specific name of the event, command, or query.
+
+Events, commands, and queries MAY each have different naming conventions. For example, events may use dot-noted event names like `user.created` and `invoice.paid`, in which the first part identifies an entity type and the second part identifies a type of mutation. Meanwhile, commands and queries may use camelCase names like `sendEmail` and `getUserDetails`.
+
+All the possible `name`s of events, commands, and queries make up a catalog of messages. The message catalog documents all the possible events, commands, and queries that a system may communicate via messages.
+
+Prefer to design a large catalog of granular message types. Each type of message should align with a very specific use case. At the same time, don't fragment unnecessarily, such that subscribers need to reconstruct discrete state changes from multiple disparate messages.
+
+=== Timestamp
+
+The `created_at` field captures the time at which the message was created. The timestamp SHOULD be in RFC 3339/ISO 8601 format, and in the UTC timezone – as per link:./039-dates-times.adoc[TS-39: Dates and Times].
+
+Including this field allows consumers to understand the timing of events, commands, and queries. Since it is not possible to guarantee that messages are delivered to consumers in the same order in which they were created, the `created_at` timestamp allows consumers to make sure they don't process messages out of order.
+
+If it is important that consumers process messages, not only in the right order, but also without skipping any messages in between, then additional mechanisms are needed to enforce this. It is RECOMMENDED to include a `sequence` field in the metadata, which captures an increasing integer that increments by one for each new message created in a sequence. This allows consumers to detect and handle any gaps in the sequence of messages they receive.
+
+Since messages may be dropped or delayed, for example due to network issues, there are inherent limitations to the guarantees that can be made about message ordering and delivery. See *Delivery and reliability*, below, for guidance on managing this.
+
+=== Payload
+
+The `data` field contains the main payload of the message. The structure of the payload is specific to each type of event, command, and query. Each message `type`+`name` should have a well-defined payload schema.
+
+Payloads MUST be composed from a global library of common data types and structures, for maximum consistency and reusability. For example, if multiple events include user information, then they SHOULD all use the same `User` data structure.
+
+The size of event payloads can impact delivery reliability and performance. Therefore, try to keep payloads small – under 1MB, as a general guideline – and focused on the essential data needed by consumers. Consider opening new API endpoints from which event consumers can fetch additional information about the events they receive, if needed.
+
 
