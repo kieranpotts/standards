@@ -235,6 +235,69 @@ Therefore, it is RECOMMENDED to avoid using `sequence` fields in event metadata,
 
 An alternative design is to transmit no state at all in events. Such messages would not have payloads. These events are simply notifications that something has changed in the publisher service. Consumers are required to synchronize their state by making regular requests to API endpoints, in response to those notifications.
 
+== Integration
+
+The following section makes some quick, general points about things that can be done to support the integration of messages in consuming systems.
+
+Message publishers MUST provide comprehensive *documentation* to support the integration of messages in consumer systems. Documentation MUST include a full *message catalog* of all events, commands, and queries emitted by each service. Large message catalogs SHOULD be easily searchable. Document message schemas using https://json-schema.org/[JSON Schema], else formal *interface description languages* (IDLs) such as https://www.asyncapi.com/en[AsyncAPI]. 
+
+https://www.openapis.org/[OpenAPI v3.1+] is suitable for documenting webhook notifications that sit alongside the conventional request-response APIs of public web services.
+
+[source,yaml]
+----
+openapi: 3.1.0
+info:
+  title: My API
+  version: 1.0.0
+
+webhooks:
+  orderPaid:
+    post:
+      summary: Order payment completed
+      description: Triggered when a customer payment is processed
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderPaidEvent'
+      responses:
+        '200':
+          description: Webhook received successfully
+        '500':
+          description: Webhook processing failed
+
+components:
+  schemas:
+    OrderPaidEvent:
+      type: object
+      required: [eventId, eventType, timestamp, data]
+      properties:
+        eventId:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+          enum: [order.paid]
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/OrderData'
+----
+
+Other tools that MAY be implemented to support integrations include:
+
+* An *event management* API and/or dashboard via which consumers can manage their configuration (endpoints, retry intervals, etc.), view delivery logs, and replay messages.
+
+* Provide consumers with delivery status information, and other *monitoring* and *alerting* functionality as appropriate.
+
+* Consider offering endpoints to trigger *test messages*, to allow consumers to verify their integration is working correctly.
+
+* Consider developing libraries and *software development kits* (SDKs).
+
+
+
 
 
 
