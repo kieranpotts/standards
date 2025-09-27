@@ -2,15 +2,13 @@
 :toc: macro
 :toc-title: Contents
 
-This document outlines standards for designing and implementing HTTP APIs. It also covers best practices for the implementation of webhooks (both inbound and outbound).
+This document outlines standards for designing and implementing HTTP APIs. It also covers best practices for the implementation of webhooks.
 
-These standards are applicable to private HTTP APIs between services within an internal network("inter-service communication") and to public HTTP APIs that are made available for integration into third-party client applications ("web services").
+These standards are applicable to private HTTP APIs between services within an internal network ("inter-service communication") and to public HTTP APIs that are made available for integration into third-party client applications ("web services").
 
 toc::[]
 
 == General design principles
-
-HTTP APIs, both public and private ones, SHOULD be formed from a consistent set of design patterns – a pattern library. This facilitates a better developer experience and supports greater reuse of code, for example through libraries and software development kits (SDKs), so making integrations quicker and easier.
 
 In broad terms, HTTP APIs SHOULD follow the https://www.ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm[RESTful architectural style]. This architecture describes the underlying design principles of the World Wide Web, particularly the HTTP protocol and HTML language. In practice, a RESTful API is one that repurposes the semantics of the HTTP protocol, using the full capabilities of HTTP as a messaging and encoding protocol, rather than merely as a transport protocol. In simple terms, a RESTful API uses URLs to represent resources and collections of resources, HTTP methods to represent different types of CRUD-like operations to be performed on those resources, and HTTP status codes to represent outcomes from those operations.
 
@@ -18,23 +16,26 @@ A RESTful API is also:
 
 * *Stateless*: Each request from a client to a server SHOULD contain all the information necessary for the server to understand and fulfil the request. Most client requests SHOULD NOT be dependent upon any particular stored context on the server (with exceptions for things like security measures, eg. to protect against denial of service). This design constraint will simplify the server implementation and make it more scalable.
 
-* *Uniform*: A RESTful API SHOULD have a highly uniform interface, which means it uses a consistent subset of HTTP methods and status codes, uses a consistent file format and schema for message payloads, composes data structures from a common library of types, and uses a consistent URL structure to represent resources and collections. These constraints will help to simplify client implementations, promote code reuse, and make integrations easier.
+* *Uniform*: A RESTful API SHOULD have a highly uniform interface. A uniform HTTP API is one that uses a consistent URL structure to represent resources and collections, uses a consistent subset of HTTP methods and status codes, uses a consistent file format and schema for message payloads, and composes data structures from a common library of types and patterns. A uniform interface gives a better user experience and supports greater reuse of code, for example through the use of libraries and software development kits (SDKs), so making client integrations quicker and easier.
 
-* *Cacheable*: As much as possible, responses from a RESTful API server SHOULD be cacheable. This helps to reduce load on the server, reduces latency for clients, and supports strategies for fault tolerance and availability.
+* *Cacheable*: As much as possible, responses from a RESTful API server SHOULD be cacheable. This helps to reduce load on the server, reduce latency for clients, and support strategies for fault tolerance and availability.
 
 * *A layered system*: The server application SHOULD have a layered architecture, in which cross-cutting concerns such as security and caching are implemented in discrete layers that span all endpoints of the API.
 
 The following RESTful design constraints are OPTIONAL:
 
-* *Hypermedia as the engine of application state (HATEOAS)*: HTTP APIs MAY embed hypermedia links through which clients can explore the available resources and operations of the API. Clients MAY use the encoded hypermedia controls to read, query, and update application state. This design constraint is not commonly used in practice, but it can be beneficial for some use cases. HATEOAS may be appropriate for APIs that are intended to be consumed directly by human users, who interact with the API through a generic program to explore the available resources and operations, which themselves are constantly evolving. HATEOAS is less useful for APIs that are intended for programmatic integration into other computer systems.
+* *Hypermedia as the engine of application state (HATEOAS)*: HTTP APIs MAY embed hypermedia links through which clients can explore the available resources and operations of the API. Clients MAY use the embedded hypermedia controls to read, query, and update application state. This design constraint is not commonly used in practice, but it can be beneficial for some use cases. HATEOAS may be appropriate for APIs that are intended to be consumed directly by human users, who interact with the API through a generic program to explore the available resources and operations, which themselves are constantly evolving. HATEOAS is less useful for APIs that are intended for programmatic integration into other computer systems.
 
 * *Code on demand*: The server MAY send executable code to the client, to extend the functionality of the client. Again, this design constraint is not commonly used in practice, but one possible use case would be for an API to serve notifications of available updates to SDKs and client libraries.
 
-Although most HTTP APIs should be primarily RESTful (ie. "resource-oriented" APIs), there are many use cases where a RESTful design is not appropriate. For example, if an API is a thin layer around a legacy system that itself is not designed around resources or which fits uncomfortably with the RESTful model, it may be necessary to deviate from RESTful design principles and focus on creating a functional abstraction of the underlying system.
+Although most HTTP APIs should be primarily RESTful (ie. "resource-oriented" APIs), there are many use cases where a RESTful design is not appropriate. For example, if an API is a thin layer around a legacy system that itself is not designed around the concept of resources, or which otherwise fits uncomfortably with the RESTful model, it will probably be better to deviate from RESTful design principles and focus on creating a functional abstraction of the underlying system.
 
-Even within an HTTP API that is predominantly RESTful in its design characteristics, it will often be beneficial to include operations that are more RPC-like in their design. For example, besides the usual create, read, update, and delete operations that are made available on a collection of resources, an HTTP API may augment these operations with additional "actions" that perform tasks that do not neatly fit the CRUD model, or which encapsulate multiple CRUD-like operations behind a higher abstraction. See the section on *Actions* for more information.
+Even within an HTTP API that is predominantly RESTful in its design characteristics, it will often be beneficial to include operations that are more RPC-like in their design. For example, besides the usual create, read, update, and delete operations that are made available on a collection of resources, an HTTP API may augment these operations with additional "actions". A single action may, for example, operate on multiple different types of resources, and execute multiple CRUD-like operations on those resources. Thus, actions are a higher level of abstraction that regular resource-oriented endpoints. See the section on *Actions* for more information.
 
-In designing an HTTP API, developers SHOULD prioritize creating an accurate model of the system that the API abstracts, rather than trying to religiously adhere to any particular architectural style. Remember, the goal of an HTTP API is to provide a useful and usable interface to a complex system. The best API design will be the one that makes it as easy as possible for clients to interact with the underlying system.
+[IMPORTANT]
+====
+In designing an HTTP API, developers SHOULD prioritize creating a useful interface to the operations of the system that the API abstracts, rather than trying to religiously adhere to any particular architectural style. The best API design will be the one that makes it as easy as possible for clients to interact with the underlying system.
+====
 
 == Authentication and authorization
 
@@ -48,7 +49,7 @@ Authentication and authorization is especially important for operations that mod
 
 Security measures MUST be implemented for both public and private APIs. Do not assume that private/internal networks are secure.
 
-All input MUST be validated and sanitized to prevent security vulnerabilities such as SQL injection, cross-site scripting (XSS), and cross-site request forgery (CSRF).
+All input MUST be validated and sanitized to prevent security vulnerabilities such as SQL injection, cross-site scripting (XSS), and cross-site request forgery (CSRF). Even if that input comes from another internal system that you control (or otherwise trust), you still MUST validate the input. Doing so reduces the potential blast radius of security breaches in any one service.
 
 // TODO: Extend with recommended security practices, OWASP, etc. Or link to other standards.
 
@@ -61,25 +62,25 @@ HTTP methods MUST be used for their designated purpose, as specified by the HTTP
 HTTP APIs MUST use only the following subset of standard HTTP methods:
 
 |===
-|Verb |CRUD mapping |Safe/read-only? |Idempotent? |Description
+|Verb |CRUD mapping |Safe / read-only? |Idempotent? |Description
 
 |`GET`
 |Read
 |Yes
 |Yes
-|Used to retrieve the requested resource. GET operations MUST NOT modify the state of the resource, and there MUST NOT be any other side effects.
+|Used to retrieve the requested resource or collection of resources. GET operations MUST NOT modify the state of the requested resources, and there MUST NOT be any other side effects.
 
 |`HEAD`
 |Read
 |Yes
 |Yes
-|Used to retrieve only the headers of a resource. It behaves the same as GET, only the body of response messages is emptied.
+|This behaves the same as GET, except the body of response messages is empty. HTTP response messages consist only of headers.
 
 |`POST`
 |Create
 |No
 |No
-|Used to create a new resource. The server MUST generate a new resource identifier. The server MUST return a full representation of the newly created resource, including its new identifier and other server-generated properties.
+|Used to create a new resource. The server MUST generate a new resource identifier, and it MUST return a full representation of the newly created resource, including its new identifier and other server-generated properties. `POST` operations are not natively idempotent, but idempotency can be achieved by clients including a unique idempotency key, eg. `request_id`.
 
 |`PUT`
 |Create/Update
@@ -91,7 +92,7 @@ HTTP APIs MUST use only the following subset of standard HTTP methods:
 |Update
 |No
 |Yes
-|Used for partial updates to a resource. The request payload SHOULD contain only the fields that are being updated. `PATCH` requests SHOULD be designed to be idempotent, but the HTTP specification does not require this.
+|Used for partial updates to a resource. The request payload SHOULD contain only the fields that are being updated. `PATCH` requests SHOULD be designed to be idempotent, although the HTTP specification does not require this.
 
 |`DELETE`
 |Delete
@@ -102,12 +103,12 @@ HTTP APIs MUST use only the following subset of standard HTTP methods:
 
 .GET versus HEAD
 ****
-It is RECOMMENDED that all GET endpoints – for both resources and collections – in an HTTP API also support HEAD requests. HEAD responses are identical to GET responses, except that the server MUST NOT return a message body in the response. This can be useful for clients that need to check the existence of a resource without downloading the full representation.
+It is RECOMMENDED that all GET endpoints – for both resources and collections – in an HTTP API also support HEAD requests. HEAD responses are identical to GET responses, except that the server MUST NOT return a message body in the response. This can be useful for clients that need to check the existence of a resource without downloading its full representation.
 ****
 
 Other standard HTTP methods are `OPTIONS`, `TRACE`, and `CONNECT`. These are technical methods used to support the HTTP protocol itself, and are not intended the be included in the interface definitions for HTTP APIs.
 
-Most HTTP API operations are implemented as synchronous operations, in which the client sends a request and waits for an immediate response from the server. However, where operations may be long-running, it is RECOMMENDED to implement the operations using asynchronous communication patterns. The behavior of the HTTP methods, listed above, is identical for asynchronous communication, the difference being that the response status code and payload is delivered subsequently via a separate message.
+Most HTTP API operations are implemented as synchronous operations, in which the client sends a request and waits for an immediate response from the server. However, where operations may be long-running, it is RECOMMENDED to implement the operations using asynchronous communication patterns. The behavior of the HTTP methods, listed above, SHOULD be identical for asynchronous communication – the only differences being in the choices of response status codes, and response payloads are delivered subsequently via separate messages.
 
 == HTTP status codes
 
@@ -172,7 +173,7 @@ Be liberal in what you accept, and conservative in what you send.
 
 === Versioning
 
-HTTP APIs MUST be versioned, and version information SHOULD be encoded in the URL path. This pattern is widely used for its simplicity of use by clients and compatibility with caching and proxying systems (compared to alternative designs such as header-based versioning).
+HTTP APIs MUST be versioned, and version information SHOULD be encoded in the URL path. This pattern is widely used for its simplicity of use by clients, and compatibility with caching and proxying systems (compared to alternative designs such as header-based versioning).
 
 HTTP APIs MUST use https://semver.org/[Semantic Versioning], as specified in *link:./005-versioning.adoc[TS-5: Versioning]*. However, only the major version number needs to be exposed in the URL schema.
 
@@ -188,7 +189,7 @@ It is RECOMMENDED that the major version number be the first segment of the URL 
 /v1
 ----
 
-See the *Versioning* section, below, for more guidance on HTTP API versioning.
+See the *Versioning* section, below, for more guidance on HTTP API versioning and the management of breaking changes.
 
 === Namespaces
 
@@ -208,7 +209,7 @@ Namespaces are used to create logical groups of resources, collections, and acti
 
 Namespaces SHOULD be nouns but MAY be either singular or plural, as appropriate for each grouping of resources, collections, and actions.
 
-A good practice is to open a `GET` endpoint for the namespace root, which returns a list of availabel resources and corresponding operations within the namespace.
+A good practice is to open a `GET` endpoint for each namespace root, which returns a list of available resources and their corresponding operations within the namespace.
 
 ----
 GET /v{major}/{namespace}
@@ -216,7 +217,7 @@ GET /v{major}/{namespace}
 
 === Resources and collections
 
-The remaining segments of a URL path are used to identify resources and collections of resources,
+The remaining segments of a URL path are used to identify resources and collections of resources.
 
 Consistent path components SHOULD be used to refer to the same resources, and collections of them, across different endpoints.
 
@@ -242,9 +243,17 @@ PATCH /v{major}/{namespace}/{resource}/{resource_id}/{sub_resource}/{sub_resourc
 DELETE /v{major}/{namespace}/{resource}/{resource_id}/{sub_resource}/{sub_resource_id}
 ----
 
-The `{resource}` and `{sub_resource}` components SHOULD be named using nouns. These SHOULD be in the singular form where there is only ever one instance of the resource, and never a collection of resources of the same type. More commonly, there will be collections of each type of resource and sub-resource, and these SHOULD be named in the plural form.
+The `{resource}` and `{sub_resource}` components SHOULD be named using nouns. Where there will only ever be one instance of a resource or sub-resource, the `{resource}` and `{sub_resource}` component names SHOULD be in the singular form. More commonly, there will be collections of each type of resource and sub-resource, and these SHOULD be named in the plural form.
 
-Resource-oriented endpoints SHOULD use lowercase hyphen-delimited slugs to name resources and sub-resources. Examples: "account", "users", "billing", "charge-points", "charge-points/{charge_point_id}/sessions", "credit-cards", "credit-cards/{credit_card_id}/transactions".
+Resource-oriented endpoints SHOULD use lowercase hyphen-delimited slugs to name resources and sub-resources. Examples: 
+
+* `account`
+* `users`
+* `billing`
+* `charge-points`
+* `charge-points/{charge_point_id}/sessions`
+* `credit-cards`
+* `credit-cards/{credit_card_id}/transactions`
 
 == Collections
 
@@ -274,8 +283,8 @@ GET /v1/vault/credit-cards
   },
   "items": [
     {
-      "data": {
-        "id": "123e4567-e89b-12d3-a456-426614174000",
+      "id": "123e4567-e89b-12d3-a456-426614174000",
+      "attributes": {
         "type": "visa",
         "number": "xxxxxxxxxxxx0331",
         "expires": {
@@ -290,51 +299,7 @@ GET /v1/vault/credit-cards
       "metadata": {
         "create_time": "2014-01-13T07:23:15Z",
         "update_time": "2014-01-13T07:23:15Z",
-      },
-      "links": [
-        {
-          "rel": "self",
-          "method": "GET"
-          "href": "https://api.example.com/v1/vault/credit-cards/123e4567-e89b-12d3-a456-426614174000"
-        },
-        {
-          "rel": "delete",
-          "method": "DELETE",
-          "href": "https://api.example.com/v1/vault/credit-cards/123e4567-e89b-12d3-a456-426614174000"
-        },
-        {
-          "rel": "patch",
-          "method": "PATCH",
-          "href": "https://api.example.com/v1/vault/credit-cards/123e4567-e89b-12d3-a456-426614174000"
-        }
-      ]
-    }
-  ],
-  "links": [
-    {
-      "rel": "self",
-      "method": "GET",
-      "href": "https://api.example.com/v1/vault/credit-cards?page=3&per_page=10&sort_by=create_time&sort_order=asc"
-    },
-    {
-      "rel": "prev",
-      "method": "GET",
-      "href": "https://api.example.com/v1/vault/credit-cards/?page=2&per_page=10&sort_by=create_time&sort_order=asc
-    },
-    {
-      "rel": "next",
-      "method": "GET",
-      "href": "https://api.example.com/v1/vault/credit-cards/?page=4&per_page=10&sort_by=create_time&sort_order=asc"
-    },
-    {
-      "rel": "first",
-      "method": "GET",
-      "href": "https://api.example.com/v1/vault/credit-cards/?per_page=10&sort_by=create_time&sort_order=asc"
-    },
-    {
-      "rel": "last",
-      "method": "GET",
-      "href": "https://api.example.com/v1/vault/credit-cards/?page=123&per_page=10&sort_by=create_time&sort_order=asc"
+      }
     }
   ]
 }
@@ -344,23 +309,23 @@ GET /v1/vault/credit-cards
 
 Any collection that could contain a large, potentially unbounded list of resources SHOULD implement pagination. The following design patterns are RECOMMENDED.
 
-----
-/accounts?per_page={per_page}&page={page}
-----
-
 Pages of results SHOULD be referred to consistently by the query parameters `page` and `per_page`, where `per_page` is a non-zero positive integer representing the number of results per paginated response, and `page` is a number of 1 or more that represents the current page of results requested.
+
+----
+/accounts?page={page}&per_page={per_page}
+----
 
 The `per_page` query parameter SHOULD be optional. If not provided by the client, the server should fallback to a sensible, specified default.
 
 The `page` query parameter SHOULD also be optional. If not provided by the client, the server MUST return the first page of results (ie. the default value for `page` MUST be 1).
 
-The values of both `page` and `per_page` MUST be validated by the server. A `400 Bad Request` SHOULD be returned for semantically invalid values. However, if the requested range if outside of the available range of results (eg. `per_page=100&page=2` is requested but there are only 50 results) a `200 OK` response SHOULD be returned with an empty result list, not a `404 Not Found`.
+The values of both `page` and `per_page` MUST be validated by the server. A `400 Bad Request` SHOULD be returned for semantically invalid values. However, if the requested range is outside of the available range of results (eg. `page=2&per_page=100` is requested but there are only 50 results) a `200 OK` response SHOULD be returned with an empty result list, not a `404 Not Found`.
 
 In certain cases, such as querying on a large data set, in order to optimize the query execution with pagination, it may be appropriate to retrieve the data based on the result set of the previous page. A `page_token` parameter MAY be used for this purpose. This could be, for example, an encrypted value of primary keys to navigate to the next and previous pages, along with directions.
 
 Additionally, responses MAY include `total_items` and `total_pages` metadata fields. `total_items` indicates the total number of items in the collection, and `total_pages` is the number of pages (interpolated from `total_items`/`per_page`). This will help clients to implement better user experiences, for example by disabling navigation to pages that are outside of the available range. Where providing the `total_items` and `total_pages` requires expensive queries on the server-side, the client SHOULD be able to opt-in to receiving this information using a query parameter, for example `?include_totals=true`.
 
-Hypermedia links with `rel` attributes for "next", "previous", "first", and "last" pages SHOULD be included in paginated collections, to make it easier for clients to navigate through collections. The `page` and `per_page` query parameters, inputted by the client, MUST be maintained for each link, to ensure consistent client behavior. See the section on *Hypermedia* for more information.
+Hypermedia links with `rel` attributes for "next", "previous", "first", and "last" pages SHOULD be included in paginated collections, to make it easier for clients to navigate through collections. The `page` and `per_page` query parameters, inputted by the client, MUST be maintained for each link, to ensure consistent client behavior. See the section on *Hypermedia* for further details and examples.
 
 === Filtering
 
@@ -376,7 +341,11 @@ These query parameters SHOULD be used consistently across all endpoints that sup
 
 === Searching
 
-Search query parameters MAY be supported on collections, to allow clients to filter collection lists based on freeform input. The query parameter SHOULD be named `q` and MAY be used to search across multiple fields of the resources.
+Search query parameters MAY be supported on collections, to allow clients to filter collection lists based on freeform input.
+
+The query parameter SHOULD be named `q`.
+
+A single query parameters MAY be used to search across multiple fields of the resources.
 
 === Sorting
 
@@ -384,9 +353,9 @@ Results could be ordered according to sorting-related instructions given by the 
 
 The following URL parameters SHOULD be used for this purpose:
 
-* `sort_by`: A dimension by which items should be sorted. The dimensions SHOULD be an attribute in the item's representation.
+* `sort_by`: A dimension by which items should be sorted. The dimension SHOULD map directly to an attribute in the item's representation.
 
-* `sort_order`: The order, one of "asc" or "desc", indicating ascending or descending order.
+* `sort_order`: The order, one of "asc" or "desc", indicating ascending or descending order respectively.
 
 The default sort field and sort order MUST be documented for each collection. All collections have a default sorting, except in use cases where the order is deliberately randomized (if so, this still needs to be specified).
 
@@ -434,7 +403,7 @@ For `PUT` requests, system-calculated values such as `create_time` and `update_t
 PUT|PATCH /v{major}/{namespace}/{resource}/{resource_id}
 ----
 
-Alternatively, standards such as https://datatracker.ietf.org/doc/html/rfc6902[JSON Patch] MAY be implemented for https://tools.ietf.org/html/rfc5789[PATCH] requests. Rather than sending a partial representation of the resource, clients instead send a list of operations to be made on particular members or fields of the resource.
+Alternatively, standards such as https://datatracker.ietf.org/doc/html/rfc6902[JSON Patch] MAY be implemented for `PATCH` requests. Rather than sending a partial representation of the resource, clients instead send a list of operations to be made on particular members or fields of the resource.
 
 [source,http]
 ----
@@ -482,7 +451,7 @@ After a successful update operation, both `PUT` and `PATCH` operations SHOULD no
 
 Any update request (whether PUT or PATCH) that fails input validation MUST receive a `400 Bad Request` response. If clients attempt to modify read-only fields, or if the resource is in a non-updatable state, this is also a `400 Bad Request`. If there are business rules or validation constraints, eg. for data type, length, etc., that are not satisfied, a `400 Bad Request` response is appropriate. In addition, appropriate error codes and messages SHOULD be encoded in the response body.
 
-For situations that require interaction with downstream servers or external APIs or processes, returning the `422 Unprocessable Entity` status code may be more appropriate than `400 Bad Request`.
+For situations that require interaction with upstream servers or external APIs or processes, returning the `422 Unprocessable Entity` status code may be more appropriate than `400 Bad Request`.
 
 === Deleting
 
@@ -526,27 +495,35 @@ Response messages SHOULD include a list of hypermedia links that represent all t
 .Example response
 ----
 {
-  "data": {
-    "id": "123e4567-e89b-12d3-a456-426614174000",
-    "type": "visa",
-    "number": "xxxxxxxxxxxx0331",
-    "expire_month": "11",
-    "expire_year": "2018",
-    "first_name": "Joe",
-    "last_name": "Shopper",
-  },
-  "links": [
-    {
-      "href": "https://api.example.com/v1/vault/credit-cards/123e4567-e89b-12d3-a456-426614174000",
-      "rel": "self",
-      "method": "GET"
-    },
-    {
-      "href": "https://api.example.com/v1/vault/credit-cards/123e4567-e89b-12d3-a456-426614174000",
-      "rel": "delete",
-      "method": "DELETE"
+  "resources": {
+    "vault/credit-cards": {
+      "items": [
+        {
+          "id": "123e4567-e89b-12d3-a456-426614174000",
+          "attributes": {
+            "type": "visa",
+            "number": "xxxxxxxxxxxx0331",
+            "expire_month": "11",
+            "expire_year": "2018",
+            "first_name": "Joe",
+            "last_name": "Shopper",
+          },
+          "links": [
+            {
+              "href": "https://api.example.com/v1/vault/credit-cards/123e4567-e89b-12d3-a456-426614174000",
+              "rel": "self",
+              "method": "GET"
+            },
+            {
+              "href": "https://api.example.com/v1/vault/credit-cards/123e4567-e89b-12d3-a456-426614174000",
+              "rel": "delete",
+              "method": "DELETE"
+            }
+          ]
+        }
+      ]
     }
-  ]
+  }
 }
 ----
 
@@ -566,13 +543,15 @@ DELETE /v{major}/{namespace}/{resource}/{resource_id}/{sub_resource}/{sub_resour
 
 Where a resource of one type can exist independently of other resources of other types, these resources SHOULD be elevated to top-level resources in most use cases. But if one type of resource cannot exist without another, this is a candidate to be lowered to a sub-resource.
 
-Sub-resources require multiple identifiers (*composite keys*, in database lexicon) to be uniquely identified. To identify a sub-resource, the parent resource's identifier is required, as well as the sub-resource's identifier. This is a potential source of complexity for client applications, as they need to manage multiple identifiers for essentially the same resource.
+Sub-resources require multiple identifiers (*composite keys*, in database lexicon) to be uniquely identifiable. To identify a sub-resource, the parent resource's identifier is required, as well as the sub-resource's identifier. This is a potential source of complexity for client applications, as they need to manage multiple identifiers for essentially the same resource.
 
 For this reason, sub-resources SHOULD be used sparingly. The need to encode hierarchies of resources can increase the complexity of both server-side and client-side code. So, even where there is a tight coupling between two types of resources, look to promoting dependent resources to top-level resources (with single identifiers) where practical.
 
-Where sub-resources are necessary or beneficial, try to have no more than one level of sub-resources - that's two levels of resources in total. Any more levels, and the complexity of client application code grows exponentially. Server code, too, needs to validate each level of resources, including how sub-resources related to their parent resources, and this complexity also grows exponentially with each additional tier.
+Where sub-resources are necessary or beneficial, try to have no more than one level of sub-resources - that's two levels of resources in total. Any more levels, and the complexity of client application code grows exponentially. Server code, too, needs to validate each level of resources, including how sub-resources relate to their parent resources, and this complexity also grows exponentially with each additional tier.
 
-Sub-resources MUST have a named type. `/v{major}/{namespace}/{resource}/{resource_id}/{sub_resource_id}` is not acceptable because `sub_resource_id` has ambiguous meaning. Linking sub-resource identifiers to sub-resource types in the URL scheme also supports extensibility; other sub-resources can be more easily added in the future. This constraint also makes it easier to support different identifier naming conventions being used for different types of sub-resources, should that be necessary.
+Sub-resources MUST have a named type. `/v{major}/{namespace}/{resource}/{resource_id}/{sub_resource_id}` is not acceptable because `sub_resource_id` has ambiguous meaning. Do this instead: `/v{major}/{namespace}/{resource}/{resource_id}/{sub_resource}/{sub_resource_id}`
+
+Linking sub-resource identifiers to sub-resource types in the URL scheme also supports extensibility; other sub-resources can be more easily added in the future. This constraint also makes it easier to support different identifier naming conventions being used for different types of sub-resources, should that be necessary.
 
 Sub-resources MAY be used as a solution to reducing the size of the parent resource, so segmenting a single large resource into multiple smaller resources. These types of sub-resources are known as *singleton sub-resources* and are identified by a static *sub-resource name* rather than a dynamically-generated identifier. Singleton sub-resources should be named using nouns in the singular form.
 
@@ -588,13 +567,15 @@ GET /v1/customers/devices/123e4567-e89b-12d3-a456-426614174000/vendor-informatio
 
 There will be a one-to-one relationship between a resource and each of its singleton sub-resources. Singleton sub-resources are expected to always exist if the parent resource exists, though they may have null values. (Do not return `404 Not Found` if a singleton sub-resource does not exist; simply return `null` for its value.)
 
-Singleton sub-resources are not standalone resources, but are attached to their parent. Therefore, singleton sub-resources SHOULD be created and updated via the operations for their parent resource, rather than adding dedicated endpoints for them. Singleton sub-resources SHOULD NOT duplicate resources from other collections, but SHOULD be unique to their parent resource.
+Singleton sub-resources are not standalone resources, but are attached to their parent. Therefore, singleton sub-resources SHOULD be created and updated via operations performed on their parent resource, rather than having dedicated endpoints for each singleton sub-resource.
+
+Singleton sub-resources SHOULD NOT duplicate resources from other collections, but SHOULD be unique to their parent resource.
 
 == Safeness and idempotency
 
 The HTTP standards define the concepts of safeness and idempotency for HTTP methods.
 
-A *safe* operation is one that does not modify the state of the resource. The HTTP standards define the `GET` and `HEAD` methods as safe methods, as these methods are intended not to request any kind of action other than data retrieval.
+A *safe* operation is one that does not modify the state of the resource. The HTTP standards define the `GET` and `HEAD` methods as safe methods, as these methods are intended not to request any kind of operation except data retrieval.
 
 An *idempotent* operation is one that has the same effect on the state of the requested resources, regardless of how many times the operation is performed. Clients can therefore retry operations, sending identical requests multiple times, without worrying about data corruption or other unexpected side effects of doing the retries.
 
@@ -1339,6 +1320,81 @@ Hypermedia links with `rel` attributes for "next", "previous", "first", and "las
 }
 ----
 
+// .Example response
+// ----
+// {
+//   "metadata": {
+//     "total_items": 1,
+//     "total_pages": 1
+//   },
+//   "items": [
+//     {
+//       "id": "123e4567-e89b-12d3-a456-426614174000",
+//       "attributes": {
+//         "type": "visa",
+//         "number": "xxxxxxxxxxxx0331",
+//         "expires": {
+//           "month": "11",
+//           "year": "2018",
+//         },
+//         "name": {
+//           "first": "Joe",
+//           "last": "Shopper"
+//         }
+//       },
+//       "metadata": {
+//         "create_time": "2014-01-13T07:23:15Z",
+//         "update_time": "2014-01-13T07:23:15Z",
+//       },
+//       "links": [
+//         {
+//           "rel": "self",
+//           "method": "GET"
+//           "href": "https://api.example.com/v1/vault/credit-cards/123e4567-e89b-12d3-a456-426614174000"
+//         },
+//         {
+//           "rel": "delete",
+//           "method": "DELETE",
+//           "href": "https://api.example.com/v1/vault/credit-cards/123e4567-e89b-12d3-a456-426614174000"
+//         },
+//         {
+//           "rel": "patch",
+//           "method": "PATCH",
+//           "href": "https://api.example.com/v1/vault/credit-cards/123e4567-e89b-12d3-a456-426614174000"
+//         }
+//       ]
+//     }
+//   ],
+//   "links": [
+//     {
+//       "rel": "self",
+//       "method": "GET",
+//       "href": "https://api.example.com/v1/vault/credit-cards?page=3&per_page=10&sort_by=create_time&sort_order=asc"
+//     },
+//     {
+//       "rel": "prev",
+//       "method": "GET",
+//       "href": "https://api.example.com/v1/vault/credit-cards/?page=2&per_page=10&sort_by=create_time&sort_order=asc
+//     },
+//     {
+//       "rel": "next",
+//       "method": "GET",
+//       "href": "https://api.example.com/v1/vault/credit-cards/?page=4&per_page=10&sort_by=create_time&sort_order=asc"
+//     },
+//     {
+//       "rel": "first",
+//       "method": "GET",
+//       "href": "https://api.example.com/v1/vault/credit-cards/?per_page=10&sort_by=create_time&sort_order=asc"
+//     },
+//     {
+//       "rel": "last",
+//       "method": "GET",
+//       "href": "https://api.example.com/v1/vault/credit-cards/?page=123&per_page=10&sort_by=create_time&sort_order=asc"
+//     }
+//   ]
+// }
+// ----
+
 ==== Messages
 
 // TODO
@@ -1672,6 +1728,8 @@ HTTP APIs MUST be thoroughly documented.
 == References
 
 * http://tools.ietf.org/html/rfc7231[Hypertext Transfer Protocol (HTTP/1.1) - RFC 7231]
+
+* https://tools.ietf.org/html/rfc5789[PATCH method - RFC 5789]
 
 * https://tools.ietf.org/html/rfc6585[Additional HTTP Status Codes - RFC 6585]
 
