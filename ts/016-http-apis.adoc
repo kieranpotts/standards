@@ -4,9 +4,7 @@
 
 This document outlines standards for designing and implementing HTTP APIs. It also covers best practices for the implementation of webhooks (both inbound and outbound).
 
-These standards are applicable to both private HTTP APIs between services within distributed software systems ("inter-service communication") and to public HTTP APIs that are made available for integration into third-party client applications ("web services").
-
-In this technical standard, URLs containing variables are specified according to https://tools.ietf.org/html/rfc6570[IETF RFC 6570: URI Template]. For example, a URL containing a variable called `account_id` would be shown as `api.example.com/v1/accounts/{account_id}`.
+These standards are applicable to private HTTP APIs between services within an internal network("inter-service communication") and to public HTTP APIs that are made available for integration into third-party client applications ("web services").
 
 toc::[]
 
@@ -20,7 +18,7 @@ A RESTful API is also:
 
 * *Stateless*: Each request from a client to a server SHOULD contain all the information necessary for the server to understand and fulfil the request. Most client requests SHOULD NOT be dependent upon any particular stored context on the server (with exceptions for things like security measures, eg. to protect against denial of service). This design constraint will simplify the server implementation and make it more scalable.
 
-* *Uniform*: A RESTful API SHOULD have a highly uniform interface, which means it uses a consistent subset of HTTP methods and status codes, uses a consistent file format and schema for message payloads, composes data structures from a common library of types, and uses a consistent URL structure to represent resources and collections. This constraint will help to simplify client implementations, promote code reuse, and make integrations easier.
+* *Uniform*: A RESTful API SHOULD have a highly uniform interface, which means it uses a consistent subset of HTTP methods and status codes, uses a consistent file format and schema for message payloads, composes data structures from a common library of types, and uses a consistent URL structure to represent resources and collections. These constraints will help to simplify client implementations, promote code reuse, and make integrations easier.
 
 * *Cacheable*: As much as possible, responses from a RESTful API server SHOULD be cacheable. This helps to reduce load on the server, reduces latency for clients, and supports strategies for fault tolerance and availability.
 
@@ -30,11 +28,11 @@ The following RESTful design constraints are OPTIONAL:
 
 * *Hypermedia as the engine of application state (HATEOAS)*: HTTP APIs MAY embed hypermedia links through which clients can explore the available resources and operations of the API. Clients MAY use the encoded hypermedia controls to read, query, and update application state. This design constraint is not commonly used in practice, but it can be beneficial for some use cases. HATEOAS may be appropriate for APIs that are intended to be consumed directly by human users, who interact with the API through a generic program to explore the available resources and operations, which themselves are constantly evolving. HATEOAS is less useful for APIs that are intended for programmatic integration into other computer systems.
 
-* *Code on demand*: The server MAY send executable code to the client, to extend the functionality of the client. Again, this design constraint is not commonly used in practice, but one possible use case would be for an API to serve updates to SDKs, written in various programming languages, that are dynamically integrated into client applications.
+* *Code on demand*: The server MAY send executable code to the client, to extend the functionality of the client. Again, this design constraint is not commonly used in practice, but one possible use case would be for an API to serve notifications of available updates to SDKs and client libraries.
 
-Although most HTTP APIs should be primarily RESTful, or resource-oriented, there are many use cases where a RESTful design is not appropriate. For example, if an API is a thin layer around a legacy system that itself is not designed around resources or which fits uncomfortably with the RESTful model, it may be necessary to deviate from RESTful design principles and focus on creating a functional abstraction of the underlying system.
+Although most HTTP APIs should be primarily RESTful (ie. "resource-oriented" APIs), there are many use cases where a RESTful design is not appropriate. For example, if an API is a thin layer around a legacy system that itself is not designed around resources or which fits uncomfortably with the RESTful model, it may be necessary to deviate from RESTful design principles and focus on creating a functional abstraction of the underlying system.
 
-Even within an HTTP API that is predominantly RESTful in its design characteristics, it will often be beneficial to include operations that are more RPC-like in their design. For example, besides the usual create, read, update, and delete operations that are made available on a collection of resources, an HTTP API may augment these operations with additional "actions" that perform tasks on the resources that do not neatly fit the CRUD model, or which abstract multiple CRUD-like operations in a single request. See the section on *Actions* for more information.
+Even within an HTTP API that is predominantly RESTful in its design characteristics, it will often be beneficial to include operations that are more RPC-like in their design. For example, besides the usual create, read, update, and delete operations that are made available on a collection of resources, an HTTP API may augment these operations with additional "actions" that perform tasks that do not neatly fit the CRUD model, or which encapsulate multiple CRUD-like operations behind a higher abstraction. See the section on *Actions* for more information.
 
 In designing an HTTP API, developers SHOULD prioritize creating an accurate model of the system that the API abstracts, rather than trying to religiously adhere to any particular architectural style. Remember, the goal of an HTTP API is to provide a useful and usable interface to a complex system. The best API design will be the one that makes it as easy as possible for clients to interact with the underlying system.
 
@@ -56,41 +54,51 @@ All input MUST be validated and sanitized to prevent security vulnerabilities su
 
 == HTTP methods
 
-HTTP methods define actions to be performed on a resource or a collection of resources.
+HTTP methods define the types of operations to be performed on a resource or a collection of resources.
 
-HTTP methods MUST be used for their designated purpose, as specified by the HTTP standards. This will make it much easier for client applications to be integrated with the API.
+HTTP methods MUST be used for their designated purpose, as specified by the HTTP standards. This will make it much easier to integrate client applications.
 
 HTTP APIs MUST use only the following subset of standard HTTP methods:
 
 |===
-|Verb |CRUD mapping |Description
+|Verb |CRUD mapping |Safe/read-only? |Idempotent? |Description
 
-|GET
+|`GET`
 |Read
+|Yes
+|Yes
 |Used to retrieve the requested resource. GET operations MUST NOT modify the state of the resource, and there MUST NOT be any other side effects.
 
-|HEAD
+|`HEAD`
 |Read
-|Used to retrieve only the headers of a resource – it behaves the same as GET but excluding the body from response messages.
+|Yes
+|Yes
+|Used to retrieve only the headers of a resource. It behaves the same as GET, only the body of response messages is emptied.
 
-|POST
+|`POST`
 |Create
+|No
+|No
 |Used to create a new resource. The server MUST generate a new resource identifier. The server MUST return a full representation of the newly created resource, including its new identifier and other server-generated properties.
 
-|PUT
+|`PUT`
 |Create/Update
+|No
+|Yes
 |Used to fully replace a resource with the request payload, or to create a new resource in scenarios where the client takes over responsibility from the server for generating a unique identifier for the resource.
 
-|PATCH
+|`PATCH`
 |Update
-|Used for partial updates to a resource. The request payload SHOULD contain only the fields that are being updated.
+|No
+|Yes
+|Used for partial updates to a resource. The request payload SHOULD contain only the fields that are being updated. `PATCH` requests SHOULD be designed to be idempotent, but the HTTP specification does not require this.
 
-|DELETE
+|`DELETE`
 |Delete
-|Used to delete a resource. Should be repeatable, always with a positive response even if the resource is already deleted.
+|No
+|Yes
+|Used to delete a resource. Should be repeatable, always with a positive response even if the resource is already deleted. Clients MUST not send a body with `DELETE` requests.
 |===
-
-// TODO: Extend table with more information about what is allowed for each method. Add safe and idempotency too. No body allowed for DELETE requests (many web servers just discard it; the standard say that the body of a DELETE request is allowed but has no semantics).
 
 .GET versus HEAD
 ****
@@ -1075,7 +1083,7 @@ Metadata SHOULD NOT duplicate information that is already provided in the parts 
 
 ==== Related resources
 
-`ResourceItem` instances have an optional property named "related". If included, the value is a `RelatedCollection` of `RelatedItem`s. 
+`ResourceItem` instances have an optional property named "related". If included, the value is a `RelatedCollection` of `RelatedItem`s.
 
 .`RelatedCollection` schema
 [source,json]
@@ -1691,4 +1699,4 @@ HTTP APIs MUST be thoroughly documented.
 
 * https://github.com/jharmn/api-standards[Jason Harmon's API standards, based on PayPal's API design guidelines]
 
-* https://smartbear.com/learn/api-design/[API Design] by SmartBear — An extensive collection of articles and resources all about web API design, by [Smartbear](https://smartbear.com/), a maker of tools for software developers.
+* https://smartbear.com/learn/api-design/[API Design] by SmartBear — An extensive collection of articles and resources all about web API design, by https://smartbear.com/[Smartbear], a maker of tools for software developers.
