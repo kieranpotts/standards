@@ -2,7 +2,7 @@
 :toc: macro
 :toc-title: Contents
 
-This technical standard establishes some general guiding principles for the design and implementation of software systems. These are not intended to be concrete rules, but rather are intended to provide a framework for thinking about software design.
+This technical standard establishes some general guiding principles for the design and implementation of software systems. These are not intended to be concrete rules, but are meant to provide a framework for _thinking_ about software design.
 
 Related technical standards include link:./010-system-design.adoc[TS-10: System Design], which describes general software architectural design best practices and standards; link:./012-application-architecture.adoc[TS-12: Application Architecture], which covers architectural patterns for standalone applications; and link:./013-code-design.adoc[TS-13: Code Design], which covers concerns such as code formatting and low-level design patterns.
 
@@ -12,46 +12,64 @@ toc::[]
 
 The ultimate quality of any software system is how easily it can be changed.
 
-Software is a product and, like any product, it exists to fulfil a need or want. The difficulty is that software development is a particularly *wicked problem*.footnote:[The term "wicked problem" was invented by Horst Rittel and Melvin Webber in their 1973 paper "Dilemmas in a General Theory of Planning". Rittel and Webber were urban planners, and they used the term "wicked problem" to describe the complex, ill-defined problems they were commissioned to solve. A wicked problem is a problem that is not well defined and that has no obvious solution, because all possible solutions involve conflicting goals and constraints. The concept has since been applied to other fields, including software development.] It is often the case that the users' needs and wants are not fully understood when development starts on new software products. And if the problem is not well defined, then the optimum solution cannot be known. This is the reason why many software projects have such high margins of error in their early estimations of development costs and delivery schedules.
+Software is a product and, like any product, it exists to fulfil a need or want. The difficulty is that software development is a particularly *wicked problem*. It is often the case that the users' needs and wants are not fully understood when development starts on a new software product. And if the problem is not well defined, then the optimum solution of course cannot be known.
 
-Even in continuously-released software it is not always obvious which features should be prioritized for the next version. There is rarely a shortage of _ideas_ for new features. What is difficult is knowing which ideas will deliver the most value to users.
+This is the reason why many software projects have such high margins of error in their early estimations of development costs and delivery schedules.
 
-// TODO: Link to the source of this study.
-In 2009 Microsoft conducted a research study into its own internal product planning. It found that two-thirds of ideas implemented in its software products did not meaningfully improve the metrics they were intended to improve. And this is _Microsoft_, which has a very mature product development process involving lots of market research and user testing. The proportion of software features that don't work out is likely to be even higher in many other software houses.
+.Wicked problems
+****
+The term "wicked problem" was invented by Horst Rittel and Melvin Webber in their 1973 paper "Dilemmas in a General Theory of Planning". Rittel and Webber were urban planners, and they used the term "wicked problem" to describe the types of problems they were commissioned to solve. A wicked problem is a problem that is not well defined and that has no obvious solution, because all possible solutions involve conflicting goals and constraints. The concept has since been applied to other fields, including software development.
+****
 
-The data shows that we often don't know up-front if the cost of developing a software feature will be justified by the value it delivers to users. This is true of any product development, of course. But it seems to be especially true of software. Multiple studies have suggested that as many as https://www.split.io/blog/the-80-rule-of-software-development/[80% of features]
-in the average software product are rarely or never used.
+Even in continuously-released software like web apps it is not always obvious which features should be prioritized for the next version. There is rarely a shortage of _ideas_ for new features. What is difficult is knowing which ideas will deliver the most value to users.
+
+https://ai.stanford.edu/~ronnyk/ExPThinkWeek2009Public.pdf[A 2009 Microsoft research paper] found that only one-third of product experiments done at Microsoft, implemented through techniques such as A/B testing, meaningfully improved the metrics they were intended to improve. This means two-thirds of product ideas did not deliver the value expected of them. The proportion of software features that don't work out is likely to be even higher in many other software houses – most will surely have much less mature product development practices than Microsoft.
+
+The data shows that we often don't know up-front if the cost of developing a software feature will be justified by the value it delivers to users. This is true of any product development, of course. But it seems to be especially true of software. Multiple studies have suggested that as many as https://www.split.io/blog/the-80-rule-of-software-development/[80% of features] in the average software product are rarely or never used.
 
 [quote, Steve Jobs]
 ____
 People don't know what they want until you show it to them.
 ____
 
-Furthermore, in enterprise application software, requirements are often constantly changing in response to business priorities and external conditions like regulation and competition. Different stakeholders within a business often have different priorities and conflicting requirements, too. Meanwhile, in consumer software, rapid product iteration and experimentation is often required to find product-market fit.
+Furthermore, in enterprise application software, requirements are often constantly changing in response to business priorities and external conditions like regulation and competition. Different stakeholders within a business often have different priorities and conflicting requirements, too.
+
+Meanwhile, in consumer application software, rapid product iteration and experimentation is often required to find product-market fit.
 
 In extreme cases we might not even know what problem we're trying to solve with the software we're building, let alone how we will solve it. This is often the case in R&D projects, or when building software to support a new business model or an emerging market. Innovative projects like this are driven by exploration and experimentation. Requirements are not _known_, but are _discovered_ through trial and error.
 
-For all these reasons, the optimum solution tends to emerge quite late in the development process, often a considerable time after construction has begun.
+For all these reasons, the optimum solution tends to emerge quite late in the development process – often a considerable time after construction has begun.
 
-Of course some software projects have reasonably stable and precise requirements. But even in those, some degree of uncertainty is likely. At the very least, developers must deal with the changing IT environment that exists around the software they maintain. Dependencies will need to be updated. Newly discovered security vulnerabilities will need to be patched. And program code will need to be changed from time-to-time, for instance to maintain compatibility with new versions of the programming languages in which the application code is written. When you don't respond to these changes, *software rot* sets in.footnote:[The term "software rot" refers to the observation that computer programs appear to decay in their performance and reliability over time, even if nothing appears to change. That's because all computer programs have dependencies on other computer systems, such as an operating system and certain utility programs, and those external dependencies will change over time. Therefore, all software must be continually maintained to keep it working. Software can never be "finished" in this sense.]
+Of course some software projects have reasonably stable and precise requirements. But even in those, some degree of uncertainty is likely. At the very least, developers must deal with the changing IT environment that exists around the software they maintain. Dependencies will need to be updated. Newly discovered security vulnerabilities will need to be patched. And program code will need to be changed from time-to-time, for instance to maintain compatibility with new versions of the programming languages in which the application code is written. When you don't respond to these changes, *software rot* sets in.
+
+.Software rot
+****
+The term "software rot" refers to the observation that computer programs appear to decay in their performance and reliability over time, even if nothing appears to change. That's because all computer programs have dependencies on other computer systems, such as an operating system and certain utility programs, and those external dependencies will change over time. Therefore, all software must be continually maintained to keep it working. Software can never be "finished" in this sense.
+****
+
+There are all sorts of reasons why a piece of software will need to be changed after its initial construction. New features may need to be added, while other features are removed. And bugs may need to be fixed, performance improved, dependencies updated, data migrated, vulnerabilities audited… and so on, and so on.
 
 A universal truth of _all_ software projects is that *requirements are emergent* to some degree.
 
 But at least we have an advantage over the development of physical products: we can change software after it has been delivered. The clue is in the title. Software is _soft_. It is malleable, changeable. We can make our software do different things simply by changing parts of its code and configuration. We (usually) don't have to remake the whole thing. This is not true of most physical goods.
 
-The natural response to the inherent uncertainty in software projects is to try to lock down requirements early in a project. But a better strategy tends to be to *embrace change*. Rather than attempting to carefully plan every deliverable feature in advance, we should instead _assume_ that requirements will be vague, or even plain wrong, and will change and become better defined over time.
-
-This means we need to plan to deliver system designs that can easily accommodate changing requirements.
-
-We should not expect to be able to change the *grand design* of a software system. For example, we should not expect to be able to pivot from developing a windowing system to an operating system shell. Those are entirely different problem space. The problem space determines the architectural style of a software system, and the high-level design is always hard to change. For this reason, it is reasonable for us to expect the problem space to remain consistent throughout the lifespan of a software product. But the grand design of a software system must accommodate changes to the parts within that design. The design must consider the future cost of adding and removing featured, fixing bugs, and improving performance.
+The natural response to the inherent uncertainty in software projects is to try to lock down requirements early in a project. But a better strategy tends to be to *embrace change*. Rather than attempting to carefully plan every deliverable feature in advance, we should instead _assume_ that requirements will be vague or even plain wrong, and that they will change and become better defined over time.
 
 Changeability, also known as evolvability, is the ultimate quality of a software system. Software systems that are easy to change tend to have long useful lives and deliver a high return on investment.
 
+That said, we should not expect to need to change the *high-level design* of a software system. The high-level design will always be hard to change, because this is about the fundamental organization of the logic, the structure of the data, and even the very choices of programming languages, databases, and other technology and supporting infrastructure.
+
+The high-level design is determined by the problem space in which the software operates. It is perfectly reasonable for us to expect the problem space of a software system to remain consistent for the life span of that system. We should not expect to be able to pivot from developing a windowing system to an operating system shell, for example – not without throwing away everything and starting over. These are entirely different problem spaces, and so the solutions require entirely different architectural styles, different technology stacks, different construction methods, different testing tools, and different deployment and release strategies. They're different products in every way, except for the fact they're both software products.
+
+While the high-level design is not expected to change, the high-level design _is_ required to support changes being made to the parts within it. A requirement of the high-level design is to provide systems – built-in to the software itself – by which the parts of the software can be reconfigured, added, removed, or replaced.
+
+Good software design includes _plans_ for how the software can be changed. Changeability is a feature. And like all software features, it requires deliberate design.
+
+(link:./013-code-design.adoc[TS-13: Code Design] covers design principles and patterns that help us to design software systems for change.)
+
 == Develop iteratively and incrementally
 
-Good software design leaves room for change. It allows for the software to be changed in small increments. More than this, software that is designed for change has built-in feedback loops (eg. through integrated monitoring systems that generate usage analytics data) and it supports experimentation through techniques like A/B testing and feature flags. See also link:./013-code-design.adoc[TS-13: Code Design], which covers design principles and patterns that help us to design computer programs for change.
-
-But designing for change is not just about code structure and tooling. It is also about the software development process itself.
+Designing for change is not just about code structure and tooling. It is also about the software development process itself.
 
 We cannot decouple design from process. The methods and tools we use to develop software inevitably have direct impacts on the eventual design of the software. Or, to put it another way, the design of software is a consequence of the process under which it was made.
 
@@ -60,13 +78,30 @@ ____
 Organizations which design systems… are constrained to produce designs which are copies of the communication structures of these organizations.
 ____
 
-The best way to design software for change is to follow an iterative and incremental development process.
+The best way to design software for change is to follow an *iterative and incremental development* process.
 
-An iterative and incremental development process is any workflow that supports iterative design within an incremental build model. The general idea is to develop a product through repeated cycles (iterations), building up the product in small portions at a time (increments). In each iteration, design modifications are made to accommodate the product's changing functional and operational capabilities. Thus *evolutionary design* is achieved through continuous refactoring, which happens in parallel with the addition and subtraction of features.
+This refers to any workflow that supports iterative design within an incremental build model. The general idea is to develop a product through repeated cycles (iterations), building up the product in small portions at a time (increments). In each iteration, design modifications are made to accommodate the product's changing functional and operational capabilities. Thus *evolutionary design* is achieved through continuous refactoring, which happens in parallel to the addition and subtraction of features.
 
-The objective of an iterative and incremental development process is to achieve *peacemeal growth* of the software system under development, and avoid risky *big bang* product launches and major releases.
+Changeability is built into the development process itself. In an iterative and incremental development model, product development can be driven by feedback loops. Product roadmaps are adjusted early and often in response to user feedback, changing business environments and economic conditions, and new technologies and opportunities. The process also accommodates experimentation and innovation, which is sometimes required to develop successful software products.
 
-Thus, changeability is built into the development process itself. In an iterative and incremental development model, product development can be driven by feedback loops. Product roadmaps are adjusted early and often in response to user feedback, changing business environments and economic conditions, and new technologies and opportunities. The process also accommodates experimentation and innovation, which is sometimes required to develop successful software products.
+Successful software projects are almost always delivered through a process of *piecemeal growth* .
+
+The alternative approach, *big design up-front*, in which a solution is extensively planned and comprehensively designed at thee start of the development process, before construction begins, followed by *big bang* product launches at the end of the development process, are risky and expensive. 
+
+// Big up-front design is risky because the requirements are not well known, and so the design is likely to be wrong. It is expensive because a lot of time and effort is spent designing features that may never be built, or that may be built in a different way to that originally designed.
+
+////
+.Waterfall
+****
+The iterative and incremental model for software development is almost as old as the field of software development itself.
+
+// TODO: This software development methodology is (almost) as old as the discipline of software development itself. True waterfall, or stepwize development, was only done in the very early years when it was incredibly time-consuming to change a piece of code after it was written, because of the time it took to compile then test.
+
+Today, "waterfall" development is often used as a straw-man to contrast with "agile" development. But the original waterfall model, as described by Winston Royce in 1970, was actually an iterative and incremental model – which is also the foundation of agile ways of working. Royce's waterfall model included feedback loops between each phase of the development process, and he explicitly recommended doing a "first pass" through the entire development process, followed by subsequent passes to refine and improve the product.
+****
+////
+
+Yet _some_ amount of up-front design is always beneficial. It should be shallow, not deep. Early design should be focused on the high-level design: establishing the overall architecture of the solution, the boundaries between modules, the interfaces and communication patterns between the modules, the management of state, the technology stack, and so on. Early design effort should prioritize the stuff that is going to be hard to change later.
 
 == Optimize for learning through fast feedback loops
 
@@ -78,9 +113,9 @@ It follows that we should optimize our software development process for learning
 
 We can shorten the time it takes to get feedback from users by increasing our release cadence. The objective should be to deliver software updates to users as _continuously_ as possible. This requires investment in methods and tools such as canary and beta release channels, blue-green deployments, A/B testing, and feature flags. Test automation, continuous integration and delivery (CI/CD) pipelines, and comprehensive monitoring also reduce friction, costs, and risks in the process of shipping software updates.
 
-Taken to extremes, fully automated delivery pipelines support continuous deployment, in which mere hours pass between code changes being committed and those changes existing in a production or production-like environment.
+Thus, software that is designed to change is not only easy to modify and extend with changed functionality, but it also has built-in feedback loops. For example, integrated monitoring systems that generate usage analytics data, and built-in mechanisms to run experiments using techniques like A/B split testing and feature flags – allowing us to try out new ideas quickly and cheaply.
 
-The faster this feedback loop, the less likely we are to waste time and money building features that users don't want or need.
+Taken to extremes, fully automated delivery pipelines support continuous deployment, in which mere hours pass between code changes being committed and those changes existing in a production or production-like environment. The faster this feedback loop, the less likely we are to waste time and money building features that users don't want or need.
 
 There should be multiple feedback loops from the product's users to its developers. User feedback should be a mix of manual qualitative analysis (eg. user interviews and usability testing) and automated quantitative analysis (eg. usage analytics and A/B testing). Most user feedback should be driven by questions we want to answer, or hypotheses we want to test. How are users interacting with the software? What are their pain points? What features are they finding most valuable? What features are they not using? What features do they want that we haven't built yet? User feedback can also be open-ended; customer support tickets, user forums, and social media are all good sources of unsolicited user feedback.
 
