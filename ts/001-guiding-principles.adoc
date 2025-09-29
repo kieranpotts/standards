@@ -2,7 +2,7 @@
 :toc: macro
 :toc-title: Contents
 
-This technical standard establishes some general guiding principles for the design and implementation of software systems. The intention is not to prescribe concrete rules, but rather to provide a framework for _thinking_ about software design.
+This technical standard establishes some guiding principles for the design and implementation of software systems. The intention is not to prescribe concrete rules, but rather to provide a framework for _thinking_ about software design.
 
 Related technical standards include link:./010-system-design.adoc[TS-10: System Design], which describes general software architectural design best practices and standards; link:./012-application-architecture.adoc[TS-12: Application Architecture], which covers architectural patterns for standalone applications; and link:./013-code-design.adoc[TS-13: Code Design], which covers concerns such as code formatting and low-level design patterns.
 
@@ -12,7 +12,7 @@ toc::[]
 
 The ultimate quality of any software system is its ability to be changed.
 
-Every software application is a product that exists to meet a need or want. The challenge is that software development often deals with *wicked problems*. Commonly, requirements are not well defined at the start, because users' needs and wants are unclear. And all the possible solutions make trade-offs.
+Every software application is a product that exists to meet a need or want. The challenge is that software development often deals with *wicked problems*. It's not always clear what those needs and wants are. Therefore, requirements are ill-defined at the start. And all the possible solutions make trade-offs.
 
 .Wicked problems
 ****
@@ -25,7 +25,7 @@ https://ai.stanford.edu/~ronnyk/ExPThinkWeek2009Public.pdf[A 2009 Microsoft rese
 
 The data shows that we often can't tell upfront if developing a feature will be worth it. This is true for all product development, but it seems to be especially for software products.
 
-In enterprise application software, requirements often changes. This is due to business needs and outside factors, such as regulations and market conditions. Different stakeholders within a business may also have conflicting priorities. In consumer software, rapid iteration is often necessary to find a good product-market fit.
+In enterprise application software, requirements often change. This is due to business needs and outside factors such as regulations and market conditions. Different stakeholders within a business may also have conflicting priorities. In consumer software, rapid iteration is often necessary to find a good product-market fit.
 
 [quote, Steve Jobs]
 ____
@@ -34,7 +34,7 @@ ____
 
 In some cases, we may not even know what problem we are solving with our software. This is often the case in R&D projects or when building software for new business models. These innovative projects are driven by exploration and experimentation. Requirements are discovered, not known.
 
-Some software projects have stable requirements, like platform migrations that replace old systems with like-for-like features. However, even these projects face uncertainty. At the very least, the software will need to be maintained – dependencies updated, newly discovered vulnerabilities patched, code and configuration refactored for compliance with new runtimes and standards – else *software rot* will set in. The long-term cost of software maintenance is unknown.
+Some software projects have stable requirements, like platform migrations that replace old systems with like-for-like features. But even these projects face uncertainty. At the very least, the software will need to be maintained – dependencies updated, newly discovered vulnerabilities patched, code and configuration refactored for compliance with new runtimes and standards – else *software rot* will set in. The long-term cost of software maintenance is unknown.
 
 .Software rot
 ****
@@ -43,64 +43,60 @@ Some software projects have stable requirements, like platform migrations that r
 
 There are all sorts of reasons why a piece of software may need to change after its initial construction. We may need to add new features, remove unused ones, fix bugs, improve performance, update dependencies, patch vulnerabilities, migrate data, increase capacity… and so on, and so on. Most software systems remain in a perpetual state of continuous development. Unlike most physical products, most software is never truly finished.
 
-A universal truth of _all_ software projects is that *requirements are emergent*. Requirements are rarely understood in full at the start of a project. They will keep evolving long after construction has begun. This is why early estimates of costs and timelines often prove to have high margins of error.
+A universal truth of _all_ software projects is that *requirements are emergent*. Requirements are rarely understood in full at the start of a project, and they will keep evolving long after construction has begun. This is why early estimates of costs and timelines often prove to have high margins of error.
 
-At least we have an advantage over the development of physical products: we can change software after delivery. The clue is in the name. Software is _soft_, malleable, and changeable. We can make software do different things just by changing bits of its code and configuration. Usually, we don't need to rebuild the whole thing. This isn’t the case with most physical goods.
+At least we have an advantage over the development of physical products: we can change software after delivery. The clue is in the name. Software is _soft_ – malleable and changeable. We can make software do different things just by changing bits of its code and configuration. Usually, we don't need to rebuild the whole thing. This isn’t the case with most physical goods.
 
-The natural response to the inherent uncertainty in software projects is to try to lock down requirements early. A better strategy is to *embrace change*. Instead of planning every feature in detail, we should assume that requirements will be vague, incomplete, or even plain wrong. The requirements will become clearer with time, as we learn more about the problem space, and the trade-offs in the solution.
+The natural response to the inherent uncertainty in software projects is to try to lock down requirements early. A better strategy is to *embrace change*. Instead of planning every feature in detail, we should assume that requirements will be vague, incomplete, or even plain wrong. But the requirements will become clearer with time, as we learn more about the problem space, and the trade-offs in the solution. And when the requirements change, we change the software to meet the new requirements.
 
 Changeability, also known as evolvability, is the ultimate quality of a software system. Systems that are easy to change tend to have long useful lives and deliver a high return on investment.
 
-Achieving changeability requires investment. It requires deliberate design. Changeability is an attribute of the code's design, the data structures, and the communication patterns.
-
-Good software design solves the problem _and_ it plans for change.
+Achieving changeability requires investment. It requires deliberate design. Changeability is an attribute of the code's design, the data structures, and the communication patterns. Good software design solves the problem _and_ it plans for change.
 
 == Develop iteratively and incrementally
 
-Designing for change is not just about the structure of code, data, and communication. It is also about the software development process itself.
+Designing for change is about more than code and data. It is also about _how_ we go about making software.
 
-We cannot decouple design from process. The methods and tools we use to develop software inevitably have direct impacts on the eventual design of the software. Or, to put it another way, the design of software is a consequence of the process under which it was made.
+We cannot separate design from process. The methods and tools we use to develop software directly impact its design. The design of software is a consequence of the process under which it was made.
 
 [quote, Melvin Conway, 1967 (Conway's Law)]
 ____
 Organizations which design systems… are constrained to produce designs which are copies of the communication structures of these organizations.
 ____
 
-The best way to design software for change is to follow an *iterative and incremental development* process.
+The best way to design software for change is through an *iterative and incremental development* process. The idea is to develop a product through repeated cycles (iterations), building it in small portions (increments). In each cycle, we further develop user-facing functionality while evolving the design to better accommodate the system's new capabilities.
 
-This refers to any workflow that supports iterative design within an incremental build model. The general idea is to develop a product through repeated cycles (iterations), building up the product in small portions at a time (increments). In each iteration, design modifications are made to accommodate the product's changing functional and operational capabilities. Thus *evolutionary design* is achieved through continuous refactoring, which happens in parallel to the addition and subtraction of user-facing features.
+This development model is powerful because it can be driven by *feedback loops*. We can adjust product roadmaps based on early and regular user feedback, and in response to changing business environments, new technologies, and new insights learned from our own experience of building the software. An iterative and incremental development process is also great for experimentation and innovation, which is essential for solving complex and ambiguous problems.
 
-The iterative and incremental development model is powerful because product development can be driven by *feedback loops*. Product roadmaps can be adjusted early and often in response to user feedback, changing business environments and economic conditions, and new technologies and opportunities. An iterative and incremental development process can also be designed to accommodate experimentation and innovation – which will be required to deliver successful software solutions for some problem domains.
+Successful software projects are delivered through a process of piecemeal growth driven by fast feedback loops.
 
-Successful software projects are almost always delivered through a process of *piecemeal growth* driven by fast feedback loops. This requires changeability to be an inherent characteristic of the software development process itself. The ways of working embrace change.
+The alternative approach, *big design up-front* before construction, followed by *big bang* releases after construction, is risky and more expensive. In our industry, "waterfall" is colloquially understood to mean any process that follows this development model. Emphasis is put on finalizing detailed requirements specifications, and completing comprehensive designs, before construction begins.
 
-The alternative approach, *big design up-front* before construction, followed by *big bang* releases after construction, is inherently risky and orders-of-magnitude more expensive.
+Waterfall methods tend also to be characterized by centralized change management procedures, rigid stepwise phases, and lots of bureaucracy. A top-down management style often sees technical staff assigned to tasks like estimation and scheduling, diverting their attention from the essential job of delivering useful software to customers. 
 
-The term *waterfall* is colloquially understood in our industry to refer to any software development model in which emphasis is placed on producing detailed requirements specifications and comprehensive solution designs before construction of a new software product, or a major new feature of an existing software product, begins. Such development methodologies tend to be characterized also by centralized and bureaucratic change management procedures, inflexible stepwise approaches to the phases of the software development lifecycle, and reallocation of technical staff to extraneous tasks such as estimation and scheduling – work that does not contribute to delivering real value to real users.
+// TODO: Add stepwise diagram from the waterfall paper.
 
-// TODO: In response to the inherent unpredictability of software development, the waterfall solution is to try to create an illusion of predictability. Artifacts such as story points, kanban boards, and burn-down charts are all attempts to create a semblance of order and predictability in an inherently unpredictable process. These artifacts can be useful, but they can also create a false sense of certainty.
+Waterfall approaches are a reaction to the inherent unpredictability of software development. The problem is it's the wrong reaction. Waterfall methods leave the impression of enforcing order on chaos, making software development more predictable. But it's all an illusion. The sense of certainty given by waterfall is a false one.
 
-Big up-front planning and design is a perfectly human response to the requirement to manage costs and reduce risks in any kind of construction project. The natural response to uncertainty is to try to remove the uncertainty, by locking down requirements and designs early, and by fixing budgets against estimated costs for construction.
+In the construction of complex software, the waterfall approach has been proven to increase costs and risks, not decrease them.
 
-But in the construction of software – at least in the construction of software with non-trivial levels of inherent complexity – this approach has been proven to be costly and fraught with all kinds of risks.
+Protracted up-front planning and design adds overhead and extends delivery schedules. This delays time-to-market, losing commercial advantage. It also encourages *over-engineering* – building features that users don't actually need, and designing complex solutions where simpler ones will do. Waterfall processes stifle innovation by leaving no room for experimentation. And, because software updates are released in big batches, feedback loops are extended, meaning gaps in requirements and flaws in designs are discovered late, increasing the cost of making changes.
 
-Protracted up-front planning and design adds overhead and extends delivery schedules. This delays time-to-market, losing commercial advantage. Such a process also encourages *over-engineering*, building features that users don't actually want or need, and implementing more complex solutions than a problem requires. Waterfall-like development processes also discourage innovation and experimentation, and they discourage requirements being allowed to change later.
+No matter how much we invest in planning, we will always be wrong about some things. Software development is a wicked problem. Requirements are emergent for all sorts of reasons, but not least because you can't know for sure what features users will find valuable until they try them out. Even if we are successful in locking down requirements, there will be lots of nuances in the many trade-offs involved the design that we can grasp only by testing working software. Prototypes can certainly help to make better decisions upfront, but there's nothing quite like real production-grade software, put in the hands of real users, to validate requirements and designs.
 
-A consequence of waterfall delivery models is that software updates are released to users in big batches. Feedback loops are therefore long and poor quality. This means we don't get to validate all the assumptions we've made in our product plans until late in a project. Gaps in requirements specifications and flaws in designs – such as integration or performance issues – may trigger more substantial rework than would have been necessary had those shortcomings been discovered earlier.
+Most fatally of all, waterfall approaches discourage the product requirements from being allowed to change, because budgets and schedules are fixed at the outset. If scope is allowed to creep without flexing budgets and schedules, then quality suffers – reducing the software's changeability, and so increasing the cost of future changes.
 
-No matter how much time and effort we put into up-front requirements specification, solution design, and delivery planning, we _will_ still be wrong about some things. For the reasons explained in the "Design for change" section above, requirements are emergent for all sorts of reasons, but not least because you don't really know for sure what software features users will find valuable until the users get to actually experience those features first-hand. Accurate cost-benefit analysis of proposed requirements is often not possible until _after_ the necessary changes have been developed and shipped.
+Unless the requirements can be guaranteed to be complete, precise, and stable, waterfall will give you false guarantees on costs and timelines.
 
-Even if we were successful in locking down the requirements specification, the chances are there will be a lot of nuances in the many trade-offs that we will need to make in the software design, and we will only fully understand those trade-offs by running and testing working software. (Prototypes and proofs-of-concept can certainly help to surface some of the more nuanced trade-offs, but there's nothing quite like real production-grade software to validate your designs.)
+Rather than dealing with uncertainty by trying to eliminate it, we should accept that uncertainty is an intrinsic characteristic of any kind of product design process. Instead, we should design our software, and its development process, to allow for things to change.
 
-Big up-front planning and design creates a false sense of certainty. In fact, project risks are more likely to increase than decrease.
-
-So, rather than dealing with uncertainty by trying to eliminate it, we should accept that uncertainty is an intrinsic characteristic of any kind of product design process, and instead design the software – and the process used to make it – to allow for our plans and designs to change.
-
-An iterative and incremental development model allows us to continuously refine product requirements and evolve the solution design as we learn – through lots of continuous feedback loops – more about the problem space we're working in and the trade-offs involved in our solution to it.
+An iterative and incremental development model helps us to continuously refine product requirements and improve the design over time. We can implement lots of feedback loops through which we continuously learn more about the problem space we're working in and the trade-offs involved in our solution to it, and adjust our plans in response.
 
 == High-level design up-front, low-level design just-in-time
 
 That being said, _some_ amount of up-front design is always useful.
+
+// In each cycle, we make design changes to accommodate the product's evolving capabilities. *Evolutionary design* happens through continuous refactoring, done in parallel to the addition and subtraction of user-facing features.
 
 // It should be shallow, not deep. Early design should be focused on the high-level design: establishing the overall architecture of the solution, the boundaries between modules, the interfaces and communication patterns between the modules, the management of state, the technology stack, and so on. Early design effort should prioritize the stuff that is going to be hard to change later.
 
