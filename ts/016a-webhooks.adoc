@@ -1,0 +1,676 @@
+= TS-16a: Webhooks
+:toc: macro
+:toc-title: Contents
+
+This technical standard extends link:./016-http-apis.adoc[TS-16: HTTP APIs] with specific guidance on the design of webhooks.
+
+This technical standards draws heavily on https://www.standardwebhooks.com/[Standard Webhooks], which is a community-driven initiative to document best practices for webhook implementation. Other influential sources are listed in the references section at the end of this document.
+
+toc::[]
+
+== What are webhooks?
+
+Webhooks, also known as web callbacks or HTTP callbacks, are a design pattern implemented alongside HTTP APIs in public-facing web services to handle asynchronous event notifications from upstream services.
+
+A web service MAY expose a regular HTTP API, or webhook callbacks, or both. The same service MAY also send its own event notifications to the webhook endpoints of other services.
+
+Webhooks are HTTP API endpoints that receive notifications about interesting things (events) that happened in third-party systems on which the service depends. For example, a service may use various third-parties to process payment card transactions, send SMS messages, or verify the identity of its users. Those third-party services may send HTTP messages to the service, via its webhook endpoints, to tell it about events that happened in their systems, like when a payment has been successfully processed or when the sending of an SMS message fails.
+
+Thus, webhooks facilitate integrations between web services that are owned and operated by different organizations.
+
+Webhooks can be thought of as a sort of "reverse API". Rather than clients pulling information from an upstream service, the service pushes information to clients when certain events occur. This can be a more efficient use of computing resources, as it avoids the need for clients to poll upstream services for updates. And it allows for more real-time data synchronization between systems. All that is required is for the clients to implement special HTTP endpoints – which are the actual "webhooks" – to receive event notifications from the upstream services with which it integrates.
+
+=== Webhooks versus message-driven architecture
+
+Webhooks are a subset of message-driven communication patterns. In the webhooks pattern, event-oriented messages are exchanged via HTTP between systems owned and operated by different parties (ie. inter-organizational communication).
+
+link:./017-messages.adoc[TS-17: Messages and Events] covers best practices for designing and implementing messages and events in message-driven architectures (MDA). However, messages sent to the webhook endpoints of external systems SHOULD NOT be expected to follow the same design conventions as messages sent within an internal network ("inter-service communication"). Inter-service messages and inter-organization messages serve different purposes. Nevertheless, the general principles of good message design outlined in TS-17 still apply to webhooks.
+
+=== Client versus server
+
+A note on the use of the terms "client" and "server" in the context of webhooks.
+
+Webhooks _do not_ reverse the client-server relationship.
+
+Consider a website that integrates with a payment service to handle payment card transactions. In this example, the website is the client and the payment gateway is the server. When a user makes a payment on the website, the website sends an HTTP request to the payment gateway to process the payment. When the payment is successfully processed, the payment gateway (the server) sends an HTTP request to the website (the client), via its webhook endpoint, to notify it of the successful payment.
+
+Although it is the payment gateway that initiates the webhook request, the website is still the client and the payment gateway is still the server in terms of their conceptual relationship to each other.
+
+Webhooks are an asynchronous communication pattern. In our example, the second request-response cycle – the webhook notification sent from the payment gateway back to the website – is actually a _delayed response_ to the first request initiated by the website (the client).
+
+In terms of the semantics of HTTP, however, the client and server _are_ swapped around when the payment gateway sends the webhook notification to the website. The payment gateway is now the client, and the website is now the server, and response status codes are used in the usual way to indicate success or failure in processing the webhook message.
+
+For clarity, this technical standard uses the term "producer" to refer to a system that sends a webhook message, and "consumer" to refer to the system that receives it. This terminology avoids confusion around which is the client and which is the server.
+
+=== Inbound versus outbound webhooks
+
+A service MAY implement either inbound or outbound webhooks, or both or neither.
+
+* *Inbound webhooks*: These are _private_ endpoints that your service (the consumer) exposes to receive notifications from one or more third-party services (the producers).
+
+* *Outbound webhooks*: These are messages sent out from a service (the producer) to the webhook endpoints of other services (the consumers).
+
+Inbound webhooks are not really part of an HTTP API's public interface, but rather they are special-purpose private endpoints that MAY be published alongside the main public endpoints of an HTTP API. The purpose of webhook endpoints is to facilitate integration with third-party systems on which the service depends; they are not used directly by the service's own users/customers.
+
+Inbound webhooks may be exposed via different URLs schemas and HTTP methods than the main API endpoints, and things like payload schema and authentication mechanisms will be determined by the third-party services (the producers).
+
+Outbound webhooks, on the other hand, are a form of event notification, and they are very much part of the application programming interface (API) of the service from which they are emitted. And yet they too sit apart from the main HTTP API endpoints of the service. Outbound webhooks may also use different transport protocols, different message formats, different schemas, different methods of authentication, and they may even be versioned independently of the service's main API.
+
+== Inbound webhooks
+
+When implementing inbound webhooks as a consumer, the main design consideration is the URL scheme, which is normally the only thing that you, as the event consumer, have any control over. The upstream service that produces the events will dictate things like the payload schema, the HTTP methods, and the authentication and authorization mechanisms that your webhook endpoints will need to support.
+
+=== Webhook URL schemes
+
+The URL scheme for inbound webhooks MUST be distinct from the endpoints of the service's own HTTP API (if it has one). The aim is to avoid conflicts and allow the webhook endpoints to evolve independently of the main API endpoints.
+
+The following URL scheme is RECOMMENDED for inbound webhooks.
+
+----
+/_webhooks/{party}/{namespace}/v{version}/{event_type}/{...}
+----
+
+Where:
+
+* `{party}` is the name of the third-party service, an event producer, that is configured to send events to the endpoint.
+
+* `{namespace}` is an optional path component used to scope a webhook to a particular service of the third-party event producer. This is required if a third-party offers multiple services, each of which emits events in different formats, and which therefore require differential handling by the consumer.
+
+* `{version}` is an optional path component that identifies the version number of the event producer's webhook API or event schema that is supported by the endpoint. This can be omitted if the endpoint is designed to handle multiple versions of the producer's event schema in a backward-compatible way.
+
+* `{event_type}` is a path component that identifies a particular type of event that the endpoint is designed to subscribe to. This can simply be the word "callback" if all that is needed is a single endpoint to process all kinds of events emitted by the producer.
+
+* `{...}` refers to any additional URL path components that are required by the producer in the webhook implementation, for example for the purpose of passing resource identifiers.
+
+The `/_webhooks/` path component is RECOMMENDED to clearly differentiate webhook endpoints from the main API endpoints of the service. The underscore prefix indicates that these endpoints are for internal use and are not part of the public API of the service. This path naming convention may also make it easier to differentiate cross-cutting concerns such as security policies, routing rules, monitoring, and logging configurations for webhook endpoints.
+
+Consider the following examples of webhook URLs, which use the above scheme:
+
+* `/_webhooks/authentiq/v3/callback`
+* `/_webhooks/true-id/callback`
+* `/_webhooks/transactify/v1/transaction-initiated`
+* `/_webhooks/transactify/v1/transaction-complete`
+* `/_webhooks/transactify/v2/transaction-initiated`
+* `/_webhooks/transactify/v2/transaction-complete`
+
+This fictional API exposes six webhook endpoints, which are used to receive notifications from three different third-party services:
+
+* One webhook is for a service called AthentiQ. A single endpoint is used to process all events emitted by this producer. The endpoint supports version 3 of AuthentiQ's webhook event schema.
+
+* There's a similar webhook for a service called TrueID. This endpoint is not versioned, which means it will need to be able to handle multiple versions of TrueID's webhook event schema, should TrueID's webhook event schema change in a non-backward-compatible way in the future. We're pretending that this is an older identity verification service that is being phased out, to be replaced by AuthentiQ. In this transition phase, the system needs to support both producers in parallel.
+
+* Four endpoints handle notifications from a service called Transactify. There's one endpoint to process "transaction-initiated" events, and another endpoint to process "transaction-complete" events. The system supports two different versions of Transactify's event schema. Perhaps most notifications are now sent to the v2 webhooks, but the system still needs to support the legacy v1 schema for a period of time, for example to handle retries and updates of historical events, before its deprecation.
+
+These examples demonstrate the following features of this webhook URL scheme.
+
+First, multiple event producers can be supported simultaneously. It might be necessary, for example, to have one or more webhooks for a payment service gateway, other webhooks for a transactional email service, and yet more webhooks for an identity verification service. In addition, this design makes it possible to incrementally transition from one service provider to another (eg. swapping the payment service gateway) without breaking your own service.
+
+Second, the `{version}` component is independent of the versioning scheme for the consumer's own HTTP API (if it has one). Indeed, the `{version}` may vary between webhook endpoints. In an HTTP API, most endpoints will be scoped to a particular version of the API service itself. But webhooks are an exception. These are scoped instead to the versions of the event messages that producers send to the webhook endpoints. After all, it is event producer that specifies the interface contract for its webhooks: the HTTP methods, payload structures, authentication and authorization mechanisms, and so on. Usually, the only thing under the control of the consumer is the URL scheme.
+
+Webhooks MUST be versioned independently to an API's main endpoints, and also to each other, so each can be incremented independently. It becomes possible to handle two or more incompatible versions of a webhook's event schema in parallel. If a producer makes breaking changes to their event schema, you will be able to transition to the new schema in an incremental, non-breaking way. You can do this by publishing a new handler for the new event schema alongside the existing handler for the existing schema, eg.
+
+* `/_webhooks/{party}/v3/receive-event`
+* `/_webhooks/{party}/v4/receive-event`
+
+[TIP]
+======
+If a producer does not explicitly version their webhook payload schema – this happens often! – then it is RECOMMENDED to scope the webhook URLs to the current major version of the producer's own web service API. If this is not possible either, you can invent your own versioning system for the producer. This could be as simple as using the terms "latest" and "next" for the `{version}` path components. The goal is for the URL schema to be scalable to handle multiple versions of a producer's event messages in parallel.
+======
+
+Finally, multiple webhooks can be be supported for a single third-party service that produces lots of different types of events. It is often the case that producers require only a single webhook via which they can notify consumers of _all_ events. But sometimes it can be beneficial, or even necessary, to process different types of events from the same producer in different ways. For example, you may want to process "transaction-initiated" events differently from "transaction-complete" events.
+
+=== Status codes
+
+When integrating with third-party services via inbound webhooks, those third-party services may require you to return specific status codes to indicate success or failure in your processing of their webhook messages. If the producer specifies the status codes that it expects in response, then you MUST comply with those requirements to ensure proper integration with their systems. Processes such as retries and dead-letter queues will likely be triggered by particular response codes from your service.
+
+If a producer does not specify the status codes that it expects, then it is RECOMMENDED to return a `202 Accepted` for all success scenarios. This code indicates that the event has been accepted for processing, but the processing has not been done yet. This is appropriate for most webhook event receipts, as it allows the recipient to process the request asynchronously – the webhook message gets added to a queue and processed later – which is a best practice.
+
+To indicate errors, if the producer does not specify what error codes it expectes, then the following response codes are RECOMMENDED:
+
+* `400 Bad Request` for client errors, which you should return when an event message fails to validate against the expected schema.
+* `401 Unauthorized` for failed authentication checks.
+* `403 Forbidden` for failed authorization checks (permissions, scopes).
+* `404 Not Found` when the webhook endpoint does not exist, for example it has been deprecated or moved.
+* `429 Too Many Requests` when rate limits have been exceeded.
+* `500 Internal Server Error` for any scenario in which your application encounters an unexpected condition that prevents it from completing its handling of the message. When you return a `5xx` code, you are basically saying to the client "please retry this later".
+
+== Outbound webhooks
+
+For outbound webhook events, which your service produces and sends to the webhook endpoints of third-party consumers, it is strongly RECOMMENDED to comply with the https://www.standardwebhooks.com/[Standard Webhooks] specification.
+
+Standard Webhooks is a community-driven initiative to standardize around industry best practices for webhook design. The specification is based on common patterns and prevailing conventions for event naming, payload structure, security and authentication, and delivery patterns.
+
+The webhook ecosystem is highly fragmented, with each producer implementing webhooks differently. This makes it hard for producers and consumers to integrate with each other. Converging on a common standard for webhooks will make it easier for service providers to offer webhook notifications to their customers, and easier for their customers to integrate with them. It will also enable the development of shared tools and services that can be reused across multiple webhook implementations. Indeed, the Standard Webhooks project already has a number of open source libraries, for multiple mainstream programming languages, to facilitate the implementation of webhooks in both producer and consumer systems.
+
+Besides interoperability, the Standard Webhooks specification also promotes best security practices, offering solutions for attack vectors such as SSRF, spoofing, and replay attacks. See the https://github.com/standard-webhooks/standard-webhooks[project readme] for more information about the specification, and links to open source libraries and reference implementations.
+
+The rest of this section specifies an extended subset of Standard Webhooks. These guidelines are fully compliant with Standard Webhooks, but they narrow some choices while extending guidance in other areas.
+
+=== Secure protocol
+
+All outbound webhook messages MUST be delivered over HTTPS.
+
+Although digital signatures (see below) guarantee the authenticity and integrity of messages in transit, they do not provide confidentiality. Messages delivered over public networks using insecure transport protocols can be intercepted, and the payloads (which are delivered unencrypted) read, by third-parties, risking leakage of sensitive data.
+
+=== HTTP methods
+
+All outbound messages to client webhooks MUST be delivered using the `POST` HTTP method.
+
+=== HTTP headers
+
+HTTP headers MUST be used to transmit metadata about the webhook message instance.
+
+As per Standard Webhooks, the following three HTTP headers are REQUIRED to be sent with every webhook message:
+
+* `Webhook-ID`: A unique identifier for the webhook message.
+* `Webhook-Timestamp`: Unix timestamp (an integer representing the number of seconds since the Unix epoch) when the message was sent.
+* `Webhook-Signature`: The webhook message's signature, used by consumers to verify the message's authenticity and integrity.
+
+NOTE: Standard Webhooks specifies the header fields names using lowercase letters, eg. `webhook-id`. However, RFC 7230 specifies that HTTP header fields MUST be processed in a case-insensitive manner by both clients and servers. Therefore this technical standard RECOMMENDS the more commonplace Pascal Case naming convention, which is expected to still be compliant with Standard Webhooks.
+
+For compliance with Standard Webhooks, these non-standard headers MUST NOT be prefixed with `X-`. This breaks the convention recommended in link:./016-http-apis.adoc[TS-16: HTTP APIs] for custom headers, but is necessary for compliance with Standard Webhooks.
+
+The `Webhook-ID` value is a unique identifier for each discrete webhook message. It is RECOMMENDED to be a UUID. It remains the same even when delivery of a webhook message is retried after a failure. Consumers can use this an an idempotency key, so they process each message once only, in case messages are sent multiple times, eg. due to networking issues and retries. The webhook ID also plays a role in the security scheme, which is specified below.
+
+The `Webhook-Timestamp` value is the Unix timestamp of the time when the message was sent from the producer's servers. If delivery is attempted multiple times, eg. due to an automated retry mechanism, the timestamp MUST be updated for each attempt. The value of the message timestamp differs from the event timestamp, which is included in the message payload via the "timestamp" field (see *Payload schema*, below). The event timestamp is the original time that the event was logged by the producer system. It is earlier in time than the message timestamp, and it MUST NOT change between retries of the webhook message.
+
+The value of the `Webhook-Signature` header is a space-delimited list of signatures. The reason it is a list, and not just one signature, is to support zero-downtime secret rotation. See the section on security and authenticity, below, for more details about how this works.
+
+The values of all three headers – `Webhook-ID`, `Webhook-Timestamp`, and `Webhook-Signature` – MUST be generated by the producer and MUST NOT be configurable by the consumer. This constraint is necessary to achieve a full security profile, as explained in the section on *Security and authenticity*, below.
+
+=== Payload schema
+
+The payload schema defines the structure and format of the data that will be sent to the webhook endpoints of consumer systems. A well-defined payload schema is crucial for ensuring that webhook consumers can correctly interpret and process the events they receive.
+
+The payload MUST be encoded in the body of outbound HTTP messages. HTTP headers MUST NOT be used to transmit any part of the payload – these are reserved for metadata about the message instance only.
+
+The payload SHOULD be in the JSON format, with a `Content-Type` header of `application/json`. In rare cases, other formats such as XML or form-encoded data MAY be used if there is a specific requirement for it. But JSON is by far the most widely used format for webhooks and it offers the best interoperability.
+
+The payload structure is an object with three REQUIRED top-level properties and two OPTIONAL ones:
+
+* `type` (REQUIRED): Identifies the event type.
+* `timestamp` (REQUIRED): The date and time when the event occurred, in ISO 8601 format.
+* `data` (REQUIRED): Data specific to the event type.
+* `metadata` (OPTIONAL): Additional metadata about the event, such as a unique event ID, source information, or versioning details.
+* `links` (OPTIONAL): An array of link objects that reference related resources available on the producer's HTTP API or other services.
+
+The `type`, `timestamp` and `data` properties are REQUIRED for compliance with Standard Webhooks. The `metadata` and `links` properties are suggested by this technical standard as OPTIONAL extensions to the Standard Webhooks payload schema.
+
+Example:
+
+[source,json]
+----
+{
+  "type": "user.created",
+  "timestamp": "2014-01-13T08:01:35Z",
+  "data": {
+    "id": "123",
+    "name": "John Doe",
+    "email": "john.doe@example.com"
+  },
+  "metadata": {
+    "created_at": "2022-11-01T09:15:00Z",
+    "updated_at": "2023-03-15T12:34:56Z"
+  },
+  "links": [
+    {
+      "rel": "self",
+      "href": "https://api.example.com/users/123"
+    }
+  ]
+}
+----
+
+==== Event type
+
+The value of the "type" field identifies the type of event being sent.
+
+For compliance with Standard Webhooks and prevailing naming conventions for event types, it is RECOMMENDED that event types be organized into a hierarchy using a dot-notation, eg. "user.created", "user.updated", "user.deleted", "invoice.created", "invoice.paid", etc. The event type groups and identifiers SHOULD be limited to a small set of ASCII characters: `[a-zA-Z0-9_]`.
+
+The schema of the "data" payload MAY differ between event types. The only requirement is that each discrete event type has a single consistent "data" schema for every message of that type.
+
+==== Timestamp
+
+The value of the "timestamp" property is not actually a timestamp but an ISO 8601-formatted date-time string.
+
+The value represents the time when the event occurred. This is not necessarily the same time when the event message was sent – it is expected to be a bit earlier.
+
+The "timestamp" value of an event MUST NOT change, even if resent to consumer via retry messages.
+
+==== Data
+
+The value of the "data" property MUST be an object with at least one property (ie. it MUST NOT be an empty object).
+
+The data object is the actual event data.
+
+Each event type MUST have a well-defined schema for its associated data object. This is the main design consideration when implementing outbound webhooks. Standard Webhooks specifies everything else about the HTTP messages used to package webhook events.
+
+In designing your event data, err on the side of "thin" objects that communicate just the minimal data that a client may need to sync its state with the server. Example:
+
+[source,json]
+----
+{
+  "type": "contact.updated",
+  "timestamp": "2023-03-15T12:34:56Z",
+  "data": {
+    "id": "d9e18267-b078-49a5-a8b5-88571c88251c",
+    "first_name": "Jane",
+    "last_name": "Doe",
+    "email": "jane.doe@example.com"
+  }
+}
+----
+
+An extreme implementation of thin data schema would see no state changes being communicated via webhook events at all. The webhook payloads would thus be stateless. In the following example, the event informs us that a contact resource has been updated, but that's all. We're given only just enough information to be able to retrieve the updated state, if we want it, via a follow-up request to the service's regular HTTP API endpoints.
+
+[source,json]
+----
+{
+  "type": "contact.updated",
+  "timestamp": "2023-03-15T12:34:56Z",
+  "data": {
+    "id": "d9e18267-b078-49a5-a8b5-88571c88251c"
+  }
+}
+----
+
+A full data object would include _all_ the fields associated with the resource identified by the event type. It may even include information about related entities.
+
+[source,json]
+----
+{
+  "type": "contact.updated",
+  "timestamp": "2023-03-15T12:34:56Z",
+  "data": {
+    "id": "abc123",
+    "first_name": "Jane",
+    "last_name": "Doe",
+    "email": "jane.doe@example.com",
+    "phone": "+44-7911-123456",
+    "address": {
+      "street": "123 High Street",
+      "city": "London",
+      "postal_code": "NW3 5LP",
+      "country": "United Kingdom"
+    },
+    "tags": ["newsletter", "vip", "event-attendee"],
+    "status": "active",
+    "custom_fields": {
+      "preferred_language": "English",
+      "referral_source": "LinkedIn",
+      "birthday": "1990-07-22"
+    }
+  }
+}
+----
+
+There are pros and cons to both approaches. The main advantage of full data objects is that consumers will immediately have all the information they need to update their state, and load will be reduced on the producer due to fewer API calls being required from webhook consumers. On the other hand, thin payloads may offer better performance (due to smaller message sizes, and faster database queries and less server-side processing overall) and greater future proof-ness (you can make a thin object full, but not the other way around without breaking backwards compatibility).
+
+The main advantage of very thin, pure stateless payloads is that the HTTP API is preserved as the source of truth for the application's state. There is less likelihood of clients ending up in invalid state, due to event messages being received and processed out-of-order, for example. Data access audit trails are simpler to maintain, too, since all data is access through the HTTP API.
+
+Thin and full data objects are not a binary decision. Often, the optimum design will be somewhere in the middle.
+
+Payloads MAY be minimized. This is more beneficial for large payloads than small ones.
+
+This technical standard does not impose a technical limit on the size of webhook messages, and therefore the size of data objects is uncapped. However, it is RECOMMENDED to keep overall payloads smaller than 20kb (minified). Larger payloads may impose burdensome load on webhook consumers. If you need to transfer large amount of data, such as images or other media files, to consumers, then consider making those available via `GET` endpoints in a regular HTTP API or other web location, and use webhook messages to communicate the links from which consumers can fetch those resources.
+
+==== Metadata
+
+The "metadata" property is OPTIONAL. If included, its value MUST be an object with one or more properties.
+
+Metadata is data that is not part of the resources represented in the "data" object, but which provides additional information about those resources. A good use case for the "metadata" object is to communicate machine-generated data, which can be read but not written by clients, such as `created_at` and `updated_at` fields.
+
+The "metadata" object MUST be used only to communicate metadata about _resources_ represented in the "data" object. It MUST NOT be used to communicate metadata about the webhook event – that's the role of the message's HTTP headers.
+
+==== Links
+
+The "links" property is OPTIONAL. If included, its value MUST be an array with one or more objects that conform to the following schema:
+
+[source,json]
+----
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "rel": {
+      "type": "string"
+    },
+    "method": {
+      "type": "string"
+    },
+    "href": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}
+----
+
+Example:
+
+[source,json]
+----
+{
+  "links": [
+    {
+      "rel": "self",
+      "method": "GET",
+      "href": "https://api.example.com/v1/{namespace}/{resource}/{uuid}"
+    },
+    {
+      "rel": "delete",
+      "method": "DELETE",
+      "href": "https://api.example.com/v1/{namespace}/{resource}/{uuid}"
+    }
+  ]
+}
+----
+
+The objects encode information about how consumers can fetch related data, and perform related operations, via the producer's regular HTTP API endpoints. See link:./016-http-apis.adoc[TS-16: HTTP APIs] for more information.
+
+=== Security and authenticity
+
+Webhook messages are just regular HTTP messages that could originate from any source. Therefore, before processing webhook messages, consumers MUST verify the authenticity and integrity of the messages – that they come from the expected producer, and that they have not been tampered with by a malicious third-party during transit.
+
+According to Standard Webhooks, over 65% of webhook implementations use signatures for authentication and verification of message integrity. RFC 9421, an IETF standard for signing and verifying HTTP messages, is widely used for this purpose.
+
+Other popular ways to verify the authenticity of webhook messages is to use HTTP basic auth (username + password) or bearer auth (token). However, these have weaker security profiles than digital signatures. For this reason, this technical standard says that HTTP message signatures MUST be used in webhook implementations.
+
+But it is not enough to use strong cryptographic primitives for the signature. HTTP signatures MUST be implemented in a particular way for the messages to be fully secure from all possible attack vectors. This section describes a security scheme, based on Standard Webhooks, to achieve that.
+
+==== Webhook metadata
+
+A secure signature scheme requires that not only the authenticity of the message payload be verifiable, but also the message's metadata – its unique identifier, and its timestamp representing the time of the delivery attempt.
+
+Thus, the following HTTP headers (described above) are all part of the security scheme:
+
+* `Webhook-ID`: A unique identifier for the webhook message.
+* `Webhook-Timestamp`: Unix timestamp (an integer representing the number of seconds since the Unix epoch) when the message was sent.
+* `Webhook-Signature`: The webhook message's signature, used by consumers to verify the message's authenticity and integrity.
+
+Example:
+
+[source,http]
+----
+POST /_webhooks/rolodex/v1/callback HTTP/1.1
+Host: api.example.com
+Webhook-ID: 2eb7c6b3-912e-4336-a2a7-7fbb6be1f098
+Webhook-Timestamp: 1742001300
+Webhook-Signature: v1,K5oZfzN95Z9UVu1EsfQmfVNQhnkZ2pj9o9NDN/H/pI4= v1a,hnO3f9T8Ytu9HwrXslvumlUpqtNVqkhqw/enGzPCXe5BdqzCInXqYXFymVJaA7AZdpXwVLPo3mNl8EM+m7TBAg==
+Content-Type: application/json
+
+{
+  "type": "contact.updated",
+  "timestamp": "2025-03-15T12:34:56Z",
+  "data": {
+    "id": "d9e18267-b078-49a5-a8b5-88571c88251c",
+    "first_name": "Jane",
+    "last_name": "Doe",
+    "email": "jane.doe@example.com"
+  }
+}
+----
+
+The `Webhook-Timestamp` is the timestamp when the message was sent by the producer. This will differ to the timestamp of the event itself, which is captured in the payload via the "timestamp" property. The `Webhook-Timestamp` MUST be updated for every message retry, but the "timestamp" MUST NOT be. This is an important security measure that will prevent replay attacks – see the *Signature scheme* section below for information on how this works.
+
+The `Webhook-ID` is a unique identifier associated with a specific logged event. It MUST NOT change between retries of webhook messages. Consumers may use this as an idempotency key, which will provide extra protection against replay attacks.
+
+==== Signature scheme
+
+For full security, the signature MUST sign all of:
+
+* the message identifier (from the `Webhook-ID` header)
+* the message timestamp (from the `Webhook-Timestamp` header)
+* the message payload (the HTTP message body)
+
+Each part is concatenated using dot notation:
+
+.Message signature scheme
+----
+{id}.{timestamp}.{payload}
+----
+
+Example:
+
+----
+2eb7c6b3-912e-4336-a2a7-7fbb6be1f098.1742001300.{
+  "type": "contact.updated",
+  "timestamp": "2025-03-15T12:34:56Z",
+  "data": {
+    "id": "d9e18267-b078-49a5-a8b5-88571c88251c",
+    "first_name": "Jane",
+    "last_name": "Doe",
+    "email": "jane.doe@example.com"
+  }
+}
+----
+
+If the JSON payload is minified for transit, then it is the minified version that MUST be used to generate the message signature (thus there will be no line breaks in the signed content). The payload that is sent MUST match exactly the payload that is signed, else verification will fail on the consumer side.
+
+[NOTE]
+======
+Even a stray space in the HTTP message body will be enough to make the signature invalid. This sort of thing is a common failure mode in webhook implementations. A common issue on the consumer side is when HTTP abstractions automatically parse JSON content into objects, and then serialize them again when the application retrieves the original body string. Differential serialization between the producer and the consumer leads to signature verification failures. To avoid this, it is RECOMMENDED that consumers access the raw HTTP body as a byte stream or string, without any parsing or serialization, when verifying signatures.
+======
+
+Signing all three parts – not only the message payload, but also its identifier and timestamp – is REQUIRED to protect consumers against te full range of possible attack vectors. Signing the timestamp means consumers can verify the integrity of the timestamp, and in turn protect themselves against replay attacks (by rejecting messages older than a configured threshold). Verification of the message ID protects against spoofing, and further protects against replay attacks (because the webhook ID can be trusted as a valid idempotency key). Verification of the payload guarantees that the content hasn't been tampered with in transit, protecting against man-in-the-middle or injection attacks.
+
+The `Webhook-ID` and `Webhook-Timestamp` MUST be generated by the producer and MUST NOT be controllable in any way by the consumer. In addition, these values MUST NOT contain any periods (full-stops).
+
+==== Symmetric versus asymmetric signatures
+
+Standard Webhooks specifies two HTTP signature systems:
+
+* Symmetric keys: HMAC-SHA256 signatures using a shared secret key.
+* Asymmetric keys: Ed25519 signatures using a public/private key pair.
+
+Producers MAY choose either one of these signature systems. Alternatively, producers MAY implement both systems in parallel, allowing consumers to choose which one they will use.
+
+.Standard Webhooks implementations
+|===
+| |Symmetric |Asymmetric
+
+|Signature scheme
+|`HMAC-SHA256`
+|`ed25519`
+
+|Signing secret
+|Random. Between 24 bytes (192 bits) and 64 bytes (512 bits)
+|Standard ed25519 key pair
+
+|Secret serialization
+|Base64-encoded, prefixed with `whsec_`
+|Base64-encoded, prefixed with `whsk_` for the secret key and `whpk_` for the public key
+
+|Signature version identifier
+|`v1`
+|`v1a`
+|===
+
+The strings `whsec_`, `whsk_` and `whpk_` are prefixed to the keys prior to base64-encoding. These prefixes are REQUIRED by consumers to identify the type of key being used. (The prefixes are not part of the key itself, so consumers MUST remove them before verification.)
+
+In addition, the base64-encoded signatures are prefixed with `v1` or `v1a`, followed by a comma, in the `Webhook-Signature` header. These MAY be used by consumers to identify the Standard Webhook signature scheme of each signature in the `Webhook-Signature` header (multiple signatures MAY be send in a space-delimited list). "v1" indicates a symmetric HMAC-SHA256 signature, and "v1a" indicates an asymmetric Ed25519 signature.
+
+Example:
+
+----
+Webhook-ID: msg_2KWPBgLlAfxdpx2AI54pPJ85f4W
+Webhook-Timestamp: 1674087231
+Webhook-Signature: v1,K5oZfzN95Z9UVu1EsfQmfVNQhnkZ2pj9o9NDN/H/pI4= v1a,hnO3f9T8Ytu9HwrXslvumlUpqtNVqkhqw/enGzPCXe5BdqzCInXqYXFymVJaA7AZdpXwVLPo3mNl8EM+m7TBAg==
+----
+
+In the wild, HMAC signatures are the most popular. HMAC-SHA256 is faster than any asymmetric scheme (and often hardware accelerated). It is ubiquitous – widely available on every current software platform and in every mainstream programming language. It is also well understood, and easy to implement correctly.
+
+However, asymmetric signatures offer a better security profile. They are RECOMMENDED in scenarios where you do not control the security of both the client and server systems – which is the case for webhooks (the consumers of events are systems owned and operated by third-parties). With asymmetric signatures, only the producer needs to know the private signing key, and be responsible for keeping it secret. The producer gives each of its consumers a public key, which they use to verify the signature created by the corresponding private key. Consumers are not required to keep their public keys secure. If a public key is leaked, for example into the commit history of a public Git repository, no problem – the private key is not compromised.
+
+Asymmetric signatures can be more CPU-intensive to produce. However, modern cryptography algorithms such as Ed25519 are still very fast, certainly enough to be usable in high-throughput systems. Ed25519 is also specifically designed to avoid patterns in memory access that could be exploited via side-channel attacks – a significant advantage over some older algorithms like RSA.
+
+Ed25519 asymmetric signatures are ideal for modern cryptographic applications, like SSH and API authentication, and also for webhooks. For this reason, this technical standard strongly RECOMMENDS that webhook producers offer only the Standard Webhooks asymmetric signature scheme, and not the symmetric one, to their consumers.
+
+==== Key rotation
+
+The `Webhook-Signature` header MAY contain multiple signatures, space-delimited, for the same message. This design supports zero-downtime secret rotation.
+
+For example, if a consumer requests secret rotation, their messages can be signed with both the old and the new keys, and both signatures sent in the `Webhook-Signature` header, for a short period of time. Consumers can try to verify each signature until one matches. This means there is "no downtime" because old messages, signed with the old key, can still be processed. (This process also supports consumers upgrading from symmetric to asymmetric keys.)
+
+However, in the event that a private key or shared secret is compromised, producers MUST immediately rotate the compromised key and signing new and retried messages with it. This is important to limit the attack vectors that become possible when a signing key is compromised. Consumers will still be able to verify and process delayed messages signed with the old compromised key. They may not be able to process new messages signed with the new secure key, but these failed messages can be retried later, after the consumer has installed the new verification key.
+
+==== Other security requirements
+
+Signing keys MUST be unique _per endpoint_ for symmetric signatures, and they MUST be unique _per customer_ for asymmetric signatures (but MAY be unique _per endpoint_ too). Limiting the scope of signing keys reduces the blast radius if a key is compromised. If a signing key is leaked, for example by being committed to a public Git repository, then only the messages sent to that particular endpoint (for symmetric signatures) or to that particular customer (for asymmetric signatures) are at risk. Other endpoints and customers remain secure.
+
+Producers MUST NOT reuse signing keys for multiple customers.
+
+Producers MUST use a secure random number generator to create signing keys. For symmetric keys, the key length MUST be between 24 bytes (192 bits) and 64 bytes (512 bits). For asymmetric keys, the standard ed25519 key pair MUST be used.
+
+Producers MUST implement key invalidation and rotation mechanisms. This MUST be highly automated.
+
+Signatures are trusted as much as the keys used to sign them. Therefore, particular care needs to be taken to keep signing keys secure. For symmetric keys, producers MUST provide a secure mechanism for consumers to retrieve the shared secret key, and to request key rotation. Typically, this would be an authenticated endpoint in the producer's regular HTTP API. The shared secret MUST be transmitted securely, eg. over HTTPS, and MUST NOT be exposed in logs or error messages. Similar mechanisms SHOULD be used for asymmetric keys, though of course there a fewer risks associated with public keys.
+
+Consumers MUST verify the signature of every webhook message before processing it. If the signature verification fails, the message MUST be logged as a potential security incident. It is RECOMMENDED that producers provide a mechanism by which such incidents can be reported back to them, too.
+
+Consumers SHOULD configure a reasonable tolerance window for the `Webhook-Timestamp` value, to protect against replay attacks. A typical tolerance window is 5 minutes (300 seconds). If the timestamp is outside this window, the message MUST be rejected and SHOULD be logged as a potential security incident.
+
+Consumers SHOULD store the `Webhook-ID` values of recently processed messages. The retention period for webhook ID logs MUST be longer than the tolerance window for the `Webhook-Timestamp` value. The `Webhook-ID` serves as an idempotency key. It allows consumers to detect and reject duplicate messages (eg. replayed ones that succeeded the first time). It also gives extra protection against replay attacks. If a message is received with a `Webhook-ID` that has already been processed, and within the tolerance window or the `Webhook-Timestamp`, the message MUST be rejected. However, it does not need to be logged as a potential security threat – more likely, it's just a duplicate message.
+
+When verifying asymmetric signatures, consumers SHOULD be encouraged to use battle-tested cryptographic libraries, and to keep this dependency up-to-date. Producers SHOULD recommend a list of suitable libraries for consumers to use.
+
+When verifying symmetric signatures, consumers are RECOMMENDED to use a constant time comparison function, rather than just a regular string comparison, when verifying the actual signature against the expected signature. Consider the following code:
+
+[source,python]
+----
+if actual_signature == expected_signature:
+    grant_access()
+----
+
+This looks harmless, but it exposes consumers to timing attacks. This is because the time taken to compare the two strings will vary depending on how many characters match at the start of the strings. Consider the following values:
+
+|==
+|actual_signature |expected_signature |Comment
+
+|"aaaaa" |"baaaa" |fails fast, because the first character is different
+|"aaaaa" |"abaaa" |fails slightly slower, because the second character is different
+|"aaaaa" |"aaaab" |fails slower still
+|==
+
+By measuring tiny differences in the time it takes a consumer to respond to a webhook message, an attacker can deduce the expected signature one character at a time.
+
+A constant-time comparison function always takes the same amount of time to compare two strings, regardless of how many characters match or not, so closing off this potential exploit.
+
+[source,python]
+----
+import hmac
+if hmac.compare_digest(actual_signature, expected_signature):
+    grant_access()
+----
+
+=== Status codes
+
+When designing your own outbound webhook messages, you will need to consider the status codes that you will want consumer services to return in response to your webhook messages.
+
+The following policy is RECOMMENDED:
+
+* To accept any `2xx` status code to indicate successful processing of a webhook message, ie. any `2xx` code will be treated by you as `202 Accepted`.
+
+* To treat `5xx` status codes as errors in the consumer service, which will trigger retry and dead-letter queue mechanisms on the producer side. In addition, `502 Bad Gateway` and `504 Gateway Timeout` usually indicate that the server is under load, so the producer SHOULD throttle subsequent requests.
+
+* To treat recurring `410 Gone` responses as an indication that the consumer no longer wishes to receive webhook messages. The producer SHOULD automatically disable the consumer's webhook configuration, and stop sending messages to their webhook endpoint, if this status code persists for more than 1 day.
+
+* To treat `404 Not Found` responses as an indication that the consumer's webhook endpoint is misconfigured, or that it has been moved or deleted. The producer SHOULD handle this in the same way as a `410 Gone`, but in addition the producer SHOULD notify the consumer of the issue.
+
+* To treat `429 Too Many Requests` a rate limit scenario. The producer SHOULD pause sending further messages to the consumer's webhook endpoint for a period of time, before resuming through the normal retry mechanism. In other words, the normal retry schedule is delayed a little, giving more time for the hit count to be reset.
+
+* To treat any other `4xx` client errors in the same way as `5xx` server errors, but in addition log them for further investigation – because the producer's webhook implementation may be at fault.
+
+* To treat `1xx`, `3xx`, and all other status codes as generic `500` server errors. Producers MUST NOT follow redirects, as this is a potential security risk and puts unnecessary load on the producer system. If consumers move their webhook endpoints, they are REQUIRED to update their configuration in the producer system.
+
+==== Timeouts
+
+Connection timeouts – in which a webhook message is sent to a consumer but the connection is closed before a response message is returned.
+
+Producers SHOULD set a reasonable timeout value for webhook requests – somewhere between 15 and 30 seconds would be reasonable for almost all use cases. Producers MAY allow consumers to configure this.
+
+Producers SHOULD handle timeouts in the same way as `429 Too Many Requests` errors.
+
+=== Documentation
+
+It is RECOMMENDED that producers document outbound webhook message formats and payload schema in a dedicated section of their regular HTTP API documentation.
+
+https://www.asyncapi.com/[AsyncAPI] is an interface definition language for specifying asynchronous (eg. event-driven) APIs, and is therefore well-suited to webhooks. The more ubiquitous https://www.openapis.org/[OpenAPI], which was originally designed for synchronous HTTP APIs, has recently added support for definition of webhook payload schema (but not other aspects of webhooks such as signature schemes).
+
+As well as a formal specification of the data structures (eg. using JSON Schema or OpenAPI) it is RECOMMENDED to provide examples of the payload structure for each event type.
+
+==== Retries
+
+Webhooks are inherently unreliable. Network issues, server outages, misconfigurations, bugs, and all sorts of other problems can lead to webhook messages getting delayed or lost. It is therefore RECOMMENDED that webhook systems have retry mechanisms to improve the chances of successful delivery.
+
+Retry delivery SHOULD follow a schedule spanning multiple days, with exponential back-off. The purpose of exponential back-off is to reduce the risk of a "thundering herd" of requests hitting a consumer system just as it recovers from a failure mode.
+
+Below is a reasonable default retry schedule. Producers SHOULD design a default retry schedule that is appropriate for each use case. In addition, consumers SHOULD be able to configure their own retry schedule, overriding the producer's default configuration. Alternatively, consumer systems MAY respond with a `503 Service Unavailable` status and a `Retry-After` header field, which producer's SHOULD take into account when scheduling the next attempt.
+
+|===
+|Attempt |Delay since previous attempt |Cumulative delay
+|1       |immediate                    |00:00:00
+|2       |5 seconds                    |00:00:05
+|3       |5 minutes                    |00:05:05
+|4       |30 minutes                   |00:35:05
+|5       |2 hours                      |02:35:05
+|6       |5 hours                      |07:35:05
+|7       |10 hours                     |17:35:05
+|8       |14 hours                     |31:35:05
+|9       |20 hours                     |51:35:05
+|10      |24 hours                     |75:35:05
+|===
+
+In addition, producers MAY add some random jitter to retry intervals. Adding some random jitter will help to spread out the load on consumer systems when they recover from a failure mode, and so reduce the risk of further failures being caused by the retry attempts themselves overloading the system.
+
+If webhook delivery fails beyond the last retry attempt, consumers SHOULD be notified of the failure via other channels, such as email or SMS. After the last retry attempt, the consumer's webhook endpoint SHOULD be disabled in the producer's configuration, and no further messages SHOULD be sent until the consumer requests that the webhook endpoint be re-enabled.
+
+=== Webhook management
+
+Due to their inherent unreliability, webhooks should be treated as an optional convenience tool that sits alongside a regular HTTP API (or other web service). Consumers SHOULD NOT depend on webhooks alone to synchronize their state, or to otherwise integrate successfully, with the producer service. This means that consumers SHOULD be able to retrieve everything they need by polling the producer's API in the normal way.
+
+Webhooks SHOULD be treated like a subscription service, in which consumers explicitly opt-in to receive notifications of particular event types. Consumers SHOULD NOT be burdened with needing to handle webhook messages they're not interested in.
+
+Outbound webhooks MUST be disabled by default for each customer/user. Consumers MUST explicitly enable webhooks, and configure the event types they wish to receive, before any webhook messages are sent to them.
+
+For some event types, webhook notifications MAY be delivered alongside other notification channels such as email or SMS. This is RECOMMENDED for security notifications and alerts, for example.
+
+Consumers SHOULD be able to manage the configuration of their webhook messages, and other notification channels, in an automated way – ideally via an API, GUI, or both. Configurations that consumers SHOULD be able to control include, but are not limited to:
+
+* Webhook endpoint URLs.
+* Retry policies.
+* Rate limits and back-off exponents.
+* Signature scheme, if the producer offers both symmetric and asymmetric signatures.
+* Key invalidation and rotation.
+* Event types.
+* The quantity of data communicated ("thin" versus "fat" payloads).
+
+In addition, through the webhook management tools, consumers SHOULD be able to initiate retries of failed messages, and even replays of successful ones. Messages should be available for replay for a reasonable period of time, such as 30 days, after their initial delivery and before they are deleted permanently. This gives consumers plenty of time to recover from long outages without missing messages.
+
+Consumers SHOULD be able to read and query their webhook message history, including failed deliveries ("dead letters"), via regular HTTP API endpoints and/or via a GUI dashboard. For full visibility, consumers should be able to inspect the reasons why webhook messages were deemed to have failed.
+
+Consumers MAY be able to define multiple webhook endpoints, supporting fan-out message distribution. This can be required for a number of reasons. It allows different consumer systems process the same events in different ways. For example, when a payment is successfully completed, a customer may want both their user management system, their CRM, and their internal team communication tool to be notified. Fan-out webhook messages also help to support platform migrations.
+
+An increasingly common use case is for workflow automation tools to add webhook endpoints to handle specific event types, as the users of those tools add and remove workflow triggers.
+
+However, be aware there are security risks associated with allowing the automated configuration of webhook callback URLs. This exposes webhook endpoints (in consumer systems) to server-side request forgery (SSRF) exploits. This is where URLs are set to internal network resources – eg. `http://localhost:8080` or `http://192.168.1.1` – or to cloud metadata endpoints – eg. `http://169.254.169.254/latest/meta-data/` – which may provide attackers with routes into the producer's private networks, internal services, and sensitive information that is not meant to be externally accessible.
+
+To protect themselves against SSRF, producers MUST NOT allow consumers to set any webhook endpoint URLs they want. At the very least, URLs MUST be validated to ensure they are public internet addresses. For the best security, domain name ownership SHOULD be verified using DNS lookups, and they MAY be human-moderated too. Producers can further protect themselves against SSRF by using a proxy (like smokescreen) to filter out requests to internal IP addresses, and by putting webhook workers (or the proxy) in their own private subnet that can't access internal services.
+
+=== Other considerations
+
+Some webhook consumers have firewalls in front of their webhook endpoints, which require messages to be sent from a predefined list of IP addresses. Producers MAY support this use case by implementing static IP addresses for the servers that send webhook messages.
+
+== References
+
+* https://www.standardwebhooks.com/[Standard Webhooks]
+
+* https://cloudevents.io/[CloudEvents] and the https://github.com/cloudevents/spec/blob/main/cloudevents/http-webhook.md[CloudEvents Web Hooks for Event Delivery] specification
+
+* https://openid.net/wg/sharedsignals/[Shared Signals Framework (SSF)] — This OpenID Foundation initiative is effectively a standard for generalized webhooks. The framework defines stream-based communication mechanisms between "transmitters" (that generate events) and "receivers" (that consume them), with an Event Stream Management API for configuration, event types, verification, and delivery.
+
+* https://web.archive.org/web/20220914184737/http://resthooks.org/[RestHooks] (https://github.com/zapier/resthooks[repository]) — An earlier standardization effort by Zapier, now inactive.
+
+* https://datatracker.ietf.org/doc/rfc9421/[RFC 9421: HTTP Message Signatures] — IETF standard for signing and verifying HTTP messages. Widely used for webhook authentication.
+
+* https://webhooks.fyi/[webhooks.fyi] — Not a standardization effort, but a useful community-maintained collection of resources about webhooks.
