@@ -4,11 +4,84 @@
 
 This technical standard covers best practices for designing and implementing messages and events in message-driven architectures (MDA).
 
-See also link:./016a-webhooks.adoc[TS-16a: Webhooks]. Webhooks are a subset of message-driven communication patterns, in which event-oriented messages are exchanged via HTTP between systems owned and operated by different parties (ie. inter-organizational communication).
+The focus of this standard is asynchronous communication between services within a single organization's internal network ("inter-service communication"). See also link:./016a-webhooks.adoc[TS-16a: Webhooks]. Webhooks are a subset of message-driven communication patterns, in which event-oriented messages are exchanged via HTTP between systems owned and operated by different parties ("inter-organization communication"). Inter-service messages and inter-organization messages serve different purposes, and therefore have different design considerations. Nevertheless, there is some overlap between the two, and therefore some aspects of the technical standards cross over too.
 
 toc::[]
 
-== Message schema
+== Message systems
+
+When it comes to implementing message-driven communication within an internal network, there are many options to choose from. The choice of message transport protocol and delivery mechanism will depend on the specific requirements of the system being designed.
+
+The following are some common architectural patterns for message-driven communication:
+
+* *Message broker pattern*: A central message broker routes messages between producers and consumers. Examples include RabbitMQ, ActiveMQ, and Kafka.
+
+* *Event bus pattern*: A lightweight event bus distributes messages to multiple subscribers. Examples include Redis, NATS, and internal event buses.
+
+* *Publish-subscribe pattern*: A one-to-many message distribution pattern where messages are published to a topic and multiple subscribers can receive them. This is supported by MQTT, AMQP, Kafka, and Redis.
+
+* *Request-reply pattern*: A synchronous-style communication pattern, implemented over async transport, where a request is sent and a reply is expected. This is supported by most message queues.
+
+* *Remote Procedure Call (RPC) pattern*: Synchronous communication between services, where one service calls methods on another service as if they were local. Examples include gRPC and Apache Thrift.
+
+Selection criteria for choosing a message transport protocol and delivery mechanism include:
+
+* *Latency versus throughput*: Low-latency protocols like gRPC and NATS are suitable for real-time applications, while something like Kafka is better for high-throughput scenarios.
+
+* *Delivery guarantees*: Protocols like AMQP and Kafka offer strong delivery guarantees, while MQTT provides different levels of Quality of Service (QoS), each making different trade-offs between reliability and performance.
+
+* *Message ordering*: Kafka's partitioning model supports ordered message delivery, while AMQP queues can also provide ordering guarantees.
+
+* *Scalability*: Kafka is designed for massive scale, while RabbitMQ and NATS are for moderate scale.
+
+* *Complexity*: Kafka and AMQP are feature rich but more complex for it, while MQTT and NATS focus on simplicity.
+
+The most common convention in modern service-oriented architectures is to use either message brokers (RabbitMQ/AMQP) for traditional messaging patterns or event streaming platforms (Kafka) for event-driven architectures, with gRPC increasingly popular for synchronous service-to-service communication where the lowest possible latency is required.
+
+=== Message queue protocols
+
+A number of open protocols exist for message queues, each with its own strengths and weaknesses. The most widely used message queue protocols are:
+
+* *AMQP (Advanced Message Queuing Protocol)*: A binary protocol that runs over TCP. It is widely supported by message brokers such as RabbitMQ, ActiveMQ, and Azure Service Bus. AMQP supports complex routing, transactions, and delivery guarantees. It is best suited for enterprise messaging scenarios that require reliable delivery and complex workflows.
+
+* *MQTT (Message Queuing Telemetry Transport)*: A lightweight protocol that runs over TCP. MQTT supports a publish-subscribe model with QoS levels. It is designed for resource-constrained environments (eg. low-bandwidth, high-latency networks), and it is widely used in IoT applications and telemetry for this reason. This protocol is used by Mosquitto, HiveMQ, AWS IoT Core, and others.
+
+* *STOMP (Simple Text Oriented Messaging Protocol)*: A text-based protocol that runs over TCP. It is a simpler alternative to AMQP that is designed to be easy to implement and debug. STOMP is popular in simple messaging scenarios implemented through low-level scripting languages.
+
+=== Proprietary messaging systems
+
+In addition to open protocols, there are also many proprietary messaging systems that offer their own protocols and delivery mechanisms. Some of the most popular proprietary messaging systems include:
+
+* *Apache Kafka*: A distributed streaming platform that uses its own binary protocol. Kafka is designed for high-throughput, low-latency event streaming. It is best suited for event sourcing, log aggregation, and real-time data pipelines.
+
+* *NATS*: A lightweight messaging system that uses its own protocol. NATS is designed for simplicity and speed, with a focus on simple pub-sub messaging. It is a popular choice in microservices and cloud-native applications.
+
+* *Redis Pub/Sub and Streams*: Redis is an in-memory data store that includes a simple pub-sub messaging system with optional persistence. Redis uses its own RESP protocol. It is best suited for fast, simple messaging and caching integration.
+
+=== Platform-specific solutions
+
+Cloud service providers offer their own managed messaging services, which may be a good choice if you are already using that cloud provider's infrastructure. Examples include:
+
+* *Amazon SQS/SNS*: AWS-managed queuing and pub-sub services over HTTP.
+* *Azure Service Bus*: Microsoft-managed messaging service that supports AMQP, HTTP, and proprietary protocols.
+* *Google Cloud Pub/Sub*: GCP-managed messaging service that runs over HTTP or gRPC.
+
+=== Remote Procedure Call (RPC) frameworks
+
+RPC frameworks enable synchronous communication between services, allowing one service to call methods on another service as if they were local. Though not strictly "messaging systems" (which are asynchronous), it is worth mentioning RPC frameworks here as they are commonly used for inter-service communication and they may be used alongside message queues and event streams in a service-oriented system. RPC is more suitable for time-sensitive queries and commands, where low latency and immediate responses are required.
+
+Some popular RPC frameworks include:
+
+* *gRPC*: A high-performance RPC framework developed by Google. It uses HTTP/2 as the transport protocol and Protocol Buffers for serialization. gRPC supports bi-directional streaming and is well-suited for microservices, polyglot environments, and low-latency APIs.
+
+* *Apache Thrift*: An RPC framework developed by Facebook. It supports multiple transport protocols (eg., TCP, HTTP) and serialization formats (eg., JSON, binary). Thrift is best suited for multi-language service integration.
+
+=== HTTP APIs
+
+Internal HTTP APIs are also commonly used for synchronous inter-service communication. This can be a good choice for simple integrations, where fast real-time responses are not critical, and otherwise where the overhead of setting up and maintaining a full RPC framework is not justified.
+
+Conventional HTTP endpoints support polling, while push notifications can be implemented using Webhooks (aka HTTP callbacks), Server-Sent Events (SSE), or WebSockets.
+
 
 In message-driven architectures, messages are the primary means of communication between different components and services. Therefore, designing a robust, flexible, scalable, and maintainable message schema is a crucial aspect of the design of distributed systems with asynchronous message-based communication patterns.
 
