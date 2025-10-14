@@ -6,13 +6,13 @@ This technical standard extends link:./016-http-apis.adoc[TS-16: HTTP APIs] with
 
 This technical standards draws heavily on https://www.standardwebhooks.com/[Standard Webhooks], which is a community-driven initiative to document best practices for webhook implementation. Other influential sources are listed in the references section at the end of this document.
 
+Protocols such as WebSockets and Server Sent Events are outside of the scope of this technical standard.
+
 toc::[]
 
 == What are webhooks?
 
 Webhooks, also known as web callbacks or HTTP callbacks, are a design pattern implemented alongside HTTP APIs in public-facing web services to handle asynchronous event notifications from upstream services.
-
-A web service MAY expose a regular HTTP API, or webhook callbacks, or both. The same service MAY also send its own event notifications to the webhook endpoints of other services.
 
 Webhooks are HTTP API endpoints that receive notifications about interesting things (events) that happened in third-party systems on which the service depends. For example, a service may use various third-parties to process payment card transactions, send SMS messages, or verify the identity of its users. Those third-party services may send HTTP messages to the service, via its webhook endpoints, to tell it about events that happened in their systems, like when a payment has been successfully processed or when the sending of an SMS message fails.
 
@@ -125,7 +125,7 @@ When integrating with third-party services via inbound webhooks, those third-par
 
 If a producer does not specify the status codes that it expects, then it is RECOMMENDED to return a `202 Accepted` for all success scenarios. This code indicates that the event has been accepted for processing, but the processing has not been done yet. This is appropriate for most webhook event receipts, as it allows the recipient to process the request asynchronously – the webhook message gets added to a queue and processed later – which is a best practice.
 
-To indicate errors, if the producer does not specify what error codes it expectes, then the following response codes are RECOMMENDED:
+To indicate errors, if the producer does not specify what error codes it expects, then the following response codes are RECOMMENDED:
 
 * `400 Bad Request` for client errors, which you should return when an event message fails to validate against the expected schema.
 * `401 Unauthorized` for failed authentication checks.
@@ -373,6 +373,7 @@ The objects encode information about how consumers can fetch related data, and p
 Webhook messages are just regular HTTP messages that could originate from any source. Therefore, before processing webhook messages, consumers MUST verify the authenticity and integrity of the messages – that they come from the expected producer, and that they have not been tampered with by a malicious third-party during transit.
 
 .Authentication mechanisms for webhooks
+[valign="top"]
 |===
 |Mechanism |Description |Pros |Cons |Comments
 
@@ -386,7 +387,7 @@ Webhook messages are just regular HTTP messages that could originate from any so
  ❌Depends on end-to-end HTTPS encryption +
  ❌Message integrity remains unverified +
  ❌Zero-downtime secret rotation not possible (requires client-server coordination)
-|Not recommended for high-security applications.
+|Very easy to implement but not recommended for high-security applications. A good choice where there is only a single consumer, who may be from the same organization as the producer.
 
 |*Bearer token or API key*
 |A token (eg. JWT) is sent in the `Authorization` header.
@@ -403,7 +404,7 @@ Webhook messages are just regular HTTP messages that could originate from any so
  ❌Message integrity remains unverified +
  ❌Replay attack vulnerability +
  ❌Zero-downtime secret rotation not possible (requires client-server coordination)
-|More secure than basic auth, but security still dependent on end-to-end HTTPS encryption.
+|More secure than basic auth, and widely used in the industry. But security is still dependent on end-to-end HTTPS encryption. Does not guarantee message integrity, therefore offers no protection against spoofing and replay attacks.
 
 |*HMAC signatures (symmetric)*
 |A shared secret is used to generate a hash-based message authentication code (HMAC) that "signs" the webhook messages (body + headers).
@@ -418,7 +419,7 @@ Webhook messages are just regular HTTP messages that could originate from any so
  ❌New complexity of securely distributing secrets +
  ❌Insider threat (both parties know the secret) +
  ❌Timestamp verification depends on clock synchronization
-|Industry standard, widely used by major services like GitHub, Stripe, Spotify, etc.
+|Industry standard, widely used by major services like GitHub, Stripe, Spotify, etc. Very secure. Does not depend on end-to-end HTTPS encryption, as message integrity can be verified without this. However, depends on a single secret shared between both producer and consumer.
 
 |*Public key signatures (asymmetric)*
 |A digital signature is generated by the producer using a private key, and verified by the consumer using a public key.
@@ -434,7 +435,7 @@ Webhook messages are just regular HTTP messages that could originate from any so
  ❌Requires deeper knowledge (eg. of Public Key Infrastructure, PKI) +
  ❌Slightly higher computational overhead +
  ❌Less widely used; less library support
-|Recommended for high-security applications; allows for easier key rotation.
+|Improves on the security of symmetric keys by keeping the private signing key owned by the producer. Corresponding public key can be assumed to be public (shared widely). Recommended for high-security applications. Very easy key rotation.
 
 |*Mutual TLS (mTLS)*
 |Both client and server authenticate with certificates.
@@ -445,7 +446,7 @@ Webhook messages are just regular HTTP messages that could originate from any so
  ❌Complex certification management +
  ❌Certificate renewal/rotation overhead +
  ❌Requires infrastructure support
-|May be an option for inter-service communication within a highly-secure application, but unsuitable for most public webhook implementations
+|May be an option for inter-service communication within a highly-secure application (ie. intra-organization), but unsuitable for most public webhook implementations
 
 |*OAuth 2.0*
 |Producer obtains short-lived access token via OAuth flow.
@@ -457,7 +458,7 @@ Webhook messages are just regular HTTP messages that could originate from any so
 |❌More complex to implement and manage +
  ❌Higher integration and maintenance costs for webhook consumers +
  ❌Additional latency (token fetch)
-|Rarely used in webhook implementations because it depends on the consumer providing an OAuth service; may be appropriate for some edge case where delegated access is a requirement.
+|Rarely used in webhook implementations because it depends on the consumer providing an OAuth service. May be appropriate for some use cases where delegated access is a requirement, or where webhook messages initiate destructive actions.
 
 |*IP allow-listing*
 |The consumer only accepts requests from known IP addresses.
@@ -465,7 +466,7 @@ Webhook messages are just regular HTTP messages that could originate from any so
  ✅Infrastructure configuration (no application code changes)
 |❌Not foolproof (IP addresses can change and be spoofed) +
  ❌Depends on static IPs
-|Can be used as an additional layer of security, but not sufficient on its own as an authentication mechanism.
+|Not sufficient on its own as an _authentication_ mechanism. It's only a traffic _filtering_ system that provides a little extra security on top of the primary authentication system. Requires the producer service to be run on infrastructure with static IP addresses, giving consumers the option of allowing these IPs through their firewall.
 |===
 
 According to Standard Webhooks, over 65% of webhook implementations use signatures for authentication and verification of message integrity. RFC 9421, an IETF standard for signing and verifying HTTP messages, is widely used for this purpose.
@@ -474,7 +475,7 @@ Of those 65% of public webhook implementations, HMAC signatures are the most com
 
 However, asymmetric signatures are securer still. They improve on the security of symmetric signatures by eliminating the need to share _any_ secrets between the producer and consumer systems. There are few trade-offs, except the slightly higher complexity of working with public key infrastructure (PKI) – but this extra complexity is small and exists on the producer side, not the consumer side.
 
-Other popular ways to verify the authenticity of webhook messages is to use HTTP basic auth (username + password) or bearer auth (token). However, these have weaker security profiles than digital signatures. 
+Other popular ways to verify the authenticity of webhook messages is to use HTTP basic auth (username + password) or bearer auth (token). However, these have weaker security profiles than digital signatures.
 
 This technical standard says that HTTP message signatures MUST be used in webhook implementations, and asymmetric signatures are RECOMMENDED over symmetric ones.
 
@@ -775,11 +776,11 @@ To protect themselves against SSRF, producers MUST NOT allow consumers to set an
 
 == References
 
-* https://www.standardwebhooks.com/[Standard Webhooks]
+* https://www.standardwebhooks.com/[Standard Webhooks] — A well-designed standard for webhook implementation, drawing on industry best practices.
 
-* https://cloudevents.io/[CloudEvents] and the https://github.com/cloudevents/spec/blob/main/cloudevents/http-webhook.md[CloudEvents Web Hooks for Event Delivery] specification
+* https://cloudevents.io/[CloudEvents] and the https://github.com/cloudevents/spec/blob/main/cloudevents/http-webhook.md[CloudEvents Web Hooks for Event Delivery] specification — CloudEvents is a specification for describing event data in a common way. It focuses on the event format (the payload) rather than other concerns such as the transport and authentication mechanisms.
 
-* https://openid.net/wg/sharedsignals/[Shared Signals Framework (SSF)] — This OpenID Foundation initiative is effectively a standard for generalized webhooks. The framework defines stream-based communication mechanisms between "transmitters" (that generate events) and "receivers" (that consume them), with an Event Stream Management API for configuration, event types, verification, and delivery.
+* https://openid.net/wg/sharedsignals/[Shared Signals Framework (SSF)] — This OpenID Foundation initiative is effectively a standard for generalized webhooks. The framework defines stream-based communication mechanisms between "transmitters" (that generate events) and "receivers" (that consume them). It specifies event types, verification mechanisms, and transport protocols. It is part of a suite of standards under the OpenID umbrella, this standard focusing on the secure communication of security-related events. There are some useful security guidelines herein.
 
 * https://web.archive.org/web/20220914184737/http://resthooks.org/[RestHooks] (https://github.com/zapier/resthooks[repository]) — An earlier standardization effort by Zapier, now inactive.
 
