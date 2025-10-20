@@ -86,7 +86,7 @@ The remainder of this section covers RECOMMENDATIONS for the design and implemen
 
 === Secure protocol
 
-It is RECOMMENDED to use HTTPS as the transport protocol, even for message delivery with an internal network. Internal networks MUST NOT be considered secure by default; they are _not_ inherently secure. Therefore HTTPS is REQUIRED to encrypt messages in transit, to protect against eavesdropping and man-in-the-middle attacks.
+Internal networks are _not_ inherently secure. Therefore HTTPS is REQUIRED to encrypt messages in transit, to protect against eavesdropping and man-in-the-middle attacks.
 
 === Data interchange formats
 
@@ -256,25 +256,23 @@ Payloads MUST be composed from a global library of common data types and structu
 
 The size of event payloads can impact delivery reliability and performance. Therefore, try to keep payloads small – under 1MB – and focused on the essential data needed by consumers. Consider opening new API endpoints from which event consumers can fetch additional information about the events they receive, if needed.
 
-== Authentication and security
-
-See also https://openid.net/wg/sharedsignals/[Shared Signals and Events (SSE)], an OpenID Foundation initiative that is developing standards and best practices for the secure, privacy-protected transmission of messages and events over the public Internet.
-
 === Authentication
 
-The most common pattern for message authentication is HMAC (Hash-based Message Authentication Code) with SHA-256 hashing. It works like this:
+It is RECOMMENDED to use a message-level authentication system to verify the authenticity and integrity of messages. The transport-level security provided by HTTPS (TLS) is not sufficient on its own, since messages may be intercepted and modified by malicious actors within the internal network.
 
-* A share secret is established between message producers (or message queues) and consumers.
-* The producer creates an HMAC hash of the message payload using the shared secret.
-* The hash is sent in an HTTP header along with the message. The consumer recreates the hash and compares it to the received hash, to verify authenticity.
+The most common authentication pattern in message-based communication is HMAC (Hash-based Message Authentication Code) with SHA-256 hashing – a symmetric key algorithm. Other options include asymmetric signatures generated and verified by public/private key pairs, and bearer token authentication (eg., JWT). Bearer tokens can be a good choice where it is desirable to encode claims and scopes (ie. permissions) in messages. Basic authentication is not recommended, since its security depends entirely on end-to-end transport encryption (TLS/HTTPS). More advanced options such as OAuth and mutual TLS are generally not appropriate for internal message communication, due to their complexity and operational overhead.
 
-It is RECOMMENDED to use the HTTP header name `X-Message-Signature` for this purpose.
+See link:./016a-webhooks.adoc[TS-16a: Webhooks] for an overview of all the options for authenticating HTTP messages, and the trade-offs of each approach. The default option RECOMMENDED by this technical standard is HMAC signatures with SHA-256 hashing. A scheme similar to that described in TS-16a, and based on https://www.standardwebhooks.com/[Standard Webhooks], is RECOMMENDED to protect messages from tampering, reducing susceptibility to replay attacks and other threats.
+
+Signatures SHOULD be base64-encoded for compactness in transit.
 
 [source,http]
 ----
-POST /webhook HTTP/1.1
-Host: example.com
+POST /message HTTP/1.1
+Host: 172.22.104.11
 Content-Type: application/json
+X-Message-ID: 550e8400-e29b-41d4-a716-446655440000
+X-Message-DateTime: 2024-10-01T12:34:56Z
 X-Message-Signature: sha256=a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3
 
 {
@@ -282,45 +280,7 @@ X-Message-Signature: sha256=a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e
 }
 ----
 
-Signatures MAY be base64-encoded, for more compactness.
-
-For a standardized solution, look to https://oauth.net/http-signatures/[RFC9421 HTTP Message Signatures].
-
-Another common pattern is bearer token authentication. This may be more appropriate where it is desirable to implement claims and scopes (using JWT for the token), for example.
-
-[source,http]
-----
-POST /webhook HTTP/1.1
-Host: example.com
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30
-Content-Type: application/json
-----
-
-Basic authentication is the simplest but the least secure. Nevertheless, it may be appropriate for internal systems where HTTPS termination is sufficient to cover all security requirements.
-
-=== Replay attacks
-
-Replay attacks occur when an attacker intercepts a valid message and resends it later, perhaps with a modified payload. This can lead to unintended side effects, such as duplicate transactions or unauthorized actions.
-
-Including timestamp information in messages is a common technique to protect consumers from replay attacks. Message publishers MUST include the timestamp in the message's payload and also its HMAC signature, which is what allows consumers to verify the authenticity of the timestamp in the message content.
-
-With the authenticity of the message and its timestamp verified, consumers then have the option to reject messages older than a certain threshold. (The appropriate threshold will vary by message type, and to accommodate different latency and clock-drift between different systems.)
-
-=== IP allow-listing
-
-IP allow-listing SHOULD NOT be used in place of a proper authentication system. It MAY be used in addition to authentication, for extra security.
-
-=== Encryption
-
-All messages, whether transmitted over public networks or private ones, MUST be delivered over HTTPS (or alternative secure protocols).
-
-=== Endpoint verification
-
-For delivery of messages to webhooks (endpoints in third-party services), it is RECOMMENDED to verify the ownership of the endpoint during registration. The purpose is to prevent malicious actors from registering fake endpoints.
-
-The most basic pattern here is the challenge-response call. A unique "challenge" token is send to the webhook endpoint, which is expected to return a valid response with the challenge token encoded somewhere in the response message. This mechanism only verifies that the webhook endpoint is reachable correctly functioning. Producers can use the challenge-response process to verify things like the validity of the SSL/TLS certificate of the consumer service.
-
-To verify _ownership_ of the endpoint's domain, DNS-based verification is required. This involves the domain owner adding a TXT record to the domain's DNS settings. A slightly weaker solution is verification of an email address hosted on the same domain.
+IP allow-listing MUST NOT be depended upon for authentication, but it MAY be used in addition to authentication, to provide an extra layer of security.
 
 == Delivery and reliability
 
