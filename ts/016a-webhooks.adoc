@@ -837,7 +837,50 @@ Consumers MAY be able to define multiple webhook endpoints, supporting fan-out m
 
 It is RECOMMENDED that producers document their outbound webhook message formats and payload schema in a dedicated section of their regular API documentation.
 
-https://www.asyncapi.com/[AsyncAPI] is an interface definition language for specifying asynchronous (eg. event-driven) APIs, and is therefore well-suited to webhooks. The more ubiquitous https://www.openapis.org/[OpenAPI], which was originally designed for synchronous HTTP APIs, has recently added support for the definition of webhook payload schema (but not other aspects of webhooks such as signature schemes).
+https://www.asyncapi.com/[AsyncAPI] is an interface definition language for specifying asynchronous (eg. event-driven) APIs, and is therefore well-suited to webhooks. The more ubiquitous https://www.openapis.org/[OpenAPI], which was originally designed for synchronous HTTP APIs, has recently added support (since v3.1) for the definition of webhook payload schema (but not other aspects of webhooks such as signature schemes).
+
+[source,yaml]
+----
+openapi: 3.1.0
+info:
+  title: My API
+  version: 1.0.0
+
+webhooks:
+  orderPaid:
+    post:
+      summary: Order payment completed
+      description: Triggered when a customer payment is processed
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderPaidEvent'
+      responses:
+        '200':
+          description: Webhook received successfully
+        '500':
+          description: Webhook processing failed
+
+components:
+  schemas:
+    OrderPaidEvent:
+      type: object
+      required: [eventId, eventType, timestamp, data]
+      properties:
+        eventId:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+          enum: [order.paid]
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          $ref: '#/components/schemas/OrderData'
+----
 
 As well as a formal specification of the data structures (eg. using JSON Schema or OpenAPI) it is RECOMMENDED to provide examples of the payload structure for each event type.
 
