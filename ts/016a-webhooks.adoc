@@ -150,9 +150,9 @@ Standard Webhooks is a community-driven initiative to standardize around industr
 
 The webhook ecosystem is highly fragmented, with each producer implementing webhooks differently. This makes it hard for producers and consumers to integrate with each other. Converging on a common standard for webhooks will make it easier for service providers to offer webhook notifications to their customers, and easier for their customers to integrate with them. It will also enable the development of shared tools and services that can be reused across multiple webhook implementations. The Standard Webhooks project already has a number of open source libraries, for multiple mainstream programming languages, to facilitate the implementation of webhooks in both producer and consumer systems.
 
-Besides interoperability, the Standard Webhooks specification also promotes best security practices, offering solutions for attack vectors such as SSRF, spoofing, and replay attacks. See the https://github.com/standard-webhooks/standard-webhooks[project readme] for more information about the specification, and links to open source libraries and reference implementations.
+Besides interoperability, the Standard Webhooks specification also promotes best security practices, offering solutions for attack vectors such as SSRF, spoofing, and replay attacks.
 
-The rest of this section specifies an extended subset of Standard Webhooks. These guidelines are fully compliant with Standard Webhooks, but they narrow some choices while extending guidance in other areas.
+See the https://github.com/standard-webhooks/standard-webhooks[Standard Webhooks README] for more information about the project and specification, and links to open source libraries and reference implementations. The rest of this section specifies an extended subset of Standard Webhooks. These guidelines are fully compliant with Standard Webhooks, but they narrow some choices while extending guidance in other areas.
 
 === Secure protocol
 
@@ -241,6 +241,15 @@ The value of the `timestamp` property is not actually a timestamp but an ISO 860
 The value represents the time when the event occurred. This is not necessarily the same time when the event message was sent – it is expected to be a bit earlier.
 
 The `timestamp` value of an event MUST NOT change, even if the message is resent to consumers. By contrast, the value of the `Webhook-Timestamp` header field MUST change every time the same message is retried or replayed. Semantically, the two date-time values refer to different events (event creation versus message delivery) and they serve different purposes.
+
+.Replay attacks
+****
+Replay attacks occur when an attacker intercepts a valid message and resends it later, perhaps with a modified payload. This can lead to unintended side effects, such as duplicate transactions or unauthorized actions.
+
+Including timestamp information in messages is a common technique to protect consumers from replay attacks. This value MUST be signed by message producers, so consumers can verify the integrity of the message's timestamp (not only the payload).
+
+With the authenticity of the message and its timestamp verified, consumers then have the option to reject messages older than a certain threshold. The appropriate threshold will vary by message type, and to accommodate different latency and clock-drift between different systems.
+****
 
 ==== Data
 
@@ -377,7 +386,9 @@ The `links` object is another extension to Standard Webhooks, RECOMMENDED by thi
 
 === Security and authenticity
 
-Webhook messages are just regular HTTP messages that could originate from any source. Therefore, before processing webhook messages, consumers MUST verify the authenticity and integrity of the messages – that they come from the expected producer (authenticity), and that they have not been tampered with by a malicious third-party during transit (integrity).
+Webhook messages are just regular HTTP messages that could originate from any source. While TLS provides a high degree of confidentiality during transit, it does not guarantee the authenticity or integrity of messages. TLS cannot guarantee end-to-end message integrity when intermediaries (eg. proxies, load balancers) terminate and re-establish the connection.
+
+Therefore, before processing webhook messages, consumers MUST verify the authenticity and integrity of the messages – that they come from the expected producer (authenticity), and that they have not been tampered with by a malicious third-party during transit (integrity).
 
 ==== Authentication mechanisms for webhooks
 
@@ -420,19 +431,17 @@ Authentication mechanisms are not mutually exclusive either. They can be combine
  ✅Zero-downtime token rotation is possible in certain implementations +
  ✅Lots of flexibility in token design +
  ✅JWTs can be securely signed to guarantee their authenticity and integrity +
+ ✅JWS (JSON Web Signature) can be used to sign the entire message payload +
  ✅JWTs can have built-in expiration dates +
  ✅JWTs can be scoped (permissions) +
  ✅JWTs can include other arbitrary metadata/claims
-|❌Depends on end-to-end HTTPS encryption +
- ❌JWTs do not guarantee the authenticity and integrity of the message itself +
+|❌Need to duplicate message content in signature data +
  ❌Can't revoke tokens after sending +
- ❌Tokens compromised if intercepted +
- ❌Replay attack vulnerability +
  ❌More responsibility is placed on the consumer to generate secure tokens, and to manage the lifecycle of tokens
-|More secure than basic auth, and widely used for webhooks, although not really designed for this purpose (tokens are more appropriate for APIs where stateless authorization is required). Security is still dependent on end-to-end HTTPS encryption and tokens do not guarantee message integrity, therefore no protection against spoofing and replay attacks. However, the blast radius from compromised tokens can be significantly reduced by using multiple tokens, each dynamically-generated and scoped to a particular resource, transaction, or user journey – a common pattern.
+|More secure than basic auth. Message integrity is guaranteed, and replay attacks and other vulnerabilities lessened, by using JWS (JSON Web Signature) to sign the whole message (headers + payload), the trade-off being is that the message content is effectively duplicated in the signature. Security can be tightened further by using multiple tokens, each dynamically-generated and scoped to a particular resource, transaction, or user journey, so reducing the blast radius if a token is compromised. But the main advantage of JWTs over message signatures is that consumers can encoded appropriate claims in their tokens, such as scopes (permissions) and expiration times, which gives them more control over access to their webhook endpoints.
 
-|*HMAC signatures (symmetric)*
-|A shared secret is used to generate a hash-based message authentication code (HMAC) that "signs" the webhook messages (body + headers).
+|*HMAC signatures (symmetric) with SHA-256 hashing*
+|A secret is generated by the message producer and shared with the message consumer. Using the shared secret, the producer creates a HMAC hash of the message payload. The hash serves as a signature and is sent with the message as a header (the signature may be base64-encoded for compactness). To verify authenticity, the consumer recreates the hash and compares it to the received hash.
 |✅Strong authenticity guarantees (no secrets transmitted in webhook messages) +
  ✅Verifies message integrity (ie. protects against tampering) +
  ✅Timestamp verification protects against replay attacks +
@@ -492,8 +501,6 @@ Authentication mechanisms are not mutually exclusive either. They can be combine
 
 According to Standard Webhooks, over 65% of webhook implementations use signatures for authentication and verification of webhook message integrity. Signatures are a really good fit for message-driven communication patterns – this is their main use case.
 
-RFC 9421, an IETF standard for signing and verifying HTTP messages, is universally used for webhook message signing. It is REQUIRED by Standard Webhooks.
-
 In the wild, symmetric HMAC signatures are the most popular. HMAC-SHA256 is fast (and often hardware accelerated) and ubiquitous (it is natively supported by most mainstream programming languages). This authentication scheme offers a good balance between security and usability. It is easy to implement and, if done well, has excellent security. Critically, responsibility for secret generation and key lifecycle management is with the producer, whereas token auth shifts this responsibility onto consumers.
 
 Asymmetric signatures are securer still. They improve on the security of symmetric signatures by eliminating the need to share _any_ secrets between the producer and consumer systems. This is a significant advantage. Producers are responsible for generating public-private key pairs and for managing the lifecycle of their private keys. Consumers are given the corresponding public keys, which they use to verify the signatures on incoming messages. Public keys do not need to be kept secret, so there is no risk of them being leaked or intercepted. Therefore producers can _guarantee_ the authenticity and integrity of their messages, because only they know the signing secret – they own the trust. With symmetric signatures, producers cannot make this guarantee because they have no control over how their consumers store and process the shared signing key.
@@ -504,9 +511,11 @@ Asymmetric signatures are a little more complex to implement, and there are fewe
 
 For most use cases, the increased costs of implementing asymmetric signatures will be outweighed by the reduced risks, compared to symmetric signatures. Asymmetric signatures are RECOMMENDED in scenarios where you do not control the security of both the client and server systems – which is the case for webhooks (the consumers of events are systems owned and operated by third-parties).
 
-Other mechanisms to verify the authenticity of webhook messages include HTTP basic auth (username + password) and bearer auth (tokens). However, these have weaker security profiles than digital signatures, and they shift responsibility for security to the consumer rather than the producer. OAuth, mutual TLS, and other options solve problems in niche use cases. These authentication mechanisms are not appropriate for most general-purpose webhook implementations.
+Other mechanisms to verify the authenticity of webhook messages include HTTP basic auth (username + password) and bearer auth (tokens). Basic auth has significant security weaknesses, as it involves transmitting raw credentials in every message. Bearer tokens are much better, and when implemented using JWTs (JSON Web Tokens) that are cryptographically signed, the security profile is equivalent to message signatures. The main disadvantage of bearer tokens, compared to message signatures, is that they shift responsibility for security to the consumer rather than the producer.
 
-Therefore, this technical standard says that HTTP message signatures MUST be used in webhook implementations, and asymmetric signatures are RECOMMENDED over symmetric ones.
+OAuth, mutual TLS, and other options solve problems in niche use cases. These authentication mechanisms are not appropriate for most general-purpose webhook implementations.
+
+Therefore, this technical standard says that HTTP message signatures SHOULD be used in webhook implementations, and asymmetric signatures are RECOMMENDED over symmetric ones. Signed bearer tokens, implemented as JWTs, MAY be used as an alternative to message signatures, in use cases where there are good reasons to give consumers more control over access to their webhook endpoints (eg. via scopes/permissions encoded in the tokens).
 
 But it is not enough to use strong cryptographic primitives for the signature. HTTP signatures MUST be implemented in a particular way for the messages to be fully secure from all possible attack vectors. This section describes a security scheme, based on Standard Webhooks, to achieve that.
 
@@ -618,7 +627,7 @@ Producers MAY choose either one of these signature systems. Alternatively, produ
 |`v1a`
 |===
 
-The strings `whsec_`, `whsk_` and `whpk_` are prefixed to the keys prior to base64-encoding. These prefixes are REQUIRED by consumers to identify the type of key being used. (The prefixes are not part of the key itself, so consumers MUST remove them before verifying the signature.)
+Signatures are base64-encoded for compactness in transit. The strings `whsec_`, `whsk_` and `whpk_` are prefixed to the signatures prior to base64-encoding. These prefixes are REQUIRED by consumers to identify the type of key being used to create the signature. (The prefixes are not part of the signatures themselves, so consumers MUST remove them before verifying the signature.)
 
 In addition, the base64-encoded signatures are further prefixed with `v1` or `v1a`, followed by a comma, in the `Webhook-Signature` header. Because producers MAY send multiple space-delimited signatures via the `Webhook-Signature` header, consumers MUST use this prefix to identify the particular signatures they are capable of verifying. "v1" indicates a symmetric HMAC-SHA256 signature, and "v1a" indicates an asymmetric Ed25519 signature. Alternative signature schemes supported by Standard Webhooks in the future will presumably be "v2", "v3", etc.
 
@@ -629,6 +638,34 @@ Webhook-ID: msg_2KWPBgLlAfxdpx2AI54pPJ85f4W
 Webhook-Timestamp: 1674087231
 Webhook-Signature: v1,K5oZfzN95Z9UVu1EsfQmfVNQhnkZ2pj9o9NDN/H/pI4= v1a,hnO3f9T8Ytu9HwrXslvumlUpqtNVqkhqw/enGzPCXe5BdqzCInXqYXFymVJaA7AZdpXwVLPo3mNl8EM+m7TBAg==
 ----
+
+.HTTP Message Signatures
+****
+It is worth mentioning here https://datatracker.ietf.org/doc/html/rfc9421[RFC 9421: HTTP Message Signatures], which defines an alternative method for creating, encoding, and verifying digital signatures in HTTP messages. Cleverly, this specification allows producers to declare in the message which parts of the message have been signed. Messages include `Signature` and `Signature-Input` headers that specify which components were signed and the cryptographic signature itself. Verifiers can then check that those specific components haven't been tampered with. This can be a better option where you require greater flexibility in what gets signed, or if you prefer a more standardized solution. The trade-off is the HTTP Message Signatures are more complex, and the standard does not cover other aspects of webhook security as Standard Webhooks does.
+
+[source,http]
+----
+POST /foo?param=value&pet=dog HTTP/1.1
+Host: example.com
+Date: Tue, 20 Apr 2021 02:07:55 GMT
+Content-Type: application/json
+Content-Digest: sha-512=:WZDPaVn/7XgHaAy8pmojAkGWoRx2UFChF41A2svX+T\
+  aPm+AbwAgBWnrIiYllu7BNNyealdVLvRwEmTHWXvJwew==:
+Content-Length: 18
+Signature-Input: sig=("@method" "@authority" "@path" "@query" \
+  "content-digest" "content-length" "content-type")\
+  ;alg="rsa-pss-sha512";created=1618884473\
+  ;keyid="RSA (X.509 preloaded)"
+Signature: sig=:k2kD1VAw9TOA72zoDzt3ZAOdjhOg9edgBYqsvyQb5mBnwzY/fKz\
+  5W30tZud9YA4o8NfCYh8VnW5m4fxFsWCTOOQbrsWXmmGSKtblfi3o5DxlHJcUkrAH\
+  /d13tmy7r2Jtipjrhv6Ca67VU9z1Q2S8Zd87sNxFnyhIxX+CiKJ+i+P6XfJfeTbCV\
+  UIo8cTTqLD9go9xdZ8sSUkU9kDy5WxghbbPV/y9rmmigO0y3qxI8/UGZ/OWhsN13O\
+  zvE0SBj8tCYQ8qlh20zjNmJm0GN62RJXK0dX1h83Gh0IIXGPPmWQNCavO4hAbY3eW\
+  7nhGdEjlh364x8dd323UKuMfuwqYEyg==:
+
+{"hello": "world"}
+----
+****
 
 ==== Key rotation
 
@@ -756,6 +793,20 @@ In addition, producers MAY add some random jitter to retry intervals. This will 
 
 If webhook delivery fails beyond the last retry attempt, consumers SHOULD be notified of the failure via other channels, such as email or SMS. After the last retry attempt, the consumer's webhook endpoint SHOULD be disabled in the producer's configuration, and further messages SHOULD NOT be sent until the consumer requests that the webhook endpoint be re-enabled.
 
+=== Webhook endpoint verification
+
+Consumers MUST NOT be able to configure any arbitrary webhook endpoint URLs. This is a significant security risk for the producer, exposing them to server-side request forgery (SSRF) exploits. This is where URLs are set to internal network resources – eg. `http://localhost:8080` or `http://192.168.1.1` – or to cloud metadata endpoints – eg. `http://169.254.169.254/latest/meta-data/` – which may provide attackers with routes into the producer's private networks, internal services, and sensitive information that is not meant to be externally accessible.
+
+At the very least, on registration of new webhook endpoint URLs, the URLs MUST be validated to ensure they are public internet addresses, and not "localhost" or IP addresses within the ranges reserved for internal networks. Producers can further protect themselves against SSRF by using a proxy (like smokescreen) to filter out requests to internal IP addresses, and by putting webhook workers (or the proxy) in their own private subnet that can't access internal services.
+
+In addition, it is RECOMMENDED to implement a challenge-response system. When a new webhook URL is registered, a "challenge" token is sent to the webhook endpoint, which is expected to returna  valid response with the challenge token encoded somewhere in the response message. This verifies that the endpoint is reachable, and producers can use the process to verify things like the validity of the TLS certificate of the consumer service.
+
+For the best security, domain name _ownership_ SHOULD be verified, too. This can be done using DNS lookups. The process usually involves the domain owner adding a TXT record to the domain's DNS settings, which the producer can then look up (once propagated) to verify ownership. A slightly weaker solution is verification of an email address hosted on the same domain.
+
+Ideally, domain names would be human-moderated, too. The purpose is to prevent malicious actors from registering fake endpoints that pass all the automated verification checks.
+
+Finally, producers SHOULD implement automated health checks on their consumers' webhook endpoints. Optionally, to protect against domain hijacking, producers MAY require consumers to revalidate the ownership of their domain names periodically.
+
 === Webhook management
 
 Due to their inherent unreliability, webhooks should be treated as an optional convenience tool that sits alongside a regular HTTP API (or other web service). Consumers SHOULD NOT depend on webhooks alone to synchronize their state, or to otherwise integrate successfully, with the producer service. This means that consumers SHOULD be able to retrieve everything they need by polling the producer's API in the normal way.
@@ -782,12 +833,6 @@ Consumers SHOULD be able to read and query their webhook message history, includ
 
 Consumers MAY be able to define multiple webhook endpoints, supporting fan-out message distribution. This can be required for a number of reasons. It allows different consumer systems to process the same events in different ways. For example, when a payment is successfully completed, a customer may want their user management system, their CRM, and their internal team communication tool to be notified. Fan-out webhook messages also help to support platform migrations.
 
-However, consumers SHOULD NOT be able to configure any arbitrary webhook endpoint URLs. This is a significant security risk for the producer, exposing them to server-side request forgery (SSRF) exploits. This is where URLs are set to internal network resources – eg. `http://localhost:8080` or `http://192.168.1.1` – or to cloud metadata endpoints – eg. `http://169.254.169.254/latest/meta-data/` – which may provide attackers with routes into the producer's private networks, internal services, and sensitive information that is not meant to be externally accessible.
-
-To protect themselves against SSRF, producers MUST NOT allow consumers to set any webhook endpoint URLs they want. At the very least, URLs MUST be validated to ensure they are public internet addresses. For the best security, domain name ownership SHOULD be verified using DNS lookups, and they MAY be human-moderated too. Producers can further protect themselves against SSRF by using a proxy (like smokescreen) to filter out requests to internal IP addresses, and by putting webhook workers (or the proxy) in their own private subnet that can't access internal services.
-
-In addition, producers SHOULD implement automated health checks on their consumers' webhook endpoints. Optionally, to protect against hijacked domain names, producers MAY require consumers to revalidate the ownership of their domain names periodically.
-
 === Documentation
 
 It is RECOMMENDED that producers document their outbound webhook message formats and payload schema in a dedicated section of their regular API documentation.
@@ -806,6 +851,6 @@ As well as a formal specification of the data structures (eg. using JSON Schema 
 
 * https://web.archive.org/web/20220914184737/http://resthooks.org/[RestHooks] (https://github.com/zapier/resthooks[repository]) — An earlier standardization effort by Zapier, now inactive.
 
-* https://datatracker.ietf.org/doc/rfc9421/[RFC 9421: HTTP Message Signatures] — IETF standard for signing and verifying HTTP messages. Widely used for webhook authentication.
+* https://datatracker.ietf.org/doc/rfc9421/[RFC 9421: HTTP Message Signatures] — If you prefer a standard solution to create, encode, and verify HTTP message signatures, look to this IETF RFC. https://httpsig.org/[httpsig.org] is an online sandbox to try out HTTP Message Signatures interactively, plus links to implementations in multiple programming languages.
 
 * https://webhooks.fyi/[webhooks.fyi] — Not a standardization effort, but a useful community-maintained collection of resources about webhooks.
