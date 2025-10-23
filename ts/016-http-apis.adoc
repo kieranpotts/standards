@@ -4,9 +4,9 @@
 
 This document outlines standards for designing and implementing HTTP APIs.
 
-These standards are primarily concerned with the design of public-facing HTTP APIs, which are made available for integration into third-party client applications ("web services"). Such APIs may be gateways to underlying systems composed of multiple services, or they may be the primary interface to a single service.
+These standards are primarily concerned with the design of public-facing HTTP APIs ("web services"), which are made available for integration into third-party client applications ("intra-organization communication"). Such APIs may be gateways to underlying systems composed of multiple services, or they may be the primary interface to a single service.
 
-It is expected that many of the guidelines herein will be applicable also to private HTTP APIs between services within an internal network ("inter-service communication"). But the main focus of this technical standard is the design of HTTP APIs intended for integration into client applications that are owned and developed by third-parties.
+It is expected that many of the guidelines herein will be applicable also to private HTTP APIs between services within an internal network ("intra-organization communication"). But the main focus of this technical standard is the design of HTTP APIs intended for integration into client applications that are owned and developed by third-parties.
 
 See also link:./016a-webhooks.adoc[TS-16a: Webhooks], which covers a specific pattern implemented in some public HTTP APIs to support asynchronous event notifications to clients.
 
@@ -14,7 +14,9 @@ toc::[]
 
 == General design principles
 
-In broad terms, HTTP APIs SHOULD follow the https://www.ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm[RESTful architectural style]. This architecture describes the underlying design principles of the World Wide Web, particularly the HTTP protocol and HTML language. In practice, a RESTful API is one that repurposes the semantics of the HTTP protocol, using the full capabilities of HTTP as a messaging and encoding protocol, rather than merely as a transport protocol. In simple terms, a RESTful API uses URLs to represent resources and collections of resources, HTTP methods to represent different types of CRUD-like operations to be performed on those resources, and HTTP status codes to represent outcomes from those operations.
+In broad terms, HTTP APIs SHOULD follow the https://www.ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm[RESTful architectural style]. This architecture describes the underlying design principles of the World Wide Web, particularly the HTTP protocol and HTML language.
+
+In practice, a RESTful API is one that repurposes the semantics of the HTTP protocol, using the full capabilities of HTTP as a messaging and encoding protocol, rather than merely as a transport protocol. In simple terms, a RESTful API uses URLs to represent resources and collections of resources, HTTP methods to represent different types of CRUD-like operations to be performed on those resources, and HTTP status codes to represent outcomes from those operations.
 
 A RESTful API is also:
 
@@ -26,13 +28,7 @@ A RESTful API is also:
 
 * *A layered system*: The server application SHOULD have a layered architecture, in which cross-cutting concerns such as security and caching are implemented in discrete layers that span all endpoints of the API.
 
-The following RESTful design constraints are OPTIONAL:
-
-* *Hypermedia as the engine of application state (HATEOAS)*: HTTP APIs MAY embed hypermedia links through which clients can explore the available resources and operations of the API. Clients MAY use the embedded hypermedia controls to read, query, and update application state. This design constraint is not commonly used in practice, but it can be beneficial for some use cases. HATEOAS may be appropriate for APIs that are intended to be consumed directly by human users, who interact with the API through a generic program to explore the available resources and operations, which themselves are constantly evolving. HATEOAS is less useful for APIs that are intended for programmatic integration into other computer systems.
-
-* *Code on demand*: The server MAY send executable code to the client, to extend the functionality of the client. Again, this design constraint is not commonly used in practice, but one possible use case would be for an API to serve notifications of available updates to SDKs and client libraries.
-
-Although most HTTP APIs should be primarily RESTful (ie. "resource-oriented" APIs), there are many use cases where a RESTful design is not appropriate. For example, if an API is a thin layer around a legacy system that itself is not designed around the concept of resources, or which otherwise fits uncomfortably with the RESTful model, it will probably be better to deviate from RESTful design principles and focus on creating a functional abstraction of the underlying system.
+Although most HTTP APIs should be primarily resource-oriented, there are many use cases where a RESTful design is not appropriate. For example, if an API is a thin layer around a legacy system that itself is not designed around the concept of resources, or which otherwise fits uncomfortably with the RESTful model, it will probably be better to deviate from RESTful design principles and focus on creating a functional abstraction of the underlying system.
 
 Even within an HTTP API that is predominantly RESTful in its design characteristics, it will often be beneficial to include operations that are more RPC-like in their design. For example, besides the usual create, read, update, and delete operations that are made available on a collection of resources, an HTTP API may augment these operations with additional "actions". A single action may, for example, operate on multiple different types of resources, and execute multiple CRUD-like operations on those resources. Thus, actions are a higher level of abstraction that regular resource-oriented endpoints. See the section on *Actions* for more information.
 
@@ -40,6 +36,17 @@ Even within an HTTP API that is predominantly RESTful in its design characterist
 ====
 In designing an HTTP API, developers SHOULD prioritize creating a useful interface to the operations of the system that the API abstracts, rather than trying to religiously adhere to any particular architectural style. The best API design will be the one that makes it as easy as possible for clients to interact with the underlying system.
 ====
+
+.Other RESTful principles
+****
+The RESTful architecture defines a number of other design constraints, beyond those listed above. These constraints are OPTIONAL and are not applicable to most HTTP APIs.
+
+*Hypermedia as the engine of application state (HATEOAS)* refers to a system in which hypermedia links are embedded in response messages, allowing clients to dynamically explore the available resources and operations on the server. Clients MAY use the embedded hypermedia controls to read, query, and update application state.
+
+The HATEOAS design constraint is intrinsic to how the World Wide Web works, but it is not a useful design constraint for most HTTP APIs. However, HATEOAS may be appropriate for APIs that are intended to be consumed directly by human users, who interact with the API through a generic program to explore the available resources and operations, which themselves are constantly evolving. HATEOAS is less useful for APIs that are intended for programmatic integration into other computer systems.
+
+The RESTful design pattern of *code on demand* refers to a system in which the server sends executable code to the client, dynamically extending the functionality of the client at runtime. Again, this design constraint is central to the design of World Wide Web – HTML documents can be made dynamic through the embedding of scripts (JavaScript) that is generated by the server but executed on the client side — but is not applicable to HTTP APIs.
+****
 
 == Authentication and authorization
 
@@ -53,7 +60,7 @@ Authentication and authorization is especially important for operations that mod
 
 Security measures MUST be implemented for both public and private APIs. Do not assume that private/internal networks are secure.
 
-All input MUST be validated and sanitized to prevent security vulnerabilities such as SQL injection, cross-site scripting (XSS), and cross-site request forgery (CSRF). Even if that input comes from another internal system that you control (or otherwise trust), you still MUST validate the input. Doing so reduces the potential blast radius of security breaches in any one service.
+All input MUST be validated and sanitized to prevent security vulnerabilities such as SQL injection, cross-site scripting (XSS), and cross-site request forgery (CSRF). Even if that input comes from another internal system that you control and trust, you still MUST validate the input. Doing so reduces the potential blast radius of security breaches in any one service.
 
 // TODO: Extend with recommended security practices, OWASP, etc. Or link to other standards.
 
@@ -66,19 +73,19 @@ HTTP methods MUST be used for their designated purpose, as specified by the HTTP
 HTTP APIs MUST use only the following subset of standard HTTP methods:
 
 |===
-|Verb |CRUD mapping |Safe / read-only? |Idempotent? |Description
+|Verb |CRUD mapping |Safe? |Idempotent? |Description
 
 |`GET`
 |Read
 |Yes
 |Yes
-|Used to retrieve the requested resource or collection of resources. GET operations MUST NOT modify the state of the requested resources, and there MUST NOT be any other side effects.
+|Used to retrieve the requested resource or collection of resources. `GET` operations MUST NOT modify the state of the requested resources, and there MUST NOT be any other side effects.
 
 |`HEAD`
 |Read
 |Yes
 |Yes
-|This behaves the same as GET, except the body of response messages is empty. HTTP response messages consist only of headers.
+|This behaves the same as `GET`, except the body of response messages is empty. HTTP response messages consist only of headers.
 
 |`POST`
 |Create
@@ -107,12 +114,12 @@ HTTP APIs MUST use only the following subset of standard HTTP methods:
 
 .GET versus HEAD
 ****
-It is RECOMMENDED that all GET endpoints – for both resources and collections – in an HTTP API also support HEAD requests. HEAD responses are identical to GET responses, except that the server MUST NOT return a message body in the response. This can be useful for clients that need to check the existence of a resource without downloading its full representation.
+It is RECOMMENDED that all `GET` endpoints – for both resources and collections – in an HTTP API also support `HEAD` requests. `HEAD` responses are identical to `GET` responses, except that the server MUST NOT return a message body in the response. This can be useful for clients that need to check the existence of a resource without downloading its full representation.
 ****
 
-Other standard HTTP methods are `OPTIONS`, `TRACE`, and `CONNECT`. These are technical methods used to support the HTTP protocol itself, and are not intended the be included in the interface definitions for HTTP APIs.
+Other standard HTTP methods are `OPTIONS`, `TRACE`, and `CONNECT`. These are technical methods used to support the HTTP protocol itself, and are not intended the be included in the interface definitions of HTTP APIs.
 
-Most HTTP API operations are implemented as synchronous operations, in which the client sends a request and waits for an immediate response from the server. However, where operations may be long-running, it is RECOMMENDED to implement the operations using asynchronous communication patterns. The behavior of the HTTP methods, listed above, SHOULD be identical for asynchronous communication – the only differences being in the choices of response status codes, and response payloads are delivered subsequently via separate messages.
+In most real-world examples, HTTP API endpoints are implemented as synchronous operations, in which the client sends a request and waits for an immediate response from the server. However, where operations may be long-running, it is RECOMMENDED to implement the operations using asynchronous communication patterns. The behavior of the HTTP methods, listed above, SHOULD be identical for asynchronous communication – the only differences being in the choices of response status codes, and response payloads are delivered subsequently via separate messages.
 
 == HTTP status codes
 
@@ -197,7 +204,7 @@ See the *Versioning* section, below, for more guidance on HTTP API versioning an
 
 === Namespaces
 
-The next part of the URL path SHOULD be treated as a "namespace" in which related resources will be grouped.
+The next part of the URL path SHOULD be treated as a namespace in which related resources will be grouped.
 
 Namespaces are used to create logical groups of resources, collections, and actions. But they do not necessarily map directly to modules or back-end services that are responsible for fulfilling requests. Namespaces SHOULD reflect the customer's perspective of how the product works. That perspective may not necessarily reflect the internal structure of the system, or the business domains and subdomains.
 
@@ -579,7 +586,7 @@ Singleton sub-resources SHOULD NOT duplicate resources from other collections, b
 
 The HTTP standards define the concepts of safeness and idempotency for HTTP methods.
 
-A *safe* operation is one that does not modify the state of the resource. The HTTP standards define the `GET` and `HEAD` methods as safe methods, as these methods are intended not to request any kind of operation except data retrieval.
+A *safe* operation is one that does not modify the state of the resource – they are *read-only* operations. The HTTP standards define the `GET` and `HEAD` methods as safe methods, as these methods are intended not to request any kind of operation except data retrieval.
 
 An *idempotent* operation is one that has the same effect on the state of the requested resources, regardless of how many times the operation is performed. Clients can therefore retry operations, sending identical requests multiple times, without worrying about data corruption or other unexpected side effects of doing the retries.
 
@@ -632,7 +639,7 @@ In a RESTful-style of HTTP API, endpoints are resource-oriented. CRUD-like opera
 
 But some operations may not neatly fit into the RESTful model. It is sometimes quite difficult to model business processes in a pure RESTful service. Classic examples include endpoints to "login", "logout", "reset password", "charge a credit card", "resend a notification", and to "configure permissions and roles".
 
-These standalone operations are referred to as "actions" in this technical standard. Elsewhere, they may be referred to by other names such as "controllers", "procedures", "operations", or simply "endpoints".
+In this technical standard, these standalone operations are referred to as "actions". Elsewhere, they may be referred to by other names such as "controllers", "procedures", "operations", or simply "endpoints".
 
 Actions tend to be mapped directly to specific controller methods in the server-side code, and for this reason they are the HTTP API equivalent of RPC (remote procedure call) protocols.
 
@@ -1648,4 +1655,4 @@ HTTP APIs MUST be thoroughly documented.
 
 * https://github.com/jharmn/api-standards[Jason Harmon's API standards, based on PayPal's API design guidelines]
 
-* https://smartbear.com/learn/api-design/[API Design] by SmartBear — An extensive collection of articles and resources all about web API design, by https://smartbear.com/[Smartbear], a maker of tools for software developers.
+* https://smartbear.com/learn/api-design/[API Design] by SmartBear

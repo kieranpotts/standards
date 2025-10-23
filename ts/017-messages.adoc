@@ -150,7 +150,7 @@ The following high-level design achieves this separation by placing the payload 
 }
 ----
 
-An alternative design would be to move the message metadata into the HTTP headers, leaving just the payload in the message body. This approach has some advantages, such as better separation of concerns and easier access to metadata for routing and processing. However, the main disadvantage is that the message payload becomes less portable. It is tied to the HTTP protocol, making it harder to reuse the same message schema across different transport protocols.
+An alternative design would be to move the message metadata into the HTTP headers, leaving just the payload in the message body. This approach has some advantages, such as better separation of concerns and easier access to metadata for routing and processing. However, the main disadvantage of this alternative design is that the message payload becomes less portable. It is tied to the HTTP protocol, making it harder to reuse the same message schema across different transport protocols.
 
 [TIP]
 ======
@@ -342,25 +342,21 @@ Therefore, it is RECOMMENDED to avoid using `sequence` fields in event metadata,
 
 An alternative design is to transmit no state at all in events. Such messages would not have payloads. These events are simply notifications that something has changed in the publisher service. Consumers are required to synchronize their state by making regular requests to API endpoints, in response to those notifications.
 
+There are pros and cons to both approaches. "Thin" payloads tends to be beneficial in webhooks in public HTTP APIs, while "fat" payloads tend to be more appropriate for internal messaging systems. The right balance depends on the specific use case.
+
 === Service level agreements
 
 Retries, timeouts, rate limiting, and other such policies for message delivery MUST be clearly defined in service level agreements (SLAs).
 
-== Integration
+== Documentation
 
-This section makes some quick, general points about things that can be done to support the integration of messages in consuming systems.
+Message publishers MUST provide comprehensive *documentation* to support the integration of messages in consumer systems.
 
-Message publishers MUST provide comprehensive *documentation* to support the integration of messages in consumer systems. Documentation MUST include a full *message catalog* of all events, commands, and queries emitted by each service. Large message catalogs SHOULD be easily searchable. Document message schemas using https://json-schema.org/[JSON Schema], else formal *interface description languages* (IDLs) such as https://www.asyncapi.com/en[AsyncAPI].
+Documentation MUST include a full *message catalog* of all events, commands, and queries emitted by each service. Large message catalogs SHOULD be easily searchable. https://www.eventcatalog.dev/[Event Catalog] is an open-source tool that can be used to create and maintain message catalogs.
 
-Other tools that MAY be implemented to support integrations include:
+Message schemas MAY be documented using https://json-schema.org/[JSON Schema].
 
-* An *event management* API and/or dashboard via which consumers can manage their configuration (endpoints, retry intervals, etc.), view delivery logs, and replay messages.
-
-* Provide consumers with delivery status information, and other *monitoring* and *alerting* functionality as appropriate.
-
-* Consider offering endpoints to trigger *test messages*, to allow consumers to verify their integration is working correctly.
-
-* Consider developing libraries and *software development kits* (SDKs).
+*Interface description languages* (IDLs) such as https://www.asyncapi.com/en[AsyncAPI] and https://www.openapis.org/[OpenAPI] tend to be more appropriate for public APIs and webhooks.
 
 == References
 
