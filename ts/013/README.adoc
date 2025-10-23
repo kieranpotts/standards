@@ -1,0 +1,128 @@
+= TS-13: Code Design
+:toc: macro
+:toc-title: Contents
+
+This technical standard covers low-level concerns related to the structure and formatting of code. It covers topics such as naming conventions, commenting best practices, and object-oriented design principles.
+
+These guidelines are language-agnostic. This technical standard is intended to be applicable for any general-purpose, high-level programming language (Python, Java, JavaScript, etc.). Some of the content will also be relevant for lower-level languages, such as shell scripting languages like Bash.
+
+For higher-level design concerns, such as architecture and design patterns, see *link:../012/README.adoc[TS-12: Application Architecture]* and *link:../010/README.adoc[TS-10: System Design]*.
+
+toc::[]
+
+== Beware the bike-shed effect
+
+Code design discussions can easily get bogged down in trivial details.
+
+Bike shedding, also known as the bike-shed or bicycle-shed effect, or the law of triviality, is a phenomenon where people in an organization fight over trivial issues and ignore what's complicated and truly important.
+
+The term bike-shedding comes from a story in Cyril Northcote Parkinson's book _Parkinson's Law: Or the Pursuit of Progress_ (1986). In the story, a fictional committee discusses the construction of a nuclear power plant, but spends most of its time discussing details like which materials to use for the construction of a bike shed.
+
+The idea is closely related to Parkinson's Law, which originated in a 1955 essay, also by Cyril Northcote Parkinson, published in The Economist. Drawing from his experience in the British Civil Service, Parkinson described how bureaucracies tend to expand regardless of the actual workload. The most famous line in the essay is: "Work expands so as to fill the time available for its completion." Bike-shedding is one explanation for Parkinson's Law.
+
+In the field of software development, the bike shed effect tends to show itself in time spent arguing over things like code formatting conventions, what the name of an inconsequential private variable should be, and whether a comment or an abstraction makes a bit of code easier to understand.
+
+The truth is that such low-level concerns have a relatively small impact on the quality attributes of a software system compared to higher-level concerns such as choices of communication patterns, data structures, module boundaries, abstraction levels, and so on.
+
+Furthermore, much of code design is neither right nor wrong, but merely a matter of personal preference. Code design is a much more subjective thing than architecture and system design. It is influenced more by individual aesthetic tastes than by objective analysis.
+
+Of course, it is important that code design be consistent. But we shouldn't spend too much time arguing over it. We should decide our coding conventions, codify them in linters and style guides, and move on to the important stuff – higher-level design concerns that will yield greater returns on our investment.
+
+== Abstraction
+
+Perhaps the most important concept in code design is abstraction.
+
+Abstraction is a general term that refers to any design pattern that hides complexity. Complex behaviors and/or data are hidden behind some kind of facade, which exposes a simplified interface for interacting with that hidden logic and data.
+
+.Definition of abstraction
+[quote, Balzer et al. 1989]
+____
+Abstraction in programming is the process of identifying common patterns that have systematic variations; an abstraction represents the common pattern and provides a means for specifying which variation to use.
+
+An abstraction facilitates separation of concerns: The implementor of an abstraction can ignore the exact uses or instances of the abstraction, and the user of the abstraction can forget the details of the implementation of the abstraction, so long as the implementation fulfills its intention or specification.
+____
+
+Abstraction is one of the primary ways by which we make complex systems simpler. It is implemented through various structures for *encapsulation*, which are typically provided at the level of the programming language.
+
+One of the effects of abstraction is the *compression* of other parts of the code. Compression refers to complex behavior or logic being represented by less code. Abstraction makes that possible by encapsulating complexity into higher-level constructs – things like functions, classes, objects, modules, packages, subroutines, plugins, macros, and so on. Where an abstraction is used to hide complexity, all that is left in the code, in the place where all that complexity previously existed, is just the abstraction's name and interface.
+
+Abstraction, and the compactness and cleanliness it brings to program code, is widely held up to be a good thing. Abstraction leads to efficiently-expressed logic, reducing cognitive load. Abstraction also facilitates code reuse.
+
+But, like everything in software design, abstraction involves trade-offs. The overuse and misuse of abstraction can create problems, too.
+
+In most types of abstraction, the complexity that is hidden behind the facade – the "common pattern" that is abstracted away – is replaced by an identifier of some kind – a function or class name, say. For code to remain understandable, the names given to abstractions SHOULD accurately describe _all_ the important details of the logic and data they hide.
+
+This is easier to achieve when abstractions are small, simple, and focused.
+
+We should be wary of large, complex abstractions. They tend to be hard to understand and reason about. An example of a high-level abstraction would be something like a single function call that hides hundreds of lines of logic, perhaps including important business rules, interactions with external systems, and other complexity that is kept hidden from the abstraction's users.
+
+Large abstractions tend to be leaky abstractions, too. Because they encapsulate a lot of complexity, some of that complexity is inevitably exposed through the public interface of the abstraction. It tends to be quite hard to change the implementation of leaky abstractions without breaking code that depends on them, because their interfaces are likely to need changing with their implementations.
+
+Good abstractions have generic interfaces that do not expose implementation details. The purpose of an abstraction is for the user of the abstraction to be ignorant of its implementation.
+
+Large abstractions are more likely to leak their implementations than small ones. So, rather than layering abstractions on top of abstractions, eg. through deep inheritance hierarchies, it is often better to compose complex logic from lots of small, shallow abstractions.
+
+Whether small or large, if an abstraction proves to be wrong – ie. its external interface needs to change when the internal implementation changes – then the interface will need to be repaired in all the places where that abstraction is used. The more an abstraction is reused, the greater the cost will be of changing its interface. So, we should abstract only when we have a good level of confidence that the abstraction – it's interface – will be stable. Avoid premature abstraction.
+
+Once an abstraction is made, we should expect to evolve its interface only in a backwards-compatible way. The abstraction's interface should be designed accordingly. Where an interface cannot be changed in a backwards-compatible way, a new version of the abstraction should be created, leaving the old version in place to allow for incremental migration to the new version.
+
+Not everything benefits from abstraction. If it is _desirable_ for the user of some code to know about its implementation details, then it's probably best if that code is _not_ abstracted away. Don't abstract things that would be better left explicit and visible. Think about the users of your code, and what knowledge they need to have in order to integrate with it, to analyze and debug it, and to maintain it.
+
+Abstraction and encapsulation are, of course, good things. But they must be used moderately. As always in program design, avoid extremes and seek balance.
+
+== Naming things
+
+Where we abstract complexity, we need to give names to those abstractions.
+
+Naming things is one of the hardest things in computer programming. (Perhaps only cache invalidation is harder!)
+
+Generally, we should err on the side of clarity over brevity. Do not truncate or abbreviate the names of things where doing so would decrease understandability of the code.
+
+Names are mostly descriptions of abstractions. The names should accurately describe the purpose of those abstractions, without revealing unnecessary implementation details. Naming conventions for abstractions must be consistent throughout a codebase, as the names form a catalog of things that are relevant to the program. Every abstraction adds an entry to the vocabulary of the codebase, and so the names of abstractions are like words in a custom language that is unique to each program.
+
+In most types of abstraction, the complexity that is hidden behind the facade – the "common pattern" that is abstracted away – is replaced by an identifier of some kind – a function or class name, say. For code to remain understandable, the names given to abstractions SHOULD accurately describe _all_ the important details of the logic and data they hide.
+
+The names of all things – functions, variables, etc. – SHOULD be descriptive in the places in which those things are _used_, not only in the places where they are _defined_. This means you can't rely on adjacent comments to document the meaning of things where they are declared, because those names will appear in other code contexts where those descriptions are not present.
+
+== Composition over inheritance
+
+Inheritance is a particular control structure in object-oriented programming that supports abstraction.
+
+Since shallow abstractions should be preferred over deep ones, it follows that deep inheritance hierarchies should be avoided. Inheritance encourages high-levels of abstraction, so it should be used judiciously.
+
+Better to compose complex logic from lots of small, shallow abstractions. Erring on the side of *composition over inheritance* tends to lead to code designs that have better evolvability.
+
+A notable exception to this rule is domain modeling in object-oriented programming. In this case, inheritance hierarchies can be quite useful for modeling real-world taxonomies and ontologies. (This was the original intent of object-oriented programming, after all.)
+
+In most other use cases, inheritance should be shallow, or avoided altogether.
+
+== Comments
+
+To explain a piece of complex logic, or an obscure data structure of configuration object, many developers tend to be inclined to create abstractions before they consider simply writing some adjacent comments.
+
+In higher-level programming languages, the higher abstractions allow programmers to express their design through modules, function and object names, data structures, and other constructs. In these languages, instead of relying on comments to explain complex code, it is considered best practice to try to design the code in such a way that it clearly articulates _what_ it does, without additional annotations. Abstracting complexity into well-named functions and modules is usually seen as being preferable to adding comments to explain the code.
+
+This so-called "self-documenting code" approach, which was popularized by https://www.goodreads.com/book/show/3735293-clean-code[Uncle Bob's Clean Code book], has merit. It encourages developers to think about the design and structure of their code more deeply, leading to better organization and maintainability.
+
+But comments cannot be avoided altogether. There are many things that cannot be easily expressed in code alone, no matter how good the abstractions are. Complex algorithms, important context about business rules, rationales for non-obvious design decisions, and assumptions made about how black-box dependencies work – all these things cannot be fully captured by code alone, and yet this is important knowledge that other developers will need to understand and maintain the code in the future.
+
+Removing comments does not necessarily make code "cleaner". Even if things get messier with comments, this is usually preferable to losing valuable knowledge.
+
+Ignore what Uncle Bob says and adopt the view that "comments are mostly good"!
+
+This is not to say that comments should be liberally sprinkled throughout code. Comments that are superfluous, redundant, or that do not add any tangible value should be removed.
+
+Comments are most useful when they explain things that are not obvious from the code itself. Programs written in low-level languages, like shells and other scripting languages, tend to require more comments, because low-level languages provide fewer constructs for abstraction, and the syntax tends to be quite cryptic and non-intuitive too. In general, the lower-level the programming language, the more comments are needed to explain the code. Depending on the audience (the level of experience of the expected maintainers of the code), comments in low-level languages may need to be quite detailed, explaining even basic constructs and control flows.
+
+The purpose of comments is to reduce cognitive overhead. Whatever the language or level of abstraction, add comments where they make things easier to understand, or where you want to communicate important information that cannot be ascertained from the code alone – even with good abstractions.
+
+_If in doubt: leave a comment!_
+
+.Other forms of documentation
+****
+Inline code comments should not be confused with out-of-band documentation, such as design documents, README files, wikis, and so on. Out-of-band documentation is appropriate for developer-oriented information that is not specific to a particular piece of code, such as overall system architecture, design rationales, and so on.
+
+Use inline comments for documentation that benefits from being close to the code it describes, such as explanations of complex logic, business rules, assumptions, and so on. Also use inline comments for documentation that is likely to change as the code changes. Keeping the code close to its documentation will help to ensure that the documentation stays up to date.
+
+Neither should inline code comments be confused with inline API documentation, such as Javadoc comments or Python docstrings. These serve a different purpose to general inline comments.
+****
