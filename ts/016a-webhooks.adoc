@@ -765,13 +765,15 @@ The following policy is RECOMMENDED:
 
 * To treat `1xx`, `3xx`, and all other status codes as generic `500` server errors. Producers MUST NOT follow redirects, as this is a potential security risk and puts unnecessary load on the producer system. If consumers move their webhook endpoints, they are REQUIRED to update their configuration in the producer system.
 
-=== Timeouts
+=== Delivery and reliability
+
+==== Timeouts
 
 Connection timeouts – in which a webhook message is sent to a consumer but the connection is closed before a response message is returned – are a common failure mode in webhook implementations Producers SHOULD set a reasonable timeout value for webhook requests – somewhere between 15 and 30 seconds would be reasonable for almost all use cases. Producers MAY allow consumers to configure this.
 
 Producers SHOULD handle timeouts in the same way as `429 Too Many Requests` errors.
 
-=== Retries
+==== Retries
 
 Webhooks are inherently unreliable. Network issues, server outages, misconfigurations, bugs, and all sorts of other problems can lead to webhook messages getting delayed or lost. It is therefore RECOMMENDED that webhook systems have retry mechanisms to improve the chances of successful delivery.
 
@@ -797,6 +799,10 @@ In addition, producers MAY add some random jitter to retry intervals. This will 
 
 If webhook delivery fails beyond the last retry attempt, consumers SHOULD be notified of the failure via other channels, such as email or SMS. After the last retry attempt, the consumer's webhook endpoint SHOULD be disabled in the producer's configuration, and further messages SHOULD NOT be sent until the consumer requests that the webhook endpoint be re-enabled.
 
+==== Other considerations
+
+Producers MUST NOT batch process the delivery of webhook messages, to avoid overloading consumer systems.
+
 === Webhook endpoint verification
 
 Consumers MUST NOT be able to configure any arbitrary webhook endpoint URLs. This is a significant security risk for the producer, exposing them to server-side request forgery (SSRF) exploits. This is where URLs are set to internal network resources – eg. `http://localhost:8080` or `http://192.168.1.1` – or to cloud metadata endpoints – eg. `http://169.254.169.254/latest/meta-data/` – which may provide attackers with routes into the producer's private networks, internal services, and sensitive information that is not meant to be externally accessible.
@@ -815,7 +821,28 @@ Finally, producers SHOULD implement automated health checks on their consumers' 
 
 Due to their inherent unreliability, webhooks should be treated as an optional convenience tool that sits alongside a regular HTTP API (or other web service). Consumers SHOULD NOT depend on webhooks alone to synchronize their state, or to otherwise integrate successfully, with the producer service. This means that consumers SHOULD be able to retrieve everything they need by polling the producer's API in the normal way.
 
-Webhooks SHOULD be treated like a subscription service, in which consumers explicitly opt-in to receive notifications of particular event types. Consumers SHOULD NOT be burdened with needing to handle webhook messages they're not interested in.
+Webhooks SHOULD be treated like a subscription service, in which consumers explicitly opt-in (via HTTP API endpoints) to receive notifications of particular event types. Consumers SHOULD NOT be burdened with needing to handle webhook messages they're not interested in.
+
+.Example endpoints to manage webhook subscriptions
+|===
+|Method |Path |Description
+
+|`GET` 
+|`/webhook/types` 
+|Retrieve a list of all available event types that can be subscribed to.
+
+|`GET` 
+|`/webhook/subscriptions` 
+|Retrieve a list of all active webhook subscriptions for the consumer.
+
+|`POST` 
+|`/webhook/subscriptions` 
+|Create a new webhook subscription for the consumer.
+
+|`DELETE` 
+|`/webhook/subscriptions/{id}` 
+|Delete an existing webhook subscription for the consumer.
+|===
 
 Outbound webhooks MUST be disabled by default for each customer/user. Consumers MUST explicitly enable webhooks, and configure the event types they wish to receive, before any webhook messages are sent to them.
 
@@ -829,6 +856,7 @@ Consumers SHOULD be able to manage the configuration of their webhook messages, 
 * Signature scheme, if the producer offers both symmetric and asymmetric signatures.
 * Key invalidation and rotation.
 * Event types.
+* Expiration times (when consumers want to automatically stop receiving webhook messages).
 * The quantity of data communicated ("thin" versus "fat" payloads).
 
 In addition, through the webhook management tools, consumers SHOULD be able to initiate retries of failed messages, and even replays of successful ones. Messages should be available for replay for a reasonable period of time, such as 30 days, after their initial delivery and before they are deleted permanently. This gives consumers plenty of time to recover from long outages without missing messages.
@@ -838,6 +866,8 @@ Consumers SHOULD be able to read and query their webhook message history, includ
 Producers SHOULD offer monitoring and alerting solutions for their consumers, so they can be notified early of problems delivering messages to their webhook endpoints.
 
 Consumers MAY be able to define multiple webhook endpoints, supporting fan-out message distribution. This can be required for a number of reasons. It allows different consumer systems to process the same events in different ways. For example, when a payment is successfully completed, a customer may want their user management system, their CRM, and their internal team communication tool to be notified. Fan-out webhook messages also help to support platform migrations.
+
+Where fan-out message distribution is supported, consumers MUST be able to configure each webhook endpoint independently, including different event types, retry policies, and potentially even things like signature schemes and verification secrets.
 
 === Documentation
 
@@ -915,3 +945,5 @@ Basic SDKs SHOULD include functions that abstract away the complexity of verifyi
 * https://datatracker.ietf.org/doc/rfc9421/[RFC 9421: HTTP Message Signatures] — If you prefer a standard solution to create, encode, and verify HTTP message signatures, look to this IETF RFC. https://httpsig.org/[httpsig.org] is an online sandbox to try out HTTP Message Signatures interactively, plus links to implementations in multiple programming languages.
 
 * https://webhooks.fyi/[webhooks.fyi] — Not a standardization effort, but a useful community-maintained collection of resources about webhooks.
+
+* https://medium.com/prospa-technology/webhooks-done-right-676d4e74578a[Webhooks done right], Amir Chatrbahr (2020)
