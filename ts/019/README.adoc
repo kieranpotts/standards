@@ -89,16 +89,13 @@ Exit on error (errexit) with `set -e` is especially useful for improving the rob
 
 The `set -x` option MUST NOT be used in production scripts. It produces verbose output that is intended only for debugging. It MAY be enabled temporarily while debugging scripts.
 
-Different shells support extended non-POSIX options. For example, Bash supports `set -o pipefail`, which causes scripts to exit when any command within a pipeline fails. Without this option, `set -e` would exist only if the last command in the pipeline fails. This Bash option tends to be used as an enhancement to POSIX-compliant `-e` and `-u` options:
-
-[source,sh]
-----
-#!/bin/env sh
-set -eu
-----
+Different shells support extended non-POSIX options. For example, Bash supports `set -o pipefail`, which causes scripts to exit when any command within a pipeline fails. Without this option, `set -e` would exit only if the last command in the pipeline fails. This Bash option tends to be used as an enhancement to the POSIX-compliant `-e` and `-u` options to run scripts in "strict mode":
 
 [source,bash]
 ----
+#!/bin/env sh
+set -eu
+
 #!/usr/bin/env bash
 set -euo pipefail
 ----
@@ -601,21 +598,31 @@ If in doubt: leave a comment!
 
 === File-level comments
 
-All shell files should start with one or more lines of comments that provide an overview of the contents and purpose of the script. Include copyright, license and support notices as required for distributed libraries. List dependencies – that is, any commands or programs that the script calls but which are not built-in to the shell and which are not POSIX standard utilities.
+All shell files SHOULD start (after the shebang and any `set` options) with one or more lines of comments that provide an overview of the contents and purpose of the script.
+
+The form of file-level comments SHOULD be based on the template below, but may vary between projects as appropriate. For publicly-distributed libraries, or components thereof, it is RECOMMENDED to include copyright, license, and support notices. For scripts that are intended to be executed directly it is RECOMMENDED to include brief usage documentation. And for all shell scripts it is RECOMMENDED to list all dependencies – any commands or programs that the script calls but that are not built-in to the shell and that are not POSIX-standard utilities.
 
 [source,sh]
 ----
 #!/bin/env sh
 
+set -eu
+
+#
 # File description here.
 #
-# Copyright: <Legal Name>
+# Copyright: 2025 John Doe
 # License: MIT
+# Support: https://github.com/team/project/issues
+#
+# Usage:
+#   ./backup.sh [source] [destination]
 #
 # Dependencies:
 # - <dep1>
 # - <dep2>
 # - <dep3>
+#
 ----
 
 === Function comments
@@ -633,20 +640,29 @@ Function comments SHOULD contain:
 The purpose of function comments is to make it easier for other programmers to use your functions. They should be able to do this by reading simple API documentation, written in English in a consistent structured format, rather than needing to reverse engineer the code in their heads.
 
 .Template
+[source,sh]
 ----
-# ------------------------------------------------------------------------------
-# <Function description.>
+# function_name - <Function description.>
 #
-# @global <var_name> - <Description of the global variable.>
-# @global <var_name> - <Description of the global variable.>
+# <Optional longer description.>
 #
-# @param 1 - <Parameter description.>
-# @param 2 - <Parameter description.>
+# Usage:
+#   $ my_func <arg1> <arg2> ...
 #
-# @output stdout - <Description of the output to stdout.>
-# @output stderr - <Description of the output to stderr.>
+# Globals:
+#   <var_name> - <Description of the global variable.>
+#   <var_name> - <Description of the global variable.>
 #
-# @return void - <Description required for non-void and non-zero return values.>
+# Arguments:
+#   $1 - <Parameter description.>
+#   $2 - <Parameter description.>
+#
+# Output:
+#   stdout - <Description of the output to stdout.>
+#   stderr - <Description of the output to stderr.>
+#
+# Returns
+#   1 - <Description required for non-void and non-zero return values (error conditions).>
 #
 my_func() {
   # ...
