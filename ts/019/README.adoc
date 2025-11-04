@@ -30,13 +30,13 @@ Many Unix shells have a "POSIX mode" that allows you to test a script's POSIX co
 #!/bin/env sh
 ----
 
-The following shebang will also tell Bash (and other shells) to run in POSIX-mode. However, this version is a little less portable, because it depends on the path to the `sh` executable being consistent across runtime environments. The version above will instead lookup the `sh` executable in a wider range of paths.
+The following shebang will also tell Bash (and other shells) to run in POSIX-mode. However, this version is a little less portable, because it depends on the path to the `sh` executable being consistent across runtime environments. The version above will instead lookup the `sh` executable in a wider range of paths (as configured in the `PATH` environment variable).
 
 ----
 #!/bin/sh
 ----
 
-Scripts that use either of these shebangs MUST NOT contain Bashisms – like `local` variables – or other shell-specific syntax or built-ins. A linter MUST but used to identify POSIX compliance issues; https://www.shellcheck.net/[ShellCheck] IS RECOMMENDED for this purpose.
+Scripts that use either of these shebangs MUST NOT contain Bashisms – like `local` variables – or other shell-specific syntax or built-ins. A linter MUST be used to identify POSIX compliance issues; https://www.shellcheck.net/[ShellCheck] IS RECOMMENDED for this purpose.
 
 [TIP]
 ======
@@ -74,6 +74,34 @@ All other dependencies – where a "dependency" is anything that is not part of 
 === Options
 
 It is RECOMMENDED to use `set` at the top of scripts to set shell options, so that calling the script using `sh <script-name>` does not break its functionality.
+
+The following options are all POSIX-standard and work in any POSIX shell:
+
+* `set -e`: Exit on error (errexit)
+* `set -u`: Exit on undefined variable (nounset)
+* `set -x`: Print commands before executing (xtrace)
+* `set -v`: Print shell input lines as they're read (verbose)
+* `set -f`: Disable pathname expansion (globbing)
+* `set -n`: Read commands but don't execute (syntax check)
+* `set -C`: Prevent output redirection from overwriting files (noclobber)
+
+Exit on error (errexit) with `set -e` is especially useful for improving the robustness of scripts. It prevents scripts from continuing to run after an error has occurred – ie. in the event that any command returns a non-zero exit status – which could otherwise lead to unintended side effects and cascading failures downstream. The downside is this setting makes it harder to handle errors gracefully within the script itself, and it can have some surprising behavior with pipelines and conditionals.
+
+The `set -x` option MUST NOT be used in production scripts. It produces verbose output that is intended only for debugging. It MAY be enabled temporarily while debugging scripts.
+
+Different shells support extended non-POSIX options. For example, Bash supports `set -o pipefail`, which causes scripts to exit when any command within a pipeline fails. Without this option, `set -e` would exist only if the last command in the pipeline fails. This Bash option tends to be used as an enhancement to POSIX-compliant `-e` and `-u` options:
+
+[source,sh]
+----
+#!/bin/env sh
+set -eu
+----
+
+[source,bash]
+----
+#!/usr/bin/env bash
+set -euo pipefail
+----
 
 == Execution and permissions
 
