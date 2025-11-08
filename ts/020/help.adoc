@@ -1,0 +1,173 @@
+= Help
+
+User documentation MUST be built-in to all CLI apps. In addition, it is also RECOMMENDED that extended user documentation be published online. For public applications, the online documentation MUST be indexable by public search engines like Google.
+
+If a command or sub-command _requires_ one or more arguments or flags, you SHOULD design the command to return help text by default, when no arguments or flags are provided. So `my-tool cmd` would produce an abbreviated version of the output from `my-tool cmd --help` and `my-tool cmd -h`.
+
+Obviously, this is not possible for simple commands that do exactly one operation, and for programs that read input interactively (eg. `cat`).
+
+The abbreviated help text SHOULD include:
+
+* A description of what the program or command does.
+* The command's API signature, or one or two usage examples.
+* Descriptions of the most useful flags.
+* Instructions to use the `--help` flag to get more detailed information.
+
+When `--help`/`-h` flags are passed, all other flags and arguments should be ignored, and an extended help text MUST be outputted. This SHOULD include the following:
+
+* A more detailed description of what the program or command does.
+
+* The command's API signature (see below for guidance on notation).
+
+* OPTIONALLY, example invocations of common use cases. Users tend to use examples over other forms of documentation, so it is best to print these early in the help text. If it is useful, include the program's expected output in the examples, too.
+
+* Descriptions of all available subcommands.
+
+* Descriptions of all the available flags. If there are too many of these, list the most useful, and provide a link to online documentation of the rest.
+
+* OPTIONALLY, a link to an online version of the documentation. If included, this MUST be versioned documentation, corresponding to the installed version of the program.
+
+* OPTIONALLY, a link to provide feedback, log issues, or request support.
+
+Help texts MAY be formatted. Make headings bold, for example, so the text is easier to scan. But do this only if it can be done in a terminal-independent way, so no user sees escape characters.
+
+The `heroku` app has some of the best examples of CLI help texts. The whole API is very easily discoverable through the help texts. There's no color, except some of the less important text is a mid-grey. It mostly uses plain text formatting, using mostly indentation to provide structure. Here are a few examples:
+
+----
+$ heroku --help
+CLI to interact with Heroku
+
+VERSION
+  heroku/7.60.1 linux-x64 node-v14.19.0
+
+USAGE
+  $ heroku [COMMAND]
+
+COMMANDS
+  access          manage user access to apps
+  addons          tools and services for developing, extending, and operating your app
+  apps            manage apps on Heroku
+  auth            check 2fa status
+  authorizations  OAuth authorizations
+  autocomplete    display autocomplete installation instructions
+  buildpacks      scripts used to compile apps
+  certs           a topic for the ssl plugin
+  ci              run an application test suite on Heroku
+  clients         OAuth clients on the platform
+  config          environment variables of apps
+  container       Use containers to build and deploy Heroku apps
+  domains         custom domains for apps
+  drains          forward logs to syslog or HTTPS
+  features        add/remove app features
+  git             manage local git repository for app
+  help            display help for heroku
+  keys            add/remove account ssh keys
+  labs            add/remove experimental features
+  local           run Heroku app locally
+  logs            display recent log output
+  maintenance     enable/disable access to app
+  members         manage organization members
+  notifications   display notifications
+  orgs            manage organizations
+  pg              manage postgresql databases
+  pipelines       manage pipelines
+  plugins         list installed plugins
+  ps              Client tools for Heroku Exec
+  psql            open a psql shell to the database
+  redis           manage heroku redis instances
+  regions         list available regions for deployment
+  releases        display the releases for an app
+  reviewapps      manage reviewapps in pipelines
+  run             run a one-off process inside a Heroku dyno
+  sessions        OAuth sessions
+  spaces          manage heroku private spaces
+  status          status of the Heroku platform
+  teams           manage teams
+  update          update the Heroku CLI
+  webhooks        list webhooks on an app
+----
+
+----
+$ heroku apps --help
+list your apps
+
+USAGE
+  $ heroku apps
+
+OPTIONS
+  -A, --all          include apps in all teams
+  -p, --personal     list apps in personal account when a default team is set
+  -s, --space=space  filter by space
+  -t, --team=team    team to use
+  --json             output in json format
+
+EXAMPLES
+  $ heroku apps
+  === My Apps
+  example
+  example2
+
+  === Collaborated Apps
+  theirapp   other@owner.name
+
+COMMANDS
+  apps:create     creates a new app
+  apps:destroy    permanently destroy an app
+  apps:errors     view app errors
+  apps:favorites  list favorited apps
+  apps:info       show detailed app information
+  apps:join       add yourself to a team app
+  apps:leave      remove yourself from a team app
+  apps:lock       prevent team members from joining an app
+  apps:open       open the app in a web browser
+  apps:rename     rename an app
+  apps:stacks     show the list of available stacks
+  apps:transfer   transfer applications to another user or team
+  apps:unlock     unlock an app so any team member can join
+----
+
+----
+$ heroku logs --help
+display recent log output
+
+USAGE
+  $ heroku logs
+
+OPTIONS
+  -a, --app=app        (required) app to run command against
+  -d, --dyno=dyno      only show output from this dyno type (such as "web" or "worker")
+  -n, --num=num        number of lines to display
+  -r, --remote=remote  git remote of app to use
+  -s, --source=source  only show output from this source (such as "app" or "heroku")
+  -t, --tail           continually stream logs
+  --force-colors       force use of colors (even on non-tty output)
+
+DESCRIPTION
+  disable colors with --no-color, HEROKU_LOGS_COLOR=0, or HEROKU_COLOR=0
+
+EXAMPLES
+  $ heroku logs --app=my-app
+  $ heroku logs --num=50
+  $ heroku logs --dyno=web --app=my-app
+  $ heroku logs --app=my-app --tail
+----
+
+Consider also providing your help texts via man pages. These are UNIX's original system of documentation, and they're still in use today. Many users reflexively check `man some-tool` as a first step when trying to learn a new tool. However, not everyone knows about `man`, and it doesn't work on all platforms. For this reason, man pages are an optional extra, and all important documentation MUST be accessible via the tool directly.
+
+== API signature notation
+
+The POSIX specification helpfully https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap12.html[defines a notation] for describing the APIs — the subcommands, arguments and flags — of command line utilities. Most CLI environments, including Node.js, adopt this notation for documentation purposes.
+
+This notation is perhaps best described using a real example — from Git:
+
+----
+$ git --help
+usage: git [--version] [--help] [-C <path>] [-c <name>=<value>]
+           [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]
+           [-p | --paginate | -P | --no-pager] [--no-replace-objects] [--bare]
+           [--git-dir=<path>] [--work-tree=<path>] [--namespace=<name>]
+           [--super-prefix=<path>] [--config-env=<name>=<envvar>]
+           <command> [<args>]
+----
+
+However, it is not necessary to document every option in a command's signature. Only the most useful, most widely used, options need to be included in a command's API signature in its help test. Lesser used options, and common options like `--version` and `--help`, can be documented elsewhere — just include a link to the "full documentation" in the program's help text.

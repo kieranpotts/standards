@@ -1,0 +1,250 @@
+= Options
+
+There are several mechanisms by which options can be passed to CLI programs. By convention, the order of precedence of those mechanisms, from highest to lowest, SHOULD be as follows:
+
+* Arguments and flags
+* Local configuration files
+* Environment variables
+* User-level configuration files
+* System wide configuration files
+
+Local configuration files include `Makefile`, `package.json`, `docker-compose.yml`, and `.env` files. These are directory-scoped or project-level configuration files. This class of configuration files SHOULD, typically, override environment variables, user-level configurations, and system-level (global) configurations.
+
+But arguments and flags, which are inputted directly to commands, SHOULD take precedence over everything.
+
+Different classes of options are suited to different mechanisms of input. When choosing whether to enable an option as an argument or flag, as an environment variable, or via a configuration file at some level, follow these guidelines:
+
+* Options that are likely to vary between invocations SHOULD be set via *arguments and flags*. Examples include setting the level of debugging output, enabling "safe mode" or a "dry run" operation, and "forcing" destructive and dangerous operations to complete without user confirmation. It MAY be appropriate to allow some of these options to be configurable via environment variables and various configuration files, too. But it is okay to have a group of options that can never have their default settings adjusted. It may be beneficial, for example, to keep some of the default behavior of commands consistent between all environments in which they're run.
+
+* Options that are very likely to stay consistent from one invocation to the next on the same computer SHOULD be configurable via centralized *user-level or system-level configuration files*. This is a class of options that tend to be preferences of individual users. They include things like specifying how color should be used in output, providing non-default paths to dependencies, and configuring HTTP proxy servers to route all requests through. It MAY sometimes be appropriate to allow overriding of some of these options via environment variables and/or local configuration files, and in rarer cases via flags.
+
+* Finally, there's a class of options that users tend to want to scope to a particular directory on their local filesystem. These include project-specific configurations, which will be the same for all users working on copies of the same project files on other file systems. Users may want to commit such options to source control, and this constraint means it is necessary to use *local configuration files* in this instance. Local configuration files SHOULD have default names and paths, relative to the current working directory or a parent "project root", but it is RECOMMENDED to allow individual users to provide custom file names and paths via optional flags and/or environment variables.
+
+== Defaults
+
+It is important in CLI design to choose good defaults. Making things configurable is good. But most users crave convenience above all.
+
+So, the most commonly-used options SHOULD be a command's default configuration. The user works with a combination arguments, flags, environment variables, and configuration files to toggle those defaults.
+
+That said, you can't always predict how programs will be used. The UNIX utility `ls` was designed to have a terse output by default, optimized for scripting, but its most common usage pattern is probably something more like `ls -lhF`. Oops!
+
+== Arguments and flags
+
+The most commonly-used options SHOULD be inputted via arguments or flags:
+
+* *Arguments* or *args* are positioned parameters to a command. For example, the file paths you provide to `cp` are arguments. Their order is significant: `cp foo bar` is not equivalent to `cp bar foo`. Arguments look similar to, but are distinct from, *subcommands*.
+
+* *Flags* are named parameters. Generally, the order of flags does not affect program behavior. In UNIX-like systems, flags take one of these two formats:
+
+  * `--[name]`, where `[name]` is a multi-letter word, eg. `--recursive`
+  * `-[x]`, where `[x]` is a single-letter abbreviation, eg. `-r`
+
+Optionally, flags may be given a value. In UNIX, the syntax is `--flag value` or `--flag=value`.
+
+As a general rule, arguments SHOULD be used for required options and flags for optional ones. But there are plenty of legitimate exceptions to this rule. It is perfectly okay to have optional arguments and mandatory flags, if that makes for a better API overall.
+
+Flags SHOULD be preferred to arguments in most cases. They take more typing, but the purpose of named parameters is clearer. Flags also afford us more flexibility. Users can input them in any order, and we can more easily add new flags in a backwards compatible manner.
+
+Arguments SHOULD be used only for tightly-scoped, primary operations that are likely to be frequently run by your users, and which will unlikely ever change in the lifetime of the tool. Good examples include `cp [source] [destination]` and `rm [file1] [file2] ...` from UNIX.
+
+=== Flags
+
+All flags MUST have long-form versions, eg. `--help`. Err on the side of clarity over brevity every time.
+
+The most useful flags MAY be aliased with short-form flags, eg. `-h`. There SHOULD NOT be too many of these. There is a finite number of one-letter flags you can add to a program, so be wary of polluting this particular namespace.
+
+Follow existing patterns and choose standard and conventional names for flags. Here's a list of common flags used in UNIX programs:
+
+|===
+|Flag |Abbr. |Description |Examples
+
+|`--all`
+|`-a`
+|All
+|`ps`, `fetchmail`
+
+|`--debug`
+|`-d`
+|Show debugging output
+|
+
+|`--force`
+|`-f`
+|Force a destructive or dangerous operation without confirmation
+|`rm`
+
+|`--json`
+|
+|Display JSON output
+|
+
+|`--help`
+|`-h`
+|Show help text
+|
+
+|`--no-input`
+|
+|Non-interactive mode
+|
+
+|`--output`
+|`-o`
+|Output file
+|`sort`, `gcc`
+
+|`--port`
+|`-p`
+|Port
+|`psql`, `ssh`
+
+|`--quiet`
+|`-q`
+|Quiet mode (display less output or none at all)
+|
+
+|`--user`
+|`-u`
+|User
+|`ps`, `ssh`
+
+|`--version`
+|
+|Version
+|
+
+|`--verbose`
+|
+|Verbose output
+|
+|===
+
+Note that `-v` is varyingly used as an abbreviation for "version" and "verbose". To avoid confusion, it is best to not use this flag at all. Ideally, when this flagged is used, suggest what other flags the user can try instead.
+
+----
+$ my-tool -v
+The flag "-v" is not recognized. Did you mean "--version"?
+----
+
+It is RECOMMENDED that commands that print to stdin/stderr have a "quiet mode". This is useful in scripts to avoid cluttering log files. Likewise, "force mode" is useful to allow interactive commands — which prompt users for input or confirmation — to work in automation scripts. See the section on *interactivity* for more guidance in this area.
+
+=== Secrets
+
+You SHOULD NOT read secrets from flags such as `--password`.
+
+In UNIX, secrets passed as arguments and flags will leak into the output of the `ps` command, and potentially the shell history too. Furthermore, this design encourages use of insecure *environment variables* to hold sensitive data.
+
+Best practice is to accept secrets only via files or stdin.
+
+So, a `--password-file` flag is better than `--password`. In Bash, although it's possible to pass a file's contents into an argument — eg. `--password $(< password.txt)` — this actually has the same security concerns as typing the password directly into the command. A `--password-file` flag, or equivalent, would allow passwords to be passed in securely, via files with appropriate permissions, in a wide variety of contexts.
+
+It is safe also to prompt users for passwords and other secrets, but you SHOULD provide a means for these to be inputted non-interactively via files and/or stdin.
+
+=== Optional values
+
+For flags that accept optional values, consider allowing a special word like "none" to refer to no value at all.
+
+For example, `ssh -F` accepts an optional filename (an alternative path to `ssh_config`) but `ssh -F none` runs SSH with no config file at all.
+
+.Further reading
+****
+* https://www.gnu.org/prep/standards/html_node/Command_002dLine-Interfaces.html[Standards for command line interfaces] — The relevant section from the GNU coding standards.
+****
+
+== Configuration files
+
+Configuration files can exist at three levels in the user's filesystem:
+
+* The local level
+* The user level
+* The system level
+
+Configuration files have precedence in that order, from highest to lowest. Configuration files under the user's home directory take priority over system-level configurations, and local configuration files take precedence over both system-level and user-level configs.
+
+Local configuration files include things like `docker-compose.yml`, `package.json` and `Makefile`. These tend to exist within project directories and be committed to source control systems.
+
+This class of configuration file also includes `.env` files. This is a convention for declaring environment variables through local configuration files. These tend _not_ to be committed to source control. Where there are valid use cases for adjusting the configuration of a tool on a directory-by-directory basis (eg. project-specific configurations), you SHOULD consider making the tool recognize `.env` files. Many languages have built-in libraries for reading `.env` files.
+
+All options that can be set in a `.env` file MUST be settable via conventional environment variables, too. When a `.env` file is loaded, its settings SHOULD override actual environment variables with the same identifiers, but only within the scope of the `.env` file's directory path.
+
+You MUST NOT use `.env` files as a substitute for proper configuration files, which are more versatile (eg. supporting more types) and can be stored more securely (eg. outside of source controlled-directories). The purpose of `.env` files is to give users the convenience of being able to _set environment variables on a directory-by-directory basis_. See the section on *environment variables* for more guidance in this area.
+
+For system-level and user-level configuration files on Unix-like systems, it is RECOMMENDED to follow the XDG Base Directory Specification. It specifies the location of base directories where config files may be located. One goal of this specification was to limit the proliferation of dotfiles in a user's home directory by supporting a general-purpose `~/.config` folder. This specification is supported by a wide range of programs including `yarn`, `fish`, `wireshark`, `emacs`, `neovim`, `tmux`.
+
+* https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html[Full specification]
+* https://wiki.archlinux.org/index.php/XDG_Base_Directory#Specification[Summary]
+
+Finally, if your program needs to modify a configuration file that does not belong to your program, it MUST ask for the user's consent before doing this. But prefer instead to create a new config file (eg. `/etc/cron.d/my-app`) rather than appending to an existing ones (eg. `/etc/crontab`).
+
+== Environment variables
+
+Environment variables SHOULD be used to vary behavior of commands based on the _context_ in which they are run. In the case of UNIX CLI programs, the "environment" is the terminal session.
+
+For maximum portability, environment variable identifiers MUST contain only upper case ASCII letters, with underscores delimiting words. Numbers MAY be included, but identifiers MUST start with a letter.
+
+Environment variables have only one data type: string. Aim for single-line string values. Multi-line strings create interoperability problems (with some `.env` file parsers, for example) and usability issues (with the `env` command, for example).
+
+Prefix your environment variables to avoid conflicts with other applications. In particular, avoid clashes with POSIX-standard environment variables, which are https://pubs.opengroup.org/onlinepubs/009695399/basedefs/xbd_chap08.html[listed here].
+
+Repurpose standard, general purpose environment variables where appropriate. The following are useful to know about:
+
+|===
+|Name |Description
+
+|`NO_COLOR`
+|Disable colorful output
+
+|`DEBUG`
+|Enable more verbose output
+
+|`EDITOR`
+|The user's preferred program for editing files or inputting multiple lines of text
+
+|`HTTP(S)_PROXY`, `ALL_PROXY`, `NO_PROXY`
+|Check these when performing network operations
+
+|`SHELL`
+|Open interactive sessions in the user's preferred shell
+
+|`TMPDIR`
+|Use this directory to store temporary files
+
+|`HOME`
+|The user's home directory, used to locate user-level configuration files
+
+|`PAGER`
+|The default tool to enable paged output
+
+|`LINES`, `COLUMNS`
+|Use these to adjust output based on screen size
+|===
+
+=== Secrets
+
+We MUST NOT design CLI programs to read secrets from environment variables. This will encourage users to store sensitive information in environment variables, which are prone to leakage:
+
+* Exported environment variables are sent to every process, and from there can easily leak into logs.
+* Shell substitutions like `curl -H "Authorization: Bearer $BEARER_TOKEN"` will leak into globally-readable process state.
+* Docker container environment variables can be viewed by anyone with Docker daemon access, via `docker inspect`.
+* And environment variables in systemd units are globally readable via `systemctl show`.
+
+As explained in the section on *arguments and flags*, best practice is to accept secrets only via files and stdin.
+
+== Piping
+
+In UNIX CLIs, if either the input or output is a file, support use of `-` to read from stdin or write to stdout.
+
+This lets the output of another command be the input to your command, and vice versa, without needing to pipe through a temporary file.
+
+For example, `tar` can extract files from stdin, like this:
+
+```txt
+$ curl https://example.com/something.tar.gz | tar xvf -
+```
+
+If your command is expecting to have something piped to it when stdin is an interactive terminal, and no input is provided, you have two options:
+
+* Display help text and quit immediately.
+* Or print a lot message to stderr.
+
+But don't do nothing. Don't let the operation just hang, like `cat` does.
