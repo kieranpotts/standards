@@ -1,8 +1,35 @@
-= Help
+= Documentation
 
-User documentation MUST be built-in to all CLI apps. In addition, it is also RECOMMENDED that extended user documentation be published online. For public applications, the online documentation MUST be indexable by public search engines like Google.
 
-If a command or sub-command _requires_ one or more arguments or flags, you SHOULD design the command to return help text by default, when no arguments or flags are provided. So `my-tool cmd` would produce an abbreviated version of the output from `my-tool cmd --help` and `my-tool cmd -h`.
+== CLI API signature notation
+
+The POSIX specification https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap12.html[defines a notation] for describing the APIs — the subcommands, arguments and flags — of command line utilities. Most CLI environments, including Node.js, adopt this notation for documentation purposes.
+
+This notation is perhaps best described using a real example — from Git:
+
+----
+$ git --help
+usage: git [--version] [--help] [-C <path>] [-c <name>=<value>]
+           [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]
+           [-p | --paginate | -P | --no-pager] [--no-replace-objects] [--bare]
+           [--git-dir=<path>] [--work-tree=<path>] [--namespace=<name>]
+           [--super-prefix=<path>] [--config-env=<name>=<envvar>]
+           <command> [<args>]
+----
+
+This notation MUST be used to document CLI APIs, whether the documentation is outputted from `--help`/`-h` flags or from man pages, or whether it is written in Markdown or AsciiDoc files, or published online.
+
+== Help text
+
+User documentation MUST be built-in to all CLI apps. Help text is triggered through the `--help`/`-h` flags.
+
+It is not necessary for help text to document every option in a command's signature, only the most useful and most widely used options. It is RECOMMENDED that extended user documentation be published online, in which lesser-used commands and options are fully documented, too.
+
+For public applications, the online documentation MUST be indexable by public search engines like Google.
+
+Consider also providing your help texts via man pages. These are UNIX's original system of documentation, and they're still in use today. Many users reflexively check `man some-tool` as a first step when trying to learn a new tool. However, not everyone knows about `man`, and it doesn't work on all platforms. For this reason, man pages are an optional extra, and all important documentation MUST be accessible via the tool directly.
+
+If a command or sub-command requires one or more arguments or flags, you SHOULD design the command to return help text by default, when no arguments or flags are provided. So `my-tool cmd` would produce an abbreviated version of the output from `my-tool cmd --help` and `my-tool cmd -h`.
 
 Obviously, this is not possible for simple commands that do exactly one operation, and for programs that read input interactively (eg. `cat`).
 
@@ -11,7 +38,7 @@ The abbreviated help text SHOULD include:
 * A description of what the program or command does.
 * The command's API signature, or one or two usage examples.
 * Descriptions of the most useful flags.
-* Instructions to use the `--help` flag to get more detailed information.
+* Instructions to use the `--help`/`-h` flag to get more detailed information.
 
 When `--help`/`-h` flags are passed, all other flags and arguments should be ignored, and an extended help text MUST be outputted. This SHOULD include the following:
 
@@ -31,7 +58,7 @@ When `--help`/`-h` flags are passed, all other flags and arguments should be ign
 
 Help texts MAY be formatted. Make headings bold, for example, so the text is easier to scan. But do this only if it can be done in a terminal-independent way, so no user sees escape characters.
 
-The `heroku` app has some of the best examples of CLI help texts. The whole API is very easily discoverable through the help texts. There's no color, except some of the less important text is a mid-grey. It mostly uses plain text formatting, using mostly indentation to provide structure. Here are a few examples:
+The `heroku` app has some of the best examples of CLI help texts. The whole API is very easily discoverable through the help texts. There's no color, except some of the less important text is a mid-grey. It mostly uses plain text formatting, with indentation providing structure. Here are a few examples:
 
 ----
 $ heroku --help
@@ -151,23 +178,3 @@ EXAMPLES
   $ heroku logs --dyno=web --app=my-app
   $ heroku logs --app=my-app --tail
 ----
-
-Consider also providing your help texts via man pages. These are UNIX's original system of documentation, and they're still in use today. Many users reflexively check `man some-tool` as a first step when trying to learn a new tool. However, not everyone knows about `man`, and it doesn't work on all platforms. For this reason, man pages are an optional extra, and all important documentation MUST be accessible via the tool directly.
-
-== API signature notation
-
-The POSIX specification helpfully https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap12.html[defines a notation] for describing the APIs — the subcommands, arguments and flags — of command line utilities. Most CLI environments, including Node.js, adopt this notation for documentation purposes.
-
-This notation is perhaps best described using a real example — from Git:
-
-----
-$ git --help
-usage: git [--version] [--help] [-C <path>] [-c <name>=<value>]
-           [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]
-           [-p | --paginate | -P | --no-pager] [--no-replace-objects] [--bare]
-           [--git-dir=<path>] [--work-tree=<path>] [--namespace=<name>]
-           [--super-prefix=<path>] [--config-env=<name>=<envvar>]
-           <command> [<args>]
-----
-
-However, it is not necessary to document every option in a command's signature. Only the most useful, most widely used, options need to be included in a command's API signature in its help test. Lesser used options, and common options like `--version` and `--help`, can be documented elsewhere — just include a link to the "full documentation" in the program's help text.
