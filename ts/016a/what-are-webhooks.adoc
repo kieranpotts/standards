@@ -1,0 +1,43 @@
+= What are webhooks?
+
+Webhooks, also known as web callbacks or HTTP callbacks, are a design pattern implemented in public web services to handle asynchronous event notifications from upstream services. Webhooks facilitate integrations between web services that are owned and operated by different organizations. Webhooks typically sit alongside regular HTTP APIs, though this is not a requirement.
+
+Webhooks are HTTP API endpoints that receive notifications about interesting things (events) that happened in third-party systems on which the service depends. For example, a service may use various third-parties to process payment card transactions and send SMS messages to its users. Those third-party services may send HTTP messages to the service, via its webhook endpoints, to tell it about events that happened in their systems, like when a payment has been successfully processed or when an SMS message fails.
+
+Webhooks can be thought of as a sort of "reverse API". Rather than clients pulling information from an upstream service, the service pushes information to clients when certain events occur. It is the client, not the server, that implements special HTTP endpoints – which are the actual "webhooks" – to receive event notifications from the server. This can be a more efficient use of computing resources, as it avoids the need for clients to poll upstream services for updates. And it allows for more real-time data synchronization between systems.
+
+== Relationship to message-driven architecture
+
+Webhooks are a subset of message-driven communication patterns. In the webhooks pattern, event-oriented messages are exchanged via HTTP between systems owned and operated by different parties (ie. inter-organization communication).
+
+*link:../017/README.adoc[TS-17: Messages and Events]* covers best practices for the implementation of message-driven architectures (MDA) within an internal network ("intra-organization communication"). Inter-organization messages and intra-organization messages serve different purposes and have different security requirements and design considerations. Nevertheless, similar design trade-offs apply to both, and the general principles of good message design outlined in TS-17 also apply to webhooks.
+
+== Client versus server
+
+A note on the use of the terms "client" and "server" in the context of webhooks.
+
+Webhooks _do not_ reverse the client-server relationship.
+
+Consider a website that integrates with a payment service to handle payment card transactions. In this example, the website is the client and the payment gateway is the server. When a user makes a payment on the website, the website sends an HTTP request to the payment gateway to process the payment. When the payment is successfully processed, the payment gateway (the server) sends an HTTP request to the website (the client), via its webhook endpoint, to notify it of the successful payment.
+
+Although it is the payment gateway that initiates the webhook request, the website is still the client and the payment gateway is still the server in terms of their conceptual relationship to each other.
+
+Webhooks are an asynchronous communication pattern. In our example, the second request-response cycle – the webhook notification sent from the payment gateway back to the website – is actually a _delayed response_ to the first request initiated by the website (the client).
+
+In terms of the semantics of HTTP, however, the client and server _are_ swapped around when the payment gateway sends the webhook notification to the website. The payment gateway is now the client, and the website is now the server. The normal semantics of HTTP response status codes apply.
+
+For clarity, this technical standard uses the term "producer" to refer to a system that sends a webhook message, and "consumer" to refer to the system that receives it. This terminology avoids confusion around which is the client and which is the server.
+
+== Inbound versus outbound webhooks
+
+A web service MAY implement either inbound or outbound webhooks, or both or neither.
+
+* *Inbound webhooks*: These are _private_ endpoints that a service (the consumer) exposes to receive notifications from one or more third-party services (the producers).
+
+* *Outbound webhooks*: These are messages sent out from a service (the producer) to the webhook endpoints of other services (the consumers).
+
+Inbound webhooks are not part of an HTTP API's public interface. They are special-purpose private endpoints that exist only to facilitate integration with third-party systems on which the service depends. These endpoints are not used directly by the service's own users/customers, and are not included in any user-facing documentation.
+
+Inbound webhooks may be exposed via different URLs schemas and HTTP methods than the service's main API endpoints, and things like payload schema and authentication mechanisms will be determined by the third-party services (the producers).
+
+Outbound webhooks, on the other hand, are a form of event notification, and they are very much part of the application programming interface (API) of the service from which they are emitted. And yet they too sit apart from the main HTTP API endpoints of the service. Outbound webhooks may use different transport protocols, different file formats, different schemas, different methods of authentication, and they may even be versioned independently of the service's main API.
