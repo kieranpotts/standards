@@ -1,18 +1,31 @@
 = Output
 
-== Exit codes
-
-In Unix-like environments, exit codes are how scripts determine whether a command succeeded or failed. You MUST report these correctly.
-
-Return a *zero exit code* on success and any *non-zero exit code* on failure.
-
-Map the non-zero exit codes to the various failure modes of your program. Document these.
-
 == Standard output
 
-In Unix-like environments, the primary output from most CLI programs goes to stdout. By default, this should be a human-readable text stream. Flags MAY support toggling of the output to a machine-readable format, for example, use `--plain` to support piping into tools such as `grep` or `awk`, and `--json` for use with `jq`.
+In Unix-like environments, the primary output from most CLI programs goes to stdout. For most commands, this should be a human-readable text stream. In most cases, output should be in a human-readable format by default.
 
-Something SHOULD be sent to stdout on success, even if it is just a simple confirmation message that the operation has finished successfully. Some commands such as `cp` don't print anything, which has come to be regarded as bad practice. The user SHOULD be given explicit feedback on all operations.
+Since stdout is what is piped to the next command, it is RECOMMENDED to support flags that allow the user to toggle the output into alternative machine-readable formats. For example, use `--plain` to support piping into tools such as `grep` or `awk`, and `--json` for use with `jq`.
+
+If your program or command is expected to be used mostly in automation scenarios, it may make more sense for the default output format to be machine-readable. If so, you can still have your program automatically switch to a human-readable format by checking if the standard output stream is a terminal (TTY).
+
+[source,sh]
+----
+#!/bin/bash
+
+# Check if stdout (file descriptor 1) is a TTY.
+if [ -t 1 ]; then
+  echo "stdout is a TTY"
+else
+  echo "stdout is not a TTY"
+fi
+----
+
+In most cases, something SHOULD be sent to stdout on success, even if it is just a simple confirmation message that the operation has finished successfully. Some commands such as `cp` don't print anything, which has come to be regarded as bad practice. The user SHOULD be given explicit feedback on all operations, and there should be something to pipe into the next program.
+
+[quote, Doug McIlroy, cite title]
+____
+Expect the output of every program to become the input to another, as yet unknown, program.
+____
 
 To support commands being used in an automated way via scripts, and to avoid clumsy redirection to `/dev/null`, provide a `--quiet`/`-q` flag to run your program in "quiet mode", which will suppress all non-essential output and help declutter log files.
 
@@ -34,7 +47,21 @@ You SHOULD provide a flag for the user to disable color formatting (`--no-color`
 * When an environment variable named `NO_COLOR` exists.
 * When an environment variable named `[APP]_NO_COLOR` exists, where `[APP]` is a prefix identifying your program.
 
-Restrained used of symbols and emoji can be beneficial. Characters such as ✅ and ❌ can be useful to draw the user's attention to successes and failures respectively.
+Restrained use of symbols and emoji can be beneficial. Characters such as ✅ and ❌ can be useful to draw the user's attention to successes and failures respectively.
+
+Focus on good formatting over symbols and colors. Work to increase information density while decreasing visual noise and making judicious use of space to improve readability. The output from `ls` is a good example of this. An awful lot of information is communicated in a very compact way, and consistent patterns in the output allow you to quickly pick out the information you need and ignore the rest.
+
+----
+-rw-r--r-- 1 root root     68 Aug 22 23:20 resolv.conf
+lrwxrwxrwx 1 root root     13 Mar 14 20:24 rmt -> /usr/sbin/rmt
+drwxr-xr-x 4 root root   4.0K Jul 20 14:51 security
+drwxr-xr-x 2 root root   4.0K Jul 20 14:53 selinux
+-rw-r----- 1 root shadow  501 Jul 20 14:44 shadow
+-rw-r--r-- 1 root root    116 Jul 20 14:43 shells
+drwxr-xr-x 2 root root   4.0K Jul 20 14:57 skel
+-rw-r--r-- 1 root root      0 Jul 20 14:43 subgid
+-rw-r--r-- 1 root root      0 Jul 20 14:43 subuid
+----
 
 == Animations
 
