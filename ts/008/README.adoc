@@ -14,6 +14,8 @@ toc::[]
 
 A test double is a generic term for any object that stands in for a real object in a test. The real objects, which are swapped out for test doubles, are dependencies of the component-under-test.
 
+=== Types of doubles
+
 There are several ways that test doubles can be implemented. The following terms refer to different designs for test doubles:
 
 * Mocks
@@ -35,4 +37,44 @@ A *spy* is another type of lightweight mock. All it does is remember what calls 
 Finally, a *dummy* refers to any test object that is passed around but never actually inspected by tests. These tend to minimal implementations – sometimes, just plain objects – of the real objects they replace. Dummies are commonly used to stand-in for function parameters. This word is also used in the context of dummy data, which is any data that is injected into the system-under-test in place of production data in non-production environments.
 
 Mocks, fakes, and stubs are the terms that are used the most interchangeably. In practice, many test doubles have characteristics of all five designs. For this reason, the term "mock" tends to be used as a synonym for any kind of test double.
+
+=== Fidelity versus brittleness
+
+Replacing dependencies with mocks can make tests easier to write and faster to execute. But there are trade-offs. In particular, overuse of mocks can lead to brittle tests.
+
+The general rule is that, to have the most confidence in your tests, the system-under-test should behave similarly in production and test environments. We use the term _fidelity_ to refer to how closely the behavior of a system-under-test matches its production behavior. High-fidelity testing is the goal. This means as few dependencies as possible are mocked, and when they are, the mocks are designed to replicate production behavior as closely as possible.
+
+Thus fakes are preferred to mocks, and mocks are preferred to stubs, and so on.
+
+However, although fakes offer the highest fidelity, that fidelity is prone to deterioration over time. That's because fakes, by definition, replicate implementation logic in test code. The more that implementation detail leaks into tests, the more likely the test fakes are to diverge from the real implementations over time.
+
+This makes heavily-mocked tests somewhat brittle, reducing confidence in their dependability.
+
+[NOTE]
+======
+Some dependencies, such as database abstractions, tend to be maintained by third parties. Unless the author provides fakes, you will have to write and maintain our own. The facade pattern can be incredibly helpful here.
+======
+
+Knowing what to mock, and what not to, is quite subjective. People's views on the optimal balance changes with context and experience. Best practice is to err on the side of heavyweight tests, with minimal mocking. Lightweight tests, which use lots of mocks, are an anti-pattern because they give a false sense of dependability in the tests.
+
+This means that, wherever practical, real dependencies – including vendor components, installed via a package manager for example – SHOULD be used in tests.
+
+Real dependencies SHOULD be replaced with doubles only to overcome specific problems associated with using real dependencies in test environments – for example if a real implementation is slow, unreliable, non-deterministic, or difficult to instantiate (it requires a network connection, say).
+
+If performance becomes an issue, try to adjust your test setup – eg. enable greater parallelization of test execution – before resorting to lowering the fidelity of the tests.
+
+Ideally, the only components that will be mocked will be those that communicate with external systems such as file systems, databases and remote services.
+
+Doubles SHOULD be maintained alongside the real implementations they stand in for. Especially fakes – it is best to keep these in the application code rather than in the test code. This way, the fake implementations are moe likely to be kept up-to-date wih the real ones. This has the added benefit of keeping the test code cleaner; there will be less boilerplate in test scripts for the construction of doubles.
+
+All test doubles SHOULD have high-fidelity, replicating as closely as possible the behavior of the real implementations, and adding useful behaviors such as call logging for inspection by the test code.
+
+Fakes SHOULD have their own tests, too! This is to ensure conformance with the interface and behaviors of their real implementations.
+
+.Related links
+****
+* Google's link:https://testing.googleblog.com/2013/05/testing-on-toilet-dont-overuse-mocks.html[Testing on the Toilet] blog post series from 2013 has some good notes on the risks of overusing mocks.
+****
+
+
 
