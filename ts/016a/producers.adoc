@@ -1,30 +1,32 @@
-= Outbound webhooks
+= Producers
 
-For outbound webhook events, which your service produces and sends to the webhook endpoints of third-party consumers, it is RECOMMENDED to follow the https://www.standardwebhooks.com/[Standard Webhooks] specification.
+Producers are web services that push event notifications to the webhook endpoints of consumer systems. These event notifications are very much part of the API of the service from which they are emitted.
 
-Standard Webhooks is a community-driven initiative to standardize around industry best practices for webhook design. The specification is based on common patterns and prevailing conventions for event naming, payload structure, security and authentication, and delivery patterns.
+This technical standard RECOMMENDS that producers follow the https://www.standardwebhooks.com/[Standard Webhooks] specification in their webhooks implementations. Standard Webhooks is a community-driven initiative to standardize around industry best practices for webhook design. The specification is based on common patterns and prevailing conventions for event naming, payload structure, security and authentication, and delivery patterns.
 
 The webhook ecosystem is highly fragmented, with each producer implementing webhooks differently. This makes it hard for producers and consumers to integrate with each other. Converging on a common standard for webhooks will make it easier for service providers to offer webhook notifications to their customers, and easier for their customers to integrate with them. It will also enable the development of shared tools and services that can be reused across multiple webhook implementations. The Standard Webhooks project already has a number of open source libraries, for multiple mainstream programming languages, to facilitate the implementation of webhooks in both producer and consumer systems.
 
 Besides interoperability, the Standard Webhooks specification also promotes best security practices, offering solutions for attack vectors such as SSRF, spoofing, and replay attacks.
 
-See the https://github.com/standard-webhooks/standard-webhooks[Standard Webhooks README] for more information about the project and specification, and links to open source libraries and reference implementations. The rest of this section specifies an extended subset of Standard Webhooks. These guidelines are fully compliant with Standard Webhooks, but they narrow some choices while extending guidance in other areas.
+See the https://github.com/standard-webhooks/standard-webhooks[Standard Webhooks README] for more information about the project and specification, and links to open source libraries and reference implementations. Alternatives to Standard Webhooks are listed in the References section at the end of this technical standard, but Standard Webhooks is RECOMMENDED for the majority of use cases.
+
+The rest of this section specifies an extended subset of Standard Webhooks. These guidelines are fully compliant with Standard Webhooks, but they narrow some choices while extending guidance in other areas.
 
 == Secure protocol
 
-All outbound webhook messages MUST be delivered over HTTPS.
+Webhook event messages MUST be delivered over HTTPS.
 
 Although digital signatures (see below) guarantee the authenticity and integrity of messages in transit, they do not provide confidentiality. Messages delivered over public networks using insecure transport protocols can be easily intercepted, risking leakage of sensitive data.
 
 == HTTP methods
 
-All HTTP messages sent to consumer webhook endpoints MUST use the `POST` HTTP method.
+All HTTP messages sent to consumer webhook endpoints MUST use HTTP's `POST` method.
 
 == HTTP headers
 
 As per Standard Webhooks, the following three HTTP headers are REQUIRED to be sent with every webhook message:
 
-* `Webhook-ID`: A unique identifier for each discrete webhook message. It is RECOMMENDED to be a UUID. It MUST remain the same for every delivery of the same message, eg. when a message is retried after a failed delivery. Consumers can use this an an idempotency key, so they process each message once only. The webhook ID also plays a role in the security scheme.
+* `Webhook-ID`: A unique identifier for each discrete webhook message. It is RECOMMENDED to be a UUID. It MUST remain the same for every attempted delivery of the same message, eg. when a message is retried after a failed delivery. Consumers can use this an an idempotency key, so they process each message once only. The webhook ID also plays a role in the security scheme.
 
 * `Webhook-Timestamp`: Unix timestamp of the time when the message was sent from the producer's servers. For compliance with Standard Webhooks, the value MUST be an integer representing the number of seconds since the Unix epoch; other date-time formats are not supported. If delivery is attempted multiple times, eg. due to an automated retry mechanism, the timestamp MUST be updated for each attempt.
 
@@ -34,16 +36,16 @@ The values of all three headers – `Webhook-ID`, `Webhook-Timestamp`, and `Webh
 
 [NOTE]
 ======
-Standard Webhooks specifies the header field names using lowercase letters, eg. `webhook-id`. However, https://datatracker.ietf.org/doc/html/rfc7230#section-3.2[RFC 7230] specifies that HTTP header fields be processed in a case-insensitive manner by both clients and servers. This technical standard RECOMMENDS the more commonplace Pascal Case naming convention.
+Standard Webhooks specifies the header field names using lowercase letters, eg. `webhook-id`. This technical standard RECOMMENDS the more commonplace Title-Case naming convention, eg. `Webhook-Id`. This is compliant with Standard Webhooks because HTTP header field names are case-insensitive. https://datatracker.ietf.org/doc/html/rfc7230#section-3.2[RFC 7230] specifies that HTTP header fields be processed in a case-insensitive manner by both clients and servers.
 
-For compliance with Standard Webhooks, these non-standard headers MUST NOT be prefixed with `X-`. This breaks the convention recommended in *link:../016/README.adoc[TS-16: HTTP APIs]* for custom headers, but it is necessary for compliance with Standard Webhooks.
+The `Webhook-ID`, `Webhook-Timestamp`, and `Webhook-Signature` fields are not standard HTTP headers.  *link:../016/README.adoc[TS-16: HTTP APIs]* specifies that custom headers be prefixed with `X-`, to avoid potential conflicts with future standard headers. To maintain compliance with Standard Webhooks, this technical standards RECOMMENDS these three headers be an exception to this rule, and not be prefixed with `X-`.
 ======
 
 == Payload schema
 
-The payload schema defines the structure and format of the data that will be sent to the webhook endpoints of consumer systems. This is specified by producers. A well-defined payload schema is crucial for ensuring that webhook consumers can correctly interpret and process the events they receive.
+The payload schema defines the structure and format of the data that will be sent to the webhook endpoints of consumer systems. The payload schema is specified by producers. A well-defined payload schema is crucial for ensuring that webhook consumers can correctly interpret and process the events they receive.
 
-The payload MUST be encoded in the body of HTTP messages. HTTP headers MUST NOT be used to transmit any part of the payload – these are reserved for metadata about the message instance only.
+The payload MUST be encoded in the body of HTTP messages. HTTP headers MUST NOT be used to transmit any part of the payload. HTTP headers are reserved for metadata about each message instance.
 
 The payload SHOULD be in the JSON format, with a `Content-Type` header of `application/json`. In rare cases, other formats such as XML or form-encoded data MAY be used if there is a specific requirement for it. But JSON is by far the most widely used format for webhooks and it offers the best interoperability.
 
@@ -63,7 +65,7 @@ Example:
 ----
 {
   "type": "user.created",
-  "timestamp": "2014-01-13T08:01:35Z",
+  "timestamp": "2022-11-01T09:15:00Z",
   "data": {
     "id": "123",
     "name": "John Doe",
@@ -86,7 +88,7 @@ Example:
 
 The value of the `type` field identifies the type of event being sent.
 
-It is RECOMMENDED that event types be organized into a hierarchy using a dot-notation, eg. `"user.created"`, `"user.updated"`, `"user.deleted"`, `"invoice.created"`, `"invoice.paid"`, etc. The components of the event type identifiers SHOULD be restricted to a small set of ASCII characters – Standard Webhooks recommends `[a-zA-Z0-9_]`.
+It is RECOMMENDED that event types be organized into a hierarchy using dot-notation, eg. `"user.created"`, `"user.updated"`, `"user.deleted"`, `"invoice.created"`, `"invoice.paid"`, etc. The components of the event type identifiers SHOULD be restricted to a small set of ASCII characters – Standard Webhooks recommends `[a-zA-Z0-9_]`.
 
 The schema of the `data` object MAY differ between event types. The only requirement is that each discrete event type has a single consistent `data` schema for every message of that type.
 
@@ -104,7 +106,7 @@ Replay attacks occur when an attacker intercepts a valid message and resends it 
 
 Including timestamp information in messages is a common technique to protect consumers from replay attacks. This value MUST be signed by message producers, so consumers can verify the integrity of the message's timestamp (not only the payload).
 
-With the authenticity of the message and its timestamp verified, consumers then have the option to reject messages older than a certain threshold. The appropriate threshold will vary by message type, and to accommodate different latency and clock-drift between different systems.
+With the authenticity of the message and its timestamp verified, consumers then have the option to reject messages older than a certain threshold. The appropriate threshold will vary by message type, and it should be sufficient to accommodate latency and clock-drift between different systems.
 ****
 
 === Data
@@ -113,7 +115,7 @@ The value of the `data` property MUST be an object with at least one property (i
 
 The `data` object is the actual event data that is communicated with the consumer.
 
-Each event type MUST have a well-defined schema for its associated data object. This is the main design consideration when implementing outbound webhooks. Standard Webhooks specifies everything else about the HTTP messages used to package webhook events. All that producers have left to decide is what information they want to send to their consumers.
+Each event type MUST have a well-defined schema for its associated data object. This is the main design consideration when implementing webhook events. Standard Webhooks specifies everything else about the HTTP messages used to package webhook events. All that producers have left to decide is what information they want to send to their consumers.
 
 In designing your event data schema, err on the side of "thin" objects that communicate just the minimal data that a consumer may need to sync its state. Example:
 
@@ -131,7 +133,7 @@ In designing your event data schema, err on the side of "thin" objects that comm
 }
 ----
 
-An extreme implementation of thin data schema would see no state being communicated via webhook events at all. The webhook payloads would thus be very "thin". In the following example, the event informs us that a contact resource has been updated, but that's all. We're given only just enough information to be able to retrieve the updated state, if we want it, via a follow-up request to the service's regular HTTP API endpoints.
+An extreme implementation of thin data schema would see no state being communicated via webhook events at all. In the following example, the event informs us that a contact resource has been updated, but that's all. We're given only just enough information to be able to retrieve the updated state, if we want it, via a follow-up request to the service's regular HTTP API endpoints.
 
 [source,json]
 ----
@@ -174,23 +176,23 @@ By comparison, a "full" data object would include _all_ the fields associated wi
 }
 ----
 
-There are pros and cons to both approaches. The main advantage of full data objects is that consumers will immediately have all the information they need to update their state, and load will be reduced on the producer due to fewer API calls being required from webhook consumers. On the other hand, thin payloads may offer better performance (due to smaller message sizes, faster database queries, and less server-side processing overall) and better future proofing (you can make a thin object full, but not the other way around, without breaking backwards compatibility).
+There are pros and cons to both approaches. The main advantage of full data objects is that consumers will immediately have all the information they need to update their state, and load will therefore be reduced on the producer due to fewer API calls being required from consumers. On the other hand, thin payloads may offer better performance (due to smaller message sizes, faster database queries, and less server-side processing overall) and better future proofing (you can make a thin object full, but not the other way around, without breaking backwards compatibility).
 
 The main advantage of very thin payloads is that the HTTP API is preserved as the source of truth for the application's state. There is less likelihood of clients ending up in invalid state, due to event messages being received and processed out-of-order, for example. Data access audit trails are simpler to maintain, too, since all data is accessed through the HTTP API. Thin messages also have a better security profile, as there are inherently fewer risks with things like replay attacks and PII leakage.
 
 Thin and full data objects are not a binary decision. Often, the optimum design will be somewhere in the middle.
 
-This technical standard does not impose a technical limit on the size of webhook messages, and therefore the size of data objects is uncapped. However, it is RECOMMENDED to keep overall payloads smaller than 20kb. Larger payloads may impose burdensome load on webhook consumers. If you need to transfer large amount of data, such as images or other media files, then consider making those available via `GET` endpoints in a regular HTTP API or other web location, and use webhook messages to communicate the links from which consumers can fetch those resources.
-
-Payloads MAY be minimized. This is more beneficial for large payloads than small ones. Minimization, if done, SHOULD be applied across all messages sent from the producer service, to ensure consistent processing on the consumer side.
+This technical standard does not impose a limit on the size of webhook messages, and therefore the size of data objects is uncapped. But there are some recommended soft limits, which are described in the section on payload size and compression, below.
 
 === Metadata
 
 The `metadata` property is OPTIONAL. It is not part of the Standard Webhooks specification, so there is extra cost to consumers to process this. For this reason, event metadata SHOULD NOT include any data that is essential for consumers to process the events.
 
-Metadata is data that is not part of the resources represented in the `data` object, but which provides additional information about those resources. A good use case for the `metadata` object is to communicate machine-generated data, which can be read but not written by clients, such as `created_at` and `updated_at` fields. Other use cases include communicating things like event IDs and source information (the name of the service from where the event originated), and other information that would be useful to log to support debugging.
+Metadata is data that is not part of the resources represented in the `data` object, but which provides additional information about those resources an/or the event that occurred on those resources.
 
-The `metadata` object MUST be used only to communicate metadata about _resources_ represented in the `data` object. It MUST NOT be used to communicate metadata about the webhook event – that's the role of the message's HTTP headers.
+A good use case for the `metadata` object is to communicate machine-generated data, which can be read but not written by clients, such as `created_at` and `updated_at` fields. Other use cases include communicating things like event IDs and source information (the name of the service from where the event originated), and other information that would be useful to log to support debugging.
+
+The `metadata` object MUST be used only to communicate metadata about _resources_ represented in the `data` object and the _event_ that occurred on those resources. It MUST NOT be used to communicate metadata about the HTTP message that transports the event representation – that's the role of the message's HTTP headers.
 
 === Links
 
@@ -236,9 +238,17 @@ Example:
 }
 ----
 
-The objects encode information about how consumers can fetch related data, and perform related operations, via the producer's regular HTTP API endpoints. See *link:../016/README.adoc[TS-16: HTTP APIs]* for more information.
+The link objects encode information about how consumers can fetch related data, and perform related operations, via the producer's regular HTTP API endpoints. See *link:../016/README.adoc[TS-16: HTTP APIs]* for more information about this convention for embedding hypermedia controls in JSON payloads.
 
 The `links` object is another extension to Standard Webhooks, RECOMMENDED by this technical standard. The purpose of this object is to provide in-band API documentation – information that SHOULD be readily available to developers of consumers systems via other channels.
+
+=== Payload size and compression
+
+It is RECOMMENDED to keep overall payloads smaller than 20kb. Larger payloads may impose burdensome load on webhook consumers.
+
+If you need to transfer large amounts of data, such as images or other media files, then consider making those available via `GET` endpoints in a regular HTTP API or other web location, and use webhook messages to communicate the links from which consumers can fetch those resources.
+
+Payloads MAY be minimized. This is more beneficial for large payloads than small ones. Minimization, if done, SHOULD be applied across all messages sent from the producer service, to ensure consistent processing on the consumer side.
 
 == Security and authenticity
 
@@ -250,41 +260,35 @@ Therefore, before processing webhook messages, consumers MUST verify the authent
 
 The following table summarizes authentication mechanisms that can be used in webhook implementations.
 
-Auth systems trade simplicity for security. In the table, from top to bottom the mechanisms are ordered from the easiest to implement to the hardest, from the least secure to the most. But this is a generalization. The security profile is determined by the overall webhook system design, including the types of data being transmitted, retry mechanisms and replay policies, the level of configurability offered to consumers, the security of the underlying infrastructure, the operational practices of both producer and consumer systems, and so on. For example, messages with thin payloads – those that do not contain any resource state, just identifiers – are inherently more secure than fat payloads, and therefore there are fewer risks associated with exploits like replay attacks. Weaker security mechanisms may be acceptable in such cases.
-
-Authentication mechanisms are not mutually exclusive either. They can be combined to provide layered security. For example, IP allow-listing is a good thing to offer consumers as an optional layer of protection over message signatures. Even tokens can be combined with signatures, to give consumers the freedom to apply scopes (permissions) to a producer's messages.
-
 [valign="top"]
 |===
-|Mechanism |Description |Pros |Cons |Comments
+|Mechanism |Description |Pros |Cons
 
 |*IP allow-listing*
-|Requires the producer service to be run on infrastructure with static IP addresses, giving consumers the option of allowing those IPs through their firewall.
+|Requires the producer service to be run on infrastructure with static IP addresses, giving consumers the option of allowing traffic from those IPs through their firewalls.
 |✅Simple to implement +
  ✅Infrastructure configuration only (no application code changes)
-|❌Not secure (IP addresses can change and be spoofed) +
- ❌Depends on static IPs on producer side
-|IP allow-listing is not sufficient on its own as an _authentication_ mechanism. It's only a traffic _filtering_ system that provides a little extra security on top of the primary authentication system.
+|❌Not secure (IP addresses can be spoofed) +
+ ❌Depends on static IPs on the producer side +
+ ❌Does not guarantee message authenticity or integrity
 
 |*HTTP basic auth*
-|The consumer supplies a username and password to the producer. The producer returns these credentials via the `Authorization` header of its webhook messages to the consumer.
+|The consumer supplies a username and password to the producer. The producer returns these credentials to the consumer via the `Authorization` header of its webhook messages.
 |✅Simple to implement +
- ✅Widely supported +
  ✅HTTP standard +
  ✅Passwords are easy to change
 |❌Raw credentials transmitted +
  ❌Depends on end-to-end HTTPS encryption +
  ❌Message integrity remains unverified +
- ❌Zero-downtime secret rotation not possible (requires client-server coordination)
-|Very easy to implement but not recommended for high-security applications. A good choice where there is only a single consumer, or where the consumers are all in the same organization as the producer and credentials are centrally managed.
+ ❌Zero-downtime secret rotation must be implemented on the consumer side
 
 |*Bearer token or API key*
-|The consumer generates a token that is shared with the producer. The producer returns the token in webhook messages to the consumer via the HTTP `Authorization` header. A token may be any arbitrary string (like a regular password), but standards such as JWT can be used to increase the security profile by encoding claims (permissions), expiration times, and revocation metadata into tokens.
+|The consumer generates a token that is shared with the producer. The producer returns the token to the consumer in its webhook messages, via the HTTP `Authorization` header. JSON Web Tokens (JWTs) are a common token format.
 |✅Simple to implement +
  ✅Common pattern +
- ✅Raw credentials (username + password) not transmitted +
+ ✅Raw credentials (username and password) not transmitted +
  ✅Tokens can be rotated separately to user passwords +
- ✅Zero-downtime token rotation is possible in certain implementations +
+ ✅Zero-downtime token rotation is possible +
  ✅Lots of flexibility in token design +
  ✅JWTs can be securely signed to guarantee their authenticity and integrity +
  ✅JWS (JSON Web Signature) can be used to sign the entire message payload +
@@ -293,28 +297,28 @@ Authentication mechanisms are not mutually exclusive either. They can be combine
  ✅JWTs can include other arbitrary metadata/claims
 |❌Need to duplicate message content in signature data +
  ❌Can't revoke tokens after sending +
- ❌More responsibility is placed on the consumer to generate secure tokens, and to manage the lifecycle of tokens
-|More secure than basic auth. Message integrity is guaranteed, and replay attacks and other vulnerabilities lessened, by using JWS (JSON Web Signature) to sign the whole message (headers + payload), the trade-off being is that the message content is effectively duplicated in the signature. Security can be tightened further by using multiple tokens, each dynamically-generated and scoped to a particular resource, transaction, or user journey, so reducing the blast radius if a token is compromised. But the main advantage of JWTs over message signatures is that consumers can encoded appropriate claims in their tokens, such as scopes (permissions) and expiration times, which gives them more control over access to their webhook endpoints.
+ ❌Responsibility is placed on the consumer to generate secure tokens
+ ❌The consumer is also responsible for lifecycle management of tokens
 
 |*HMAC signatures (symmetric) with SHA-256 hashing*
-|A secret is generated by the message producer and shared with the message consumer. Using the shared secret, the producer creates a HMAC hash of the message payload. The hash serves as a signature and is sent with the message as a header (the signature may be base64-encoded for compactness). To verify authenticity, the consumer recreates the hash and compares it to the received hash.
-|✅Strong authenticity guarantees (no secrets transmitted in webhook messages) +
+|A secret is generated by either the producer or the consumer and shared with the other party. The producer uses the secret to create an HMAC hash of its message payloads, which serves as a signature. The signature is sent with the message as a header (it may be base64-encoded for compactness). To verify authenticity, the consumer recreates the hash and compares it to the received signature.
+|✅Strong authenticity guarantees, because no secrets are transmitted in webhook messages +
  ✅Verifies message integrity (ie. protects against tampering) +
  ✅Timestamp verification protects against replay attacks +
- ✅Industry standard; good library support +
- ✅Producer is responsible for key generation and management +
+ ✅Industry standard +
+ ✅Good library support +
  ✅Easy to implement on consumer side +
  ✅Zero-downtime secret rotation is possible +
- ✅Not dependent on end-to-end HTTPS encryption (though still recommended)
+ ✅Not dependent on end-to-end HTTPS encryption (though still recommended for privacy) +
+ ✅Very fast (often hardware-accelerated)
 |❌Depends on single secret key shared between producer and consumer +
  ❌New complexity of securely distributing secrets +
  ❌Insider threat (both parties know the secret) +
  ❌Timestamp verification depends on clock synchronization
-|Industry standard, widely used by major services like GitHub, Stripe, Spotify, etc. Very secure. Does not depend on end-to-end HTTPS encryption, as message integrity can be verified without this. However, depends on a single secret shared between both producer and consumer – therefore a producer can't genuinely _guarantee_ the authenticity and integrity of their messages if they do not fully control the key distribution.
 
 |*Public key signatures (asymmetric)*
 |A digital signature is generated by the producer using a private key, and verified by the consumer using a public key.
-|✅Provides very strong authenticity guarantees (no secrets are shared) +
+|✅Provides very strong authenticity guarantees, because no secrets are shared +
  ✅Private key is more secure as held by only one party (the producer) +
  ✅Public key can be freely distributed (no need to keep it secret) +
  ✅Producer is responsible for key generation and management +
@@ -322,27 +326,28 @@ Authentication mechanisms are not mutually exclusive either. They can be combine
  ✅Timestamp verification protects against replay attacks +
  ✅Zero-downtime secret rotation is easy +
  ✅Most secure cryptographically +
- ✅Not dependent on end-to-end HTTPS encryption (though still recommended)
+ ✅Not dependent on end-to-end HTTPS encryption (though still recommended for privacy)
 |❌More complex to implement on both producer and consumer sides +
  ❌Requires deeper technical knowledge (Public Key Infrastructure, PKI) +
- ❌Slightly higher computational overhead +
- ❌Less widely used; less library support
-|Improves on the security of symmetric keys by keeping the private signing key under the control of the producer. The corresponding public key can be assumed to be public (shared widely). Recommended for high-security applications. Very easy key rotation.
+ ❌Slightly higher computational overhead; slower to generate key pairs +
+ ❌Less widely used +
+ ❌Less library support +
+ ❌No options for consumers to control access through scopes/permissions
 
 |*OAuth 2.0*
-|An extension of bearer token authentication, in which a producer authenticates with an auth server to obtain a short-lived access token, which it then uses to authenticate with the consumer's webhook endpoint for delivery of a single message.
+|An extension of bearer token authentication. A producer authenticates with the consumer's auth server to obtain a short-lived access token, which it then uses to authenticate with the consumer's webhook endpoint for delivery of a single message.
 |✅Industry standard +
  ✅Short-lived tokens reduce risks if intercepted +
  ✅Centralized token management (on the consumer side) +
  ✅Tokens can be revoked +
- ✅Provides fine-grained access control (scopes/permissions)
+ ✅Provides fine-grained access control via scopes/permissions
 |❌More complex to implement and manage +
  ❌Higher integration and maintenance costs for webhook consumers +
- ❌Additional latency (token fetch)
-|Rarely used in webhook implementations because it depends on the consumer providing an OAuth service. May be appropriate for some use cases where delegated access is a requirement to access a consumer's systems (ie. where all operations on the consumer system are performed on behalf of an authorized user). This design may be appropriate where webhook messages initiate destructive actions that require elevated privileges, but such a requirement tends to be outside of the scope of webhooks, which are merely event notifications.
+ ❌High integration costs for webhook producers; integrations are consumer-specific +
+ ❌Increased latency (additional token fetch)
 
 |*Mutual TLS (mTLS)*
-|Both client and server authenticate with certificates. The producer has a client certificate + private key. The consumer has a server certificate + private key. Each side has the others Certificate Authority (CA) certificate to validate against. At the TLS layer, the producer presents its client certificate and the consumer presents its server certificate, and each side verifies the other against trusted CAs. The handshake concludes and the connection proceeds only if both certificates are valid.
+|Both client and server authenticate with certificates. The producer has a client certificate and private key. The consumer has a server certificate and private key. Each side has the others' Certificate Authority (CA) certificate to validate against. At the TLS layer, the producer presents its client certificate and the consumer presents its server certificate, and each side verifies the other against trusted CAs. The handshake concludes and the connection proceeds only if both certificates are valid.
 |✅Very strong authentication +
  ✅Guarantees authenticity of both parties – the producer and the consumer +
  ✅Encrypts and authenticates at the transport layer +
@@ -350,30 +355,59 @@ Authentication mechanisms are not mutually exclusive either. They can be combine
 |❌Much more complex to set up +
  ❌Complex certificate generation and distribution +
  ❌Hard to rotate certs +
- ❌Hard to debug; TLS errors can be quite cryptic +
+ ❌Hard to debug (TLS errors can be quite cryptic) +
  ❌Requires both sides to have control over their infrastructure
-|This mechanism offers the strongest security guarantees, as it gives cryptographic proof of identity on _both_ sides. End-to-end encryption with verified identifies protects against MITM attacks. This will be appropriate in the highest-security environments such as financial trading, and it is sometimes used in intra-organization multi-cloud enterprise integrations.
 |===
 
-According to Standard Webhooks, over 65% of webhook implementations use signatures for authentication and verification of webhook message integrity. Signatures are a really good fit for message-driven communication patterns – this is their main use case.
+Auth systems trade simplicity for security. In the table above, the mechanisms are ordered, from top to bottom, from the easiest to implement to the hardest, from the least secure to the most.
 
-In the wild, symmetric HMAC signatures are the most popular. HMAC-SHA256 is fast (and often hardware accelerated) and ubiquitous (it is natively supported by most mainstream programming languages). This authentication scheme offers a good balance between security and usability. It is easy to implement and, if done well, has excellent security. Critically, responsibility for secret generation and key lifecycle management is with the producer, whereas token auth shifts this responsibility onto consumers.
+The two simplest authentication mechanisms are IP allow-listing and HTTP basic auth, but these have weak security profiles.
 
-Asymmetric signatures are securer still. They improve on the security of symmetric signatures by eliminating the need to share _any_ secrets between the producer and consumer systems. This is a significant advantage. Producers are responsible for generating public-private key pairs and for managing the lifecycle of their private keys. Consumers are given the corresponding public keys, which they use to verify the signatures on incoming messages. Public keys do not need to be kept secret, so there is no risk of them being leaked or intercepted. Therefore producers can _guarantee_ the authenticity and integrity of their messages, because only they know the signing secret – they own the trust. With symmetric signatures, producers cannot make this guarantee because they have no control over how their consumers store and process the shared signing key.
+*IP allow-listing* is the easiest to implement. It requires only static IP addresses on the producer side and firewall configuration on the consumer side – infrastructure-level configuration only. This is only a traffic filtering system, not a proper authentication system – it does not guarantee the authenticity and integrity of the messages received. Nevertheless, some consumers may require this capability, to allow inbound traffic through their firewalls, so it is RECOMMENDED that producers support this use case in addition to another authentication mechanism. IP allow-listing offers a useful extra layer of security but, on its own, it is insufficient as an authentication mechanism.
 
-In addition, Ed25519 (an asymmetric signature algorithm) is also specifically designed to avoid patterns in memory access that could be exploited via side-channel attacks – a significant advantage over some older algorithms like RSA. This makes Ed25519 a good choice for modern cryptographic applications, like SSH and API authentication, and also for webhook authentication.
+*HTTP basic auth* is also easy to implement, with the configuration done at the application level rather than the infrastructure level. But this is not recommended for most webhook use cases, as raw credentials (username and password) are transmitted, so security depends entirely on end-to-end encryption (HTTPS). Message authenticity and integrity is not guaranteed when messages are transmitted over the public internet. However, this may be a good choice where there is only a single consumer, or where all the consumers are within the same internal network (in the same organization) and credentials are centrally managed.
 
-Asymmetric signatures are a little more complex to implement, and there are fewer libraries and reference implementations to help. Asymmetric signatures can also be more CPU-intensive to produce, although modern cryptography algorithms such as Ed25519 are still very fast, certainly enough to be usable in high-throughput systems.
+At the other end of the spectrum there are options like OAuth 2.0 and mutual TLS. These offer excellent security and privacy guarantees, but the trade-off is the implementations are highly complex and the extra costs are not justified for most webhook use cases.
 
-For most use cases, the increased costs of implementing asymmetric signatures will be outweighed by the reduced risks, compared to symmetric signatures. Asymmetric signatures are RECOMMENDED in scenarios where you do not control the security of both the client and server systems – which is the case for webhooks (the consumers of events are systems owned and operated by third-parties).
+*OAuth 2.0* depends on the consumer providing an OAuth service, from which the producer must request a short-lived token for each webhook notification they want to send the consumer. This may be appropriate for some use cases where delegated access is required to access a consumer's systems (ie. all operations on the consumer system must be performed on behalf of an authorized user). This design may be appropriate where webhook messages initiate destructive actions that require elevated privileges. Such requirements tend to be outside of the scope of webhooks, which are merely event notifications.
 
-// TODO: You have the option of using a single public-private key pair for ALL consumers, if you use asymmetric.
+*Mutual TLS* offers the strongest security guarantees, as it gives cryptographic proof of identity on _both_ sides – the authenticity of both the producer and consumer is guaranteed. End-to-end encryption with verified identifies gives the strongest protection against man-in-the-middle attacks. This will be appropriate in the highest-security environments such as financial trading and other niche use cases, and it is sometimes used in intra-organization multi-cloud enterprise integrations. But it is not appropriate for most general-purpose webhook implementations.
 
-Other mechanisms to verify the authenticity of webhook messages include HTTP basic auth (username + password) and bearer auth (tokens). Basic auth has significant security weaknesses, as it involves transmitting raw credentials in every message. Bearer tokens are much better, and when implemented using JWTs (JSON Web Tokens) that are cryptographically signed, the security profile is equivalent to message signatures. Bearer tokens have one main advantage over message signatures: they can include additional metadata (such as user roles or permissions) in the token payload. The trade-off is that responsibility for token generation and validation is shifted from the producer to the consumer.
+The options in the middle can be loosely categorized as token authentication and message signatures. These both offer a pragmatic balance between security and simplicity. Most webhook implementations use one of these two authentication systems, with message signatures being slightly more common than token auth.
 
-OAuth, mutual TLS, and other options solve problems in niche use cases. These authentication mechanisms are not appropriate for most general-purpose webhook implementations.
+In *token authentication* systems, a token is generated by the consumer and supplied to the producer, who embeds the token in its messages to the consumer. A token may be an arbitrary string, like a regular password, which would not be any more secure than HTTP basic auth. But standards such as JWT increase the security profile by allowing the encoding of claims (permissions), expiration times, and revocation metadata into tokens. Furthermore, when JSON Web Signatures (JWS) are used to cryptographically sign messages, message integrity can be guaranteed. To increase the security profile further still, some webhook producers support consumers supplying multiple tokens, each scoped to a particular resource, transaction, or user journey. Use of multiple tokens in different scenarios reduces the blast radius if any one token is compromised.
 
-Therefore, this technical standard says that HTTP message signatures SHOULD be used in webhook implementations, and asymmetric signatures are RECOMMENDED over symmetric ones. Signed bearer tokens, implemented as JWTs, MAY be used as an alternative to message signatures, in use cases where there are good reasons to give consumers more control over access to their webhook endpoints (via scopes/permissions encoded in the tokens).
+Token auth is a popular choice in webhook implementations. It is convenient and familiar. Bearer tokens are the prevailing authentication system for HTTP APIs, so extending it to webhooks is a logical choice.
+
+However, signatures tend to be a better option for webhooks. Message-driven communication is the intended use case for signatures, so it is a more natural fit.
+
+There are two broad options: symmetric signatures and asymmetric signatures.
+
+For *symmetric signatures*, the HMAC-SHA256 scheme is the dominant industry standard. It is used by major services like GitHub, Stripe, and Spotify. It is fast, very secure, and ubiquitous. Signing and verification APIs are built-in to the standard libraries of most mainstream programming languages, making for easy implementation on both the consumer and producer sides. Symmetric signatures do not depend on end-to-end HTTPS encryption, because message integrity can be verified without this (though HTTPS is still recommended for privacy).
+
+Where security is paramount, public key cryptography offers an upgrade. In symmetric signing schemes, producers can't ever fully guarantee that their messages are authentic and intact because they do not have full control over the security of their signing key. The same key must be shared with third-parties – the consumers, who use it to verify messages. Asymmetric signing schemes _do_ offer the guarantee that messages are authentic and intact, because the security of the signing key is fully under the control of the producer.
+
+*Asymmetric keys* involve the producer signing messages using a *private key* and the consumer verifying them using a corresponding *public key*. The signing key is kept under the control of the producer, and the corresponding public key can be widely shared without compromising security. All the security risks associated with sharing a secret between the two parties are eliminated. It does not matter if a public key is intercepted in transit, and there are no requirements on consumers to securely store their public keys, because it doesn't matter if those keys are leaked.
+
+In addition, modern asymmetric signature algorithms like Ed25519 are specifically designed to avoid patterns in memory access that could be exploited via side-channel attacks – a significant advantage over some older algorithms like RSA. This makes Ed25519 a good choice for modern cryptographic applications, like SSH and API authentication, and also for webhook authentication in high-security environments.
+
+Unfortunately, asymmetric signatures are more complex to create (on the producer side) and to verify (on the consumer side). There is less support for Ed25519, and other asymmetric signature algorithms, in the standard libraries of mainstream programming languages. There are fewer third-party libraries available, and fewer reference implementations, too. Asymmetric signatures can also be more CPU-intensive to produce – although modern cryptography algorithms such as Ed25519 are still very fast, certainly enough to be usable in high-throughput systems.
+
+Asymmetric signatures are emerging as the gold standard for webhook authentication, but for now it is symmetric HMAC-SHA256 that still offers the best balance between security, simplicity, and interoperability for most use cases. For this reason, HMAC-SHA256 is the RECOMMENDED default choice for webhook authentication. Producers MAY offer Ed25519 as an alternative, but SHOULD do so alongside HMAC-SHA256 as the default signing scheme. For most webhook consumers, the simplicity and performance of HMAC-SHA256 will trump the additional security that asymmetric signatures offer.
+
+Asymmetric signatures are RECOMMENDED as the sole authentication mechanism in high-security scenarios, where the security of both the signing and verification keys is of paramount importance, and where the producer wants to offer the most robust guarantees that its messages are authentic and delivered to consumers intact.
+
+Signed bearer tokens, implemented as JWTs, MAY be used as an alternative to message signatures in use cases where there are good reasons to give consumers more control over access to their webhook endpoints (via scopes/permissions encoded in the tokens).
+
+The optimum choice will depend on the overall security profile of the webhook system. Beside the besides the authentication mechanism, the security profile is determined by other factors such as the types and volumes of data being transmitted, retry mechanisms and replay policies, and the level of configurability offered to consumers. For example, messages with thin payloads – those that do not contain any resource state, just identifiers – are inherently more secure than fat payloads, and therefore there are fewer risks associated with exploits like replay attacks. Weaker authentication mechanisms may be acceptable in such cases.
+
+=== Secret generation and lifecycle management
+
+Tokens MUST be managed by consumers. The purpose of using token auth over signatures is to give consumers the choice of embedding fine-grained access controls in their tokens.
+
+Public-private key pairs for asymmetric signatures MUST be generated and managed by the producer. Producers have the option of using a single public-private key pair for _all_ consumers, although one key per customer is still RECOMMENDED to reduce the blast radius of a compromised private key.
+
+For symmetric signatures, each consumer needs their own shared secret. This secret can be created and managed by the producer, the consumer, or both. By default, it's RECOMMENDED that producers generate and manage the keys. This makes things easier for consumers and speeds up onboarding. But, to cater for consumers who want more control over things like key rotation, it's RECOMMENDED to let them provide their own keys as an alternative to using the producer's default keys.
 
 === Webhook metadata
 
@@ -381,7 +415,7 @@ It is not enough to use strong cryptographic primitives for the signature. HTTP 
 
 A secure signature scheme requires that not only the authenticity of the message payload be verifiable, but also the message's metadata – its unique identifier, and its timestamp (representing the time of the delivery attempt).
 
-Thus, the following HTTP headers (described above) are all part of the security scheme:
+Thus, the following HTTP headers are all part of the security scheme:
 
 * `Webhook-ID`: A unique identifier for the webhook message.
 * `Webhook-Timestamp`: Unix timestamp when the message was sent.
@@ -410,7 +444,7 @@ Content-Type: application/json
 }
 ----
 
-The value of the `Webhook-Timestamp` header field is the timestamp when the message was sent by the producer. This will differ to the timestamp of the event itself, which is captured in the payload via the `timestamp` property (see above). The `Webhook-Timestamp` value MUST be updated for every message retry, but the `timestamp` MUST NOT be. This is an important security measure that will prevent replay attacks – see the *Signature scheme* section below for how this works.
+The value of the `Webhook-Timestamp` header field is the timestamp when the message was sent by the producer. This will differ to the timestamp of the event itself, which is captured in the payload via the `timestamp` property (see above). The `Webhook-Timestamp` value MUST be updated for every message retry, but the `timestamp` MUST NOT be. This is an important security measure that will prevent replay attacks.
 
 The `Webhook-ID` is a unique identifier associated with a specific logged event. It MUST NOT change between retries of the same webhook message. Consumers are RECOMMENDED to use this as an idempotency key, which will help protect them against replay attacks.
 
@@ -446,9 +480,9 @@ Example:
 
 If the JSON payload is minified for transit, then it is the minified version that MUST be used to generate the message signature (thus there will be no line breaks in the signed content). The payload that is sent MUST match exactly the payload that is signed, else verification will fail on the consumer side.
 
-[NOTE]
+[IMPORTANT]
 ======
-Even a stray space in the HTTP message body will be enough to make the signature invalid. This sort of thing is a common failure mode in webhook implementations. A common issue on the consumer side is when HTTP abstractions automatically parse JSON content into objects, and then serialize them again when the application retrieves the original body string. Differential serialization between the producer and the consumer leads to signature verification failures. To avoid this, it is RECOMMENDED that consumers access the raw HTTP body as a byte stream or string, without any parsing or serialization, when verifying signatures.
+Even a stray space in the HTTP message body will be enough to make the signature invalid. This sort of thing is a common failure mode in webhook implementations. A common issue on the consumer side is when HTTP abstractions automatically parse JSON content into objects, and then serialize them again when the application retrieves the original body string. Differential serialization between the producer and the consumer leads to signature verification failures. To avoid this, it is RECOMMENDED that consumers access the raw HTTP body as a byte stream or string, without any intermediate parsing or serialization, when verifying signatures.
 ======
 
 Signing all three parts – not only the message payload, but also its identifier and timestamp – is REQUIRED to protect consumers against the full range of possible attack vectors. Signing the timestamp means consumers can verify the integrity of the timestamp, and in turn protect themselves against replay attacks (by rejecting messages older than a configured threshold). Verification of the message ID helps protect against spoofing, and further protects against replay attacks (because the webhook ID can be trusted as a valid idempotency key). Verification of the payload guarantees that the content hasn't been tampered with in transit, protecting against man-in-the-middle or injection attacks.
@@ -533,7 +567,7 @@ Signature: sig=:k2kD1VAw9TOA72zoDzt3ZAOdjhOg9edgBYqsvyQb5mBnwzY/fKz\
 
 The `Webhook-Signature` header MAY contain multiple signatures, space-delimited, for the same message. This design supports zero-downtime secret rotation.
 
-For example, if a consumer requests secret rotation, their messages can be signed with both the old and the new keys, and both signatures sent in the `Webhook-Signature` header, for a short period of time. Consumers can try to verify each signature until one matches. This means there is "no downtime" because old messages, signed with the old key, can still be processed. (This system also supports producers and consumers upgrading from symmetric to asymmetric keys.)
+For example, if a consumer requests secret rotation, their messages can be signed with both the old and the new keys, and both signatures sent in the `Webhook-Signature` header, for a short period of time. Consumers can try to verify each signature until one matches. This means "zero downtime" key rotation is possible, because old messages, signed with the old key, can still be processed. (This system also supports producers and consumers incrementally upgrading from symmetric to asymmetric keys.)
 
 However, in the event that a private key (for asymmetric signatures) or shared secret key (for symmetric) is compromised, producers MUST immediately rotate the compromised key and stop signing new and retried messages with it. This is important to limit the attack vectors that become possible when a signing key is compromised. Consumers will still be able to verify and process delayed messages signed with the old compromised key. They may not be able to process new messages signed with the new secure key, but at least these failed messages can be retried later, after the consumer has installed the new verification key.
 
@@ -541,7 +575,7 @@ However, in the event that a private key (for asymmetric signatures) or shared s
 
 Some webhook consumers have firewalls in front of their webhook endpoints, which require messages to be sent from a predefined list of IP addresses (aka. IP allow-listing). It is RECOMMENDED that producers support this use case, which requires static IP addresses to be associated with the servers that send webhook messages.
 
-// Without this, some consumers may be forced to expose public webhook endpoints, when they would prefer to filter traffic into private networks.
+Without this, some consumers may be forced to expose public webhook endpoints, when they would prefer to filter traffic into private networks.
 
 IP allow-listing adds an extra layer of security, but it is only a traffic _filtering_ mechanism and not a proper _authentication_ mechanism. Since IPs can change and are easily spoofed, IP allow-listing MUST NOT be the sole authentication mechanism.
 
@@ -550,7 +584,7 @@ IP allow-listing adds an extra layer of security, but it is only a traffic _filt
 Achieving good security in webhook implementations requires a multi-layered approach. The right mix will depend on the threat model and the sensitivity of the data, but as a starting point the following combination is a RECOMMENDED baseline:
 
 * Secure message transport over TLS/HTTPS.
-* HMAC or (better still) asymmetric signatures for primary authentication and to validate message integrity.
+* HMAC or asymmetric signatures for primary authentication and to validate message integrity.
 * Timestamp validation on the consumer side to protect against replay attacks.
 * Unique message IDs to support idempotency and to further protect against replay attacks.
 * Highly-automated key revocation and rotation mechanisms on the producer side to limit the blast radius if a key is compromised.
@@ -704,7 +738,7 @@ Webhooks SHOULD be treated like a subscription service, in which consumers expli
 |Delete an existing webhook subscription for the consumer.
 |===
 
-Outbound webhooks MUST be disabled by default for each customer/user. Consumers MUST explicitly enable webhooks, and configure the event types they wish to receive, before any webhook messages are sent to them.
+Delivery of webhook events MUST be disabled by default for each customer/user. Consumers MUST explicitly enable webhooks, and configure the event types they wish to receive, before any webhook messages are sent to them.
 
 For some event types, webhook notifications MAY be delivered alongside other notification channels such as email or SMS. This is RECOMMENDED for security notifications and alerts, for example.
 
@@ -731,7 +765,7 @@ Where fan-out message distribution is supported, consumers MUST be able to confi
 
 == Documentation
 
-It is RECOMMENDED that producers document their outbound webhook message formats and payload schema in a dedicated section of their regular API documentation.
+It is RECOMMENDED that producers document their webhook message formats and payload schema in a dedicated section of their regular API documentation.
 
 https://www.asyncapi.com/[AsyncAPI] is an interface definition language for specifying asynchronous (eg. event-driven) APIs, and is therefore well-suited to webhooks. The more ubiquitous https://www.openapis.org/[OpenAPI], which was originally designed for synchronous HTTP APIs, has recently added support (since v3.1) for the definition of webhook payload schema (but not other aspects of webhooks such as signature schemes).
 
