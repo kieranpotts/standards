@@ -1,0 +1,64 @@
+= Rate-limit testing
+
+To test hit rate limits, it may be necessary to use load/performance testing tools such as https://k6.io/[K6], https://jmeter.apache.org/[JMeter], or https://gatling.io/[Gatling]. These specialist tools are necessary to maximize concurrency. Even so, achieving rate limits of, say, 50 requests per second is difficult on a single machine, due to constraints such as available cores and server response times. Distributed load testing is necessary to achieve consistent results at high rates.
+
+Nevertheless, with lower rate limits, we can use simple local tools to manually test rate limits.
+
+Postman has a built-in performance testing feature, which sends multiple requests concurrently ("virtual users"), so allowing us to verify rate limits. It's not perfect, because we cannot use tools like Postman to _guarantee_ that a certain number of requests will be made per second or per minute. However, by changing the API's rate limit and re-running the same performance test, we can see changes in error rates due to rate limits being breached in different proportions.
+
+The following Bash script may be used as the basis for automated e2e testing. The script attempts to make 100 requests in the background. It records the number of 429 responses to a temporary file. This signals how many of those requests hit the rate limit for the HTTP API-under-test.
+
+[source,bash]
+----
+#!/bin/bash
+
+# Add a valid authentication token here.
+TOKEN=""
+
+# Hostname and path to the endpoint you want to test.
+HOSTNAME="api.informwire.local"
+PATH="/v1/users/self"
+
+# How many requests would you like to make
+x=100
+
+# Create a temporary file to keep a tally of 429 responses.
+tmp_file=$(mktemp)
+
+# Loop x times.
+for ((i=1; i<=x; i++))
+do
+  # Send each request and capture the status code *in the background*.
+  {
+    echo "Request $i"
+
+    # Send the request and capture only the HTTP status code.
+    #
+    # Curl options:
+    # -k: Allow secure connections without certificates.
+    # -s: Silent mode. Don't show progress meter or error messages.
+    # -o /dev/null: Send output to /dev/null.
+    # -w "%{http_code}\n": Write the HTTP status code to stdout.
+    # -H: Add a header to the request.
+    status_code=$(curl -k -s -o /dev/null -w "%{http_code}\n" -H "Authorization: Bearer $TOKEN" https://${HOSTNAME}${PATH})
+
+    # If the status code is 429, write it to the temporary file.
+    if [[ $status_code -eq 429 ]]; then
+      echo "x" >> $tmp_file
+    fi
+  } &
+done
+
+# Wait for all background processes to finish.
+wait
+
+# Count the number of 429 responses.
+count=$(wc -l < $tmp_file)
+
+# Print the number of 429 responses.
+echo "====================================="
+echo "Total number of 429 responses: $count"
+
+# Remove the temporary file.
+rm $tmp_file
+----
