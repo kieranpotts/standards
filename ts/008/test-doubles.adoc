@@ -1,0 +1,79 @@
+= Test doubles
+
+A test double is a generic term for any object that stands in for a real object in a test. The real objects, which are swapped out for doubles in test scenarios, are dependencies of the component-under-test.
+
+The purpose of swapping out real dependencies with doubles is to be able to isolate the behavior of the component-under-test from its dependencies. This allows tests to verify specific units of behavior, rather than testing the integrated behaviors of multiple components.
+
+The lower the level of the test, the more likely test doubles will be useful. Therefore, unit tests tend to have more doubles than integration tests, and system tests may have few or none at all.
+
+== Types of doubles
+
+There are several ways that test doubles can be implemented. The following terms refer to different types of test doubles:
+
+* Mocks
+* Stubs
+* Dummies
+* Fakes
+* Spies
+
+There are no definitive definitions of these terms. Test utilities tend to use them interchangeably. But here are the common-agreed definitions:
+
+A *fake* is one of the most advanced types of test double. Fakes will often be fully functioning implementations of the interfaces of the components they replace. They tend to be developed and maintained alongside the real components in the application code, whereas most other types of doubles tend to be defined in the test code. Fake implementations will take some shortcuts in their implementation, so they can be run efficiently and not depend on external systems, which may not be available in test environments. For example, the fake implementation of a database repository may implement an in-memory store, instead. But otherwise fakes will replicate the behavior of the real implementations as closely as possible.
+
+A *mock* is pre-programmed with expectations about the calls it will receive. If the mock does not receive the expected calls and parameters, it will throw an error, causing the test that called it to fail. Unlike fakes, mocks tend not to replicate any internal logic from their real counterparts.
+
+A *stub* can be thought of as a lightweight mock. A stub provides canned answers to calls made during the test, but it doesn't do anything more elaborate than that. Unlike a mock, a stub does not make any assertions itself – the tests that use it are expected to do that.
+
+A *spy* is another type of lightweight mock. All it does is remember what calls it has received, and it can make that information available to the test for assertion purposes. But it does not make any assertions itself. A classic use case for a spy would be to record how many messages were sent to an email service.
+
+Finally, a *dummy* refers to any test object or value that is used in tests but is never actually inspected by the tests. Dummies are commonly used to stand-in for function parameters. They are usually primitive values or plain objects; at most they will be very lightweight fakes.
+
+The word "dummy" is also used in the context of test data. Dummy data is any data that is injected into a system in place of production data in non-production environments – including, but not limited to, test environments.
+
+Mocks, fakes, and stubs are the terms that are used the most interchangeably. In practice, many test doubles have characteristics of all five designs. For this reason, the term "mock" tends to be used as a synonym for any kind of test double.
+
+== Trade-offs
+
+One of the most important choices in the design of automated tests is how and when test doubles will be used to stand-in for real dependencies. As with all design decisions, there are trade-offs to consider.
+
+Knowing what to mock, and what not to, is quite subjective. People's views on the optimal balance changes with context and experience. The following are some general guidelines to help you think through the trade-offs.
+
+The main reasons for using test doubles are:
+
+* To isolate specific behaviors to test.
+* To increase the speed of test execution.
+* To remove dependencies on external systems, such as databases, that are unavailable in test environments.
+
+The main trade-offs of using test doubles are:
+
+* Increased complexity of the tests.
+* More scaffolding code.
+* Reduced readability of test code.
+* Increased maintenance costs.
+
+But the biggest issue is increased brittleness. The overuse of doubles can lead to brittle tests. A brittle test is a test that fails, not for real problems that would happen in production, but because the test itself is fragile.
+
+The reason is that the implementations of test doubles may diverge from the real implementations over time. If this happens, the tests may continue to pass, but they will no longer be testing the real behavior of the system-under-test. As bugs increasingly slip through, confidence in the tests will drop. The tests will be increasingly untrusted as a reliable measure of the correctness of the system. This in turn will decrease confidence in development efforts to introduce new features and other changes.
+
+Brittle tests tend to be the outcome of putting too much implementation detail into the tests themselves. Test doubles are normally the culprit. The bigger the test double – the more details from the real implementation that are embedded in it – the more likely it will diverge from the real implementation over time. Thus, fakes are more prone to drift than mocks, while stubs and spies tend to be more stable.
+
+For these reasons, best practice is to err on the side of *high fidelity* tests with minimal mocking. We use the term _fidelity_ to refer to how closely the behavior of a system-under-test matches its production behavior. High-fidelity testing is the goal. This means as few dependencies as possible are mocked. Real dependencies – including vendor components that may be installed via a package manager, for example – are preferred over doubles in tests. When dependencies need to be mocked, lightweight doubles, which do not replicate much of the logic of their real implementations, are preferred.
+
+Real dependencies SHOULD be replaced with doubles only to overcome specific problems associated with using real dependencies in test environments – for example if a real implementation is slow, unreliable, non-deterministic, or difficult to instantiate (it requires a network connection, say).
+
+Fakes should be used sparingly, and where they are required – for example, to swap a database abstraction for a simple in-memory store – they should be maintained alongside the real implementations. This  will increase the chances of the fakes being kept up-to-date with the real implementations. It also has the benefit of keeping the test code cleaner; there will be less boilerplate in test scripts for the construction of fakes.
+
+Fakes are, to all intents and purposes, _real_ implementations. They actually work. It's just that they're optimized for non-production environments. But they very much belong with the rest of the application code, not the test code. Indeed, fakes should have their own tests!
+
+Ideally, the only components that will be swapped for fakes in test scenarios will be those that communicate with external systems such as file systems, databases, and remote services – anything that is not available (or is unreliable) in test environments.
+
+''''
+
+It might be tempting to make automated tests as fast and as lightweight as possible, especially at the unit level, by using lots of test doubles. But this is an anti-pattern. It gives a false sense of dependability in the tests. And tests must, above all, be dependable.
+
+If performance of your test suite's execution becomes an issue, try to adjust your test setup – eg. enable greater parallelization of test execution – before resorting to lowering the fidelity of the tests.
+
+.Related links
+****
+* Google's link:https://testing.googleblog.com/2013/05/testing-on-toilet-dont-overuse-mocks.html[Testing on the Toilet] blog post series from 2013 has some good notes on the risks of overusing mocks.
+****
