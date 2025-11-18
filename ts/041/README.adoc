@@ -30,9 +30,15 @@ A *secret* is any value that grants access or trust when revealed. Secrets inclu
 
 Secrets management systems like HashiCorp Vault or AWS Secrets Manager are designed to store, manage, and provide access to secrets in a secure manner. Such systems MUST be used to store *primary secrets*, and deployment strategies MUST be implemented to fetch and inject secrets from these stores and into applications at compile time or runtime (as appropriate for the application).
 
+Whereas primary secrets are required by an application at runtime, *secondary secrets* may be required for development and operations, for example for the proper functioning of CI/CD pipelines. Secondary secrets are typically stored in secrets management systems embedded in or linked to devops toolchains, eg. GitHub Secrets is typically used in conjunction with GitHub Actions. The lifetime of secondary secrets SHOULD be rotated in line with PAT cadence – typically less than 90 days.
+
+=== Secret rotation
+
 It is RECOMMENDED that secrets be rotated at regular intervals. Rotation intervals MAY vary as appropriate given the risk profile of individual secrets, but SHOULD NOT exceed one week in most cases. Rotation SHOULD be automated.
 
-Whereas primary secrets are required by an application at runtime, *secondary secrets* may be required for development and operations, for example for the proper functioning of CI/CD pipelines. Secondary secrets are typically stored in secrets management systems embedded in or linked to devops toolchains, eg. GitHub Secrets is typically used in conjunction with GitHub Actions. The lifetime of secondary secrets SHOULD be rotated in line with PAT cadence – typically less than 90 days.
+Secrets MUST be narrowly-scoped. For example, for message encryption keys, prefer to generate asymmetric keys _per user_ rather than have a single public-private key pair and distribute the same public key to all users. If the private key is ever compromrised, it will be much more work to revoke and rotate it if a new public key needs to be distributed to all users rather than just a single user.
+
+As a general rule, a secret SHOULD have only a single use case, and therefore it will have only one reason to be changed. Do not reuse the same secrets for different things. Narrowly-scoped secrets are inherently more secure, and they are easier to rotate.
 
 === Handling compromised secrets
 
