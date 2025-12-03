@@ -639,26 +639,6 @@ if hmac.compare_digest(actual_signature, expected_signature):
     grant_access()
 ----
 
-== Status codes
-
-Producers of webhook messages will need to consider the status codes that they will require consumer services to return in response to their webhook messages.
-
-The following policy is RECOMMENDED:
-
-* To accept any `2xx` status code to indicate successful processing of a webhook message, ie. any `2xx` code will be treated by you as `202 Accepted`.
-
-* To treat `5xx` status codes as errors in the consumer service, which will trigger retry and dead-letter queue mechanisms on the producer side. In addition, `502 Bad Gateway` and `504 Gateway Timeout` usually indicate that the server is under load, so the producer SHOULD throttle subsequent requests.
-
-* To treat recurring `410 Gone` responses as an indication that the consumer no longer wishes to receive webhook messages. The producer SHOULD automatically disable the consumer's webhook configuration, and stop sending messages to their webhook endpoints, if this status code persists for more than 1 day.
-
-* To treat `404 Not Found` responses as an indication that the consumer's webhook endpoint is misconfigured, or that it has been moved or deleted. The producer SHOULD handle this in the same way as a `410 Gone`, but in addition the producer SHOULD notify the consumer of the issue.
-
-* To treat `429 Too Many Requests` as a rate limit scenario. The producer SHOULD pause sending further messages to the consumer's webhook endpoint for a period of time, before resuming through the normal retry mechanism. In other words, the normal retry schedule is delayed a little, giving more time for the hit count to be reset on the consumer side. It is OPTIONAL that producers automatically adjust their retry interval based on `Retry-After` headers returned by consumers.
-
-* To treat any other `4xx` client errors in the same way as `5xx` server errors, but in addition log them for further investigation – because the producer's webhook implementation may be at fault.
-
-* To treat `1xx`, `3xx`, and all other status codes as generic `500` server errors. Producers MUST NOT follow redirects, as this is a potential security risk and puts unnecessary load on the producer system. If consumers move their webhook endpoints, they are REQUIRED to update their configuration in the producer system.
-
 == Delivery and reliability
 
 === Timeouts
@@ -693,23 +673,29 @@ In addition, producers MAY add some random jitter to retry intervals. This will 
 
 If webhook delivery fails beyond the last retry attempt, consumers SHOULD be notified of the failure via other channels, such as email or SMS. After the last retry attempt, the consumer's webhook endpoint SHOULD be disabled in the producer's configuration, and further messages SHOULD NOT be sent until the consumer requests that the webhook endpoint be re-enabled.
 
-=== Other considerations
+=== Other delivery and reliability considerations
 
 Producers MUST NOT batch process the delivery of webhook messages, to avoid overloading consumer systems.
 
-== Webhook endpoint verification
+== Status codes
 
-Consumers MUST NOT be able to configure any arbitrary webhook endpoint URLs. This is a significant security risk for the producer, exposing them to server-side request forgery (SSRF) exploits. This is where URLs are set to internal network resources – eg. `http://localhost:8080` or `http://192.168.1.1` – or to cloud metadata endpoints – eg. `http://169.254.169.254/latest/meta-data/` – which may provide attackers with routes into the producer's private networks, internal services, and sensitive information that is not meant to be externally accessible.
+Producers of webhook messages will need to consider the status codes that they will require consumer services to return in response to their webhook messages.
 
-At the very least, on registration of new webhook endpoint URLs, the URLs MUST be validated to ensure they are public internet addresses, and not "localhost" or IP addresses within the ranges reserved for internal networks. Producers can further protect themselves against SSRF by using a proxy (like smokescreen) to filter out requests to internal IP addresses, and by putting webhook workers (or the proxy) in their own private subnet that can't access internal services.
+The following policy is RECOMMENDED:
 
-In addition, it is RECOMMENDED to implement a challenge-response system. When a new webhook URL is registered, a "challenge" token is sent to the webhook endpoint, which is expected to returna  valid response with the challenge token encoded somewhere in the response message. This verifies that the endpoint is reachable, and producers can use the process to verify things like the validity of the TLS certificate of the consumer service.
+* To accept any `2xx` status code to indicate successful processing of a webhook message, ie. any `2xx` code will be treated by you as `202 Accepted`.
 
-For the best security, domain name _ownership_ SHOULD be verified, too. This can be done using DNS lookups. The process usually involves the domain owner adding a TXT record to the domain's DNS settings, which the producer can then look up (once propagated) to verify ownership. A slightly weaker solution is verification of an email address hosted on the same domain.
+* To treat `5xx` status codes as errors in the consumer service, which will trigger retry and dead-letter queue mechanisms on the producer side. In addition, `502 Bad Gateway` and `504 Gateway Timeout` usually indicate that the server is under load, so the producer SHOULD throttle subsequent requests.
 
-Ideally, domain names would be human-moderated, too. The purpose is to prevent malicious actors from registering fake endpoints that pass all the automated verification checks.
+* To treat recurring `410 Gone` responses as an indication that the consumer no longer wishes to receive webhook messages. The producer SHOULD automatically disable the consumer's webhook configuration, and stop sending messages to their webhook endpoints, if this status code persists for more than 1 day.
 
-Finally, producers SHOULD implement automated health checks on their consumers' webhook endpoints. Optionally, to protect against domain hijacking, producers MAY require consumers to revalidate the ownership of their domain names periodically.
+* To treat `404 Not Found` responses as an indication that the consumer's webhook endpoint is misconfigured, or that it has been moved or deleted. The producer SHOULD handle this in the same way as a `410 Gone`, but in addition the producer SHOULD notify the consumer of the issue.
+
+* To treat `429 Too Many Requests` as a rate limit scenario. The producer SHOULD pause sending further messages to the consumer's webhook endpoint for a period of time, before resuming through the normal retry mechanism. In other words, the normal retry schedule is delayed a little, giving more time for the hit count to be reset on the consumer side. It is OPTIONAL that producers automatically adjust their retry interval based on `Retry-After` headers returned by consumers.
+
+* To treat any other `4xx` client errors in the same way as `5xx` server errors, but in addition log them for further investigation – because the producer's webhook implementation may be at fault.
+
+* To treat `1xx`, `3xx`, and all other status codes as generic `500` server errors. Producers MUST NOT follow redirects, as this is a potential security risk and puts unnecessary load on the producer system. If consumers move their webhook endpoints, they are REQUIRED to update their configuration in the producer system.
 
 == Webhook management
 
@@ -761,7 +747,25 @@ Producers SHOULD offer monitoring and alerting solutions for their consumers, so
 
 Consumers MAY be able to define multiple webhook endpoints, supporting fan-out message distribution. This can be required for a number of reasons. It allows different consumer systems to process the same events in different ways. For example, when a payment is successfully completed, a customer may want their user management system, their CRM, and their internal team communication tool to be notified. Fan-out webhook messages also help to support platform migrations.
 
-Where fan-out message distribution is supported, consumers MUST be able to configure each webhook endpoint independently, including different event types, retry policies, and potentially even things like signature schemes and verification secrets.
+Where fan-out message distribution is supported, consumers MUST be able to configure each webhook endpoint independently, including different event types, retry policies, versions, and potentially even things like signature schemes and verification secrets.
+
+== Webhook endpoint verification
+
+Consumers MUST NOT be able to configure any arbitrary webhook endpoint URLs. This is a significant security risk for the producer, exposing them to server-side request forgery (SSRF) exploits. This is where URLs are set to internal network resources – eg. `http://localhost:8080` or `http://192.168.1.1` – or to cloud metadata endpoints – eg. `http://169.254.169.254/latest/meta-data/` – which may provide attackers with routes into the producer's private networks, internal services, and sensitive information that is not meant to be externally accessible.
+
+At the very least, on registration of new webhook endpoint URLs, the URLs MUST be validated to ensure they are public internet addresses, and not "localhost" or IP addresses within the ranges reserved for internal networks. Producers can further protect themselves against SSRF by using a proxy (like smokescreen) to filter out requests to internal IP addresses, and by putting webhook workers (or the proxy) in their own private subnet that can't access internal services.
+
+In addition, it is RECOMMENDED to implement a challenge-response system. When a new webhook URL is registered, a "challenge" token is sent to the webhook endpoint, which is expected to returna  valid response with the challenge token encoded somewhere in the response message. This verifies that the endpoint is reachable, and producers can use the process to verify things like the validity of the TLS certificate of the consumer service.
+
+For the best security, domain name _ownership_ SHOULD be verified, too. This can be done using DNS lookups. The process usually involves the domain owner adding a TXT record to the domain's DNS settings, which the producer can then look up (once propagated) to verify ownership. A slightly weaker solution is verification of an email address hosted on the same domain.
+
+Ideally, domain names would be human-moderated, too. The purpose is to prevent malicious actors from registering fake endpoints that pass all the automated verification checks.
+
+Finally, producers SHOULD implement automated health checks on their consumers' webhook endpoints. Optionally, to protect against domain hijacking, producers MAY require consumers to revalidate the ownership of their domain names periodically.
+
+== Versioning
+
+// TODO
 
 == Documentation
 
