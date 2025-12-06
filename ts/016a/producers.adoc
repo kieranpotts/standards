@@ -250,6 +250,41 @@ If you need to transfer large amounts of data, such as images or other media fil
 
 Payloads MAY be minimized. This is more beneficial for large payloads than small ones. Minimization, if done, SHOULD be applied across all messages sent from the producer service, to ensure consistent processing on the consumer side.
 
+== Versioning
+
+Standards Webhooks specifies how to version signature schemes, but not how to version message payloads. However, it is RECOMMEND that producers do implement versioned payload schemas. There are a number of ways to do this.
+
+The first option, which is RECOMMENDED by this technical standard, is to define the schema version in an HTTP header. This would be an extension to the Standard Webhooks headers, so it would conform to their naming convention:
+
+----
+Webhook-Version: 1
+----
+
+Alternatively, a `version` field MAY be included in the payload, extending the Standard Webhooks schema:
+
+[source,json]
+----
+{
+  "type": "<type>",
+  "version": 1,
+  "timestamp": "<iso8601>",
+  "data": {...}
+}
+----
+
+The header field is a good choice where the event objects are an integral part of a service's API, and therefore the webhook messages follow the same versioning scheme as an adjacent HTTP API or other interface. The `version` field may be a better choice where event objects evolve independently of other aspects of a service's API, and maybe even independently of each other.
+
+It is RECOMMENDED to use incremental versioning (like 1, 2, 3, etc.) rather than date-based versioning (like 2025 or 2025-12-01), although date-based versioning may be appropriate in some cases, for example in scenarios where payload structures are quite volatile – often changing.
+
+[TIP]
+======
+For easier maintenance of multiple versions of payload schema, implement a transformation layer, in which broadcast event objects are generated at delivery time from a canonical internal event representation.
+======
+
+As per link:../005/README.adoc[TS-5: *Versioning*], versions MUST be stable. This requires careful version management. There MUST be transition periods between breaking versions, and deprecation windows for unsupported versions. Migration guides MUST be given to consumers. Changelogs MUST be used to document changes between versions.
+
+Wherever possible, schema versions SHOULD be implemented in backwards-compatible ways, which means there are only additive changes to schemas within each major version. It is easier to maintain backwards compatibility when you start with thin payloads, with flat (not nested) structures, and only add fields as customers ask for them.
+
 == Security and authenticity
 
 Webhook messages are just regular HTTP messages that could originate from any source. While TLS provides a high degree of confidentiality during transit, it does not guarantee the authenticity or integrity of messages. TLS cannot guarantee end-to-end message integrity when intermediaries (eg. proxies, load balancers) terminate and re-establish the connection.
@@ -724,7 +759,7 @@ Webhooks SHOULD be treated like a subscription service, in which consumers expli
 |Delete an existing webhook subscription for the consumer.
 |===
 
-Delivery of webhook events MUST be disabled by default for each customer/user. Consumers MUST explicitly enable webhooks, and configure the event types they wish to receive, before any webhook messages are sent to them.
+Delivery of webhook events MUST be disabled by default for each customer/user. Consumers MUST explicitly enable webhooks, and configure the event types and versions they wish to receive, before any webhook messages are sent to them.
 
 For some event types, webhook notifications MAY be delivered alongside other notification channels such as email or SMS. This is RECOMMENDED for security notifications and alerts, for example.
 
@@ -735,7 +770,7 @@ Consumers SHOULD be able to manage the configuration of their webhook messages, 
 * Rate limits and back-off exponents.
 * Signature scheme, if the producer offers both symmetric and asymmetric signatures.
 * Key invalidation and rotation.
-* Event types.
+* Event types and their versions.
 * Expiration times (when consumers want to automatically stop receiving webhook messages).
 * The quantity of data communicated ("thin" versus "fat" payloads).
 
@@ -747,7 +782,7 @@ Producers SHOULD offer monitoring and alerting solutions for their consumers, so
 
 Consumers MAY be able to define multiple webhook endpoints, supporting fan-out message distribution. This can be required for a number of reasons. It allows different consumer systems to process the same events in different ways. For example, when a payment is successfully completed, a customer may want their user management system, their CRM, and their internal team communication tool to be notified. Fan-out webhook messages also help to support platform migrations.
 
-Where fan-out message distribution is supported, consumers MUST be able to configure each webhook endpoint independently, including different event types, retry policies, versions, and potentially even things like signature schemes and verification secrets.
+Where fan-out message distribution is supported, consumers MUST be able to configure each webhook endpoint independently, including different event types and versions, retry policies, and potentially even things like signature schemes and verification secrets.
 
 == Webhook endpoint verification
 
@@ -762,10 +797,6 @@ For the best security, domain name _ownership_ SHOULD be verified, too. This can
 Ideally, domain names would be human-moderated, too. The purpose is to prevent malicious actors from registering fake endpoints that pass all the automated verification checks.
 
 Finally, producers SHOULD implement automated health checks on their consumers' webhook endpoints. Optionally, to protect against domain hijacking, producers MAY require consumers to revalidate the ownership of their domain names periodically.
-
-== Versioning
-
-// TODO
 
 == Documentation
 
