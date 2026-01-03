@@ -10,6 +10,54 @@ Specific technologies that support cloud platform engineering, such as infrastru
 
 toc::[]
 
+== Multi-product deployments
+
+A common pattern for organizations is to support independent operations of multiple products and services.
+
+The RECOMMENDED approach is to use multiple accounts with your cloud service provider, one for each discrete product. In AWS, the *AWS Organizations* feature allows multiple independent AWS accounts to be managed under one root organization.
+
+[source]
+----
+Root Organization
+├── Management Account
+├── Shared Services Account (networking, DNS, logging)
+├── Product A - Test Account
+├── Product A - Prod Account
+├── Product B - Test Account
+├── Product B - Prod Account
+└── Security/Audit Account
+----
+
+In AWS, *AWS Resource Access Manager (RAM)* can be used to create shared VPCs/subnets across multiple accounts in the same organization, so allowing for service-to-service communication. IAM roles can also be configured to allow for cross-account access.
+
+A simpler solution is simply to use VPCs for isolation of products under the same account. VPC peering or transit gateways can be used for network connectivity between VPCs, while IAM policies can be used to control access to particular services.
+
+[source]
+----
+Single AWS Account
+├── Product A VPC
+├── Product B VPC
+├── Shared Services VPC
+└── Use tags, IAM policies, and resource naming for separation
+----
+
+This is simpler to setup, and cross-product communication is easier to configure. But it does not scale so well, and isolation is weaker. It is also harder to track costs on a per-product basis.
+
+More commonly, organizations opt for a hybrid approach. This is where products are isolated at the account level, and there is an additional account that manages centralized infrastructure that is shared by all the accounts.
+
+[source]
+----
+
+Organization
+├── Shared Infrastructure Account
+│   ├── Shared VPC
+│   ├── Transit Gateway
+│   ├── Route53 Hosted Zones
+│   └── Shared databases/caches
+├── Product A Account
+└── Product B Account
+----
+
 == Development and testing environments
 
 Development and testing environments SHOULD be *zero-touch ephemeral environments*. These are isolated environments that are automatically created and destroyed as needed, without any manual intervention.
