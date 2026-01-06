@@ -92,6 +92,14 @@ It is RECOMMENDED that event types be organized into a hierarchy using dot-notat
 
 The schema of the `data` object MAY differ between event types. The only requirement is that each discrete event type has a single consistent `data` schema for every message of that type.
 
+A key design consideration when defining event types is to ensure they are granular enough to allow consumers to filter events effectively. Consumers may want to subscribe to only certain types of events.
+
+Best practice is for events to map to meaningful business-relevant state changes that are likely to each require differential processing by consumers. Fine-grained, business-relevant events tend to be the most future-proof. Since payload structures are tied to event types, having coarse-grained event types can lead to bloated payloads that try to accommodate multiple scenarios, making it harder to evolve the schema without breaking backwards compatibility.
+
+Coarser event types, such as ones that represents _all_ possible state changes in a particular entity type, may be appropriate where the changes in state are not likely to require differential processing on the consumer side. In this scenario, it would be expected that all state changes would be broadcast, and clients would be expected to process them all in the same way.
+
+As a general rule, consumers should want to implement different handlers (listeners) for each event type they subscribe too. If two or more events can be processed in much the same way, this is a design smell – the events may be too fine-grained and could be merged into a single event type.
+
 === Timestamp
 
 The value of the `timestamp` property is not actually a timestamp but an ISO 8601-formatted date-time string, as specified by Standard Webhooks. The format differs from the `Webhook-Timestamp` field, which is an actual timestamp. This inconsistency is unfortunate, but it is REQUIRED to maintain compliance with Standard Webhooks.
