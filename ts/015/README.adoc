@@ -15,3 +15,185 @@ In application code, network APIs SHOULD NOT be overly abstracted such that the 
 When network calls are abstracted too much, it can lead to a lack of awareness about the underlying network operations and their potential latencies and failure modes. This in turn can lead to application logic that does not account for network latency, that wastes bandwidth with unbounded payloads, or that does not gracefully handle network failures. For distributed systems to be fault tolerant and robust, applications are required to implement patterns such as timeouts, retries, and fallbacks.
 
 So, it is better practice to design application code to reflect the underlying network operations and their potential latencies, even if this means more verbose application code. Aim for *network transparency* in application code, meaning that network operations are explicit and visible in the codebase.
+
+== Performance optimization
+
+A key consideration in the design of network APIs is performance optimization. There are many layers to this. Performance optimization techniques include, but are by no means limited to:
+
+* Implementing caching.
+* Using content delivery networks.
+* Balancing load across multiple servers.
+* Using bandwidth-efficient data formats.
+* Minimizing payload sizes and using compression.
+* Balancing over-fetching vs. under-fetching.
+* Reusing connections (connection pooling).
+* Using asynchronous processing.
+* Offloading routing and security to an API gateway.
+
+=== Target metrics
+
+The following are RECOMMENDED baselines for various performance metrics.
+
+*Response times:*
+
+* Critical operations: <= 200ms
+* Standard operations: <= 500ms
+* Complex operations: <= 2000ms
+
+Set client timeouts to 3x target response times.
+
+*Payload sizes:*
+
+* General APIs: <= 10MB
+* File uploads: <= 100MB
+
+=== Payload optimization
+
+To reduce payload size, the following techniques are RECOMMENDED:
+
+* Implement pagination for collections exceeding 100 items (by default).
+* Enable gzip/brotli compression for payloads > 1KB.
+* Use streaming to transfer large datasets (ie. chunked responses) and real-time data.
+* Support field filtering to prevent over-fetching (eg. `?fields=id,name,email`).
+* Provide batch endpoints to reduce under-fetching and round trips.
+* Support partial updates, eg. using `PATCH` operations in HTTP APIs.
+
+=== Caching
+
+Caching strategies SHOULD be implemented both upstream on the server-side, and downstream on the client-side. Consider *cache-invalidation* and *cache-purging* strategies, too.
+
+See link:../015/README.adoc[TS-15: HTTP APIs] for more details.
+
+== Reliability and resilience
+
+=== Error handling
+
+* Standardize error response structures throughout all network APIs.
+* Include actionable error messages with corresponding, documented error codes.
+* Use consistent response status code, eg. for HTTP APIs: 200, 400, 401, 403, 404, 429, 500, 503, etc.
+* Report partial successes in batch operations.
+
+=== Rate limiting
+
+* Apply rate limiting per client, endpoint, or resource.
+* For HTTP APIs, include rate limit information in response headers.
+* Implement exponential backoff for retry logic.
+* Distinguish between rate limits and usage quotas.
+
+=== Circuit breakers
+
+* Implement the circuit breaker pattern, which involves monitoring downstream services for latency, errors, and other health metrics, and automatically adjusting upstream behavior in response.
+* Track open, closed, and half-open states for downstream services.
+* Provide fallback mechanisms, if necessary with degraded functionality, when dependencies are unavailable.
+* Test service recovery in an automated way.
+
+== Scalability
+
+=== Load distribution
+
+* Choose appropriate load balancing algorithms, eg. round-robin, least-connections, weighted.
+* Implement active and passive health monitoring for load balancing.
+* Handle stateful operations appropriately, eg. session persistence.
+* Route requests to nearest available servers.
+
+=== Horizontal scaling
+
+* Implement stateless API designs wherever possible.
+* Scale databases by starting with read replicas and connection pooling.
+* Isolate resources to prevent resource contention between services.
+
+=== Auto-scaling
+
+* Implement metrics-based auto-scaling based on CPU, memory, and request metrics.
+* Implement predictive/proactive scaling based on historical patterns.
+* Implement gradual/graceful scaling to avoid service disruption.
+* Balance performance requirements with resource costs.
+
+== Security and privacy
+
+=== Authentication and authorization
+
+* Implement appropriate authentication and authorization mechanisms for the given transport protocol. For stateless HTTP APIs, token-based authentication using JWT is RECOMMENDED.
+* Use fine-grained permission models. Use scopes, not roles.
+* Set appropriate token lifetimes (expiration dates).
+* Implement refresh mechanisms, using a secure token renewal process.
+
+=== Data protection
+
+* Encrypt _all_ data in transit. Use TLS 1.2+ for all communications.
+* Validate and sanitize all input parameters.
+* Prevent injection attacks through proper output encoding.
+* Log security-relevant events and access patterns.
+
+== Logging and monitoring (observability)
+
+=== Metrics collection
+
+* Collect the "golden signals" of latency, traffic, errors, and saturation.
+* Collect business metrics such as API usage, feature adoption, and user behavior.
+* Monitor server resources and network performance as required to understand your changing infrastructure requirements.
+* Implement the custom, domain-specific performance indicators you need.
+
+=== Logging standards
+
+* Logs must be highly structured, to allow analysis. JSON is recommended. Use a documented JSON schema and validate the log output against it.
+* Use correlation IDs to track requests across service boundaries.
+* Implement appropriate log levels, eg. debug, info, warning, error, and critical.
+* Adjust other log verbosity controls on an environment by environment basis.
+* Define your log storage and rotation policies.
+
+=== Alerting
+
+* Alert on SLA violations and performance degradation.
+* Implement automated anomaly detection.
+* Define clear incident response procedures (aka. escalation policies).
+* Provide real-time visibility into API health. Dashboards are RECOMMENDED.
+
+== Documentation and versioning
+
+=== API documentation
+
+* Provide interactive, executable API specifications, eg. OpenAPI.
+* Consider providing client code examples in multiple programming languages.
+* Maintain API changelogs that document all API changes. Provide migration guides.
+* Maintain an error catalog that documents all possible error conditions and responses.
+
+=== Version management
+
+* Use a conventional versioning scheme, eg. semantic versioning (`<major>.<minor>.<patch>`).
+* Be strict in how you maintain backward compatibility within major versions.
+* Publish a deprecation policy with clear timelines for deprecating features on which clients may depend.
+* Offer guidelines and tools to support migrations between major version upgrades.
+
+== Testing
+
+=== Test coverage
+
+* Unit tests: test discrete pieces of business logic.
+* Integration tests: test service interactions and data flow.
+* System tests: test individual API endpoints end-to-end.
+* Load testing: validate performance under expected traffic loads.
+* Security testing: test for common vulnerabilities and attack vectors.
+
+=== Environment management
+
+* Maintain production-like testing environments ("staging").
+* Use representative test data while protecting privacy.
+* Test deployment processes and rollback procedures.
+* Test system resilience under failure conditions (aka. chaos engineering).
+
+== Compliance and governance
+
+=== Data governance
+
+* Regularly review your compliance with GDPR, CCPA, and other privacy regulations.
+* Define and enforce data retention policies.
+* Classify data sensitivity and apply appropriate controls.
+* Use access controls to implement principle of least privilege.
+
+=== API governance
+
+* Establish API design review processes.
+* Implement automated enforcement of standards and other policies.
+* API lifecycle management: define API lifecycle stages and gates.
+* Monitor API adoption and usage patterns.
