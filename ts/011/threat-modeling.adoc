@@ -1,23 +1,31 @@
 = Threat modeling
 
+== What is threat modeling?
+
 Threat modeling is the process of analyzing representations of a system with the purpose of identifying potential security and privacy vulnerabilities, and deciding on mitigation strategies.
 
-Threat modeling is more of a process than a tool or an artifact. Threat modeling should be cross-functional and iterative. It should be built into the regular development process, rather than a one-time activity.
+Threat modeling is more of a process than a tool or an artifact.
 
-Threat modeling sessions SHOULD begin during the design phase of a new software product, or of a major new feature within an existing product. Thereafter, the threat assessments SHOULD be treated as living documents that are regularly revised as the system evolves, new threats emerge, or business requirements change.
+Threat modeling works best when it is iterative, baked into the regular development process, rather than a one-time activity. Threat modeling sessions SHOULD begin during the design phase of a new software product. Thereafter, the threat assessments SHOULD be treated as living documents that are regularly revised as the system evolves, new threats emerge, or business requirements change.
 
-Effective threat modeling benefits from a multi-disciplinary approach. Participants in threat modeling sessions should be drawn from architecture and security, product and business, and development, testing, and operations. The purpose is to view the system from diverse perspectives.
+Threat modeling sessions SHOULD NOT be postponed until the product/system is nearly ready to ship to production. Iterative threat assessment is RECOMMENDED because you will catch potential vulnerabilities early in the development cycle, when they will be cheaper to remediate. Because security and privacy requirements are cross-cutting architectural concerns, they tend to be expensive to retrofit into an established architecture.
+
+Effective threat modeling benefits from a multi-disciplinary approach, too. Participants in threat modeling sessions should be drawn from architecture and security, product and business, and development, testing, and operations. The purpose is to view the system from diverse perspectives.
+
+It is RECOMMENDED to schedule threat modeling sessions at the break point between each iterative development/release cycle.
 
 Various types of models SHOULD be used as input to threat modeling sessions. Different representations of a system will reveal different categories of potential attack vectors. RECOMMENDED models include:
 
-* Infrastructure
-* Data (in situ and in transit)
-* Services and components
-* Component boundaries and interfaces
-* Business processes (or application logic)
-* External dependencies
+* Infrastructure.
+* Data (in situ and in transit).
+* Services and components.
+* Component boundaries and interfaces.
+* Business processes (or application logic).
+* External dependencies.
 
 The output of threat modeling sessions is a set of identified threats, with associated risk ratings and mitigation strategies.
+
+See also the https://www.threatmodelingmanifesto.org/[Threat Modeling Manifesto] for more information about the principles of threat modeling.
 
 == Threat modeling methodologies
 
@@ -31,39 +39,35 @@ Developed by Microsoft, this mnemonic-based framework categorizes threats into s
 |Threat category |Definition |Example |Example of countermeasures
 
 |*Spoofing*
-|Impersonation of another user or system
+|Impersonation of another user or system (https://en.wikipedia.org/wiki/Spoofing_attack[Wikipedia])
 |Faking an email address to manipulate the recipient into sharing confidential information
 |Sender Policy Framework (SPF) and/or DomainKeys Identified Mail (DKIM) to verify the sender
 
 |*Tampering*
-|Unauthorized modification of data
+|Unauthorized modification of data (https://en.wikipedia.org/wiki/Tampering_%28crime%29[Wikipedia])
 |Modifying data on a website to redirect visitors to a phishing page
 |Hashes and digital signatures for data validation and tamper detection
 
 |*Repudiation*
-|Measures attackers take to leave no trace of their malicious actions
+|Measures that attackers take to leave no trace of their malicious actions (https://en.wikipedia.org/wiki/Non-repudiation[Wikipedia])
 |Altering log files to hide unauthorized access
 |Audit and logging mechanisms to track all system activity, and automated log analysis to reveal suspicious events
 
 |*Information disclosure*
-|Leaking sensitive data to unauthorized parties
+|Leaking sensitive data to unauthorized parties (https://en.wikipedia.org/wiki/Data_breach[Wikipedia])
 |Hacking into a database to steal credit card information
 |Encryption of sensitive data, and access control mechanisms
 
 |*Denial of service (DoS)*
-|Rendering a system unusable
+|Rendering a system unusable (https://en.wikipedia.org/wiki/Denial-of-service_attack[Wikipedia])
 |Flooding a website with excessive requests to crash the server
 |Rate limiting to prevent DoS, and load balancing to distribute traffic across multiple servers
 
 |*Elevation of privilege*
-|Gaining higher access levels than authorized
+|Gaining higher access levels than authorized (https://en.wikipedia.org/wiki/Privilege_escalation[Wikipedia])
 |Exploiting a vulnerability to elevate user permissions, allowing access to confidential data or systems
 |Implementing the principle of least privilege with role-based access controls
 |===
-
-In threat modeling sessions, analysts systematically examine each system component against these six threat categories to identify potential vulnerabilities in the system design.
-
-STRIDE works particularly well for software applications.
 
 === PASTA
 
@@ -74,6 +78,8 @@ PASTA – Process for Attack Simulation and Threat Analysis – is a multi-stage
 3. Decomposing the application into its component parts.
 4. Identifying potential vulnerabilities.
 5. Enumerating the likelihood and impact of attacks.
+
+To identify potential vulnerabilities, analysts use either the STRIDE framework or a vulnerability database, such as the https://www.cve.org/[Common Vulnerabilities and Exposures (CVE)] database, the https://cwe.mitre.org/index.html[Common Weakness Enumeration (CWE)] list, the https://nvd.nist.gov/vuln/search#/nvd/home?resultType=records[National Vulnerability Database (NVD)], or the https://owasp.org/Top10/[OWASP Top 10] list from the Open Worldwide Application Security Project.
 
 The end result is a comprehensive risk and impact assessment. PASTA can be a very time-consuming process so it does not lend itself to fast iterative development processes. It is most suited to long-lived critical systems.
 
@@ -122,8 +128,7 @@ Each identified threat SHOULD be rated based on its likelihood of occurrence and
 
 The following diagram shows a common risk rating scheme. You may design your own scoring system. The important thing is to be consistent in how you rank potential threats.
 
-.Threat prioritization
-image::./_/threat-prioritization.png[alt="",width=685,height=581]
+image::./_/threat-rating-scheme.png[alt="",width=685,height=581]
 
 == Mitigation strategies
 
@@ -146,11 +151,95 @@ Examples of countermeasures against common threats include:
 * Dependency version pinning.
 * Scheduled security scans.
 
-== Templates
+== Threat modeling sessions
+
+Threat modeling sessions should be driven by a facilitator, with the rest of the participants serving as security analysts.
+
+The meeting SHOULD follow a structured approach. The following steps are RECOMMENDED:
+
+1. Review business objectives and scope.
+2. Review component architecture, data flows, system interfaces, etc.
+3. Systematically assess threats (eg. STRIDE) against individual components.
+4. Rank risks based on assessment of likelihood and impact.
+5. Identify and prioritize mitigation strategies.
+
+The outcome of the threat modeling session is a list of identified threats, risk ratings, and agreed mitigation strategies (if any), captured in a threat assessment table. See below for a template.
+
+=== Prompts
+
+In threat modeling sessions, analysts systematically examine each system component against these six threat categories to identify potential vulnerabilities in the system design. The following questions serve as useful prompts in threat modeling sessions to identify potential vulnerabilities in each STRIDE category:
+
+.Legend
+****
+* [G] = General
+* [DD] = Data store (eg. databases, file storage)
+* [EE] = External entities (eg. users, third-party services)
+* [DF] = Data flow (eg. API calls, HTTP requests, DB queries)
+****
+
+* *Spoofing*:
+
+** How is identity verified before processing data? [G]
+** Can an attacker pretend to be another user or system? [G]
+** Who is allowed to connect, and how are they authenticated? [DS]
+** How do we verify the external entity is who they claim to be? [EE]
+** Is the data flow authenticated and authorized? [DF]
+
+* *Tampering*:
+
+** How are inputs validated and sanitized? [G]
+** Can an attacker modify parameters, headers, or messages? [G]
+** Can unauthorized users modify stored data? [DS]
+** Are there integrity checks? [DS]
+** Could a user or external service send forged or malicious data? [EE]
+** Is the data in transit protected (eg. HTTPS, signatures)? [DF]
+
+* *Repudiation*:
+
+** Are actions logged with enough context to hold users accountable? [G]
+** Are logs tamper-proof and audit-ready? [G]
+** Can changes be traced to specific users or actions? [DS]
+** Can external interactions be logged and attributed? [EE]
+** Are interactions recorded for forensic and audit purposes? [DF]
+
+* *Information disclosure*:
+
+** Could sensitive data (eg. stack traces, debug info) be unintentionally exposed? [G]
+** Is sensitive data encrypted at rest? [DS]
+** Are access controls in place? [DS]
+** Do we expose more data than necessary to the external party? [EE]
+** Can sensitive data be intercepted or leaked during transmission? [DF]
+
+* *Denial of service (DoS)*:
+
+** Can the process be overwhelmed (eg. resource exhaustion, connection flooding)? [G]
+** Are rate limits and throttling mechanisms in place? [G]
+** Can storage be filled or locked, causing failure? [DS]
+** Can external users/services flood or overload the system? [EE]
+** Can the flow be abused to create excessive load? [DF]
+
+* *Elevation of privilege*:
+
+** Could a user escalate privileges through flaws in logic or configuration? [G]
+** Are there role-based access controls in place? [G]
+** Can someone gain unauthorized access via misconfigured permissions? [DS]
+** Can an external entity access functions they shouldn't? [EE]
+** Are there logic flaws in how flows are authorized or processed? [DF]
+
+* *Additional questions*:
+
+** What happens when the application is under attack?
+** What's the security posture of third-party components?
+** Are default credentials or insecure configurations present?
+** What monitoring and altering systems are in place for suspicious activity?
+
+=== Templates
 
 The output of threat modeling sessions is a set of identified threats, with associated risk ratings and mitigation strategies.
 
-The following serves as a useful starter template for reporting the outcomes of threat modeling sessions. See also link:./threat-modeling-session.example.adoc[this concrete example of a threat modeling assessment].
+The following serves as a useful starter template for reporting the outcomes of threat modeling sessions. It incorporates patterns from STRIDE, PASTA, and other threat modeling frameworks.
+
+See also link:./threat-modeling-session.example.adoc[this concrete example of a threat modeling assessment], which is based on the same template.
 
 [source,markdown]
 ----
@@ -253,16 +342,16 @@ Finally, consider the potential threats against the identified components, data 
 
 |Ref |Component/Flow |Description |Type |Countermeasures |Likelihood |Impact |Rating |
 |----|---------------|------------|-----|----------------|-----------|-------|-------|
-|#1  |...            |..          |...  |...             |...        |...    |...    |
-|#2  |...            |..          |...  |...             |...        |...    |...    |
-|#3  |...            |..          |...  |...             |...        |...    |...    |
-|#4  |...            |..          |...  |...             |...        |...    |...    |
-|#5  |...            |..          |...  |...             |...        |...    |...    |
+|TA1 |...            |..          |...  |...             |...        |...    |...    |
+|TA2 |...            |..          |...  |...             |...        |...    |...    |
+|TA3 |...            |..          |...  |...             |...        |...    |...    |
+|TA4 |...            |..          |...  |...             |...        |...    |...    |
+|TA5 |...            |..          |...  |...             |...        |...    |...    |
 
 (Add links to issue trackers, resolution deadlines, etc. as required.)
 ----
 
-For the threat assessment, an alternative structure is to analyze each component's vulnerability to each of the six STRIDE threat types, to ascertain if a sensitive asset can be compromised by the vulnerability.
+For the threat assessment, an alternative structure is to analyze each component's vulnerability a list of threat types – eg. the STRIDE categories, or the OWASP Top 10 – to determine if a sensitive asset can be compromised by each particular attack vector.
 
 [source,markdown]
 ----
@@ -279,3 +368,12 @@ For the threat assessment, an alternative structure is to analyze each component
 
 (Repeat for each critical component and data flow.)
 ----
+
+== Useful links
+
+* https://www.threatmodelingmanifesto.org/[Threat Modeling Manifesto]
+* https://www.cve.org/[CVE - Common Vulnerabilities and Exposures]
+* https://cwe.mitre.org/index.html[CWE - Common Weakness Enumeration]
+* https://nvd.nist.gov/vuln/search#/nvd/home?resultType=records[NVD - National Vulnerability Database]
+* https://owasp.org/www-project-top-ten/[OWASP Top 10 Web Application Security Risks]
+* https://cheatsheetseries.owasp.org/[OWASP Cheat Sheets]
