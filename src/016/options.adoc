@@ -1,0 +1,236 @@
+= Options
+
+There are several mechanisms for passing options to CLI programs. By convention, the order of precedence, from highest to lowest, is as follows:
+
+* Arguments and flags
+* Local configuration files
+* Environment variables
+* User-level configuration files
+* System-wide configuration files
+
+Different classes of options are suited to different mechanisms of input.
+
+== Defaults
+
+It is important for CLI programs to have good defaults. Making things configurable is good. But most users crave convenience above all.
+
+The most commonly-used options SHOULD form the basis of a command's default configuration.
+
+== Arguments and flags
+
+Arguments and flags are options that are inputted directly to commands. These options MUST override options configured via all other input mechanisms – environment variables and all types of configuration files.
+
+Not all input options need to be implemented as arguments and flags. Only the options that are the most likely to vary between invocations should be implemented as arguments and flags.
+
+Arguments and flags are distinct from one another:
+
+* *Arguments* or *args* are positioned parameters to a command. For example, the file paths you provide to `cp` are arguments. Their order is significant: `cp foo bar` is not equivalent to `cp bar foo`. (Arguments look similar to, but are distinct from, subcommands. A command cannot have both arguments and subcommands.)
+
+* *Flags* are named parameters. Unlike arguments, the order of flags should not affect program behavior. In Unix-like systems, flags take one of these two formats:
+
+  * `--<name>`, where `<name>` is a word, eg. `--recursive`, or hyphenated phrase, eg. `--no-recursive`.
+  * `-<x>`, where `<x>` is a single-letter abbreviation, eg. `-r`
+
+As a general rule, arguments SHOULD be used for required options and flags for optional ones. But there are plenty of exceptions to this rule. In some CLIs, it will make perfect sense to have optional arguments and mandatory flags.
+
+Where an input option could be implemented as either an argument or a flag, prefer the flag. Flags take more typing, but they make for a clearer self-documenting API, they are more flexible because they can be applied in any order, and they are more future-proof because we can more easily add new flags in a backwards compatible manner.
+
+Arguments SHOULD be used only for tightly-scoped, single-purpose operations that are likely to be frequently run by your users, and that will unlikely ever change in the lifetime of the tool. Good examples include `cp [source] [destination]` and `rm [file1] [file2] ...`.
+
+Good examples of use cases for flags include enabling "safe mode" or "dry run" operations, and "forcing" destructive and dangerous operations to complete without user confirmation (to support non-interactive environments). In fact, these are the sorts of options that SHOULD _only_ be inputted via flags, and not via other mechanisms such as configuration files.
+
+All flags MUST be implemented using the long-form notation, eg. `--help`. Err on the side of clarity over brevity every time. Short-form flags MAY be implemented as shorthand aliases of the long-form versions. It is RECOMMENDED to reserve short-form aliases for a subset of flags that are the most useful for human users, such as `-h` for `--help`. There should not be too many short-form flags; there is a finite number of one-letter flags you can add to a program, so be wary of polluting this particular namespace.
+
+Normally, flags behave as boolean toggles. Alternatively, flags may take an input value. In Unix, the syntax is `--flag value` or `--flag=value`. For flags that accept a value, try to design the flag so that the value is optional – have a sensible default. For some use cases, you might consider allowing a special word like "none" to refer to no value at all. For example, `ssh -F` accepts an optional filename (an alternative path to `ssh_config`) but `ssh -F none` runs SSH with no config file at all.
+
+Follow existing patterns and choose standard and conventional names for flags. Here's a list of common flags used in Unix programs:
+
+|===
+|Flag |Abbr. |Description |Examples
+
+|`--all`
+|`-a`
+|All
+|`ps`, `fetchmail`
+
+|`--debug`
+|`-d`
+|Show debugging output
+|
+
+|`--force`
+|`-f`
+|Force a destructive or dangerous operation without confirmation
+|`rm`
+
+|`--json`
+|
+|Display JSON output
+|
+
+|`--help`
+|`-h`
+|Show help text
+|
+
+|`--no-input`
+|
+|Non-interactive mode
+|
+
+|`--output`
+|`-o`
+|Output file
+|`sort`, `gcc`
+
+|`--port`
+|`-p`
+|Port
+|`psql`, `ssh`
+
+|`--quiet`
+|`-q`
+|Quiet mode (display less output or none at all)
+|
+
+|`--user`
+|`-u`
+|User
+|`ps`, `ssh`
+
+|`--version`
+|
+|Version
+|
+
+|`--verbose`
+|
+|Verbose output
+|
+|===
+
+Note that `-v` is varyingly used as an abbreviation for "version" and "verbose". To avoid confusion, it is best to not use this short-form flag at all. Ideally, when this flagged is used, suggest what other flags the user can try instead.
+
+----
+$ my-tool -v
+The flag "-v" is not recognized. Did you mean "--version"?
+----
+
+=== Inputting secrets via arguments and flags
+
+In most environments, programs SHOULD NOT read secrets from arguments or flags such as `--password`. In Unix, secrets passed as arguments and flags will leak into the output of the `ps` command, and potentially the shell history too.
+
+Best practice is for CLI programs to accept secrets only via files or stdin.
+
+So, a `--password-file` flag is better than `--password`. A `--password-file` flag, in which only a local file path is passed to the program, is more secure. Passwords are not leaked into the command history, and the user has control over the permissions on the file that stores the password.
+
+(Note, in Unix shells it's possible to pass a file's contents into an argument, eg `--password $(< password.txt)`, but this has the same security concerns as typing the password directly into the command.)
+
+It is also safe to prompt users for passwords and other secrets, so programs capture them from stdin. But to support non-interactive environments you SHOULD provide an alternative means for secrets to be inputted non-interactively.
+
+== Configuration files
+
+Configuration files can exist at three levels in the user's filesystem:
+
+* Localized (directory-scoped)
+* The user level
+* The system level (aka. global)
+
+Configuration files have precedence in that order, from highest to lowest. Configuration files under the user's home directory take priority over system-wide configurations, and local configuration files – ie. configurations set within the scope of the execution of an instance of the software program – take precedence over both system-wide and user-level configs.
+
+=== User-level and system-wide configuration
+
+Options that are very likely to stay consistent from one invocation to the next, on the same computer, SHOULD be configurable via centralized user-level or system-wide configuration files.
+
+User-level configurations, which are normally stored in the user's home directory, tend to be used for things like specifying how color should be used in output, providing non-default paths to dependencies, and configuring HTTP proxy servers to route all requests through – things that are preferences or requirements of individual users.
+
+For both system-wide and user-level configurations on Unix-like systems, it is RECOMMENDED to follow the XDG Base Directory specification. It specifies the location of base directories where config files may be located. A goal of this standard is to limit the proliferation of dotfiles in a user's home directory by supporting a general-purpose `~/.config` folder. The XDG Base Directory specification is supported by a wide range of programs including `yarn`, `fish`, `wireshark`, `emacs`, `neovim`, and `tmux`.
+
+* https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html[Full specification]
+* https://wiki.archlinux.org/index.php/XDG_Base_Directory#Specification[Summary]
+
+=== Local configuration
+
+Configurations that are scoped to the execution of a program within a particular directory are called local configurations. Local configuration files include `Makefile`, `package.json`, `docker-compose.yml`, and `.env` files. For example, the existence of a `Makefile` in a project directory controls the behavior of `make` within that directory.
+
+Local configuration files are commonly used to control the behavior of tools used to automate software development processes within the context of a project directory. These files are typically committed to version control systems, so the configurations can be shared and installed consistently in multiple environments.
+
+Typically, local configuration files override environment variables, user-level configurations, and system-wide (global) configurations. The purpose of local configuration files is to be able to share the same configuration of a tool among multiple users and environments, so the tool behaves consistently in different contexts.
+
+=== External configurations
+
+If your program needs to modify a configuration file that does not belong to your program, it MUST ask for the user's consent before doing this. But prefer instead to create a new config file (eg. `/etc/cron.d/my-app`) rather than appending to an existing ones (eg. `/etc/crontab`).
+
+== Environment variables
+
+Environment variables SHOULD be used to vary behavior of commands based on the context in which they are run. In the case of Unix CLI programs, the environment is the terminal session.
+
+For maximum portability, environment variable identifiers MUST contain only upper case ASCII letters, with underscores delimiting words. Numbers MAY be included, but identifiers MUST start with a letter.
+
+It is RECOMMENDED to repurpose standard, general-purpose environment variables where appropriate. The following are useful to know about:
+
+|===
+|Name |Description
+
+|`NO_COLOR`
+|Disable colorful output
+
+|`DEBUG`
+|Enable more verbose output
+
+|`EDITOR`
+|The user's preferred program for editing files or inputting multiple lines of text
+
+|`HTTP(S)_PROXY`, `ALL_PROXY`, `NO_PROXY`
+|Check these when performing network operations
+
+|`SHELL`
+|Open interactive sessions in the user's preferred shell
+
+|`TMPDIR`
+|Use this directory to store temporary files
+
+|`HOME`
+|The user's home directory, used to locate user-level configuration files
+
+|`PAGER`
+|The default tool to enable paged output
+
+|`LINES`, `COLUMNS`
+|Use these to adjust output based on screen size
+|===
+
+For environment variables that are specific to your program, it is RECOMMENDED to prefix the env vars with a unique identifier for your program, to avoid conflicts with other applications. In particular, avoid clashes with POSIX-standard environment variables, which are https://pubs.opengroup.org/onlinepubs/009695399/basedefs/xbd_chap08.html[listed here].
+
+Environment variables have a disadvantage of being limited to one data type: string. Multi-line string values are possible, but programmers should aim for configurations to be composed of online single-line string values. Multi-line strings create interoperability problems (eg. with some `.env` file parsers) and usability issues (eg. with some `env` commands).
+
+=== `.env` files
+
+Environment files, which are normally named `.env`, are a convention for declaring environment variables through local configuration files. This convention is widely supported, with most mainstream programming languages having built-in libraries for reading `.env` files.
+
+Unlike most other types of local configuration, `.env` files tend _not_ to be committed to version control.
+
+The purpose of `.env` files is to give users the convenience of being able to set environment variables on a directory-by-directory basis. Where there are valid use cases for adjusting the configuration of a tool on a directory-by-directory basis (eg. project-specific configurations), you SHOULD consider making the tool recognize `.env` files.
+
+All options that can be set in a `.env` file MUST be settable via conventional environment variables, too. When a `.env` file is loaded, its settings SHOULD override actual environment variables with the same identifiers, but only within the scope of the `.env` file's directory path.
+
+You MUST NOT use `.env` files as a substitute for proper configuration files, which are more versatile (eg. supporting more types) and can be stored more securely (eg. outside of version controlled directories).
+
+=== Inputting secrets via environment variables
+
+We MUST NOT design CLI programs to read secrets from environment variables. This will encourage users to store sensitive information in environment variables, which are prone to leakage, for the following reasons:
+
+* Exported environment variables are sent to every process, and from there can easily leak into logs.
+
+* Shell substitutions like `curl -H "Authorization: Bearer $BEARER_TOKEN"` will leak into globally-readable process state.
+
+* Docker container environment variables can be viewed by anyone with Docker daemon access, via `docker inspect`.
+
+* Environment variables in systemd units are globally readable via `systemctl show`.
+
+As explained in the section on arguments and flags, best practice is to accept secrets only via files and stdin.
+
+[NOTE]
+======
+This rule applies to CLI programs that are widely distributed. Environment variables are actually a great way of injecting secrets into applications at runtime, when those applications are deployed to environments that you control.
+======
