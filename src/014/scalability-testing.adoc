@@ -1,0 +1,35 @@
+= Scalability testing
+
+Scalability testing evaluates the system's ability to accommodate increasing workloads by adding resources — and to release those resources when demand subsides. Where capacity testing determines the limits of a fixed configuration, scalability testing determines how effectively the system can grow beyond those limits.
+
+There are two fundamental approaches to scaling:
+
+* *Horizontal scaling* (scaling out) — adding more instances of the application to distribute load. This approach is RECOMMENDED for web services and cloud-native applications because it offers theoretically unlimited growth and avoids single points of failure.
+
+* *Vertical scaling* (scaling up) — increasing the resources (CPU, memory, storage) available to a single instance. Vertical scaling is simpler to implement but has hard limits defined by the available hardware, and provides no redundancy.
+
+Most modern systems are designed for horizontal scalability, but few are truly scalable in practice without deliberate architectural choices. State management, session affinity, database contention, and shared resource locking can all prevent a system from scaling horizontally, even when the infrastructure supports it.
+
+Scalability testing evaluates several dimensions:
+
+* *Provisioning speed* — how quickly new instances can be brought online when demand increases. If auto-scaling is configured, this is the time lag between a spike in demand and the availability of additional capacity. A system that takes ten minutes to scale while traffic doubles every two minutes will still suffer outages despite having auto-scaling in place.
+
+* *Scaling efficiency* — whether adding resources produces a proportional increase in capacity. If doubling the number of instances increases throughput by only 30%, the system has a scaling bottleneck — often in shared infrastructure such as databases, caches, or message brokers.
+
+* *Scale-down behavior* — whether the system can safely reduce capacity when demand drops. Poorly designed scale-down can interrupt in-flight requests, break active connections, or leave orphaned resources consuming budget.
+
+* *Data scalability* — whether the data layer scales alongside the application. Adding application instances is futile if all of them contend for the same database connection pool. Data partitioning, read replicas, and distributed caching strategies are common solutions, but they must be tested under realistic conditions.
+
+Best practices:
+
+* Design scalability tests around realistic growth scenarios — projected increases in users, transactions, data volume, and geographic distribution.
+
+* Test auto-scaling configuration by generating load patterns that trigger scaling events, and measure the time from the scaling trigger to the availability of the new capacity.
+
+* Verify scaling efficiency by measuring throughput at increasing instance counts. Plot the results to identify the point of diminishing returns.
+
+* Test scale-down as rigorously as scale-up. Verify that active connections are drained gracefully and that no data is lost during instance removal.
+
+* Include the data layer in scalability tests. The application tier and data tier must scale together; testing only the application tier gives a false picture of the system's actual capacity.
+
+* Test under conditions that reflect production topology — including network latency between zones or regions, load balancer configuration, and DNS propagation delays.
