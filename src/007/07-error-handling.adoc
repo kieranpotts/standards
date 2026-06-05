@@ -1,0 +1,65 @@
+= Error handling
+
+.TL;DR
+****
+* Throw exceptions only for bugs and exceptional circumstances in _your_ code.
+* Don't treat third-party service failures as exceptions. Failures in external systems are expected – handle them gracefully using normal control flow.
+* Apply the robustness principle: be liberal in what you accept at boundaries, conservative in what you produce.
+* Never throw exceptions in UI/presentation layers. But do catch and gracefully handle any that bubble up to the surface.
+* Minimize the number of exception types you expose – each one adds interface complexity.
+* Applications should fail gracefully without leaking error internals.
+****
+
+Exceptions are a control flow mechanism. They represent truly exceptional circumstances — conditions that indicate a bug in your code, or anything that requires investigation by developers. Exceptions should not be used for ordinary error conditions that are expected to occur during normal program execution.
+
+This distinction is important because exceptions are expensive. They interrupt the normal flow of control, unwind the call stack, and often trigger logging and monitoring.
+
+Throwing exceptions for routine failures like network timeouts, missing resources, or invalid user input adds unnecessary overhead and obscures the difference between "something went wrong in an expected way" and "our code has a bug."
+
+== Expected failures are not exceptional
+
+Applications operate in unpredictable environments. Third-party services fail. Network requests time out. Files go missing. User input is invalid. These are not bugs in your code — they are normal operating conditions that your application should expect and handle gracefully.
+
+When calling external services or APIs, expect failures. Do not throw exceptions to signal that a network request failed or that a dependency returned an error. Instead, model these outcomes explicitly in your return types or data structures. This makes the caller aware that failure is possible, and forces them to handle it as part of normal control flow rather than as an afterthought in an exception handler.
+
+If an abstraction you're using throws exceptions in non-exceptional cases, catch them on immediate return from the calling code (don't let the exception propagate up the call stack) and handle them gracefully.
+
+Good error handling acknowledges that failures are ordinary events that require recovery, retry logic, fallback behavior, or clear communication to the user about what went wrong. None of these recovery strategies benefit from throwing exceptions.
+
+== The robustness principle
+
+.Postel's Law (aka. the Robustness Principle)
+****
+Be liberal in what you accept, and conservative in what you send.
+****
+
+Postel's Law, originally formulated for network protocol design, is a useful heuristic for error handling in application code. The idea is that your code should be tolerant of a wide range of inputs – handling edge cases, unexpected formats, and missing data gracefully – while being strict and predictable in what it produces as output.
+
+Applied to error handling, this means: don't let minor input irregularities escalate into exceptions. Instead, normalize and accommodate where possible, and produce clear, consistent error responses when you cannot.
+
+There is a tension here with defensive programming, which advocates for strict validation and early failure. Both approaches have merit, and the right balance depends on context. At system boundaries – API endpoints, user input handlers, file parsers – be liberal in what you accept, applying reasonable normalization and coercion. Within internal code – business logic, domain models, data processing – be conservative and defensive, enforcing invariants strictly so that bugs surface early and close to their source.
+
+== Exceptions in the UI layer
+
+Exceptions should never be thrown from the user-facing layers of your application. The UI or presentation layer is the boundary between your application and the outside world. It is the place where all error conditions — whether they originated from bugs in your code or from expected failures in external dependencies — should be caught, normalized, and converted into user-friendly error messages.
+
+Throwing exceptions allows errors to propagate unchecked through the UI layer, where they may expose sensitive information about your application's internals, infrastructure, or data structures to end users. This is both a security concern and a poor user experience.
+
+== Fail gracefully
+
+When operations fail, applications should respond with grace. This means:
+
+* Catching errors at appropriate boundaries in your code.
+* Transforming technical error details into meaningful, actionable messages for users.
+* Hiding internal implementation details and infrastructure specifics.
+* Offering recovery options where possible – retry, alternative actions, etc.
+
+The goal is that users experience failures as understandable, recoverable situations, not as cryptic error dumps or application crashes.
+
+== Minimize exception types
+
+Error handling is a significant source of complexity in software systems. Every distinct exception type you throw is part of your module's public interface. The more exception types you expose, the more complex the calling code becomes, because callers may need to handle each type differently.
+
+Throwing lots of different exceptions is not a sign of better design. It is a sign of leaking complexity. Prefer a small number of well-defined exception types that communicate clearly what went wrong, rather than a proliferation of fine-grained types that mirror every internal failure mode.
+
+Better still, design your system to minimize special cases and edge cases in the first place. Reducing conditional logic and normalizing data early in the pipeline means fewer error paths to handle downstream.

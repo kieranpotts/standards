@@ -1,0 +1,58 @@
+= Dependency management
+
+.TL;DR
+****
+* Be judicious about external dependencies. Perform cost/benefit analysis before adopting them.
+* Wrap all external dependencies in good abstractions (facade pattern).
+* Manage dependencies explicitly: either vendor them or pin versions in configuration.
+* Understand that dependencies carry real risks: maintenance, security, supply chain, and opacity.
+* Building things yourself, where reasonable, improves your understanding and control.
+* Use dependency injection to make internal dependencies explicit and replaceable.
+* Keep configurable values high in the call stack; don't hardcode them into implementations.
+****
+
+Libraries are the ultimate abstractions. They are extracted such that they can be reused between software systems, let alone in the same system.
+
+Managing external dependencies is a key skill in modern software development. The success of open source licensing has substantially reduced the cost of developing software by abstracting common problems to globally-shared libraries. It's an incredible ecosystem.
+
+Libraries and frameworks solve common problems much faster than building from scratch. But dependencies are not free. They carry tangible costs that need to be weighed against their benefits.
+
+Using external dependencies involves several trade-offs:
+
+* *Maintenance and security risk*: You are responsible for understanding and vetting all code shipped to production, including code in your dependencies. When you update a dependency, you inherit not just bug fixes but also the risk of newly introduced vulnerabilities or performance regressions. Worse, supply chain attacks specifically target popular packages. Attackers develop useful libraries, build up popularity and trust, then inject malicious code via a patch. You need a strategy for monitoring and updating dependencies safely.
+
+* *Size and compilation overhead*: Libraries and frameworks increase your codebase size, which affects startup time, compilation time, and deployment size. In some contexts – mobile apps, embedded systems, or performance-critical services – this overhead can be significant.
+
+* *Opacity and loss of control*: External libraries hide design trade-offs, failure modes, and potential security attack vectors. When you implement a feature yourself, you understand exactly how it works, what could go wrong, and how to debug it. A black-box dependency obscures this knowledge.
+
+* *Learning opportunity*: Building core functionality yourself, even when libraries exist for it, deepens your understanding of your system and strengthens your craft. It's often more rewarding than assembling pre-built components.
+
+So, be selective in what dependencies you introduce. Evaluate each dependency carefully. Ask, what problem does this solve, could we solve it ourselves, what's the maintenance burden, how stable is the project, and how large is the dependency tree it brings with it? Make this analysis explicit and document your decisions.
+
+Once you adopt a dependency, isolate it. Create good abstractions (using the facade pattern) for all external dependencies, including infrastructure-level ones like database access, file system I/O, remote services, and external APIs. This shields your application code from changes in the dependency and makes it easier to swap implementations or remove dependencies later.
+
+Manage your dependencies explicitly. Pin specific versions in your vendor configuration files. Never rely on floating version constraints that could pull in unexpected changes during installation. Better still, consider _not_ using a package manager, and instead add  third-party libraries directly to your codebase (usually in a `vendors` or similar directory). This is more work, but it has numerous advantages:
+
+* It's easier to audit your application's dependencies. You get clearer visibility of the dependency tree.
+
+* You will be forced to maintain shallow dependency trees, which in turn reduces the risk of supply chain attacks.
+
+* You are forced to introduce your own tests for each dependency – which is good practice but often overlooked.
+
+* You'll be able to reproduce builds for any prior version of your software. There's no risk that earlier versions of dependencies will no longer be available from public code registries. This is a requirement if you want to implement a deployment strategy with automated rollback.
+
+* Your code repository has everything you need to build and run your application. New developers can onboard more quickly. CI/CD pipelines run more quickly, too.
+
+== Dependency injection
+
+Dependency injection is a design pattern in which a component's dependencies are supplied to it from outside, rather than constructed inside it. Instead of a class instantiating its own collaborators with `new`, it receives them as constructor arguments or method parameters.
+
+This pattern makes dependencies explicit – there is no hidden coupling buried in the implementation. It also makes components easier to test, because dependencies can be replaced with test doubles without modifying the component under test. And it makes it straightforward to swap implementations, which aligns directly with the principle of wrapping external dependencies in good abstractions.
+
+At a higher level, dependency injection is an application of the inversion of control principle: high-level modules should not depend on low-level modules directly. Both should depend on abstractions.
+
+== Configuration and hardcoded values
+
+Consistent with the dependency injection principle, keep configurable values – environment-specific settings, thresholds, timeouts, feature flags, format strings – as high in the call stack as possible. Do not hardcode such values into low-level implementation logic, where they are difficult to find, change, and test. Instead, inject them where needed.
+
+Configurable values buried deep inside implementation code are not obvious to callers. It is unclear that they exist, where to change them, or whether changing them in one place would affect other parts of the system. Lifting configurable values to the top level – into configuration objects, constructor parameters, or environment variables read at startup – makes the configuration surface of the system visible and easy to manage.
