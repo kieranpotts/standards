@@ -1,0 +1,33 @@
+= Definitions
+
+Webhooks, also known as web callbacks or HTTP callbacks, are a design pattern to support integrations between web services that are owned and operated by different organizations.
+
+Webhooks can be thought of as a sort of "reverse API". Rather than clients polling an upstream service for updates, the service pushes information to clients when certain events occur. For example, an upstream payment gateway may send a notification to a client application when a payment is processed successfully. The client implements special HTTP endpoints – which are the actual "webhooks" – to receive event notifications from the upstream service.
+
+Webhooks support the efficient synchronization of data between systems that are otherwise entirely independent of each other. Near real-time synchronization is possible.
+
+Webhooks typically sit alongside regular HTTP APIs, though this is not a requirement.
+
+== Relationship to message-driven architecture
+
+Webhooks are a subset of message-driven communication patterns. In the webhooks pattern, event-oriented messages are exchanged via HTTP between systems owned and operated by different parties (ie. inter-organization communication), rather than between services operating within a single internal networks (ie. intra-organization communication).
+
+Inter-organization messages and intra-organization messages serve different purposes and have different security requirements and design considerations. Nevertheless, similar design trade-offs apply to both, and the general principles of good message design outlined in *link:../017/README.adoc[TS-17: Messages and Events]* also apply to webhooks.
+
+== Client versus server
+
+A note on the use of the terms "client" and "server" in the context of webhooks.
+
+Webhooks _do not_ reverse the client-server relationship.
+
+Consider a website that integrates with a payment service to handle payment card transactions. In this example, the website is the client and the payment gateway is the server. When a user makes a payment on the website, the website sends an HTTP request to the payment gateway to process the payment. When the payment is successfully processed, the payment gateway sends an HTTP request to the website, via the client's webhook endpoint, to notify it of the successful payment.
+
+Although it is the payment gateway that initiates the webhook request, the payment gateway is still the server and the website is still the client, in terms of their conceptual relationship to each other.
+
+Webhooks are an asynchronous communication pattern. In our example, the second request-response cycle – the webhook notification sent from the payment gateway back to the website – is actually a _delayed response_ to the first request initiated by the website.
+
+In terms of the semantics of HTTP, however, the client and server _are_ swapped around when the payment gateway sends the webhook notification to the website. The payment gateway is now the client, and the website is now the server. The normal semantics of HTTP response status codes apply.
+
+For clarity, this technical standard uses the term "producer" to refer to a system that sends a webhook event message, and "consumer" to refer to the system that receives it. This terminology avoids confusion around which is the client and which is the server.
+
+A web service may be a producer or a consumer, or both or neither.

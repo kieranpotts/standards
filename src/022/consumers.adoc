@@ -1,0 +1,93 @@
+= Consumers
+
+Consumers implement _private_ endpoints – the "webhooks" themselves – to receive event notifications from one or more third-party services (the event producers).
+
+Webhook endpoints may sit alongside a public HTTP API (or another kind of web interface), or they may be hosted independently. But webhook endpoints are not part of the public interface of the service that exposes them. Webhooks are special-purpose endpoints that exist only to facilitate integration with third-party systems on which the service depends. These endpoints are not used directly by the service's own users/customers, and are not included in any user-facing documentation.
+
+The design of webhook endpoints may be very different from the adjacent endpoints of the service's own HTTP API. The main design consideration for consumers is the URL scheme of their webhook endpoints. Indeed, often this will be the only thing over which the consumer will have any control. The upstream service that produces the events will dictate things like the payload schema and the authentication method that their consumers' webhook endpoints will be required to support.
+
+== URL schemes
+
+The URL scheme for webhooks MUST be distinct from the endpoints of the service's own HTTP API (if it has one). The aim is to avoid conflicts and allow the webhook endpoints to evolve independently of the main API endpoints.
+
+The following URL scheme is RECOMMENDED for webhooks.
+
+----
+/_webhooks/{party}/{namespace}/v{version}/{event_type}/{...}
+----
+
+Where:
+
+* The initial `/_webhooks/` path component is RECOMMENDED to clearly differentiate webhook endpoints from the main API endpoints of the service. The underscore prefix indicates that these endpoints are for internal use and are not part of the public HTTP API of the service. This path naming convention may also make it easier to differentiate cross-cutting concerns such as security policies, routing rules, monitoring, and logging configurations for webhook endpoints.
+
+* `{party}` is the name of the third-party service (an event producer) that sends events to the endpoint. This URL path component is REQUIRED.
+
+* `{namespace}` is an OPTIONAL path component used to scope a webhook to a particular service of the third-party event producer. This path component is recommended only if a third-party offers multiple services, each of which emits events in different formats, and which therefore require differential handling by consumers.
+
+* `{version}` is an OPTIONAL path component that identifies the version number of the event producer's webhook API or event schema that is supported by the endpoint. This can be omitted if the endpoint is designed to handle multiple versions of the producer's event schema in a backward-compatible way.
+
+* `{event_type}` is an OPTIONAL path component that identifies a particular type of event that the endpoint is designed to receive. Normally, a single webhook endpoint is sufficient to handle all events from a particular producer. However, there may be cases where it is beneficial to have multiple webhooks handling different types of events. This can be useful where different event types require different processing logic. If this is not required, this URL path component MAY be the word "callback" or it MAY be omitted altogether.
+
+* `{...}` refers to any additional URL path components that are required by the event producer, for example for the purpose of passing resource identifiers.
+
+=== Examples
+
+The following URLs follow the above scheme:
+
+* `/_webhooks/authentiq/v3/callback`
+* `/_webhooks/true-id/callback`
+* `/_webhooks/transactify/v1/transaction-initiated`
+* `/_webhooks/transactify/v1/transaction-complete`
+* `/_webhooks/transactify/v2/transaction-initiated`
+* `/_webhooks/transactify/v2/transaction-complete`
+
+This fictional service exposes six webhook endpoints, which are used to receive notifications from three third-party event providers:
+
+* One webhook is for a service called AthentiQ. A single endpoint is used to process all events emitted by this producer. The endpoint supports version 3 of AuthentiQ's webhook event schema.
+
+* There's a similar webhook for a service called TrueID. This endpoint is not versioned, which means it could handle multiple versions of TrueID's webhook event schema if needed. We're pretending that this is an older identity verification service that is being phased out, to be replaced by AuthentiQ. In this transition phase, the system needs to support both producers – TrueID and AuthentiQ – in parallel. This demonstrates that this URL scheme supports zero-downtime transitions to alternative service providers.
+
+* Four endpoints handle notifications from a service called Transactify. There's one endpoint to process "transaction-initiated" events, and another endpoint to process "transaction-complete" events. The system supports two different versions of Transactify's event schema. Perhaps most notifications are now sent to the v2 webhooks, but the system still needs to support the legacy v1 schema for a period of time, for example to handle retries and updates of historical events, before its deprecation.
+
+These example demonstrate that the URL scheme supports multiple event producers, multiple event types, and multiple versions of the same event producer's event schema. The URL scheme makes it possible to incrementally transition from one service provider to another, eg. swapping the payment service gateway, without breaking your own service. It also supports incremental transitions to new event schemas, published by one service provider, that are breaking changes to the existing schema.
+
+== Versioning
+
+The `{version}` component in the URL scheme is independent of the versioning scheme for the consumer's own HTTP API (if it has one). It may vary between webhook endpoints, too.
+
+In an HTTP API, most endpoints will be scoped to a particular version of the API service itself. But webhook endpoints are different. These are scoped to the versions of the message schema that producers send to the webhook endpoints. Since it is the event producer that specifies the interface contract for its webhooks – the HTTP methods, payload structures, authentication mechanisms, and so on – then the `{version}` value is determined by them.
+
+By including the message schema version in their webhook URL schemes, consumers can incrementally transition to new breaking-change schemas without breaking their own services. During these transition periods, consumers might have duplicate webhook endpoints, like this:
+
+* `/_webhooks/{party}/v3/receive-event`
+* `/_webhooks/{party}/v4/receive-event`
+
+[TIP]
+======
+If a producer does not explicitly version their webhook payload schema – this happens often! – then it is RECOMMENDED to scope the webhook URLs to the current major version of the producer's own web service API. If this is not possible either, you can invent your own versioning system for the producer. This could be as simple as using the terms "latest" and "next" for the `{version}` path component.
+======
+
+== Timeouts
+
+Producers of webhook events will often impose timeouts on how long they will wait for a response from their consumers' webhook endpoints. If a consumer does not respond within the timeout period, the producer will treat it as a failed delivery attempt. Some producers may retry failed messages; others may not.
+
+The timeout period is normally specified in the producer's documentation. This is usually quite short, typically 15 to 30 seconds. If the producer does not specify a timeout period, then it is RECOMMENDED to assume a timeout of 10 seconds.
+
+Due to the potentially high latency of network communication, and the variable load on the consumer's servers, it is RECOMMENDED that webhook endpoints be designed to handle messages asynchronously. This means that the consumer should log messages on a queue, to be processed later, and quickly return success status codes to the producer – `202 Accepted` is appropriate here.
+
+== Status codes
+
+When integrating with third-party services via webhooks, those third-party services may require you to return specific status codes to indicate success or failure in your processing of their webhook messages. If the producer specifies the status codes that it expects in response, then you MUST comply with those requirements to ensure proper integration with their systems. Processes such as retries and dead-letter queues will likely be triggered by particular response codes from your consumer service.
+
+But if a producer does not specify the status codes that it expects, then consumers SHOULD follow the following best practices.
+
+It is RECOMMENDED to return a `202 Accepted` for all success scenarios. This code indicates that the event has been accepted for processing, but the processing has not been done yet. This is appropriate for most webhook event receipts, as it allows the recipient to process the request asynchronously.
+
+To indicate errors, if the producer does not specify what error codes it expects, then the following response codes are RECOMMENDED:
+
+* `400 Bad Request` for client errors, which you should return when an event message fails to validate against the expected schema.
+* `401 Unauthorized` for failed authentication checks.
+* `403 Forbidden` for failed authorization checks (permissions, scopes).
+* `404 Not Found` when the webhook endpoint does not exist, for example it has been deprecated or moved.
+* `429 Too Many Requests` when rate limits have been exceeded.
+* `500 Internal Server Error` for any scenario in which your application encounters an unexpected condition that prevents it from completing its handling of the message. When you return a `5xx` code, you are basically saying to the client "please retry this later, I can't handle your request right now".
