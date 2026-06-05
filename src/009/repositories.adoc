@@ -1,0 +1,235 @@
+= Repositories
+
+This section defines best practices for organizing, managing, and structuring code repositories within software projects. It covers repository cloning workflows, repository naming conventions, and repository scoping and boundaries.
+
+== Cloning workflows
+
+For each code repository, there MUST be a single centralized instance that is the "source of truth" for the codebase. This is known as the *reference repository*.
+
+For public open source software projects, some contributors will have read-only access to the reference repository. In this case, the external contributors must fork the reference repository to another Git server under their control, before cloning their fork to their local development environment. This is known as the *fork-and-clone workflow*.
+
+// TODO: Update this image for consistency with others.
+image::./_/fork-and-clone.svg[]
+
+The reference repository and its forks are collectively known as *upstream repositories*, because they are upstream to the local development environments where changes are implemented. The upstream repositories are hosted on central servers, usually managed by a specialist hosting provider such as GitHub or GitLab.
+
+All contributors MUST implement changes in copies of the reference repository that are downloaded (cloned, in Git terminology) to their local development environments. These clones are called *local repositories*.
+
+// TODO: Update this image for consistency with others.
+image::./_/repositories.svg[]
+
+A local repository provides an isolated development environment, allowing multiple contributors to work in parallel.
+
+== Repository scope
+
+The boundaries of code repositories SHOULD NOT be arbitrary. A repository is not merely a container for a random assortment of code. Rather, the boundaries of repositories SHOULD reflect the boundaries of software components – applications, services, or libraries.
+
+A repository should encapsulate all relevant application code and configuration, tests, requirements specifications, technical documentation, user documentation, infrastructure configuration, and any other artifacts that are relevant to a discrete software component.
+
+Within multi-team organizations, the boundaries of repositories should also map to the boundaries of responsibilities of the teams. Each repository SHOULD be owned by exactly one team. One team MAY own more than one repository, but all repositories under a single team's ownership SHOULD be closely related (eg. fall under the same business subdomain or bounded context).
+
+== Self-contained repositories
+
+A self-contained repository is one that encapsulates everything needed to build, run, test, and deploy a software component, without relying on external state or dependencies that are not themselves configured within the repository.
+
+The goal is for developers to be able to check out a repository, run scripts stored in the repository, and quickly have a complete working application in an isolated development environment on the local host machine – all configured in the repository itself. This process should depend only on dependencies configured in the repository and installable automatically. This constraint supports the objectives of simplicity (developers need minimal setup) and continuous delivery (rapid reproducibility of prior versions).
+
+In addition, developers SHOULD be able to check out _any prior version_ from a repository's history and be able to build, run, test, and deploy that version – without relying on any external dependencies that are not configured at the same version point in the same repository.
+
+If an application calls other external systems or services, it MUST be possible to operate the application without error when those external systems are unavailable. One possible solution involves having a "development mode" or "test mode", under which the running application uses fakes in place of external dependencies.
+
+Dependencies SHOULD NOT be committed to version control. Bloating Git with vendor libraries and other binary artefacts slows clone operations and is poorly suited to Git's strengths.
+
+Instead, use a *binary repository manager* — such as JFrog Artifactory, Sonatype Nexus, or AWS CodeArtifact — to host and proxy your dependencies. Combined with package *lock files* (eg. `package-lock.json`, `poetry.lock`, `Cargo.lock`), which pin exact versions and MUST be committed to version control, this approach guarantees reproducible builds without bloating Git. Binary repository managers also protect against upstream registries changing or disappearing — a real risk for long-lived projects.
+
+The constraint of self-contained repositories, together with lock files and a binary repository manager, helps to ensure the reproducibility of builds, which is necessary to support continuous deployment and automated rollback practices.
+
+== Mono-repos
+
+Mono-repos MAY be used to encapsulate two or more related software components, and they are REQUIRED where two or more software components are so tightly coupled that they must always coexist – the components must be built, run, tested, and deployed together.
+
+Keeping coupled components together in the same repo means that changes to one component can be easily made in the context of the other components that depend on it. This can help to manage breaking changes, and it maintains the principle of self-contained repositories.
+
+For example, a mono-repo may be appropriate to manage the code and configuration for two or more tightly-coupled microservices. Even if those microservices are each independently deployed, if changes in code and configuration must be synchronized across the microservices, for example due to shared data stores or APIs, then those microservices SHOULD be maintained together in the same repository.
+
+It SHOULD be possible to run a complete deployment operation from a single repository, without requiring coordination with other deployments from other repositories.
+
+All components in a mono-repo SHOULD have the same version numbers. Within a repository, everything at the same revision SHOULD work together. This means that the repository itself can be tagged with release points, rather than these being captured in code and configuration within the repository's contents, which would be necessary for multi-versioned components. Using repository-level versioning signifies the tight coupling between the software components maintained in the repository, and thus the need to version them together.
+
+== Repository naming conventions
+
+A clear repository naming convention, standardized across teams and projects, makes it easier to:
+
+* Quickly identify the purpose and content of a repository.
+* Search and retrieve repositories more effectively.
+* Share workflow automations (eg. CI/CD workflows could dynamically adjust based on a repository's name).
+
+It is RECOMMENDED to:
+
+* Prefix repositories with the name of the team, subdomain, or project. Prefer to use codenames for this purpose.
+
+* For repositories that are not scoped to any particular project or team, and which are relevant to the whole organization, use a generic prefix like `common__`, `shared__`, or `global__`, or the name of the organization itself.
+
+* In keeping with the principle of self-contained repositories, it is best practice to encapsulate all code and configuration for a discrete software component in a single repository. When this is not possible, use a consistent repository name with a suffix to identify the individual subcomponents, eg. `--app`, `--db`, `--config`, `--docs`, `--infra`, `--lib`, `--test`, `--tool`, etc.
+
+* If different versions of a software component are maintained in different repositories, append a version identifier to the repository name, eg. `-legacy`, `-next`.
+
+* Use lowercase US-ASCII letters only. Avoid including numbers and do not include special characters. Use hyphens to separate words in the repository name.
+
+* Repository names SHOULD be short but descriptive of the _domain_ of the software component. Do not reference the technology stack in the repository name. The technology stack is an implementation detail that can change over time, and it (usually) does not help to identify the contents of the repository. If you want to identify the technology stack, hosted repository services like GitHub and GitLab allow you to add descriptions, metadata, labels, tags, or topics to repositories.
+
+.Repository naming convention
+----
+<project>__<component>[-<version>][--<subcomponent>]
+----
+
+.Examples
+----
+global__requests-for-comments
+global__technical-standards
+phoenix__http-api-v1
+phoenix__http-api-next
+phoenix__website--app
+phoenix__website--db
+phoenix__website--infra
+titan__android-app
+titan__ios-app
+titan__ios-app-next
+----
+
+[TIP]
+======
+It is RECOMMENDED to use internal codenames to identify projects, products, customers, or systems. The codenames will not need to change if a product name, or some other external brand identity, changes. For example, a repository named `phoenix__website` may encapsulate the source code for a website for a company called "Initech", where "phoenix" is the internal codename for that customer. The company can change its brand name and you won't need to update extensive code and configuration to reflect that change.
+======
+
+== Preparing new repositories
+
+To prepare new Git repositories, it is RECOMMENDED to first create the upstream reference repository. This is done via GitHub, or whatever Git hosting service is being used.
+
+Next, clone the reference repository on your local machine. It is RECOMMENDED to use the SSH protocol, which has a stronger security profile than HTTPS. Example:
+
+[source,sh]
+----
+git clone git@<host>:/<team>/<repo>.git
+----
+
+Alternatively, create an empty directory on your computer, change to that empty directory, and then initialize a blank Git repository within it.
+
+[source,sh]
+----
+mkdir <repo>
+cd <repo>
+git init
+----
+
+When you directly `git clone` an upstream repository, Git assigns the identifier "origin" to refer to the upstream repository from where the clone originated. This doesn't happen when you initialize a Git repository from scratch, so you must run the following command to manually configure the location of the upstream repository.
+
+[source,sh]
+----
+git remote add origin git@<host>:/<team>/<repo>.git
+----
+
+If you have followed the fork-and-clone workflow to contribute to an open source project, you SHOULD add a remote named "upstream" to point to the reference repository that is upstream from your fork repository ("origin"). You will need this if you want to keep your local clone synchronized with the project's reference repository – the project's source-of-truth.
+
+[source,sh]
+----
+git remote add upstream git@<host>:<team>/<repo>.git
+----
+
+Before you can set up the branches, you need to have some files to commit. Start by creating the project's README.
+
+[source,sh]
+----
+touch README.adoc
+echo "= [Project Title] >> README.adoc"
+----
+
+Now stage it.
+
+[source,sh]
+----
+git add README.adoc
+----
+
+And commit it.
+
+[source,sh]
+----
+git commit -m "chore: add readme"
+----
+
+When you commit the README file, Git creates a default branch called `master` or `main`, depending on how Git is configured on your computer. According to the branching conventions described later in this technical standard, it is RECOMMENDED to use a default branch called `dev` (or `latest/dev` if multiple versions of the software are supported in parallel). You can rename the current branch using the `git branch -m` (move) command.
+
+[source,sh]
+----
+git branch -m dev
+----
+
+Push the new branch up to the origin repository. Use the `--set-upstream` option, or its alias `-u`, to have the local `dev` branch track a branch of the same name in the remote repository.
+
+[source,sh]
+----
+git push --set-upstream|-u origin dev
+----
+
+Since this is the first commit to the origin repository, the `dev` branch should be automatically set as the default branch. You can verify this by inspecting the repository settings in GitHub or GitLab.
+
+These are the minimum requirements to prepare a new repository. Optionally, additional branches can be created, as required. For example, to create the `test` branch that is RECOMMENDED later in this technical standard:
+
+[source,sh]
+----
+git branch test
+git checkout test
+----
+
+These two commands can be combined into one:
+
+[source,sh]
+----
+git checkout -b test
+----
+
+Alternatively, starting with Git 2.23, you can use the `git switch` command with the `--create` or `-c` option:
+
+[source,sh]
+----
+git switch --create|-c test
+----
+
+Remember to push all the branches you create to the origin repository, setting up tracking with the remote repository.
+
+[source,sh]
+----
+git push --set-upstream|-u origin test
+----
+
+Use the `git branch` command to view all the local branches you have created. Use the `--all` or `-a` option to view remote-tracked branches, too.
+
+[source,sh]
+----
+git branch --all|-a
+----
+
+== `.gitignore` files
+
+Every repository SHOULD include a `.gitignore` file that excludes editor and OS metadata, build outputs, dependency directories, environment files, and any other artefacts that should not be tracked.
+
+https://www.toptal.com/developers/gitignore[gitignore.io] provides curated `.gitignore` templates for most languages, frameworks, and operating systems; combine the relevant templates and adjust to the project's needs.
+
+Particular care SHOULD be taken to exclude files that may contain secrets — `.env`, `.env.local`, credentials, key files. Even with secret-scanning hooks (see *link:./security.adoc[]*), `.gitignore` is the first line of defence against accidental commits.
+
+== `AUTHORS` files
+
+Repositories SHOULD include an `AUTHORS` file (or `AUTHORS.md`) at the repository root, listing the people who have contributed to the project. This serves as a credit and attribution record, and gives new contributors and external readers a quick view of who has shaped the project.
+
+The file MAY be manually curated (often grouped by role, eg. "Maintainers" / "Contributors") or auto-generated from `git log` (eg. via `git shortlog -se` in a CI step). Some projects keep a separate `MAINTAINERS` file listing only the people with active responsibility, distinct from the broader contributor history in `AUTHORS`. Either convention is acceptable; the file's purpose and update policy SHOULD be clear from the file itself or the repository's `README`.
+
+`AUTHORS` is distinct from `CODEOWNERS` (see *link:./pr-config.adoc[]*): `AUTHORS` is about credit and attribution, while `CODEOWNERS` is about review routing and governance. A repository MAY have both.
+
+== Repository lifecycle
+
+Repositories that are no longer maintained — projects that have been superseded, products that have been retired, or teams that have been dissolved — SHOULD be *archived* rather than deleted. Archiving (a feature of most hosting providers) freezes the repository's contents and makes it read-only, preserving the source for historical reference, audit, and the rare case of needing to revive the project.
+
+Before archiving, the README SHOULD be updated to explain why the project is no longer maintained, when it was archived, and where to find the successor (if any).
+
+Repositories SHOULD be deleted only when there is a positive reason to do so — for example, the repository was created in error, or it contains data that must be removed for legal or regulatory reasons.

@@ -1,0 +1,285 @@
+= Branches
+
+Git supports many branching and merging strategies, including:
+
+* *Trunk-based development*: All changes are committed directly to a single perpetual trunk line. This branch is commonly called `main`, `master`, `develop`, or `trunk`.
+
+* *Feature branching*: Features, bug fixes, and other development tasks are undertaken in short-lived branches, known as feature branches or topic branches. Once the changes are stable and complete, they are integrated into the trunk line and the feature branch is deleted.
+
+* *Environment branching*: Different deployment environments are built from different branches, eg. `staging`, `production`. Automated deployment pipelines are triggered by integrating changes into these branches.
+
+* *Release branching*: Versioned releases are cut from a stable branch, and the release is prepared in its own branch before being tagged with a release number.
+
+Each of these branching strategies solves different problems, and they can be combined in various ways to model all sorts of development workflows. Elements of all these branching strategies are used in the workflow described in this technical standard, combined to support continuous integration, quality control, and scalability.
+
+== Branch types
+
+This technical standard recommends six main branch types:
+
+|===
+|Branch type |Naming convention |Purpose |Ownership |Lifespan |Protected* |Mutable |Stable |Requirement level
+
+|*Dev*
+|`dev`
+|Continuous atomic commits, integrations from temporary and epic branches
+|Team
+|Permanent
+|No
+|No
+|No
+|REQUIRED
+
+|*Test*
+|`test`
+|Quality assurance
+|Team
+|Permanent
+|Yes
+|No
+|No
+|OPTIONAL
+
+|*Ready*
+|`ready`
+|Stable, production-grade artifacts
+|Team
+|Permanent
+|Yes
+|No
+|Yes
+|RECOMMENDED
+
+|*Release*
+|`release` \| `release/<version>`
+|Release-specific artifacts
+|Team
+|Permanent \| Temporary
+|Yes
+|No
+|Yes
+|OPTIONAL
+
+|*Temporary*
+|`temp/[<id>-]<desc>`
+|Short-lived: experiments, proofs-of-concept, technical spikes, small features
+|Individuals and pairs
+|Temporary (short-lived)
+|No
+|Yes
+|No
+|OPTIONAL
+
+|*Epic*
+|`epic/[<id>-]<desc>`
+|Long-lived complex feature development, big-bang integrations
+|Teams
+|Temporary (long-lived)
+|No
+|Yes
+|No
+|OPTIONAL
+|===
+
+[NOTE]
+======
+A "protected" branch cannot be committed to directly. You can only fast-forward these branches to the tips of other branches.
+======
+
+In this workflow, the `dev`, `test`, and `ready` branches represent the trunk lines.  All three trunks share exactly the same linear commit history, though much of the time they will have different commits at their tip. Revisions are introduced first to `dev` and then flow through `test` to `ready`. This means that `dev` is often a little ahead of `test`, and `test` ahead of ready.
+
+image::./_/branches/parallel-trunks-baseline.svg[]
+
+All three trunks – `dev`, `test`, and `ready` – have an infinite lifetime and MUST NOT ever be deleted. Trunks MUST be treated as append-only stacks of commits, always fixing forward. This means that commits made to the trunks MUST be treated as immutable. Once a commit is made to a trunk, it MUST NOT be dropped or amended – though it can be reverted through a `git revert` operation, which safely adds a new commit without changing the original. These constraints are necessary because the trunks are shared by all developers and used by continuous integration and deployment pipelines and other automated processes. Volatile shared branches disrupt collaborative workflows.
+
+All commits originate on the development trunk. *All working branches — `temp/*` and `epic/*` — MUST be cut from `dev`.* New work does not originate on `test`, `ready`, or any release branch. Revisions are continuously integrated into `dev`, either via direct commits to that branch, or via temporary or epic branches that are subsequently integrated back.
+
+image::./_/branches/parallel-trunks-with-temp-branch.svg[]
+
+Revisions introduced via temporary branches are integrated back into `dev` when they're ready to be shared with other developers. The end result is as though all the changes had been made directly to `dev` in the first place. This means that the `dev` branch preserves a clean, linear commit history.
+
+image::./_/branches/parallel-trunks-with-integrated-temp-branch.svg[]
+
+The  `dev` branch is the first of the three trunks to be updated with the latest revisions to the software. Fast quality control checks, such as unit tests, are periodically run on `dev`. The `test` trunk is fast-forwarded to stable commits on `dev`. Then  more extensive, longer-running quality assurance checks are undertaken against the new tip of the `test` trunk. Finally, when all tests pass, the `ready` trunk is fast-forwarded to the passing commits on the `test` trunk.
+
+image::./_/branches/parallel-trunks-with-fast-forwards.svg[]
+
+All three trunk lines share the same linear commit history. There are no explicit merges between the trunks. What differs between the trunks is the stability of the commits at their tip. While the tip of `dev` may not always be stable, the tip of the `ready` trunk is guaranteed to always capture production-grade artifacts from which release candidates can be cut at any time. The `ready` trunk is literally _ready_ for release to production environments, directly supporting the objective of continuous delivery.
+
+An alternative way to visualize this workflow, rather than seeing the three trunks as parallel lines, is to think of them as a single mainline track, where `dev`, `test`, and `ready` are trains that have stopped at different stations along the track. `dev` is always the HEAD of the mainline track. It is always ahead of `test`, and `test` is always ahead of `ready`.
+
+image::./_/branches/single-trunk-with-fast-fowards.svg[]
+
+Another mental model is to think of `dev`, `test`, and `ready` as fixed-position stations, and the commits are a flow of trains running along the track that connects the stations. Commits originate at `dev`, pass through `test`, and journey on to `ready` and beyond. It's a continuous flow. Commits may be get backed up between stations, and not all commits stop at every station.
+
+image::./_/branches/single-trunk-with-fast-forwards-alt.svg[]
+
+The single track visualization is a more accurate representation of Git's lightweight branching model, where a branch is merely a reference to a commit.
+
+Releases are cut from the `ready` trunk via either a single long-lived `release` trunk (supporting continuous deployment) or multiple short-lived `release/<version>` branches (supporting release trains). This is covered in more detail in the section on release strategies.
+
+The trunk names are chosen to be intuitive. They indicate the stage of the software development and release cycle that the tip commits in each trunk have reached. There is no `master` or `main` branch, because these words do not have any correlation to stages of the software development lifecycle. Does the tip of a `main` branch always hold production-grade code, or does it represent the latest increment of the software, including unstable and untested changes? The answer is it varies from one project to another. In this workflow, the trunk branches are named to be unambiguous about the stage of the software lifecycle that they represent: `dev` → `test` → `ready` → `release`. The semantics of this workflow's trunks and branches will not change from one project to another.
+
+=== The development trunk
+
+The only REQUIRED branch in this workflow is the `dev` branch, the *integration branch* where all in-progress development work is brought together. It is equivalent to the `develop` branch in the legacy GitFlow workflow, and to the single `main` branch in trunk-based development. For this reason, it is RECOMMENDED that the `dev` trunk be configured as the default branch in reference repositories.
+
+Note that Git itself has no concept of a default branch; this is a feature added by hosting services such as GitHub and GitLab, which use the configured default as the target for pull/merge requests and as the branch checked out by `git clone` without further arguments.
+
+In almost all cases, the starting point for new development work will be the latest HEAD commit on the `dev` trunk. The HEAD of `dev` represents the very latest iteration of the software, which may include many changes not yet released.
+
+The objective is to integrate changes into `dev` as soon as possible — ideally multiple times per day, per developer. Frequent integration keeps every contributor's working copy close to the latest revision, which dramatically reduces the chance and severity of merge conflicts. The longer a branch diverges from `dev`, the more likely it is to need painful conflict resolution at integration time.
+
+This technical standard encourages a continuous integration workflow, in which stable, atomic commits are committed directly to the `dev` trunk. Alternatively, temporary branches may be cut from `dev`, with changes committed to those temporary branches before being integrated back into `dev`. However, the end result SHOULD be as though all changes had been committed to `dev` directly.
+
+Tests SHOULD be run against the `dev` trunk – but not necessarily the full test suite. The focus should be on providing fast feedback on the latest increments of development. In many cases, it will be sufficient to run basic linting and unit tests, and perhaps other fast quality checks. Integration tests, system tests, performance tests, and other expensive or long-running checks SHOULD be performed subsequently against the `test` trunk.
+
+All tests that run against `dev` SHOULD pass on every commit. The objective is for work on the `dev` trunk to be _reasonably_ stable, though not necessarily complete. The `dev` trunk is actively used by other developers, so if you push something to the `dev` trunk that is not yet tested or that breaks the build, you are breaking the social contract with the rest of your development team.
+
+But mistakes will happen. Particularly in continuous integration workflows, occasional instability may show up in a project's `dev` trunk. When tests fail on `dev`, resolve them quickly by pushing new fixes to it (fixing forward).
+
+=== Temporary branches
+
+Continuous integration directly on the shared `dev` trunk is RECOMMENDED for most work. However, there will be times when it is beneficial to keep your work isolated from parallel changes being introduced by other developers. Valid use cases for temporary branches include:
+
+* *Experimentation* — Trying multiple possible solutions before committing to a final implementation.
+
+* *Proof-of-concept* — Validating an architectural approach or technology choice before full implementation.
+
+* *Technical spikes* — Exploring unknown territory or researching solutions to unfamiliar problems.
+
+* *Major refactoring or rewrites* — Large structural changes that may take multiple days and require extensive testing before integration.
+
+* *Disruptive work* — Changes that significantly affect the codebase and would cause issues for other developers if integrated prematurely.
+
+* *Long-running features* — Features that cannot be completed and tested within a single day, where intermediate commits would break the build.
+
+* *Work-in-progress backup* — Pushing incomplete work to a temporary branch at the end of the day as a remote backup.
+
+* *Open source contributions* — Contributing to projects where you do not have write privileges on the reference repository.
+
+In all these cases, temporary branches MUST be cut from `dev` (never from `test`, `ready`, or any release branch) to keep your work isolated while it develops.
+
+Temporary branches are the equivalent of feature branches (also known as task branches or topic branches) seen in other workflows. They are so-named in this workflow to emphasize the fact that temporary branches SHOULD be short-lived. Best practice is to err on the side of continuous integration rather than long-lived branch lines. Integrating all changes regularly helps to avoid merge conflicts.
+
+Temporary branches SHOULD be ephemeral. Once the changes in a temporary branch are integrated into the `dev` trunk, the temporary branch SHOULD be deleted. This keeps the repository tidy and prevents confusion about which branches are active and which are not. The commit history of the temporary branch will still be preserved in the `dev` trunk, so there is no loss of information in the commit history when temporary branches are deleted after integration. The result is a clean, linear commit history on the `dev` trunk, as though everything had been committed directly there in the first place, with all revisions originating in the `dev` trunk.
+
+A useful visual model for thinking about the role that temporary branches play in the version control workflow is to imagine the `dev` trunk as a continuous, winding main track that incorporates changes from the temporary side branches along its route. Multiple developers work on parallel side branches that rejoin the main track as they complete, their commits flowing into the trunk as if they had always been part of the main line.
+
+image::./_/branch-lines.svg[]
+
+Temporary branches SHOULD follow this naming convention:
+
+----
+temp/[<id>-]<description>
+----
+
+The component parts of the temporary branch name are as follows:
+
+* `<id>` (OPTIONAL) — A unique identifier for the temporary branch, usually corresponding to an issue number or some other identifier in a system where the work is being tracked.
+
+* `<description>` (REQUIRED) — A short hyphen-delimited description of the change introduced in the branch.
+
+Examples:
+
+* `temp/42-add-search-endpoint`
+* `temp/178-fix-auth-timeout`
+* `temp/TS-504-migrate-user-schema`
+
+The detailed mechanics of branch ownership sit somewhat outside the scope of these technical standards. They will vary depending on the team's development methodology (eg. solo, pair, or mob programming) and the capabilities of the issue tracking system in use. The basic principle is that each temporary branch SHOULD have clear ownership, and that ownership SHOULD be kept in sync with the assignment of the associated issue in the issue tracker (see *link:../002/README.adoc[TS-2: Issue Tracking]*). When responsibility for an issue transfers between team members, ownership of the associated temporary branch transfers accordingly.
+
+When a temporary branch attracts pushes from multiple independent contributors (as distinct from pair or mob programming, where multiple people share authorship of the same commits), this is often a sign that the work has not been well decomposed into smaller, independently-integrable changes. Where multiple contributors are needed to deliver a feature, prefer breaking the work into smaller temporary branches owned by individual contributors, each integrating into `dev` as it completes. If the work genuinely cannot be decomposed — for example, cross-cutting refactoring or large coordinated features — use an *epic branch* (see below) rather than a multi-contributor temporary branch.
+
+Each temporary branch SHOULD be scoped to a single, focused change — typically one issue. Multiple orthogonal changes (eg. a feature plus an unrelated refactor) MUST NOT be combined into a single temporary branch, even if they touch overlapping files. Splitting them keeps reviews focused and integrations clean.
+
+=== Epic branches
+
+While temporary branches are designed to be short-lived, there are scenarios where a team needs a long-lived branch to coordinate complex, big-bang integrations. Epic branches serve this purpose. They are also temporary (eventually deleted), but persist for weeks or months rather than days, and are typically worked on by multiple developers or teams. Like temporary branches, epic branches MUST be cut from `dev`.
+
+Valid use cases for epic branches include:
+
+* *Large coordinated features* — Complex features with multiple components that span weeks or months and are developed by different team members.
+
+* *Major refactoring initiatives* — Large structural changes that require time to implement and cannot be broken down into smaller, independently-releasable increments.
+
+* *Cross-cutting concerns* — Changes affecting multiple systems or layers that need to be coordinated across teams.
+
+* *Experimental or research branches* — Long-running architectural experiments that need to remain isolated until proven and ready for integration.
+
+* *Release preparation* — Stabilization and preparation work before a major release, where fixes may need to be applied across multiple systems.
+
+The key difference between epic branches and temporary branches is the synchronization strategy. Temporary branches are short-lived and use a rebase-up strategy: you keep the temporary branch synchronized with `dev` by rebasing the temporary branch onto `dev`. This produces a linear history and keeps the temporary branch lightweight and easy to integrate.
+
+Epic branches, by contrast, use a merge-down strategy: you synchronize the epic branch with `dev` by **merging `dev` into the epic branch**. This creates explicit merge commits that preserve the epic branch's lineage as a distinct, long-lived development line. The merge-down strategy is safer for long-lived branches because it never rewrites shared history—multiple developers can safely push to the epic branch without fear of conflicting history rewrites.
+
+When you eventually integrate the epic branch back into `dev`, you will have a single, cohesive commit (or small number of commits) that represents all of the epic's work. This differs from how temporary branches integrate, where the individual commits from the temporary branch are preserved in `dev`'s history.
+
+Epic branches follow this naming convention:
+
+----
+epic/[<id>-]<description>
+----
+
+The component parts are the same as for temporary branches:
+
+* `<id>` (OPTIONAL) — A unique identifier, usually corresponding to an issue or epic tracking system.
+
+* `<description>` (REQUIRED) — A short hyphen-delimited description of the epic.
+
+Examples:
+
+* `epic/billing-v2-rewrite`
+* `epic/PRODUCT-187-auth-overhaul`
+* `epic/infra-migrate-kubernetes`
+
+Epic branches SHOULD eventually be deleted once the work is integrated into `dev`, just like temporary branches. The merged commit history is preserved in `dev`'s history, so no information is lost.
+
+=== Cleaning up stale branches
+
+Beyond the routine deletion of branches after integration, projects SHOULD periodically review long-lived `temp/*` and `epic/*` branches that have not been integrated. Stale, never-integrated branches obscure the signal that the branch list is meant to provide — namely, what work is currently in progress.
+
+A branch with no commits in (eg.) 90 days SHOULD be reviewed and either revived or deleted. Stale-branch cleanup MAY be automated via hosting-provider features or external tooling.
+
+=== The testing trunk
+
+The `test` branch, known as the testing trunk, is a permanent, protected branch used for quality assurance. It is RECOMMENDED for projects that require comprehensive testing before release.
+
+The `test` trunk is fast-forwarded to the latest stable commits on the `dev` trunk. Once a commit reaches `test`, more extensive and longer-running quality assurance checks are undertaken against that commit. These checks may include integration tests, system tests, performance tests, and more expensive static analysis that would be impractical to run on every commit to `dev`. The `test` trunk may also be deployed to a testing environment for manual testing and final validation before promotion to `ready`. Alternatively, you might create a separate trunk (eg. `uat` for user acceptance testing) dedicated to manual testing in a staging environment.
+
+All tests that run against `test` SHOULD pass before the corresponding commit is promoted further. When all tests pass, the ready trunk (`ready`) can be fast-forwarded to the same passing commit on `test`.
+
+No commits – not even hotfixes – are made directly on the `test` trunk. All changes MUST originate in `dev`, pass quality assurance on `test`, and then propagate to `ready`. This ensures that every commit reaching `ready` has been thoroughly validated. The goal is for revisions to flow quickly through the trunks with as much automation as possible, so that any issues discovered in production can be rapidly fixed on `dev` and promoted through the pipeline.
+
+[IMPORTANT]
+======
+Trunk lines MUST always be *fixed forward*. All changes to code and configuration MUST originate on the `dev` branch and propagate forward through `test`, `ready`, and `release`. If a problem is discovered in any downstream trunk — for example, QA checks failing on `test`, or an incident traced to a commit already on `ready` or `release` — the fix MUST NOT be committed to that trunk directly. Instead, it MUST be committed to `dev` and flow forward through the pipeline like any other change. Not even hotfixes are an exception.
+
+The way to make this practical is to automate the promotion steps between `dev` and `ready` and `release`, so that fix-forward is fast.
+======
+
+The "hotfix" pattern common in workflows like GitFlow — where urgent fixes bypass the QA pipeline, are committed directly to release branches, and then back-merged to development — is forbidden for several reasons. A hotfix that skips the pipeline is by definition untested in the environments where bugs are normally caught, and a one-line urgent fix can introduce regressions as readily as any other change, often more so because it is written under pressure. Direct commits to downstream trunks also create divergence that requires either a back-merge (which this standard forbids) or a duplicate fix re-implemented on `dev`, producing competing versions of the same change. And once a team tolerates "emergency" exceptions, the bar for what counts as an emergency drifts lower over time. The correct response to "the pipeline is too slow for hotfixes" is to make the pipeline fast, not to bypass it.
+
+If you don't have any expensive or long-running validation tasks, the `test` trunk MAY be dropped from the workflow. Instead, the `ready` trunk can be fast-forwarded directly to stable commits on the `dev` trunk. This is a simpler workflow. It will provide perfectly suitable quality controls for simple software components, like small libraries.
+
+Likewise, you MAY choose to have multiple testing trunks, each representing a different aspect of your quality assurance process. For example, you could have a `perf` branch that deploys to an isolated environment where load and stress testing is undertaken, and a `uat` branch that deploys to a staging environment, which is used for final manual testing before changes are promoted to the ready trunk. For more details on mapping branches to deployment environments.
+
+Smoke tests SHOULD be run early in the testing pipeline. Usually, these will be done on the `dev` trunk, along with linting and unit tests. However, if your build is resource-intensive or long-running, you may offload this to a `smoke` trunk, which sits between `dev` and `test` in the pipeline.
+
+Design your branching strategy to fit the quality assurance requirements of your project. The principle is to have one branch per environment that you need to deploy to for different quality control processes.
+
+=== The ready trunk
+
+The `ready` trunk is a permanent, protected branch designed to be *pristine*: every commit on `ready` MUST have passed all the quality assurance checks earlier in the pipeline, and the trunk MUST NOT carry unverified or in-progress work. The same pristine standard applies to the release trunk and any release branches downstream of `ready` (see *link:./releases.adoc[]*); they inherit their cleanliness from `ready` and MUST NOT receive direct commits either.
+
+The pristine quality is the reason for the multi-stage quality-assurance flow that runs ahead of `ready`. Revisions originate on `dev`, pass fast checks there, fast-forward to `test` for longer-running and more expensive validation, and only fast-forward to `ready` once all checks pass. By the time a commit lands on `ready`, the team can be confident that it is shippable.
+
+The tip of `ready` always references the most recent iteration of the software that has been proven to be stable and production-grade. This does not necessarily mean the changes have been deployed or released in production, only that they _could be_ at any time. In other words, the tip of this branch could become a release candidate.
+
+The `ready` trunk is fast-forwarded to commits on the `test` trunk only when those changes have proven to be stable via the testing workflow.
+
+The purpose of the `ready` trunk is to give us a single trunk line with an immutable commit history that is always in a shippable state – enabling continuous delivery.
+
+The `ready` trunk is OPTIONAL. For some software projects, it will be perfectly adequate to run all tests against, and to cut releases from, the `dev` trunk or the `test` trunk. However, for any non-trivial software system, it is RECOMMENDED to have a `ready` trunk. This allows you to have a clear separation between the latest increments of development (`dev`), stuff that's still going through QA (`test`), and the stable, production-grade code (`ready`).
+
+If you don't have any expensive or long-running tests, the `test` trunk can be dropped and `ready` can be synced directly with `dev`.
+
+No commits – not even hotfixes – are made directly on the `ready` trunk. The purpose of this constraint is to ensure the `ready` branch is always stable and deployable, by not circumventing the usual quality assurance checks. All changes must originate in the `dev` trunk, pass validation on the `test` trunk, and then propagate to `ready`.

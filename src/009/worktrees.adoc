@@ -1,0 +1,90 @@
+= Worktrees
+
+It is RECOMMENDED to checkout Git repositories as worktrees. This adds some complexity but gives greater flexibility. For example, you can seamlessly switch to another branch while leaving a dirty working directory in the current branch – handy if you need to quickly fix a production bug. Worktrees are also necessary to support parallelism in agentic workflows.
+
+To use worktrees, you clone the repository as a "bare" repository – nothing's checked out by default: `git clone --bare <repository>`. Then, from the context of the bare repository, you add worktrees using `git worktree add ...`. Each worktree is a directory that behaves just like a regular Git repository, with a single branch checked out.
+
+You can add multiple worktrees to a single repository, each having a different branch checked out. The only constraint is that you can't have the same branch checked out in more than one worktree at a time. The purpose of this constraint is to stop you from clobbering working changes in another worktree that are not yet committed.
+
+Best practice is to keep your worktrees adjacent to each other, as siblings. The clean, widely-used pattern is to put the bare repo in a hidden `.bare` directory and place a .git file at the project root that points to it:
+
+[source,sh]
+----
+mkdir myproject && cd myproject
+
+# Clone bare into a hidden directory.
+git clone --bare git@github.com:user/repo.git .bare
+
+# Point the project root at the bare repo, so git commands
+# work from here.
+echo "gitdir: ./.bare" > .git
+
+# Fix the fetch refspec (bare clones don't set this up correctly).
+git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'
+git fetch origin
+
+# Add worktrees as siblings.
+git worktree add main                    # Existing branch.
+git worktree add -b feature-x feature-x  # New branch.
+----
+
+This produces:
+
+----
+myproject/
+├── .bare/         # Bare repository root.
+├── .git           # File containing "gitdir: ./.bare".
+├── main/          # Working tree for `main` branch.
+└── feature-x/     # Working tree for "feature x".
+----
+
+The `.bare` directory, which sits adjacent to the project directories `main` and `feature-x`, has all of the internal Git repository data.
+
+The alternative pattern is to nest the worktrees under the bare repository:
+
+[source,sh]
+----
+mkdir myproject && cd myproject
+
+# Clone bare into a hidden directory.
+git clone --bare git@github.com:user/repo.git .bare
+
+# Add worktrees as siblings.
+git worktree add main                    # Existing branch.
+git worktree add -b feature-x feature-x  # New branch.
+----
+
+This produces:
+
+----
+myproject/         # Bare repository root.
+├── HEAD
+├── branches/
+├── ...            # Other Git internals.
+├── main/          # Working tree for `main` branch.
+└── feature-x/     # Working tree for "feature x".
+----
+
+Notice that your working directories are mixed in the same area of the filesystem as Git's internal files.
+
+The adjacent pattern has a number of advantages:
+
+* It keeps your working files cleanly separated from Git's internal plumbing (objects, refs, packed data). Mixing them is confusing and invites accidents.
+
+* Editors, search tools, and file watchers won't descend into the `.bare` directory and choke on Git internals.
+
+* The mental model is clear: `.bare` is Git's data, while the sibling directories each represent "an active branch I'm working on".
+
+Adding the `.git` pointer file as another sibling is a little trick that provides a bit of convenience. Without this, to run any `git worktree` commands (eg. to remove a worktree you no longer need), you'd have to change into the `.bare` directory and run the command from there. Now all `git worktree` commands, as well as commands like `git fetch`, all work from the project root.
+
+[source,sh]
+----
+echo "gitdir: ./.bare" > .git
+----
+
+The second little hack fixes the refspec for the `git fetch` command. Without setting this manually (`git clone --bare` doesn't do it), your remote-tracking branches won't update on `git fetch`, and in turn `git worktree add <remote-branch>` won't behave as expected.
+
+[source,sh]
+----
+git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'
+----
