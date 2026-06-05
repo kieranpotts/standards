@@ -38,7 +38,7 @@ The values of all three headers – `Webhook-ID`, `Webhook-Timestamp`, and `Webh
 ======
 Standard Webhooks specifies the header field names using lowercase letters, eg. `webhook-id`. This technical standard RECOMMENDS the more commonplace Title-Case naming convention, eg. `Webhook-Id`. This is compliant with Standard Webhooks because HTTP header field names are case-insensitive. https://datatracker.ietf.org/doc/html/rfc7230#section-3.2[RFC 7230] specifies that HTTP header fields be processed in a case-insensitive manner by both clients and servers.
 
-The `Webhook-ID`, `Webhook-Timestamp`, and `Webhook-Signature` fields are not standard HTTP headers.  *link:../021/README.adoc[TS-21: HTTP APIs]* specifies that custom headers be prefixed with `X-`, to avoid potential conflicts with future standard headers. To maintain compliance with Standard Webhooks, this technical standards RECOMMENDS these three headers be an exception to this rule, and not be prefixed with `X-`.
+The `Webhook-ID`, `Webhook-Timestamp`, and `Webhook-Signature` fields are not standard HTTP headers. *link:../021/README.adoc[TS-21: HTTP APIs]* specifies that custom headers be prefixed with `X-`, to avoid potential conflicts with future standard headers. To maintain compliance with Standard Webhooks, this technical standard RECOMMENDS these three headers be an exception to this rule, and not be prefixed with `X-`.
 ======
 
 == Payload schema
@@ -98,7 +98,7 @@ Best practice is for events to map to meaningful business-relevant state changes
 
 Coarser event types, such as ones that represents _all_ possible state changes in a particular entity type, may be appropriate where the changes in state are not likely to require differential processing on the consumer side. In this scenario, it would be expected that all state changes would be broadcast, and clients would be expected to process them all in the same way.
 
-As a general rule, consumers should want to implement different handlers (listeners) for each event type they subscribe too. If two or more events can be processed in much the same way, this is a design smell – the events may be too fine-grained and could be merged into a single event type.
+As a general rule, consumers should want to implement different handlers (listeners) for each event type they subscribe to. If two or more events can be processed in much the same way, this is a design smell – the events may be too fine-grained and could be merged into a single event type.
 
 === Timestamp
 
@@ -260,7 +260,7 @@ Payloads MAY be minimized. This is more beneficial for large payloads than small
 
 == Versioning
 
-Standards Webhooks specifies how to version signature schemes, but not how to version message payloads. However, it is RECOMMEND that producers do implement versioned payload schemas. Even if you don't expect to make breaking changes to your payload schemas in the foreseeable future, it is good practice to implement versioning from the outset. This gives you the flexibility to evolve your schemas in future without disrupting your consumers – from the start, they can filter out messages with versions they cannot handle.
+Standards Webhooks specifies how to version signature schemes, but not how to version message payloads. However, it is RECOMMENDED that producers do implement versioned payload schemas. Even if you don't expect to make breaking changes to your payload schemas in the foreseeable future, it is good practice to implement versioning from the outset. This gives you the flexibility to evolve your schemas in future without disrupting your consumers – from the start, they can filter out messages with versions they cannot handle.
 
 There are a number of ways to version webhook payload schemas. Two common options are described below.
 
@@ -444,7 +444,7 @@ Asymmetric signatures are RECOMMENDED as the sole authentication mechanism in hi
 
 Signed bearer tokens, implemented as JWTs, MAY be used as an alternative to message signatures in use cases where there are good reasons to give consumers more control over access to their webhook endpoints (via scopes/permissions encoded in the tokens).
 
-The optimum choice will depend on the overall security profile of the webhook system. Beside the besides the authentication mechanism, the security profile is determined by other factors such as the types and volumes of data being transmitted, retry mechanisms and replay policies, and the level of configurability offered to consumers. For example, messages with thin payloads – those that do not contain any resource state, just identifiers – are inherently more secure than fat payloads, and therefore there are fewer risks associated with exploits like replay attacks. Weaker authentication mechanisms may be acceptable in such cases.
+The optimum choice will depend on the overall security profile of the webhook system. Besides the authentication mechanism, the security profile is determined by other factors such as the types and volumes of data being transmitted, retry mechanisms and replay policies, and the level of configurability offered to consumers. For example, messages with thin payloads – those that do not contain any resource state, just identifiers – are inherently more secure than fat payloads, and therefore there are fewer risks associated with exploits like replay attacks. Weaker authentication mechanisms may be acceptable in such cases.
 
 === Secret generation and lifecycle management
 
@@ -698,7 +698,7 @@ Webhooks are inherently unreliable. Network issues, server outages, misconfigura
 
 Retry delivery SHOULD follow a schedule spanning multiple days, with exponential back-off. The purpose of exponential back-off is to reduce the risk of a "thundering herd" of requests hitting a consumer system just as it recovers from a failure mode, risking pushing it offline again.
 
-Below is a reasonable default retry schedule, but producers SHOULD adjust this as appropriate fr their use case. In addition, consumers SHOULD be able to configure their own retry schedule, overriding the producer's default configuration. Alternatively, consumer systems MAY respond with a `503 Service Unavailable` status and a `Retry-After` header field, which producer's SHOULD take into account when scheduling the next attempt.
+Below is a reasonable default retry schedule, but producers SHOULD adjust this as appropriate for their use case. In addition, consumers SHOULD be able to configure their own retry schedule, overriding the producer's default configuration. Alternatively, consumer systems MAY respond with a `503 Service Unavailable` status and a `Retry-After` header field, which producer's SHOULD take into account when scheduling the next attempt.
 
 |===
 |Attempt |Delay since previous attempt |Cumulative delay
@@ -800,7 +800,7 @@ Consumers MUST NOT be able to configure any arbitrary webhook endpoint URLs. Thi
 
 At the very least, on registration of new webhook endpoint URLs, the URLs MUST be validated to ensure they are public internet addresses, and not "localhost" or IP addresses within the ranges reserved for internal networks. Producers can further protect themselves against SSRF by using a proxy (like smokescreen) to filter out requests to internal IP addresses, and by putting webhook workers (or the proxy) in their own private subnet that can't access internal services.
 
-In addition, it is RECOMMENDED to implement a challenge-response system. When a new webhook URL is registered, a "challenge" token is sent to the webhook endpoint, which is expected to returna  valid response with the challenge token encoded somewhere in the response message. This verifies that the endpoint is reachable, and producers can use the process to verify things like the validity of the TLS certificate of the consumer service.
+In addition, it is RECOMMENDED to implement a challenge-response system. When a new webhook URL is registered, a "challenge" token is sent to the webhook endpoint, which is expected to return a valid response with the challenge token encoded somewhere in the response message. This verifies that the endpoint is reachable, and producers can use the process to verify things like the validity of the TLS certificate of the consumer service.
 
 For the best security, domain name _ownership_ SHOULD be verified, too. This can be done using DNS lookups. The process usually involves the domain owner adding a TXT record to the domain's DNS settings, which the producer can then look up (once propagated) to verify ownership. A slightly weaker solution is verification of an email address hosted on the same domain.
 
