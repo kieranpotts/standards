@@ -2,6 +2,79 @@
 :toc: macro
 :toc-title: Contents
 
+This technical standard focuses on financial decision-making for cloud deployments. It addresses the strategic questions of how cloud costs are structured, how to avoid unexpected expenditure, and how to choose between cloud-native and dedicated server architectures.
+
+Managing costs is a critical aspect of cloud operations. Organizations need not only a clear understanding of their business-as-usual usage patterns and associated costs, but also the potential risks associated with "exploding costs" due to unexpected changes in throughput, storage, or other resource usage.
+
+The guidance here is applicable to any organization running workloads on cloud platforms, regardless of scale or deployment model.
+
+For guidance on cloud platform engineering — including multi-account strategies and environment management — see *link:../040/README.adoc[TS-40: Cloud Platform Engineering]*.
 
 toc::[]
 
+== Auto-scaling surge costs
+
+The greater the degree of auto-scaling that is built-in to a cloud platform, the greater the risk of unexpected costs. Platform-as-a-service (PaaS) solutions, which tend to have uncapped auto-scaling by default, are particularly vulnerable to this risk.
+
+.Case study: Cara
+****
+Cara, a social media app, received an unexpected US$98k bill for a few days of traffic when its free app went viral.
+
+https://cara.app/[Cara] is an app built by volunteers that allows artists to share their portfolios, find jobs from studios, and stay in touch. The app launched in January 2023 and saw 3,000 sign-ups in the first three days, and 10,000 users in the first three months. Subsequent growth over the next year-and-a-half was relatively predictable, until traffic started surging rapidly:
+
+* 100,000 users on 1 June 2024
+* 300,000 users on 3 June 2024
+* 500,000 users on 5 June 2024
+
+Apps built on a more traditional back-end would have struggled with such a surge. For Cara, this was not an issue, because it was deployed to Vercel Functions, a serverless platform. But the company did not have the revenue to pay the bill — US$98,000 for just those few days in early June 2024.
+****
+
+Costs can explode from seemingly negligible charges. For example, a cloud provider may charge $0.023 per GB per month for hot (low latency) storage. This seems trivial. But consider the following scenario:
+
+* 10,000,000 users
+* 100 images storage allowance per user
+* 5MB maximum image size
+
+10,000,000 users * 100 images * 5MB = 5PB = $115k/month
+
+Strategies to avoid surge costs include:
+
+* *Set limits on auto-scaling*, eg. set concurrency limits for AWS Lambda functions, or instance limits for EC2 auto-scaling groups. Accept that some users may experience service unavailability during peak times, and communicate these limitations transparently to users, eg. via service level agreements (SLAs) and status pages.
+
+* *Match revenue-per-user to costs-per-user* before fully opening up auto-scaling. Do not enable auto-scaling until you have set up a paywall, subscription model, or other monetization strategy that scales with usage. Prioritize availability for paying customers over free-tier users.
+
+* *Use inexpensive storage tiers* and archive or delete data that no longer needs to be retained in a user-facing storage system.
+
+* For frequently-accessed data, use *caching* layers to reduce the number of requests to the underlying storage system, and implement *compression* on both data-at-rest and data-in-transit wherever possible.
+
+* *Avoid excessive logging*, especially in production. Use feature flags so that you can dynamically restrict logging to only the most important events. Also consider using techniques such as request sampling in tracing systems.
+
+* *Prepare for denial-of-service (DoS and DDoS) attacks*, eg. using Azure Frontdoor or AWS Shield, or Cloudflare.
+
+== Dedicated servers vs cloud-native architectures
+
+A common mistake in cloud engineering is to reach for distributed, cloud-native architecture before it is actually needed.
+
+Cloud-native architectures carry a significant baseline cost premium over running equivalent workloads on dedicated servers. Depending on the services used, the premium is typically in the range of 5–30x compared to renting a dedicated server from a hosting provider Serverless compute in particular (eg. AWS Lambda) is approximately 5–6x more expensive than an equivalent large cloud VM instance, and approximately 25x more expensive than an equivalent dedicated server from a budget hosting provider.
+
+These premiums exist because cloud providers build in spare capacity to handle their customers' peak loads, and that cost is passed on.
+
+The key principle is that the burstier the workload, the more justified cloud-native architecture becomes from a cost perspective. If a workload is highly unpredictable — with long periods of idleness punctuated by sudden large surges — serverless or auto-scaling architectures can be cost-effective, since you only pay for what you use. But for workloads with relatively steady, predictable traffic, paying the cloud premium provides little benefit.
+
+As a rule of thumb, if a dedicated server would be kept above approximately 5% utilization almost all the time, it will likely be cheaper than equivalent serverless compute.
+
+Modern servers have plenty of capacity to handle the workloads of many services. Modern servers are substantially more powerful than they were when distributed computing patterns became fashionable in the early 2010s. For most web services with under 10,000 queries per second (QPS), a single large server will be sufficient. Very few services exceed this threshold.footnote:[For more details on what a single modern server is capable of, read "Use One Big Server" by Nima Badizadegan: https://specbranch.com/posts/one-big-server/]
+
+Organizations SHOULD consider vertical scaling before adopting horizontal scaling or cloud-native distributed architectures. It is RECOMMENDED to scale vertically first (moving to a larger server) before scaling horizontally (adding more servers).
+
+When horizontal scaling becomes necessary, using a small number of large servers will generally be more efficient than using a large fleet of small machines. That's because there is a non-trivial coordination overhead associated with each node in a cluster.
+
+The main drawback of single-server architecture compared to cloud-native architecture is availability. To mitigate this, it is RECOMMENDED to run a primary and a backup server in separate datacenters or cloud regions. For higher redundancy requirements, a 2x2 configuration — two servers in a primary datacenter and two in a secondary — is sufficient for most services.
+
+To avoid correlated hardware failures (where a fault in one server increases the likelihood of a fault in another), primary and backup servers SHOULD use hardware from different manufacturing batches, and ideally from different models or vendors. This is especially important for storage devices.
+
+Of course, there are trade-offs. Cloud service providers offer incredible levels of fault tolerance and availability, and they take care of many operational concerns such as security patching, DDoS protection, and data replication. Dedicated servers require much more hands-on management and maintenance – which can be expensive. Yet, for many web services, cost savings from using dedicated servers can be significant, and the availability can be sufficient with proper redundancy strategies in place.
+
+The conventional wisdom is that cloud-native architectures are good because they let you scale up effortlessly. True. But the practical reality is that most web services have stable traffic patterns and predictable growth. This means scaling requirements can be foreseen and solutions planned well ahead of time.
+
+Unless your traffic patterns are really bursty, the economic justifications for investing in auto-scaling will be, at best, weak. There may be other rational justifications for adopting cloud-native architecture, but cost savings is unlikely to be one of them.
