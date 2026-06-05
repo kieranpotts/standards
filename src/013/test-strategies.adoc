@@ -1,0 +1,186 @@
+= Test strategies
+
+A test strategy is a high-level approach to organizing and deploying tests to maximize their effectiveness. Where test types define _what_ is being tested and test levels define _where_ in the architecture testing occurs, test strategies address _how_ and _when_ tests are deployed across the development lifecycle.
+
+Effective testing requires more than just writing good, individual tests. It requires thoughtful strategies for when to run tests, what to prioritize, and how to gain confidence that the tests themselves are reliable. A well-chosen combination of strategies ensures that testing effort is allocated where it will have the greatest impact — catching bugs before users do, preventing regressions, enabling confident refactoring, and building trust with stakeholders.
+
+This section covers the most important cross-cutting test strategies.
+
+== Regression testing
+
+Regression testing is the practice of re-running existing tests after code changes to ensure that previously working functionality has not broken. A "regression" is a defect introduced by a change that causes something that used to work to stop working. Regression testing is the primary defense against this class of defect.
+
+Any type of test — unit, integration, system, or acceptance — can serve as a regression test. The "regression" label describes the _practice_ of repeatedly running tests to detect unintended side effects, regardless of the test's scope or type. A suite of unit tests run after every commit is being used for regression testing. A full integration test suite executed before each release is also regression testing.
+
+Regression testing is most critical after:
+
+* Bug fixes — to confirm the fix does not break other functionality.
+* Feature additions — to verify new code does not interfere with existing behavior.
+* Refactoring — to ensure structural changes preserve external behavior.
+* Dependency updates — to catch incompatibilities introduced by third-party changes.
+* Infrastructure changes — to detect issues arising from environment modifications.
+
+Best practices:
+
+* Maintain an automated regression test suite that can execute quickly and frequently. Speed is essential; slow suites get run less often, reducing their value.
+
+* Integrate regression tests into continuous integration pipelines so they run automatically on every code change.
+
+* Prioritize regression tests based on the criticality of the functionality they cover and the likelihood that it will be affected by changes.
+
+* Review and update the regression suite regularly. Remove obsolete tests that no longer reflect actual requirements, and add coverage for new features and recently fixed bugs.
+
+* Use version control and diff tools to identify which areas of the codebase have changed, and focus regression testing effort accordingly.
+
+== Smoke testing
+
+Smoke testing, also known as build verification testing, is a strategy for quickly determining whether a new build is stable enough to warrant further testing. The term originates from hardware testing: when a new circuit board was powered on, if it literally started smoking, there was no point in running more detailed tests!
+
+Smoke tests cover only the most critical functionality and the most common user paths. They are not thorough; their purpose is to catch catastrophic failures early, so that time is not wasted on detailed testing of a fundamentally broken build.
+
+Smoke testing is most valuable as the first stage in a testing pipeline. If the smoke tests fail, the build is rejected immediately, and detailed testing does not proceed.
+
+Best practices:
+
+* Keep smoke tests fast — they should complete within minutes, not hours.
+
+* Cover only the critical paths: core functionality, major user workflows, and essential integrations.
+
+* Automate smoke tests and run them as the first step after every build.
+
+* Reject any build that fails smoke testing for immediate investigation and repair.
+
+* Update smoke tests whenever the definition of "critical functionality" changes.
+
+== Negative testing
+
+Negative testing — sometimes called error-handling testing or failure-path testing — is the strategy of intentionally testing a system with invalid inputs, unexpected conditions, and error scenarios. Where most tests verify that the system does what it _should_ do, negative tests verify that the system handles gracefully what it _should not_ have to do.
+
+Negative testing is essential because real-world systems are constantly exposed to unexpected inputs, malformed data, network failures, and user mistakes. A system that works correctly under ideal conditions but crashes or behaves unpredictably under adverse conditions is not fit for production.
+
+Areas of focus for negative testing include:
+
+* *Invalid inputs* — empty fields, values outside expected ranges, wrong data types, excessively long strings, special characters, and injection payloads.
+* *Boundary conditions* — values at the exact edges of valid ranges, where off-by-one errors and overflow conditions are most likely.
+* *Resource exhaustion* — out-of-memory conditions, full disks, connection pool exhaustion, and timeout scenarios.
+* *Concurrency issues* — race conditions, deadlocks, and data corruption under simultaneous access.
+* *Dependency failures* — unavailable databases, network timeouts, corrupted responses from external services.
+
+Best practices:
+
+* Design negative test cases systematically. For each input, consider what happens with null values, empty values, boundary values, and malformed values.
+
+* Verify that error messages are informative for users and operators without exposing sensitive system internals such as stack traces, database schemas, or internal paths.
+
+* Ensure that errors are logged with sufficient detail for troubleshooting, including timestamps, context, and correlation identifiers.
+
+* Confirm that the system maintains data integrity when errors occur — partial operations should be rolled back or handled atomically.
+
+* Validate that error-handling paths do not introduce security vulnerabilities, such as failing open on authentication errors.
+
+== Exploratory testing
+
+Exploratory testing is a strategy in which testers simultaneously learn about the system, design tests, and execute them — without following predetermined test scripts. It is an inherently creative and adaptive approach that leverages human intuition and curiosity to discover issues that scripted tests might miss.
+
+Exploratory testing is particularly effective for:
+
+* Evaluating new or unfamiliar features, where the tester's fresh perspective can reveal usability issues and unexpected behaviors.
+* Discovering edge cases and interaction effects that were not anticipated in the requirements.
+* Supplementing automated regression tests with the kind of unscripted, intuitive investigation that only humans can provide.
+
+Exploratory testing is not ad hoc or random. It is most effective when conducted in structured sessions with clear objectives, time limits, and systematic documentation of findings.
+
+Best practices:
+
+* Allocate specific time-boxed sessions for exploratory testing, with a defined theme or area of focus for each session.
+
+* Document findings immediately, including steps to reproduce any issues discovered.
+
+* Encourage testers to deviate from planned paths when they notice interesting or unexpected behavior.
+
+* Use exploratory testing as a complement to — not a replacement for — automated tests.
+
+* Rotate testers across different areas of the system to bring fresh perspectives.
+
+== Risk-based testing
+
+Risk-based testing is a strategy for allocating test effort in proportion to the risk associated with different parts of the system. Not all code carries the same potential for damage if it fails, and not all code is equally likely to contain defects. Risk-based testing recognizes these asymmetries and directs attention to where it will have the greatest impact.
+
+Risk is typically assessed along two dimensions:
+
+* *Likelihood of failure* — how likely is this component to contain defects? Factors include code complexity, frequency of changes, developer experience, and historical defect rates.
+* *Impact of failure* — how severe would the consequences be if this component fails? Factors include the number of users affected, financial impact, regulatory implications, and safety considerations.
+
+Components that score high on both dimensions warrant the deepest and most rigorous testing. Components that score low on both may require only basic validation.
+
+Best practices:
+
+* Assess risk early in the project lifecycle and revisit the assessment as the system evolves.
+
+* Use risk assessments to guide decisions about test types, test depth, and automation investment — not just test prioritization.
+
+* Focus the most comprehensive testing — including edge cases, boundary conditions, and negative testing — on high-risk components.
+
+* Accept lighter testing for low-risk, low-change components, but ensure that basic path coverage is maintained even for these.
+
+* Track defect data over time to validate and refine risk assessments. Areas with historically higher defect rates should be re-evaluated as higher risk.
+
+== Mutation testing
+
+Mutation testing is a strategy for evaluating the quality and effectiveness of a test suite. The central question it answers is: _how good are our tests?_
+
+The technique works by introducing small, deliberate defects — known as *mutations* — into the code being tested. Each mutation creates a slightly altered version of the program, called a *mutant*. If the existing tests detect the mutation (ie. at least one test fails), the mutant is said to be "killed." If all tests continue to pass despite the mutation, the mutant "survives" — indicating a gap in the test suite.
+
+The *mutation score* is the percentage of mutants that are killed. A high mutation score indicates a test suite that is sensitive to defects and therefore more likely to catch real bugs. A low score indicates tests that may be superficial — passing regardless of correctness.
+
+Common mutations include:
+
+* Replacing arithmetic operators (eg. `+` with `-`).
+* Inverting conditional expressions (eg. `>` with `\<=`).
+* Removing method calls or return statements.
+* Replacing constants with different values.
+* Negating boolean expressions.
+
+Mutation testing is computationally expensive, since each mutation requires a separate test run. For large codebases, it is typically applied selectively rather than exhaustively.
+
+Best practices:
+
+* Focus mutation testing on the most critical and complex areas of the codebase, where test quality matters most.
+
+* Use mutation testing after bug fixes. Reverting the fix should produce surviving mutants if the test suite does not adequately cover the bug — a clear signal that more tests are needed.
+
+* Run mutation testing on integration of modified code, as a quality gate in the CI/CD pipeline.
+
+* Investigate surviving mutants. Each one represents either a genuine gap in test coverage or an equivalent mutation (a change that does not affect the program's observable behavior). Both are informative.
+
+* Use mutation testing tools appropriate to your language and ecosystem. Most mainstream languages have mature mutation testing frameworks.
+
+== Chaos testing
+
+Chaos testing — also known as chaos engineering — is a strategy for proactively testing a system's resilience by deliberately introducing failures into a production or production-like environment. The goal is to discover weaknesses in the system's ability to withstand and recover from turbulent conditions _before_ those conditions occur naturally.
+
+The foundational principle of chaos engineering, as https://principlesofchaos.org/[articulated by Netflix], is that the best way to build confidence in a system's resilience is to test it under realistic failure conditions. Hypothetical reasoning about what _might_ go wrong is no substitute for empirical evidence of what _actually_ happens when things do go wrong.
+
+Chaos experiments typically involve:
+
+* *Infrastructure failures* — shutting down virtual machines, killing containers, simulating data center outages.
+* *Network disruption* — introducing latency, packet loss, DNS failures, or partitioning between services.
+* *Resource pressure* — filling disks, exhausting memory, saturating CPU.
+* *Dependency failures* — making external services return errors, respond slowly, or become unavailable.
+* *Clock manipulation* — skewing system clocks to expose time-dependent bugs.
+
+Chaos testing differs from traditional failure testing in that it is typically conducted in production or near-production environments, under controlled conditions, with the explicit intent of learning about the system's real-world behavior rather than just verifying expected behavior.
+
+Best practices:
+
+* Start small. Begin with low-impact experiments in non-production environments before progressing to production experiments.
+
+* Define a *steady state* — the normal, healthy behavior of the system — and measure the impact of each experiment against it.
+
+* Automate experiments to run regularly, so resilience is tested continuously rather than as a one-off exercise.
+
+* Establish clear procedures for halting experiments if they cause unacceptable impact.
+
+* Use the results of chaos experiments to drive architectural improvements, not just incident response.
+
+* Build a culture in which controlled failure is seen as a learning opportunity, not a risk to be avoided.
