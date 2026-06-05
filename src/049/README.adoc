@@ -2,6 +2,65 @@
 :toc: macro
 :toc-title: Contents
 
+This technical standard sets out some broad principles and best practices for cloud platform engineering. The guidance here is not specific to any particular cloud service provider, but is intended to be applicable to any cloud platform.
+
+Platform engineering is a subset of cloud engineering. The focus here is on the building of *self-service platforms* that enable development teams to deliver applications and services more efficiently. Platform engineering is about creating a standard set of tools, processes, and best practices within an organization to enable development teams to build, test, deploy, and manage their applications themselves, with minimal ops support.
+
+Specific technologies that support cloud platform engineering, such as infrastructure-as-code, CI/CD pipelines, and monitoring and observability tools, are covered in other technical standards. For guidance on cloud cost management and the tradeoffs between dedicated servers and cloud-native architectures, see *link:../054/README.adoc[TS-54: Cloud Economics]*.
 
 toc::[]
 
+== Multi-product deployments
+
+A common pattern for organizations is to support independent operations of multiple products and services.
+
+The RECOMMENDED approach is to use multiple accounts with your cloud service provider, one for each discrete product. In AWS, the *AWS Organizations* feature allows multiple independent AWS accounts to be managed under one root organization.
+
+----
+Root Organization
+├── Management Account
+├── Shared Services Account (networking, DNS, logging)
+├── Product A - Test Account
+├── Product A - Prod Account
+├── Product B - Test Account
+├── Product B - Prod Account
+└── Security/Audit Account
+----
+
+In AWS, *AWS Resource Access Manager (RAM)* can be used to create shared VPCs/subnets across multiple accounts in the same organization, thus allowing for service-to-service communication. IAM roles can also be configured to allow for cross-account access.
+
+A simpler solution is to use VPCs for isolation of products under the same account. VPC peering or transit gateways can be used for network connectivity between VPCs, while IAM policies can be used to control access to particular services.
+
+----
+Single AWS Account
+├── Product A VPC
+├── Product B VPC
+├── Shared Services VPC
+└── Use tags, IAM policies, and resource naming for separation
+----
+
+This is simpler to set up, and cross-product communication is easier to configure. But it does not scale as well, and isolation is weaker. It is also harder to track costs on a per-product basis.
+
+More commonly, organizations opt for a hybrid approach. This is where products are isolated at the account level, and there is an additional account that manages centralized infrastructure that is shared by all the accounts.
+
+----
+
+Organization
+├── Shared Infrastructure Account
+│   ├── Shared VPC
+│   ├── Transit Gateway
+│   ├── Route53 Hosted Zones
+│   └── Shared databases/caches
+├── Product A Account
+└── Product B Account
+----
+
+== Development and testing environments
+
+Development and testing environments SHOULD be *zero-touch ephemeral environments*. These are isolated environments that are automatically created and destroyed as needed, without any manual intervention.
+
+It is RECOMMENDED to use infrastructure-as-code (IaC) tools to manage these environments. This allows for consistent and repeatable environment creation on-demand. Rollback is more easily automated, too.
+
+Ephemeral environments are designed to be cost-effective, as they can be easily spun down when no longer needed, allowing organizations to only pay for the resources they are actively using. Automation can be used to automatically terminate most non-production environments outside of normal working hours.
+
+Development and testing environments MUST be close replicas of production environments, with essentially the same underlying infrastructure and configuration. This ensures that any issues encountered in production environments are more likely to be caught early in development or testing, prior to deployment to production. The only differentiating factors should be the use of dummy data in non-production environments, and pre-production environments would typically have fewer resources than production environments, too.
