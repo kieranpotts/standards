@@ -1,0 +1,47 @@
+= Dependencies
+
+Dependence on third-party libraries and services SHOULD be kept to a minimum. Each dependency adds complexity, potential security vulnerabilities, and maintenance overhead.
+
+Excessive dependencies can lead to "dependency hell", where conflicting or outdated dependencies make it difficult to build, test, and deploy an application. They also make it harder to roll back to previous versions or to check out and rebuild any earlier version of the application.
+
+It's not uncommon for a new Ruby on Rails project to install a hundred or so dependencies out-of-the-box, before you've even written a single line of application code. Creating a new React app (`npx create-react-app my-app`) similarly results in a large number of dependencies being installed by default – hundreds of modules, accounting for hundreds of MBs of disk space.
+
+Every dependency you add gives some degree of control over your application to a third party – someone you don't know and whom you will probably never meet. This has all sorts of maintenance and security implications.
+
+In 2016 a prolific developer of JavaScript libraries suddenly removed them all from the NPM repository. One of which, named `left-pad`, was a tiny library used by thousands of other libraries, including mainstream tools and frameworks like Babel and React. The removal of this tiny library broke thousands of builds around the world, causing widespread disruption.
+
+In 2024 a critical vulnerability (CVE-2024-3094) was discovered in a widely-used compression library called XZ. The library was used by, among others, the OpenSSH daemon, meaning there was a potential backdoor into many of the world's servers via a supposedly secure data transport protocol.
+
+Each dependency you add — including everything bundled with your application framework — MUST be carefully considered and justified. Before adding a dependency, verify its provenance, examine the dependency tree, and review its code and tests.
+
+Keep dependencies updated. Incremental updates are much easier to manage than allowing them to accumulate. And regularly audit dependencies for security vulnerabilities using automated tools. Vulnerabilities may surface after you've installed them.
+
+These checks are more critical for components that will become part of your application's runtime, than it is for development and operations tools that are used only during the build and test phases of your development workflow. But even these tools should be carefully considered. After all, they have access to your source code and your build environment, and they represent an increased attack surface for supply-chain attacks.
+
+== Application frameworks
+
+Application frameworks are dependencies that provide a skeleton structure for building applications. Common examples include Express.js, Django, Ruby on Rails, and Spring.
+
+When adopting a framework, align your application architecture with the patterns and best practices that the framework enforces. For example, if using a Model-View-Controller (MVC) framework, structure your application around MVC principles.
+
+Choose a framework based on your application's specific requirements, not on its feature count, popularity, or what colleagues are using. Select a framework you understand well. Prefer frameworks with a proven track record of stability and longevity over newer alternatives.
+
+== Vendor facades
+
+To minimize coupling on third-party frameworks and libraries, applications SHOULD implement facades for all vendor dependencies. These facades SHOULD be implemented in a dedicated *vendors* layer of the application's architecture.
+
+This approach isolates your codebase from external library implementations. If a third-party library's API changes or must be replaced with an alternative, only the facade requires updating. The rest of your application remains unchanged, as it depends solely on the facade's interface.
+
+Ideally, even framework components should be surfaced in an application through facades, the interfaces to which are specified by the application. This has the effect of better decoupling application code from any particular framework. But in practice this is not always practical. It is very difficult, for example, to build a React GUI without strong coupling to the React framework.
+
+== Graceful degradation
+
+Applications MUST fail gracefully when external dependencies are unavailable or performing unacceptably (eg. high latency).
+
+Graceful degradation means your application continues to function — albeit with reduced capability — when a dependency fails or becomes unreliable. Rather than crashing or presenting broken functionality to users, the application should detect the failure and adapt its behavior appropriately.
+
+For example, if a feature depends on an external API that becomes unavailable, your application might disable that feature temporarily while preserving core functionality. A recommendation engine could fall back to a simpler algorithm. A real-time messaging service might queue messages locally until the connection is restored. And a caching layer can serve stale data when a downstream service is slow, allowing users to proceed rather than waiting indefinitely. And so on.
+
+Implementing graceful degradation requires anticipating failure modes for each critical dependency. Define what the minimal viable behavior is when that dependency fails, and implement fallback logic accordingly.
+
+Set reasonable timeouts to prevent users from being stuck waiting. Log failures so your operations team can investigate. And test failure scenarios regularly — do not assume graceful degradation code works if it has never been executed during testing or in production.
