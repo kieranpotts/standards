@@ -4,7 +4,7 @@
 
 This technical standard covers best practices for designing and implementing messages and events in message-driven architectures (MDA).
 
-The focus of this standard is asynchronous communication between services within a single organization's internal network ("intra-organization communication"). See also *link:../016a/README.adoc[TS-16a: Webhooks]*. Webhooks are a subset of message-driven communication patterns, in which event-oriented messages are exchanged via HTTP between systems owned and operated by different parties ("inter-organization communication"). Intra-organization and inter-organization messages serve different purposes and have different sets of constraints, and therefore their designs can look very different. Nevertheless, there is some overlap between the two, and so some aspects of both technical standards will inevitably cross over each other, too.
+The focus of this standard is asynchronous communication between services within a single organization's internal network ("intra-organization communication"). See also *link:../022/README.adoc[TS-22: Webhooks]*. Webhooks are a subset of message-driven communication patterns, in which event-oriented messages are exchanged via HTTP between systems owned and operated by different parties ("inter-organization communication"). Intra-organization and inter-organization messages serve different purposes and have different sets of constraints, and therefore their designs can look very different. Nevertheless, there is some overlap between the two, and so some aspects of both technical standards will inevitably cross over each other, too.
 
 toc::[]
 
@@ -82,7 +82,7 @@ Internal HTTP APIs can be a good choice for simple integrations, where fast real
 
 Typically, do-it-yourself HTTP-based messaging systems use HTTPS for transport and message semantics, and JSON for data interchange. But you have full freedom to design your own HTTP message conventions. Industry conventions such as https://www.standardwebhooks.com/[Standard Webhooks] and https://cloudevents.io/[CloudEvents] can provide some useful guidance, though for internal communication you have flexibility to design a proprietary system that best fits your own requirements.
 
-The remainder of this section covers RECOMMENDATIONS for the design and implementation of internal HTTP APIs and internal webhooks. Aspects of *link:../016/README.adoc[TS-16: HTTP APIs]* and *link:../016a/README.adoc[TS-16a: Webhooks]* are also relevant here; this section is extended guidance that is specific to HTTP messaging within _internal networks_, rather than over the public internet.
+The remainder of this section covers RECOMMENDATIONS for the design and implementation of internal HTTP APIs and internal webhooks. Aspects of *link:../021/README.adoc[TS-21: HTTP APIs]* and *link:../022/README.adoc[TS-22: Webhooks]* are also relevant here; this section is extended guidance that is specific to HTTP messaging within _internal networks_, rather than over the public internet.
 
 === Secure protocol
 
@@ -216,9 +216,9 @@ The `spec_version` field indicates the version of the message schema. Consumers 
 
 Transitions to new schema versions SHOULD be done incrementally. This is done by having producers emit duplicate messages in both the old and new schema versions for a period of time, while consumers are migrated to the new schema. This process allows breaking changes to be introduced to schema designs if required. But better to evolve event schema in a non-breaking way wherever possible.
 
-Message schema versioning SHOULD follow semantic versioning principles. See *link:../005/README.adoc[TS-5: Versioning]*.
+Message schema versioning SHOULD follow semantic versioning principles. See *link:../011/README.adoc[TS-11: Versioning]*.
 
-Message schema SHOULD evolve separately to the public API of the service producing the events. Therefore message schema versioning SHOULD be independent of API versioning. See also *link:../016/README.adoc[TS-16: HTTP APIs]*.
+Message schema SHOULD evolve separately to the public API of the service producing the events. Therefore message schema versioning SHOULD be independent of API versioning. See also *link:../021/README.adoc[TS-21: HTTP APIs]*.
 
 ==== Message ID
 
@@ -262,7 +262,7 @@ It is RECOMMENDED to use a message-level authentication system to verify the aut
 
 The most common authentication pattern in message-based communication is HMAC (Hash-based Message Authentication Code) with SHA-256 hashing – a symmetric key algorithm. Other options include asymmetric signatures generated and verified by public/private key pairs, and bearer token authentication (eg., JWT). Bearer tokens can be a good choice where it is desirable to encode claims and scopes (ie. permissions) in messages. Basic authentication is not recommended, since its security depends entirely on end-to-end transport encryption (TLS/HTTPS). More advanced options such as OAuth and mutual TLS are generally not appropriate for internal message communication, due to their complexity and operational overhead.
 
-See *link:../016a/README.adoc[TS-16a: Webhooks]* for an overview of all the options for authenticating HTTP messages, and the trade-offs of each approach. The default option RECOMMENDED by this technical standard is HMAC signatures with SHA-256 hashing. A scheme similar to that described in TS-16a, and based on https://www.standardwebhooks.com/[Standard Webhooks], is RECOMMENDED to protect messages from tampering, reducing susceptibility to replay attacks and other threats.
+See *link:../022/README.adoc[TS-22: Webhooks]* for an overview of all the options for authenticating HTTP messages, and the trade-offs of each approach. The default option RECOMMENDED by this technical standard is HMAC signatures with SHA-256 hashing. A scheme similar to that described in TS-16a, and based on https://www.standardwebhooks.com/[Standard Webhooks], is RECOMMENDED to protect messages from tampering, reducing susceptibility to replay attacks and other threats.
 
 Signatures SHOULD be base64-encoded for compactness in transit.
 
@@ -280,7 +280,7 @@ X-Message-Signature: sha256=a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e
 }
 ----
 
-IP allow-listing MUST NOT be depended upon for authentication, but it MAY be used in addition to authentication, to provide an extra layer of security. See *link:../016a/README.adoc[TS-16a: Webhooks]* for more information.
+IP allow-listing MUST NOT be depended upon for authentication, but it MAY be used in addition to authentication, to provide an extra layer of security. See *link:../022/README.adoc[TS-22: Webhooks]* for more information.
 
 // == Message distribution patterns
 
@@ -292,7 +292,7 @@ It is never possible to guarantee delivery of messages, or the correct sequencin
 
 The following guidelines help to design systems that can handle the inherent unreliability of message delivery. These guidelines are protocol-agnostic, and apply equally to all types of message delivery systems, including message brokers, event buses, publish-subscribe systems, and HTTP-based messaging systems.
 
-See also *link:../016a/README.adoc[TS-16a: Webhooks]*, which retreads some of this ground.
+See also *link:../022/README.adoc[TS-22: Webhooks]*, which retreads some of this ground.
 
 === Idempotency
 
