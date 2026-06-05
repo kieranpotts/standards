@@ -2,6 +2,170 @@
 :toc: macro
 :toc-title: Contents
 
+This technical standard provides guidance on how to model software systems at different levels of abstraction.
 
+See also *link:../041a/README.adoc[TS-41a: Threat Modeling]*.
 
 toc::[]
+
+== Modeling levels
+
+Models are abstract representations of a system's functionality and data flow. Models can be created at different levels of abstraction, each offering different levels of detail and different insights.
+
+The following is a useful general-purpose mental model to think about the levels of abstraction possible in software models. From high-to-low:
+
+* *Conceptual architecture*: The most abstract and least detailed view. It provides a strategic, high-level overview of the whole system, defining the major components and how they interact.
+
+* *Logical architecture*: Describes how systems work in terms of functions and logical information flows, abstracting away implementation details.
+
+* *Physical architecture*: The lowest level of abstraction, concerned with specific services, software components, data representations, and the physical or virtual devices on which they run. These models map the logical architecture to concrete infrastructure, providing the detailed guidance that technical teams need to build, monitor, and maintain the system. Components that may be represented include clients, servers, load balancers, databases, storage, caches, message queues, and external services.
+
+* *Technical design*: A catalog of the specific computer languages, runtime environments, and system software used in production systems.
+
+Different levels of abstraction are suitable for different use cases. For example, conceptual architecture models, which don't go into technical details, tend to be useful for discussing a system's design with non-technical stakeholders.
+
+== Text-to-diagram modeling tools
+
+Text-to-diagram tools allow you to define diagrams using a simple, human-readable markup language, rather than manually drawing them with a graphical tool.
+
+The primary benefit is that diagrams become version-controllable – they are plain text, not binary image files – which means they integrate naturally with version control systems and code review workflows. It makes keeping diagrams in sync with code changes much easier than maintaining separate image files.
+
+However, text-to-diagram tools come with tradeoffs. They require learning a domain-specific language, and complex diagrams can be tedious to express textually. The diagrams also require rendering tools to view – you can't simply look at the text and visualize the diagram. This means adding tooling and build-time dependencies to your workflow.
+
+https://plantuml.com/[PlantUML] is a popular choice for this purpose, offering a lightweight text-markup language for creating UML diagrams. Other options include https://mermaid.js.org/[Mermaid], https://graphviz.org/[Graphviz], and many others.
+
+To embed text-to-diagram markup directly in AsciiDoc and Markdown documentation files and have the diagrams render automatically in VS Code, you'll need to configure rendering tools. The sections below explain how to set this up for both AsciiDoc and Markdown files.
+
+=== AsciiDoc
+
+To render PlantUML diagrams in AsciiDoc, the easiest option is to use the online Kroki service, a free web service that renders diagrams and charts from text representations, not only in the PlantUML DSL but also https://mermaid.js.org/[Mermaid], https://graphviz.org/[Graphviz] and many others.
+
+In VS Code, add the following to your `settings.json` file:
+
+[source,json]
+----
+{
+  "asciidoc.extensions.enableKroki": true,
+  "asciidoc.preview.asciidoctorAttributes": {
+    "kroki-server-url": "https://kroki.io",
+  },
+}
+----
+
+You can also run a local Kroki server. https://docs.kroki.io/kroki/setup/use-docker-or-podman/[The full instructions are here], but basically it involves pulling and running a Docker container based on the official Kroki image:
+
+[source,sh]
+----
+# Pull the Kroki server image from Docker Hub.
+# https://hub.docker.com/r/yuzutech/kroki
+docker pull yuzutech/kroki
+
+# Run a container based on this image.
+# Run the container in detached mode (-d) and map the container's
+# port 8000 to your local machine's port 8080.
+docker run -d -p 8080:8000 yuzutech/kroki
+----
+
+Go to http://localhost:8080/ to verify that the Kroki server is running. Then change your `settings.json` to point to the local server instead. These settings need to be defined at the user or workspace level.
+
+[source,json]
+----
+{
+  "asciidoc.extensions.enableKroki": true,
+  "asciidoc.preview.asciidoctorAttributes": {
+    "kroki-server-url": "http://localhost:8080",
+  },
+}
+----
+
+For AsciiDoc, the PlantUML DSL code needs to be embedded within https://docs.asciidoctor.org/asciidoc/latest/verbatim/literal-blocks/[literal blocks]. If you have everything configured correctly, you should be able to see the rendered diagram below, when viewing this document in preview mode. (You might need to restart VS Code for the configuration changes to take effect.)
+
+[plantuml]
+....
+@startuml
+entity person {
+* id: INT <<FK>>
+* name: VARCHAR(128)
+---
+address: VARCHAR(256)
+email: VARCHAR(128)
+phone: VARCHAR(16)
+}
+@enduml
+....
+
+If you can see the Kroki landing page via http://localhost:8080 in your web browser, but the diagrams do not generate in AsciiDoc preview in VS Code, try adjusting the security settings. Open VS Code's command palette (Ctrl+Shift+P), select "AsciiDoc: Manage Preview Security Settings", and choose "Allow insecure local content".
+
+=== Markdown
+
+Asciidoctor.js, the JavaScript port of Asciidoctor that powers VS Code's https://marketplace.visualstudio.com/items?itemName=asciidoctor.asciidoctor-vscode[AsciiDoc extension], specifically uses https://github.com/asciidoctor/asciidoctor-kroki[Kroki] for the rendering of embedded graphics DSLs. For Markdown files, you have more flexibility. For simplicity, it is recommended to use a dedicated PlantUML server, rather than a more general-purpose service like Kroki.
+
+The PlantUML project runs a free PlantUML server at https://www.plantuml.com/plantuml. To use that, simply add the following configuration to VS Code's `settings.json` file:
+
+```json
+{
+  "plantuml.server": "https://www.plantuml.com/plantuml",
+  "plantuml.render": "PlantUMLServer",
+}
+```
+
+You can also run a local instance of the PlantUML server using Docker. https://plantuml.com/starting[The full instructions are here], but essentially:
+
+[source,sh]
+----
+# Pull the PlantUML server image from Docker Hub.
+# This image uses Jetty as the server.
+# https://hub.docker.com/r/plantuml/plantuml-server
+docker pull plantuml/plantuml-server:jetty
+
+# Run a container based on this image.
+# Run the container in detached mode (-d) and map the container's
+# port 8080 to your local machine's port 8080.
+docker run -d -p 8080:8080 plantuml/plantuml-server:jetty
+----
+
+Once the container is running, you can access the PlantUML server in your browser by visiting http://localhost:8080/. You should see the PlantUML server's user interface, which allows you to type PlantUML code and see the generated diagram in real time.
+
+Next, you'll need to install a PlantUML extension in your code editor, and configure the extension to use your locally-running PlantUML server. The following extensions are available for VS Code and JetBrains IDEs:
+
+* https://marketplace.visualstudio.com/items?itemName=jebbs.plantuml[PlantUML], Visual Studio Code marketplace
+* https://plugins.jetbrains.com/plugin/7017-plantuml-integration[PlantUML Integration], JetBrains marketplace
+
+These are the settings you'll need for VS Code:
+
+[source,json]
+----
+{
+  "plantuml.server": "http://localhost:8080",
+  "plantuml.render": "PlantUMLServer",
+}
+----
+
+Alternatively, if you want to use the Kroki service to render PlantUML diagrams in Markdown, there's a VS Code extension for that, called Markdown Kroki (`pomdtr.markdown-kroki`).
+
+To render PlantUML diagrams within Markdown files, no further steps are required. Simply embed the PlantUML DSL within code blocks, as below, and view the Markdown document in preview mode. Select the option to "Allow insecure local content", and you should see the rendered diagram.
+
+[source,markdown]
+----
+```plantuml
+@startuml
+entity person {
+* id: INT <<FK>>
+* name: VARCHAR(128)
+---
+address: VARCHAR(256)
+email: VARCHAR(128)
+phone: VARCHAR(16)
+}
+@enduml
+```
+----
+
+Depending on your setup, you may need additional settings. For example, if you have enabled the https://marketplace.visualstudio.com/items?itemName=shd101wyy.markdown-preview-enhanced[Markdown Preview Enhanced] extension, you will need to add the following setting to your `settings.json` file:
+
+[source,json]
+----
+{
+  "markdown-preview-enhanced.plantumlServer": "http://localhost:8080",
+}
+----
