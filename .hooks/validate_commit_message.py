@@ -16,6 +16,7 @@ import re
 import sys
 
 VALID_TYPES = [
+    # Subset of standard commit types:
     "chore",
     "fix",
     "format",
