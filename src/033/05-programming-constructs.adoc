@@ -1,0 +1,197 @@
+= Programming constructs
+
+== Import statements
+
+Wildcard imports, static or otherwise, SHOULD NOT be used.
+
+Imports SHOULD be grouped by:
+
+* Static imports
+* Non-static imports
+
+There SHOULD be exactly one blank line between the two groups to separate them. Within each group, imports SHOULD be sorted alphabetically based on the names of the imports. There SHOULD NOT be any other blank lines between import statements.
+
+Import statements SHOULD NOT be line-wrapped. Import statements MAY exceed the column limits.
+
+Static imports SHOULD NOT be used for static nested classes. They SHOULD be imported with normal imports.
+
+== Variable declarations
+
+Each variable declaration (field or local) MUST be on its own line and declare exactly one variable. Declarations such as `int a, b;` MUST NOT be used, except in the header of a `for` loop.
+
+Local variables SHOULD NOT be habitually declared at the beginning of their containing block. Instead, local variables SHOULD be declared close to the point they are first used. The aim is to minimize the scope of variables.
+
+Local variable declarations SHOULD typically have initializers, or SHOULD be initialized immediately after the declaration.
+
+== Classes and interfaces
+
+There SHOULD be a logical ordering to the contents of classes and other class-like constructs. There is no single "correct" ordering that works well for all classes, but the following order is a good starting point:
+
+1. Class (`static`) variables
+2. Instance variables
+3. Constructors
+4. Methods
+
+Class and instance fields MAY be ordered by visibility: first public, then protected, then package-scoped (no modifier), then private. But it is, generally, better to order and group methods logically, rather than by visibility (public, protected, private), type (static, instance), or by name (eg. alphabetical ordering). Authors SHOULD order the contents of a class in a way whatever way they feel most helps to understand the class's purpose and logic.
+
+However, it is REQUIRED that methods of a class that share the same name, but which have different parameters, be grouped together. This requirement also applies to variadic constructors.
+
+Constructor and method declarations MUST be separated by a blank line. Constants and fields MAY be. (See *vertical whitespace*.)
+
+== Enums
+
+An enum class with no methods and no documentation on its constants MAY be formatted as a single line, similar to an array initializer.
+
+[source,java]
+----
+private enum Suit { CLUBS, HEARTS, SPADES, DIAMONDS }
+----
+
+Otherwise, the enum constants SHOULD be listed on separate lines, with a comma after each constant, and the opening brace on the same line as the enum name. There SHOULD NOT be any blank lines within enum bodies, except where required around comments.
+
+[source,java]
+----
+private enum Answer {
+  YES {
+    @Override
+    public String toString() {
+      return "yes";
+    }
+  },
+  NO,
+  MAYBE
+}
+----
+
+Enums should be named using singular forms. The thinking is that you're not selecting multiple `Protocols`, but rather one `Protocol` of the possible choices.
+
+[source,java]
+----
+enum Protocol { HTTP, HTTPS, FTP }
+----
+
+== Modifiers
+
+Class and member modifiers, when present, SHOULD appear in the order recommended by the https://docs.oracle.com/javase/specs/jls/se17/html/index.html[Java Language Specification], which is:
+
+----
+public protected private abstract default static final sealed non-sealed transient volatile synchronized native strictfp
+----
+
+For classes, the `public` access modifier MUST be added only if the class is intended to be used outside of its package.
+
+For members, access modifiers SHOULD be added in most cases. It is good practice to be explicit about the access level of class methods and data members, even where the default access level is appropriate.
+
+Most instance variables SHOULD be `private`, to adhere to the principle of data hiding. Methods, most of the time, will be `public`, unless the method is intended to be used only within the current class or a derived classes, in which case it SHOULD be `protected`, or `private` on `final` classes.
+
+Generally, package-scoped members – which have no modifier, as this is the default scope – SHOULD be avoided, particularly in applications. However, using package-level visibility can be useful in some cases. It is particularly useful in the context of libraries, and also in the implementation of the aggregate root design pattern.
+
+== Annotations
+
+Field annotations SHOULD all be listed on the same line.
+
+[source,java]
+----
+@Partial @Mock DataLoader loader;
+----
+
+Type-use annotations MUST appear immediately before the type they are annotating.
+
+[source,java]
+----
+final @Nullable String name;
+
+public @Nullable Person getPersonByName(String name);
+----
+
+Annotations applying to a class MUST each be listed on separate lines before the class declaration, and immediately after any preceding Javadoc.
+
+[source,java]
+----
+@Deprecated
+@CheckReturnValue
+public final class Frozzler {
+  // …
+}
+----
+
+The rules for method and constructor annotations are the same.
+
+[source,java]
+----
+@Deprecated
+@Override
+public String getNameIfPresent() {
+  // …
+}
+----
+
+There are no specific rules for formatting annotations on parameters or local variables.
+
+=== @Override
+
+The `@Override` annotation MUST be used on all methods that are intended to override a method in a superclass or an interface.
+
+There is one exception: `@Override` MAY be omitted when the parent method is `@Deprecated`.
+
+== Static members
+
+References to static class members MUST be qualified with the name of the class, not with a reference or expression of that class's type.
+
+[source,java]
+----
+Foo myFoo = new Foo();
+
+Foo.doSomething(); // Good
+myFoo.doSomething(); // Bad
+somethingThatReturnsFoo().doSomething(); // Very bad
+----
+
+== Exceptions
+
+It is very rarely correct to do nothing in response to a caught exception. Where you do this, the reason MUST be documented in a comment within the `catch` block.
+
+[source,java]
+----
+try {
+  int i = Integer.parseInt(response);
+  return handleNumericResponse(i);
+} catch (NumberFormatException ok) {
+  /* It's not numeric; that's fine, just continue. */
+}
+
+return handleTextResponse(response);
+----
+
+In tests, the following is a very common idiom for ensuring that the code under test _does_ throw an exception of the `expected` type. A comment within the `catch` block is not necessary here.
+
+[source,java]
+----
+try {
+  emptyStack.pop();
+  fail();
+} catch (NoSuchElementException expected) {}
+----
+
+== Switch statements
+
+After a switch label (`case <label>:`, `default:`), there SHOULD be a line break, and then the indentation increased by one level (ie. two spaces) for the statement group.
+
+The comment `// fall through` SHOULD be included at the bottom of any statement group where execution will or _might_ continue into the next statement group. This special comment is NOT REQUIRED for the last statement group. It is also NOT REQUIRED for empty statement groups.
+
+[source,java]
+----
+switch (input) {
+  case 1:
+  case 2:
+    prepareOneOrTwo();
+    // fall through
+  case 3:
+    handleOneTwoOrThree();
+    break;
+  default:
+    handleLargeNumber(input);
+}
+----
+
+Each switch statement MUST include a `default` statement group, even if it has no code. Only a switch statement for an `enum` type MAY omit the `default` statement group, and only if it includes explicit cases that cover all possible values of the type (this enables static analysis tools to issue warnings if cases are missed).
