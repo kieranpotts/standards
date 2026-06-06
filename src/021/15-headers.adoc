@@ -1,0 +1,64 @@
+= Headers
+
+== HTTP header naming conventions
+
+HTTP header field names are case-insensitive. This means that `Content-Type`, `content-type`, and `CONTENT-TYPE` MUST be treated identically by HTTP clients and servers to comply with RFC 7230 Section 3.2.
+
+However, header values may be case-sensitive depending on their semantics. For example, `text/html` and `TEXT/HTML` will usually be trated the same, but the behavior of `Bearer {token}` versus `bearer {token}` may differ between implementations.
+
+Where you have control over the letter case of HTTP header fields, it is RECOMMENDED to write them using Pascal Case (aka. Title Case) with words delimited by hyphens: `Content-Type`, `User-Agent`, `Accept-Encoding`, etc. This is the most widely used naming convention.
+
+Avoid using underscores or alternative letter case conventions such as camelCase, even for your application's own non-standard header fields.
+
+== Non-standard headers
+
+Non-standard headers SHOULD be prefixed with `X-` to indicate that they are custom headers, and to avoid potential conflicts with future standard headers.
+
+Examples:
+
+* `X-Request-Id`: A unique identifier for the request, used for logging and tracing, and to implement idempotent operations.
+
+* `X-Correlation-Id`: A unique identifier to correlate requests and responses through distributed systems. This may be useful in scenarios where a client does not supply an `X-Request-Id` header, or where processes are initialized by the system (such as batch processes or scheduled jobs) rather than by a user.
+
+* `X-Client-Id`: A unique identifier for the client application making the request. This may be useful where you want to track the behavior of a specific client application, rather than a specific user.
+
+== `Prefer` header
+
+HTTP APIs MAY support the `Prefer` header. This standard HTTP header is specified in https://tools.ietf.org/html/rfc7240[RFC 7240]. It is used by clients to opt-in to specific behaviors when the server is processing the client's requests.
+
+The `Prefer` header is useful for a number of use cases. Perhaps the most common use case is to allow clients to opt-in to receiving a response body, encoding up-to-date resources, for requests that would not otherwise receive one. For example, instead of `PUT` and `PATCH` requests receiving a `204 No Content` response by default, clients can opt-in to receiving a `200 OK` response with the updated resource in the response body. This can be useful for clients that need to capture system-generated fields, such as `create_time` and `update_time`, or where clients benefit from receiving up-to-date representations of resources that are particularly volatile.
+
+By default, HTTP APIs should return full representations of requested and updated resources. But sometimes the client does not need the full representation and the client-server interaction can therefore be optimized by returning partial representations of resources. This can be particularly beneficial in collections in which individual resources are large objects in their complete representations. Clients may therefore choose to fetch minimal or summarized lists of resources, and then fetch the full representations of individual resources as-and-when needed.
+
+The `Prefer: return=minimal` header MAY be used for this purpose. The definition of a "minimal" representation is left to the discretion of the service, but it SHOULD be documented as part of the API's interface specification.
+
+****
+To gives clients even more granular control over the subset of resource data that they receive, API services MAY instead support a query parameter named `fields`. This accepts a comma-separated list of field names that the client is interested in. The response body SHOULD include only the fields that are listed in the `fields` query parameter, plus any required fields that the server always provides.
+
+----
+GET https://api.example.com/v1/users/bob?fields=department,title,location
+----
+
+The `fields` pattern, if implemented, SHOULD be supported globally across all resources and collections. It SHOULD NOT be used in conjunction with the `Prefer: return=minimal` header. Clients SHOULD be expected to supply one or the other, or neither, but not both.
+****
+
+== Response caching
+
+HTTP API servers MUST provide guidance to clients on appropriate caching of response messages. Clients MAY cache responses based on the guidance issued by the server.
+
+Client-side caching is typically guided using the `Cache-Control` header, but a combination of other headers may be used:
+
+* `Cache-Control`: set appropriate directives (max-age, no-cache, private).
+* `ETag`: implement entity tags for conditional requests.
+* `Last-Modified`: include modification timestamps where applicable.
+* `Vary`: specify headers that affect response content.
+
+If you also are in control the client-size code, then you have more flexibility to control the downstream caching behavior.
+
+Response caching can also be done upstream, too:
+
+* *CDN/Edge*: Cache responses at edge locations for global distribution
+* *Application-level*: Implement in-memory or distributed caching for computed results
+* *Database query*: Cache expensive database operations
+
+Consider *cache invalidation* techniques.
