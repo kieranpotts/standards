@@ -1,0 +1,156 @@
+= Identifying threats
+
+The most important part of the threat modeling process is the identification of potential threats.  This is done by systematically analyzing each component and data flow within a system against various categories of known threats and vulnerabilities.
+
+It is RECOMMENDED to use a structured framework for this part of the process.
+
+STRIDE is a RECOMMENDED minimal framework for threat identification. For complex applications, this framework SHOULD be augmented with other frameworks as well as analysis of public vulnerability databases and other sources of information about security and privacy threats.
+
+== Vulnerability databases
+
+Another approach is to assess the system against common vulnerabilities. Public vulnerability databases are a useful resource for this purpose. Public vulnerability databases include:
+
+* The https://www.cve.org/[Common Vulnerabilities and Exposures (CVE)] database
+* The https://cwe.mitre.org/index.html[Common Weakness Enumeration (CWE)] list
+* https://capec.mitre.org/[Common Attack Pattern Enumerations and Classifications (CAPEC)]
+* The https://nvd.nist.gov/vuln/search#/nvd/home?resultType=records[National Vulnerability Database (NVD)]
+* The https://cheatsheetseries.owasp.org/[OWASP Cheat Sheets], including the https://cheatsheetseries.owasp.org/cheatsheets/Attack_Surface_Analysis_Cheat_Sheet.html[Attack Surface Cheat Sheet], or the https://owasp.org/Top10/[OWASP Top 10] lists
+
+== Prompt questions
+
+It is useful to prepare a list of questions to guide threat modeling workshops. These prompts help systematically interrogate system design against common vulnerabilities.
+
+=== STRIDE framework
+
+The STRIDE framework provides structured categories for threat assessment. Here are some example questions to consider for each STRIDE category.
+
+* *Spoofing*:
+
+** Who has their identity verified before processing data?
+** How are authentication credentials transmitted and validated?
+** Can external entities be verified as who they claim to be?
+
+* *Tampering*:
+
+** How are inputs validated and sanitized?
+** Are there integrity checks on stored and transmitted data?
+** Is data-in-transit protected (eg. HTTPS, signatures)?
+** Can unauthorized users modify stored data and configurations?
+
+* *Repudiation*:
+
+** Are actions logged with sufficient context to trace responsible parties?
+** Can changes be attributed to specific users or systems?
+** Are logs protected from tampering?
+
+* *Information disclosure*:
+
+** Could sensitive data be unintentionally exposed via error messages, logs, or debug information?
+** Is sensitive data encrypted at rest? Is it access-controlled?
+** Can sensitive data be intercepted during transmission?
+** Do external parties receive only necessary data?
+
+* *Denial of service (DoS)*:
+
+** Can the system be overwhelmed through resource exhaustion or flooding?
+** Are rate limits and throttling in place?
+** Can storage be exhausted or locked?
+** Are DoS protections implemented?
+
+* *Elevation of privilege*:
+
+** Are role-based access controls properly implemented?
+** Could users escalate privileges through logic or configuration flaws?
+** Are permissions default-deny and properly enforced?
+** Can external entities access restricted functions?
+
+=== OWASP vulnerability categories
+
+Alternatively, you could choose to assess the system against common vulnerability categories.
+
+* *Authentication failures*:
+
+** Does the system require authentication for all access?
+** Is multi-factor authentication implemented where practical?
+** Are weak passwords disallowed (to prevent brute-force attacks)?
+** Are passwords checks against common password lists (rainbow tables)?
+
+* *Broken access controls*:
+
+** Is all access "deny by default" with explicit allow rules?
+** Can the authorization system (eg. role-based) be bypassed or manipulated to allow privilege escalation?
+** Are session identifiers secure (random, transferred over HTTPS, invalidated on logout)?
+** Are authorization checks enforced consistently across all entry points?
+** Are APIs rate-limited?
+** Are HTTP redirects disabled or restricted?
+** Are admins alerts of unauthorized access control attempts?
+** Is there anything that can accessed without authentication or authorization?
+** Are there any unexpected file accessible from web server root directories?
+** Does the application process any unverified data?
+
+* *Cryptographic failures*:
+
+** Is all network traffic encrypted (HTTPS, TLS)? This includes traffic between load balancers and application servers, between application servers and databases, and so on.
+** Are there any open ports which are not currently encrypted (even if not in use)?
+** Are any self-signed certificates used?
+** Are default certificates and keys avoided?
+** Are certificates and their trust chain properly validated?
+** Are current, strong algorithms used (SHA-256+, bcrypt, TLS 1.2+)? Are any deprecated hash functions used (eg. MD5 or SHA-1)?
+** Are strong cryptographic keys used?
+** Are any randomness functions used suitable for cryptographic purposes?
+** Are cryptographic keys managed securely (not hardcoded, not in version control)?
+** Are key invalidation and rotation processes in place?
+** Are appropriate HTTP security headers set (CSP, HSTS, X-Content-Type-Options)?
+** Does any sensitive data leak into logs?
+** Are any logs accessible to users?
+
+* *Injection*:
+
+** Are all client-supplied URLs validated (schema, port, destination)?
+** Are all inputs (parameters, headers, cookies, JSON/XML) validated?
+Are allow-lists (not deny-lists) used for validation purposes?
+** Does a parameterized interface ensure that only valid commands are executed, and that only expected parameters are processed?
+** Are user-provided values properly escaped before rendering in HTML or executing in interpreters?
+** Is any other user-provided data stored, processed, or outputted verbatim?
+** Is mass disclosure prevented in SQL queries, eg. with `LIMIT`?
+
+* *Deployment pipelines*:
+
+** Are all code and configuration changes reviewed and approved before deployment?
+** Are applications securely deployed to their host systems?
+** Is there a patch management process?
+** Are deployments and rollbacks highly automated?
+** Are applications deployed to minimal platforms, with only necessary features enabled?
+** Are development, test, and production environments configured identically (except credentials)?
+** Are cloud storage permissions regularly audited?
+
+* *Dependency management and software supply chain vulnerabilities*:
+
+** Are library and dependency versions inventoried and tracked?
+** Is there continuous monitoring and automated alerting for known vulnerabilities?
+** Is there continuous monitoring that identifies outdated and unmaintained dependencies?
+** Are components obtained only from official, secure sources?
+** Are only signed packages used, to reduce the chances of including maliciously modified components?
+** Are unmaintained or unsupported dependencies identified and replaced at regular intervals?
+
+* *Logging and monitoring*:
+
+** Are authentication, authorization, and input validation failures logged with attack context?
+** But are error messages also generic enough to not reveal unnecessary implementation details?
+** Are logs monitored for suspicious patterns?
+** Are logs held long enough for forensic analysis?
+** Are logs protected from modification and deletion?
+** Is there an incident response plan (documented and tested, with escalation procedures)?
+** What happens when an attack is detected? Are there automated responses (eg. blocking IPs, rate-limiting, alerting admins)?
+** Can attacks be detected, alerted, and mitigated in real-time?
+
+* Other *secure-by-design* questions:
+
+** Is security integrated into every phase of the development lifecycle?
+** Are plausibility checks implemented across front-end and back-end?
+** Are resource consumption limits enforced per user and per service?
+** Are tenants properly isolated from one another?
+** Are remote resource requests isolated to separate networks?
+** Is "deny by default" enforced for network access via firewall policies, or are network access controls configured to block all but essential traffic?
+** Are all blocked network requests logged for suspicious activity?
+** Has ownership and lifecycle management for firewall rules been established?
