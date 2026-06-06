@@ -1,0 +1,69 @@
+= Factors
+
+Before implementing a new caching layer, consider the following:
+
+*Data access frequency*
+
+If a piece of data is rarely accessed, it might not benefit from being cached. But if it's hit constantly, whether by the same user or across many clients, then it may be worth investigating the pros and cons of caching it.
+
+*Cost of data access*
+
+Is it expensive to retrieve the data?
+
+Not all reads are equal. Some hit external services, multiple databases, join several tables, and compute summaries that cost real CPU. For example, if you're generating a user's analytics dashboard, this may involve multiple service calls and heavy aggregation. It may make sense to cache the final computed payload.
+
+But fetching a flat record by a primary key from a well-indexed table – the cost of doing that lookup will already be minimal.
+
+*Data stability*
+
+Is the data stable or volatile?
+
+Stable data makes a great cache. It can sit there for a long time without anyone noticing.
+
+But people notice when volatile data (ie. data that gets stale quickly) is cached for too long.
+
+Therefore, particular consideration needs to be given to cache invalidation for volatile data. (See below for more discussion on this topic.)
+
+*Data size and complexity*
+
+How big is the data object? Is it cheap to serialize and deserialize?
+
+Big, messy data doesn't belong in fast memory. Large payloads eat up space, increase pressure on garbage collection systems, and slow down serialization and deserialization.
+
+Small, flat data is faster to work with and easier to evict if needed.
+
+A classic antipattern is caching an entire product catalog (~100K items) instead of caching paginated views or product summaries.
+
+Caching is a fast-access shelf, not cold storage. Store what fits – what you'll grab often and quickly.
+
+Caching is kept fast by storing simple shapes against small keys.
+
+*Impact on user experience*
+
+Not all latency matters. But when it does, it tends to matter a lot.
+
+Anything on the critical path of a user interaction – loading a web page, rendering a component, or hitting "submit" – should feel instant. If caching makes that possible, use it.
+
+For example, if the response time for a search query directly impacts conversion, this is a good candidate for caching. But a background sync task at 2AM - probably not.
+
+*Safeness*
+
+Is it safe to cache?
+
+Fast is good. Leaky is not.
+
+Caching user-specific or sensitive data – PII, tokens, financials – without scoping or encryption is a security risk. One bad key and someone sees what they shouldn't.
+
+For example, a shared cache key for a user profile might accidentally leak another user's data in a multi-tenant app.
+
+To mitigate, use per-user or per-session cache keys; encrypt values where possible; and set short TTLs for sensitive data.
+
+As a rule of thumb, if it can't go in a log file, it probably shouldn't go in a cache either.
+
+*Scalability*
+
+Will the cache scale?
+
+Caching that works for 1,000 users can still collapse for 1 million. Unbounded keys, high churn, or poorly managed TTLs can overwhelm memory, reduce hit ratios, and cause eviction storms.
+
+Tactics: use eviction policies (LRU, LFU); set size limits; monitor hit/miss ratio and eviction churn.
