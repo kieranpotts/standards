@@ -60,7 +60,7 @@ The rule applies differently to different branch types:
 To help enforce the constraint of atomic commits, each commit MUST be scoped to exactly one of the following eleven revision types:
 
 1.  *Feature*
-2.  *Performance*
+2.  *Runtime*
 3.  *Fix*
 4.  *Step*
 5.  *Refactor*
@@ -73,31 +73,31 @@ To help enforce the constraint of atomic commits, each commit MUST be scoped to 
 
 A *feature* is a change in a user-facing operation or behavior of the software. Features will typically toggle an externally-facing operation or behavior, such as enabling a new API endpoint. This type of revision covers changes and extensions to existing features, and the deprecation and removal of old features.
 
-While features capture the implementation of functional specifications, *performance* revisions capture the implementation of non-functional requirements. The term "performance" is used broadly here, to refer to all operational qualities, also known as dynamic quality attributes, such as security, responsiveness, reliability, resilience, and so on.
+While features capture the implementation of functional specifications, *runtime* revisions capture the implementation of non-functional requirements. The commit type is named "runtime" because it concerns the system's *dynamic* quality attributes — those that emerge at runtime and are observable externally — such as latency, throughput, availability, security, responsiveness, reliability, resilience, and so on. Performance in the strict sense (speed and capacity) is just one of these, not the whole of it.
 
-Both features and performance optimizations are user-facing changes. However, not all performance optimizations will be observed by users in any kind of quantifiable way. For example, the implementation of more concurrent processing may reduce the operational costs for the software vendor, rather than reduce latency for users. The defining characteristic of performance revisions is that the change is observable and measurable externally of the system at runtime.
+Both features and runtime revisions are user-facing changes. However, not all runtime revisions will be observed by users in any kind of quantifiable way. For example, the implementation of more concurrent processing may reduce the operational costs for the software vendor, rather than reduce latency for users. The defining characteristic of runtime revisions is that the change is observable and measurable externally of the system at runtime.
 
 A *fix* is any change that resolves some sort of defect – whether a bug, regression, vulnerability, or incident. A fix could also silence entries in error logs that, on analysis, turn out not to be errors at all.
 
-Features, performance optimizations, and fixes will typically be associated with tickets logged in the project's requirements specification or issue tracking system. Many of these changes will be of interest to users and other stakeholders, and may therefore be recorded in user-facing artifacts such as release notes and changelogs.
+Features, runtime revisions, and fixes will typically be associated with tickets logged in the project's requirements specification or issue tracking system. Many of these changes will be of interest to users and other stakeholders, and may therefore be recorded in user-facing artifacts such as release notes and changelogs.
 
 The remaining commit types capture changes that are not directly user-facing and which are mostly of interest to the developers and maintainers of the software.
 
-Typically, there would be a number of incremental changes to code and configuration before a feature, performance optimization, or fix is complete. These *steps* compose the building blocks for larger changes, or they explore possible design paths in an iterative fashion. Individually, these commits do not change user-facing operations or performance of the software, but they do represent small increments toward such changes being enabled.
+Typically, there would be a number of incremental changes to code and configuration before a feature, runtime revision, or fix is complete. These *steps* compose the building blocks for larger changes, or they explore possible design paths in an iterative fashion. Individually, these commits do not change user-facing operations or runtime qualities of the software, but they do represent small increments toward such changes being enabled.
 
 The necessity of step commits arises when implementing changes that are too large or complex to be completed as a single atomic commit. By breaking such work into a sequence of small, stable, and self-contained steps (atomic commits), we can achieve continuous integration into shared trunk lines, reducing the risk of merge conflicts and forming the basis for continuous delivery and deployment practices.
 
 A *refactor* is any improvement to the design or internal structure of the code or configuration of the software, without changing the software's features or degrading its performance. Refactoring work includes changes to automated tests and build scripts, as well as to source code and configuration, and the data structures and data flows, of the software itself.
 
-.Performance optimization versus refactoring
+.Runtime revisions versus refactoring
 ****
-Performance optimization and refactoring are both concerned with improving the _quality_ of the software, but they focus on different sets of non-functional requirements:
+Runtime revisions and refactoring are both concerned with improving the _quality_ of the software, but they focus on different sets of quality attributes:
 
-* Performance optimization addresses qualities like availability, consistency, latency, security, and compliance requirements. These are _external_ quality attributes of a system, because they impact the user experience. They are also _dynamic_ quality attributes, because they tend to emerge at runtime.
+* Runtime revisions address qualities like availability, consistency, latency, security, and compliance. These are _external_ quality attributes of a system, because they impact the user experience. They are also _dynamic_ quality attributes, because they tend to emerge at runtime. (Hence the `runtime` commit type.)
 
 * Refactoring is about making improvements to the _internal_, _static_ qualities of a system – things like choices of languages, design patterns, data structures, and coding conventions. Typically, these qualities are observable at or before compile time, and they impact developers more than they do users.
 
-The focus of refactoring work is on the needs of the developers and maintainers of the software, whereas the focus of performance optimization is on delivering better quality user experiences.
+The focus of refactoring work is on the needs of the developers and maintainers of the software, whereas the focus of runtime revisions is on delivering better quality user experiences.
 ****
 
 A *format* commit applies presentation-only changes to code – updates to whitespace, indentation, line wrapping, or code style. These changes affect the appearance of the code without altering its structure, logic, or behavior. Formatter runs (eg. `prettier`, `black`, `gofmt`) and bulk code-style adjustments belong here, distinct from `refactor` commits, which restructure logic, data, or design. Keeping pure reformatting in its own commit type also makes it easier to filter such commits out when reviewing history with tools like `git log` and `git bisect`.
@@ -185,7 +185,7 @@ The header has a special format that includes a type and a description, separate
 The `<type>` part MUST be one of the following words, which maps to the different revision types listed above:
 
 1.  `feature`
-2.  `performance`
+2.  `runtime`
 3.  `fix`
 4.  `step`
 5.  `refactor`
@@ -196,7 +196,7 @@ The `<type>` part MUST be one of the following words, which maps to the differen
 10. `merge`
 11. `revert`
 
-Using predefined revision types as a prefix for commit messages makes it easy to filter out unimportant changes (like chores) using `git bisect`. Separating discrete development concerns – feature delivery, bug fixes, performance optimization, refactoring, etc. – into separate commit objects also helps to enforce the principle of atomic commits.
+Using predefined revision types as a prefix for commit messages makes it easy to filter out unimportant changes (like chores) using `git bisect`. Separating discrete development concerns – feature delivery, bug fixes, runtime revisions, refactoring, etc. – into separate commit objects also helps to enforce the principle of atomic commits.
 
 The description part MUST be included, and it SHOULD be a short message that summarizes the change. This SHOULD be written in lowercase, with no period (full stop) or other punctuation to terminate the statement.
 
@@ -483,7 +483,7 @@ It is RECOMMENDED to edit the header line to conform with other committing conve
 
 [NOTE]
 ======
-As described in the section on integration strategies, merge commits SHOULD generally be avoided in favor of fast-forward-only merging, which maintains a clean linear history. However, if explicit merge commits are necessary (eg. for integrations that require recording an integration point), prefer to specify the type of changes being introduced from the source branch as the prefix – eg. `feature:`, `refactor:`, `performance:` – rather than a generic `merge:` prefix. This makes the commit history more informative by indicating what kind of work is being integrated via the merge commit.
+As described in the section on integration strategies, merge commits SHOULD generally be avoided in favor of fast-forward-only merging, which maintains a clean linear history. However, if explicit merge commits are necessary (eg. for integrations that require recording an integration point), prefer to specify the type of changes being introduced from the source branch as the prefix – eg. `feature:`, `refactor:`, `runtime:` – rather than a generic `merge:` prefix. This makes the commit history more informative by indicating what kind of work is being integrated via the merge commit.
 ======
 
 ==== Revert commits
@@ -531,10 +531,10 @@ https://git-scm.com/book/en/v2/Customizing-Git-Git-Configuration#_commit_templat
 #   - format       Low-level code formatting changes.
 #   - maintenance  Dependency updates, tool configs, docs edits, etc.
 #   - merge        An explicit merge commit.
-#   - performance  Optimization of the system's runtime performance.
 #   - refactor     An improvement to the programs's internal design.
 #   - release      Marks a new numbered version of the product.
 #   - revert       Reverts an earlier commit.
+#   - runtime      A change to a dynamic quality attribute (latency, etc.).
 #   - step         An increment toward implementing a larger change.
 #
 # <flag> can be:

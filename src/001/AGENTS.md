@@ -52,7 +52,7 @@ The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT,
 
 -   **NFRs SHOULD be specified as measurable, testable acceptance criteria.**
 
-    Non-functional requirements (NFRs) define operational constraints: security, performance, scalability, availability, data retention, etc. Where possible, specify metrics (MTBF, MTTR, crash rate) or conformance to published standards (eg. AES-256, WCAG, GDPR). NFRs that map cleanly to authorization/authentication rules SHOULD be expressed as user stories within the functional requirements.
+    Non-functional requirements (NFRs) — the system's *quality attributes* — define operational constraints: security, performance, scalability, availability, data retention, etc. Note that *performance* is one quality attribute (speed and capacity), not a synonym for the whole category; the honest umbrella is *qualities*. Where possible, specify metrics (MTBF, MTTR, crash rate) or conformance to published standards (eg. AES-256, WCAG, GDPR). NFRs that map cleanly to authorization/authentication rules SHOULD be expressed as user stories within the functional requirements.
 
 -   **NFRs MUST be identified as early as possible.**
 
@@ -70,4 +70,4 @@ The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT,
 
 - [TS-1: Requirements Specification](./README.adoc) — source standard
 - [TS-13: Functional Testing](../013/AGENTS.md) — verification of functional requirements
-- [TS-14: Performance Testing](../014/AGENTS.md) — verification of non-functional/performance requirements
+- [TS-14: Performance Testing](../014/AGENTS.md) — verification of non-functional (quality) requirements
