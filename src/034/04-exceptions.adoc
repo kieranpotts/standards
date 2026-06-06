@@ -1,0 +1,30 @@
+= Exceptions
+
+Catch-and-rethrow patterns SHOULD be used to make exceptions more meaningful. Exceptions SHOULD be allowed to "bubble up", perhaps unmodified, until the exception is relevant to the level of abstraction.
+
+This strategy should also make error handling more secure, by avoiding unnecessary disclosure of information about modules underlying the abstraction.
+
+[source,php]
+----
+/**
+ * @throws UserNotFoundException
+ */
+public function getUser($username)
+{
+    // ...
+
+    try {
+        $user = $db->query('SELECT ...', $username);
+    } catch (DatabaseException $e) {
+
+        /*
+        The details of the DatabaseException are unlikely to be relevant
+        to the caller of this method. The exception should be re-thrown with
+        a more appropriate level of abstraction.
+        */
+        throw new UserNotFoundException();
+    }
+
+    return $user;
+}
+----
