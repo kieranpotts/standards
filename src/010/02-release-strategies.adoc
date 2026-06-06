@@ -1,0 +1,71 @@
+= Release strategies
+
+Cadence determines *when* and *how much* is released. Release *strategy* determines *how* a new version is rolled out to the users or instances that consume it. Strategies sit on a spectrum from instantaneous, all-at-once cutovers to gradual, incremental rollouts.
+
+The simplest possible strategy is to deploy the new version to all users or instances at once – a *big bang deployment*. For low-risk changes, low-traffic systems, or releases timed against a scheduled downtime window, this is appropriate and requires no special infrastructure. For systems with availability requirements, larger user populations, or higher-stakes changes, one of the strategies below SHOULD be used.
+
+The choice of strategy is constrained by the chosen cadence:
+
+* *Big bang* cadences typically pair with scheduled-downtime cutovers or blue-green deployment, since the release event is rare and discrete.
+
+* *Release trains* often pair with canary or staged rollouts, which allow time for monitoring between increments.
+
+* *Continuous deployment* is usually combined with rolling or canary deployment, and almost always with feature flags, so that frequent releases do not require frequent risk acceptance.
+
+== Rolling deployments
+
+A *rolling deployment* gradually replaces instances running the old version with instances running the new version. At any moment during the rollout, both versions serve traffic. The system remains available throughout, because the un-updated instances continue to handle requests while updated instances come online.
+
+Rolling deployments work well for horizontally scaled, stateless services – particularly those running on container orchestrators (Kubernetes, ECS, Nomad) or autoscaling groups, which handle instance replacement natively.
+
+The key parameters of a rolling deployment are:
+
+* The *rollout rate* – how many instances are replaced at a time. Faster rollouts complete sooner but increase the impact of a faulty release.
+
+* The *health check criteria* – the conditions a new instance must satisfy before the rollout proceeds to the next batch.
+
+* The *failure policy* – what happens if a batch fails its health checks. Typically, the rollout halts and MAY automatically roll back to the previous version.
+
+Rolling deployments require less infrastructure than blue-green deployments, since no parallel environment is maintained. However, they offer no instant rollback. Reverting requires another rolling deployment in reverse, which takes as long as the original rollout.
+
+Rolling deployments require that the old and new versions can run simultaneously without conflict. This has implications for database schema changes, in-flight requests, message queue consumers, and inter-service contracts. Where two versions cannot safely coexist – for example, when a schema migration is not backwards-compatible – rolling deployment is not appropriate without additional design work to bridge the two versions.
+
+== Canary testing
+
+"Canary rollout", "canary testing", or "canarying" comes from the early 20th century practice of using canaries in coal mines to detect carbon monoxide. Miners would take caged canary birds with them underground. The bird has a lower tolerance for toxic gases than humans do, so if the birds stopped chirping – or fainted – the miners knew gas was present and they needed to evacuate the mine.
+
+In software, canary testing is a technique to reduce the risk of introducing a new version of a software service by initially rolling out the change to only a small subset of users. Common methodologies to implement canary rollouts include routing a small percentage of traffic to the new version using a load balancer, or to deploy the new version to a single node. Canary testing can also be done for software products.
+
+An extension of canary testing is staged rollouts, in which the percentage of users receiving the new version continues to be gradually ramped up. Between each rollout stage, the health of the new version is monitored and criteria are set for the rollout to continue.
+
+Canarying and staged rollouts are particularly useful for services that are difficult to test in isolation, or where the potential impact of a failure is high. Both were true of the https://newsletter.pragmaticengineer.com/p/the-biggest-ever-global-outage-lessons[2024 CrowdStrike incident] that caused a globally-disruptive outage. CrowdStrike's software operates at the kernel level in Windows, which is inherently difficult to test in isolation and in an automated way. And such software is inherently high risk and high impact, as it has the highest level of privileges on the system. Yet the buggy update was rolled out in a single big-bang, globally.
+
+== Blue-green deployments
+
+Blue-green deployment is a release strategy in which two identical production environments – named "blue" and "green" – are maintained side by side. At any given time, only one environment serves live traffic. Releases are performed by deploying the new version to the idle environment, validating it, and then switching traffic over – typically by updating a load balancer or DNS record.
+
+The chief advantage of blue-green deployments is the ability to roll back near-instantaneously. If a problem is detected after the cutover, traffic can be redirected back to the previous environment without redeploying anything.
+
+Blue-green deployments are well-suited to stateless services. For services with persistent state – particularly databases – additional care is needed to ensure that data written to the new environment remains compatible with the old, in case of rollback. This typically requires that database schema changes are applied in two phases: first, a backwards-compatible migration is deployed; second, after the new version is fully released, any cleanup migrations are applied.
+
+Blue-green deployment differs from canary testing in that all production traffic is shifted at once, rather than incrementally. The two strategies can be combined. A new version can be deployed to the green environment and then exposed to a small percentage of traffic via canary routing before the full cutover.
+
+== Feature flags
+
+Feature flags (also known as feature toggles or feature switches) are conditional statements in the code that determine whether a particular feature is active. The state of each flag is typically controlled at runtime, often via a configuration service, allowing features to be enabled or disabled without redeploying the software.
+
+Feature flags decouple the *deployment* of code from the *release* of features. A new feature can be deployed to production in a disabled state, and later enabled – for all users, for a specific cohort, or gradually – without further code changes. This is a powerful tool for risk management.
+
+Common use cases include:
+
+* *Trunk-based development*: Feature flags allow incomplete features to be merged to the main branch without exposing them to end users, supporting continuous integration. See link:../009/README.adoc[TS-9: Version Control].
+
+* *A/B testing*: Different cohorts of users can be exposed to different variants of a feature, to evaluate which performs better.
+
+* *Kill switches*: A flag can be used to quickly disable a feature in production if a problem is discovered, without requiring a rollback or redeployment.
+
+* *Gradual rollouts*: Similar to canary testing, but operating at the feature level rather than the deployment level. A feature can be enabled for a small percentage of users initially, and ramped up over time.
+
+Feature flags introduce complexity. Each flag is a branch in the code, and the combinatorial explosion of flag states can be difficult to test exhaustively. For this reason, flags SHOULD be used sparingly. Best practice is for an application to have a defined maximum number of flags at any one time.
+
+Flags SHOULD have a defined lifecycle, too. Once a feature is fully rolled out and stable, the flag and the now-dead code path SHOULD be removed (via a deployment). Long-lived flags that have outlived their purpose are a common source of technical debt and, occasionally, of incidents – as when an obsolete flag is toggled accidentally.

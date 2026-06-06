@@ -1,0 +1,88 @@
+= Release documentation
+
+Two related but distinct artifacts document what has changed in each release: release notes and changelogs. They serve different audiences and purposes, and a given project may produce one, the other, or both.
+
+== Release notes
+
+Every production release SHOULD be accompanied by release notes that summarize what has changed. The audience and format of release notes will vary depending on the type of software:
+
+* For *libraries and APIs*, release notes are aimed at the developers who consume the software. They SHOULD highlight new features, deprecations, and notable bug fixes, with sufficient detail for consumers to understand the impact on their own systems. Breaking changes MUST be called out prominently and SHOULD be accompanied by a migration guide where possible.
+
+* For *end-user applications*, release notes are aimed at users. They SHOULD describe new functionality and notable fixes in terms that are meaningful to the user, avoiding implementation detail.
+
+* For *internal services*, release notes may be aimed at other teams within the organization, and SHOULD note any changes to interfaces, performance characteristics, or operational requirements.
+
+Release notes SHOULD be written as part of the normal development process, not separately at the time of release. It is RECOMMENDED to use a consistent commit message convention to support the automatic generation of release notes, though this will not be appropriate for all software projects.
+
+Release notes SHOULD reference the version number of the release. See link:../011/README.adoc[TS-11: Versioning].
+
+== Changelogs
+
+A changelog is a chronological, cumulative record of all notable changes made to a software project across its lifetime. Whereas release notes are a curated summary written for a specific audience and tied to a single release, a changelog is a comprehensive engineering reference that spans every release of the project.
+
+The two artifacts serve different purposes and SHOULD NOT be conflated:
+
+* *Release notes* answer the question, "What does this release mean for me?" They are selective, narrative, and often tailored for non-technical audiences. Typical consumers include end-users, product managers, customer success teams, and – for libraries – the developers who depend on the software. Release notes for end-user products may emphasize benefits and outcomes over implementation detail, and are sometimes treated as a marketing artifact.
+
+* *Changelogs* answer the question, "What changed between version X and version Y?" They are exhaustive, structured, and aimed at engineers who need to reason about upgrades, debug regressions, or audit history. A changelog is a single document that grows over time, with each release adding a new section to the top.
+
+For some projects – particularly developer-facing libraries with primarily technical audiences – the changelog and the release notes may be the same artifact. For others – particularly end-user products and large platforms – they are distinct, and the release notes are typically derived by summarizing the relevant section of the changelog in audience-appropriate language.
+
+Use cases for each:
+
+* Maintain a *changelog* for any software where consumers may need to compare versions, plan upgrades, or trace when a particular change was introduced. This includes libraries, APIs, CLIs, infrastructure components, and most internal services.
+
+* Publish *release notes* for any software where a release is a discrete event communicated to an audience – including end-user applications, paid products, and major platform upgrades. Release notes are also appropriate for libraries and APIs that have a wide consumer base, where the changelog alone would be too dense to communicate the significance of a release.
+
+A widely adopted convention for changelogs is https://keepachangelog.com/[Keep a Changelog], which prescribes a standard structure organized by version and grouping changes under fixed headings: *Added*, *Changed*, *Deprecated*, *Removed*, *Fixed*, and *Security*. This structure makes it easy for consumers to scan for the changes that affect them.
+
+A changelog file (typically `CHANGELOG.md`) SHOULD be maintained in the source repository, with entries added as part of the same change that introduces them. This keeps the changelog accurate and current, and avoids the common failure mode of attempting to reconstruct history at release time. Where commit messages follow a consistent convention, the changelog MAY be generated automatically from the commit history – though human curation is often still needed to produce a useful narrative.
+
+== Migration guides
+
+A migration guide provides step-by-step instructions for consumers to upgrade from one version of a software component to another. Migration guides are most relevant when a release introduces breaking changes, significant behavioral differences, or non-trivial configuration updates.
+
+Whereas release notes describe *what* has changed, a migration guide describes *what consumers need to do* in response. The two artifacts are complementary. Release notes SHOULD link to the relevant migration guide for any breaking change.
+
+Migration guides SHOULD:
+
+* Be versioned to specific version transitions (eg. "Migrating from v1 to v2"). A separate guide MAY be provided for each major version transition.
+* Enumerate every breaking change, with before-and-after code or configuration examples where applicable.
+* Highlight any required ordering of steps, particularly where data migrations or downtime are involved.
+* Note any tooling – such as codemods or migration scripts – that can automate parts of the upgrade.
+
+For libraries with a large consumer base, the cost of a poorly documented migration is borne many times over. Investment in a clear migration guide pays back proportionally.
+
+== Deprecation notices
+
+A deprecation notice is a formal, forward-looking communication that a feature, API, endpoint, configuration option, or behavior will be removed in a future release. Deprecation is the mechanism by which breaking changes can be introduced gradually, giving consumers time to adapt.
+
+Whereas release notes and changelogs are backward-looking – describing what has already happened – deprecation notices set expectations about future change. They SHOULD be issued well in advance of the planned removal.
+
+A deprecation notice SHOULD include:
+
+* What is being deprecated, in unambiguous terms.
+* The release in which the deprecation takes effect.
+* The release in which the feature is expected to be removed, or the criteria that will trigger removal.
+* The recommended replacement, if any, and a reference to a migration guide.
+* The reason for deprecation, where useful context for consumers.
+
+Projects SHOULD adopt and publish a deprecation policy that defines the minimum notice period. A common convention is that a feature deprecated in version `vN.x` will not be removed before version `vN+1.0` (for major-versioned software) or before a defined number of minor releases have elapsed.
+
+Where the language or runtime supports it, deprecation SHOULD also be signaled in code – via compiler warnings, runtime warnings, deprecation annotations, or response headers – so that consumers are alerted in their normal workflow, not only by reading documentation.
+
+== Security advisories
+
+A security advisory is a formal disclosure of a security vulnerability that has been identified and addressed in a release. Advisories are distinct from regular release notes because they have legal, compliance, and incident-response implications, and because they are consumed by audiences – security teams, automated scanners, downstream maintainers – who may not otherwise track releases.
+
+A security advisory SHOULD include:
+
+* A unique identifier, ideally a https://www.cve.org/[CVE] number for vulnerabilities of public interest, or a project-specific identifier (eg. GHSA on GitHub).
+* A severity rating, typically using the https://www.first.org/cvss/[CVSS] scoring system.
+* A description of the vulnerability, including the affected versions and the conditions under which it can be exploited.
+* The fixed version(s) and any available mitigations or workarounds for consumers who cannot upgrade immediately.
+* Acknowledgment of the reporter, where appropriate.
+
+Security advisories SHOULD be published through channels that downstream consumers and automated tools can reliably discover, such as the https://github.com/advisories[GitHub Advisory Database], language-ecosystem advisory databases (RustSec, npm, PyPI), or a dedicated mailing list.
+
+The disclosure of a security issue SHOULD be coordinated with the release of the fix. Premature disclosure exposes users to attack; delayed disclosure prevents users from understanding why an upgrade is urgent. A documented security disclosure policy – including how to report vulnerabilities and the project's expected response times – SHOULD be published in the repository, conventionally as `SECURITY.md`.
