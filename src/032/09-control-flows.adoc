@@ -1,0 +1,102 @@
+= Control flows
+
+For conditional expressions, it is RECOMMENDED to use the Bash-specific double-bracket syntax, `[[ … ]]`, over `[ … ]`, `test`, and `/usr/bin/[`.
+
+In older versions of Bash, using single bracket syntax with `&&` or `||` could cause syntax issues. Using the double bracket syntax is better, therefore, for backwards compatibility with older implementations of Bash.
+
+The double bracket syntax is preferred for other reasons, too. It prevents pathname expansion and word splitting, which eliminates a common class of bugs in shell scripts. It also allows for regular expression matching, which the single bracket syntax does not support.
+
+.Examples
+[source,bash]
+----
+if [[ "filename" =~ ^[[:alnum:]]+name ]]; then
+  echo "Match"
+fi
+
+if [[ "filename" == "f*" ]]; then
+  echo "Match"
+fi
+
+# For comparison, this gives a "too many arguments" error as
+# f* is expanded to the contents of the current directory.
+if [ "filename" == f* ]; then
+  echo "Match"
+fi
+----
+
+For clarity, use `==` for equality rather than `=`, even though both work. The former requires the use of the preferred Bash-specific `[[ … ]]` syntax. The latter can be confused with an assignment.
+
+[source,bash]
+----
+#  ✅
+if [[ "${my_var}" == "val" ]]; then
+  do_something
+fi
+
+# ❌
+if [[ "${my_var}" = "val" ]]; then
+  do_something
+fi
+----
+
+Be careful when using `<` and `>` in `[[ … ]]`, which performs a lexicographical comparison. Use `(( … ))` or `-lt` and `-gt` for numerical comparison.
+
+[source,bash]
+----
+#  ✅
+if (( my_var > 3 )); then
+  do_something
+fi
+
+#  ✅
+if [[ "${my_var}" -gt 3 ]]; then
+  do_something
+fi
+
+# ❌ Probably unintended lexicographical comparison.
+# True for 4, false for 22.
+if [[ "${my_var}" > 3 ]]; then
+  do_something
+fi
+----
+
+Prefer to use `-z` and `-n` to test for zero-length and non-empty strings respectively. Alternatively you can do an equality check against a literal `""` value, but if you do ensure that you quote on the empty side.
+
+[source,bash]
+----
+#  ✅
+if [[ -z "${my_var}" ]]; then
+  do_something
+fi
+
+# ✅
+if [[ -n "${my_var}" ]]; then
+  do_something
+fi
+
+# ✅ This is okay, but ensure quotes on the empty side.
+if [[ "${my_var}" == "" ]]; then
+  do_something
+fi
+
+# ❌ Be explicit and use `-n` here.
+if [[ "${my_var}" ]]; then
+  do_something
+fi
+
+# ❌ Do not use filler characters, like this.
+if [[ "${my_var}X" == "some_stringX" ]]; then
+  do_something
+fi
+----
+
+Be careful about porting Bash scripts, which use the double-bracket `[[ … ]]` syntax, to other shells. Other shells have adopted this syntax, too, but the behavior is not consistent across all of them. Thus, the behavior of a script using this syntax could be inconsistent if executed in different shells.
+
+In loops, Bash supports omitting the `in "$@"` part of a `for` loop. But it is RECOMMENDED to maintain this, for clarity.
+
+[source,bash]
+----
+for arg in "$@"; do
+  echo "${arg}"
+done
+----
