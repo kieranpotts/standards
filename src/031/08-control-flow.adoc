@@ -1,0 +1,88 @@
+= Control flow
+
+It is RECOMMENDED to use the syntax in which `; then` and `; do` are written on the end of `if`/`for`/`while`/`until`/`select` statements, rather than on new lines. `else` SHOULD be on a line on its own. Closing statements (`fi` and `done`) SHOULD also be on their own lines, vertically-aligned with the opening statement. This style is the prevailing convention, and it is the most readable.
+
+[source,sh]
+----
+count=99
+
+# ✅
+if [ "${count}" -eq 100 ]; then
+  echo "Count is 100"
+elif [ "${count}" -gt 100 ]; then
+  echo "Count is greater than 100"
+else
+  echo "Count is less than 100"
+fi
+
+# ❌
+if [ "${count}" -eq 100 ]
+then
+  echo "Count is 100"
+elif [ "${count}" -gt 100 ]
+then
+  echo "Count is greater than 100"
+else
+  echo "Count is less than 100"
+fi
+----
+
+The inner content of block-level structures, such as conditionals and loops, MUST be indented by two spaces.
+
+The whitespace padding within the square brackets is optional, but including it is RECOMMENDED. It is a common coding convention, and it further improves readability.
+
+Conditional blocks may be nested, but this reduces readability and maintainability. Look to refactor complex conditional logic into the flattest possible structure. The `&&` and `||` operators are useful tools here; they can be used to create shorthand conditional statements, executing commands based on the result of preceding commands.
+
+[source,sh]
+----
+if sudo apt-get update ; then
+  sudo apt-get install pyrenamer
+fi
+
+# Can be refactored to:
+sudo apt-get update && sudo apt-get install pyrenamer
+----
+
+Aim for there to be just one level of `if`/`else` conditions. If you needed nested conditions, consider using the shorthand syntax (`&&` and `||` operators), extracting nested logic into functions, or refactoring in other ways.
+
+== Case statements
+
+Case statements SHOULD be written out as below. The pattern and closing `;;` are each on their own lines at the same indentation level. Nested commands, run when the pattern matches, should be indented one additional level.
+
+[source,sh]
+----
+case expression in
+  case1)
+    operation1
+  ;;
+  case2)
+    operation2
+    operation3
+  ;;
+esac
+----
+
+However, simple commands may be put on the same line as the pattern and the `;;`, as long as the expression remains readable. Add a space after the closing parenthesis of the pattern and another before the `;;`. This is often appropriate for single-letter option processing.
+
+.Example from Google's Shell Guide
+[source,bash]
+----
+verbose='false'
+aflag=''
+bflag=''
+files=''
+
+while getopts 'abf:v' flag; do
+  case "${flag}" in
+    a) aflag='true' ;;
+    b) bflag='true' ;;
+    f) files="${OPTARG}" ;;
+    v) verbose='true' ;;
+    *) error "Unexpected option ${flag}" ;;
+  esac
+done
+----
+
+In general, there is no need to quote match expressions. Pattern expressions SHOULD NOT be preceded by an open parenthesis.
+
+Avoid the `;&` and `;;&` notations.
