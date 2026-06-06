@@ -1,0 +1,222 @@
+= HCL style guide
+
+HashiCorp Configuration Language (HCL) is a domain-specific language, developed by HashiCorp, designed specifically for the purpose of describing infrastructure resources in a declarative manner. It is used in Terraform's `.tf` files.
+
+HCL is designed to be human-readable and editable. Terraform also supports a https://developer.hashicorp.com/terraform/language/syntax/json[JSON schema] as an alternative way to input the configuration constructs it requires. Terraform requires these files to have the `.tf.json` file extension. HCL is generally preferred over JSON, because it is more concise and easier to read, and it is a better fit for Terraform's use case. Infrastructure engineers SHOULD use HCL for all Terraform configuration files.
+
+HCL code SHOULD be formatted in a consistent style that follows the conventions outlined in https://developer.hashicorp.com/terraform/language/style[Terraform's own style guide].
+
+It is RECOMMENDED to use the `terraform fmt` command to automatically format Terraform configuration files in the current working directory to adhere to Terraform's canonical style. It is RECOMMENDED to use pre-commit hooks to run `terraform fmt` automatically at the point that HCL code changes are checked-in to version control.
+
+In addition, plugins are available for many code editors to automatically format HCL files (these plugins run `terraform fmt` under-the-hood):
+
+* https://marketplace.visualstudio.com/items?itemName=HashiCorp.terraform[Visual Studio Code extension for Terraform]
+* https://github.com/hashicorp/terraform-ls[Terraform Language Server] for other text editors that support the Language Server Protocol (LSP)
+
+[TIP]
+======
+By default, `terraform fmt` will run on `.tf` files in the current working directory. To include subdirectories, add the `-recursive` flag.
+======
+
+In addition, a linter such as https://github.com/terraform-linters/tflint[TFLint] MAY be used to enforce an organization's own coding standards that extend from the Terraform canonical style.
+
+It is also RECOMMENDED to run `terraform validate` before committing changes to version control. This command checks that your configuration is syntactically valid and internally consistent. For example, it will verify that values are of the correct type (but not that values are correct, as specified by the provider); that all required attributes are set; and that all cross-referenced resources are defined. Planing and applying operations will also run the validation, but it is good to get into the habit of running `terraform validate` incrementally as you make changes to your configuration files, to catch obvious mistakes early. Therefore, it is RECOMMENDED to configure text editors to run this command as a post-save check, and to configure Git to run it via the pre-commit hook.
+
+.See also
+****
+* https://developer.hashicorp.com/terraform/language/syntax/configuration[HCL syntax overview]
+* https://github.com/hashicorp/hcl/blob/main/hclsyntax/spec.md[HCL syntax specification]
+* https://developer.hashicorp.com/terraform/language[Terraform configuration language documentation]
+****
+
+== Character encoding and line endings
+
+Terraform requires configuration files to be UTF-8 encoded.
+
+Both Unix-style (LF) and Windows-style (CRLF) line endings are supported. The idiomatic style is to use the Unix convention. Formatting tools SHOULD be configured to automatically fix line endings to the Unix style.
+
+== Indentation
+
+Block contents SHOULD be indented with two spaces from the parent block.
+
+== Line lengths
+
+Except for `variable` and `output` blocks, where single-line strings are preferred, most HCL code SHOULD follow a 120-column line-length limit.
+
+== Comments
+
+HCL supports three comment notations:
+
+[source,hcl]
+----
+# Single-line comment.
+
+// Single-line comment.
+
+/* Multi-line
+      comment. */
+----
+
+The canonical style, as RECOMMENDED by Terraform's style guide, is to use the `#` notation for all comments – both block-level and inline. However, the `//` notation MAY be used to temporarily comment-out code. The `/* ... */` notation SHOULD NOT be used.
+
+Generally, comments SHOULD be written on the line(s) immediately preceding the code they refer to. However, short end-of-line comments MAY be used where doing so improves the readability. Readability can be improved further by vertically aligning adjacent end-of-line comments, similar to the convention of aligning adjacent argument assignments.
+
+Comments should be written in full, proper English American sentences.
+
+[source,hcl]
+----
+variable "allow_port" {
+  default = {
+    prod = ["80", "443"]               # Ports to open in production.
+    rest = ["80", "443", "8080", "22"] # Ports to open in other environments.
+  }
+}
+----
+
+== Naming conventions
+
+Block labels, variables, and outputs SHOULD be named using lower snake case: `example_instance`, not `ExampleInstance`, `exampleInstance`, or `example-instance`.
+
+[source,hcl]
+----
+resource "aws_instance" "example_instance" {}
+variable "vpc_id" {}
+output "instance_name" {}
+----
+
+Wrap the resource type and name in double quotes in resource definitions.
+
+Use singular nouns for resource names. Do not repeat the resource type in the name.
+
+== Blocks
+
+All blocks – both top-level ones and nested ones – SHOULD be separated from one another by a single blank line.
+
+There MAY be exceptions to this rule. For example, you may want to group together multiple `provisioner` sub-blocks in a resource.
+
+== Arguments
+
+When multiple arguments with single-line values appear on consecutive lines at the same indentation level, align their assignment operators, for easier readability.
+
+[source,hcl]
+----
+ami           = "abc123"
+instance_type = "t2.micro"
+----
+
+Use empty lines to separate logical groups of arguments within a block.
+
+When both arguments and blocks appear together inside a block body, place all of the arguments together at the top and then place nested blocks below them. Use one blank line to separate the arguments from the blocks.
+
+For blocks that contain both arguments and meta-arguments, list the meta-arguments first and separate them from other arguments with one blank line. Place meta-argument blocks last and separate them from other blocks with one blank line.
+
+[source,hcl]
+----
+resource "aws_instance" "example" {
+  # Meta (Terraform-specific) arguments:
+  count = 2
+
+  # Regular (provider-specific) arguments:
+  ami           = "abc123"
+  instance_type = "t2.micro"
+
+  # Regular blocks (provider-specific):
+  network_interface {
+    # ...
+  }
+
+  # Meta-argument blocks (Terraform-specific):
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+----
+
+== Heredocs
+
+Multi-line string values MAY be inputted to Terraform configuration files using https://developer.hashicorp.com/terraform/language/expressions/strings#heredoc-strings[heredoc syntax]. Heredocs are opened using the `<<` character sequence. This is commonly used for injecting simple user scripts, but it may be used in any place where a multi-line string value is required.
+
+.main.tf
+[source,hcl]
+----
+resource "aws_instance" "web_server" {
+  ami           = "ami-0c55b159cbfafe1f0" # Amazon Linux 2
+  instance_type = "t3.micro"
+
+  vpc_security_group_ids = [aws_security_group.web_sg.id]
+
+  user_data = <<EOF
+#!/bin/bash
+
+yum update -y
+yum install -y httpd
+
+MYIP=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
+echo "<h2>Web server with private IP: $MYIP</h2>" > /var/www/html/index.html
+
+service httpd start
+chkconfig httpd on
+
+EOF
+}
+----
+
+Terraform also supports an indented heredoc notation, which allows for a heredoc's string content to be indented to match the outer HCL code, improving readability. Indented heredocs are opened using the `<\<-` sequence. Terraform analyses the lines in the heredoc to find the one with the smallest number of leading spaces, and then trims that many spaces from the beginning of all of the lines.
+
+.main.tf
+[source,hcl]
+----
+resource "aws_instance" "web_server" {
+  ami           = "ami-0c55b159cbfafe1f0" # Amazon Linux 2
+  instance_type = "t3.micro"
+
+  vpc_security_group_ids = [aws_security_group.web_sg.id]
+
+  user_data = <<-EOF
+  #!/bin/bash
+
+  yum update -y
+  yum install -y httpd
+
+  MYIP=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
+  echo "<h2>Web server with private IP: $MYIP</h2>" > /var/www/html/index.html
+
+  service httpd start
+  chkconfig httpd on
+
+  EOF
+}
+----
+
+Still, heredoc syntax can make configuration files look pretty messy, and they sometimes break syntax highlighting in code editors. For ultimate readability, prefer to import complex user scripts – and other long string values – from separate files.
+
+.main.tf
+[source,hcl]
+----
+resource "aws_instance" "web_server" {
+  ami           = "ami-0c55b159cbfafe1f0" # Amazon Linux 2
+  instance_type = "t3.micro"
+
+  vpc_security_group_ids = [aws_security_group.web_sg.id]
+
+  user_data                   = file("scripts/user_data.sh")
+  user_data_replace_on_change = true
+}
+----
+
+.scripts/user_data.sh
+[source,bash]
+----
+#!/bin/bash
+
+yum -y update
+yum -y install httpd
+
+MYIP=`curl http://169.254.169.254/latest/meta-data/local-ipv4`
+echo "<h2>WebServer with PrivateIP: $MYIP</h2>" > /var/www/html/index.html
+
+service httpd start
+chkconfig httpd on
+----
+
+Imported files SHOULD be kept in a `scripts/*` or `files/*` directory, for better separation of concerns and easier maintenance.
