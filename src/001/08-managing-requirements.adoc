@@ -1,0 +1,62 @@
+= Managing requirements
+
+A specification is only as valuable as it is trustworthy, and trust depends on _process_: the specification must be kept current with production, and changes to it must be deliberate and recorded. This section describes how to manage a requirements specification over its lifetime. The model below is RECOMMENDED; the reference implementation at https://github.com/kieranpotts/specs[kieranpotts/specs] automates it.
+
+== Two artifacts
+
+A complete requirements practice maintains two artifacts side by side, in the same repository:
+
+* The *specification* — mutable and always describing the as-is production system (the <<_structure, context and requirements>> already described).
+
+* The *proposal archive* — an immutable, append-only log of every significant proposed change, including those that were rejected.
+
+The specification answers "`what does the system do?`"; the archive answers "`why is it that way?`" Colocating them keeps both maintainable and prevents drift between the description of the system and the record of the reasoning behind it.
+
+== The proposal lifecycle
+
+Changes to the specification SHOULD be introduced through *proposals*, each moving through a defined state machine. Separating the _proposer's_ work (drafting) from the _decision_ (taken by product managers) keeps the process consistent whether a human or an agent drives it.
+
+[source]
+----
+[*] → DRAFT → PROPOSED → ACCEPTED → RELEASED → SUPERSEDED → [*]
+                   ↓
+               REJECTED → [*]
+----
+
+* *DRAFT* — the proposal is being written; not yet ready for review. Early feedback may be solicited, but no decision is sought.
+
+* *PROPOSED* — the proposal is complete and open for a decision. It is now formally reviewed and negotiated with the relevant stakeholders, technical and non-technical.
+
+* *ACCEPTED* — approved by the product managers, but not yet live. The specification edits may continue to evolve during implementation — in response to technical feedback, implementation discoveries, or feedback from real users in beta tests or staged roll-outs.
+
+* *REJECTED* — the proposal will not be taken forward. Its specification edits are reverted, but the proposal document itself is preserved in the archive as a record of the decision.
+
+* *RELEASED* — the accepted change is live in production. Only now are the specification edits merged, so the specification stays true to production. A released proposal stays in effect until a later one supersedes it.
+
+* *SUPERSEDED* — a previously released proposal that is no longer in effect, because a later proposal replaced or removed the feature.
+
+A proposal MUST NOT move backwards (eg. `PROPOSED` → `DRAFT`) and MUST NOT skip states (eg. `DRAFT` → `ACCEPTED`). Each transition has a gate — for example, a proposal may not reach `RELEASED` until its implementation is actually in production.
+
+== Binding the specification to production
+
+The central discipline is this: *an accepted proposal MUST NOT be merged until its change is live in production.* It is not enough for a proposal to be _approved_; the change must also be designed, built, tested, and released first. This is what keeps the specification on the main line synchronized with the running system.
+
+The one exception is a *rejected* proposal: its specification edits are reverted and only the proposal document is merged — the system is unchanged, so its specification does not change.
+
+When implementation reveals that real behavior differs from the proposed specification, reconcile the difference back into the specification _before_ release, rather than shipping a specification known to be wrong. A specification that is only _mostly_ true is one nobody can trust.
+
+== Recording decisions
+
+Once a proposal is merged, its document is *immutable*. To revisit a decision already merged, open a _new_ proposal that supersedes the original, cross-referencing the two. The original is never edited or deleted.
+
+Every merged proposal SHOULD be assigned a stable, sequential identifier and listed in an index, so the evolution of the system is fully recorded and its current state is justified by the decision log. Even when stewardship passes to people with no prior knowledge of the project's history, they inherit an appreciation for why the system is the way it is.
+
+== Atomic proposals and epics
+
+A single proposal SHOULD capture one feature or one quality requirement — one change that can be reviewed, decided, and shipped independently of any other. Atomic proposals are easier to reason about, quicker to decide, and cleaner to record.
+
+When several changes genuinely depend on one another — for example, specifying a greenfield system from scratch — keep them as separate atomic proposals and group them under an *epic*, with each child proposal referencing the epic it belongs to.
+
+== Separation of feedback from record
+
+Open-ended review, debate, and negotiation SHOULD happen in a *discussion thread* attached to each proposal, kept separate from the proposal document and its revision history. This keeps the document's history a clean record of how the proposal and specification evolved, while the thread captures how consensus formed. Once the final proposal is merged, the thread has served its purpose; its conclusions are summarized in the merged document.
