@@ -1,4 +1,4 @@
-# Bash Standards
+# TS-32: Bash Standards
 
 This is a compact version of technical standard TS-32 for AI agents.
 
@@ -238,17 +238,3 @@ process_files() {
 
 main "$@"
 ```
-
-## References
-
-- This skill is based on [TS-32: Bash](../032/README.adoc), which extends [TS-31: Unix Shells](../031/README.adoc)
-
-- [Bash reference manual](https://www.gnu.org/savannah-checkouts/gnu/bash/manual/bash.html)
-
-- [Pure Bash bible](https://github.com/dylanaraps/pure-bash-bible) by Dylan Araps
-
-- [Bash scripting quirks and safety tips](https://jvns.ca/blog/2017/03/26/bash-quirks/) by Julia Evans
-
-- [Google Shell Style Guide](https://google.github.io/styleguide/shellguide.html)
-
-- [ShellCheck](https://www.shellcheck.net/): Static analysis tool for shell scripts.

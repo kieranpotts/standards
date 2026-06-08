@@ -1,4 +1,4 @@
-# POSIX Standards
+# TS-31: Unix Shells and POSIX Standards
 
 This is a compact version of technical standard TS-31 for AI agents.
 
