@@ -1,0 +1,67 @@
+= Cost optimization
+
+Most AI tools are metered. Hosted models are billed per token, charging separately for input and output, and the two are not priced equally – output tokens typically cost several times more than input tokens. Reasoning ("thinking") tokens are billed as output. Cached input tokens, where supported, are billed at a steep discount – often roughly an order of magnitude cheaper than uncached input. The cost of a task is therefore, approximately:
+
+----
+(input tokens × input price)
+  + (output tokens + thinking tokens × output price)
+  + (cached input tokens × cached price)
+----
+
+…summed over every call made to complete the task.
+
+Cost optimization is the practice of lowering this total without dropping output quality below what the task requires. The techniques below largely restate guidance from elsewhere in this standard, viewed through the single lens of cost. The overarching principle is to spend tokens and model capability where they change the outcome, and to economize everywhere else.
+
+A caution before the techniques: do not optimize for cost at the expense of quality. Cheap, unreliable output that needs reworking – or that causes an incident – costs far more than the tokens it saved. Treat cost as one quality attribute among several, balanced against correctness, maintainability, and the human review effort each option demands (see the human-in-the-loop section).
+
+== Right-size the model
+
+The largest cost lever is usually model choice. Use frontier models where their capability changes the result – planning, architecture, complex problem-solving, security analysis – and cheaper, efficient models for everything else: executing a pre-approved plan, small-scale refactoring, and routine chores. In agentic systems, reserve frontier models for the supervisor role and delegate execution to efficient sub-agents.
+
+Match the model tier to the dominant capability the task demands (see the choosing models chapter). Defaulting to the biggest model for every task is wasteful; defaulting to the cheapest is unreliable. Both are failures of cost-effectiveness, not just cost.
+
+== Economize on context
+
+Every token in the context window is billed on every call, and also depletes the model's finite attention budget. The smallest high-signal context is therefore both the most effective and the cheapest. The context-engineering practices defined earlier in this standard are directly cost-reducing:
+
+* Keep skills, rules, and other reusable context token-efficient – start with the minimum needed and grow it only in response to observed failure modes.
+* Prefer just-in-time retrieval over always-on loading, so context is paid for only when it is needed.
+* Prune stale or redundant reusable context regularly.
+* Use compaction on long-horizon tasks, so a growing conversation history is not resent in full on every turn.
+
+== Exploit prompt caching
+
+Where a provider supports prompt caching, a stable prompt prefix can be reused across calls at a large discount. This is one of the highest-leverage levers for multi-turn sessions and agentic loops, where the same system prompt, skills, and reference context are sent repeatedly.
+
+To benefit:
+
+* Place stable content – system prompt, skills, large reference documents, codebase context – at the *start* of the prompt, and variable content – the user's current query – at the *end*.
+* Keep that prefix byte-stable across calls. Even a small edit near the top invalidates the cache for everything after it.
+
+== Control output and reasoning length
+
+Output and thinking tokens are the expensive ones, so output economy matters more than input economy. As covered in the tuning model behavior chapter:
+
+* Set a sensible maximum output token cap (large enough to avoid truncation).
+* Request concise or structured output where prose adds no value.
+* Scale the reasoning/thinking budget to task complexity rather than defaulting to maximum – extended thinking is billed and adds little on tasks without a verifiable chain of logic.
+
+== Batch where latency allows
+
+* Batching similar tasks into one session amortizes shared context across them. Do this sparingly, however: the AI-assisted workflows chapter cautions that several small changesets are easier to review than one large one. Batch for cost only where it does not compromise review quality.
+* For high-volume work that is not latency-sensitive, asynchronous batch APIs are commonly offered at a significant discount (often around half price). These are RECOMMENDED for bulk jobs – large-scale classification, extraction, or migration – where immediate responses are not required.
+
+== Choose cost-effective access
+
+The access layer (see the choosing interfaces chapter) also affects cost:
+
+* A single gateway subscription (such as OpenRouter or Perplexity Pro) can be more economical than separate subscriptions to several AI labs, and lets you route each task to the cheapest model that is adequate for it.
+* For high-volume, repetitive, or privacy-sensitive work, locally-run open-weight models eliminate per-token API costs entirely – the marginal cost becomes hardware and electricity. Consider this wherever the task is within reach of a model you can run on available hardware.
+
+== Measure before optimizing
+
+Do not optimize blind. Cost decisions SHOULD be grounded in measurement, not assumption.
+
+* Track token consumption per task. Most gateways and agent harnesses expose usage and observability data.
+* When evaluating a skill, rule, or prompt change, measure the token-cost delta alongside the quality delta. A reusable unit of context that does not improve outcomes is not earning its token cost (see the reusable context chapter).
+* Re-measure when switching models or model versions. Relative pricing and token efficiency vary between models, so the cost-optimal configuration can change underneath you.
