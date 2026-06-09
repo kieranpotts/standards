@@ -1,0 +1,67 @@
+= Tuning model behavior
+
+Choosing the right model and engineering its context are the two highest-leverage decisions in AI-assisted work. A third lever sits between them: the inference-time parameters that control _how_ a model samples its output. These parameters are distinct from the model itself (which is fixed) and from the prompt (which is the input). They shape the character of the output – its determinism, length, creativity, and depth of reasoning – without changing the model or the context.
+
+Note that many specialist interfaces – agent harnesses and IDE assistants in particular – fix these parameters internally and do not expose them. They are most relevant when calling models directly via an API, or through a chatbot UI that surfaces them. Where a tool sets these parameters for you, it is usually because the maintainers have tuned them for that tool's workload; in that case, do not override them without reason.
+
+As with the rest of this standard, the guiding principle is restraint. Provider defaults are sensible for most tasks. Reach for these controls only when you observe a specific failure mode that they address – output that is too random or too repetitive, responses that run on or get truncated, or reasoning that is too shallow or too slow for the task.
+
+== Temperature and sampling
+
+*Temperature* controls the randomness of token selection. At low temperatures the model almost always picks the highest-probability next token, producing focused, predictable, near-deterministic output. At higher temperatures, lower-probability tokens become more likely to be selected, producing more varied output at the cost of coherence.
+
+Match temperature to the task:
+
+[cols="1,1,2"]
+|===
+|Temperature |Character |Suitable for
+
+|Low (0–0.3)
+|Focused, near-deterministic
+|Code generation, data extraction, classification, structured output, factual answers – anything with a verifiable correct result.
+
+|Medium (0.4–0.7)
+|Balanced
+|General conversation, drafting, summarization.
+
+|High (0.8+)
+|Varied, exploratory
+|Creative writing, brainstorming, generating a diverse set of options to choose from.
+|===
+
+For tasks with a single correct or near-correct answer, temperature SHOULD be set low. For tasks where variety is the point, raise it. Be aware that a higher temperature does not make a model "more intelligent" or "more creative" in any meaningful sense – it simply makes the model sample less-probable tokens, trading coherence for diversity. Past a certain point this produces incoherent output.
+
+*Top-p (nucleus sampling)* is a related control. Instead of flattening the whole distribution, it restricts sampling to the smallest set of tokens whose cumulative probability meets the threshold _p_. *Top-k* is similar but caps the candidate set at the _k_ most likely tokens. These overlap with temperature in effect. It is RECOMMENDED to tune temperature _or_ top-p, but not both at once, as their interaction is hard to reason about.
+
+== Reasoning and thinking budget
+
+Reasoning models expose a separate dial: how much compute the model spends "thinking" – producing an internal chain of thought – before committing to a final answer. This is orthogonal both to temperature and to model tier. A capable model with its thinking budget turned down may underperform a smaller one with it turned up, on the right task.
+
+Thinking budget SHOULD be scaled to the task, not defaulted to maximum:
+
+* *Turn it up* for problems with a verifiable chain of logic – mathematics, planning, multi-step analysis, complex code, and debugging. These are the tasks where extended reasoning measurably improves the result.
+
+* *Turn it down, or off,* for prose, summarization, translation, simple lookups, and high-volume or latency-sensitive work. Here, extended thinking adds latency and token cost for little benefit, and on language tasks it can actively degrade the output by pushing the model to over-edit.
+
+Because thinking tokens are billed and add latency, the budget is a direct cost/quality/latency tradeoff. (See also the task-to-model matching guidance, where thinking level is treated as a dial separate from model tier.)
+
+== Output controls and determinism
+
+*Maximum output tokens* caps the length of the response. A sensible cap SHOULD be set to bound cost and to prevent runaway generation, but it MUST be large enough to accommodate the expected output – truncation partway through a response is a common and easily-missed failure mode, particularly with reasoning models, whose thinking tokens count against the budget.
+
+*Stop sequences* terminate generation when the model emits a specified delimiter. They are useful for enforcing structured output and for controlling tool-call loops in agentic workflows.
+
+*Determinism and reproducibility* matter for testing, evals, and debugging. For repeatable output, set temperature to 0 (or near it) and, where the provider supports it, supply a fixed seed.
+
+However, bit-for-bit determinism is generally NOT guaranteed, even at temperature 0. Floating-point non-associativity, batched inference, and the routing behavior of Mixture-of-Experts models all introduce small variations between otherwise-identical requests. Evals and reproducibility checks SHOULD account for this residual non-determinism – for example by running several samples and asserting against properties of the output, rather than assuming a single exact string.
+
+== Penalties
+
+*Frequency penalty* and *presence penalty* reduce repetition by down-weighting tokens the model has already produced. A frequency penalty scales with how often a token has already appeared; a presence penalty applies once a token has appeared at all, nudging the model toward new topics. These are exposed by some providers (notably OpenAI-compatible APIs) and absent from others.
+
+Use penalties sparingly, with small values. Large penalties degrade coherence and can cause the model to avoid words it genuinely needs. It is RECOMMENDED to address repetition first through clearer prompting and through temperature, and to reach for penalties only when those prove insufficient.
+
+[TIP]
+======
+Inside an agent harness, these parameters are usually managed for you. Prefer steering behavior through the prompt, context, and model choice, and change inference parameters only where the harness exposes them and you have a specific reason to.
+======
