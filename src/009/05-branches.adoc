@@ -14,7 +14,7 @@ Each of these branching strategies solves different problems, and they can be co
 
 == Branch types
 
-This technical standard recommends six main branch types:
+This technical standard recommends seven main branch types:
 
 |===
 |Branch type |Naming convention |Purpose |Ownership |Lifespan |Protected* |Mutable |Stable |Requirement level
@@ -61,7 +61,7 @@ This technical standard recommends six main branch types:
 
 |*Temporary*
 |`temp/[<id>-]<desc>`
-|Short-lived: experiments, proofs-of-concept, technical spikes, small features
+|Short-lived feature development and bug fixes
 |Individuals and pairs
 |Temporary (short-lived)
 |No
@@ -74,6 +74,16 @@ This technical standard recommends six main branch types:
 |Long-lived complex feature development, big-bang integrations
 |Teams
 |Temporary (long-lived)
+|No
+|Yes
+|No
+|OPTIONAL
+
+|*Spike*
+|`spike/[<id>-]<desc>`
+|Exploratory work: experiments, proofs-of-concept, technical spikes; never merged
+|Individuals and pairs
+|Temporary
 |No
 |Yes
 |No
@@ -91,7 +101,7 @@ image::./_/branches/parallel-trunks-baseline.svg[]
 
 All three trunks – `dev`, `test`, and `ready` – have an infinite lifetime and MUST NOT ever be deleted. Trunks MUST be treated as append-only stacks of commits, always fixing forward. This means that commits made to the trunks MUST be treated as immutable. Once a commit is made to a trunk, it MUST NOT be dropped or amended – though it can be reverted through a `git revert` operation, which safely adds a new commit without changing the original. These constraints are necessary because the trunks are shared by all developers and used by continuous integration and deployment pipelines and other automated processes. Volatile shared branches disrupt collaborative workflows.
 
-All commits originate on the development trunk. *All working branches — `temp/*` and `epic/*` — MUST be cut from `dev`.* New work does not originate on `test`, `ready`, or any release branch. Revisions are continuously integrated into `dev`, either via direct commits to that branch, or via temporary or epic branches that are subsequently integrated back.
+All commits originate on the development trunk. All working branches — `temp/*`, `epic/*`, and `spike/*` — MUST be cut from `dev`. New work does not originate on `test`, `ready`, or any release branch. Revisions are continuously integrated into `dev`, either via direct commits to that branch, or via temporary or epic branches that are subsequently integrated back.
 
 image::./_/branches/parallel-trunks-with-temp-branch.svg[]
 
@@ -139,13 +149,7 @@ But mistakes will happen. Particularly in continuous integration workflows, occa
 
 === Temporary branches
 
-Continuous integration directly on the shared `dev` trunk is RECOMMENDED for most work. However, there will be times when it is beneficial to keep your work isolated from parallel changes being introduced by other developers. Valid use cases for temporary branches include:
-
-* *Experimentation* — Trying multiple possible solutions before committing to a final implementation.
-
-* *Proof-of-concept* — Validating an architectural approach or technology choice before full implementation.
-
-* *Technical spikes* — Exploring unknown territory or researching solutions to unfamiliar problems.
+Continuous integration directly on the shared `dev` trunk is RECOMMENDED for most work. However, there will be times when it is beneficial to keep your work isolated from parallel changes being introduced by other developers. Temporary branches are reserved for short-lived feature development and bug fixes. Exploratory work that you do not intend to integrate — experiments, proofs-of-concept, and technical spikes — belongs on a *spike branch* (see below) instead. Valid use cases for temporary branches include:
 
 * *Major refactoring or rewrites* — Large structural changes that may take multiple days and require extensive testing before integration.
 
@@ -203,8 +207,6 @@ Valid use cases for epic branches include:
 
 * *Cross-cutting concerns* — Changes affecting multiple systems or layers that need to be coordinated across teams.
 
-* *Experimental or research branches* — Long-running architectural experiments that need to remain isolated until proven and ready for integration.
-
 * *Release preparation* — Stabilization and preparation work before a major release, where fixes may need to be applied across multiple systems.
 
 The key difference between epic branches and temporary branches is the synchronization strategy. Temporary branches are short-lived and use a rebase-up strategy: you keep the temporary branch synchronized with `dev` by rebasing the temporary branch onto `dev`. This produces a linear history and keeps the temporary branch lightweight and easy to integrate.
@@ -233,11 +235,51 @@ Examples:
 
 Epic branches SHOULD eventually be deleted once the work is integrated into `dev`, just like temporary branches. The merged commit history is preserved in `dev`'s history, so no information is lost.
 
+=== Spike branches
+
+Temporary and epic branches both exist to develop changes that will ultimately be integrated into `dev`. Spike branches serve the opposite purpose: they isolate *exploratory work that is never intended to be merged*. A spike is a time-boxed investigation whose deliverable is knowledge, not shippable code. Valid use cases for spike branches include:
+
+* *Experimentation* — Trying multiple possible solutions before committing to a final implementation.
+
+* *Proof-of-concept* — Validating an architectural approach or technology choice before full implementation.
+
+* *Technical spikes* — Exploring unknown territory or researching solutions to unfamiliar problems.
+
+Because the code produced on a spike branch is throwaway, a spike is considered complete when its findings have been captured somewhere durable — an issue, a design document, an architecture decision record, or a follow-up `temp/*` or `epic/*` branch that implements the chosen approach properly. The value of a spike lives in what you learned, not in the commits themselves.
+
+Like temporary and epic branches, spike branches MUST be cut from `dev`. Unlike them, spike branches MUST NOT be integrated back into `dev` (or any other trunk). This is the defining characteristic of the spike branch type: its commits never reach a trunk line. If you find that you want to keep the code, the spike has served its purpose — start a fresh `temp/*` or `epic/*` branch and reimplement the work to the standard required for integration, rather than merging the exploratory commits.
+
+Spike branches follow this naming convention:
+
+----
+spike/[<id>-]<description>
+----
+
+The component parts are the same as for temporary and epic branches:
+
+* `<id>` (OPTIONAL) — A unique identifier, usually corresponding to an issue or tracking system.
+
+* `<description>` (REQUIRED) — A short hyphen-delimited description of the question being explored.
+
+Examples:
+
+* `spike/can-we-use-websockets`
+* `spike/512-evaluate-graphql`
+* `spike/PERF-88-caching-strategies`
+
+Because spike branches are never merged, there are two acceptable end states, and the choice is left to the team:
+
+* *Delete the branch* once its learnings have been captured elsewhere. This is the tidier default and keeps the branch list focused on active, integrable work.
+
+* *Retain the branch* as an archived record of the experiment. This can be useful when the exploratory code itself has reference value. Retained spike branches SHOULD be clearly distinguishable as archived (for example, via the `spike/` prefix alone, or hosting-provider archiving features) so they are not mistaken for work awaiting integration.
+
 === Cleaning up stale branches
 
 Beyond the routine deletion of branches after integration, projects SHOULD periodically review long-lived `temp/*` and `epic/*` branches that have not been integrated. Stale, never-integrated branches obscure the signal that the branch list is meant to provide — namely, what work is currently in progress.
 
 A branch with no commits in (eg.) 90 days SHOULD be reviewed and either revived or deleted. Stale-branch cleanup MAY be automated via hosting-provider features or external tooling.
+
+Intentionally retained `spike/*` branches (see above) are an exception: because they are archived records rather than work awaiting integration, they SHOULD be excluded from stale-branch sweeps. Spike branches that were _not_ deliberately retained, however, SHOULD be deleted once their findings have been captured, and are fair game for the same periodic review.
 
 === The testing trunk
 
