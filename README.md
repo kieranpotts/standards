@@ -15,4 +15,4 @@ The standards are written for a technical audience — software engineers, archi
 
 ---
 
-Copyright © 2020-present Kieran Potts, [CC0 license](./LICENSE.txt)
+Copyright © 2020-present Kieran Potts, [CC-BY-SA-4.0 license](./LICENSE.txt)
