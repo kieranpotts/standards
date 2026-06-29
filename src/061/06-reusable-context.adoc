@@ -289,6 +289,40 @@ If the skill does not clearly outperform the single-sentence instruction, it sho
 
 The https://github.com/anthropics/skills/tree/main/skills/skill-creator[`skill-creator`] skill, provided by Anthropic, automates much of this evaluation and iteration loop end-to-end.
 
+=== Single responsibility
+
+A skill SHOULD have exactly one responsibility, corresponding to a single step in a workflow. It SHOULD define one job and stop at a well-defined boundary, rather than reaching into adjacent work even where doing so would be convenient.
+
+In particular, a skill SHOULD NOT combine _evaluation_ and _implementation_ in one responsibility. A skill that analyzes and reports findings (a review, an audit, a proofread) is a different kind of thing from a skill that enacts a change (a fix, a migration, a refactor), and the two SHOULD NOT be bundled into one skill. For example, a skill that reviews a pull request should not also be the skill that applies the fixes it recommends — the decision of whether, when, and how to act on findings belongs to whoever is orchestrating the workflow, not to the skill that produced them.
+
+Keeping evaluation and implementation apart has practical benefits: an orchestrator can review findings before any change is applied; each skill gets a single, unambiguous trigger condition; and an evaluation skill becomes reusable in contexts its author did not anticipate — for example, the same review skill that supports a human pull request can be wired into a CI gate.
+
+=== Loose coupling
+
+Where multiple skills are composed into a workflow, they SHOULD be loosely coupled to one another. A skill SHOULD NOT directly invoke, refer to, or hand off to another skill by name. Each skill does its one job, reports its result, and stops. The composition of skills into a sequence is the responsibility of whatever is orchestrating the workflow — a human, a script, or another agent — not of the skills themselves.
+
+This means a skill's output should be usable as the input to whichever skill runs next, without either skill being aware of the other's existence. Coupling skills through their inputs and outputs rather than through direct references keeps each skill independently maintainable, and lets the same skill be reused in workflows its author never anticipated.
+
+=== Interface definitions
+
+A skill SHOULD be explicit about its inputs and outputs, in the same way a well-designed function is explicit about its parameters and return value. This RECOMMENDS documenting, for each skill:
+
+* What input it consumes, and whether that input is OPTIONAL or REQUIRED.
+
+* Whether the skill requires an interactive session — one in which the agent is free to prompt the user for further input — or can run non-interactively to completion.
+
+* What output it produces, in what format, and where that output is written (a file, a comment, a commit, the conversation itself).
+
+* What success criteria the output should be checked against.
+
+This input/output contract is what lets a human or an orchestrating script decide where a skill fits in a larger workflow, how to wire its output into the next step, and how to validate what it produced.
+
+=== Interactive versus non-interactive
+
+A skill SHOULD state whether it can run non-interactively – taking only its initial input and proceeding to completion without stopping to ask the user – or whether it is necessarily interactive, blocking to ask questions, present options, and wait for answers.
+
+Non-interactive skills can be run unattended, including by parallel sub-agents. Interactive skills SHOULD be used sparingly, reserved for cases where human interaction _is_ the value the skill provides — a structured discovery interview, for example, where the dialogue itself is the point, rather than an obstacle to be designed around.
+
 === Calibrating control
 
 Not every part of a skill needs the same level of prescriptiveness. Match the specificity of instructions to the fragility of the task. Here are some guidelines:
