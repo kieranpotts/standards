@@ -10,6 +10,17 @@ Do not run model services as root.
 
 Keep model services running only when they are actively needed. Treat them as development dependencies, not always-on services.
 
+=== Sandboxed development environments
+
+For AI-assisted development in an IDE or code editor, it is RECOMMENDED to develop inside a devcontainer rather than directly on the host. A devcontainer is defined by a `devcontainer.json` file specifying the base image, mounted volumes, and editor extensions. Both the editor and the agent (for example, Claude Code, Pi) run inside the container, with project files bind-mounted so the human and the agent can collaborate on the same files simultaneously. Devcontainers are natively supported by VS Code, Zed, and JetBrains IDEs.
+
+Two mechanisms are commonly used to build the sandbox itself:
+
+* On Linux, Bubblewrap (`bwrap`) provides lightweight, native sandboxing with minimal overhead.
+* Docker gives the strongest isolation and the best cross-platform compatibility, via a "write-jail" setup: the agent can only touch explicitly mounted directories, runs as a non-root user, and ships with a minimal preinstalled toolset rather than full host access.
+
+For convenience, a container MAY be given read-only access to host binaries. This trades some isolation for usability, and MUST be done with awareness that read access — not just write access — can leak host data over the network if egress is not also restricted (see below).
+
 == Network exposure
 
 Local model servers (such as Ollama) listen on `localhost` by default. Do not change this unless remote access is explicitly required.
@@ -71,6 +82,19 @@ Agents that can execute shell commands, write to the filesystem, or make network
 * Disable network access entirely for agents that do not need it.
 
 Review agent permissions before starting a task, not just when configuring the harness for the first time. A permission set that was appropriate for one task may be excessive for the next.
+
+A few practices apply this principle concretely, regardless of which tool or sandbox mechanism is in use:
+
+* *Read-only by default, punch specific holes.* Mount the filesystem and configuration directories read-only, and grant write access only to the directories the agent actually needs — its workspace, its own state directory.
+* *Restrict network egress.* A read-only filesystem combined with restricted network access is a baseline requirement for securing agent execution environments, since together they limit how much data can be exfiltrated if something goes wrong.
+* *Whitelist and blacklist commands.* Defining explicit allowed and denied tool/command lists in harness or editor settings is a core control for agent operations, not an optional hardening step.
+
+== Reviewing agent output
+
+Sandboxing constrains what an agent can do, but does not substitute for reviewing what it produces. Two practices apply independently of the sandboxing mechanism in use:
+
+* *Keep tasks small.* Breaking work into small, reviewable steps rather than large, open-ended asks makes it easier to catch problems early and course-correct (see the AI-assisted workflows chapter).
+* *Review like a junior developer's PR.* Treat agent output with the same scrutiny as a human contributor's changes. Occasionally review the final code without the diff view, to counter the review fatigue that comes from always reviewing incremental diffs.
 
 == Generated code security
 
