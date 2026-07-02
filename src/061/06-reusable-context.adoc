@@ -2,21 +2,21 @@
 
 Most AI coding tools provide mechanisms to reuse context across sessions. The exact naming varies between tools: *instructions*, *rules*, *skills*, *commands* (aka. *custom prompts*). But these all share the same underlying purpose, which is to load prefabricated, reusable bundles of context, either at the start of a session (statically), or on-demand under predefined conditions (dynamically).
 
+The aim of these systems is to reduce repetition and improve consistency across agent sessions, by allowing the encoding of programming conventions, architectural decisions, and domain knowledge into artifacts that can be automatically reloaded in fresh AI sessions. This information would otherwise need to be re-communicated manually in every session.
+
 Examples include `CLAUDE.md` files and skills in Claude Code, rules in Cursor, and instructions in GitHub Copilot.
 
-All these mechanisms enable *reusable prompt engineering*. They reduce repetition and improve consistency across sessions, by allowing the encoding of programming conventions, architectural decisions, and domain knowledge into artifacts that can be automatically reloaded in fresh AI sessions. This information would otherwise need to be re-communicated manually in every session.
-
-But these tools have a cost. Every token loaded depletes the model's attention budget for the task at hand. Context loaded persistently is context that competes with the user's actual prompt for the model's attention. For this reason, the same core principles of context engineering apply:
+But these systems have a cost. Every token loaded depletes the model's attention budget for the task at hand. Context loaded persistently is context that competes with the user's actual prompt for the model's attention. For this reason, the same core principles of context engineering apply:
 
 * Skills and rules MUST be token-efficient. Start with the minimum content needed to elicit the desired behavior, and grow it only in response to observed failure modes.
 
-* Skills and rules SHOULD be scoped appropriately. Where the tool supports it, use scoping mechanisms (such as directory-specific or pattern-matching rules) to load content only when it is relevant to the task at hand.
+* Skills and rules SHOULD be scoped appropriately. Where the agent or tool supports it, use scoping mechanisms (such as directory-specific or pattern-matching rules) to load content only when it is relevant to the task at hand.
 
 * Prefer just-in-time retrieval (see below) over always-on loading. For example, rather than embedding a full coding standard in a rules file, instead provide a pointer to the standard and let the agent load it on-demand.
 
 * Reusable units of context SHOULD be reviewed and pruned regularly. Instructions that were once useful can become stale, redundant, or contradictory as projects evolve. Stale context is worse than no context, because it actively misleads the model.
 
-A practical challenge is that there is no consensus among makers of AI tools on where persistent, reusable context should live, what it should be called, or how it should be structured. If you or your team use multiple AI UIs – or expect to switch between them over time – maintaining the same content in `CLAUDE.md`, `.cursorrules`, `.github/copilot-instructions.md`, and so on, quickly becomes unsustainable. Duplication leads to drift, and drift leads to subtle inconsistencies in behavior between tools.
+A practical challenge is that there is no consensus among makers of AI tools on where persistent, reusable context should live, what it should be called, or how it should be structured. If you or your team use multiple AI UIs — or expect to switch between them over time — maintaining the same content in `CLAUDE.md`, `.cursorrules`, `.github/copilot-instructions.md`, and so on, quickly becomes unsustainable. Duplication leads to drift, and drift leads to subtle inconsistencies in behavior between tools.
 
 Nevertheless, some community standards are emerging, and those are the basis for this technical standard's recommendations for designing and managing reusable context.
 
@@ -26,7 +26,7 @@ Nevertheless, some community standards are emerging, and those are the basis for
 
 The canonical specification lives at https://agents.md.
 
-`AGENTS.md` is a loose convention rather than a strict standard. Any arbitrary Markdown is supported. While the specification suggests common sections – project overview, dev environment, build/test commands, code style, security, etc. – there is no required structure. Agents are simply required to parse `AGENTS.md` if its exists in the current working directory, else the nearest parent directory.
+`AGENTS.md` is a loose convention rather than a strict standard. Any arbitrary Markdown is supported. While the specification suggests common sections — project overview, dev environment, build/test commands, code style, security, etc. — there is no required structure. Agents are simply required to parse `AGENTS.md` if its exists in the current working directory, else the nearest parent directory.
 
 `AGENTS.md` is widely supported, including by tools such as Cursor, Aider, Gemini CLI, Google Jules, OpenAI Codex, Zed, Factory's Droids, Kilo Code, and Windsurf. (Some of these tools require opt-in via a configuration option or command-line flag). Claude Code also supports it alongside `CLAUDE.md`.
 
@@ -142,7 +142,7 @@ See the excellent https://github.com/JuliusBrussee/caveman/[Caveman] project, wh
 
 An emerging best practice is to define a small set of common _workflows_ as user-level and project-level skills, while keeping _knowledge_ (standards, policies, constraints, domain models, etc.) as separate reference documents that are loaded on-demand from user-level and project-level skills. Workflow skills should be for things like "planning", "coding", "testing", "deploying", and "releasing". They should be step-by-step, deterministic instructions, free of domain-specific facts.
 
-Your workflow skills should rarely change, even between domains. By comparison, reference materials that encapsulate standards, policies, constraints, and domain models are dynamic and volatile – changing constantly.
+Your workflow skills should rarely change, even between domains. By comparison, reference materials that encapsulate standards, policies, constraints, and domain models are dynamic and volatile — changing constantly.
 
 This separation is also what makes a workflow skill reusable across projects. A skill that only says _how_ to look something up, and what to do with it once found, stays technology-agnostic and domain-agnostic, and can run unmodified against any project that supplies its own reference material on demand. A skill that hard-codes project-specific knowledge stops being portable the moment it leaves the project it was written for. If a piece of knowledge genuinely belongs nowhere but one project, keep it local to that project rather than baking it into a shared skill.
 
@@ -155,7 +155,7 @@ When something goes wrong, you can ask:
 
 === Skill structure
 
-A skill is a directory containing, at a minimum, a `SKILL.md` file. The directory MAY also contain `scripts/`, `references/`, and `assets/` subdirectories – for executable code, supplementary documentation, and static resources, respectively.
+A skill is a directory containing, at a minimum, a `SKILL.md` file. The directory MAY also contain `scripts/`, `references/`, and `assets/` subdirectories — for executable code, supplementary documentation, and static resources, respectively.
 
 ----
 skill-name/
@@ -176,11 +176,11 @@ The `SKILL.md` file MUST contain YAML front-matter followed by a Markdown body. 
 +
 Four principles produce effective descriptions: use imperative phrasing ("Use this skill when…" rather than "This skill does…"); focus on user intent, not implementation detail; err on the side of explicitness — list every context where the skill applies, including cases where the user may not name the domain directly; and stay under the 1024-character hard limit (content beyond it is silently truncated). Note also that skills activate only for tasks requiring specialized knowledge, unfamiliar APIs, or domain-specific workflows — not for simple requests the agent can handle unaided, even when the description semantically matches.
 
-Different tools handle skill loading differently. The Agent Skills specification targets _on-demand_ activation. The agent reads each skill's `description` field and decides whether to load it based on the current task. Some tools also support _always-on_ loading, where the skill is injected at the start of every session, or _manual_ loading, where the user triggers the skill via a slash command. UIs such as Cursor, Windsurf, and Cline load their native rule files persistently – so the token-efficiency principle becomes even more critical.
+Different tools handle skill loading differently. The Agent Skills specification targets _on-demand_ activation. The agent reads each skill's `description` field and decides whether to load it based on the current task. Some tools also support _always-on_ loading, where the skill is injected at the start of every session, or _manual_ loading, where the user triggers the skill via a slash command. UIs such as Cursor, Windsurf, and Cline load their native rule files persistently — so the token-efficiency principle becomes even more critical.
 
 When writing a skill intended for broad deployment across multiple tools, check how each target tool resolves and activates skills, as the loading mechanism affects both `description` field strategy and the overall context budget.
 
-Optional fields include `license`, `compatibility` (environment requirements), `metadata` (arbitrary key-value pairs), and `allowed-tools` (a space-separated list of tools that are pre-approved to be run by the agent – currently experimental). Individual tools support additional proprietary fields, too. So you may wish to optimize your skills definitions based on the capabilities of your chosen harness – see, for example, https://github.com/anthropics/skills/[Anthropic's] and https://code.visualstudio.com/docs/copilot/customization/agent-skills[VS Code's] documentation for agent skills.
+Optional fields include `license`, `compatibility` (environment requirements), `metadata` (arbitrary key-value pairs), and `allowed-tools` (a space-separated list of tools that are pre-approved to be run by the agent — currently experimental). Individual tools support additional proprietary fields, too. So you may wish to optimize your skills definitions based on the capabilities of your chosen harness — see, for example, https://github.com/anthropics/skills/[Anthropic's] and https://code.visualstudio.com/docs/copilot/customization/agent-skills[VS Code's] documentation for agent skills.
 
 .Example
 [source,markdown]
@@ -201,7 +201,7 @@ metadata:
 Agent instructions...
 ----
 
-The Markdown body after the front-matter contains the agent's instructions – context that will be passed to the LLM. As with `AGENTS.md`, there is no specific required structure for this section. You are free to design the information architecture on a case-by-case basis, as required to optimize knowledge transfer to the AI. Guidelines for producing effective information architectures are described later in this section.
+The Markdown body after the front-matter contains the agent's instructions — context that will be passed to the LLM. As with `AGENTS.md`, there is no specific required structure for this section. You are free to design the information architecture on a case-by-case basis, as required to optimize knowledge transfer to the AI. Guidelines for producing effective information architectures are described later in this section.
 
 Once an agent has decided to use a skill, it will load the full body content of the `SKILL.md` file into the context window. However, further *progressive disclosure* is supported through the use of the OPTIONAL `scripts/`, `references/`, and `assets/` directories, which MUST be siblings of the `SKILL.md` file.
 
@@ -221,9 +221,9 @@ The `scripts/` directory contains executable code that agents are allowed to run
 
 *Output size management.* Many agent harnesses truncate tool output beyond a threshold (typically 10–30K characters). Scripts that may produce large output SHOULD default to a summary view and SHOULD support a `--limit`/`--offset` flag for pagination, or an `--output FILE` flag to write to a file rather than stdout.
 
-Scripts SHOULD include helpful error and success outputs to give agents usable feedback, and MUST handle edge cases gracefully to prevent agent failure. Different agents support different languages, but it is RECOMMENDED to use a widely-supported subset – Bash, Python, and JavaScript, for example.
+Scripts SHOULD include helpful error and success outputs to give agents usable feedback, and MUST handle edge cases gracefully to prevent agent failure. Different agents support different languages, but it is RECOMMENDED to use a widely-supported subset — Bash, Python, and JavaScript, for example.
 
-The `references/` directory captures additional documentation that agents can read when needed. Each file SHOULD be focused on a specific topic. When referencing these files from `SKILL.md`, include an explicit trigger condition rather than a generic pointer. _"Read `references/api-errors.md` if the API returns a non-200 status code"_ is more useful than _"see `references/` for details"_. If you do this, agents load context on demand, not speculatively – conserving valuable context space.
+The `references/` directory captures additional documentation that agents can read when needed. Each file SHOULD be focused on a specific topic. When referencing these files from `SKILL.md`, include an explicit trigger condition rather than a generic pointer. _"Read `references/api-errors.md` if the API returns a non-200 status code"_ is more useful than _"see `references/` for details"_. If you do this, agents load context on demand, not speculatively — conserving valuable context space.
 
 Finally, the `assets/` directory contains static resources such as templates, images, and data files.
 
@@ -319,7 +319,7 @@ This input/output contract is what lets a human or an orchestrating script decid
 
 === Interactive versus non-interactive
 
-A skill SHOULD state whether it can run non-interactively – taking only its initial input and proceeding to completion without stopping to ask the user – or whether it is necessarily interactive, blocking to ask questions, present options, and wait for answers.
+A skill SHOULD state whether it can run non-interactively — taking only its initial input and proceeding to completion without stopping to ask the user — or whether it is necessarily interactive, blocking to ask questions, present options, and wait for answers.
 
 Non-interactive skills can be run unattended, including by parallel sub-agents. Interactive skills SHOULD be used sparingly, reserved for cases where human interaction _is_ the value the skill provides — a structured discovery interview, for example, where the dialogue itself is the point, rather than an obstacle to be designed around.
 
@@ -333,7 +333,7 @@ Not every part of a skill needs the same level of prescriptiveness. Match the sp
 
 *Provide defaults, not menus.* When multiple tools or approaches could work, pick one as the default and mention alternatives as escape hatches, rather than presenting them as equal options. The agent should follow the default unless there is a specific reason not to.
 
-*Favor procedures over declarations.* A skill should teach the agent _how to approach_ a class of problems, not what to produce for a specific instance. A reusable method that generalizes across tasks is more valuable than a hardcoded answer to a single question. Specific details – output templates, tool flags, constraints – can still be included where they are stable.
+*Favor procedures over declarations.* A skill should teach the agent _how to approach_ a class of problems, not what to produce for a specific instance. A reusable method that generalizes across tasks is more valuable than a hardcoded answer to a single question. Specific details — output templates, tool flags, constraints — can still be included where they are stable.
 
 === Effective instruction patterns
 
@@ -347,9 +347,9 @@ As with `AGENTS.md`, the body content of a `SKILL.md` file can be any freeform t
 
 *Plan-validate-execute.* For batch or destructive operations, have the agent produce an intermediate plan in a structured format, validate it against a source of truth, and only then execute. The key ingredient is a validation step that produces error messages specific enough for the agent to self-correct without human intervention.
 
-*Bundle reusable scripts.* If you notice the agent reinventing the same logic across runs – building a chart, parsing a format, validating output – write it once as a tested script in `scripts/` and reference it from the skill.
+*Bundle reusable scripts.* If you notice the agent reinventing the same logic across runs — building a chart, parsing a format, validating output — write it once as a tested script in `scripts/` and reference it from the skill.
 
-*Gotchas* A dedicated section – named "edge cases", for example – that lists environment-specific facts that defy reasonable assumptions is often the highest-value content in a skill. These are not general advice but concrete corrections to mistakes the agent will make without being told otherwise: wrong field names, soft-delete filters, misleading health-check endpoints, non-obvious API constraints. Keep gotchas in `SKILL.md` itself – not a reference file – because the agent needs them before it encounters the situation. When an agent makes a mistake you have to correct, add the correction to the edge cases section.
+*Gotchas* A dedicated section — named "edge cases", for example — that lists environment-specific facts that defy reasonable assumptions is often the highest-value content in a skill. These are not general advice but concrete corrections to mistakes the agent will make without being told otherwise: wrong field names, soft-delete filters, misleading health-check endpoints, non-obvious API constraints. Keep gotchas in `SKILL.md` itself — not a reference file — because the agent needs them before it encounters the situation. When an agent makes a mistake you have to correct, add the correction to the edge cases section.
 
 === Template
 
@@ -371,7 +371,7 @@ metadata:
 
 Use this skill when <scenario>.
 
-This skill extends [this skill](https://raw.githubusercontent.com/...) – all rules there apply here.
+This skill extends [this skill](https://raw.githubusercontent.com/...) — all rules there apply here.
 
 Do NOT use this skill for <exceptions...>.
 
@@ -472,7 +472,7 @@ When designing a skill for public sharing rather than internal project use, addi
 
 * *Avoid project-specific assumptions.* Internal skills can reference your schemas, tools, and conventions directly. Shared skills must instead teach a pattern that transfers across different projects and environments.
 
-* *Document prerequisites clearly.* Use the `compatibility` field to specify runtime requirements, and describe any dependencies – tools, language versions, environment variables – at the top of `SKILL.md`.
+* *Document prerequisites clearly.* Use the `compatibility` field to specify runtime requirements, and describe any dependencies — tools, language versions, environment variables — at the top of `SKILL.md`.
 
 * *Provide working examples.* Public audiences have less context than your internal team. A small set of concrete input/output examples significantly reduces the friction of adoption.
 
