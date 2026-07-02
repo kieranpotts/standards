@@ -47,6 +47,20 @@ Mitigations include:
 * Prefer human confirmation before irreversible actions — file deletion, network requests, code execution — especially when the agent has processed external content.
 * Audit agent execution traces when tasks involve untrusted sources.
 
+== The lethal trifecta
+
+Prompt injection becomes catastrophic when an agent simultaneously has all three of the following capabilities — a combination Simon Willison termed the *lethal trifecta*:
+
+. *Access to private data* — sensitive files, credentials, internal APIs, or anything the agent can read that an attacker cannot.
+. *Exposure to untrusted content* — web pages, emails, code comments, tool output, or any input that could carry indirect injection.
+. *The ability to externally communicate* — network requests, outbound API calls, or any channel by which data can leave the trust boundary.
+
+The underlying reason this is a problem is the same one that makes prompt injection possible at all: an LLM cannot reliably distinguish between data it is meant to process and instructions it is meant to follow. Both arrive as tokens in the same context, and the model has no robust internal boundary between "content" and "command". So untrusted content that _looks_ like an instruction can be acted upon as one — there is no separate control channel to protect, as there would be in a conventional program.
+
+Any one or two legs of the trifecta in isolation is comparatively safe. It is the co-occurrence of all three that is dangerous: untrusted content smuggles in instructions the model cannot help but treat as commands, the agent reads private data in obedience to them, and the exfiltration channel sends that data to the attacker. An agent that can read secrets and browse the web but cannot make outbound requests cannot leak; add an innocuous-looking way to communicate — a URL it can fetch, an image it can render — and the trifecta is complete.
+
+The practical defense is to break the trifecta rather than to try to make injection impossible, which is not currently achievable. Remove at least one leg for any given task: withhold access to sensitive data, isolate the agent from untrusted input, or cut off external communication. The least-privilege measures below are the mechanism for doing so.
+
 == Least-privilege tool access
 
 Agents that can execute shell commands, write to the filesystem, or make network requests are high-risk targets for prompt injection and misconfiguration alike. Limit the blast radius by applying the principle of least privilege to tool permissions.
