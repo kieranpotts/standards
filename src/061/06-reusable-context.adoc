@@ -83,6 +83,53 @@ Agent skills is a complementary open convention for packaging reusable, task-sco
 
 The canonical specification lives at https://agentskills.io/specification.
 
+=== Skill scope
+
+An emerging best practice is to define a small set of common _workflows_ as user-level or project-level skills, while keeping _knowledge_ (standards, policies, constraints, domain models, etc.) as separate reference documents that are loaded on-demand from other sources.
+
+Workflow skills should be for things like "planning", "coding", "testing", "deploying", and "releasing". They should be step-by-step, deterministic instructions, free of domain-specific facts. Workflow skills should rarely change, even between domains. By comparison, reference materials that encapsulate standards, policies, constraints, and domain models are dynamic and volatile.
+
+This separation is also what makes a workflow skill reusable across projects. A skill that only says _how_ to look something up, and what to do with it once found, stays technology-agnostic and domain-agnostic, and can run unmodified against any project that supplies its own reference material on demand. A skill that hard-codes project-specific knowledge stops being portable the moment it leaves the project it was written for. If a piece of knowledge genuinely belongs nowhere but one project, keep it local to that project rather than baking it into a shared skill.
+
+Pulling knowledge dynamically helps to keep your agentic workflows evergreen. This separation of concerns will also help you to debug issues with your agents, because When something goes wrong you can ask:
+
+* “Did the workflow break?” → skill issue.
+* “Did the knowledge change?” → retrieval issue.
+
+=== Single responsibility
+
+A skill SHOULD have exactly one responsibility, corresponding to a single step in a workflow. It SHOULD define one job and stop at a well-defined boundary, rather than reaching into adjacent work even where doing so would be convenient.
+
+In particular, a skill SHOULD NOT combine _evaluation_ and _implementation_ in one responsibility. A skill that analyzes and reports findings (a review, an audit, a proofread) is a different kind of thing from a skill that enacts a change (a fix, a migration, a refactor), and the two SHOULD NOT be bundled into one skill. For example, a skill that reviews a pull request should not also be the skill that applies the fixes it recommends — the decision of whether, when, and how to act on findings belongs to whoever is orchestrating the workflow, not to the skill that produced them.
+
+Keeping evaluation and implementation apart has practical benefits: an orchestrator can review findings before any change is applied; each skill gets a single, unambiguous trigger condition; and an evaluation skill becomes reusable in contexts its author did not anticipate — for example, the same review skill that supports a human pull request can be wired into a CI gate.
+
+=== Loose coupling
+
+Where multiple skills are composed into a workflow, they SHOULD be loosely coupled to one another. A skill SHOULD NOT directly invoke, refer to, or hand off to another skill by name. Each skill does its one job, reports its result, and stops. The composition of skills into a sequence is the responsibility of whatever is orchestrating the workflow — a human, a script, or another agent — not of the skills themselves.
+
+This means a skill's output should be usable as the input to whichever skill runs next, without either skill being aware of the other's existence. Coupling skills through their inputs and outputs rather than through direct references keeps each skill independently maintainable, and lets the same skill be reused in workflows its author never anticipated.
+
+=== Interface definitions
+
+A skill SHOULD be explicit about its inputs and outputs, in the same way a well-designed function is explicit about its parameters and return value. This RECOMMENDS documenting, for each skill:
+
+* What input it consumes, and whether that input is OPTIONAL or REQUIRED.
+
+* Whether the skill requires an interactive session — one in which the agent is free to prompt the user for further input — or can run non-interactively to completion.
+
+* What output it produces, in what format, and where that output is written (a file, a comment, a commit, the conversation itself).
+
+* What success criteria the output should be checked against.
+
+This input/output contract is what lets a human or an orchestrating script decide where a skill fits in a larger workflow, how to wire its output into the next step, and how to validate what it produced.
+
+=== Interactive versus non-interactive
+
+A skill SHOULD state whether it can run non-interactively — taking only its initial input and proceeding to completion without stopping to ask the user — or whether it is necessarily interactive, blocking to ask questions, present options, and wait for answers.
+
+Non-interactive skills can be run unattended, including by parallel sub-agents. Interactive skills SHOULD be used sparingly, reserved for cases where human interaction _is_ the value the skill provides — a structured discovery interview, for example, where the dialogue itself is the point, rather than an obstacle to be designed around.
+
 === Skill discovery
 
 The industry has not yet settled on a standard convention for agents to discover skills that are relevant to the agent's current working directory. Most agent harnesses will load project-specific skills, but the expected location of the skills files varies from one harness to the next. The specification defines `.agents/skills/` as being the root directory for project-level skills, but not all harnesses support this path out-of-the-box.
@@ -142,19 +189,6 @@ The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT,
 - `../skills/code-review/SKILL.md`: Generic code review checklist.
 - `https://example.com/standards/api-design/tree/main/SKILL.md`: API design conventions.
 ----
-
-=== Skill scope
-
-An emerging best practice is to define a small set of common _workflows_ as user-level or project-level skills, while keeping _knowledge_ (standards, policies, constraints, domain models, etc.) as separate reference documents that are loaded on-demand from other sources.
-
-Workflow skills should be for things like "planning", "coding", "testing", "deploying", and "releasing". They should be step-by-step, deterministic instructions, free of domain-specific facts. Workflow skills should rarely change, even between domains. By comparison, reference materials that encapsulate standards, policies, constraints, and domain models are dynamic and volatile.
-
-This separation is also what makes a workflow skill reusable across projects. A skill that only says _how_ to look something up, and what to do with it once found, stays technology-agnostic and domain-agnostic, and can run unmodified against any project that supplies its own reference material on demand. A skill that hard-codes project-specific knowledge stops being portable the moment it leaves the project it was written for. If a piece of knowledge genuinely belongs nowhere but one project, keep it local to that project rather than baking it into a shared skill.
-
-Pulling knowledge dynamically helps to keep your agentic workflows evergreen. This separation of concerns will also help you to debug issues with your agents, because When something goes wrong you can ask:
-
-* “Did the workflow break?” → skill issue.
-* “Did the knowledge change?” → retrieval issue.
 
 === Skill structure
 
@@ -264,6 +298,34 @@ Effective skills are grounded in real expertise. Two approaches are recommended:
 
 *Synthesize from project artifacts.* When you have a body of existing knowledge, feed it into an LLM and ask it to synthesize a skill. Effective source material includes internal documentation, runbooks, and style guides; API specifications and configuration files; code review comments and issue trackers; version control history (especially patches and fixes); and real-world failure cases and their resolutions. A skill synthesized from your team's actual incident reports will outperform one generated from a generic "best practices" article, because it captures your specific failure modes and recovery procedures.
 
+=== Calibrating control
+
+Not every part of a skill needs the same level of prescriptiveness. Match the specificity of instructions to the fragility of the task. Here are some guidelines:
+
+*Give the agent freedom* when multiple approaches are valid and the task tolerates variation. In these cases, explaining _why_ is often more effective than specifying exact steps. An agent that understands the purpose behind an instruction makes better context-dependent decisions.
+
+*Be prescriptive* when operations are fragile, consistency is critical, or a specific sequence must be followed. If a script must be run with exact flags, say so explicitly.
+
+*Provide defaults, not menus.* When multiple tools or approaches could work, pick one as the default and mention alternatives as escape hatches, rather than presenting them as equal options. The agent should follow the default unless there is a specific reason not to.
+
+*Favor procedures over declarations.* A skill should teach the agent _how to approach_ a class of problems, not what to produce for a specific instance. A reusable method that generalizes across tasks is more valuable than a hardcoded answer to a single question. Specific details — output templates, tool flags, constraints — can still be included where they are stable.
+
+=== Effective instruction patterns
+
+As with `AGENTS.md`, the body content of a `SKILL.md` file can be any freeform text. You are encouraged to experiment and to design an information architecture on a skill-by-skill basis to optimize outcomes. Nevertheless, some best practices have emerged from information architectures that have proven to be consistently effective across multiple agents and models.
+
+*Step-by-step instructions.* For multi-step workflows, an explicit `- [ ] Step N` checklist helps the agent track progress and avoid skipping steps that have dependencies or validation gates.
+
+*Output format templates.* When you need the agent to produce output in a specific format, provide a concrete template rather than a prose description. Agents pattern-match against structure more reliably than they interpret descriptions. Short templates can live inline in `SKILL.md`. Longer or conditionally-needed templates belong in `assets/`.
+
+*Validation loops.* Instruct the agent to run a validator after completing work, fix any failures, and repeat until validation passes before moving on. The validator may be a script, a reference checklist, or a self-check against stated criteria.
+
+*Plan-validate-execute.* For batch or destructive operations, have the agent produce an intermediate plan in a structured format, validate it against a source of truth, and only then execute. The key ingredient is a validation step that produces error messages specific enough for the agent to self-correct without human intervention.
+
+*Bundle reusable scripts.* If you notice the agent reinventing the same logic across runs — building a chart, parsing a format, validating output — write it once as a tested script in `scripts/` and reference it from the skill.
+
+*Gotchas* A dedicated section — named "edge cases", for example — that lists environment-specific facts that defy reasonable assumptions is often the highest-value content in a skill. These are not general advice but concrete corrections to mistakes the agent will make without being told otherwise: wrong field names, soft-delete filters, misleading health-check endpoints, non-obvious API constraints. Keep gotchas in `SKILL.md` itself — not a reference file — because the agent needs them before it encounters the situation. When an agent makes a mistake you have to correct, add the correction to the edge cases section.
+
 === Progressive disclosure
 
 Once an agent has decided to use a skill, it will load the full body content of the `SKILL.md` file into the context window. However, further progressive disclosure is supported through the use of the OPTIONAL `scripts/`, `references/`, and `assets/` directories, which MUST be siblings of the `SKILL.md` file.
@@ -303,106 +365,6 @@ Scripts SHOULD include helpful error and success outputs to give agents usable f
 === Assets
 
 Finally, the `assets/` directory contains static resources such as templates, images, and data files.
-
-=== Evaluating and refining skills
-
-After authoring a first draft of a new skill, refine it by running the skill against real tasks and reading full execution traces — not just the final outputs. A useful practice: use the same CLI or headless interface the agent uses, so you experience what it experiences. Review actual execution traces directly rather than inferring from end results, and convert any friction you discover into test cases.
-
-Common failure signals to look for in traces are:
-
-* Instructions that are too vague (the agent tries multiple approaches before finding one that works).
-
-* Instructions that don't apply to the current task (the agent follows them anyway).
-
-* Too many options presented without a clear default (the agent picks arbitrarily).
-
-Even a single pass of execute-then-revise noticeably improves quality.
-
-For more rigorous, structured evaluation, build a test suite. A standard convention is to store test cases in `evals/evals.json` inside the skill directory itself. Each test case has three components: a realistic user prompt, a human-readable description of what success looks like, and optional input files.
-
-The central mechanism of skill evaluation is running every test case in two configurations: with the skill, and without it (or against the previous version). The delta — the difference in pass rate, latency, and token consumption between configurations — tells you what the skill costs versus what it buys. A skill that does not improve the pass rate is not earning its context cost.
-
-A useful three-condition comparison is:
-
-1. The agent without the skill.
-2. The agent with a minimal equivalent instruction (a single sentence).
-3. The agent with the full skill loaded.
-
-If the skill does not clearly outperform the single-sentence instruction, it should be condensed or dropped entirely.
-
-Do not over-specify assertions upfront. After the first run, observe what the skill actually produces and then write verifiable checks based on those outputs. Strong assertions are objective and evidence-backed — for example, "the output contains a labeled bar chart". Weak ones are vague ("output is good") or brittle (exact phrase matching). Reserve assertions for objective checks; subjective quality belongs in human review.
-
-For a complementary holistic assessment, present outputs from two skill versions to an LLM judge without indicating which is which. This blind comparison will help to grade qualitative properties — organization, formatting, usability — that are hard to express as assertions.
-
-Also evaluation the activation quality, which means checking whether the skill loads on the right prompts and stays dormant on irrelevant ones. The `description` field is the primary lever for controlling this.
-
-When iterating on a skill based on test results, generalize from failures rather than patching specific test cases. Over-constraining instructions tends to cause skills to plateau or regress. Reasoning-based instructions — those that explain _why_, not just _what_ — tend to outperform rigid directives. An agent that understands the purpose behind an instruction tends to makes better context-dependent decisions.
-
-If you find the agent reinventing the same logic across runs, bundle that logic into `scripts/` rather than repeating it in prose instructions.
-
-Anthropic's https://github.com/anthropics/skills/tree/main/skills/skill-creator[`skill-creator`] skill automates much of this evaluation and iteration loop end-to-end.
-
-=== Single responsibility
-
-A skill SHOULD have exactly one responsibility, corresponding to a single step in a workflow. It SHOULD define one job and stop at a well-defined boundary, rather than reaching into adjacent work even where doing so would be convenient.
-
-In particular, a skill SHOULD NOT combine _evaluation_ and _implementation_ in one responsibility. A skill that analyzes and reports findings (a review, an audit, a proofread) is a different kind of thing from a skill that enacts a change (a fix, a migration, a refactor), and the two SHOULD NOT be bundled into one skill. For example, a skill that reviews a pull request should not also be the skill that applies the fixes it recommends — the decision of whether, when, and how to act on findings belongs to whoever is orchestrating the workflow, not to the skill that produced them.
-
-Keeping evaluation and implementation apart has practical benefits: an orchestrator can review findings before any change is applied; each skill gets a single, unambiguous trigger condition; and an evaluation skill becomes reusable in contexts its author did not anticipate — for example, the same review skill that supports a human pull request can be wired into a CI gate.
-
-=== Loose coupling
-
-Where multiple skills are composed into a workflow, they SHOULD be loosely coupled to one another. A skill SHOULD NOT directly invoke, refer to, or hand off to another skill by name. Each skill does its one job, reports its result, and stops. The composition of skills into a sequence is the responsibility of whatever is orchestrating the workflow — a human, a script, or another agent — not of the skills themselves.
-
-This means a skill's output should be usable as the input to whichever skill runs next, without either skill being aware of the other's existence. Coupling skills through their inputs and outputs rather than through direct references keeps each skill independently maintainable, and lets the same skill be reused in workflows its author never anticipated.
-
-=== Interface definitions
-
-A skill SHOULD be explicit about its inputs and outputs, in the same way a well-designed function is explicit about its parameters and return value. This RECOMMENDS documenting, for each skill:
-
-* What input it consumes, and whether that input is OPTIONAL or REQUIRED.
-
-* Whether the skill requires an interactive session — one in which the agent is free to prompt the user for further input — or can run non-interactively to completion.
-
-* What output it produces, in what format, and where that output is written (a file, a comment, a commit, the conversation itself).
-
-* What success criteria the output should be checked against.
-
-This input/output contract is what lets a human or an orchestrating script decide where a skill fits in a larger workflow, how to wire its output into the next step, and how to validate what it produced.
-
-=== Interactive versus non-interactive
-
-A skill SHOULD state whether it can run non-interactively — taking only its initial input and proceeding to completion without stopping to ask the user — or whether it is necessarily interactive, blocking to ask questions, present options, and wait for answers.
-
-Non-interactive skills can be run unattended, including by parallel sub-agents. Interactive skills SHOULD be used sparingly, reserved for cases where human interaction _is_ the value the skill provides — a structured discovery interview, for example, where the dialogue itself is the point, rather than an obstacle to be designed around.
-
-=== Calibrating control
-
-Not every part of a skill needs the same level of prescriptiveness. Match the specificity of instructions to the fragility of the task. Here are some guidelines:
-
-*Give the agent freedom* when multiple approaches are valid and the task tolerates variation. In these cases, explaining _why_ is often more effective than specifying exact steps. An agent that understands the purpose behind an instruction makes better context-dependent decisions.
-
-*Be prescriptive* when operations are fragile, consistency is critical, or a specific sequence must be followed. If a script must be run with exact flags, say so explicitly.
-
-*Provide defaults, not menus.* When multiple tools or approaches could work, pick one as the default and mention alternatives as escape hatches, rather than presenting them as equal options. The agent should follow the default unless there is a specific reason not to.
-
-*Favor procedures over declarations.* A skill should teach the agent _how to approach_ a class of problems, not what to produce for a specific instance. A reusable method that generalizes across tasks is more valuable than a hardcoded answer to a single question. Specific details — output templates, tool flags, constraints — can still be included where they are stable.
-
-=== Effective instruction patterns
-
-As with `AGENTS.md`, the body content of a `SKILL.md` file can be any freeform text. You are encouraged to experiment and to design an information architecture on a skill-by-skill basis to optimize outcomes. Nevertheless, some best practices have emerged from information architectures that have proven to be consistently effective across multiple agents and models.
-
-*Step-by-step instructions.* For multi-step workflows, an explicit `- [ ] Step N` checklist helps the agent track progress and avoid skipping steps that have dependencies or validation gates.
-
-*Output format templates.* When you need the agent to produce output in a specific format, provide a concrete template rather than a prose description. Agents pattern-match against structure more reliably than they interpret descriptions. Short templates can live inline in `SKILL.md`. Longer or conditionally-needed templates belong in `assets/`.
-
-*Validation loops.* Instruct the agent to run a validator after completing work, fix any failures, and repeat until validation passes before moving on. The validator may be a script, a reference checklist, or a self-check against stated criteria.
-
-*Plan-validate-execute.* For batch or destructive operations, have the agent produce an intermediate plan in a structured format, validate it against a source of truth, and only then execute. The key ingredient is a validation step that produces error messages specific enough for the agent to self-correct without human intervention.
-
-*Bundle reusable scripts.* If you notice the agent reinventing the same logic across runs — building a chart, parsing a format, validating output — write it once as a tested script in `scripts/` and reference it from the skill.
-
-*Gotchas* A dedicated section — named "edge cases", for example — that lists environment-specific facts that defy reasonable assumptions is often the highest-value content in a skill. These are not general advice but concrete corrections to mistakes the agent will make without being told otherwise: wrong field names, soft-delete filters, misleading health-check endpoints, non-obvious API constraints. Keep gotchas in `SKILL.md` itself — not a reference file — because the agent needs them before it encounters the situation. When an agent makes a mistake you have to correct, add the correction to the edge cases section.
 
 === Template
 
@@ -514,6 +476,44 @@ Do NOT use this skill for <exceptions...>.
 Use the `skills-ref` Python package to validate your skill configurations:
 https://github.com/agentskills/agentskills/tree/main/skills-ref
 ======
+
+=== Evaluating and refining skills
+
+After authoring a first draft of a new skill, refine it by running the skill against real tasks and reading full execution traces — not just the final outputs. A useful practice: use the same CLI or headless interface the agent uses, so you experience what it experiences. Review actual execution traces directly rather than inferring from end results, and convert any friction you discover into test cases.
+
+Common failure signals to look for in traces are:
+
+* Instructions that are too vague (the agent tries multiple approaches before finding one that works).
+
+* Instructions that don't apply to the current task (the agent follows them anyway).
+
+* Too many options presented without a clear default (the agent picks arbitrarily).
+
+Even a single pass of execute-then-revise noticeably improves quality.
+
+For more rigorous, structured evaluation, build a test suite. A standard convention is to store test cases in `evals/evals.json` inside the skill directory itself. Each test case has three components: a realistic user prompt, a human-readable description of what success looks like, and optional input files.
+
+The central mechanism of skill evaluation is running every test case in two configurations: with the skill, and without it (or against the previous version). The delta — the difference in pass rate, latency, and token consumption between configurations — tells you what the skill costs versus what it buys. A skill that does not improve the pass rate is not earning its context cost.
+
+A useful three-condition comparison is:
+
+1. The agent without the skill.
+2. The agent with a minimal equivalent instruction (a single sentence).
+3. The agent with the full skill loaded.
+
+If the skill does not clearly outperform the single-sentence instruction, it should be condensed or dropped entirely.
+
+Do not over-specify assertions upfront. After the first run, observe what the skill actually produces and then write verifiable checks based on those outputs. Strong assertions are objective and evidence-backed — for example, "the output contains a labeled bar chart". Weak ones are vague ("output is good") or brittle (exact phrase matching). Reserve assertions for objective checks; subjective quality belongs in human review.
+
+For a complementary holistic assessment, present outputs from two skill versions to an LLM judge without indicating which is which. This blind comparison will help to grade qualitative properties — organization, formatting, usability — that are hard to express as assertions.
+
+Also evaluation the activation quality, which means checking whether the skill loads on the right prompts and stays dormant on irrelevant ones. The `description` field is the primary lever for controlling this.
+
+When iterating on a skill based on test results, generalize from failures rather than patching specific test cases. Over-constraining instructions tends to cause skills to plateau or regress. Reasoning-based instructions — those that explain _why_, not just _what_ — tend to outperform rigid directives. An agent that understands the purpose behind an instruction tends to makes better context-dependent decisions.
+
+If you find the agent reinventing the same logic across runs, bundle that logic into `scripts/` rather than repeating it in prose instructions.
+
+Anthropic's https://github.com/anthropics/skills/tree/main/skills/skill-creator[`skill-creator`] skill automates much of this evaluation and iteration loop end-to-end.
 
 === Sharing skills
 
