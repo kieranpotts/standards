@@ -54,11 +54,9 @@ The supervisor aggregates the results from the subagents, ensures they are cohes
 
 This architecture models real-world organizational structures and reduces the likelihood of a single agent becoming overwhelmed by a massive context window or a too-broad objective.
 
-== Resource optimization
+== Model tiering
 
 To optimize for both quality and cost, agentic workflows should employ a tiered model strategy. Not every step of an agentic process requires the highest-reasoning capability available.
-
-=== Model tiering
 
 A hybrid approach using a mix of frontier (premium cloud) models and efficient (smaller or local) models is RECOMMENDED.
 
@@ -79,80 +77,74 @@ flowchart LR
 
 By offloading the execution phase to efficient models while reserving the reasoning phase for frontier models, developers can maintain high output quality while significantly reducing token consumption and subscription costs.
 
-== Guardrails
-
-Guardrails are constraints that bound agent behavior, reducing the risk of unintended or harmful actions. They're important in AI-assisted workflows. But they are absolutely critical in agentic workflows, where humans are much less involved in the loop.
-
-In agent harnesses, guardrails exist at several levels:
-
-* *Permission constraints*: Explicit allow/deny lists that control which tools, shell commands, file paths, or network endpoints an agent may access. Configure these in the agent harness rather than relying on context/prompts. Scripted guardrails are the most reliable form of guardrail because they are enforced by the runtime, not by the model's interpretation.
-
-* *Behavioral instructions*: Rules embedded in system prompts or `AGENTS.md` that direct how the agent should approach tasks — for example, "create an explicit plan before making destructive changes" or "never commit directly to the main branch."
-
-* *Validation gates*: Checkpoints at which the agent must verify a condition before proceeding — for example, running a test suite before committing code, or requesting human approval before an irreversible action.
-
-As models become more capable, the balance shifts between prescriptive guardrails and model judgment. Overly detailed or redundant guardrails can conflict with the model's own reasoning, causing it to follow explicit instructions that diverge from what the context suggests is correct.
-
-The same token-efficiency principle from context engineering applies. Start with the minimum constraints necessary and add guardrails only in response to observed failure modes.
-
-Guardrails SHOULD be reviewed when switching model versions, since a guardrail written to correct a failure mode in an older model may become unnecessary or counterproductive in a newer one.
-
 == Guides and sensors
 
-It is useful to distinguish two categories of control over agent behavior, borrowed from harness-engineering practice: _guides_ and _sensors_.
+Guardrails — constraints that bound agent behavior, reducing the risk of unintended or harmful actions — are important in AI-assisted workflows, and absolutely critical in agentic ones, where humans are much less involved in the loop.
 
-*Guides* are feed-forward controls that steer an agent _before_ it acts — `AGENTS.md`, skills, and other instructions loaded into context, anticipating problems and increasing the odds of a good result on the first attempt.
+It is useful to distinguish two categories of control over agent behavior: guides and sensors.
 
-*Sensors* are feedback controls that check an agent's output _after_ it acts — a linter, a type-checker, a test suite, a code review. Sensors are further divided into two kinds:
+*Guides* are feed-forward controls that steer an agent _before_ it acts, anticipating problems and increasing the odds of a good result on the first attempt. There are two main types of guides:
 
-* *Deterministic sensors* are scripts and tools that give the same verdict on the same input every time. These provide the strongest signal available, because their result does not depend on judgment. Wherever a rule is mechanically checkable, prefer enforcing it with a deterministic sensor over stating it as guidance and hoping the agent follows it.
+* *Behavioral instructions* (advisory): Rules embedded in system prompts, `AGENTS.md`, skills, and other instructions loaded into context, that direct how the agent should approach tasks. Examples: "create an explicit plan before making destructive changes" or "never commit directly to the main branch."
 
-* An *inferential sensor* is a second agent tasked with judging the output of the first, such as a "review" or "audit" skill. These add value by bringing a fresh perspective, but MUST NOT be treated as a substitute for deterministic checks, because their judgment is itself probabilistic.
+* *Permission constraints* (enforced): Explicit allow/deny lists that control which tools, shell commands, file paths, or network endpoints an agent may access, configured in the agent harness rather than relied on via context/prompts. These are the most reliable form of guide because they are enforced by the runtime, not by the model's interpretation.
 
-An agent steered only by guides repeats the same undetected mistakes indefinitely. An agent checked only by sensors runs an expensive trial-and-error loop with no steering. Reliable agentic workflows need both.
+*Sensors* are feedback controls that check an agent's output _after_ it acts. THese are validation gates that an agent must satisfy before proceeding, eg. running a test suite before committing code, or requesting human approval before an irreversible action. Sensors are further divided into two kinds:
 
-Where an inferential sensor is used, the agent reviewing the output MUST NOT be the same agent, in the same session, that produced it. Models exhibit sycophancy — an agent asked to critique its own recent work is biased toward judging it favorably, whereas a fresh agent with no visibility into the reasoning that produced the work is far more likely to surface real defects. Invoke inferential sensors as distinct agent sessions, and frame the evaluating agent adversarially — instructed to assume the work is broken and to actively verify that claim, rather than to assume it is correct and check for obvious problems — since the latter framing tends to produce agreement with whatever it reads.
+* *Deterministic sensors* are scripts and tools that give the same verdict on the same input every time. Examples include linters, type checkers, and automated tests. These provide the strongest signal available, because their result does not depend on judgment. Wherever a rule is mechanically checkable, prefer enforcing it with a deterministic sensor over stating it as guidance and hoping the agent follows it.
+
+* An *inferential sensor* is a second agent tasked with judging the output of the first. These add value by bringing a fresh perspective (their context is not polluted by the reasoning of the implementation model). But they MUST NOT be treated as a substitute for deterministic checks, because their judgment is itself probabilistic.
+
+A good agent harness consists of a mix of both guides and sensors, and of both the deterministic and inferential kinds. An agent steered only by guides repeats the same undetected mistakes indefinitely. An agent checked only by sensors runs an expensive trial-and-error loop with no steering. Reliable agentic workflows need both.
+
+Where an inferential sensor is used, the agent reviewing the output MUST NOT be the same agent, in the same session, that produced it. Models exhibit sycophancy. An agent asked to critique its own recent work is biased toward judging it favorably, whereas a fresh agent with no visibility into the reasoning that produced the work is far more likely to surface real defects. Invoke inferential sensors as distinct agent sessions, and frame the evaluating agent adversarially — instructed to assume the work is broken and to actively verify that claim, rather than to assume it is correct and check for obvious problems — since the latter framing tends to produce agreement with whatever it reads.
+
+As models become more capable, the balance shifts between prescriptive guides and model judgment. Overly detailed or redundant behavioral instructions can conflict with the model's own reasoning, causing it to follow explicit rules that diverge from what the context suggests is correct.
+
+The same token-efficiency principle from context engineering applies. Start with the minimum constraints necessary and add guides only in response to observed failure modes.
+
+Guides SHOULD be reviewed when switching model versions, since one written to correct a failure mode in an older model may become unnecessary or counterproductive in a newer one.
 
 == Composable pipelines
 
-An effective agentic workflow is a pipeline of agentic steps and scripted steps, each narrowly scoped, where the output of one step is the input to the next. Scripted steps are the deterministic sensors described above. They catch failure modes and either feed back to an earlier step or escalate to a human.
+An effective agentic workflow is a pipeline of agentic steps plus scripted steps, each narrowly scoped, where the output of one step is the input to the next.
 
-For a pipeline like this to be composable — so that the same steps can be sequenced differently across different workflows — each step SHOULD be a small, sharp tool with a well-defined input and output, and SHOULD NOT directly invoke or depend on any other specific step. The order in which steps run, and the approval gates injected between them, is the responsibility of whatever orchestrates the workflow, not of the steps themselves.
+Agentic steps do the reasoning-heavy work, while scripted steps — the deterministic sensors described above — catch failure modes and either feed back to an earlier step or escalate to a human.
 
-A workflow is not necessarily a single linear pipeline with one entry point. Work can enter at different points depending on what triggered it:
+An agentic workflow is not necessarily a single linear pipeline with one entry point. Work can enter at different points depending on what triggered it. Fro example:
 
-* *Proactive* paths, triggered by new product requirements — for example, a "specify" step that turns a request into acceptance criteria.
+* *Proactive* paths, triggered by new product requirements, eg. a "specify" step that turns a request into acceptance criteria.
 
-* *Reactive* paths, triggered by bugs or incidents — for example, a "triage" step that classifies an incoming issue.
+* *Reactive* paths, triggered by bugs or incidents, eg. a "triage" step that classifies an incoming issue.
 
-* *Scheduled* paths, triggered on a recurring interval — for example, an "audit" step that periodically checks the codebase for structural drift.
+* *Scheduled* paths, triggered on a recurring interval, eg. an "audit" step that periodically checks the codebase for structural drift.
+
+For this reason, it is beneficial for the individual steps — both the agentic steps and the scripts steps — to be composable, so they can be sequenced differently into all sorts of workflows.
+
+To achieve this, each step needs to be a small, sharp tool with well-defined input and output. Rather than steps explicitly handing off to other steps in a workflow, which produces tight coupling and inflexible workflows, the input and output becomes the contract between steps in the workflow.
+
+This means that the orchestrator of a workflow — whether that orchestrator be a human, a script, or an agent — is responsible for determining the order in which steps are run.
 
 == Persistence
 
-For one step in a pipeline to hand off to the next — whether that is a different agent, a different session, or a deterministic script — the step's output MUST be persisted to a durable store, not merely held in the conversation. An agent that finishes a planning step and writes its decisions to a plan document has produced something the next agent, in a fresh session with an empty context window, can read and act on. An agent that only states its decisions in the chat has produced nothing the next step can reliably use.
+The input/output contract described above only decouples steps in the abstract. In practice, that decoupling holds only if a step's output outlives the session that produced it.
 
-Persisting output to disk also keeps the context window clean. Agentic workflows accumulate noise — exploratory dead ends, intermediate reasoning, tool output that mattered briefly and then stopped mattering. Write only the _distilled_ output of a step — a decision, a plan, a set of findings — rather than carrying the full working history of how that output was produced forward into the next step's context.
+For one step in a pipeline to hand off to the next — whether that is a different agent, a different session, or a deterministic script — the step's output MUST be persisted to a durable store, not merely held in the conversation. An agent that finishes a planning step and writes its decisions to a plan document has produced something the next agent, in a fresh session with an empty context window, can read and act on.
 
-Version control — not just any durable store, but one with commits, branches, and history — is the preferred substrate for this persistence. Treat the requirements, decisions, designs, and plans an agentic workflow produces the same way as the code itself. As files committed to version control, not as paragraphs left behind in a chat transcript. This gives every such artifact durability, diff-ability, an audit trail, and a stable path other steps can address it by — the same benefits that version control already provides for code, extended to the rest of what the workflow produces.
+Persisting output to disk also keeps the context window clean. Agentic workflows accumulate noise — exploratory dead ends, intermediate reasoning, tool output that mattered briefly and then stopped mattering. The persistence layers between workflow steps need only to capture the distilled output of a step — eg. a technical decision or an implementation plan — which becomes the minimal input to a subsequent step.
+
+A version control system like Git is the preferred substrate for this persistence layer. Artifacts like requirements, decisions, designs, and plans that an agentic workflow produces can be persisted in same way as the code it produces. This gives every generated artifact durability, diff-ability, and an audit trail. And rollback is built-in.
 
 == Isolated environments
 
-Persisting state to a shared repository solves handoff between steps that run one after another. But it creates a new problem the moment more than one agent or script operates on that repository at the same time — parallel sub-agents working on independent increments, or a human still working in a checkout while an agent runs against it. Two processes writing to the same working tree concurrently will corrupt each other's work. One process's uncommitted edits become visible, half-finished, to the other. Checked-out branches conflict. And build artifacts and lockfiles collide.
+Persisting state to a shared repository solves handoff between steps that run one after another. But it creates a new problem the moment more than one agent or script operates on that repository at the same time, eg. parallel sub-agents working on independent increments, or a human still working in a checkout while an agent runs against it.
 
-Wherever a workflow runs multiple agents or scripts against a single repository at once, each MUST be given its own isolated working copy rather than sharing one. For most local and agentic workflows, a Git worktree — a second working directory checked out from the same repository, on its own branch, without the overhead of a full clone — is the appropriate mechanism. This lets an orchestrator give each parallel agent its own isolated copy of the codebase, reconciling the resulting branches only at integration time.
+Two processes writing to the same working tree concurrently may corrupt each other's work, eg. build artifacts and lockfiles may collide.
 
-This is not always necessary. CI systems typically provide isolation already, by cloning the repository fresh into an ephemeral environment for every job, so there is no shared working tree to corrupt. Whether isolation is needed at all, and which mechanism provides it, is a decision for whoever is orchestrating the workflow, not for the individual steps.
+Wherever a workflow runs multiple agents or scripts against a single repository at once, each MUST be given its own isolated working copy of the repository, rather than sharing one.
 
-== Prompts
+A Git worktree — a second working directory checked out from the same repository, on its own branch, without the overhead of a full clone — is the appropriate mechanism here. It lets an orchestrator give each parallel agent its own isolated copy of the codebase, reconciling the resulting branches only at integration time.
 
-The most important information to include in prompts for agentic workflows is:
+This is not always necessary. CI systems typically provide isolation already, by cloning the repository fresh into an ephemeral environment for every job, so there is no shared working tree to corrupt.
 
-* *Role*: Define the specific persona and expertise the agent should adopt.
-
-* *Objective*: State the clear, desired outcome of the task.
-
-* *Constraints*: List the boundaries, standards, or limitations the agent must adhere to.
-
-* *Context*: Provide the necessary background information or existing codebase details.
-
-* *Output Format*: Specify exactly how the result should be delivered (eg. a specific file format or a summary).
+Whether isolation is needed at all, and which mechanism provides it, is a decision for whoever is orchestrating the workflow, not for the individual steps.
