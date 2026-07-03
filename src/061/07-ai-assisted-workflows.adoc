@@ -6,48 +6,51 @@ Broadly, there are two approaches to incorporating AI-based coding tools into de
 
 * **Agentic workflows**, in which harnesses are engineered to orchestrate one or more AI agents to perform development tasks with a high degree of autonomy, supporting asynchronous/parallel development workflows.
 
-This section focuses on best practices for AI-assisted development workflows. Agentic workflows require additional guardrails, since humans are less in the loop. This is covered in the next section.
+This section focuses on best practices for AI-assisted development workflows. Agentic workflows require additional guardrails, since humans are less in-the-loop. This is covered in the next section.
 
-The most effective approach to AI-assisted development is to split complex tasks into distinct planning and implementation phases, matching model capabilities to task requirements. Premium, specialist models tend to do a better job at planning code changes than cheaper, general-purpose models, but the cheaper models are often perfectly capable of executing those plans. This optimizes output quality while reducing subscription costs.
+The most effective approach to AI-assisted development is to split complex tasks into distinct planning and implementation phases, matching model capabilities to the unique requirements of each phase. Premium, specialist models tend to do a better job at planning code changes than cheaper, general-purpose models, but the cheaper models are often perfectly capable of executing those plans. This optimizes output quality while reducing subscription costs.
 
-Use frontier models for planning and architecture decisions, complex problem-solving, security analysis, and architectural compliance. Use efficient models for code construction from pre-approved plans, small-scale refactoring, and routine chores.
+In short: use premium, frontier models for planning and architecture decisions, complex problem-solving, security analysis, and architectural compliance; use cheap, efficient models for code construction from pre-approved plans, small-scale refactoring, and routine chores.
 
-It is RECOMMENDED to follow this planning-implementation cycle for all but the simplest tasks.
+It is RECOMMENDED to follow this planning-implementation cycle for all but the simplest and quickest of tasks.
 
 == Planning phase
 
-When using AI tools for planning code changes, provide comprehensive context including requirements, constraints, and existing architectural patterns. Request structured outputs, for example diagrams, pseudocode, or API specifications. Output should be _verifiable_, where possible.
+When using AI tools for planning code changes, provide comprehensive context including requirements, constraints, and existing architectural patterns. Request structured, verifiable outputs, for example diagrams, pseudocode, or API specifications.
 
 Provide sufficient context in initial prompts to minimize clarification rounds. Provide code examples as context, to improve output quality.
 
-Validate architectural decisions made by AIs against project standards _before_ implementing them. For large-scale or complex changes, document AI-assisted design decisions for team review first.
+Validate architectural decisions made by AIs against project standards _before_ implementing them.
+
+For large-scale or complex changes, document AI-assisted design decisions for team review before proceeding with the implementation.
 
 == Implementation phase
 
 When using AI for code generation, provide clear, specific prompts based on pre-approved execution plans.
 
-Define coding standards, style guides, and architectural conventions as concise, reusable prompt inputs — "skills" or "rules" — that can be injected into the context window at the start of an implementation session. Likewise, create reusable prompt templates for common, mundane tasks. Keeping these definitions token-efficient ensures they do not crowd out other high-signal context. When the AI produces code that deviates from a standard, feed back the relevant rule explicitly and ask it to revise.
+Define coding standards, style guides, and architectural conventions as concise, reusable prompt inputs. See the section on reusable context for guidelines.
 
 Ask the AI to implement execution plans incrementally. This means generating code in small, stable, independently-deployable increments. It is easier to review and test code changes incrementally than in a single "big bang" changeset.
 
-Small increments serve a second, independent purpose beyond reducing delivery risk. They bound the context window. A session asked to plan, implement, and verify a large feature end-to-end will eventually be reasoning with a context window dominated by its own accumulated exploration rather than the task at hand (see context rot, in the context engineering chapter). A session scoped to one increment starts with a clean context window and loads only what that increment needs, which keeps the model's reasoning reliable for longer than a single sprawling session would.
+Small increments serve a second, independent purpose beyond reducing delivery risk. They bound the context window. A session asked to plan, implement, and verify a large feature end-to-end will eventually be reasoning with a context window dominated by its own accumulated thinking, rather than the task at hand. This causes *context rot*, which reduces the effectiveness of the underlying model.
 
-Batching together similar tasks reduces token consumption. But do this sparingly. Better to have a few smaller changesets than one large one to review.
+By contrast, a session scoped to one small incremental development step starts with a clean context window and loads only what that increment needs. This keeps the model's reasoning reliable for longer.
 
-Use version control to track changes to AI-generated code, and to provide a robust "undo" operation. Avoid making manual and automated changes to code in the same revision.
+Batching together similar tasks can help to reduce token consumption. But do this sparingly. Better to have a few smaller changesets than one large one to review.
 
-[TIP]
-======
+Use version control to track changes to AI-generated code, and to provide a robust "undo" operation.  Avoid making manual and automated changes to code in the same revision.
+
 When an agent gets stuck, avoid contaminating the context with irrelevant information. Instead, ask directly: "What information do you need that would let you implement this perfectly right now?" This forces the agent to identify its own knowledge gaps rather than flailing blindly.
-======
 
 == Testing phase
 
-All normal developer review and approval processes MUST remain in place for AI-generated code (see the human-in-the-loop section).
+All normal developer review and approval processes MUST remain in place for AI-generated code.
 
-For every incremental step, conduct manual review of the AI-generated code and verify adherence to coding standards and style guides. _Manually_ test AI-generated code, and then run automated tests and static analysis tools, before committing the changes.
+For every incremental step, conduct manual review of the AI-generated code and verify adherence to coding standards and style guides. Manually test AI-generated code, as well as running automated tests and static analysis tools, before committing the changes.
 
-Do not rely on AI-generated tests to verify the correctness of the AI-generated code. Do not allow AI agents to modify your existing test suite without your explicit prompt and oversight.
+Do not rely on AI-generated tests to verify the correctness of AI-generated code. Review all AI-generated tests — this is more important that reviewing AI-generated code.
+
+Do not allow AI agents to modify your existing test suite without your explicit prompt and oversight.
 
 Taking a test-driven approach to AI-assisted development is RECOMMENDED where feasible. Write your own tests, and then ask the AI to implement the changes necessary to make the tests pass.
 
