@@ -1,0 +1,25 @@
+= Definitions
+
+In this technical standard the following words and phrases have the following meanings:
+
+* A *model* is a large-language model (LLM), which is a type of neural network. Examples include Anthropic's Claude, OpenAI's GPT, Google's Gemini, and Z.ai's GLM. A model only consumes tokens (decoded from text or images) and output tokens (encoded as text or images), and has no inherent ability to act on computer systems — for that, you need a harness.
+
+* A *agent harness*, previously known as a scaffold, is a conventional computer program that wraps a model. It mediates between the user, the model, and the rest of the computer environment. It can be thought of as a front-end user interface to models — most users will interact with models indirectly via an agent harness. Examples include Claude Code, Codex, OpenCode, and Pi. The agent harness constructs the system prompt, defines and executes tools from the wider environment (file reads and writes, shell commands, MCP server calls, etc.) and feeds the output from tool invocation back to the model as context. The agent harness also implements security, such as sandboxing the model's environment and managing permissions for tool access. Agent harnesses  will also manage the model's context window (eg. through compaction of the current context before it is loaded back into the model on the next inference call in the loop) and things like task lists.
+
+* An *agent* is an instance of a model (or multiple models) running in an agent harness in an iterative loop. The underlying model proposes an action, the harness executes it via tool calls, and the result goes back into the model's context via the next inference call in the loop. This is repeated until the task is done or a stop condition is reached. A *coding agent* is just an agent that uses models training specifically for computer programming tasks, running in an agent harness that is designed for integration into software development and operations workflows.
+
+* A *tool* is a function that an agent harness exposes to a model and invokes on the model's request (known as a *tool call*). Examples include file edits, Bash/shell executions, web requests, and HTTP API calls. It is via tools, managed by the harnesses, that models touch real systems beyond their context window.
+
+* *MCP (Model Context Protocol)* is the emerging industry standard protocol for serving tools or data to a harness.
+
+* An *agent framework/SDK* is a library for building your own agent harness, rather than a finished product. Examples include LangGraph and the Claude Agent SDK. The Pi coding agents is a minimal agent harness that can be used out-of-the-box, but it is also a baseline framework designed for extensibility into custom harnesses.
+
+* An *agent orchestrator* is a layer above a harness that runs multiple agent sessions in parallel, often using Git worktrees to keep the work of each agent independent of the others on the filesystem. Examples include Claude Squad, Crystal, and mux. Some agent harnesses are also agent orchestrators, capable of spawning and managing multiple *subagents* to complete tasks.
+
+* An *inference provider* is an organization that hosts and serves models via web services. This may be self-hosted infrastructure, a cloud service provider, or a third-party vendor API. The inference provider is distinct from the *model vendor*, though often they are the same company (eg. in the case of Anthropic's and OpenAI's closed systems). Inference providers such as OpenRouter and Ollama Cloud serve models from third-party vendors.
+
+* *Context* is a set of tokens (instructions, files, conversation, tool results) available to the model in a single inference call. The *system prompt* is the initial set of instructions injected into a model's context windows by the harness. Typically, the system prompt is hard-coded into the harness and is not authored directly by the end user. Other sources of context that can be fed into a model session include skills, rules, and instructions files read from the environment, and direct input prompts from a human user. Different models have different capabilities in terms of how many tokens — ie. how much context — they can consume in a single inference call, which is known as their **context window**.
+
+* Context is the main supply-chain/injection surface for agentic workflows. *Prompt injection* is adversarial instructions embedded in data the agent processes (files, web pages, tool results) that attempt to override the user's intended instructions. *Data exfiltration* is the transmission of sensitive material from an agent's context or its accessible environment to an unauthorized destination, whether via tool calls or model output.
+
+* Agent harnesses may record the full *transcript* of an agent *session*, eg. for auditability purposes. A session transcript would include the full sequence of user inputs, model outputs, and tool calls. This is distinct from the model's context, which is mutable during a session.
