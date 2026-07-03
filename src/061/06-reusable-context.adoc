@@ -328,43 +328,29 @@ As with `AGENTS.md`, the body content of a `SKILL.md` file can be any freeform t
 
 === Progressive disclosure
 
-Once an agent has decided to use a skill, it will load the full body content of the `SKILL.md` file into the context window. However, further progressive disclosure is supported through the use of the OPTIONAL `scripts/`, `references/`, and `assets/` directories, which MUST be siblings of the `SKILL.md` file.
+Once an agent activates a skill, the full body of `SKILL.md` loads into context. Keep `SKILL.md` under 500 lines, and push extended material into three OPTIONAL directories, which MUST be siblings of `SKILL.md`: `scripts/`, `references/`, and `assets/`.
 
-It is RECOMMENDED to keep `SKILL.md` files under 500 lines. Extract extended materials to scripts, references, and assets.
+*References.* The `references/` directory holds documentation the agent reads only when needed. Keep each file focused on a single topic, and link to it with an explicit trigger condition rather than a generic pointer — "Read `references/api-errors.md` if the API returns a non-200 status code" beats "See `references/` for details." This stops agents from loading reference material speculatively and burning context.
 
-=== References
+*Scripts.* The `scripts/` directory holds executable code the agent is allowed to run.
 
-The `references/` directory captures additional documentation that agents can read when needed.
+- **No interactive prompts.** Assume the agent runs in a non-interactive shell that cannot respond to TTY prompts, password dialogs, or confirmation menus. All input MUST be supplied via CLI flags, environment variables, or stdin — never an interactive prompt — or a script that blocks on input will hang indefinitely.
 
-Each reference file SHOULD be focused on a specific topic.
+- **`--help` as the interface.** `--help` output is how the agent learns a script's interface before running it. Keep it concise (it enters the context window) and cover the description, all flags, and a usage example.
 
-When referencing these files from `SKILL.md`, include an explicit trigger condition rather than a generic pointer. "Read `references/api-errors.md` if the API returns a non-200 status code" is more useful than "See `references/` for details".
+- **Self-contained dependencies.** Scripts SHOULD be self-contained. PEP 723 inline metadata (with `uv run`) lets Python scripts declare their own dependencies without a separate manifest; Deno and Bun support similar inline specifiers. Where a script can't be self-contained, document its dependencies at the top of the file.
 
-The aim is to avoid tripping agents into loading reference resources speculatively, blowing valuable context space.
+- **One-off commands.** For simple tasks, `uvx`, `npx`, and `bunx` can invoke packages directly from `SKILL.md` instructions without a `scripts/` directory at all. Pin versions for reproducibility, e.g. `npx eslint@9.0.0`.
 
-=== Scripts
+- **Stdout/stderr separation.** Structured output goes to stdout; progress messages, diagnostics, and warnings go to stderr. This lets the agent capture clean output while still seeing what happened.
 
-The `scripts/` directory contains executable code that agents are allowed to run. The following principles apply to scripts intended for agentic use.
+- **Idempotency.** Agents may retry failed commands, so scripts SHOULD be idempotent — a "create if not exists" pattern is safer than "create and fail on duplicate."
 
-*No interactive prompts.* You should assume that the agent is running in a non-interactive shells and so cannot respond to TTY prompts, password dialogs, or confirmation menus. A script that blocks on input will hang indefinitely when the agent is running in the background. Therefore, all input MUST be supplied via CLI flags, environment variables, or stdin — never via interactive prompts.
+- **Output size management.** Harnesses often truncate tool output past 10–30K characters. Scripts with large output SHOULD default to a summary view and support a `--limit`/`--offset` flag, or an `--output FILE` flag to write to a file instead of stdout.
 
-*`--help` as the agent's primary interface.* `--help` output is how the agent learns a script's interface before running it. It SHOULD be concise (since it enters the context window) and SHOULD include a description, all supported flags, and a usage example.
+Scripts SHOULD give usable error and success feedback, and MUST handle edge cases gracefully. Prefer a widely-supported language — Bash, Python, or JavaScript.
 
-*Self-contained dependencies.* Scripts SHOULD be self-contained. For Python scripts, PEP 723 inline metadata (used with `uv run`) lets a script declare its own dependencies without a separate manifest or install step. Deno and Bun support similar inline package specifiers. When a script cannot be fully self-contained, its dependencies MUST be clearly documented at the top of the file.
-
-*One-off commands.* For simple tasks, tools such as `uvx`, `npx`, and `bunx` can invoke packages directly from `SKILL.md` instructions without a `scripts/` directory at all. Pin versions for reproducibility — for example, `npx eslint@9.0.0`.
-
-*Stdout/stderr separation.* Structured output data goes to stdout. Progress messages, diagnostics, and warnings go to stderr. This lets the agent capture clean, parseable output while still seeing diagnostic information.
-
-*Idempotency.* Agents may retry commands on failure. Where possible, scripts SHOULD be idempotent. A "create if not exists" pattern is safer than "create and fail on duplicate."
-
-*Output size management.* Many agent harnesses truncate tool output beyond a threshold (typically 10–30K characters). Scripts that may produce large output SHOULD default to a summary view and SHOULD support a `--limit`/`--offset` flag for pagination, or an `--output FILE` flag to write to a file rather than stdout.
-
-Scripts SHOULD include helpful error and success outputs to give agents usable feedback, and MUST handle edge cases gracefully to prevent agent failure. Different agents support different languages, but it is RECOMMENDED to use a widely-supported subset — Bash, Python, and JavaScript, for example.
-
-=== Assets
-
-Finally, the `assets/` directory contains static resources such as templates, images, and data files.
+*Assets.* The `assets/` directory holds static resources: templates, images, data files.
 
 === Template
 
@@ -479,41 +465,7 @@ https://github.com/agentskills/agentskills/tree/main/skills-ref
 
 === Evaluating and refining skills
 
-After authoring a first draft of a new skill, refine it by running the skill against real tasks and reading full execution traces — not just the final outputs. A useful practice: use the same CLI or headless interface the agent uses, so you experience what it experiences. Review actual execution traces directly rather than inferring from end results, and convert any friction you discover into test cases.
-
-Common failure signals to look for in traces are:
-
-* Instructions that are too vague (the agent tries multiple approaches before finding one that works).
-
-* Instructions that don't apply to the current task (the agent follows them anyway).
-
-* Too many options presented without a clear default (the agent picks arbitrarily).
-
-Even a single pass of execute-then-revise noticeably improves quality.
-
-For more rigorous, structured evaluation, build a test suite. A standard convention is to store test cases in `evals/evals.json` inside the skill directory itself. Each test case has three components: a realistic user prompt, a human-readable description of what success looks like, and optional input files.
-
-The central mechanism of skill evaluation is running every test case in two configurations: with the skill, and without it (or against the previous version). The delta — the difference in pass rate, latency, and token consumption between configurations — tells you what the skill costs versus what it buys. A skill that does not improve the pass rate is not earning its context cost.
-
-A useful three-condition comparison is:
-
-1. The agent without the skill.
-2. The agent with a minimal equivalent instruction (a single sentence).
-3. The agent with the full skill loaded.
-
-If the skill does not clearly outperform the single-sentence instruction, it should be condensed or dropped entirely.
-
-Do not over-specify assertions upfront. After the first run, observe what the skill actually produces and then write verifiable checks based on those outputs. Strong assertions are objective and evidence-backed — for example, "the output contains a labeled bar chart". Weak ones are vague ("output is good") or brittle (exact phrase matching). Reserve assertions for objective checks; subjective quality belongs in human review.
-
-For a complementary holistic assessment, present outputs from two skill versions to an LLM judge without indicating which is which. This blind comparison will help to grade qualitative properties — organization, formatting, usability — that are hard to express as assertions.
-
-Also evaluation the activation quality, which means checking whether the skill loads on the right prompts and stays dormant on irrelevant ones. The `description` field is the primary lever for controlling this.
-
-When iterating on a skill based on test results, generalize from failures rather than patching specific test cases. Over-constraining instructions tends to cause skills to plateau or regress. Reasoning-based instructions — those that explain _why_, not just _what_ — tend to outperform rigid directives. An agent that understands the purpose behind an instruction tends to makes better context-dependent decisions.
-
-If you find the agent reinventing the same logic across runs, bundle that logic into `scripts/` rather than repeating it in prose instructions.
-
-Anthropic's https://github.com/anthropics/skills/tree/main/skills/skill-creator[`skill-creator`] skill automates much of this evaluation and iteration loop end-to-end.
+Skills follow the same evaluation discipline as any other AI-assisted component — see the evaluation chapter for the general method (the delta principle, assertions versus LLM-judges, when to run evals) and for the practices specific to skills: reading execution traces, building an `evals/evals.json` test suite, the three-condition comparison, and checking activation quality.
 
 === Sharing skills
 

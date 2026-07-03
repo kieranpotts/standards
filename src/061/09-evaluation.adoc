@@ -2,20 +2,20 @@
 
 Evals (evaluations) are structured tests that measure how well an LLM, agent, skill, prompt, or AI-assisted workflow performs on a defined set of tasks. They are the AI equivalent of unit and regression tests, and they are widely cited as the most important — yet most often skipped — practice in building reliable AI systems.
 
-In AI-assisted development, evals answer a question you can otherwise only guess at: did a change to your model, prompt, skill, or harness actually improve outcomes, or quietly regress them? Without evals, every such change is made blind. This chapter sets out evals as a general discipline; for the specific case of evaluating skills, see the detailed treatment in the reusable context chapter.
+In AI-assisted development, evals answer a question you can otherwise only guess at: did a change to your model, prompt, skill, or harness actually improve outcomes, or quietly regress them? Without evals, every such change is made blind. This chapter sets out evals as a general discipline, then applies it to the specific case of skills.
 
 == What to evaluate
 
 Within the scope of this standard — using AI to build software — evals apply to the components of your AI setup, rather than to an end-user product:
 
 * *Model selection.* Public benchmarks and leaderboards (see the choosing models chapter) are a useful first filter, but they MUST NOT be treated as a substitute for evaluating candidate models on your own representative tasks.
-* *Prompts, skills, and rules.* See the detailed treatment in the reusable context chapter.
+* *Prompts, skills, and rules.* See Evaluating skills, below, for practice specific to skills.
 * *Agents and harness configuration.* Whether a change to tools, guardrails, or model tiering helps or harms.
 * *Generated outputs.* The code, designs, or documentation the AI produces, judged against your acceptance criteria.
 
 == The delta is the point
 
-The central mechanism of evaluation is comparison. Run the same eval in two configurations — with and without a change, or against the previous version — and look at the *delta* in pass rate, latency, and token cost. This tells you what the change buys against what it costs. A change that does not move the pass rate is not earning its keep, whatever its other appeal. (This is the same principle applied to cost in the cost optimization chapter and to skills in the reusable context chapter.)
+The central mechanism of evaluation is comparison. Run the same eval in two configurations — with and without a change, or against the previous version — and look at the *delta* in pass rate, latency, and token cost. This tells you what the change buys against what it costs. A change that does not move the pass rate is not earning its keep, whatever its other appeal. (This is the same principle applied to cost in the cost optimization chapter and to skills in Evaluating skills, below.)
 
 == Building an eval suite
 
@@ -32,6 +32,20 @@ Match the checking method to what is being measured:
 * Reserve *human review* for what neither of the above captures.
 
 Do not over-specify assertions up front; observe what the system actually produces, then write checks against those outputs. Account for non-determinism — run several samples rather than asserting a single exact output (see the tuning model behavior chapter).
+
+== Evaluating skills
+
+Skills carry the same evaluation discipline as any other component above, with a few practices specific to the format.
+
+After authoring a first draft, run the skill against real tasks and read full execution traces — not just final outputs — ideally through the same CLI or headless interface the agent uses. Convert any friction you observe into test cases. Common failure signals: instructions too vague (the agent tries several approaches before one works); instructions that don't apply to the task (the agent follows them anyway); too many options with no clear default (the agent picks arbitrarily). Even a single pass of execute-then-revise noticeably improves quality.
+
+For structured evaluation, store test cases in `evals/evals.json` inside the skill directory and apply the delta method above: run every case with the skill, without it, and — as a useful middle condition — with just a single-sentence equivalent instruction. If the skill doesn't clearly outperform the one-liner, condense or drop it.
+
+Also evaluate *activation quality*: whether the skill loads on the right prompts and stays dormant on irrelevant ones. The `description` field is the primary lever for controlling this.
+
+When iterating from results, generalize from failures rather than patching individual test cases — over-constraining instructions tends to make a skill plateau or regress. Reasoning-based instructions, which explain _why_ and not just _what_, tend to outperform rigid directives, because an agent that understands the purpose behind an instruction makes better context-dependent decisions. If the agent keeps reinventing the same logic across runs, bundle it into `scripts/` rather than repeating it in prose.
+
+Anthropic's https://github.com/anthropics/skills/tree/main/skills/skill-creator[`skill-creator`] skill automates much of this evaluation and iteration loop end-to-end.
 
 == When to run evals
 
