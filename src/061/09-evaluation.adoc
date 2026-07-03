@@ -1,58 +1,45 @@
 = Evaluation
 
-Evals (evaluations) are structured tests that measure how well an LLM, agent, skill, prompt, or AI-assisted workflow performs on a defined set of tasks. They are the AI equivalent of unit and regression tests, and they are widely cited as the most important — yet most often skipped — practice in building reliable AI systems.
+Evals (evaluations) are structured tests that measure how well an LLM, agent, skill, prompt, or AI-assisted workflow performs on a defined set of tasks. They are the AI equivalent of unit and regression tests, and they are widely cited as the most important — yet most often skipped — practice in building reliable AI systems and workflows.
 
-In AI-assisted development, evals answer a question you can otherwise only guess at: did a change to your model, prompt, skill, or harness actually improve outcomes, or quietly regress them? Without evals, every such change is made blind. This chapter sets out evals as a general discipline, then applies it to the specific case of skills.
+In AI-assisted and agentic development, evals answer a question you can otherwise only guess at — did a change to your model, prompt, skill, or harness actually improve outcomes, or quietly regress them?
+
+Without evals, every such change is made blind.
 
 == What to evaluate
 
-Within the scope of this standard — using AI to build software — evals apply to the components of your AI setup, rather than to an end-user product:
+Evals can be applied to any component of your AI setup, including:
 
-* *Model selection.* Public benchmarks and leaderboards (see the choosing models chapter) are a useful first filter, but they MUST NOT be treated as a substitute for evaluating candidate models on your own representative tasks.
-* *Prompts, skills, and rules.* See Evaluating skills, below, for practice specific to skills.
-* *Agents and harness configuration.* Whether a change to tools, guardrails, or model tiering helps or harms.
-* *Generated outputs.* The code, designs, or documentation the AI produces, judged against your acceptance criteria.
+* *Model selection.* Public benchmarks and leaderboards are a useful first filter, but they are no substitute for evaluating candidate models on your own representative tasks.
 
-== The delta is the point
+* *Context (prompts, skills, and rules).*
 
-The central mechanism of evaluation is comparison. Run the same eval in two configurations — with and without a change, or against the previous version — and look at the *delta* in pass rate, latency, and token cost. This tells you what the change buys against what it costs. A change that does not move the pass rate is not earning its keep, whatever its other appeal. (This is the same principle applied to cost in the cost optimization chapter and to skills in Evaluating skills, below.)
+* *Harness configuration*, including available tools and guardrails.
+
+* *Generated outputs.* The code, designs, or documentation your agents produce, judged against your acceptance criteria.
 
 == Building an eval suite
 
-A test case has three parts: a realistic input, a description of what success looks like, and any fixtures it needs. Eval suites SHOULD live in version control alongside the code or prompts they exercise, so the two evolve together.
+A test case has three parts:
 
-Start with a small suite covering your most common and most failure-prone cases, and grow it from real failures rather than speculation. Beyond a handful of cases, it is RECOMMENDED to use an established eval framework — such as https://github.com/openai/evals[OpenAI Evals], which pairs a runner with an open registry of reusable evals — rather than maintaining ad-hoc scripts.
+* A realistic input.
+* A description of what success looks like.
+* And any fixtures it needs.
 
-== Assertions, judges, and human review
+Eval suites SHOULD live in version control alongside the code or prompts they exercise, so the two evolve together.
 
-Match the checking method to what is being measured:
+Start with a small suite covering your most common and most failure-prone cases, and grow it from real failures rather than speculation.
 
-* Use objective, evidence-backed *assertions* for properties that can be verified mechanically (a regex matches, a file exists, a test passes).
-* Use an *LLM-as-judge* — ideally a blind comparison of two outputs — for qualitative properties such as clarity, tone, or organisation that resist mechanical checks. As with any inferential sensor, the judging agent MUST be a session distinct from the one that produced the output being judged, and framed adversarially, to counteract the model's tendency toward sycophantic self-assessment.
-* Reserve *human review* for what neither of the above captures.
+Beyond a handful of evals implemented as ad-hoc scripts, it is RECOMMENDED to use an established eval framework — such as https://github.com/openai/evals[OpenAI Evals], which pairs a runner with an open registry of reusable evals. For evaluating skills, Anthropic's https://github.com/anthropics/skills/tree/main/skills/skill-creator[`skill-creator`] skill automates much of the evaluation and iteration loop to refine the effectiveness of a new skill.
 
-Do not over-specify assertions up front; observe what the system actually produces, then write checks against those outputs. Account for non-determinism — run several samples rather than asserting a single exact output (see the tuning model behavior chapter).
+== How to use evals
 
-== Evaluating skills
+The central mechanism of evaluation is comparison. Run the same eval in two configurations — with and without a change, or against the previous version — and look at the delta in pass rate, latency, and token cost.
 
-Skills carry the same evaluation discipline as any other component above, with a few practices specific to the format.
+This tells you what the change buys against what it costs.
 
-After authoring a first draft, run the skill against real tasks and read full execution traces — not just final outputs — ideally through the same CLI or headless interface the agent uses. Convert any friction you observe into test cases. Common failure signals: instructions too vague (the agent tries several approaches before one works); instructions that don't apply to the task (the agent follows them anyway); too many options with no clear default (the agent picks arbitrarily). Even a single pass of execute-then-revise noticeably improves quality.
+A change that does not move the pass rate is not earning its keep, whatever its other appeal.
 
-For structured evaluation, store test cases in `evals/evals.json` inside the skill directory and apply the delta method above: run every case with the skill, without it, and — as a useful middle condition — with just a single-sentence equivalent instruction. If the skill doesn't clearly outperform the one-liner, condense or drop it.
+For properties that cna be verified mechanically — eg. regex matches, passing tests — your evals should make objective assertions. For more qualitative properties — eg. clarity, tone — you can either use an LLM as the judge (the evaluating model MUST be run in a distinct session from the one that generated the output being evaluated) or apply human judgment.
 
-Also evaluate *activation quality*: whether the skill loads on the right prompts and stays dormant on irrelevant ones. The `description` field is the primary lever for controlling this.
-
-When iterating from results, generalize from failures rather than patching individual test cases — over-constraining instructions tends to make a skill plateau or regress. Reasoning-based instructions, which explain _why_ and not just _what_, tend to outperform rigid directives, because an agent that understands the purpose behind an instruction makes better context-dependent decisions. If the agent keeps reinventing the same logic across runs, bundle it into `scripts/` rather than repeating it in prose.
-
-Anthropic's https://github.com/anthropics/skills/tree/main/skills/skill-creator[`skill-creator`] skill automates much of this evaluation and iteration loop end-to-end.
-
-== When to run evals
-
-Evals SHOULD be run:
-
-* before adopting a new model or model version;
-* before changing prompts, skills, rules, or harness configuration;
-* as a regression gate in CI for any automated step that depends on an AI component.
-
-As a baseline: any AI-assisted step whose output quality materially affects the delivered software SHOULD be backed by evals before it is relied upon in a routine workflow.
+Avoid over-specifying assertions up front. Instead, observe what the system actually produces, then write checks against those outputs. Account for non-determinism by running several samples rather than asserting on a single exact output.
