@@ -8,37 +8,29 @@ Apply the same security principles to AI tools as to any other development depen
 
 If possible, run AI models and tools in containers or virtual machines. This provides an isolation boundary between models, files, runtime processes, and the rest of the host system.
 
-Do not run model services as root.
+Do not run containerized model services as root.
 
 Keep model services running only when they are actively needed. Treat them as development dependencies, not always-on services.
 
-== Sandboxed development environments
+For AI-assisted development in an IDE or code editor, it is RECOMMENDED to develop inside a https://containers.dev/[devcontainer] rather than directly on the host. A devcontainer is defined by a `devcontainer.json` file specifying the base image, mounted volumes, and editor extensions. Both the editor and the agent harness (for example, Claude Code or Pi) run inside the container, with project files bind-mounted, so the human and the agent can collaborate on the same files simultaneously.
 
-For AI-assisted development in an IDE or code editor, it is RECOMMENDED to develop inside a https://containers.dev/[devcontainer] rather than directly on the host.
-
-A devcontainer is defined by a `devcontainer.json` file specifying the base image, mounted volumes, and editor extensions. Both the editor and the agent harness (for example, Claude Code or Pi) run inside the container, with project files bind-mounted, so the human and the agent can collaborate on the same files simultaneously.
-
-Devcontainers are https://containers.dev/supporting[natively supported] by VS Code, Zed, IntelliJ IDEA, and Emacs.
+Devcontainers are https://containers.dev/supporting[natively supported] by VS Code, Zed, IntelliJ IDEA, and Emacs. Other code editing environments can be sandboxed in the same way, but will just require more manual wiring, eg. to connect the editor to a container via SSH.
 
 == Network exposure
 
 Local model servers (such as Ollama) listen on `localhost` by default. Do not change this unless remote access is explicitly required.
 
-* Prefer binding to `127.0.0.1` (loopback only) for local-only access.
+Prefer binding to `127.0.0.1` (loopback only) for local-only access.
 
-* If LAN access is required, binding to `0.0.0.0` is necessary but must be protected with a local firewall rule. Never expose model server ports on a public interface.
+If LAN access is required, binding to `0.0.0.0` is necessary but must be protected with a local firewall rule. Never expose model server ports on a public interface.
 
-* For remote access, use an SSH tunnel or VPN, rather than exposing the service directly.
+For remote access, use an SSH tunnel or VPN, rather than exposing the service directly.
 
 == Model trust
 
 Models are large binary files that encode learned behaviors. Treat them with the same scrutiny as any third-party dependency.
 
-* Only download models from official or well-known repositories.
-
-* Do not use untrusted models to process sensitive data.
-
-* Test unfamiliar models in an isolated environment before introducing them to regular workflows.
+Only download models from official or well-known repositories. Do not use untrusted models to process sensitive data. Test unfamiliar models in an isolated environment before introducing them to regular workflows.
 
 == Data confidentiality
 
@@ -52,7 +44,7 @@ Prompt injection is an attack in which malicious instructions embedded in data c
 
 * *Indirect injection.* The agent autonomously reads external content — a file, a web page, an API response, a code comment — that contains embedded instructions. Because the agent cannot reliably distinguish between data it is processing and instructions it should follow, such content can redirect its behavior without the user's knowledge.
 
-Indirect injection is the more dangerous form in agentic workflows, because the agent may encounter malicious content deep in an autonomous task chain, far from any human review point.
+Indirect injection is the more dangerous form in agentic workflows, because the agent may encounter malicious content deep in an autonomous task chain, far from any human checkpoint.
 
 Mitigations include:
 
@@ -66,58 +58,40 @@ Mitigations include:
 
 == The lethal trifecta
 
-Prompt injection becomes catastrophic when an agent simultaneously has all three of the following capabilities — a combination that https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/[Simon Willison termed] the lethal trifecta:
+Prompt injection becomes catastrophic when an agent simultaneously has all three of the following capabilities — a combination that https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/[Simon Willison called the lethal trifecta]:
 
 * *Access to private data.* Sensitive files, credentials, internal APIs, or anything the agent can read that an attacker cannot.
 
 * *Exposure to untrusted content.* Web pages, emails, code comments, tool output, or any input that could carry indirect injection.
 
-* *The ability to externally communicate.* Network requests, outbound API calls, or any channel by which data can leave the trust boundary.
+* *The ability to communicate externally.* Network requests, outbound API calls, or any channel by which data can leave the trust boundary.
 
 The underlying reason this is a problem is the same one that makes prompt injection possible at all. An LLM cannot reliably distinguish between data it is meant to process and instructions it is meant to follow. Both arrive as tokens in the same context, and the model has no robust internal boundary between "content" and "command". So untrusted content that _looks_ like an instruction may be acted upon.
 
-Any one or two parts of the trifecta in isolation is comparatively safe. It is the co-occurrence of all three that is dangerous. If untrusted content smuggles in instructions the model treats as commands to follow, the agent reads private data in obedience to those instructions, and the exfiltration channel sends that data to the attacker.
+Any one or two parts of the trifecta in isolation is comparatively safe. It is the co-occurrence of all three that is the most dangerous. Untrusted content smuggles in instructions, which the model treats as commands to follow and, in obedience to those commands, reads private data and leaks it to the attacker via the exfiltration channel.
 
-An agent that can read secrets and browse the web but cannot make outbound requests cannot leak. Add an innocuous-looking way to communicate — a URL it can fetch, an image it can render — and the lethal trifecta is complete.
+An agent that can read secrets and browse the web but cannot make outbound requests cannot leak. But add an innocuous-looking way to communicate — a URL it can fetch, an image it can render — and the lethal trifecta is complete.
 
-The practical defense is to break the trifecta rather than to try to make injection impossible. Remove at least one of the three legs for any given task. Either:
+The practical defense is to break the trifecta rather than to try to make prompt injection impossible (better to assume that prompt injection will always be a risk). So, the defense is to do one o these three things:
 
 * Withhold access to sensitive data.
 * Isolate the agent from untrusted input.
-* Or cut off external communication.
+* Cut off external communication.
 
 == Least-privilege tool access
 
-Agents that can execute shell commands, write to the filesystem, or make network requests are high-risk targets for prompt injection and misconfiguration alike. Limit the blast radius by applying the principle of least privilege to tool permissions:
+Agents that can execute shell commands, write to the filesystem, or make network requests are high-risk targets for prompt injection.
 
-* Grant read-only access where write access is not required.
-
-* Restrict shell access to specific commands, rather than allowing arbitrary execution.
-
-* Scope filesystem access to the directories relevant to the current task.
-
-* Disable network access entirely for agents that do not need it.
+Limit the blast radius by applying the principle of least privilege to tool permissions. Grant read-only access where write access is not needed. Scope filesystem access to the specific filesystem paths the agent needs access to. Restrict shell access to specific allow-listed commands, rather than allowing any arbitrary shell execution. Disable network egress entirely for agents that do not need it.
 
 Review agent permissions before starting a task, not just when configuring a harness for the first time. A permission set that was appropriate for one task may be excessive for the next.
 
-Here are a few practices to apply the least privilege principle concretely:
-
-* *Read-only by default, punch specific holes.* Mount the filesystem and configuration directories as read-only, and grant write access only to the directories the agent actually needs — its workspace, its own state directory.
-
-* *Restrict network egress.* A read-only filesystem combined with restricted network access is a baseline requirement for securing agent execution environments, since together they limit how much data can be exfiltrated if something goes wrong.
-
-* *Allow-list and deny-list commands.* Defining explicit allowed and denied tool/command lists in the harness or editor settings is a core control for agent operations, not an optional hardening step.
-
 == Reviewing agent output
 
-Sandboxing constrains what an agent can do, but does not substitute for reviewing what it produces. Two practices apply independently of the sandboxing mechanism in use:
+Sandboxing constrains what an agent can do, but does not substitute for reviewing what it produces.
 
-* *Keep tasks small.* Breaking work into small, reviewable steps rather than large, open-ended asks makes it easier to catch problems early and course-correct.
+Keep tasks small. Breaking work into small, reviewable steps rather than large, open-ended tasks. Small diffs are easier to review, and you catch problems early, allowing course-correction.
 
-* *Review like a junior developer's PR.* Treat agent output with the same scrutiny as a human contributor's changes.
+Treat agent output with the same scrutiny as a human contributor's changes. Remember, AI models are trained on enormous bodies of existing code, which includes code that contains vulnerabilities. Models are perfectly capable of reproducing insecure patterns — hardcoded credentials, injection sinks, insecure defaults, missing input validation — that it has learn from its training data.
 
-AI models are trained on large bodies of existing code, which includes code containing vulnerabilities. Models can therefore reproduce insecure patterns — hardcoded credentials, injection sinks, insecure defaults, missing input validation.
-
-Do not assume that AI-generated code is secure by default. Apply the same security review process to generated code as to human-written code, including: static analysis, dependency auditing, and manual review against the https://owasp.org/www-project-top-ten/[OWASP Top Ten] and any project-specific threat model.
-
-Pay particular attention to code that handles authentication, authorization, cryptography, or external input. These are the areas where subtle errors have the highest consequence.
+Pay particular attention to the areas of code that handle authentication, authorization, cryptography, external input, and so on.
