@@ -7,6 +7,8 @@ license: MIT
 
 # Agentify
 
+<!-- TODO: Review these skills against the latest template. -->
+
 Use this skill when asked to agentify a technical standard, eg. "agentify TS-31", or when asked to create or update an `AGENTS.md` for a standard in `src/`.
 
 Do NOT use this skill to edit the underlying `README.adoc` source files. The `.adoc` files are always the source-of-truth. This skill reads from them and writes only to `AGENTS.md`.
