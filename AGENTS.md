@@ -22,7 +22,7 @@ Content changes MUST preserve the established document structure, writing style,
 
 - `docs/`: Repository meta-documentation, including the style guide (`docs/style-guide.md`).
 
-- `template/`: Blank templates for new standards.
+- `template/`: A representative entry for new standards, with lorem-ipsum body text that demonstrates the established document structure, formatting, and conventions. Copy this directory as the starting point for a new standard.
 
 ### Standard directory structure
 

@@ -2,7 +2,7 @@
 
 This style guide defines the language, formatting, and structural conventions for authoring the technical standards in this repository. It is the authoritative reference for contributors and AI agents editing content under `src/`.
 
-For prose-level writing conventions that apply within any individual document — voice, headings, terminology, citations — see [TS-26: Technical Writing Style Guide](../src/026/README.adoc). For AsciiDoc syntax specifics, see [TS-28: AsciiDoc](../src/028/README.adoc). The repository structure and file layout are documented in [AGENTS.md](../AGENTS.md).
+For prose-level writing conventions that apply within any individual document — voice, headings, terminology, citations — see [TS-26: Technical Writing Style Guide](../src/026/README.adoc). For AsciiDoc syntax specifics, see [TS-28: AsciiDoc](../src/028/README.adoc). The repository structure and file layout are documented in [AGENTS.md](../AGENTS.md). The [`template/`](../template/) directory is a representative entry with lorem-ipsum body text that demonstrates the conventions below; use it as the starting point for new standards.
 
 The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT, OPTIONAL, and MAY are to be interpreted as described in [IETF RFC 2119](https://www.ietf.org/rfc/rfc2119.txt).
 
@@ -34,6 +34,12 @@ The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT,
 
 For the full AsciiDoc language reference, see [TS-28: AsciiDoc](../src/028/README.adoc).
 
+## Lists
+
+- Numbered lists MUST use explicit Arabic numbering (`1.`, `2.`, `3.`), not the `.` shorthand. A blank line MUST separate each item.
+
+- When a list item introduces a named term or step, the lead-in label MUST be bold and terminated with a period, followed by the description on the same line: `1. *Label.* Description.`. The same bold-lead-in form (`* *Label.* Description.`) applies to bulleted lists. Do not use the italic-plus-em-dash form (`_Label_ — description`) for lead-ins.
+
 ## File naming
 
 - Content files MUST be named with a two-digit numeric prefix followed by a hyphen and a descriptive kebab-case name: `01-topic-name.adoc`.
@@ -50,7 +56,7 @@ For the full AsciiDoc language reference, see [TS-28: AsciiDoc](../src/028/READM
 
 - The introductory section in `README.adoc` SHOULD describe the scope and purpose of the standard, and SHOULD link to related standards where appropriate.
 
-- A `== References` section MAY be added at the end of `README.adoc` (after `''''`) to list external sources. References MUST be formatted as a bulleted list of AsciiDoc hyperlinks with a short descriptive label.
+- A `== References` section MAY be added at the end of `README.adoc` (after `''''`) to list external sources. Each reference MUST be a bulleted AsciiDoc hyperlink followed by a colon and a short descriptive annotation, with a blank line between items. The annotation begins with a capital letter.
 
 - Do not add content to stubs (standards with only a `README.adoc` containing placeholder text) unless explicitly asked to. Stubs are intentional placeholders for future work.
 
