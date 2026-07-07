@@ -89,7 +89,13 @@ It is useful to distinguish two categories of control over agent behavior: guide
 
 * *Permission constraints* (enforced): Explicit allow/deny lists that control which tools, shell commands, file paths, or network endpoints an agent may access, configured in the agent harness rather than relied on via context/prompts. These are the most reliable form of guide because they are enforced by the runtime, not by the model's interpretation.
 
-*Sensors* are feedback controls that check an agent's output _after_ it acts. THese are validation gates that an agent must satisfy before proceeding, eg. running a test suite before committing code, or requesting human approval before an irreversible action. Sensors are further divided into two kinds:
+*Sensors* are feedback controls that check an agent's output _after_ it acts. These are validation gates that an agent must satisfy before proceeding, eg. running a test suite before committing code, or requesting human approval before an irreversible action.
+
+Sensors regulate agent output at multiple levels, including but not limited to: code quality (maintainability, style, complexity); architectural fitness (performance, scalability, observability, etc.); and behavioral correctness (if the system meets its requirements).
+
+Sensors work best distributed across every step of the pipeline, not concentrated in a single gate at the end. The sooner a defect is caught, the cheaper it is to fix, and the less work an agent has to unwind.
+
+Sensors are further divided into two kinds:
 
 * *Deterministic sensors* are scripts and tools that give the same verdict on the same input every time. Examples include linters, type checkers, and automated tests. These provide the strongest signal available, because their result does not depend on judgment. Wherever a rule is mechanically checkable, prefer enforcing it with a deterministic sensor over stating it as guidance and hoping the agent follows it.
 
@@ -110,6 +116,33 @@ Guides SHOULD be reviewed when switching model versions, since one written to co
 An effective agentic workflow is a pipeline of agentic steps plus scripted steps, each narrowly scoped, where the output of one step is the input to the next.
 
 Agentic steps do the reasoning-heavy work, while scripted steps — the deterministic sensors described above — catch failure modes and either feed back to an earlier step or escalate to a human.
+
+[mermaid]
+....
+flowchart LR
+  plan["🤖\nplan"]:::primary
+  code["🤖\ncode"]:::primary
+  build["⚙️\nbuild"]:::scripted
+  test["⚙️\ntest"]:::scripted
+  review["🤖\nreview"]:::primary
+  integrate["⚙️\nintegrate"]:::scripted
+  human["🧑\nreview"]:::tertiary
+
+  plan ==> code
+  code ==> build
+  build == pass ==> test
+  test == pass ==> review
+  review ==> integrate
+
+  build -- fail --> code
+  test -- fail --> code
+  review -- fail --> human
+  integrate == incremental loop ==> plan
+
+  classDef primary fill:#cce5ff,stroke:#004085,color:#004085,stroke-width:2px
+  classDef scripted fill:#e2e3e5,stroke:#4b5157,color:#383d41,stroke-width:2px
+  classDef tertiary fill:#fff3cd,stroke:#856404,color:#856404,stroke-width:1px,stroke-dasharray:2 3
+....
 
 An agentic workflow is not necessarily a single linear pipeline with one entry point. Work can enter at different points depending on what triggered it. Fro example:
 
@@ -133,7 +166,15 @@ For one step in a pipeline to hand off to the next — whether that is a differe
 
 Persisting output to disk also keeps the context window clean. Agentic workflows accumulate noise — exploratory dead ends, intermediate reasoning, tool output that mattered briefly and then stopped mattering. The persistence layers between workflow steps need only to capture the distilled output of a step — eg. a technical decision or an implementation plan — which becomes the minimal input to a subsequent step.
 
-A version control system like Git is the preferred substrate for this persistence layer. Artifacts like requirements, decisions, designs, and plans that an agentic workflow produces can be persisted in same way as the code it produces. This gives every generated artifact durability, diff-ability, and an audit trail. And rollback is built-in.
+A version control system like Git is the preferred substrate for this persistence layer. Artifacts like requirements, decisions, designs, and plans that an agentic workflow produces can be persisted in the same way as the code it produces. This brings several benefits:
+
+* Code, requirements, decisions, designs, and plans are all branched, committed, reviewed, and merged using the same workflow — there's no separate tooling for "the spec" and "the code."
+
+* Everything stays together, rather than being scattered across wikis, trackers, and shared filesystems.
+
+* Every artifact gets durability, diff-ability, and an audit trail for free, plus a stable path other steps can address it by. Rollback is built-in.
+
+* Existing automation integrates easily — for example, a CI system can apply deterministic verification directly to agent output.
 
 == Isolated environments
 
