@@ -4,11 +4,13 @@ This is a compact version of technical standard TS-<N> for AI agents.
 
 Use this when <usage scenarios>.
 
-Do NOT use this when <exceptions plus links to alternative reference resources for those scenarios>.
+Do NOT use this when <exceptions>.
 
 ## Rules
 
-The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT, OPTIONAL, and MAY are to be interpreted as described in [IETF RFC 2119](https://www.ietf.org/rfc/rfc2119.txt).
+The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD,
+SHOULD NOT, OPTIONAL, and MAY are to be interpreted as described in
+[IETF RFC 2119](https://www.ietf.org/rfc/rfc2119.txt).
 
 -   **<Rule 1.>**
 

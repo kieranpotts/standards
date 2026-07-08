@@ -2,23 +2,33 @@
 
 This is a compact version of technical standard TS-31 for AI agents.
 
-Use this when authoring or modifying shell scripts that must be POSIX-compliant and run across multiple shells (sh, bash, zsh, dash, etc.) and platforms (Linux, macOS, WSL2, and Git Bash for Windows).
+Use this when authoring or modifying shell scripts that must be POSIX-compliant
+and run across multiple shells (sh, bash, zsh, dash, etc.) and platforms
+(Linux, macOS, WSL2, and Git Bash for Windows).
 
-Do NOT use this skill for Bash-specific scripts, Python scripts, or shell configuration files (`.bashrc`, `.zshrc`). For scripts that target Bash specifically, these POSIX standards apply but are extended by [Bash standards](../032/AGENTS.md)
+Do NOT use this skill for Bash-specific scripts, Python scripts, or shell
+configuration files (`.bashrc`, `.zshrc`). For scripts that target Bash
+specifically, these POSIX standards apply but are extended by
+[Bash standards](../032/AGENTS.md)
 
 Use project-specific shell skills if available.
 
-## Rules
+The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD,
+SHOULD NOT, OPTIONAL, and MAY are to be interpreted as described in
+[IETF RFC 2119](https://www.ietf.org/rfc/rfc2119.txt).
 
-The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT, OPTIONAL, and MAY are to be interpreted as described in [IETF RFC 2119](https://www.ietf.org/rfc/rfc2119.txt).
+## Rules
 
 -   **Use POSIX-compliant syntax.**
 
-    Use `#!/usr/bin/env sh` (not `#!/bin/sh` or `#!/bin/bash`). This form looks up `sh` via `PATH`, making it more portable across environments.
+    Use `#!/usr/bin/env sh` (not `#!/bin/sh` or `#!/bin/bash`). This form
+    looks up `sh` via `PATH`, making it more portable across environments.
 
-    No Bashisms (`[[`, `=~`, `${var^}`, etc.). Scripts must work in `sh`, `bash`, `zsh`, and `dash`.
+    No Bashisms (`[[`, `=~`, `${var^}`, etc.). Scripts must work in `sh`,
+    `bash`, `zsh`, and `dash`.
 
-    Do not use the `function` keyword in function declarations – it is not POSIX:
+    Do not use the `function` keyword in function declarations – it is not
+    POSIX:
 
     ```sh
     # ❌
@@ -30,7 +40,9 @@ The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT,
 
 -   **Trap errors.**
 
-    Use `set -eu` at the top of most scripts. `-e` exits immediately when any command returns a non-zero status. `-u` treats references to undefined variables as errors. Both SHOULD be set before any other logic.
+    Use `set -eu` at the top of most scripts. `-e` exits immediately when any
+    command returns a non-zero status. `-u` treats references to undefined
+    variables as errors. Both SHOULD be set before any other logic.
 
     `set -x` MAY be added temporarily for debugging but MUST NOT be committed.
 
@@ -54,11 +66,13 @@ The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT,
     4. Functions
     5. Main program (`main "$@"`)
 
-    Keep all function definitions together. Do not interleave executable code between function definitions.
+    Keep all function definitions together. Do not interleave executable code
+    between function definitions.
 
 -   **Wrap non-trivial scripts in `main()`.**
 
-    For any script longer than a few lines, define a `main()` function as the entry point and call it at the end of the script:
+    For any script longer than a few lines, define a `main()` function as the
+    entry point and call it at the end of the script:
 
     ```sh
     main() {
@@ -68,23 +82,32 @@ The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT,
     main "$@"
     ```
 
-    This keeps executable code out of the global scope and away from function definitions.
+    This keeps executable code out of the global scope and away from function
+    definitions.
 
 -   **Return explicit exit codes.**
 
-    Use `return <number>` in functions and `exit <number>` in scripts. 0 = success, non-zero = failure. Avoid implicit status from the last command.
+    Use `return <number>` in functions and `exit <number>` in scripts.
+    0 = success, non-zero = failure. Avoid implicit status from the last command.
 
 -   **Prefer built-ins over external commands.**
 
-    Shell built-ins run in the shell's own process. External commands spawn a new process.
+    Shell built-ins run in the shell's own process. External commands spawn
+    a new process.
 
-    Prefer built-in parameter expansion over `sed`, `awk`, etc., for simple text manipulation. It is faster and has no external dependency.
+    Prefer built-in parameter expansion over `sed`, `awk`, etc., for simple
+    text manipulation. It is faster and has no external dependency.
 
-    When external commands are unavoidable, prefer POSIX-standard utilities: `grep`, `sed`, `awk`, `find`, `xargs`, `cut`, `sort`, `uniq`, `tr`, etc. For anything else, eg. non-POSIX utilities for JSON parsing and HTTP requests, document the dependency explicitly.
+    When external commands are unavoidable, prefer POSIX-standard utilities:
+    `grep`, `sed`, `awk`, `find`, `xargs`, `cut`, `sort`, `uniq`, `tr`, etc.
+    For anything else, eg. non-POSIX utilities for JSON parsing and HTTP
+    requests, document the dependency explicitly.
 
 -   **Use lowercase_snake_case for variable and function names.**
 
-    Do not use `UPPER_SNAKE_CASE` for script variables – it risks collision with shell and environment variables. Use only for variables that are explicitly exported to the environment:
+    Do not use `UPPER_SNAKE_CASE` for script variables – it risks collision
+    with shell and environment variables. Use only for variables that are
+    explicitly exported to the environment:
 
     ```sh
     # ❌ No:
@@ -99,11 +122,13 @@ The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT,
 
 -   **Err on the side of clarity over brevity.**
 
-    Prefer descriptive names over terse abbreviations: `input_file` over `f`, `exit_code` over `rc`.
+    Prefer descriptive names over terse abbreviations: `input_file` over `f`,
+    `exit_code` over `rc`.
 
 -   **Declare variables `readonly` by default.**
 
-    Variables SHOULD be `readonly` unless the logic requires reassignment. Apply `readonly` immediately after assignment:
+    Variables SHOULD be `readonly` unless the logic requires reassignment.
+    Apply `readonly` immediately after assignment:
 
     ```sh
     # ❌ No:
@@ -116,7 +141,8 @@ The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT,
 
 -   **Quote all variables.**
 
-    Always write `"${var}"`. This is easier to read than `"$var"`, and more reliable than `$var`.
+    Always write `"${var}"`. This is easier to read than `"$var"`, and more
+    reliable than `$var`.
 
     Quoting prevents word-splitting and glob expansion.
 
@@ -124,7 +150,9 @@ The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT,
 
 -   **Use bracketed variable syntax.**
 
-    Prefer `${var}` over `$var`. The brackets clearly delimit the variable name, prevent ambiguity in concatenation, and enable extended parameter expansion forms (`${#var}`, `${var:0:1}`, `${var:-default}`, etc.):
+    Prefer `${var}` over `$var`. The brackets clearly delimit the variable
+    name, prevent ambiguity in concatenation, and enable extended parameter
+    expansion forms (`${#var}`, `${var:0:1}`, `${var:-default}`, etc.):
 
     ```sh
     var="foo"
@@ -136,11 +164,13 @@ The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT,
     echo "${var}bar"
     ```
 
-    Brackets MAY be omitted from positional parameters (`$1`, `$@`, etc.) and other special variables.
+    Brackets MAY be omitted from positional parameters (`$1`, `$@`, etc.) and
+    other special variables.
 
 -   **Use `$()` for command substitution.**
 
-    Prefer `$(command)` over backtick syntax. Backticks require escaping when nested; `$()` nests cleanly:
+    Prefer `$(command)` over backtick syntax. Backticks require escaping when
+    nested; `$()` nests cleanly:
 
     ```sh
     # ❌ No:
@@ -152,7 +182,9 @@ The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT,
 
 -   **Use `"$@"` to forward all arguments.**
 
-    When passing all arguments to another function or command (eg. from a script to `main()`), use `"$@"` (quoted). The alternatives lose arguments that contain spaces or are empty strings:
+    When passing all arguments to another function or command (eg. from a
+    script to `main()`), use `"$@"` (quoted). The alternatives lose arguments
+    that contain spaces or are empty strings:
 
     - `"$@"` — each argument preserved as-is (correct)
     - `$@` and `$*` (unquoted) — split on spaces, dropping empty-string arguments
@@ -160,7 +192,8 @@ The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT,
 
 -   **Separate data output from messaging.**
 
-    Reserve plain `echo` / `printf` for script *output* (the data the caller expects).
+    Reserve plain `echo` / `printf` for script *output* (the data the caller
+    expects).
 
     Send status, errors, and debug info to stderr.
 
@@ -176,7 +209,8 @@ The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT,
 
 -   **Use `printf` over `echo -e`.**
 
-    The `-e` flag for `echo` is not POSIX. Its handling of backslash escape sequences is implementation-defined and so varies between shells.
+    The `-e` flag for `echo` is not POSIX. Its handling of backslash escape
+    sequences is implementation-defined and so varies between shells.
 
     Use `printf` for any output that requires escape interpretation:
 
@@ -188,11 +222,13 @@ The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT,
     printf "Done.\nSee log for details.\n"
     ```
 
-    Plain `echo` (without `-e`) is fine for simple string output with no escape sequences.
+    Plain `echo` (without `-e`) is fine for simple string output with no
+    escape sequences.
 
 -   **Use `; then` and `; do` on the same line as the opening keyword.**
 
-    `else`, `fi`, and `done` go on their own lines, vertically aligned with the opening statement:
+    `else`, `fi`, and `done` go on their own lines, vertically aligned with
+    the opening statement:
 
     ```sh
     # ✅
@@ -221,7 +257,8 @@ The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT,
     sudo apt-get update && sudo apt-get install pyrenamer
     ```
 
-    For `case` statements, put the pattern and closing `;;` each on their own lines. Simple single-command cases MAY be written on one line:
+    For `case` statements, put the pattern and closing `;;` each on their own
+    lines. Simple single-command cases MAY be written on one line:
 
     ```sh
     # Multi-command case:
@@ -243,7 +280,8 @@ The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT,
     esac
     ```
 
-    Do not precede patterns with an open parenthesis. Avoid `;&` and `;;&` notations.
+    Do not precede patterns with an open parenthesis. Avoid `;&` and `;;&`
+    notations.
 
 -   **Choose argument-handling pattern by scope.**
 
@@ -281,7 +319,9 @@ The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT,
 
 -   **Add defensive checks before destructive operations.**
 
-    Verify assumptions before modifying files, deleting paths, or overwriting data. Handle edge cases - empty strings, missing files, unset variables, or multiple spaces in data:
+    Verify assumptions before modifying files, deleting paths, or overwriting
+    data. Handle edge cases - empty strings, missing files, unset variables, or
+    multiple spaces in data:
 
     ```sh
     # Verify a required external tool is available.
@@ -305,9 +345,15 @@ The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT,
 
 -   **Follow code style conventions.**
 
-    - **Indentation**: two spaces. Never use tabs, except in the body of `<<-` here-documents.
-    - **Line length**: keep most lines under 80 characters. Use continuation lines (`\`) to wrap long commands; indent them by four spaces (double indent). Break before operators, not after.
-    - **Blank lines**: insert between discrete blocks of code to improve readability.
+    - **Indentation**: two spaces. Never use tabs, except in the body of `<<-`
+      here-documents.
+
+    - **Line length**: keep most lines under 80 characters. Use continuation
+      lines (`\`) to wrap long commands; indent them by four spaces (double
+      indent). Break before operators, not after.
+
+    - **Blank lines**: insert between discrete blocks of code to improve
+      readability.
 
     ```sh
     # Continuation lines, broken before the operator:
@@ -318,9 +364,12 @@ The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT,
 
 -   **Set executable permissions correctly.**
 
-    Scripts intended to be executed directly MUST be executable (`chmod +x`). Library scripts intended only to be sourced SHOULD NOT be executable (`chmod -x`).
+    Scripts intended to be executed directly MUST be executable (`chmod +x`).
+    Library scripts intended only to be sourced SHOULD NOT be executable
+    (`chmod -x`).
 
-    SUID and SGID MUST NOT be applied to any shell scripts. Remove them explicitly if present:
+    SUID and SGID MUST NOT be applied to any shell scripts. Remove them
+    explicitly if present:
 
     ```sh
     chmod u-s filename   # Remove SUID.
@@ -329,7 +378,9 @@ The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT,
 
 -   **Document all functions with a structured comment block.**
 
-    All functions SHOULD have a comment block immediately above the declaration covering: description, globals used, arguments, stdout/stderr output, and return values (non-zero exit codes).
+    All functions SHOULD have a comment block immediately above the declaration
+    covering: description, globals used, arguments, stdout/stderr output, and
+    return values (non-zero exit codes).
 
     ```sh
     # function_name - <Short description.>
@@ -354,17 +405,23 @@ The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT,
     }
     ```
 
-    The description MUST note any surprising side effects: changes to the working directory, filesystem modifications, or calls to `exit`.
+    The description MUST note any surprising side effects: changes to the
+    working directory, filesystem modifications, or calls to `exit`.
 
 -   **Do not use `eval` or aliases.**
 
-    `eval` executes arbitrary strings as shell code, making it impossible to reason about what variables were set or whether commands succeeded. Use explicit commands instead.
+    `eval` executes arbitrary strings as shell code, making it impossible to
+    reason about what variables were set or whether commands succeeded. Use
+    explicit commands instead.
 
-    Aliases are unreliable in scripts. They are not always expanded and behave differently between interactive and non-interactive shells. Define functions instead.
+    Aliases are unreliable in scripts. They are not always expanded and behave
+    differently between interactive and non-interactive shells. Define functions
+    instead.
 
 -   **Beware `rm` with wildcard expansion.**
 
-    Filenames beginning with `-` can be misinterpreted as flags when a glob expands. Always use `--` or a `./` prefix with `rm *`:
+    Filenames beginning with `-` can be misinterpreted as flags when a glob
+    expands. Always use `--` or a `./` prefix with `rm *`:
 
     ```sh
     # ❌ If a file named `-r` exists, this deletes recursively.
@@ -387,14 +444,17 @@ The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT,
 
     Address all warnings before committing changes.
 
-    Use ShellCheck's "source" directive to point it to the real path of sourced files (relative to the current file):
+    Use ShellCheck's "source" directive to point it to the real path of sourced
+    files (relative to the current file):
 
     ```sh
     # shellcheck source=./lib/helpers.sh
     . "$(dirname "$0")/lib/helpers.sh"
     ```
 
-    Use ShellCheck's "disable" directive (`# shellcheck disable=SC2086`) sparingly and only with clear justification (which MUST be explained in an adjacent comment).
+    Use ShellCheck's "disable" directive (`# shellcheck disable=SC2086`)
+    sparingly and only with clear justification (which MUST be explained in
+    an adjacent comment).
 
 ## Examples
 
