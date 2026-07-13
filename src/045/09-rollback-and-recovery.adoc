@@ -1,0 +1,37 @@
+= Rollback and recovery
+
+A migration that cannot be rolled back is a migration that has decided, in advance, to forward-fix every failure. That decision is sometimes correct, but it MUST be made explicitly in the plan, not arrived at by accident.
+
+== Two distinct rollbacks
+
+Keeping the data migration and the switch-over separate yields two distinct rollback operations, with very different costs:
+
+* *Switch-over rollback.* Repoint the live system from the target back to the source. Cheap and fast, provided the source has remained writable and current. This is the rollback that should be on call during the cutover.
+
+* *Migration rollback.* Undo the migration itself — restore the source representation that the migration modified or destroyed, or revert the target to its pre-migration state. Expensive, often slow, and sometimes impossible.
+
+A migration plan SHOULD prefer designs in which the cheap rollback (switch-over rollback) is the one that's needed in the common case. This is the principal reason to keep the source writable and intact through the switch-over and into the soak period.
+
+== Backups and point-in-time recovery
+
+A migration that will modify or destroy the source MUST take a verified backup of the source before it begins, and MUST confirm that the backup is restorable — not merely that it was written. A backup that has not been tested for restore is not a rollback plan.
+
+For time-sensitive migrations, point-in-time recovery (PITR) SHOULD be enabled on both source and target, so that either can be restored to a known instant — for example, the moment the migration began, or the moment the write switch was thrown.
+
+== Forward-fix vs. rollback
+
+Not every failure should trigger a rollback. A migration that has completed 95% of a large data set, with a correct target and a single broken batch, is often better served by fixing the batch than by reverting the whole migration. The plan SHOULD state, for each step, the conditions under which to roll back and the conditions under which to forward-fix, and SHOULD identify who is authorized to make that call.
+
+As a rule of thumb: roll back when the failure is systematic or unknown; forward-fix when the failure is localized, understood, and bounded.
+
+== The irreversible step
+
+Some migration steps are genuinely irreversible — a destructive type coercion that loses information, a column drop without a backup, a source decommission. An irreversible step MUST be:
+
+* Identified explicitly in the plan, in advance.
+
+* Gated on the successful validation of every step that precedes it.
+
+* Executed only when the cost of a forward-fix is acceptable — never as a routine part of the migration.
+
+* Recorded, with the identity of the approver and the reasoning, in the migration's audit log.
