@@ -30,6 +30,8 @@ The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT,
 
     An RFC's document is immutable once merged (`IMPLEMENTED` or `REJECTED`) — only status, date, and cross-references may change thereafter. Never delete an RFC, including rejected ones. To revisit a decision, open a new RFC that supersedes it.
 
+    Don't write one when the solution is obvious and uncontested — an "implementation manual" with no trade-offs is a sign to write the code instead. RECOMMENDED structure, in order: context and scope, goals and non-goals, the design (system-context diagram, API/data sketches, degree of constraint), alternatives considered (with real reasoning, not bare dismissals), and cross-cutting concerns (security → TS-52, privacy → TS-53, observability → TS-57). Distinct from an ADR, which captures a single decision rather than a whole design — an RFC MAY spawn ADRs for the decisions it depends on.
+
 -   **Audits are standalone, point-in-time, and evaluation-only.**
 
     An audit is a snapshot of structural health, immutable once merged. To reassess, run a new audit — never edit a merged one.
