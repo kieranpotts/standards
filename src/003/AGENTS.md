@@ -36,7 +36,7 @@ The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT,
 
     Findings MUST cite specific files and lines, state what is observed and the cost it imposes. A finding MAY point toward a fix, but MUST NOT work up an alternative design.
 
-    An audit is deliberately blind to the design docs — it MUST NOT cross-reference them or report drift from them, to keep the review unbiased. Security and privacy are out of scope (see [TS-54: Threat Modeling](../054/AGENTS.md)).
+    An audit is deliberately blind to the design docs — it MUST NOT cross-reference them or report drift from them, to keep the review unbiased. Security and privacy review MAY be included in the scope of an audit, or MAY instead be managed as a separate threat-modeling activity with outcomes tracked in a risk register (see [TS-54: Threat Modeling](../054/AGENTS.md)).
 
     An audit MUST NOT change code, file issues, or open PRs against the audited repositories — discovery only. No discussion thread is required; plain PR review is sufficient, since an audit presents findings, not a decision.
 
