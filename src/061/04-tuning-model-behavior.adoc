@@ -35,17 +35,25 @@ Be aware that a higher temperature does not make a model "more intelligent" or "
 
 *Top-p (nucleus sampling)* is a related control. Instead of flattening the whole distribution, it restricts sampling to the smallest set of tokens whose cumulative probability meets the threshold _p_. *Top-k* is similar but caps the candidate set at the _k_ most likely tokens. It is RECOMMENDED to tune temperature _or_ top-p, but not both at once, as their interaction is hard to reason about.
 
-== Reasoning and thinking budget
+== Reasoning: thinking and effort
 
-Reasoning models expose a separate dial, which is how much compute the model spends "thinking" — ie. producing an internal chain of thought — before committing to a final answer.
+Reasoning models expose controls over how much compute the model spends "thinking" — ie. producing an internal chain of thought — before and during a task. These controls are orthogonal both to temperature and to model tier: a capable model with its reasoning turned down may underperform a smaller one with it turned up, on the right task.
 
-This is orthogonal both to temperature and to model tier. A capable model with its thinking budget turned down may underperform a smaller one with it turned up, on the right task.
+It is worth distinguishing two related but separate dials, both of which surface in agent harnesses such as Claude Code:
 
-Thinking budget SHOULD be scaled to the task, not defaulted to maximum. Turn it up for problems with a verifiable chain of logic — mathematics, planning, multi-step analysis, complex code, and debugging. These are the tasks where extended reasoning measurably improves the result.
+* *Thinking* governs _whether and when_ the model produces an internal chain of thought before committing to an answer. On current models this is typically an _adaptive_ setting — the model decides for itself, per request, whether a given step warrants extended reasoning — rather than a fixed token budget. It can also be turned fully off, so the model answers directly without a reasoning step.
 
-Turn it down, or fully off, for prose, summarization, translation, simple lookups, and high-volume or latency-sensitive work. Here, extended thinking adds latency and token cost for little benefit. On language tasks it can actively degrade the output by pushing the model to over-edit.
+* *Effort* governs _how hard the model works_ overall — not just the depth of the reasoning step, but the thoroughness of the surrounding actions: how much it explores, how many tool calls it makes, how much it verifies its own work, and how much preamble it produces. Effort is usually exposed as discrete levels (eg. low, medium, high, and higher still), rather than a continuous value.
 
-Because thinking tokens are billed and add latency, the budget is a direct cost/quality/latency tradeoff.
+The two interact but are not the same. Thinking is about the reasoning _step_; effort is about the reasoning _depth plus the breadth of work_ around it. A task can warrant adaptive thinking at low effort (a single well-scoped question) or at high effort (a long-horizon agentic task that must plan, act, verify, and correct across many steps).
+
+Both SHOULD be scaled to the task, not defaulted to maximum:
+
+* Turn reasoning *up* (adaptive thinking, higher effort) for problems with a verifiable chain of logic — mathematics, planning, multi-step analysis, complex code, debugging — and for long-horizon agentic work. These are the tasks where extended reasoning and thorough exploration measurably improve the result.
+
+* Turn reasoning *down*, or thinking fully off, for prose, summarization, translation, simple lookups, and high-volume or latency-sensitive work. Here, extended thinking and high effort add latency and token cost for little benefit. On language tasks, extended thinking can actively degrade the output by pushing the model to over-edit.
+
+Because thinking tokens are billed and higher effort consumes more tokens and more time, both dials are a direct cost/quality/latency tradeoff. As a rule, raise effort before reaching for a larger model — a smaller model at high effort is often a better trade than a larger model at low effort.
 
 == Output controls and determinism
 
