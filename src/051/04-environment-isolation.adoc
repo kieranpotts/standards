@@ -1,21 +1,54 @@
 = Environment isolation
 
-A common pattern in cloud computing is to isolate resources by environment. This is particularly important for security and compliance. It stops production data leaking into pre-production environments, and vice versa – it stops dummy data from contaminating production environments.
+A common pattern in cloud computing is to isolate resources by environment. This
+is particularly important for security and compliance. It stops production data
+leaking into pre-production environments, and vice versa – it stops dummy data
+from contaminating production environments.
 
-Environment isolation also helps to reduce the risk of accidental changes to production services. It supports strategies such as blue-green deployments, where you can test new versions of your infrastructure and services in a pre-production environment before deploying them to production. And so on.
+Environment isolation also helps to reduce the risk of accidental changes to
+production services. It supports strategies such as blue-green deployments,
+where you can test new versions of your infrastructure and services in a
+pre-production environment before deploying them to production. And so on.
 
-In AWS, there are many different ways that environment isolation can be achieved.
+In AWS, there are many different ways that environment isolation can be
+achieved.
 
-The most common approaches are to use separate AWS accounts, or to use separate VPCs within the same account.
+The most common approaches are to use separate AWS accounts, or to use separate
+VPCs within the same account.
 
-Using separate AWS accounts – each under a single AWS Organization – is probably the simplest solution to implement. This involves creating a separate AWS account for each environment, such as `dev`, `staging`, and `prod`. Each account can then be managed independently, with its own set of IAM users, roles, and policies. The risks of cross-environment contamination and breakages are minimized.
+Using separate AWS accounts – each under a single AWS Organization – is probably
+the simplest solution to implement. This involves creating a separate AWS
+account for each environment, such as `dev`, `staging`, and `prod`. Each account
+can then be managed independently, with its own set of IAM users, roles, and
+policies. The risks of cross-environment contamination and breakages are
+minimized.
 
-Alternatively, if you prefer each AWS account to be scoped to a particular project or business unit, you can use separate VPCs within the same AWS account to isolate environments. This approach is a bit more involving to set up, but it affords a bit more flexibility; for example, it is easier to share resources between environments. You might use a centralized logging system for every environment, for example.
+Alternatively, if you prefer each AWS account to be scoped to a particular
+project or business unit, you can use separate VPCs within the same AWS account
+to isolate environments. This approach is a bit more involving to set up, but it
+affords a bit more flexibility; for example, it is easier to share resources
+between environments. You might use a centralized logging system for every
+environment, for example.
 
-It is RECOMMENDED to create distinct IAM roles within a product account for production and pre-production environments and workloads. It is RECOMMENDED to use tags to identify the environment of each resource, and then use IAM policies to restrict access to resources based on those environment tags. This ensures that both users and services/resources can access resources only in their designated environment.
+It is RECOMMENDED to create distinct IAM roles within a product account for
+production and pre-production environments and workloads. It is RECOMMENDED to
+use tags to identify the environment of each resource, and then use IAM policies
+to restrict access to resources based on those environment tags. This ensures
+that both users and services/resources can access resources only in their
+designated environment.
 
-Deploy production and pre-production in completely separate VPCs, with no peering connections. This creates a hard network boundary between the environments.
+Deploy production and pre-production in completely separate VPCs, with no
+peering connections. This creates a hard network boundary between the
+environments.
 
-Use private subnets for data storage and processing, with environment-specific NAT gateways and routing tables. Use completely separate RDS instances, DynamoDB tables, and S3 buckets for each environment. And use different KMS keys for each environment to ensure encrypted data cannot be decrypted in another environment in the event that is does accidentally leak into that other environment. Use different parameter paths (`/prod/`, `/test/`) in Systems Manager Parameter Store, and separate secrets in AWS Secrets Manager. And so on.
+Use private subnets for data storage and processing, with environment-specific
+NAT gateways and routing tables. Use completely separate RDS instances, DynamoDB
+tables, and S3 buckets for each environment. And use different KMS keys for each
+environment to ensure encrypted data cannot be decrypted in another environment
+in the event that is does accidentally leak into that other environment. Use
+different parameter paths (`/prod/`, `/test/`) in Systems Manager Parameter
+Store, and separate secrets in AWS Secrets Manager. And so on.
 
-If building the infrastructure from code, use different Terraform state files for each environment, stored in separate S3 buckets with different access policies.
+If building the infrastructure from code, use different Terraform state files
+for each environment, stored in separate S3 buckets with different access
+policies.
