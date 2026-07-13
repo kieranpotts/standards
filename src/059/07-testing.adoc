@@ -1,33 +1,86 @@
 = Testing
 
-This section provides some general guidance on dynamic testing of Terraform-controlled infrastructure.
+This section provides some general guidance on dynamic testing of
+Terraform-controlled infrastructure.
 
-Before dynamic testing, static analysis of Terraform configuration files is RECOMMENDED. The `terraform validate` and `terraform fmt` commands provide a baseline for static analysis. Linters such as https://github.com/terraform-linters/tflint[TFLint] can be used to enforce additional coding standards. Other useful static analysis tools include https://www.checkov.io/[Checkov], which will scan infrastructure-as-code files for misconfigurations, and https://aquasecurity.github.io/tfsec/v1.20.0/[tfsec], which will check for security issues. These tools can help catch common mistakes and enforce best practices before the infrastructure is deployed.
+Before dynamic testing, static analysis of Terraform configuration files is
+RECOMMENDED. The `terraform validate` and `terraform fmt` commands provide a
+baseline for static analysis. Linters such as
+https://github.com/terraform-linters/tflint[TFLint] can be used to enforce
+additional coding standards. Other useful static analysis tools include
+https://www.checkov.io/[Checkov], which will scan infrastructure-as-code files
+for misconfigurations, and https://aquasecurity.github.io/tfsec/v1.20.0/[tfsec],
+which will check for security issues. These tools can help catch common mistakes
+and enforce best practices before the infrastructure is deployed.
 
-However, these tools do not guarantee that the configuration is correct or that it will work as intended once the changes are deployed. That is the purpose of dynamic testing.
+However, these tools do not guarantee that the configuration is correct or that
+it will work as intended once the changes are deployed. That is the purpose of
+dynamic testing.
 
-Dynamic testing requires deployments of infrastructure be made to pre-production environments prior to production. This is because dynamic testing requires the infrastructure to actually exist. Thus, a multi-environment deployment strategy is REQUIRED to implement dynamic testing of infrastructure configuration.
+Dynamic testing requires deployments of infrastructure be made to pre-production
+environments prior to production. This is because dynamic testing requires the
+infrastructure to actually exist. Thus, a multi-environment deployment strategy
+is REQUIRED to implement dynamic testing of infrastructure configuration.
 
-Besides production, deployment environments may include a single staging environment, or you may choose to have multiple ephemeral dev environments built from feature branches in version control. A branch-based deployment strategy may be based on the following policies:
+Besides production, deployment environments may include a single staging
+environment, or you may choose to have multiple ephemeral dev environments built
+from feature branches in version control. A branch-based deployment strategy may
+be based on the following policies:
 
 * Feature branches deploy to ephemeral dev environments.
 * The main branch deploys to a staging environment.
 * Tagged commits deploy to production.
 
-Keep pre-production and production environments as similar as possible, to ensure that dynamic tests are valid. Balance this against costs by using smaller instance sizes and/or reduced redundancy in pre-production environments. Feature flags can also be used to disable non-critical (or particularly expensive) infrastructure components in pre-production environments, reducing costs further.
+Keep pre-production and production environments as similar as possible, to
+ensure that dynamic tests are valid. Balance this against costs by using smaller
+instance sizes and/or reduced redundancy in pre-production environments. Feature
+flags can also be used to disable non-critical (or particularly expensive)
+infrastructure components in pre-production environments, reducing costs
+further.
 
-Deployed infrastructure can be validated using automated infrastructure testing tools such as https://terratest.gruntwork.io/[Terratest], https://newcontext-oss.github.io/kitchen-terraform/[Kitchen-Terraform], or https://testinfra.readthedocs.io/en/latest/[Testinfra]. You may want to use a combination of these tools. As well as verifying the _existence_ of resources, you may also want to test their _behavior_ — for example, that a web server is running and serving the expected content, or that a database is accessible from the expected IP addresses.
+Deployed infrastructure can be validated using automated infrastructure testing
+tools such as https://terratest.gruntwork.io/[Terratest],
+https://newcontext-oss.github.io/kitchen-terraform/[Kitchen-Terraform], or
+https://testinfra.readthedocs.io/en/latest/[Testinfra]. You may want to use a
+combination of these tools. As well as verifying the _existence_ of resources,
+you may also want to test their _behavior_ — for example, that a web server is
+running and serving the expected content, or that a database is accessible from
+the expected IP addresses.
 
 Related best practices include:
 
-* *Staged rollouts* — Deploy changes incrementally. Implement and test changes to individual modules or components before making wider changes to infrastructure that depend on those components. Deploy network layer changes ahead of application layer changes. And so on.
+* *Staged rollouts* — Deploy changes incrementally. Implement and test changes
+to individual modules or components before making wider changes to
+infrastructure that depend on those components. Deploy network layer changes
+ahead of application layer changes. And so on.
 
-* *Rollback strategy* — Have a rollback strategy in place, either using version control or by maintaining previous Terraform state snapshots. Ideally, rollbacks should be automated. Failed post-deployment tests, or failed monitoring checks, should trigger an automatic rollback to the previous version of the infrastructure.
+* *Rollback strategy* — Have a rollback strategy in place, either using version
+control or by maintaining previous Terraform state snapshots. Ideally, rollbacks
+should be automated. Failed post-deployment tests, or failed monitoring checks,
+should trigger an automatic rollback to the previous version of the
+infrastructure.
 
-* *Blue-green deployments* — For critical infrastructure, consider blue-green deployment patterns. This involves running two identical production environments, one of which is live (blue) and the other is idle (green). When deploying changes, the new version is deployed to the idle environment, and then traffic is switched over to it once the deployment is verified as successful via automated tests. This minimizes downtime and reduces risk during deployments. This strategy also supports quick rollbacks if issues are found in the new version – you just redirect the traffic back to the previous environment (no need to wait for it to be rebuilt because it is already running).
+* *Blue-green deployments* — For critical infrastructure, consider blue-green
+deployment patterns. This involves running two identical production
+environments, one of which is live (blue) and the other is idle (green). When
+deploying changes, the new version is deployed to the idle environment, and then
+traffic is switched over to it once the deployment is verified as successful via
+automated tests. This minimizes downtime and reduces risk during deployments.
+This strategy also supports quick rollbacks if issues are found in the new
+version – you just redirect the traffic back to the previous environment (no
+need to wait for it to be rebuilt because it is already running).
 
-* *Plan review* — Similar to code review for software changes, integrate an execution plan review into your workflow for infrastructure changes. This can be implemented in standard pull request systems such as GitHub's. Alternatively, https://developer.hashicorp.com/terraform/cloud-docs[HCP Terraform] and https://www.runatlantis.io/[Atlantis] offer bespoke tooling for infrastructure planning and review.
+* *Plan review* — Similar to code review for software changes, integrate an
+execution plan review into your workflow for infrastructure changes. This can be
+implemented in standard pull request systems such as GitHub's. Alternatively,
+https://developer.hashicorp.com/terraform/cloud-docs[HCP Terraform] and
+https://www.runatlantis.io/[Atlantis] offer bespoke tooling for infrastructure
+planning and review.
 
-* *Drift detection* — Regularly run `terraform plan` against existing infrastructure to detect configuration drift.
+* *Drift detection* — Regularly run `terraform plan` against existing
+infrastructure to detect configuration drift.
 
-* *Data isolation* — Use separate accounts or projects in your cloud service provider to isolate production data from pre-production dummy data. This is particularly important for sensitive data, such as personally identifiable information (PII) or financial data.
+* *Data isolation* — Use separate accounts or projects in your cloud service
+provider to isolate production data from pre-production dummy data. This is
+particularly important for sensitive data, such as personally identifiable
+information (PII) or financial data.

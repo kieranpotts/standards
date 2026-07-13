@@ -1,6 +1,9 @@
 = Remote state and back-ends
 
-It is RECOMMENDED to use secure back-ends to store Terraform state remotely. Terraform's default behavior is to store state locally in the `terraform.tfstate` file. State can be moved to a remote back-end by configuring the `terraform.backend` block. The following configuration uses AWS S3.
+It is RECOMMENDED to use secure back-ends to store Terraform state remotely.
+Terraform's default behavior is to store state locally in the
+`terraform.tfstate` file. State can be moved to a remote back-end by configuring
+the `terraform.backend` block. The following configuration uses AWS S3.
 
 .main.tf
 [source,hcl]
@@ -15,13 +18,30 @@ terraform {
 }
 ----
 
-Remote back-ends are more secure and they allow team collaboration on infrastructure configuration. Remote back-ends also make it easier to implement infrastructure automation, eg. running Terraform in CI/CD pipelines.
+Remote back-ends are more secure and they allow team collaboration on
+infrastructure configuration. Remote back-ends also make it easier to implement
+infrastructure automation, eg. running Terraform in CI/CD pipelines.
 
-Because secrets are stored in state files in plain text, remote storage systems MUST be private and the state files MUST be encrypted at rest. For object storage systems, it is sufficient to enable filesystem encryption on the bucket.
+Because secrets are stored in state files in plain text, remote storage systems
+MUST be private and the state files MUST be encrypted at rest. For object
+storage systems, it is sufficient to enable filesystem encryption on the bucket.
 
-Another advantage of using remote back-ends is that you can use multiple state files, so splitting your infrastructure into components that can be managed independently – something that is particularly useful for enterprise-scale infrastructure, or in contexts where different teams are responsible for managing different bits of the infrastructure. Alternatively, you might want to split your infrastructure state by layers, eg. separating the networking configuration from the application layer – a common practice.
+Another advantage of using remote back-ends is that you can use multiple state
+files, so splitting your infrastructure into components that can be managed
+independently – something that is particularly useful for enterprise-scale
+infrastructure, or in contexts where different teams are responsible for
+managing different bits of the infrastructure. Alternatively, you might want to
+split your infrastructure state by layers, eg. separating the networking
+configuration from the application layer – a common practice.
 
-However, one of the trade-offs is that, if multiple clients try to make divergent changes to the same infrastructure state at the same time, it becomes possible for infrastructure to end up in a corrupted or inconsistent state. To prevent this, remote state back-ends MUST enable the `use_lockfile` option. This will apply a lock to the remote state while a `terraform apply` operation is in progress. A file called `terraform.tfstate.tflock` will briefly appear in the back-end storage system; while it exists, it will not be possible for any other client to run another `terraform apply` operation in parallel.
+However, one of the trade-offs is that, if multiple clients try to make
+divergent changes to the same infrastructure state at the same time, it becomes
+possible for infrastructure to end up in a corrupted or inconsistent state. To
+prevent this, remote state back-ends MUST enable the `use_lockfile` option. This
+will apply a lock to the remote state while a `terraform apply` operation is in
+progress. A file called `terraform.tfstate.tflock` will briefly appear in the
+back-end storage system; while it exists, it will not be possible for any other
+client to run another `terraform apply` operation in parallel.
 
 [source,hcl]
 ----
@@ -37,10 +57,15 @@ terraform {
 }
 ----
 
-However, users can still override this by running `terraform apply -lock=false`, which will skip the lock file check. So, ultimately, the only true protection against concurrent state changes is strong governance and well-designed change management procedures.
+However, users can still override this by running `terraform apply -lock=false`,
+which will skip the lock file check. So, ultimately, the only true protection
+against concurrent state changes is strong governance and well-designed change
+management procedures.
 
 .See also
 ****
-* https://developer.hashicorp.com/terraform/language/backend[Back-end configuration]
-* https://developer.hashicorp.com/terraform/language/state/backends[State storage and locking]
+* https://developer.hashicorp.com/terraform/language/backend[Back-end
+configuration]
+* https://developer.hashicorp.com/terraform/language/state/backends[State
+storage and locking]
 ****
