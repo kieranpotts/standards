@@ -1,36 +1,54 @@
 = Planning
 
-A data migration SHOULD be planned before any code is written. The plan is the artifact that survives the migration; it is also the document that an operator on duty will reach for at 03:00 when something has gone wrong. It SHOULD be written down, reviewed, and stored alongside the code — see *link:../003/README.adoc[TS-3: Design Docs]*.
+A data migration SHOULD be planned before any code is written. The plan is the
+artifact that survives the migration; it is also the document that an operator
+on duty will reach for at 03:00 when something has gone wrong. It SHOULD be
+written down, reviewed, and stored alongside the code — see
+*link:../003/README.adoc[TS-3: Design Docs]*.
 
 A migration plan SHOULD cover the following.
 
 == Discovery and inventory
 
-Before designing the migration, the team MUST establish what data is being moved and what surrounds it:
+Before designing the migration, the team MUST establish what data is being moved
+and what surrounds it:
 
-* The source data set — its volume, growth rate, distribution, and any known anomalies or historical corruption.
+* The source data set — its volume, growth rate, distribution, and any known
+anomalies or historical corruption.
 
-* The schema and constraints at the source, including constraints enforced only by application code.
+* The schema and constraints at the source, including constraints enforced only
+by application code.
 
-* External dependencies — downstream consumers, upstream producers, foreign keys into and out of the data, and integrations that assume a specific representation.
+* External dependencies — downstream consumers, upstream producers, foreign keys
+into and out of the data, and integrations that assume a specific
+representation.
 
-* Access patterns and load, both steady-state and peak, against the source and the anticipated target.
+* Access patterns and load, both steady-state and peak, against the source and
+the anticipated target.
 
 == Mapping and transformation rules
 
-Every field, record, and relationship in the source MUST have a defined target. The mapping SHOULD be explicit and reviewable, including:
+Every field, record, and relationship in the source MUST have a defined target.
+The mapping SHOULD be explicit and reviewable, including:
 
-* Field-to-field correspondence, including fields that are dropped, split, merged, derived, or synthesized.
+* Field-to-field correspondence, including fields that are dropped, split,
+merged, derived, or synthesized.
 
-* Type coercions and their failure modes — what happens to values that do not fit the target type.
+* Type coercions and their failure modes — what happens to values that do not
+fit the target type.
 
 * Encoding, collation, and timezone handling.
 
-* Identity and referential integrity — how primary and foreign keys map across the migration, and how dangling references are handled.
+* Identity and referential integrity — how primary and foreign keys map across
+the migration, and how dangling references are handled.
 
 == Sizing and timing
 
-The plan MUST estimate the migration's wall-clock duration and its resource cost, on realistic production-class hardware, using a representative data sample. The estimate SHOULD drive the choice of cutover profile: a migration that cannot complete within an available window MUST be designed as phased or zero-downtime, not as big-bang.
+The plan MUST estimate the migration's wall-clock duration and its resource
+cost, on realistic production-class hardware, using a representative data
+sample. The estimate SHOULD drive the choice of cutover profile: a migration
+that cannot complete within an available window MUST be designed as phased or
+zero-downtime, not as big-bang.
 
 == Risk and impact assessment
 
@@ -46,19 +64,25 @@ The plan SHOULD identify, for each step:
 
 == The cutover plan
 
-The switch-over is planned separately from the migration. The cutover plan SHOULD specify, at minimum:
+The switch-over is planned separately from the migration. The cutover plan
+SHOULD specify, at minimum:
 
-* The exact sequence of enablement steps — reads first, then writes, or both at once; per-tenant or all-at-once.
+* The exact sequence of enablement steps — reads first, then writes, or both at
+once; per-tenant or all-at-once.
 
-* The feature flags or configuration that gate each step. See *link:../010/README.adoc[TS-10: Releasing]*.
+* The feature flags or configuration that gate each step. See
+*link:../010/README.adoc[TS-10: Releasing]*.
 
 * The validation that gates progression between steps.
 
-* The rollback procedure, including the conditions under which it is invoked and who is authorized to invoke it.
+* The rollback procedure, including the conditions under which it is invoked and
+who is authorized to invoke it.
 
 * The communications plan — who is notified, when, and through what channel.
 
 [IMPORTANT]
 ======
-The cutover plan MUST be executable independently of the migration. The canonical test of a good cutover plan is that it can be run, fully, against a target populated by a previous migration run, without re-running the migration.
+The cutover plan MUST be executable independently of the migration. The
+canonical test of a good cutover plan is that it can be run, fully, against a
+target populated by a previous migration run, without re-running the migration.
 ======

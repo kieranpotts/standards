@@ -1,31 +1,59 @@
 = Types of data migration
 
-Data migrations fall into a few broad categories. The categories share techniques but differ in scope, risk, and rollback profile, and the strategy SHOULD be chosen accordingly.
+Data migrations fall into a few broad categories. The categories share
+techniques but differ in scope, risk, and rollback profile, and the strategy
+SHOULD be chosen accordingly.
 
 == Schema migrations
 
-A schema migration changes the structure of data within the same storage system: adding, removing, or renaming columns and tables; splitting or merging records; changing types, constraints, or indexes; repartitioning. Schema migrations are the most common and the most automatable kind, and they are usually handled by a versioned migration tool that applies a sequence of forward and reverse delta scripts.
+A schema migration changes the structure of data within the same storage system:
+adding, removing, or renaming columns and tables; splitting or merging records;
+changing types, constraints, or indexes; repartitioning. Schema migrations are
+the most common and the most automatable kind, and they are usually handled by a
+versioned migration tool that applies a sequence of forward and reverse delta
+scripts.
 
 == System migrations
 
-A system migration moves data from one system to another — typically from a legacy system to a replacement, or between two implementations of the same service contract. The source and target often differ in data model, query semantics, and consistency guarantees. System migrations are higher-risk than schema migrations because the two systems can drift while the migration is in flight, and because correctness cannot be reduced to a schema diff.
+A system migration moves data from one system to another — typically from a
+legacy system to a replacement, or between two implementations of the same
+service contract. The source and target often differ in data model, query
+semantics, and consistency guarantees. System migrations are higher-risk than
+schema migrations because the two systems can drift while the migration is in
+flight, and because correctness cannot be reduced to a schema diff.
 
 == Storage and platform migrations
 
-A storage or platform migration changes where or how data is physically stored without changing its logical representation — for example, moving from one database engine to another, changing the partitioning scheme, relocating to a different cloud region, or moving from self-managed storage to a managed service. These migrations often preserve the data model but still require full validation, because engine-specific behaviors (collation, ordering, precision, encoding) can produce subtle incompatibilities.
+A storage or platform migration changes where or how data is physically stored
+without changing its logical representation — for example, moving from one
+database engine to another, changing the partitioning scheme, relocating to a
+different cloud region, or moving from self-managed storage to a managed
+service. These migrations often preserve the data model but still require full
+validation, because engine-specific behaviors (collation, ordering, precision,
+encoding) can produce subtle incompatibilities.
 
 == Format migrations
 
-A format migration changes the serialization or encoding of data in place or in transit — for example, converting a column from JSON to a structured type, or re-encoding text. Format migrations are usually a special case of schema migration and SHOULD be handled with the same expand-and-contract discipline.
+A format migration changes the serialization or encoding of data in place or in
+transit — for example, converting a column from JSON to a structured type, or
+re-encoding text. Format migrations are usually a special case of schema
+migration and SHOULD be handled with the same expand-and-contract discipline.
 
 == Categorizing by cutover profile
 
-Independently of the above categories, every migration has a cutover profile that determines its switch-over mechanics:
+Independently of the above categories, every migration has a cutover profile
+that determines its switch-over mechanics:
 
-* *Big-bang.* The source is quiesced, the migration completes, and the target is enabled in a single coordinated step. Simplest to reason about; highest downtime; highest blast radius on failure.
+* *Big-bang.* The source is quiesced, the migration completes, and the target is
+enabled in a single coordinated step. Simplest to reason about; highest
+downtime; highest blast radius on failure.
 
-* *Phased.* The migration and switch-over proceed in batches (by tenant, by key range, by feature). Lower risk per step; more operational complexity.
+* *Phased.* The migration and switch-over proceed in batches (by tenant, by key
+range, by feature). Lower risk per step; more operational complexity.
 
-* *Zero-downtime.* The source and target run in parallel through the migration, and the switch-over is performed without interrupting service. Most complex; required when the system cannot be taken offline.
+* *Zero-downtime.* The source and target run in parallel through the migration,
+and the switch-over is performed without interrupting service. Most complex;
+required when the system cannot be taken offline.
 
-The choice of cutover profile SHOULD be made explicitly, in the planning phase, and justified against the system's availability requirements.
+The choice of cutover profile SHOULD be made explicitly, in the planning phase,
+and justified against the system's availability requirements.

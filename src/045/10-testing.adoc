@@ -1,37 +1,66 @@
 = Testing
 
-A data migration MUST be tested before it runs against production. Testing a migration is distinct from testing the application that uses the data.
+A data migration MUST be tested before it runs against production. Testing a
+migration is distinct from testing the application that uses the data.
 
 == What to test
 
 A migration test suite SHOULD cover:
 
-* *Transformation correctness.* Each mapping and transformation rule, exercised against representative source values — including nulls, empty strings, unicode, max-length fields, out-of-range values, and known historical anomalies.
+* *Transformation correctness.* Each mapping and transformation rule, exercised
+against representative source values — including nulls, empty strings, unicode,
+max-length fields, out-of-range values, and known historical anomalies.
 
-* *Edge cases.* Boundary values, empty and single-record data sets, records that violate soft constraints, and records that exercise every branch of the transformation logic.
+* *Edge cases.* Boundary values, empty and single-record data sets, records that
+violate soft constraints, and records that exercise every branch of the
+transformation logic.
 
-* *Idempotency.* Running the migration twice produces the same result as running it once, including against partially-populated targets.
+* *Idempotency.* Running the migration twice produces the same result as running
+it once, including against partially-populated targets.
 
-* *Resumability.* Interrupting the migration at representative points and resuming it completes correctly, without re-processing or losing work.
+* *Resumability.* Interrupting the migration at representative points and
+resuming it completes correctly, without re-processing or losing work.
 
-* *Failure handling.* A failure in a batch, a connectivity loss to source or target, and a partial write to the target are all handled without corrupting the target state.
+* *Failure handling.* A failure in a batch, a connectivity loss to source or
+target, and a partial write to the target are all handled without corrupting the
+target state.
 
-* *Performance and resource cost.* The migration's throughput, memory, and contention profile on production-class hardware, against a realistic data volume.
+* *Performance and resource cost.* The migration's throughput, memory, and
+contention profile on production-class hardware, against a realistic data
+volume.
 
 == Where to test
 
-A migration SHOULD be tested against a copy of production data, not against synthetic data alone. Synthetic data rarely reproduces the anomalies, distributions, and scale of real data, and it is precisely those properties that break migrations.
+A migration SHOULD be tested against a copy of production data, not against
+synthetic data alone. Synthetic data rarely reproduces the anomalies,
+distributions, and scale of real data, and it is precisely those properties that
+break migrations.
 
-The test environment SHOULD match production in the dimensions that affect the migration: storage engine version, schema, indexes, partitioning, and the volume and distribution of data. Where a full-size copy is impractical, a representative subset — stratified by the same sampling rules used for validation — is preferable to a synthetic data set.
+The test environment SHOULD match production in the dimensions that affect the
+migration: storage engine version, schema, indexes, partitioning, and the volume
+and distribution of data. Where a full-size copy is impractical, a
+representative subset — stratified by the same sampling rules used for
+validation — is preferable to a synthetic data set.
 
 == Dry runs and shadow runs
 
-Before a zero-downtime migration runs against production, the dual-write path SHOULD be exercised in a _shadow mode_: writes are duplicated to the target, but the target is not read by the live system and the duplication cannot affect the request path. Shadow running surfaces dual-write bugs — out-of-order writes, retry hazards, idempotency failures — under real load, before the target is relied upon.
+Before a zero-downtime migration runs against production, the dual-write path
+SHOULD be exercised in a _shadow mode_: writes are duplicated to the target, but
+the target is not read by the live system and the duplication cannot affect the
+request path. Shadow running surfaces dual-write bugs — out-of-order writes,
+retry hazards, idempotency failures — under real load, before the target is
+relied upon.
 
-For big-bang and phased migrations, a _dry run_ against a full copy of the source SHOULD be performed end-to-end, including validation, to confirm that the migration completes within its budget and produces a validated target.
+For big-bang and phased migrations, a _dry run_ against a full copy of the
+source SHOULD be performed end-to-end, including validation, to confirm that the
+migration completes within its budget and produces a validated target.
 
 == Rehearsing the cutover
 
-The switch-over is tested by rehearsing it, end-to-end, against a non-production environment populated by a previous migration run. The rehearsal uses the same runbook, the same feature flags, and the same validation gates as the production cutover.
+The switch-over is tested by rehearsing it, end-to-end, against a non-production
+environment populated by a previous migration run. The rehearsal uses the same
+runbook, the same feature flags, and the same validation gates as the production
+cutover.
 
-For testing practices in general, see *link:../012/README.adoc[TS-12: Quality Assurance]* and *link:../013/README.adoc[TS-13: Functional Testing]*.
+For testing practices in general, see *link:../012/README.adoc[TS-12: Quality
+Assurance]* and *link:../013/README.adoc[TS-13: Functional Testing]*.

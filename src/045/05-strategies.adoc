@@ -1,61 +1,99 @@
 = Strategies
 
-This section describes the execution strategies available for a data migration. The strategy determines how the source and target relate while the migration is in flight, and it constrains the available cutover profiles.
+This section describes the execution strategies available for a data migration.
+The strategy determines how the source and target relate while the migration is
+in flight, and it constrains the available cutover profiles.
 
 == Big-bang migration
 
-The source is taken offline or quiesced; the data is copied or transformed into the target in one pass; the switch-over is then enabled against the fully-populated target.
+The source is taken offline or quiesced; the data is copied or transformed into
+the target in one pass; the switch-over is then enabled against the
+fully-populated target.
 
-* *When it fits.* Small data sets, systems with an available maintenance window, and migrations where downtime is acceptable.
+* *When it fits.* Small data sets, systems with an available maintenance window,
+and migrations where downtime is acceptable.
 
-* *Cost.* Simplest to design and validate. Highest downtime. Failure during the migration leaves the system down until rollback completes.
+* *Cost.* Simplest to design and validate. Highest downtime. Failure during the
+migration leaves the system down until rollback completes.
 
 * *Rollback.* Re-enable the source. Cheap, provided the source was not modified.
 
-Big-bang migrations SHOULD be reserved for cases where the downtime cost is genuinely lower than the engineering cost of a phased or zero-downtime alternative.
+Big-bang migrations SHOULD be reserved for cases where the downtime cost is
+genuinely lower than the engineering cost of a phased or zero-downtime
+alternative.
 
 == Phased migration
 
-The data is partitioned — by tenant, by key range, by geographic region, by feature, or by any other stable sharding key — and each partition is migrated and switched over independently. The partitions move through the migration one at a time, with the rest of the system continuing to operate against the source.
+The data is partitioned — by tenant, by key range, by geographic region, by
+feature, or by any other stable sharding key — and each partition is migrated
+and switched over independently. The partitions move through the migration one
+at a time, with the rest of the system continuing to operate against the source.
 
-* *When it fits.* Systems with a natural sharding key, systems serving many independent tenants, and migrations that are too large to complete in a single window but do not require true zero-downtime.
+* *When it fits.* Systems with a natural sharding key, systems serving many
+independent tenants, and migrations that are too large to complete in a single
+window but do not require true zero-downtime.
 
-* *Cost.* Moderate. Requires per-partition routing during the transition, and a clear registry of which partitions have migrated.
+* *Cost.* Moderate. Requires per-partition routing during the transition, and a
+clear registry of which partitions have migrated.
 
-* *Rollback.* Per-partition. A failed partition can be routed back to the source while others continue. This bounded rollback is the principal advantage of the phased approach.
+* *Rollback.* Per-partition. A failed partition can be routed back to the source
+while others continue. This bounded rollback is the principal advantage of the
+phased approach.
 
 == Zero-downtime (dual-write and backfill)
 
-For systems that cannot be taken offline, the migration runs while the source remains live. The canonical pattern, widely known as the "`dual-write, backfill, verify, switch`" pattern, proceeds in stages:
+For systems that cannot be taken offline, the migration runs while the source
+remains live. The canonical pattern, widely known as the "`dual-write, backfill,
+verify, switch`" pattern, proceeds in stages:
 
-1. *Expand.* Introduce the target schema or system alongside the source, without directing any traffic to it.
+1. *Expand.* Introduce the target schema or system alongside the source, without
+directing any traffic to it.
 
-2. *Dual-write.* Begin writing new and updated records to both source and target. The source remains the system of record; writes to the target are additive and must not block or fail the request.
+2. *Dual-write.* Begin writing new and updated records to both source and
+target. The source remains the system of record; writes to the target are
+additive and must not block or fail the request.
 
-3. *Backfill.* Copy existing source data into the target. The backfill runs in the background, in idempotent batches, and reconciles continuously with the dual-written stream so that the target converges on the source.
+3. *Backfill.* Copy existing source data into the target. The backfill runs in
+the background, in idempotent batches, and reconciles continuously with the
+dual-written stream so that the target converges on the source.
 
-4. *Verify.* Compare source and target exhaustively (or by sampling) until they are demonstrably consistent.
+4. *Verify.* Compare source and target exhaustively (or by sampling) until they
+are demonstrably consistent.
 
-5. *Switch reads.* Direct reads to the target, initially for a small fraction of traffic and then ramping. Both source and target continue to receive writes.
+5. *Switch reads.* Direct reads to the target, initially for a small fraction of
+traffic and then ramping. Both source and target continue to receive writes.
 
-6. *Switch writes.* Stop writing to the source. The target becomes the system of record.
+6. *Switch writes.* Stop writing to the source. The target becomes the system of
+record.
 
-7. *Contract.* Remove the source, or keep it as a read-only fallback during a soak period.
+7. *Contract.* Remove the source, or keep it as a read-only fallback during a
+soak period.
 
-* *When it fits.* Systems with strict availability requirements, and migrations where the engineering budget supports the added complexity.
+* *When it fits.* Systems with strict availability requirements, and migrations
+where the engineering budget supports the added complexity.
 
-* *Cost.* Highest. The dual-write path must be correct under every failure mode, and the verification step is non-trivial. This is the strategy that most rewards investment in tooling.
+* *Cost.* Highest. The dual-write path must be correct under every failure mode,
+and the verification step is non-trivial. This is the strategy that most rewards
+investment in tooling.
 
-* *Rollback.* Each stage is independently reversible: reads can be repointed back to the source, dual-writing can be resumed, the source can resume its role as system of record. The cost of rollback rises sharply once "`switch writes`" has executed.
+* *Rollback.* Each stage is independently reversible: reads can be repointed
+back to the source, dual-writing can be resumed, the source can resume its role
+as system of record. The cost of rollback rises sharply once "`switch writes`"
+has executed.
 
 [NOTE]
 ======
-The dual-write path is the failure-prone part of this strategy. Edge cases — out-of-order writes, retries, partial failures, idempotency keys, and the interaction with the backfill — are where correctness is won or lost. The dual-write path SHOULD be exercised against production traffic in a shadow mode before it is relied upon.
+The dual-write path is the failure-prone part of this strategy. Edge cases —
+out-of-order writes, retries, partial failures, idempotency keys, and the
+interaction with the backfill — are where correctness is won or lost. The
+dual-write path SHOULD be exercised against production traffic in a shadow mode
+before it is relied upon.
 ======
 
 == Choosing a strategy
 
-The choice of strategy is driven by the system's availability requirement, the data volume, and the engineering budget:
+The choice of strategy is driven by the system's availability requirement, the
+data volume, and the engineering budget:
 
 [cols="1,3,2"]
 |===
@@ -66,4 +104,6 @@ The choice of strategy is driven by the system's availability requirement, the d
 | Zero-downtime | Strict availability requirement | None
 |===
 
-A migration SHOULD default to the simplest strategy that meets the availability requirement. Zero-downtime migrations are not a badge of sophistication; they are a tool for when the simpler strategies cannot meet the constraint.
+A migration SHOULD default to the simplest strategy that meets the availability
+requirement. Zero-downtime migrations are not a badge of sophistication; they
+are a tool for when the simpler strategies cannot meet the constraint.

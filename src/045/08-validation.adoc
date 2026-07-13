@@ -1,18 +1,27 @@
 = Validation
 
-Validation is the process of confirming that the target representation matches the source representation, to a defined standard of correctness, before the switch-over is enabled. Validation is the gate between the data migration and the switch-over: the switch-over MUST NOT proceed until validation has passed.
+Validation is the process of confirming that the target representation matches
+the source representation, to a defined standard of correctness, before the
+switch-over is enabled. Validation is the gate between the data migration and
+the switch-over: the switch-over MUST NOT proceed until validation has passed.
 
 == What validation proves
 
 Validation SHOULD establish, at minimum:
 
-* *Completeness.* Every record that should be in the target is in the target. Every record in the target corresponds to a record in the source (or a defined transformation of one).
+* *Completeness.* Every record that should be in the target is in the target.
+Every record in the target corresponds to a record in the source (or a defined
+transformation of one).
 
-* *Correctness.* Each field in the target holds the value that the mapping and transformation rules dictate for the corresponding source record.
+* *Correctness.* Each field in the target holds the value that the mapping and
+transformation rules dictate for the corresponding source record.
 
-* *Integrity.* Every constraint — primary keys, foreign keys, uniqueness, application-level invariants — holds in the target.
+* *Integrity.* Every constraint — primary keys, foreign keys, uniqueness,
+application-level invariants — holds in the target.
 
-* *Consistency under concurrency.* For zero-downtime migrations, the target reflects every source write that has been acknowledged up to a defined point in time, and the lag between source and target is bounded and known.
+* *Consistency under concurrency.* For zero-downtime migrations, the target
+reflects every source write that has been acknowledged up to a defined point in
+time, and the lag between source and target is bounded and known.
 
 == Validation techniques
 
@@ -28,30 +37,49 @@ Validation SHOULD establish, at minimum:
 | Replay verification | For zero-downtime migrations, that replaying a captured stream of source writes against the target produces the same result the live dual-write path produced.
 |===
 
-Validation SHOULD combine several of these techniques. A single check — a row count, in particular — is not validation.
+Validation SHOULD combine several of these techniques. A single check — a row
+count, in particular — is not validation.
 
 [WARNING]
 ======
-A row count match proves only that the source and target have the same number of records. It says nothing about whether those records are correct. Migrations have shipped with matching row counts and systematically wrong field values. Validation MUST include at least one correctness check, not only a completeness check.
+A row count match proves only that the source and target have the same number of
+records. It says nothing about whether those records are correct. Migrations
+have shipped with matching row counts and systematically wrong field values.
+Validation MUST include at least one correctness check, not only a completeness
+check.
 ======
 
 == Sampling
 
 Full record-level diffing is often impractical at scale. Where sampling is used:
 
-* The sample SHOULD be stratified — drawn from across the key space, not from the first N records — so that it represents the full distribution.
+* The sample SHOULD be stratified — drawn from across the key space, not from
+the first N records — so that it represents the full distribution.
 
-* The sample SHOULD include known edge cases explicitly: the largest records, the oldest records, records with unusual encodings, records
-that exercised known bug-fix paths in the source.
+* The sample SHOULD include known edge cases explicitly: the largest records,
+the oldest records, records with unusual encodings, records that exercised known
+bug-fix paths in the source.
 
-* The sampling rate SHOULD be high enough that a systematic error in a large sub-population would be detected with high confidence.
+* The sampling rate SHOULD be high enough that a systematic error in a large
+sub-population would be detected with high confidence.
 
-A sample that passes validation does not prove the migration is correct. It raises confidence. The decision to switch over on the basis of a sample SHOULD be recorded, with the sampling design and the residual risk, in the migration plan.
+A sample that passes validation does not prove the migration is correct. It
+raises confidence. The decision to switch over on the basis of a sample SHOULD
+be recorded, with the sampling design and the residual risk, in the migration
+plan.
 
 == Continuous validation
 
-For zero-downtime migrations, validation is not a one-time gate. The source and target SHOULD be continuously compared — by checksum, by sampling, by reconciliation — through the dual-write and backfill phases, and the divergence between them SHOULD be monitored. A rising divergence is an early signal that the dual-write path is losing writes.
+For zero-downtime migrations, validation is not a one-time gate. The source and
+target SHOULD be continuously compared — by checksum, by sampling, by
+reconciliation — through the dual-write and backfill phases, and the divergence
+between them SHOULD be monitored. A rising divergence is an early signal that
+the dual-write path is losing writes.
 
 == Validation as a gate
 
-Validation is the precondition for switch-over, not a step in the switch-over. The switch-over plan SHOULD reference validation results by name — "`switch-over is gated on a passing validation run identified by `<id>`"`" — and the validation run SHOULD be reproducible and timestamped, so that the gate is auditable after the fact.
+Validation is the precondition for switch-over, not a step in the switch-over.
+The switch-over plan SHOULD reference validation results by name — "`switch-over
+is gated on a passing validation run identified by `<id>`"`" — and the
+validation run SHOULD be reproducible and timestamped, so that the gate is
+auditable after the fact.

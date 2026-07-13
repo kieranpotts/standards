@@ -1,49 +1,87 @@
 = Execution and cutover
 
-This section addresses the operational execution of a migration and the switch-over that follows it.
+This section addresses the operational execution of a migration and the
+switch-over that follows it.
 
 == Running the migration
 
-A migration run SHOULD be executed as a monitored, controllable process, not as a fire-and-forget job. Specifically:
+A migration run SHOULD be executed as a monitored, controllable process, not as
+a fire-and-forget job. Specifically:
 
-* *Resumable.* The migration MUST be resumable after an interruption, without re-processing completed work and without losing in-flight work.
+* *Resumable.* The migration MUST be resumable after an interruption, without
+re-processing completed work and without losing in-flight work.
 
-* *Throttled.* The migration MUST be rate-limited, both to protect the live system from resource contention and to stay within the source and target's throughput limits. Throttling SHOULD be tunable at runtime, without restarting the migration.
+* *Throttled.* The migration MUST be rate-limited, both to protect the live
+system from resource contention and to stay within the source and target's
+throughput limits. Throttling SHOULD be tunable at runtime, without restarting
+the migration.
 
-* *Paused and resumable.* The operator on duty MUST be able to pause and resume the migration without intervention from the migration's author.
+* *Paused and resumable.* The operator on duty MUST be able to pause and resume
+the migration without intervention from the migration's author.
 
-* *Logged.* Every batch, every error, and every retry MUST be logged with enough context to identify the affected records.
+* *Logged.* Every batch, every error, and every retry MUST be logged with enough
+context to identify the affected records.
 
-For very large data sets, the migration SHOULD process work in small, idempotent batches keyed off the source data — for example, by primary key range — so that a batch can be retried, skipped, or inspected in isolation. Batches SHOULD be sized so that a single batch's failure is a recoverable event, not a migration-wide incident.
+For very large data sets, the migration SHOULD process work in small, idempotent
+batches keyed off the source data — for example, by primary key range — so that
+a batch can be retried, skipped, or inspected in isolation. Batches SHOULD be
+sized so that a single batch's failure is a recoverable event, not a
+migration-wide incident.
 
 == Idempotency in execution
 
-An idempotent migration step produces the same result whether it runs once or many times. Idempotency is what makes a migration resumable: a failed batch can be re-run safely, and a migration that crashed at 80% can be restarted without reconstructing the lost 20%.
+An idempotent migration step produces the same result whether it runs once or
+many times. Idempotency is what makes a migration resumable: a failed batch can
+be re-run safely, and a migration that crashed at 80% can be restarted without
+reconstructing the lost 20%.
 
-In practice, idempotency requires that the migration's writes to the target be _upserts_ keyed off the source data, not inserts keyed off a separate processing log. It also requires that the migration tolerate records that already exist in the target — because a previous run created them — and update them to match the source rather than failing.
+In practice, idempotency requires that the migration's writes to the target be
+_upserts_ keyed off the source data, not inserts keyed off a separate processing
+log. It also requires that the migration tolerate records that already exist in
+the target — because a previous run created them — and update them to match the
+source rather than failing.
 
 == The switch-over is a separate operation
 
-Once the target is populated and validated, the switch-over is planned and executed as its own operation. The switch-over does not migrate data; it directs the live system to the data that the migration has already placed.
+Once the target is populated and validated, the switch-over is planned and
+executed as its own operation. The switch-over does not migrate data; it directs
+the live system to the data that the migration has already placed.
 
 The switch-over SHOULD be staged, with each stage gated on validation:
 
-1. *Read switch.* Direct a fraction of read traffic to the target. Ramp up. Both source and target remain writable.
+1. *Read switch.* Direct a fraction of read traffic to the target. Ramp up. Both
+source and target remain writable.
 
-2. *Write switch.* Stop writing to the source. The target becomes the system of record.
+2. *Write switch.* Stop writing to the source. The target becomes the system of
+record.
 
-3. *Soak.* Run with the target as system of record, with the source preserved as a fallback, for a defined period — typically days, not hours.
+3. *Soak.* Run with the target as system of record, with the source preserved as
+a fallback, for a defined period — typically days, not hours.
 
 4. *Decommission.* After the soak, retire the source.
 
-Each stage is independently reversible, at declining cost as the migration progresses. Reversing the read switch is cheap. Reversing the write switch is expensive but possible, provided the source remained writable. Decommissioning the source is the point of no return.
+Each stage is independently reversible, at declining cost as the migration
+progresses. Reversing the read switch is cheap. Reversing the write switch is
+expensive but possible, provided the source remained writable. Decommissioning
+the source is the point of no return.
 
 == Rehearsing the cutover
 
-The cutover plan SHOULD be rehearsed end-to-end against a non-production environment before it is executed against production. The rehearsal exercises the same runbook, the same feature flags, and the same validation gates, against a target populated by a prior migration run. A rehearsal that cannot complete is a strong signal that the production cutover is not ready.
+The cutover plan SHOULD be rehearsed end-to-end against a non-production
+environment before it is executed against production. The rehearsal exercises
+the same runbook, the same feature flags, and the same validation gates, against
+a target populated by a prior migration run. A rehearsal that cannot complete is
+a strong signal that the production cutover is not ready.
 
-For release mechanics — feature flags, canary rollout, and rollback orchestration — see *link:../010/README.adoc[TS-10: Releasing]*. For the runbook as a documentation artifact, see *link:../025/README.adoc[TS-25: Technical Documentation]*.
+For release mechanics — feature flags, canary rollout, and rollback
+orchestration — see *link:../010/README.adoc[TS-10: Releasing]*. For the runbook
+as a documentation artifact, see *link:../025/README.adoc[TS-25: Technical
+Documentation]*.
 
 == Communication
 
-A migration and its cutover SHOULD be communicated on a defined schedule to the stakeholders who depend on the affected data — service owners, on-call engineers, and downstream consumers. Communication SHOULD include the planned window, the expected impact, the validation criteria, and the conditions under which the migration will be paused or rolled back.
+A migration and its cutover SHOULD be communicated on a defined schedule to the
+stakeholders who depend on the affected data — service owners, on-call
+engineers, and downstream consumers. Communication SHOULD include the planned
+window, the expected impact, the validation criteria, and the conditions under
+which the migration will be paused or rolled back.
