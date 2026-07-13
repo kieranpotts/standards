@@ -4,35 +4,94 @@
 ****
 * Don't abstract implementation details that are better kept visible.
 * "Don't repeat yourself" (DRY) does not mean "avoid all code duplication".
-* Extract duplication to shared abstractions only when components are semantically related.
+* Extract duplication to shared abstractions only when components are
+semantically related.
 ****
 
-Decomposition is the process of breaking complex code into smaller and smaller abstractions – typically functions, classes, or modules. Generally, decomposition is a good thing, but as with everything in software design, there are trade-offs. Decomposition actually increases overall system complexity, because it creates new dependencies between components. We get localized simplicity (through abstraction) at the cost of more global complexity (through dependency graphs).
+Decomposition is the process of breaking complex code into smaller and smaller
+abstractions – typically functions, classes, or modules. Generally,
+decomposition is a good thing, but as with everything in software design, there
+are trade-offs. Decomposition actually increases overall system complexity,
+because it creates new dependencies between components. We get localized
+simplicity (through abstraction) at the cost of more global complexity (through
+dependency graphs).
 
-There is a danger in decomposing code too aggressively. If you break logic into too many small functions or components, you can end up with many tiny abstractions that are tightly coupled to one another. So we should be wary of applying principles like "single responsibility" too rigidly. Aggressive decomposition for the sake of purity of design can make codebases harder to change, not easier.
+There is a danger in decomposing code too aggressively. If you break logic into
+too many small functions or components, you can end up with many tiny
+abstractions that are tightly coupled to one another. So we should be wary of
+applying principles like "single responsibility" too rigidly. Aggressive
+decomposition for the sake of purity of design can make codebases harder to
+change, not easier.
 
-Each abstraction is a new layer of indirection in our understanding of the code. If abstraction has the effect of pulling apart related units of logic and data, the code loses locality of reference. This is the principle that things that are related to one another should be kept close together, while unrelated things should be kept far apart. This may be a literal spacing on the filesystem.
+Each abstraction is a new layer of indirection in our understanding of the code.
+If abstraction has the effect of pulling apart related units of logic and data,
+the code loses locality of reference. This is the principle that things that are
+related to one another should be kept close together, while unrelated things
+should be kept far apart. This may be a literal spacing on the filesystem.
 
-This principle of locality of reference has cognitive benefits. When related logic is colocated in a single file or function, it requires less context-switching to understand. The reader can see the whole picture without jumping between files. (Locality of reference is also important in performance engineering – it can help machines to interpret code, too.)
+This principle of locality of reference has cognitive benefits. When related
+logic is colocated in a single file or function, it requires less
+context-switching to understand. The reader can see the whole picture without
+jumping between files. (Locality of reference is also important in performance
+engineering – it can help machines to interpret code, too.)
 
-If you cannot understand the purpose of one function without reading the internal logic of several others, you have over-decomposed. The decomposition has not actually reduced complexity, it has only distributed it across more boundaries.
+If you cannot understand the purpose of one function without reading the
+internal logic of several others, you have over-decomposed. The decomposition
+has not actually reduced complexity, it has only distributed it across more
+boundaries.
 
-You don't need much indirection to make things really difficult for humans. The average person can hold only 3-5 pieces of information in working memory at a time. Each context switch, introduced by a new abstraction, however shallow the abstraction, takes up one of those slots. The more memory tokens we use up in trying to understand a piece of code, the more likely we are to let bugs slip through.
+You don't need much indirection to make things really difficult for humans. The
+average person can hold only 3-5 pieces of information in working memory at a
+time. Each context switch, introduced by a new abstraction, however shallow the
+abstraction, takes up one of those slots. The more memory tokens we use up in
+trying to understand a piece of code, the more likely we are to let bugs slip
+through.
 
-Abstraction should be a net remover of complexity. Don't introduce abstractions purely for the sake of separating concerns if that separation doesn't yield a noticeable reduction in overall system complexity.
+Abstraction should be a net remover of complexity. Don't introduce abstractions
+purely for the sake of separating concerns if that separation doesn't yield a
+noticeable reduction in overall system complexity.
 
-Not everything benefits from decomposition into abstractions. If it is desirable for the user of some code to know about its implementation details, then it's probably best if those implementation details are not abstracted away. Don't abstract things that would be better left explicit and visible. Think about the users of your code, and what knowledge they need to have in order to integrate with it, to analyze and debug it, and to maintain it.
+Not everything benefits from decomposition into abstractions. If it is desirable
+for the user of some code to know about its implementation details, then it's
+probably best if those implementation details are not abstracted away. Don't
+abstract things that would be better left explicit and visible. Think about the
+users of your code, and what knowledge they need to have in order to integrate
+with it, to analyze and debug it, and to maintain it.
 
 == Don't repeat yourself
 
-One of the objectives of abstraction is to promote code reuse. By decomposing "common patterns" into constructs like functions and modules, we can define those patterns once and reuse them in multiple contexts.
+One of the objectives of abstraction is to promote code reuse. By decomposing
+"common patterns" into constructs like functions and modules, we can define
+those patterns once and reuse them in multiple contexts.
 
-The principle of "don't repeat yourself" (DRY) states that we should use abstraction to extract and encapsulate discrete units of _knowledge_. This means having an abstraction for each distinct business rule or domain concept, which can then be reused in different contexts. The objective is to need to make changes to important business logic, domain entities, and data representations in only one place.
+The principle of "don't repeat yourself" (DRY) states that we should use
+abstraction to extract and encapsulate discrete units of _knowledge_. This means
+having an abstraction for each distinct business rule or domain concept, which
+can then be reused in different contexts. The objective is to need to make
+changes to important business logic, domain entities, and data representations
+in only one place.
 
-Somewhere along the way, "don't repeat yourself" came to be misunderstood as meaning "don't copy-and-paste any logic or data". It is wrongly viewed as a directive to eliminate all code duplication. But this interpretation leads to premature abstraction and tightly coupled code.
+Somewhere along the way, "don't repeat yourself" came to be misunderstood as
+meaning "don't copy-and-paste any logic or data". It is wrongly viewed as a
+directive to eliminate all code duplication. But this interpretation leads to
+premature abstraction and tightly coupled code.
 
-When two components contain what appears to be duplicate code, but when those components are semantically unrelated to one another, the code duplication is coincidental. If we extracted this replica code to a shared abstraction, we only optimize locally (fewer lines of code per module) but at the expense of increased system complexity (poorer modularity). We create a coupling between two modules, increasing the difficulty of evolving the behavior of each independently of the other.
+When two components contain what appears to be duplicate code, but when those
+components are semantically unrelated to one another, the code duplication is
+coincidental. If we extracted this replica code to a shared abstraction, we only
+optimize locally (fewer lines of code per module) but at the expense of
+increased system complexity (poorer modularity). We create a coupling between
+two modules, increasing the difficulty of evolving the behavior of each
+independently of the other.
 
-The true cost of complexity comes not from lines of code, but from _dependencies and indirection_. A small codebase with many abstractions can be more complex than a big codebase with less indirection.
+The true cost of complexity comes not from lines of code, but from _dependencies
+and indirection_. A small codebase with many abstractions can be more complex
+than a big codebase with less indirection.
 
-Modern tools — IDEs with static analysis, automated refactoring, and AI code assistants — have made the cost of code duplication much cheaper. Refactoring is easier than ever. This means we can afford to repeat code now and extract abstractions later, once we have high confidence the abstractions will be worthwhile. In other words, we should write everything twice (WET) before abstracting, to gain confidence that the planned abstraction will be stable and valuable.
+Modern tools — IDEs with static analysis, automated refactoring, and AI code
+assistants — have made the cost of code duplication much cheaper. Refactoring is
+easier than ever. This means we can afford to repeat code now and extract
+abstractions later, once we have high confidence the abstractions will be
+worthwhile. In other words, we should write everything twice (WET) before
+abstracting, to gain confidence that the planned abstraction will be stable and
+valuable.
