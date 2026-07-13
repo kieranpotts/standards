@@ -48,13 +48,29 @@ In this model, a single agent is responsible for the entire lifecycle of the tas
 
 For complex, large-scale projects, a hierarchical structure is often more effective: `TASK → SUPERVISOR AGENT → SUB-AGENTS → SOLUTION`.
 
-In a multi-agent system, a *supervisor agent* acts as the project manager. It decomposes the high-level task into smaller, specialized sub-tasks and delegates them to *sub-agents*.
+In a multi-agent system, a *supervisor agent*, aka. *orchestrator*, acts as the project manager. It decomposes the high-level task into smaller, specialized sub-tasks and delegates them to *sub-agents*.
 
 Those sub-agents may be specialized for specific roles (eg. a "Security Auditor" agent, a "Test Engineer" agent, or a "Documentation" agent).
 
-The supervisor aggregates the results from the subagents, ensures they are cohesive, and verifies the final outcome.
+The supervisor never sees the context of the subagents, but it captured their responses and aggregates the results, ensures they are cohesive, and verifies the final outcome.
 
 This architecture models real-world organizational structures and reduces the likelihood of a single agent becoming overwhelmed by a massive context window or a too-broad objective.
+
+=== When to upgrade from single-agent to multi-agent
+
+Single-agent systems are the recommended default. Upgrading to a multi-agent architecture introduces coordination overhead — aggregating results, reconciling conflicting outputs, and orchestrating handoffs — so it should be a deliberate response to a specific limitation, not a default posture. Reasons to upgrade include:
+
+* *Context management*: A single agent's context window fills with exploratory dead ends, tool output, and reasoning traces as a task grows. Splitting work across sub-agents keeps each agent's context focused on its own sub-task, improving reasoning quality and avoiding degradation as context grows.
+
+* *Parallelism*: Independent sub-tasks — eg. reviewing multiple files, or running security, performance, and style checks — can execute concurrently across sub-agents rather than serially in one agent, reducing wall-clock time.
+
+* *Specialization*: Different sub-tasks may benefit from different models or tool access, eg. an efficient model for mechanical execution versus a frontier model for planning (see <<Model tiering>>), or a sub-agent restricted to only the tools its role requires, tightening the permission surface (see <<Guides and sensors>>).
+
+* *Fault isolation*: A sub-agent that goes off track — through flawed reasoning or runaway tool use — is contained to its own sub-task. It can be retried or discarded without corrupting the context or state of the overall task, whereas a single agent's error compounds into everything downstream in the same session.
+
+* *Independent verification*: An agent reviewing another agent's output needs fresh context, uncontaminated by the implementer's reasoning, to judge that output fairly rather than sycophantically (see <<Guides and sensors>>, on inferential sensors).
+
+* *Reusability*: A well-scoped sub-agent (eg. a "Security Auditor" agent) becomes a composable unit that other workflows can invoke, not just the supervisor that first defined it (see <<Composable pipelines>>).
 
 == Model tiering
 
@@ -106,6 +122,20 @@ Sensors are further divided into two kinds:
 A good agent harness consists of a mix of both guides and sensors, and of both the deterministic and inferential kinds. An agent steered only by guides repeats the same undetected mistakes indefinitely. An agent checked only by sensors runs an expensive trial-and-error loop with no steering. Reliable agentic workflows need both.
 
 Where an inferential sensor is used, the agent reviewing the output MUST NOT be the same agent, in the same session, that produced it. Models exhibit sycophancy. An agent asked to critique its own recent work is biased toward judging it favorably, whereas a fresh agent with no visibility into the reasoning that produced the work is far more likely to surface real defects. Invoke inferential sensors as distinct agent sessions, and frame the evaluating agent adversarially — instructed to assume the work is broken and to actively verify that claim, rather than to assume it is correct and check for obvious problems — since the latter framing tends to produce agreement with whatever it reads.
+
+== Guarding against agent loops
+
+A recurring failure mode in agentic systems is the *agent loop*: an agent gets stuck repeating the same action without making progress, eg. a search agent that repeatedly re-issues the same web search because it cannot handle an unexpected response such as a redirect. Left unchecked, a looping agent burns tokens and time until it exhausts its context window, without producing a useful result.
+
+Guarding against this requires both a hard guide and a soft guide, working together:
+
+* *Tool quotas* (enforced): A hard cap, configured in the agent harness, on how many times a given tool may be called within an agent run. The harness counts each invocation and blocks any call that would exceed the limit, returning an error instead. Because this is enforced by the runtime rather than the model, it is a reliable backstop against runaway loops regardless of what the model does. This is a permission constraint, applied to call frequency rather than to which tools are accessible.
+
+* *Budget awareness* (advisory): A behavioral instruction, stated in the system prompt, that tells the agent what quotas apply to it, eg. "you have 15 web searches available for this task." An agent that knows its budget can plan and ration its tool use accordingly, working more conservatively as it approaches the limit. An agent with no visibility into its quotas has no reason to conserve, and will treat the hard cap as a wall it hits unexpectedly rather than a constraint it plans around. Note that budget awareness does not fully close off the failure mode: an agent can still work around a quota on itself by spawning sub-agents, each with its own fresh budget.
+
+Hard quotas alone are not enough, because an agent that does not know its budget cannot plan around it and will exhaust it unproductively. Soft budgets alone are not enough either, because advisory limits stated only in the prompt can be ignored or miscounted by the model. The two layers address different failure modes and SHOULD be used together.
+
+There is a trade-off in how tightly quotas are set. Tighter hard quotas keep agent runs fast and bounded in cost, but risk the agent hitting the limit before the task is complete. Looser quotas give the agent more freedom to be thorough — eg. exploring more search results before concluding — potentially producing better outcomes, at the cost of slower and more expensive runs.
 
 As models become more capable, the balance shifts between prescriptive guides and model judgment. Overly detailed or redundant behavioral instructions can conflict with the model's own reasoning, causing it to follow explicit rules that diverge from what the context suggests is correct.
 
