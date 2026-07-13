@@ -1,93 +1,163 @@
 = Principles
 
-Making good quality CLI programs requires giving attention to all the little design details that affect the user experience. It's about keeping the user informed at all times about what's happening. It's about explaining clearly why errors happened and how they can be resolved. It's about good validation, sensible defaults, reasonable timeouts, and so on.
+Making good quality CLI programs requires giving attention to all the little
+design details that affect the user experience. It's about keeping the user
+informed at all times about what's happening. It's about explaining clearly why
+errors happened and how they can be resolved. It's about good validation,
+sensible defaults, reasonable timeouts, and so on.
 
-This section sets out some design principles that will help you to think through all the little details of your CLI programs.
+This section sets out some design principles that will help you to think through
+all the little details of your CLI programs.
 
 == Composability
 
-Design CLI programs to be composable. This means that each program and subcommand should be designed do a small amount of work independently, but that it should be possible to combine multiple simple programs and commands to compose more complex operations. Your CLI programs might even be used by others in ways you did not anticipate.
+Design CLI programs to be composable. This means that each program and
+subcommand should be designed do a small amount of work independently, but that
+it should be possible to combine multiple simple programs and commands to
+compose more complex operations. Your CLI programs might even be used by others
+in ways you did not anticipate.
 
-This design principle is a key tenet of https://en.wikipedia.org/wiki/Unix_philosophy[the UNIX philosophy]. At a time of large-scale automation, in the form of CI/CD pipelines and container orchestration, this principle is as important today as it has ever been.
+This design principle is a key tenet of
+https://en.wikipedia.org/wiki/Unix_philosophy[the UNIX philosophy]. At a time of
+large-scale automation, in the form of CI/CD pipelines and container
+orchestration, this principle is as important today as it has ever been.
 
-Composable CLIs are achieved by following standard conventions for inputs and outputs for the program's runtime environment. In Unix-like environments, this means using standard in/out/err, signals, exit codes, arguments and flags, environment variables and other long-established conventions for input and output.
+Composable CLIs are achieved by following standard conventions for inputs and
+outputs for the program's runtime environment. In Unix-like environments, this
+means using standard in/out/err, signals, exit codes, arguments and flags,
+environment variables and other long-established conventions for input and
+output.
 
 == Design CLIs as conversations
 
-It is tempting to think about CLIs as programmatic interfaces, used in scripting and automation, rather than human interfaces. But we should design CLIs primarily with human users in mind. Even if a program is intended for use in automation, its client programs will still be developed by real people. Those people, the developers of the client programs, are the users.
+It is tempting to think about CLIs as programmatic interfaces, used in scripting
+and automation, rather than human interfaces. But we should design CLIs
+primarily with human users in mind. Even if a program is intended for use in
+automation, its client programs will still be developed by real people. Those
+people, the developers of the client programs, are the users.
 
-The user experience of a CLI should be like having a conversation with the computer.
+The user experience of a CLI should be like having a conversation with the
+computer.
 
-In CLIs, users provide input through a sequence of commands, each of which performs a specific task within a larger operation. For example, you `git add` files before you `git commit` them. The output of one command should guide the user to their next command. When the user inputs invalid data or uses an unsupported subcommand, the program should provide helpful suggestions or error messages to guide the user.
+In CLIs, users provide input through a sequence of commands, each of which
+performs a specific task within a larger operation. For example, you `git add`
+files before you `git commit` them. The output of one command should guide the
+user to their next command. When the user inputs invalid data or uses an
+unsupported subcommand, the program should provide helpful suggestions or error
+messages to guide the user.
 
-If the user enters an invalid command name, the program SHOULD suggest valid commands with similar spellings or semantics. For example, if the user inputs `upgrade`, the output might suggest the user try `update` or `install` instead. If the user inputs `ststus`, the output might suggest they meant `status`.
+If the user enters an invalid command name, the program SHOULD suggest valid
+commands with similar spellings or semantics. For example, if the user inputs
+`upgrade`, the output might suggest the user try `update` or `install` instead.
+If the user inputs `ststus`, the output might suggest they meant `status`.
 
-But you MUST NOT run the alternative operation without the user's explicit approval, unless it is a documented alias. Making assumptions about a user's intention can be dangerous, especially where operations may result in modified state.
+But you MUST NOT run the alternative operation without the user's explicit
+approval, unless it is a documented alias. Making assumptions about a user's
+intention can be dangerous, especially where operations may result in modified
+state.
 
 == Make CLIs discoverable
 
-CLIs should be self-documenting. Good help tests, with lots of examples, and suggestions on what commands the user might like to run next, and how they can fix errors – all of these things help users to _discover_ a program for themselves.
+CLIs should be self-documenting. Good help tests, with lots of examples, and
+suggestions on what commands the user might like to run next, and how they can
+fix errors – all of these things help users to _discover_ a program for
+themselves.
 
 == Communicate state changes
 
-If the program changes state, inform the user. This is especially important when a program enters intermediate state, while waiting for further user input, or when a failure mode puts the system into an invalid state.
+If the program changes state, inform the user. This is especially important when
+a program enters intermediate state, while waiting for further user input, or
+when a failure mode puts the system into an invalid state.
 
-Make it easy for the user to inspect the current state of CLI programs. The Git operation `git status` is a good model for this.
+Make it easy for the user to inspect the current state of CLI programs. The Git
+operation `git status` is a good model for this.
 
 == Control output
 
-An essential design choice for CLI programs is the amount of output they produce by default. The optimum balance between too much and too little output will vary depending on the use cases of the program.
+An essential design choice for CLI programs is the amount of output they produce
+by default. The optimum balance between too much and too little output will vary
+depending on the use cases of the program.
 
-Users should be able to control the amount of output, for example by using `--quiet` and/or `--verbose` flags. It may also be desirable to allow users to control output formats, too. Flags such as `--plain` and `--json` are commonly used for this purpose.
+Users should be able to control the amount of output, for example by using
+`--quiet` and/or `--verbose` flags. It may also be desirable to allow users to
+control output formats, too. Flags such as `--plain` and `--json` are commonly
+used for this purpose.
 
 == Be responsive
 
-CLIs should respond quickly to user input. This means providing feedback in under 100ms and keeping the user informed of the progress of long operations, eg. using progress bars.
+CLIs should respond quickly to user input. This means providing feedback in
+under 100ms and keeping the user informed of the progress of long operations,
+eg. using progress bars.
 
-If you need to make a network request, try to do it in a non-blocking way. If that is not possible or desirable, print something before you initialize the request, so the UI doesn't hang and look broken if the network request times out. Set sensible defaults for network timeouts, and allow the user to override the default configuration.
+If you need to make a network request, try to do it in a non-blocking way. If
+that is not possible or desirable, print something before you initialize the
+request, so the UI doesn't hang and look broken if the network request times
+out. Set sensible defaults for network timeouts, and allow the user to override
+the default configuration.
 
 A responsive program _feels_ robust and dependable.
 
 == Parallelism
 
-Do stuff in parallel where you can, to speed up operations. But only do this if it can be done reliably. It is more important to be responsive and robust, than to be fast.
+Do stuff in parallel where you can, to speed up operations. But only do this if
+it can be done reliably. It is more important to be responsive and robust, than
+to be fast.
 
 == Crash-only
 
-Design your CLI as a "crash-only" program. This means that the program should exit immediately on failure or user interruption (`Ctrl+C`).
+Design your CLI as a "crash-only" program. This means that the program should
+exit immediately on failure or user interruption (`Ctrl+C`).
 
-Besides being safer, this also makes CLI programs _feel_ more responsive and robust.
+Besides being safer, this also makes CLI programs _feel_ more responsive and
+robust.
 
 == Idempotency
 
-Make requests idempotent where possible. This means that if a command fails, the user should be able to retry the command – simply by pressing `Up` and `Enter` – without causing unintended side effects.
+Make requests idempotent where possible. This means that if a command fails, the
+user should be able to retry the command – simply by pressing `Up` and `Enter` –
+without causing unintended side effects.
 
 == Defensive programming
 
-In designing a CLI, think through all the ways that users could misuse it. Ask yourself, how does the program perform when:
+In designing a CLI, think through all the ways that users could misuse it. Ask
+yourself, how does the program perform when:
 
 * it is used in a script;
 * when the user has a bad network connection;
 * when the user runs multiple instances of it at once;
 * when it runs in an unsupported environment.
 
-Plan and test for these use case scenarios. Fail gracefully whenever the program cannot handle the user's input or is otherwise unable to guarantee correct operation for whatever reason.
+Plan and test for these use case scenarios. Fail gracefully whenever the program
+cannot handle the user's input or is otherwise unable to guarantee correct
+operation for whatever reason.
 
 == Future proofing
 
-In software of any kind, it is important that interfaces do not change erratically. This is especially important in CLI programs, which are commonly dependencies of other programs.
+In software of any kind, it is important that interfaces do not change
+erratically. This is especially important in CLI programs, which are commonly
+dependencies of other programs.
 
-Subcommands, arguments, flags, configuration files, environment variables – these are all interfaces, and once your program starts using them you are committing to keeping them stable.
+Subcommands, arguments, flags, configuration files, environment variables –
+these are all interfaces, and once your program starts using them you are
+committing to keeping them stable.
 
-Major versions SHOULD endure with non-breaking changes for as long as possible – preferably indefinitely, for the whole lifespan of the program.
+Major versions SHOULD endure with non-breaking changes for as long as possible –
+preferably indefinitely, for the whole lifespan of the program.
 
 [quote, Linus Torvalds]
 ____
 We do not break userspace.
 ____
 
-Keep changes additive where you can. For example, rather than modifying the behavior of a flag (which would be backwards-incompatible), prefer instead to add a new flag. To avoid bloating the interface, the old flag can be marked as deprecated – but not removed until the next major version bump.
+Keep changes additive where you can. For example, rather than modifying the
+behavior of a flag (which would be backwards-incompatible), prefer instead to
+add a new flag. To avoid bloating the interface, the old flag can be marked as
+deprecated – but not removed until the next major version bump.
 
-Warn your users about deprecated operations. This gives them a chance to update their clients before they are broken by the next major release of your program.
+Warn your users about deprecated operations. This gives them a chance to update
+their clients before they are broken by the next major release of your program.
 
-Avoid creating time-bombs. Think about the future – how might your program work 5, 10, 20 years from now? Can you guarantee it will still work in the same way? If you cannot guarantee this – due to dependencies on external components or services, for example – be sure to clearly document the reasons why.
+Avoid creating time-bombs. Think about the future – how might your program work
+5, 10, 20 years from now? Can you guarantee it will still work in the same way?
+If you cannot guarantee this – due to dependencies on external components or
+services, for example – be sure to clearly document the reasons why.
