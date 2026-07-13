@@ -1,88 +1,183 @@
 = PR config
 
-Pull request (PR) and code review systems are essential infrastructure in collaborative development. These systems are typically deeply integrated into upstream reference repositories, where they serve as gatekeepers for code quality and provide a mechanism for enforcing workflow constraints. One of the key controls is the set of merge types permitted on the target branch.
+Pull request (PR) and code review systems are essential infrastructure in
+collaborative development. These systems are typically deeply integrated into
+upstream reference repositories, where they serve as gatekeepers for code
+quality and provide a mechanism for enforcing workflow constraints. One of the
+key controls is the set of merge types permitted on the target branch.
 
 == When to use pull requests
 
-Pull requests are a useful tool, but they are not a universal default. This standard prioritizes *continuous integration* over PR-gated review, because PR-gated workflows introduce significant costs:
+Pull requests are a useful tool, but they are not a universal default. This
+standard prioritizes *continuous integration* over PR-gated review, because
+PR-gated workflows introduce significant costs:
 
-* *Blocked progress* — A change cannot be merged until reviewers sign off. Authors wait for reviewers; reviewers wait on context.
-* *Context switching* — Reviewers are pulled from their own work to read and understand somebody else's; authors are pulled back to address feedback after they have moved on. Both forms of switching reduce productive output.
-* *Slow integration* — Every minute a change spends in a PR is a minute it isn't integrated. Long PR queues encourage long-lived branches, which encourages bigger PRs, which take longer to review. The cycle reinforces itself.
+* *Blocked progress* — A change cannot be merged until reviewers sign off.
+Authors wait for reviewers; reviewers wait on context.
+* *Context switching* — Reviewers are pulled from their own work to read and
+understand somebody else's; authors are pulled back to address feedback after
+they have moved on. Both forms of switching reduce productive output.
+* *Slow integration* — Every minute a change spends in a PR is a minute it isn't
+integrated. Long PR queues encourage long-lived branches, which encourages
+bigger PRs, which take longer to review. The cycle reinforces itself.
 
-The *trunk* and *branch* workflows described in *link:./workflows.adoc[]* allow continuous integration without PR gates. Quality is maintained by:
+The *trunk* and *branch* workflows described in *link:./workflows.adoc[]* allow
+continuous integration without PR gates. Quality is maintained by:
 
-* *Pair (or mob) programming* — code review happens in parallel to implementation, in real time. By the time the change reaches `dev`, it has already been reviewed.
-* *Strong automated checks* in the delivery pipeline — linting, formatting, type-checking, unit tests, integration tests, secret scanning, security scanning. These provide consistent, fast feedback without human latency.
+* *Pair (or mob) programming* — code review happens in parallel to
+implementation, in real time. By the time the change reaches `dev`, it has
+already been reviewed.
+* *Strong automated checks* in the delivery pipeline — linting, formatting,
+type-checking, unit tests, integration tests, secret scanning, security
+scanning. These provide consistent, fast feedback without human latency.
 
-PRs SHOULD be reserved for cases where the workflow specifically requires them: external contributions via the *fork workflow*, and the integration of *epic branches*, where a long-lived branch's accumulated history must be reviewed and squash-merged as a coherent unit. Minimising the number of epic branches in favour of small, continuously-integrated changes is itself a goal.
+PRs SHOULD be reserved for cases where the workflow specifically requires them:
+external contributions via the *fork workflow*, and the integration of *epic
+branches*, where a long-lived branch's accumulated history must be reviewed and
+squash-merged as a coherent unit. Minimising the number of epic branches in
+favour of small, continuously-integrated changes is itself a goal.
 
-For internal contributors with write access, the trunk or branch workflow is RECOMMENDED. Where a PR is opened, the guidance in the rest of this document applies.
+For internal contributors with write access, the trunk or branch workflow is
+RECOMMENDED. Where a PR is opened, the guidance in the rest of this document
+applies.
 
 == Target branch
 
-All pull requests MUST target the development trunk (`dev`, or `<version>/dev` in projects with parallel LTS pipelines — see *link:./long-term-support.adoc[]*). New work does not enter the pipeline at any other point. The `test`, `ready`, and release branches are downstream of `dev` and are populated only via the automated promotion described in *link:./branches.adoc[]*. PRs to those downstream branches MUST be rejected by repository configuration.
+All pull requests MUST target the development trunk (`dev`, or `<version>/dev`
+in projects with parallel LTS pipelines — see
+*link:./long-term-support.adoc[]*). New work does not enter the pipeline at any
+other point. The `test`, `ready`, and release branches are downstream of `dev`
+and are populated only via the automated promotion described in
+*link:./branches.adoc[]*. PRs to those downstream branches MUST be rejected by
+repository configuration.
 
 == Merge types
 
-Different merge strategies produce different commit histories, each with different tradeoffs.
+Different merge strategies produce different commit histories, each with
+different tradeoffs.
 
-* *Basic merge (non-fast-forward)* — Preserves non-linear history exactly as it happened during development. Simple to understand, but results in a very noisy history that is not particularly useful for auditing or understanding why changes were made.
+* *Basic merge (non-fast-forward)* — Preserves non-linear history exactly as it
+happened during development. Simple to understand, but results in a very noisy
+history that is not particularly useful for auditing or understanding why
+changes were made.
 
-* *Rebase and fast-forward* — Creates a linear history by replaying the source branch commits onto the target branch without a merge commit. Effective and produces a clean history, but is an advanced workflow that can be dangerous (because it rewrites history) and difficult for less experienced developers to understand.
+* *Rebase and fast-forward* — Creates a linear history by replaying the source
+branch commits onto the target branch without a merge commit. Effective and
+produces a clean history, but is an advanced workflow that can be dangerous
+(because it rewrites history) and difficult for less experienced developers to
+understand.
 
-* *Rebase with merge commit* — Creates a semi-linear history by replaying the source branch commits onto the target branch and then creating a merge commit. Offers a middle ground between rebase-only and basic merge, but combines some of the complexity of rebasing with some of the verbosity of merge commits.
+* *Rebase with merge commit* — Creates a semi-linear history by replaying the
+source branch commits onto the target branch and then creating a merge commit.
+Offers a middle ground between rebase-only and basic merge, but combines some of
+the complexity of rebasing with some of the verbosity of merge commits.
 
-* *Squash-merge* — Creates a linear history by condensing all commits from the source branch into a single new commit on the target branch. Strips intermediate development history but produces a clean, atomic commit on the trunk. Requires that the source branch be deleted after the merge, since the squashed commit is not linked to the original commits.
+* *Squash-merge* — Creates a linear history by condensing all commits from the
+source branch into a single new commit on the target branch. Strips intermediate
+development history but produces a clean, atomic commit on the trunk. Requires
+that the source branch be deleted after the merge, since the squashed commit is
+not linked to the original commits.
 
 == Recommended configuration
 
-This technical standard RECOMMENDS the following PR merge configuration on the development trunk:
+This technical standard RECOMMENDS the following PR merge configuration on the
+development trunk:
 
-* **Rebase and fast-forward** — RECOMMENDED for integrating temporary branches (`temp/*`) into `dev`. This is consistent with the local Git CLI workflow described in *link:./integrations.adoc[]*. Temporary branches are short-lived and have clean, linear histories that are worth preserving as discrete commits on the trunk.
+* **Rebase and fast-forward** — RECOMMENDED for integrating temporary branches
+(`temp/*`) into `dev`. This is consistent with the local Git CLI workflow
+described in *link:./integrations.adoc[]*. Temporary branches are short-lived
+and have clean, linear histories that are worth preserving as discrete commits
+on the trunk.
 
-* **Squash-merge** — RECOMMENDED for integrating epic branches (`epic/*`) into `dev`. Epic branches accumulate weeks or months of intermediate commits, including merge-down commits from `dev` and incremental work-in-progress. Squash-merge consolidates this history into a single meaningful commit on the trunk.
+* **Squash-merge** — RECOMMENDED for integrating epic branches (`epic/*`) into
+`dev`. Epic branches accumulate weeks or months of intermediate commits,
+including merge-down commits from `dev` and incremental work-in-progress.
+Squash-merge consolidates this history into a single meaningful commit on the
+trunk.
 
-* **Basic merge** and **rebase with merge commit** — NOT RECOMMENDED, since they produce non-linear or otherwise noisy histories that undermine the *provenance* objective.
+* **Basic merge** and **rebase with merge commit** — NOT RECOMMENDED, since they
+produce non-linear or otherwise noisy histories that undermine the *provenance*
+objective.
 
-No merge configuration applies to spike branches (`spike/*`), since they are exploratory and never integrated into any trunk (see *link:./branches.adoc[]*). A spike MAY still have a draft PR opened against it as a forum for discussing the approach (see *Draft / work-in-progress PRs* below), but that PR is closed rather than merged.
+No merge configuration applies to spike branches (`spike/*`), since they are
+exploratory and never integrated into any trunk (see *link:./branches.adoc[]*).
+A spike MAY still have a draft PR opened against it as a forum for discussing
+the approach (see *Draft / work-in-progress PRs* below), but that PR is closed
+rather than merged.
 
-The choice of strategy is driven by the type of source branch, not by the workflow used to integrate it. Whether the integration happens locally via the Git CLI or via a pull request, the same merge type applies for a given source branch type.
+The choice of strategy is driven by the type of source branch, not by the
+workflow used to integrate it. Whether the integration happens locally via the
+Git CLI or via a pull request, the same merge type applies for a given source
+branch type.
 
 == Code owners
 
-Repositories SHOULD include a code owners file (typically `CODEOWNERS` at the repository root or under `.github/`, `.gitlab/`, etc., depending on the hosting provider's convention) that maps paths in the repository to the teams or individuals responsible for reviewing changes to those paths.
+Repositories SHOULD include a code owners file (typically `CODEOWNERS` at the
+repository root or under `.github/`, `.gitlab/`, etc., depending on the hosting
+provider's convention) that maps paths in the repository to the teams or
+individuals responsible for reviewing changes to those paths.
 
-When a pull request is opened, the PR system uses the code owners file to automatically request reviews from the relevant owners. Owners MAY also be configured as required approvers, gating merge until at least one owner has signed off.
+When a pull request is opened, the PR system uses the code owners file to
+automatically request reviews from the relevant owners. Owners MAY also be
+configured as required approvers, gating merge until at least one owner has
+signed off.
 
 Code owners files serve several purposes:
 
-* *Reviewer routing* — contributors don't need to know who to ask; the right people are notified automatically.
-* *Knowledge sharing* — new contributors can read the file to understand who maintains what.
-* *Security and quality gates* — sensitive paths (eg. authentication, payment processing, infrastructure-as-code) can require approval from designated owners.
+* *Reviewer routing* — contributors don't need to know who to ask; the right
+people are notified automatically.
+* *Knowledge sharing* — new contributors can read the file to understand who
+maintains what.
+* *Security and quality gates* — sensitive paths (eg. authentication, payment
+processing, infrastructure-as-code) can require approval from designated owners.
 
-Code owners SHOULD be teams rather than individuals where possible, so review coverage is preserved when an individual is unavailable. Individuals MAY be combined with team listings for redundancy.
+Code owners SHOULD be teams rather than individuals where possible, so review
+coverage is preserved when an individual is unavailable. Individuals MAY be
+combined with team listings for redundancy.
 
 == Task lists in PR descriptions
 
-Pull request descriptions SHOULD use task lists (Markdown checkboxes) for any non-trivial change. They give the author a self-checklist (tests added, docs updated, migration steps documented), give reviewers a quick view of what's done and what's outstanding, and — for work spanning multiple PRs — make dependencies explicit. Most PR systems aggregate nested task lists across linked issues and PRs.
+Pull request descriptions SHOULD use task lists (Markdown checkboxes) for any
+non-trivial change. They give the author a self-checklist (tests added, docs
+updated, migration steps documented), give reviewers a quick view of what's done
+and what's outstanding, and — for work spanning multiple PRs — make dependencies
+explicit. Most PR systems aggregate nested task lists across linked issues and
+PRs.
 
 == PR titles
 
-A PR title becomes the commit message on the trunk when the PR is squash-merged. PR titles SHOULD therefore follow the same revision header conventions as commit subject lines (see *link:./commits.adoc[]*): a lowercase type prefix, an optional scope, the BREAKING/INCOMPAT flag where applicable, and a concise imperative subject. For example: `feature(auth): add OAuth device flow` or `fix: handle empty cart on checkout`.
+A PR title becomes the commit message on the trunk when the PR is squash-merged.
+PR titles SHOULD therefore follow the same revision header conventions as commit
+subject lines (see *link:./commits.adoc[]*): a lowercase type prefix, an
+optional scope, the BREAKING/INCOMPAT flag where applicable, and a concise
+imperative subject. For example: `feature(auth): add OAuth device flow` or `fix:
+handle empty cart on checkout`.
 
-For temp-branch PRs that are rebased and fast-forwarded, the PR title is informational only — the original commit subjects land on the trunk verbatim — but using the same convention keeps PR lists consistent with trunk history.
+For temp-branch PRs that are rebased and fast-forwarded, the PR title is
+informational only — the original commit subjects land on the trunk verbatim —
+but using the same convention keeps PR lists consistent with trunk history.
 
 == Draft / work-in-progress PRs
 
-Most PR systems support marking a PR as a *draft* or *work-in-progress* (WIP). This signals that the PR is open for review and discussion but not yet ready for merge.
+Most PR systems support marking a PR as a *draft* or *work-in-progress* (WIP).
+This signals that the PR is open for review and discussion but not yet ready for
+merge.
 
-PRs are dual-purpose: they request a merge, but they are also a forum for code review. Opening a draft PR on an actively-developed branch creates an asynchronous review channel — the team can comment on the work in progress, suggest improvements, or commit fixes directly to the branch — without committing to merge yet. When the work is ready, the draft status is cleared and the PR is reviewed for final approval.
+PRs are dual-purpose: they request a merge, but they are also a forum for code
+review. Opening a draft PR on an actively-developed branch creates an
+asynchronous review channel — the team can comment on the work in progress,
+suggest improvements, or commit fixes directly to the branch — without
+committing to merge yet. When the work is ready, the draft status is cleared and
+the PR is reviewed for final approval.
 
 This pattern is particularly useful for:
 
 * *Long-running features* where regular pair or mob programming is not viable.
-* *Spike work* where the team wants to discuss the approach before the implementation is finalised.
-* *Cross-team coordination* where stakeholders outside the immediate development team need visibility into work-in-progress.
+* *Spike work* where the team wants to discuss the approach before the
+implementation is finalised.
+* *Cross-team coordination* where stakeholders outside the immediate development
+team need visibility into work-in-progress.
 
-Draft PRs do not change the prioritisation of continuous integration. The work itself MUST still land on `dev` as soon as it is complete and stable — a draft PR is not a license to keep work isolated indefinitely.
+Draft PRs do not change the prioritisation of continuous integration. The work
+itself MUST still land on `dev` as soon as it is complete and stable — a draft
+PR is not a license to keep work isolated indefinitely.

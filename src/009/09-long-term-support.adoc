@@ -1,12 +1,31 @@
 = Long-term support
 
-So far we've assumed there is a single trunk line, in which changes in code and configuration flow from `dev` via `test` to `ready` and, ultimately, to `release`, where versions are tagged. This works fine for projects that only support a single major version of the software at a time, and where the sequence of releases is monotonic: 1.0.0 → 1.0.1 → 1.0.2 → 1.1.0 → 1.2.0 → 2.0.0 → 2.1.0 → 2.2.0 → 3.0.0, etc. This will be true of most web applications and other products where updates can be continuously deployed to well-controlled production environments.
+So far we've assumed there is a single trunk line, in which changes in code and
+configuration flow from `dev` via `test` to `ready` and, ultimately, to
+`release`, where versions are tagged. This works fine for projects that only
+support a single major version of the software at a time, and where the sequence
+of releases is monotonic: 1.0.0 → 1.0.1 → 1.0.2 → 1.1.0 → 1.2.0 → 2.0.0 → 2.1.0
+→ 2.2.0 → 3.0.0, etc. This will be true of most web applications and other
+products where updates can be continuously deployed to well-controlled
+production environments.
 
-But this does not scale to projects that need to support multiple major versions of the software in parallel. This is necessary for long-term support (LTS), a product development strategy in which legacy releases are supported with bug fixes and security patches for a guaranteed time. In this case, the chronological sequence of releases may not be monotonic, eg. 1.0.0 → 1.1.0 → 1.2.0 → 1.3.0 → *1.2.1* → *1.1.1*. This strategy is common for desktop and mobile software, and elsewhere where the software vendor does not control the host environments in which the software is installed.
+But this does not scale to projects that need to support multiple major versions
+of the software in parallel. This is necessary for long-term support (LTS), a
+product development strategy in which legacy releases are supported with bug
+fixes and security patches for a guaranteed time. In this case, the
+chronological sequence of releases may not be monotonic, eg. 1.0.0 → 1.1.0 →
+1.2.0 → 1.3.0 → *1.2.1* → *1.1.1*. This strategy is common for desktop and
+mobile software, and elsewhere where the software vendor does not control the
+host environments in which the software is installed.
 
-To enable long-term support, we need to have multiple deployment pipelines, one for each supported version of the software. This extension supports the objective of scalability, allowing your team to maintain multiple versions in parallel. We can achieve this quite easily. All we need to do is extend our branch naming convention.
+To enable long-term support, we need to have multiple deployment pipelines, one
+for each supported version of the software. This extension supports the
+objective of scalability, allowing your team to maintain multiple versions in
+parallel. We can achieve this quite easily. All we need to do is extend our
+branch naming convention.
 
-We start by prefixing all of our existing branches with the word "latest" followed by a forward-slash character:
+We start by prefixing all of our existing branches with the word "latest"
+followed by a forward-slash character:
 
 * `dev` → `latest/dev`
 * `test` → `latest/test`
@@ -14,11 +33,27 @@ We start by prefixing all of our existing branches with the word "latest" follow
 * `release(/**)` → `latest/release(/**)`
 * `temp/**` → `latest/temp/**`
 
-The default branch is now `latest/dev`. All the trunks and branches prefixed `latest/` represent the main delivery pipeline for the project – the current major version of the software.
+The default branch is now `latest/dev`. All the trunks and branches prefixed
+`latest/` represent the main delivery pipeline for the project – the current
+major version of the software.
 
-Although the `latest/` prefix is introduced here to support multiple parallel pipelines, it is RECOMMENDED to adopt it from the outset even for projects that expect to run only a single pipeline — including continuously-released software like web apps. The cost is negligible, and it reserves the option to spin up a second pipeline later without renaming the established trunks or reconfiguring everything that references them. Parallel development of two versions of a single application is occasionally desirable in every kind of software: a big-bang rewrite, a disruptive framework migration, or a redesign that you want to mature on its own pipeline before it supersedes the current one are all cases where separating the next version from the current one is valuable, even when only one version is ever released to production at a time. Starting with `latest/dev` rather than `dev` means that, when such a moment arrives, the current line is already correctly named and only the new line needs to be created.
+Although the `latest/` prefix is introduced here to support multiple parallel
+pipelines, it is RECOMMENDED to adopt it from the outset even for projects that
+expect to run only a single pipeline — including continuously-released software
+like web apps. The cost is negligible, and it reserves the option to spin up a
+second pipeline later without renaming the established trunks or reconfiguring
+everything that references them. Parallel development of two versions of a
+single application is occasionally desirable in every kind of software: a
+big-bang rewrite, a disruptive framework migration, or a redesign that you want
+to mature on its own pipeline before it supersedes the current one are all cases
+where separating the next version from the current one is valuable, even when
+only one version is ever released to production at a time. Starting with
+`latest/dev` rather than `dev` means that, when such a moment arrives, the
+current line is already correctly named and only the new line needs to be
+created.
 
-Let's assume that the current major version of the software is v3. We can continue to support v2, too, via the following branches:
+Let's assume that the current major version of the software is v3. We can
+continue to support v2, too, via the following branches:
 
 * `v2/dev`
 * `v2/test`
@@ -34,11 +69,22 @@ And v1, too:
 * `v1/release(/**)`
 * `v1/temp/**`
 
-We now have three delivery pipelines. Each pipeline has its own development, testing, production-ready, and release trunks, as well as its own temporary branches that are cut from the pipeline's development trunk. Parallel maintenance and development of multiple long-term support versions is now possible. Feature development on the latest major version of the software flows through the `latest/**` branches. Meanwhile patches for the legacy v2 and v1 releases can be managed using an identical workflow via a group of branches that are prefixed `v2/**` and `v1/**` respectively.
+We now have three delivery pipelines. Each pipeline has its own development,
+testing, production-ready, and release trunks, as well as its own temporary
+branches that are cut from the pipeline's development trunk. Parallel
+maintenance and development of multiple long-term support versions is now
+possible. Feature development on the latest major version of the software flows
+through the `latest/**` branches. Meanwhile patches for the legacy v2 and v1
+releases can be managed using an identical workflow via a group of branches that
+are prefixed `v2/**` and `v1/**` respectively.
 
-It's very flexible. Each LTS version can even have subtly different workflows. Perhaps the `latest/**` pipeline has more quality gates than the legacy `v1/**` pipeline does. Each pipeline can deploy to different environments and have different release strategies, as necessary.
+It's very flexible. Each LTS version can even have subtly different workflows.
+Perhaps the `latest/**` pipeline has more quality gates than the legacy `v1/**`
+pipeline does. Each pipeline can deploy to different environments and have
+different release strategies, as necessary.
 
-Now imagine you want to start work on v4. All you do is create new branches from each of the `latest/**` branches:
+Now imagine you want to start work on v4. All you do is create new branches from
+each of the `latest/**` branches:
 
 * `latest/dev` → `v3/dev`
 * `latest/test` → `v3/test`
@@ -46,31 +92,65 @@ Now imagine you want to start work on v4. All you do is create new branches from
 * `latest/release(/**)` → `v3/release(/**)`
 * `latest/temp/**` → `v3/temp/**`
 
-Support for v3 now continues via the new `v3/**` branches, while v4 is promoted to the latest LTS pipeline.
+Support for v3 now continues via the new `v3/**` branches, while v4 is promoted
+to the latest LTS pipeline.
 
-LTS branches MAY be deleted once a particular major version reaches its end-of-life. The release checkpoints in that major version will still exist in the repository's history, marked by version tags.
+LTS branches MAY be deleted once a particular major version reaches its
+end-of-life. The release checkpoints in that major version will still exist in
+the repository's history, marked by version tags.
 
 == Patching across multiple pipelines
 
-When a bug is discovered in multiple maintained versions, it is RECOMMENDED to introduce the fix to the latest version first, then cherry-pick it backwards to older versions. This "upstream first" approach ensures the fix is merged first into the default main line of development, which helps to prevent the same bug from surfacing again in future releases. This practice supports the objective of provenance, ensuring that all bug fixes are traceable to their origin in the primary development line.
+When a bug is discovered in multiple maintained versions, it is RECOMMENDED to
+introduce the fix to the latest version first, then cherry-pick it backwards to
+older versions. This "upstream first" approach ensures the fix is merged first
+into the default main line of development, which helps to prevent the same bug
+from surfacing again in future releases. This practice supports the objective of
+provenance, ensuring that all bug fixes are traceable to their origin in the
+primary development line.
 
-When backporting fixes to older LTS versions, if the versions have diverged significantly, additional commits may be needed to handle conflicts. In the worst case, you may need to patch each version separately.
+When backporting fixes to older LTS versions, if the versions have diverged
+significantly, additional commits may be needed to handle conflicts. In the
+worst case, you may need to patch each version separately.
 
-Each additional maintained version multiplies the coordination overhead. A single patch may need to be integrated into the `latest/dev` trunk and multiple legacy development trunks, and the same patch will need to flow through multiple delivery pipelines, repeating testing and release processes in each. For this reason, it is RECOMMENDED to limit the total number of legacy versions you maintain in parallel.
+Each additional maintained version multiplies the coordination overhead. A
+single patch may need to be integrated into the `latest/dev` trunk and multiple
+legacy development trunks, and the same patch will need to flow through multiple
+delivery pipelines, repeating testing and release processes in each. For this
+reason, it is RECOMMENDED to limit the total number of legacy versions you
+maintain in parallel.
 
 == Release branches versus LTS pipelines
 
-It is important not to confuse release branches with LTS pipelines. They serve different purposes. Release branches (`release(/**)`) exist to support the preparation of point releases, such as v1.2.3. LTS pipelines are groupings of trunks and branches that exist to support the continuation of point releases across multiple major versions, such as `v1` and `v2`.
+It is important not to confuse release branches with LTS pipelines. They serve
+different purposes. Release branches (`release(/**)`) exist to support the
+preparation of point releases, such as v1.2.3. LTS pipelines are groupings of
+trunks and branches that exist to support the continuation of point releases
+across multiple major versions, such as `v1` and `v2`.
 
 == Naming convention variations
 
-Instead of the `latest/` prefix for the current major LTS release, you MAY choose to be explicit about the version number. For example, `latest/dev` would be `v4/dev`, and `latest/test` becomes `v4/test`. The main advantages are better clarity and the immutability of branch names in LTS pipelines, which may reduce the effort needed when bumping a major version number (eg. reconfiguring CI/CD pipelines).
+Instead of the `latest/` prefix for the current major LTS release, you MAY
+choose to be explicit about the version number. For example, `latest/dev` would
+be `v4/dev`, and `latest/test` becomes `v4/test`. The main advantages are better
+clarity and the immutability of branch names in LTS pipelines, which may reduce
+the effort needed when bumping a major version number (eg. reconfiguring CI/CD
+pipelines).
 
-The main advantage of using the `latest/` prefix is that you don't need to update the name of the default branch whenever you start work on a new major version. The default branch is always `latest/dev`.
+The main advantage of using the `latest/` prefix is that you don't need to
+update the name of the default branch whenever you start work on a new major
+version. The default branch is always `latest/dev`.
 
-An alternative naming convention is to use the `next/` prefix instead of `latest/`, or even alongside it as another LTS pipeline. This might make sense when the "latest release" (ie. what is currently in production) is distinct from the "next release" (ie. the one you are currently working on but haven't released yet). "Next" clearly signals "this is the upcoming version", while "latest" signals "this is the current version".
+An alternative naming convention is to use the `next/` prefix instead of
+`latest/`, or even alongside it as another LTS pipeline. This might make sense
+when the "latest release" (ie. what is currently in production) is distinct from
+the "next release" (ie. the one you are currently working on but haven't
+released yet). "Next" clearly signals "this is the upcoming version", while
+"latest" signals "this is the current version".
 
-We've assumed that your LTS versions will correspond to a major version of the Semantic Versioning standard. If you follow a different versioning scheme, just go ahead and adjust the naming convention as appropriate.
+We've assumed that your LTS versions will correspond to a major version of the
+Semantic Versioning standard. If you follow a different versioning scheme, just
+go ahead and adjust the naming convention as appropriate.
 
 * `v2.4/dev`
 * `v2.4-LTS/dev`
@@ -80,4 +160,8 @@ We've assumed that your LTS versions will correspond to a major version of the S
 * `birch/dev`
 * `cedar/dev`
 
-Whatever numbering scheme you use, it is RECOMMENDED to use the forward-slash character (`/`) as the delimiter. Many Git GUIs will automatically collapse branch lists into a tree-like structure based on the position of this delimiter character, making it easy to navigate the list of branches within each LTS pipeline.
+Whatever numbering scheme you use, it is RECOMMENDED to use the forward-slash
+character (`/`) as the delimiter. Many Git GUIs will automatically collapse
+branch lists into a tree-like structure based on the position of this delimiter
+character, making it easy to navigate the list of branches within each LTS
+pipeline.
