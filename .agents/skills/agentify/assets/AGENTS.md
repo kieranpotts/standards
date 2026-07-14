@@ -8,13 +8,13 @@ Do NOT use this when <exceptions>.
 
 ## Rules
 
--   **<Rule 1.>**
+- **<Rule 1.>**
 
-    <Details.>
+  <Details.>
 
--   **<Rule 2.>**
+- **<Rule 2.>**
 
-    <Details.>
+  <Details.>
 
 ## Examples
 
