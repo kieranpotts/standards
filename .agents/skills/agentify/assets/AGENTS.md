@@ -8,17 +8,13 @@ Do NOT use this when <exceptions>.
 
 ## Rules
 
-The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT,
-OPTIONAL, and MAY are to be interpreted as described in
-[IETF RFC 2119](https://www.ietf.org/rfc/rfc2119.txt).
+-   **<Rule 1.>**
 
-- **<Rule 1.>**
+    <Details.>
 
-  <Details.>
+-   **<Rule 2.>**
 
-- **<Rule 2.>**
-
-  <Details.>
+    <Details.>
 
 ## Examples
 
