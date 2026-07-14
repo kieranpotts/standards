@@ -1,4 +1,4 @@
-# TS-32: Bash Standards
+# TS-32: Bash
 
 This is a compact version of technical standard TS-32 for AI agents.
 

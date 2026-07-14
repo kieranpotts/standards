@@ -1,4 +1,4 @@
-# TS-1: Requirements Specification
+# TS-1: Software Requirements Specification
 
 This is a compact version of technical standard TS-1 for AI agents.
 
