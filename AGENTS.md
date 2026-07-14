@@ -75,3 +75,12 @@ The language, formatting, file-naming, and content-structure conventions for
 authoring standards are defined in the [style guide](docs/style-guide.md). Those
 conventions are normative for all content under `src/`, and that document is the
 single source of truth for them.
+
+
+## Skills
+
+Skills specific to this project are installed in the
+[.agents/skills/](./.agents/skills/) directory.
+
+See that directory's README for a list of the available skills and their
+use cases.
