@@ -18,22 +18,7 @@ A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/ap
 
 ## 🔴 High Priority
 
-### 1. Deprecation Framework
-
-**Current state:** TS-21 has no deprecation guidance at all.
-
-**Missing:**
-- `x-deprecated` annotation in API specifications (OpenAPI) for marking deprecated elements
-- Deprecation of individual API elements: resources, methods, query parameters, headers, schema properties, enum values
-- Schemas for `x-deprecated`: `deprecatedResource`, `deprecatedParameter`, `deprecatedSchema`, `deprecatedSchemaProperty`
-- Runtime deprecation notification — custom response header to inform clients they've used deprecated elements
-- Requirement that deprecated elements must remain supported for the life of the major version
-
-**Target section:** New section or expand section 17 (`17-versioning.adoc`).
-
----
-
-### 2. API Lifecycle & EOL Policy
+### 1. API Lifecycle & EOL Policy
 
 **Current state:** Section 17 (`17-versioning.adoc`) covers the expanding contract pattern and basic breaking change rules, but is missing lifecycle and retirement guidance.
 
@@ -49,7 +34,7 @@ A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/ap
 
 ---
 
-### 3. Missing HTTP Status Codes & Method-to-Status Mapping
+### 2. Missing HTTP Status Codes & Method-to-Status Mapping
 
 **Current state:** Section 05 (`05-http-status-codes.adoc`) lists many status codes but is missing several and lacks mapping guidance.
 
@@ -71,7 +56,7 @@ A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/ap
 
 ## 🟡 Medium Priority
 
-### 4. JSON Schema & Primitive Type Guidance
+### 3. JSON Schema & Primitive Type Guidance
 
 **Current state:** TS-21 references TS-18 for JSON Schema guidance, but the PayPal standard has detailed rules that TS-21 doesn't surface.
 
@@ -90,7 +75,7 @@ A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/ap
 
 ---
 
-### 5. Common Types
+### 4. Common Types
 
 **Current state:** TS-21 references TS-18 for JSON Schema common types, but doesn't cover any specific common types.
 
@@ -105,7 +90,7 @@ A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/ap
 
 ---
 
-### 6. Bulk Operations
+### 5. Bulk Operations
 
 **Current state:** TS-21 has no coverage of bulk operations.
 
@@ -124,7 +109,7 @@ A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/ap
 
 ---
 
-### 7. File Upload Patterns
+### 6. File Upload Patterns
 
 **Current state:** TS-21 has no coverage of file upload patterns.
 
@@ -137,7 +122,7 @@ A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/ap
 
 ---
 
-### 8. Content Negotiation
+### 7. Content Negotiation
 
 **Current state:** TS-21 mentions JSON as the preferred format but has no content negotiation rules.
 
@@ -153,7 +138,7 @@ A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/ap
 
 ---
 
-### 9. Detailed Backwards Compatibility Rules
+### 8. Detailed Backwards Compatibility Rules
 
 **Current state:** Section 17 (`17-versioning.adoc`) mentions the expanding contract pattern but lacks detailed compatibility rules.
 
@@ -167,7 +152,7 @@ A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/ap
 
 ## 🟢 Low Priority
 
-### 10. Naming Conventions
+### 9. Naming Conventions
 
 **Current state:** TS-21 covers resource naming (lowercase hyphen-delimited) but is missing field-level naming rules.
 
@@ -184,7 +169,7 @@ A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/ap
 
 ---
 
-### 11. Resource Identifier Rules
+### 10. Resource Identifier Rules
 
 **Current state:** TS-21 mentions UUIDs in section 08 but lacks detailed identifier guidance.
 
@@ -200,7 +185,7 @@ A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/ap
 
 ---
 
-### 12. Query Parameter Multi-Value Handling
+### 11. Query Parameter Multi-Value Handling
 
 **Current state:** Section 07 (`07-collections.adoc`) covers pagination, filtering, searching, and sorting but not multi-value parameters.
 
@@ -215,7 +200,7 @@ A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/ap
 
 ---
 
-### 13. HATEOAS Use Case Patterns
+### 12. HATEOAS Use Case Patterns
 
 **Current state:** TS-21 covers HATEOAS link structure well but is missing the use case patterns.
 
@@ -233,7 +218,7 @@ A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/ap
 
 ---
 
-### 14. Header Propagation & Prohibitions
+### 13. Header Propagation & Prohibitions
 
 **Current state:** Section 15 (`15-headers.adoc`) covers header naming, non-standard header prefixes, `Prefer` header, and response caching, but is missing several items.
 
@@ -247,7 +232,7 @@ A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/ap
 
 ---
 
-### 15. Service Design Principles
+### 14. Service Design Principles
 
 **Current state:** Section 01 (`01-general-design-principles.adoc`) covers RESTful architectural principles (Stateless, Uniform, Cacheable, Layered System) but is missing service-oriented design principles.
 
@@ -265,7 +250,7 @@ A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/ap
 
 ---
 
-### 16. Input/Output Strictness
+### 15. Input/Output Strictness
 
 **Current state:** TS-21 mentions Postel's Law only in the context of trailing slashes in section 06.
 
@@ -277,7 +262,7 @@ A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/ap
 
 ---
 
-### 17. Reified Actions Pattern
+### 16. Reified Actions Pattern
 
 **Current state:** TS-21 section 11 (`11-actions.adoc`) covers actions well, including composite actions, transient operations, resource-scoped actions, and the guidance to prefer resource-oriented design where possible. However, it does not describe the reified actions pattern as a resource-oriented alternative to controller-style actions.
 
@@ -295,7 +280,7 @@ A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/ap
 | # | Priority | Gap | Target Section | Effort |
 |---|----------|-----|----------------|--------|
 | 1 | 🔴 High | ~~Error handling~~ ✅ Done | Section 16 | Large |
-| 2 | 🔴 High | Deprecation framework | New section or expand section 17 | Medium |
+| 2 | 🔴 High | ~~Deprecation framework~~ ✅ Done | Section 17 | Medium |
 | 3 | 🔴 High | API lifecycle & EOL policy | Expand section 17 | Medium |
 | 4 | 🔴 High | Missing status codes & method-to-status mapping | Expand section 05 | Small |
 | 5 | 🟡 Medium | JSON Schema & primitive type guidance | TS-18 or expand section 16 | Medium |

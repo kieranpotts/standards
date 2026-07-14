@@ -65,3 +65,360 @@ for a reasonable period of time to allow clients to migrate to the new version.
 
 APIs MUST have a documented *lifecycle policy*, which describes the support and
 maintenance of each major version of the API.
+
+== Deprecation
+
+When defining an API, developers make many decisions that have long-lasting
+implications. The objective is to make a long-lived, durable, and reusable API.
+In practice, however, not every decision will stand the test of time. New
+requirements emerge, understanding of the problem domain evolves, and
+decisions that seemed sound at the time may later limit the ability to extend
+the API elegantly.
+
+Creating a new major version of an API allows developers to leave past decisions
+behind and start fresh. Unfortunately, this also means that all clients need to
+migrate to new endpoints for the new version to deliver customer value. This is
+hard. Many clients will not move without good incentives, and there is
+significant overhead in managing customer migration. Moreover, an API product
+may have multiple endpoints, but the breaking changes may only affect one of
+them — forcing all clients to migrate all endpoints just to "fix" one small
+part is often unjustifiable from an ROI standpoint.
+
+Deprecation provides a middle ground — a practical path forward when minor
+changes are needed, without requiring a new major version. It is an extension
+to the versioning policy described above and is consistent with the expanding
+contract pattern.
+
+=== Terms
+
+The following terms are used throughout this section:
+
+* *API Element.* Any individually addressable part of an API that can be
+  deprecated. Examples include an endpoint, an HTTP method on an endpoint, a
+  query parameter, a path parameter, a property within a JSON object schema, an
+  entire JSON object schema, an enum value, or a custom HTTP header.
+
+* *Old API.* The existing minor or major version of an API, or an existing
+  different API that a new API supersedes.
+
+* *New API.* A new minor or major version of an API, or a new different API
+  that supersedes the old API.
+
+=== Requirements
+
+The following requirements govern the deprecation of API elements:
+
+1. An API developer SHOULD be able to deprecate an API element in a minor
+   version of an API.
+
+2. An API specification (eg. OpenAPI) MUST highlight one or more deprecated
+   elements of the API so that API consumers are aware.
+
+3. An API server MUST inform client applications regarding deprecated elements
+   present in the request and/or response at runtime, so that tools can
+   recognize them, log warnings, and highlight the usage of deprecated elements
+   as needed.
+
+4. Deprecated API elements MUST remain supported for the life of the major
+   version or until clients are no longer using them. The means to determine
+   this are left to the discretion of the API owner, since it is their clients
+   who will ultimately be impacted.
+
+=== API specification: the `x-deprecated` annotation
+
+An optional annotation named `x-deprecated` is used to mark an API element as
+deprecated in the API specification (eg. `swagger.json` or an OpenAPI document).
+
+The `x-deprecated` annotation SHOULD be used inline precisely where the API
+element is defined. It is expected that API documentation generation tools would
+recognize this annotation and highlight the corresponding API element as
+deprecated. The annotation MAY be completely ignored by tools that generate
+implementation bindings (eg. POJOs) — it is not a requirement that any
+implementation language-specific construct (such as Java's `@Deprecated`)
+would be generated for the `x-deprecated` annotation.
+
+API documentation SHOULD highlight deprecated API elements annotated by
+`x-deprecated` distinctly and at the appropriate granularity.
+
+==== Common schema elements
+
+The following common JSON schema types are used across the specific
+deprecation schemas described below:
+
+[source,json]
+----
+{
+  "x-deprecatedValue": {
+    "type": "string",
+    "description": "Value of the element that is deprecated. Use to deprecate a particular value in a parameter or schema property as applicable."
+  },
+  "x-deprecatedSee": {
+    "type": "string",
+    "description": "URI (indirect or absolute) or name of the replacement parameter, resource, method, or other API element, as applicable."
+  },
+  "x-apiVersion": {
+    "type": "string",
+    "pattern": "^[1-9][0-9]*[.][0-9]+$",
+    "minLength": 3,
+    "maxLength": 8,
+    "description": "The release or version number at which this element became deprecated, in the format '{major}.{minor}' (no leading 'v')."
+  }
+}
+----
+
+==== Deprecated resource
+
+The following schema MUST be used to deprecate resource objects in the API
+definition. Examples of resource objects in an OpenAPI document include
+operations and paths.
+
+[source,json]
+----
+{
+  "x-deprecatedResource": {
+    "type": "object",
+    "title": "Schema for a deprecated resource",
+    "description": "Schema for deprecating a resource API element. A resource API element could be an operation or paths.",
+    "properties": {
+      "see": {
+        "$ref": "#/definitions/x-deprecatedSee"
+      },
+      "since_version": {
+        "$ref": "#/definitions/x-apiVersion"
+      }
+    }
+  }
+}
+----
+
+.Example: Deprecated resource
+[source,json]
+----
+"/commercial-entities": {
+  "x-deprecated": {
+    "see": "financial-entities",
+    "since_version": "1.4"
+  }
+}
+----
+
+.Example: Deprecated method
+[source,json]
+----
+"/commercial-entities/{merchant_id}/agreements": {
+  "put": {
+    "summary": "Updates the Commercial Entity Agreements Details for a Merchant.",
+    "operationId": "commercial-entity.agreement.update",
+    "x-deprecated": {
+      "see": "patch",
+      "since_version": "1.4"
+    }
+  }
+}
+----
+
+==== Deprecated parameter
+
+Query parameters and custom HTTP headers can be deprecated. The following
+schema MUST be used for the `x-deprecated` annotation when applied to a
+parameter.
+
+[source,json]
+----
+{
+  "x-deprecatedParameter": {
+    "type": "object",
+    "title": "Schema for a deprecated parameter",
+    "description": "Schema for deprecating an API element inline. The API element could be a custom HTTP header or a query param.",
+    "properties": {
+      "value": {
+        "$ref": "#/definitions/x-deprecatedValue"
+      },
+      "see": {
+        "$ref": "#/definitions/x-deprecatedSee"
+      },
+      "since_version": {
+        "$ref": "#/definitions/x-apiVersion"
+      }
+    }
+  }
+}
+----
+
+.Example: Deprecated query parameter
+[source,json]
+----
+"parameters": [
+  {
+    "name": "record_date",
+    "in": "query",
+    "description": "The date to use for the query; defaulted to yesterday.",
+    "required": false,
+    "type": "string",
+    "format": "date",
+    "x-deprecated": {
+      "since_version": "1.5",
+      "see": "transaction_date"
+    }
+  },
+  {
+    "name": "transaction_date",
+    "in": "query",
+    "description": "The date to use for the query; defaulted to yesterday.",
+    "required": false,
+    "type": "string",
+    "format": "date"
+  }
+]
+----
+
+.Example: Deprecated custom HTTP header
+[source,json]
+----
+"parameters": [
+  {
+    "name": "CLIENT_INFO",
+    "in": "header",
+    "description": "Optional header for passing API caller tracking information.",
+    "x-deprecated": {
+      "since_version": "1.5"
+    }
+  }
+]
+----
+
+.Example: Deprecated query parameter value
+[source,json]
+----
+"parameters": [
+  {
+    "name": "fields",
+    "in": "query",
+    "description": "Fields to return in response. Possible values are x, y, z.",
+    "required": false,
+    "type": "string",
+    "x-deprecated": {
+      "since_version": "1.5",
+      "value": "y"
+    }
+  }
+]
+----
+
+==== Deprecated schema property or schema
+
+To deprecate a JSON object schema itself or one or more properties within a
+JSON object schema, use the `deprecatedSchema` schema for the `x-deprecated`
+annotation.
+
+[source,json]
+----
+{
+  "x-deprecatedSchema": {
+    "type": "array",
+    "description": "Schema for a collection of deprecated items in a schema.",
+    "items": {
+      "$ref": "#/definitions/x-deprecatedSchemaProperty"
+    }
+  },
+  "x-deprecatedSchemaProperty": {
+    "type": "object",
+    "title": "Schema for a deprecated schema property or schema itself",
+    "description": "Schema for deprecating an API element within a JSON object schema. The API element could be an individual property or an entire schema.",
+    "required": ["api_element"],
+    "properties": {
+      "api_element": {
+        "type": "string",
+        "description": "JSON Pointer to the API element that is deprecated. If the API element is the schema itself, the JSON pointer MUST point to the root of that schema. If the API element is a property of the schema, the JSON pointer MUST point to that property."
+      },
+      "value": {
+        "$ref": "#/definitions/x-deprecatedValue"
+      },
+      "see": {
+        "$ref": "#/definitions/x-deprecatedSee"
+      },
+      "since_version": {
+        "$ref": "#/definitions/x-apiVersion"
+      }
+    }
+  }
+}
+----
+
+This annotation SHOULD be used in the API definition where a schema is
+referenced (e.g. next to a `$ref`). Rather than extending JSON Schema with
+custom keywords, the `x-deprecated` annotation is placed alongside the
+reference.
+
+NOTE: OpenAPI 3.0 introduced a `deprecated` flag that can be applied at the
+operation, parameter, and schema field levels. The `x-deprecated` annotation
+MAY be used alongside the `deprecated` flag to provide additional useful
+information for the deprecated API element.
+
+.Example: Deprecated property in response
+[source,json]
+----
+"responses": {
+  "200": {
+    "description": "The Commercial Entity.",
+    "schema": {
+      "$ref": "./model/commercial_entity.json",
+      "x-deprecated": [
+        {
+          "api_element": "./model/commercial_entity.json#/address",
+          "see": "./model/commercial_entity.json#/global_address",
+          "since_version": "1.4"
+        }
+      ]
+    }
+  }
+}
+----
+
+.Example: Deprecated enum value in response
+[source,json]
+----
+"responses": {
+  "200": {
+    "description": "The Commercial Entity.",
+    "schema": {
+      "$ref": "./model/commercial_entity.json",
+      "x-deprecated": [
+        {
+          "api_element": "./model/commercial_entity.json#/state",
+          "value": "FAILED",
+          "since_version": "1.4"
+        }
+      ]
+    }
+  }
+}
+----
+
+=== Runtime: the deprecation response header
+
+The API server MUST inform client applications of deprecated API elements
+present in the request and/or response at runtime. This is achieved using a
+custom HTTP response header.
+
+The service MUST respond with a custom HTTP header (e.g. `Foo-Deprecated`) in
+the following cases:
+
+1. The caller has used one or more deprecated elements in the request.
+2. There is one or more deprecated elements in the response.
+
+To avoid bloating responses with static information related to deprecation that
+does not change from response to response on the same endpoint, the header value
+SHOULD be an empty JSON object:
+
+----
+Foo-Deprecated: {}
+----
+
+NOTE: Applications consuming this header MUST NOT take any action based on the
+value of the header at this time. Instead, these applications SHOULD take
+action based only on the existence of the header in the response.
+
+In the future, the header value MAY be enhanced to provide enough information
+for tools to scan responses for deprecation and take appropriate actions such as
+notifying application developers or administrators.
