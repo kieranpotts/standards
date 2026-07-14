@@ -144,6 +144,12 @@ sure about it.
     Do not re-state rules that are already covered by the parent standard unless
     the child standard overrides or extends them.
 
+-   **Follow TS-27 Markdown standards.**
+
+    All generated `AGENTS.md` files MUST follow the formatting rules specified in
+    [TS-27: Markdown](../027/AGENTS.md), including using ATX-style headings,
+    avoiding indented paragraphs, and applying soft line wraps at 80 characters.
+
 -   **Fix errors found in `AGENTS.md` during review.**
 
     Typos, grammar errors, and stale TS number references in an existing
