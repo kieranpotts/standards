@@ -18,10 +18,6 @@ system does — or for the qualities a good design exhibits (see
 
 ## Rules
 
-The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT,
-OPTIONAL, and MAY are to be interpreted as described in
-[IETF RFC 2119](https://www.ietf.org/rfc/rfc2119.txt).
-
 - **Keep each of the three artifacts in its lane.**
 
   Design docs state _what_ the architecture is. RFCs state _why_ a decision was
