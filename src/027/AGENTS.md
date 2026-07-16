@@ -12,10 +12,6 @@ rendering. Use [TS-28: AsciiDoc](../028/AGENTS.md) for those cases.
 
 ## Rules
 
-The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT,
-OPTIONAL, and MAY are to be interpreted as described in
-[IETF RFC 2119](https://www.ietf.org/rfc/rfc2119.txt).
-
 - **Target a single, well-specified dialect.**
 
   GitHub Flavored Markdown (GFM) is RECOMMENDED. GFM is a strict superset of the

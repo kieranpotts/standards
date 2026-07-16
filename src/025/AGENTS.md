@@ -11,10 +11,6 @@ For sentence-level writing rules (voice, headings, formatting, citations) see
 
 ## Rules
 
-The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT,
-OPTIONAL, and MAY are to be interpreted as described in
-[IETF RFC 2119](https://www.ietf.org/rfc/rfc2119.txt).
-
 - **Prefer code-adjacent documentation.**
 
   Inline comments, generated API references, and READMEs kept next to the code

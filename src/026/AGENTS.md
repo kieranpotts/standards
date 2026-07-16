@@ -8,10 +8,6 @@ code blocks, or citations.
 
 ## Rules
 
-The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT,
-OPTIONAL, and MAY are to be interpreted as described in
-[IETF RFC 2119](https://www.ietf.org/rfc/rfc2119.txt).
-
 - **Use active voice and present tense for current behavior.**
 
   "The server rejects invalid requests," not "invalid requests are rejected."
