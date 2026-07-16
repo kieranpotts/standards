@@ -14,10 +14,6 @@ testing process is covered by [TS-14: Performance Testing](../014/AGENTS.md).
 
 ## Rules
 
-The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT,
-OPTIONAL, and MAY are to be interpreted as described in
-[IETF RFC 2119](https://www.ietf.org/rfc/rfc2119.txt).
-
 ### Performance optimization
 
 - **Web GUIs SHOULD be designed to be as fast and responsive as possible.**

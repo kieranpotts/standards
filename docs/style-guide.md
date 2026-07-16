@@ -14,10 +14,6 @@ structure and file layout are documented in [AGENTS.md](../AGENTS.md). The
 body text that demonstrates the conventions below; use it as the starting point
 for new standards.
 
-The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT,
-OPTIONAL, and MAY are to be interpreted as described in
-[IETF RFC 2119](https://www.ietf.org/rfc/rfc2119.txt).
-
 ## Language and tone
 
 - All content MUST be written in American English (en-US).

@@ -18,10 +18,6 @@ failures, and security concerns that MUST be explicitly handled.
 
 ## Rules
 
-The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT,
-OPTIONAL, and MAY are to be interpreted as described in
-[IETF RFC 2119](https://www.ietf.org/rfc/rfc2119.txt).
-
 ### Inter-service communication patterns
 
 - **Three ways to implement inter-service communication: commands, messages,

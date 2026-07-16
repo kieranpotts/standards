@@ -16,10 +16,6 @@ CLI utilities only. CLIs are a type of UI — see
 
 ## Rules
 
-The capitalized words REQUIRED, MUST, MUST NOT, RECOMMENDED, SHOULD, SHOULD NOT,
-OPTIONAL, and MAY are to be interpreted as described in
-[IETF RFC 2119](https://www.ietf.org/rfc/rfc2119.txt).
-
 ### Principles
 
 - **Design CLIs to be composable.**
