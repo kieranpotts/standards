@@ -1,5 +1,7 @@
 # TS-21 Gap Analysis & Implementation Plan
 
+TODO - Finish this!!
+
 A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/api-style-guide.md`) and PayPal API Patterns (`TODO/api-standards-master/patterns.md`) against TS-21's 19 include files. This plan identifies what's missing or significantly under-covered in TS-21, organized by priority.
 
 ---
