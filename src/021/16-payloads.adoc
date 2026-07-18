@@ -664,7 +664,441 @@ consistent client behavior.
 
 == Messages
 
-// TODO
+The "messages" field is an array of `MessageItem` objects that convey
+informational messages to the client. Unlike error responses, informational
+messages are included in successful (`2xx`) responses and do not indicate that
+anything went wrong. They MAY be used to communicate warnings, deprecation
+notices, or other supplementary information that is not part of the resource
+representation itself.
+
+Each `MessageItem` object has the following properties:
+
+* `type`: The category of the message (e.g. `warning`, `info`).
+* `code`: A machine-readable code that identifies the specific message.
+* `title`: A short, human-readable summary of the message.
+* `description`: A longer, human-readable description providing additional
+  detail.
+
+.`MessageItem` schema
+[source,json]
+----
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "description": "The category of the message."
+    },
+    "code": {
+      "type": "string",
+      "description": "A machine-readable code that identifies the message."
+    },
+    "title": {
+      "type": "string",
+      "description": "A short, human-readable summary."
+    },
+    "description": {
+      "type": "string",
+      "description": "A longer, human-readable description."
+    }
+  },
+  "additionalProperties": false
+}
+----
+
+A `2xx` response MUST NOT contain error codes or error messages in the
+`messages` array. Errors MUST be reported using the error response schema
+described in the next section.
+
+== Error handling
+
+HTTP status codes and human-readable reason phrases alone are not sufficient to
+convey detailed information about errors in a machine-readable manner. To
+enable non-human consumers of HTTP APIs to understand and resolve errors
+programmatically, all error responses — HTTP status codes in the `4xx` and
+`5xx` ranges — MUST include a JSON error representation in the response body
+that conforms to the error schema defined in this section.
+
+Error responses use a separate schema from the normal response payload schema
+described earlier in this document. An error response does not include the
+`resources`, `metadata`, or `links` top-level properties. Instead, it uses the
+error-specific schema defined below.
+
+=== Status reporting rules
+
+The following rules govern the use of status codes and error responses.
+
+* Success MUST be reported with a status code in the `2xx` range. A `2xx`
+  status code MUST only be returned if the complete code execution path —
+  including any framework code as well as business logic code — is successful.
+
+* Failures MUST be reported in the `4xx` or `5xx` range.
+
+* A `2xx` response MUST NOT contain error codes or error messages in the
+  response body.
+
+* A `4xx` or `5xx` response MUST return an error response body conforming to
+  the error schema defined below.
+
+* For client errors (`4xx`), the error response SHOULD provide enough
+  information for the client to determine what caused the error and how to fix
+  it.
+
+* For server errors (`5xx`), the error response SHOULD limit the amount of
+  information to avoid exposing internal service implementation details.
+  Service developers SHOULD use logging and tracking utilities to capture
+  additional diagnostic information.
+
+* `5xx` status codes SHOULD NOT be used for validation or logic errors. These
+  are client-side errors and MUST be reported with `4xx` status codes.
+
+=== Error response schema
+
+An error response MUST include the following fields:
+
+* `name`: A human-readable, unique name for the error type (e.g.
+  `VALIDATION_ERROR`, `OBJECT_NOT_FOUND_ERROR`).
+
+* `details`: An array that contains individual instances of the error with
+  specifics. This field is REQUIRED for client-side errors (`4xx`).
+
+** `field`: A JSON Pointer (RFC 6901) reference to the field in the request
+   body that caused the error. For errors in path parameters or query
+   parameters, this is the name of the parameter.
+
+** `value`: The value of the field that caused the error.
+
+** `issue`: A human-readable description of the reason for the error.
+
+** `location`: The location of the field in error — `body`, `path`, or
+   `query`. If omitted, the default value is `body`.
+
+* `debug_id`: A unique error identifier generated on the server side, logged
+  for correlation and diagnostic purposes.
+
+* `message`: A human-readable message describing the error. This MUST describe
+  the problem, not suggest how to fix it.
+
+* `links`: HATEOAS links specific to the error scenario. These links MAY
+  provide more information about the error and how to resolve it.
+
+The following field is OPTIONAL and deprecated:
+
+* `information_link`: A URI for expanded developer information related to this
+  error. Use `links` instead.
+
+.Error response schema
+[source,json]
+----
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "A human-readable, unique name for the error."
+    },
+    "details": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ErrorDetail"
+      }
+    },
+    "debug_id": {
+      "type": "string",
+      "description": "A unique error identifier for correlation."
+    },
+    "message": {
+      "type": "string",
+      "description": "A human-readable message describing the error."
+    },
+    "links": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ErrorLink"
+      }
+    },
+    "information_link": {
+      "type": "string",
+      "description": "(Deprecated) URI for expanded developer information."
+    }
+  },
+  "required": ["name", "debug_id", "message"],
+  "additionalProperties": false,
+  "$defs": {
+    "ErrorDetail": {
+      "type": "object",
+      "properties": {
+        "field": {
+          "type": "string",
+          "description": "JSON Pointer to the field in error, or parameter name."
+        },
+        "value": {
+          "type": "string"
+        },
+        "issue": {
+          "type": "string",
+          "description": "Reason for the error."
+        },
+        "location": {
+          "type": "string",
+          "enum": ["body", "path", "query"],
+          "default": "body"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ErrorLink": {
+      "type": "object",
+      "properties": {
+        "rel": {
+          "type": "string"
+        },
+        "method": {
+          "type": "string"
+        },
+        "href": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
+----
+
+=== JSON Pointer usage
+
+The `field` property in error details SHOULD use JSON Pointer syntax as defined
+in https://tools.ietf.org/html/rfc6901[RFC 6901] to identify the specific field
+in the request body that caused the error. For example, `/credit_card/expire_month`
+points to the `expire_month` field within the `credit_card` object.
+
+For errors in path parameters or query parameters, the `field` property SHOULD
+contain the parameter name, and the `location` property MUST be set to `path`
+or `query` respectively.
+
+=== Input validation errors
+
+In validating requests, different types of input errors should be addressed in
+the following order of precedence:
+
+.Input validation error classification
+|===
+|Issue | HTTP status code
+
+|Not well-formed JSON.
+|`400 Bad Request`
+
+|Contains validation errors that the client can change (e.g. a required field
+ is missing, or a value is invalid).
+|`400 Bad Request`
+
+|Cannot be executed due to factors outside of the request body. The request was
+ well-formed but was unable to be followed due to semantic errors.
+|`422 Unprocessable Entity`
+|===
+
+=== Error samples
+
+This section provides sample error responses in various scenarios.
+
+==== Validation error — single field
+
+The following sample shows a validation error in one field. Because this is a
+client error, a `400 Bad Request` HTTP status code should be returned.
+
+[source,json]
+----
+{
+  "name": "VALIDATION_ERROR",
+  "details": [
+    {
+      "field": "/credit_card/expire_month",
+      "issue": "Required field is missing",
+      "location": "body"
+    }
+  ],
+  "debug_id": "123456789",
+  "message": "Invalid data provided"
+}
+----
+
+==== Validation error — multiple fields
+
+The following sample shows validation errors of the same type in two fields.
+Note that `details` is an array listing all instances of the error.
+
+[source,json]
+----
+{
+  "name": "VALIDATION_ERROR",
+  "details": [
+    {
+      "field": "/credit_card/expire_month",
+      "issue": "Required field is missing",
+      "location": "body"
+    },
+    {
+      "field": "/credit_card/currency",
+      "value": "XYZ",
+      "issue": "Currency code is invalid",
+      "location": "body"
+    }
+  ],
+  "debug_id": "123456789",
+  "message": "Invalid data provided"
+}
+----
+
+==== Multiple heterogeneous errors (bulk operations)
+
+For heterogeneous types of client-side errors, an `errors` array is returned.
+Each error instance is represented as an item in this array. Because these are
+client validation errors, a `400 Bad Request` HTTP status code should be
+returned.
+
+[source,json]
+----
+{
+  "errors": [
+    {
+      "name": "OBJECT_NOT_FOUND_ERROR",
+      "debug_id": "38cdd677a83a4",
+      "message": "Bundle is not found.",
+      "details": [
+        {
+          "field": "/bundles/0/bundle_id",
+          "value": "33333",
+          "issue": "BUNDLE_NOT_FOUND",
+          "location": "body"
+        }
+      ]
+    },
+    {
+      "name": "MULTIPLE_CORE_BUNDLES",
+      "debug_id": "52cde38284sd3",
+      "message": "Multiple CORE bundles.",
+      "details": [
+        {
+          "field": "/bundles/5/bundle_id",
+          "value": "88888",
+          "issue": "MULTIPLE_CORE_BUNDLES",
+          "location": "body"
+        }
+      ]
+    }
+  ]
+}
+----
+
+==== Semantic validation error
+
+In cases where client input is well-formed and valid, but the request action
+cannot be performed due to semantic errors (e.g. insufficient account balance),
+an HTTP status code `422 Unprocessable Entity` should be returned.
+
+[source,json]
+----
+{
+  "name": "BALANCE_ERROR",
+  "debug_id": "123456789",
+  "message": "The account balance is too low. Add balance to your account to proceed."
+}
+----
+
+=== Error declaration in API specifications
+
+Error responses SHOULD be declared in API specifications (e.g. OpenAPI) so that
+documentation generation tools and client/server code generation tools can
+recognize them. Each operation SHOULD declare the error responses it can return,
+referencing the error schema.
+
+[source,json]
+----
+"responses": {
+  "200": {
+    "description": "Address successfully found and returned.",
+    "schema": {
+      "$ref": "address.json"
+    }
+  },
+  "404": {
+    "description": "The requested address does not exist.",
+    "schema": {
+      "$ref": "error.json"
+    }
+  },
+  "default": {
+    "description": "Unexpected error response.",
+    "schema": {
+      "$ref": "error.json"
+    }
+  }
+}
+----
+
+=== Error samples in documentation
+
+API documentation SHOULD include samples showing error scenarios, not only
+samples showing successful execution. It is equally important — perhaps more so —
+to show API consumers how an API propagates errors in a machine-readable form,
+so that they can build applications that handle errors gracefully and
+meaningfully.
+
+=== Error catalog
+
+An error catalog is a structured collection of error specifications (metadata)
+for an API namespace. Cataloging errors provides several benefits:
+
+* *Externalization:* Error message strings are externalized from the API
+  implementation, making them easy to modify without code changes or
+  redeployment.
+
+* *Localization:* Externalized error strings can be localized by documentation
+  or internationalization teams without service developer involvement.
+
+* *Synchronization:* API documentation and runtime error responses remain in
+  sync, increasing consumer confidence and reducing support costs.
+
+An error catalog is a JSON file containing a collection of error specifications.
+Each error specification includes the error name, message, issue details, and
+related links. The catalog supports multiple locales — there should be one
+default catalog (e.g. in English) and corresponding locale-specific catalogs
+for each additional supported locale.
+
+Each error specification SHOULD include:
+
+* `name`: A human-readable, unique name for the error. This MUST match the
+  `name` field in the error response.
+
+* `message`: A human-readable message describing the error. This MUST match the
+  `message` field in the error response. This value MAY be localized.
+
+* `log_level`: The log level associated with this error. This MUST NOT be
+  exposed in error responses or external documentation.
+
+* `http_status_codes`: The HTTP status codes applicable to this error.
+
+* `suggested_application_actions`: Practical actions that the developer of an
+  application consuming the API could take to resolve the error.
+
+* `suggested_user_actions`: Practical actions that an end user could take to
+  resolve the error. These MAY be localized.
+
+* `links`: HATEOAS links specific to the error scenario.
+
+* `issues`: Issue details associated with this error. Each issue corresponds to
+  an item in the error response `details` array.
+
+Each issue within an error specification SHOULD include:
+
+* `id`: A catalog-unique identifier for the issue.
+
+* `issue`: The reason for the error. This MUST match the `issue` field in the
+  error response `details` array. This value MAY be localized and MAY contain
+  parameterized strings for runtime substitution.
 
 == JSON schema
 

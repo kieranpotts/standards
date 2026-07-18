@@ -18,25 +18,7 @@ A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/ap
 
 ## 🔴 High Priority
 
-### 1. Error Handling
-
-**Current state:** Section 16 (`16-payloads.adoc`) defines a `messages` array with `MessageItem` objects (`type`, `code`, `title`, `description`), but the section is a `// TODO` stub.
-
-**Missing:**
-- Error response schema — `name`, `details[]` (containing `field`, `value`, `issue`, `location`), `debug_id`, `message`, `links`
-- JSON Pointer usage for identifying fields in error responses (e.g. `#/credit_card/expire_month`)
-- Input validation error classification — malformed JSON → `400`, validation errors → `400`, semantic errors → `422`
-- Bulk error handling — `errors[]` array for multiple heterogeneous error types
-- Error declaration in API specifications — how to reference error schemas in OpenAPI
-- Error samples in documentation — requirement to show error scenarios in user guides
-- Error Catalog system — externalizing and localizing error messages via catalog JSON files (`error_catalog.json`, `error_spec.json`, `error_spec_issue.json`, etc.)
-- Status reporting rules — 2xx responses MUST NOT contain error codes; 4xx/5xx responses MUST return an error response body; 5xx responses should limit information to avoid exposing implementation details
-
-**Target section:** Expand section 16 (`16-payloads.adoc`) or create a new dedicated error handling section.
-
----
-
-### 2. Deprecation Framework
+### 1. Deprecation Framework
 
 **Current state:** TS-21 has no deprecation guidance at all.
 
@@ -51,7 +33,7 @@ A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/ap
 
 ---
 
-### 3. API Lifecycle & EOL Policy
+### 2. API Lifecycle & EOL Policy
 
 **Current state:** Section 17 (`17-versioning.adoc`) covers the expanding contract pattern and basic breaking change rules, but is missing lifecycle and retirement guidance.
 
@@ -67,7 +49,7 @@ A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/ap
 
 ---
 
-### 4. Missing HTTP Status Codes & Method-to-Status Mapping
+### 3. Missing HTTP Status Codes & Method-to-Status Mapping
 
 **Current state:** Section 05 (`05-http-status-codes.adoc`) lists many status codes but is missing several and lacks mapping guidance.
 
@@ -89,7 +71,7 @@ A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/ap
 
 ## 🟡 Medium Priority
 
-### 5. JSON Schema & Primitive Type Guidance
+### 4. JSON Schema & Primitive Type Guidance
 
 **Current state:** TS-21 references TS-18 for JSON Schema guidance, but the PayPal standard has detailed rules that TS-21 doesn't surface.
 
@@ -108,7 +90,7 @@ A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/ap
 
 ---
 
-### 6. Common Types
+### 5. Common Types
 
 **Current state:** TS-21 references TS-18 for JSON Schema common types, but doesn't cover any specific common types.
 
@@ -123,7 +105,7 @@ A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/ap
 
 ---
 
-### 7. Bulk Operations
+### 6. Bulk Operations
 
 **Current state:** TS-21 has no coverage of bulk operations.
 
@@ -142,7 +124,7 @@ A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/ap
 
 ---
 
-### 8. File Upload Patterns
+### 7. File Upload Patterns
 
 **Current state:** TS-21 has no coverage of file upload patterns.
 
@@ -155,7 +137,7 @@ A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/ap
 
 ---
 
-### 9. Content Negotiation
+### 8. Content Negotiation
 
 **Current state:** TS-21 mentions JSON as the preferred format but has no content negotiation rules.
 
@@ -171,7 +153,7 @@ A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/ap
 
 ---
 
-### 10. Detailed Backwards Compatibility Rules
+### 9. Detailed Backwards Compatibility Rules
 
 **Current state:** Section 17 (`17-versioning.adoc`) mentions the expanding contract pattern but lacks detailed compatibility rules.
 
@@ -185,7 +167,7 @@ A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/ap
 
 ## 🟢 Low Priority
 
-### 11. Naming Conventions
+### 10. Naming Conventions
 
 **Current state:** TS-21 covers resource naming (lowercase hyphen-delimited) but is missing field-level naming rules.
 
@@ -202,7 +184,7 @@ A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/ap
 
 ---
 
-### 12. Resource Identifier Rules
+### 11. Resource Identifier Rules
 
 **Current state:** TS-21 mentions UUIDs in section 08 but lacks detailed identifier guidance.
 
@@ -218,7 +200,7 @@ A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/ap
 
 ---
 
-### 13. Query Parameter Multi-Value Handling
+### 12. Query Parameter Multi-Value Handling
 
 **Current state:** Section 07 (`07-collections.adoc`) covers pagination, filtering, searching, and sorting but not multi-value parameters.
 
@@ -233,7 +215,7 @@ A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/ap
 
 ---
 
-### 14. HATEOAS Use Case Patterns
+### 13. HATEOAS Use Case Patterns
 
 **Current state:** TS-21 covers HATEOAS link structure well but is missing the use case patterns.
 
@@ -251,7 +233,7 @@ A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/ap
 
 ---
 
-### 15. Header Propagation & Prohibitions
+### 14. Header Propagation & Prohibitions
 
 **Current state:** Section 15 (`15-headers.adoc`) covers header naming, non-standard header prefixes, `Prefer` header, and response caching, but is missing several items.
 
@@ -265,7 +247,7 @@ A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/ap
 
 ---
 
-### 16. Service Design Principles
+### 15. Service Design Principles
 
 **Current state:** Section 01 (`01-general-design-principles.adoc`) covers RESTful architectural principles (Stateless, Uniform, Cacheable, Layered System) but is missing service-oriented design principles.
 
@@ -283,7 +265,7 @@ A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/ap
 
 ---
 
-### 17. Input/Output Strictness
+### 16. Input/Output Strictness
 
 **Current state:** TS-21 mentions Postel's Law only in the context of trailing slashes in section 06.
 
@@ -295,7 +277,7 @@ A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/ap
 
 ---
 
-### 18. Reified Actions Pattern
+### 17. Reified Actions Pattern
 
 **Current state:** TS-21 section 11 (`11-actions.adoc`) covers actions well, including composite actions, transient operations, resource-scoped actions, and the guidance to prefer resource-oriented design where possible. However, it does not describe the reified actions pattern as a resource-oriented alternative to controller-style actions.
 
@@ -312,7 +294,7 @@ A gap analysis between the PayPal API Style Guide (`TODO/api-standards-master/ap
 
 | # | Priority | Gap | Target Section | Effort |
 |---|----------|-----|----------------|--------|
-| 1 | 🔴 High | Error handling (schema, validation, catalog) | Expand section 16 or new section | Large |
+| 1 | 🔴 High | ~~Error handling~~ ✅ Done | Section 16 | Large |
 | 2 | 🔴 High | Deprecation framework | New section or expand section 17 | Medium |
 | 3 | 🔴 High | API lifecycle & EOL policy | Expand section 17 | Medium |
 | 4 | 🔴 High | Missing status codes & method-to-status mapping | Expand section 05 | Small |
