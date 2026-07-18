@@ -49,12 +49,56 @@ responsiveness – a fast, responsive interface provides immediate, consistent
 feedback for user actions, building confidence and making the software feel more
 capable.
 
+== Coupling
+
 Implementation simplicity turns on a single critical factor: coupling – how
 tightly the different parts of the system depend on each other. High coupling
 makes systems brittle and difficult to change; low coupling makes them flexible
 and adaptable. This is not about the volume of code. A large codebase can be
 simple if its components are loosely coupled with clear purposes; a small
 codebase can be impenetrably complex if its parts are tightly coupled.
+
+Coupling is not itself one of the design qualities. It is the primary means by
+which we measure and reason about one of them. Simplicity, as noted above,
+resists direct measurement: it is a qualitative judgment. Coupling is far more
+tractable. Dependencies can be counted, their direction traced, and cycles among
+them detected – often mechanically. Coupling is therefore the most useful
+instrument we have for turning an assessment of simplicity from an opinion into
+an observation.
+
+=== Dimensions of coupling
+
+Coupling is not a single number but a family of related properties. The ones
+that matter most in practice are:
+
+* *Efferent coupling*: The number of other components a given component depends
+upon. High efferent coupling means a component cannot be understood, tested, or
+moved without dragging much of the system along with it.
+
+* *Afferent coupling*: The number of other components that depend upon a given
+component. High afferent coupling is not inherently bad – shared foundations are
+supposed to be depended upon – but it does mean that changing the component is
+expensive, so its interface should be small and stable.
+
+* *Directionality*: Whether dependencies flow consistently in one direction.
+Cycles between components are especially damaging, because they eliminate any
+possibility of understanding, testing, or deploying either component alone.
+
+* *Temporal coupling*: Whether components must execute in a particular order, or
+within a particular window, for the system to behave correctly. This form is
+easily overlooked, because it is invisible in the dependency graph.
+
+* *Data coupling*: Whether components share a mutable data structure, schema, or
+representation. Shared state is coupling even when there is no direct call
+between the parties, and a shared database schema is one of the most common
+sources of hidden coupling in practice.
+
+* *Control coupling*: Whether one component directs the internal behavior of
+another – typically via flag arguments or mode parameters. This makes the callee
+harder to reason about in isolation, because its behavior is no longer a
+property of the callee alone.
+
+=== Interpreting the measurements
 
 The principle is to err on the side of loose coupling, while being deliberate
 about which things to couple tightly. Couple together things that are intended
@@ -65,6 +109,50 @@ either can be changed without affecting the other. A system with a simple
 implementation is easier to maintain and extend, and therefore more likely to
 satisfy users' needs over time as functionality is iterated in response to
 feedback.
+
+This is why coupling must be interpreted rather than merely minimized. A
+measurement of coupling is a question, not a verdict. A tight coupling between
+two components that genuinely change together is good design; the same
+measurement between two unrelated concerns is a defect. The number does not
+distinguish between these cases – only knowledge of the domain does.
+
+A useful diagnostic question, therefore, is not "`how much coupling is there?`"
+but "`does the coupling that exists follow the lines along which this system
+actually changes?`" Where the two align, the design is simple in the sense that
+matters. Where they diverge – where a routine change requires edits scattered
+across components that have no conceptual relationship to one another – the
+design is complex, whatever the raw dependency counts happen to say.
+
+=== Coupling and the other qualities
+
+Although coupling is most closely associated with simplicity, it is a
+cross-cutting diagnostic, and several of the other design qualities can be read
+through it:
+
+* *Changeability*: The blast radius of a change is a direct consequence of
+coupling. Cheap change requires that the parts affected by a given requirement
+be few, and be known in advance.
+
+* *Reliability*: Coupling determines how far a failure propagates. The
+electrical grid analogy used earlier in this standard is fundamentally a
+statement about coupling – a fault in one component does not bring down the
+whole because the components are not tightly bound to one another. Asynchronous
+messaging improves fault tolerance precisely because it reduces coupling.
+
+* *Cohesiveness*: Coupling and cohesion are two views of the same decomposition.
+A well-chosen module boundary produces high cohesion within the module and low
+coupling across it. When a decomposition is wrong, both measurements degrade
+together.
+
+* *Habitability*: A component that can be read and understood without holding
+much of the rest of the system in working memory is a component that is loosely
+coupled. Coupling is, in this sense, a proxy for the cognitive load the codebase
+imposes on the people working in it.
+
+Because coupling cuts across the qualities in this way, it is worth measuring
+and monitoring continuously, and worth treating a rising trend as an early
+signal of design decay – long before the effects become visible as missed
+deadlines or production incidents.
 
 A coherent design requires consistency between interface and implementation.
 This is where domain modeling becomes critical. A well-designed domain model – a
