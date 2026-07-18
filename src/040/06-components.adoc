@@ -1,0 +1,392 @@
+= Components
+
+HTML's native elements do not provide a large enough vocabulary to build rich,
+modern web interfaces on their own. Multiple elements often need to be grouped
+to achieve a particular effect — an `<input>` and a `<button>` combined into a
+search box, or a `<ul>` repurposed as a navigation menu.
+
+These groups could be placed directly inside a layout section and styled by
+their position:
+
+[source,css]
+----
+.NAVIGATION ul {}
+.NAVIGATION li {}
+.NAVIGATION a {}
+.NAVIGATION form {}
+.NAVIGATION label {}
+.NAVIGATION input {}
+.NAVIGATION button {}
+----
+
+But this tightly couples the content's presentation to its location. Moving it
+breaks the styling. Instead, recurring patterns of content MUST be bundled into
+independent, reusable modules — components — that can be freely moved and reused.
+
+A component is any reusable UI pattern, from something as simple as a search box to
+something as complex as a real-time comment feed. A component is created by
+encapsulating its markup in a unique, `CamelCase` class (see <<class-names,Class
+names>>):
+
+[source,html]
+----
+<nav class="NAVIGATION">
+  <div class="NavBar">
+    <ul>
+      <li><a href="./">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="learn/">Learn</a></li>
+      <li><a href="extend/">Extend</a></li>
+      <li><a href="share/">Share</a></li>
+    </ul>
+  </div>
+  <div class="SearchBox">
+    <form action="search.html" method="get">
+      <label for="input-search">Search</label>
+      <input name="q" type="search" id="input-search" />
+      <button type="submit">Search</button>
+    </form>
+  </div>
+</nav>
+----
+
+The component's class acts as its own namespace, so its presentation no longer
+depends on the name of a containing layout section:
+
+[source,css]
+----
+.NavBar {}
+.NavBar ul {}
+.NavBar li {}
+.NavBar a {}
+.NavBar a:hover {}
+.SearchBox {}
+.SearchBox form {}
+.SearchBox label {}
+.SearchBox input {}
+.SearchBox button {}
+----
+
+A component's presentation is now independent of where it is placed, so it can be
+moved, duplicated, or reused — even copied between projects that share the same
+methodology — without touching the CSS.
+
+Components SHOULD be designed to fit 100% of the width of their container. To float
+a component, or apply fixed or absolute positioning to it, wrap it in a new layout
+zone and position that instead.
+
+Semantic sectioning elements — `<main>`, `<header>`, `<footer>`, `<article>`,
+`<aside>`, `<address>`, `<nav>`, `<section>` — MUST NOT be used within or to
+encapsulate components; they are reserved for layout sections (see
+<<layout,Layout>>). Components MAY be contained in generic `<div>` elements or in
+any appropriate block-level element, such as `<ul>`, `<table>`, or
+`<blockquote>`:
+
+[source,html]
+----
+<table border="1" class="MiniCalendar">
+  <thead>
+    <tr class="nav">
+      <th class="prev"><a href="?m=02&amp;y=2015">Prev</a></th>
+      <th class="this" colspan="5">January 2015</th>
+      <th class="next"><a href="?m=02&amp;y=2015">Next</a></th>
+    </tr>
+    <tr class="days">
+      <th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th>Sun</th>
+    </tr>
+  </thead>
+  <tbody>
+    ...
+  </tbody>
+</table>
+----
+
+Complete location-agnosticism is not always achievable. A component placed on a
+dark background may need adjusted colors, and responsive breakpoints can only be
+set relative to the viewport or display, not to a particular element's size — so
+a component's own breakpoints will depend on the size of container it is placed in.
+These are non-issues for global components that always appear in the same spot (a
+site logo, the primary navigation bar), but are worth avoiding in components meant
+to be reusable across many contexts.
+
+Components work best when kept abstract. A `ComparisonTable` component is preferable
+to a `PriceComparison` component, since the former can be reused to compare things
+other than prices. The more abstract a component, the greater the opportunity to
+reuse it.
+
+Components inherit the default properties of the element types used in their markup
+(see <<elements,Elements>>). Those defaults MAY be changed and extended on a
+per-component basis — for example, adjusting the default `color` and
+`text-decoration` of `<a>` elements inside a `NavBar`. A small number of resets
+like this is fine. If resets become frequent, apply fewer default properties via
+unqualified type selectors instead, so components inherit less.
+
+[IMPORTANT]
+======
+Components and modifier classes MUST progressively enhance the default presentation
+of individual HTML elements, not regressively degrade it.
+======
+
+Not all content needs to be encapsulated in a component. Stand-alone elements and
+components MAY be freely mixed within a layout section:
+
+[source,html]
+----
+<main class="MAIN">
+  <header class="HEADLINE">
+    <div class="ArticleHeadline">
+      <h1>The simplest way to design websites</h1>
+      <p>A new design system for modern web interfaces</p>
+    </div>
+  </header>
+  <img src="picture.png" alt="" class="float-right" />
+  <p>Lorem ipsum...</p>
+</main>
+----
+
+To style a component, combine its encapsulating class with an element type:
+
+[source,html]
+----
+<div class="Headline">
+  <h1>Headline</h1>
+  <p>Teaser</p>
+</div>
+----
+
+[source,css]
+----
+.Headline {}
+.Headline h1 {}
+.Headline p {}
+----
+
+Where a component contains multiple elements of the same type that must look
+different from one another, introduce further classes:
+
+[source,html]
+----
+<div class="Headline">
+  <p class="tagline">Tagline</p>
+  <h1>Headline</h1>
+  <p class="teaser">Teaser</p>
+  <p class="meta">Author, Date</p>
+</div>
+----
+
+[source,css]
+----
+.Headline {}
+.Headline h1 {}
+.Headline p {}
+.Headline p.tagline {}
+.Headline p.teaser {}
+.Headline p.meta {}
+----
+
+These new classes are modifiers, and they carry a real risk of
+cross-contamination. A selector like `p.tagline {}` or `*.tagline {}` could
+exist elsewhere in the codebase and be inadvertently inherited by this component.
+To avoid that, modifier classes used within a component MUST be prefixed with the
+lower-cased name of the parent component:
+
+[source,html]
+----
+<div class="Headline">
+  <p class="headline-tagline">Tagline</p>
+  <h1>Headline</h1>
+  <p class="headline-teaser">Teaser</p>
+  <p class="headline-meta">Author, Date</p>
+</div>
+----
+
+[source,css]
+----
+.Headline {}
+.Headline h1 {}
+.Headline p {}
+.Headline p.headline-tagline {}
+.Headline p.headline-teaser {}
+.Headline p.headline-meta {}
+----
+
+The `headline-` prefix already provides adequate encapsulation on its own, so
+the component class could in principle be dropped from the child selectors
+(`p.headline-tagline {}`). Nonetheless, the component class SHOULD always be
+included when selecting a component's child classes — it is clearer, more
+consistent, and matches how these selectors would compile from nested syntax in
+an extended CSS preprocessor:
+
+[source,scss]
+----
+.Headline {
+  h1 {}
+  p {}
+  &.headline-tagline {}
+  &.headline-teaser {}
+  &.headline-meta {}
+}
+----
+
+Selectors more than one descendant level deep SHOULD be avoided. Prefer a new
+class over a selector founded on a component's markup structure. Immediate child
+selectors and structural pseudo-classes (`.Headline > h1`, `:first-of-type`)
+SHOULD also be avoided. They tightly couple HTML to CSS, making a component harder
+to extend and modify later.
+
+== Nested components
+
+Large, complex components — a modal popup, for instance — SHOULD be broken up into
+smaller components:
+
+[source,html]
+----
+<div class="Popup">
+  <div class="PopupHeader">
+    <h2>Popup title</h2>
+  </div>
+  <div class="PopupBody">
+    <p>Popup message</p>
+  </div>
+  <div class="PopupFooter">
+    <p><small>Optional footer content</small></p>
+  </div>
+</div>
+----
+
+[source,css]
+----
+.Popup {}
+.PopupHeader {}
+.PopupHeader h2 {}
+.PopupBody {}
+.PopupBody p {}
+.PopupFooter {}
+.PopupFooter p {}
+----
+
+Each sub-component is independently namespaced, so it can be developed, tested, and
+maintained separately, and each specializes in one thing. The parent `Popup`
+component is responsible only for the box and its position on the page. The other
+components present the content of each section.
+
+Unrelated components MAY also be freely combined to compose complex UI designs —
+for example, a tabbed interface built from several independently maintained
+components (`Tabs`, `Panel`, `Slats`, `Slat`).
+
+== Component inheritance
+
+A component MAY extend another component. Given a simple dialog:
+
+[source,html]
+----
+<div class="Dialog">
+  <h2>Message</h2>
+  <p>Description</p>
+  <button>Action</button>
+</div>
+----
+
+[source,css]
+----
+.Dialog {}
+.Dialog h2 {}
+.Dialog p {}
+.Dialog button {}
+----
+
+A variant may be created with a modifier class:
+
+[source,css]
+----
+/* Default presentation: */
+.Dialog {}
+.Dialog h2 {}
+.Dialog p {}
+.Dialog button {}
+
+/* Modified properties for 'alert' dialogs: */
+.Dialog.dialog-alert {}
+.Dialog.dialog-alert h2 {}
+.Dialog.dialog-alert p {}
+.Dialog.dialog-alert button {}
+----
+
+Or, a new component MAY inherit the parent component's presentation by combining both
+classes in the markup:
+
+[source,html]
+----
+<!-- Parent component: -->
+<div class="Dialog">
+  <h2>Message</h2>
+  <p>Description</p>
+  <button>Action</button>
+</div>
+
+<!-- Child component: -->
+<div class="Dialog DialogAlert">
+  <h2>Message</h2>
+  <p>Description</p>
+  <button>Action</button>
+</div>
+----
+
+[source,css]
+----
+/* Parent component: */
+.Dialog {}
+.Dialog h2 {}
+.Dialog p {}
+.Dialog button {}
+
+/* Child component: */
+.DialogAlert {}
+.DialogAlert h2 {}
+.DialogAlert p {}
+.DialogAlert button {}
+----
+
+Because `DialogAlert` markup also carries the `Dialog` class, it inherits
+`Dialog`'s styles and then modifies and extends them.
+
+Component inheritance works well when two or more components share a similar HTML
+structure, and MAY extend to deliberately abstract base components not intended for
+standalone use. Inheritance SHOULD be limited to a single tier — deep
+inheritance chains are harder to maintain, not easier. Composition SHOULD
+generally be preferred over inheritance. Composing complex interfaces from
+several small, independent components is usually simpler than maintaining an
+inheritance hierarchy.
+
+== Dynamic components
+
+Components MAY be progressively enhanced with dynamic behavior. A `Slideshow`
+component, for example, might initially render every image, stacked vertically:
+
+[source,html]
+----
+<div class="Slideshow">
+  <a href="sydney.html"><img src="sydney.png" alt="Sydney" /></a>
+  <a href="melbourne.html"><img src="melbourne.png" alt="Melbourne" /></a>
+  <a href="perth.html"><img src="perth.png" alt="Perth" /></a>
+  <a href="adelaide.html"><img src="adelaide.png" alt="Adelaide" /></a>
+  <a href="darwin.html"><img src="darwin.png" alt="Darwin" /></a>
+</div>
+----
+
+A JavaScript enhancement then dynamically applies modifier classes that CSS uses
+to restyle and animate the component:
+
+[source,html]
+----
+<div class="Slideshow is-animating">
+  <a href="sydney.html" class="is-hidden"><img src="sydney.png" alt="Sydney" /></a>
+  <a href="melbourne.html" class="is-visible"><img src="melbourne.png" alt="Melbourne" /></a>
+  <a href="perth.html" class="is-hidden"><img src="perth.png" alt="Perth" /></a>
+  <a href="adelaide.html" class="is-hidden"><img src="adelaide.png" alt="Adelaide" /></a>
+  <a href="darwin.html" class="is-hidden"><img src="darwin.png" alt="Darwin" /></a>
+</div>
+----
+
+See <<class-names,Class names>> and <<modifiers,Modifiers>> for the `is-` naming
+convention used by dynamically injected modifiers.

@@ -1,0 +1,121 @@
+= Modifiers
+
+When something needs to be presented slightly differently than normal, give it a
+modifier class.
+
+Modifiers MUST be written full lower-case with words delimited by hyphens. The
+first character MUST be alphanumeric; a leading hyphen (`-modifier`) MUST NOT be
+used, since that form is reserved for browser vendor extensions.
+
+A modifier MAY be:
+
+* Global.
+* Specific to one or more element types.
+* Specific to a component.
+* Specific to certain elements within a component.
+* Specific to a section of the layout.
+
+Global modifiers apply to just about anything. Intent MUST be made explicit by
+including the universal selector:
+
+[source,css]
+----
+*.ssh { color: #999; }
+----
+
+Modifiers that vary an individual element's presentation MUST be qualified with
+a type selector:
+
+[source,css]
+----
+h1.homepage { font-size: 8rem; }
+----
+
+Modifiers that vary a layout section's presentation MUST be prefixed with the
+section's name and qualified against the section's class (see
+<<layout,Layout>>):
+
+[source,css]
+----
+.BANNER.banner-homepage { height: 100vh; }
+----
+
+The same applies to component modifiers. Here, `popup-alert` is applied to the same
+element that encapsulates the `Popup` component, and may vary the presentation of
+that element or of anything nested within it:
+
+[source,css]
+----
+.Popup.popup-alert { border-color: red; }
+----
+
+A modifier MAY also target a specific part of a component's markup — here,
+`popup-header` must be applied to a descendant of the `Popup` container for the
+selector to match:
+
+[source,css]
+----
+.Popup .popup-header { padding: 1rem 2rem; }
+----
+
+Modifier classes MAY be injected into a page dynamically by client-side
+JavaScript. Dynamic modifiers MUST be prefixed `is-`, followed by a verb or noun
+describing the component's current state:
+
+[source,css]
+----
+.SideNav.is-opening {}
+.SideNav.is-open {}
+.SideNav.is-closing {}
+.SideNav.is-closed {}
+----
+
+Classes added for feature detection MUST be prefixed `supports-` (eg.
+`supports-cssboxsizing`).
+
+== Specificity and !important
+
+Global modifiers are inherently leaky. They may get added to things they were
+not designed for, producing unexpected effects. And element or component rulesets
+often carry higher specificity, which silently overrides a global modifier's
+properties — a common trigger for reaching for `!important`:
+
+[source,css]
+----
+*.error { color: red !important; }
+----
+
+`!important` SHOULD be reserved for cases where a property must not be
+overridable by the client's own style sheets. To avoid needing it here, prefer
+qualifying a modifier against the element types, layout sections, or components it
+applies to. This raises the modifier's specificity to match, without leaking or
+requiring `!important`:
+
+[source,css]
+----
+p.error, ul.error,
+input.error {
+  color: red;
+}
+----
+
+Global, unqualified modifiers remain useful for general utilities — a clearfix
+hack, or presentational effects like drop shadows and rounded corners that recur
+across otherwise unrelated components:
+
+[source,html]
+----
+<div class="PullQuote clearfix box-shadow rounded-corners">
+----
+
+== Naming
+
+Modifiers SHOULD be highly specialized, setting only a few properties each.
+Unlike layout and component names, which benefit from a degree of abstraction (see
+<<class-names,Class name semantics>>), modifier names SHOULD be explicit and
+expressive, so there is no ambiguity about what a modifier does — `text-shadow`,
+`is-collapsed`.
+
+High-fidelity designs will end up with many modifiers scattered through the
+HTML. That tradeoff — markup verbosity in exchange for maintainability and
+flexibility — is acceptable.

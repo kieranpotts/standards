@@ -1,0 +1,230 @@
+= Class names
+
+Each class MUST fulfil one, and only one, of the following roles:
+
+* It sets the position of something, helping to create a layout.
+
+* It encapsulates the presentation of a discrete UI component custom-made from
+  multiple HTML elements.
+
+* It modifies the default presentation of an individual HTML element, a component,
+  or a layout section.
+
+Layout classes are applied to sectioning elements (`<main>`, `<header>`,
+`<footer>`, `<article>`, `<aside>`, `<address>`, `<nav>`, `<section>`) and to
+general `<div>` elements. Layout classes are responsible for positioning content
+on the page. They MUST NOT style content directly (see <<layout,Layout>>). They
+are concerned exclusively with creating an empty, wireframe-like structure into
+which separately styled content can be placed and moved.
+
+Components are custom UI components made from multiple standard HTML elements —
+navigation bars, modal popups, accordions, carousels, social sharing clusters.
+Components MAY be enhanced with dynamic behavior via JavaScript, and MAY in some
+cases be generated entirely by client-side scripting (see <<components,Components>>).
+
+Modifiers are classes that modify the default presentation of something. A
+modifier MAY be global, applicable to anything, or scoped to change the default
+presentation of certain HTML elements, a certain component, or a particular layout
+section. Modifiers MAY also be added to a document dynamically by client-side
+JavaScript, to act as targets for CSS animations and transitions (see
+<<modifiers,Modifiers>>).
+
+Every class MUST represent the name of a layout section, the namespace for a
+component, or a modifier of something's default presentation. A single class MUST
+NOT fuse these separate concerns.
+
+== Naming conventions
+
+Layout classes, component classes, and modifier classes each use a distinct naming
+convention, so that a class's role is identifiable from its name alone:
+
+[cols="1,2"]
+|===
+| Role | Convention
+
+| Layout | `UPPER_CASE` (eg. `NAV_MAJOR`)
+| Components | `CamelCase` (eg. `NavBar`)
+| Modifiers | `lower-case` (eg. `box-shadow`)
+|===
+
+Modifiers dynamically added to a document by a client-side script MUST be
+prefixed `is-`, followed by a noun or verb (eg. `is-collapsed`, `is-animating`).
+Modifiers that belong to a particular component or layout section MUST be prefixed
+with the lower-case name of that component or section (eg. `logo-homepage`,
+`contextmenu-open`).
+
+Example markup for a Trello-like board application, demonstrating all three
+conventions:
+
+[source,html]
+----
+<main class="BOARD">
+  <div class="List">
+    <h2 class="list-header">
+      To do
+      <svg><title>Options</title>...</svg>
+    </h2>
+    <div class="Card is-new">
+      <a href="card/1234">
+        <h3 class="plaintext">Homepage changes</h3>
+        <ul class="card-members">
+          <li title="Kieran Potts">KP</li>
+          <li title="Maja Sienkiewicz">MS</li>
+        </ul>
+      </a>
+    </div>
+    <div class="Card">
+      ...
+    </div>
+  </div>
+  <div class="List">
+    ...
+  </div>
+</main>
+----
+
+Case alone conveys the role hierarchy: full-capitalization layout classes are
+the most conspicuous in the markup, camel-case component classes (always nested
+within layout sections) are less prominent, and lower-case modifier classes —
+the least critical to achieving a default presentation — are the least
+conspicuous.
+
+A second example, for a page header:
+
+[source,html]
+----
+<nav class="NAVIGATION navigation-homepage">
+  <div class="BRANDING">
+    <div class="Logo">
+      <a href="./" class="img"><svg>...</svg></a>
+    </div>
+  </div>
+  <div class="NAV_MAJOR">
+    <div class="NavBar">
+      <ul>
+        <li class="navbar-selected"><a href="learn.html">Learn</a></li>
+        <li><a href="about.html">About</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="NAV_MINOR">
+    <div class="NavBar navbar-minor">
+      <ul>
+        <li><a href="login.html">Login</a></li>
+        <li class="navbar-primary"><a href="join.html">Register</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="SEARCH">
+    <div class="SearchBox">
+      <form action="search.html" method="get">
+        <label for="input-search">Search</label>
+        <input name="q" type="search" id="input-search" />
+        <button type="submit">Search</button>
+      </form>
+    </div>
+  </div>
+</nav>
+----
+
+Layout classes: `NAVIGATION`, `BRANDING`, `NAV_MAJOR`, `NAV_MINOR`, `SEARCH`.
+Component classes: `Logo`, `NavBar` (used twice), `SearchBox`. Modifier classes:
+`navigation-homepage` (varies `NAVIGATION` on the homepage), `navbar-selected`
+(marks the current selection), `navbar-minor` (varies the second `NavBar`),
+`navbar-primary` (emphasizes the "Register" link), `img` (a global modifier for
+any hyperlink that encapsulates an image).
+
+Corresponding selectors:
+
+[source,css]
+----
+.NAVIGATION {}
+.NAVIGATION.navigation-homepage {}
+.BRANDING {}
+.NAV_MAJOR {}
+.NAV_MINOR {}
+.SEARCH {}
+a.img {}
+.Logo {}
+.Logo a {}
+.Logo svg {}
+.NavBar {}
+.NavBar ul {}
+.NavBar li {}
+.NavBar li.navbar-selected {}
+.NavBar li.navbar-primary {}
+.NavBar a {}
+.NavBar.navbar-minor {}
+.NavBar.navbar-minor ul {}
+.NavBar.navbar-minor li {}
+.NavBar.navbar-minor li.navbar-selected {}
+.NavBar.navbar-minor li.navbar-primary {}
+.NavBar.navbar-minor a {}
+.SearchBox {}
+.SearchBox form {}
+.SearchBox label {}
+.SearchBox input[type="search"] {}
+.SearchBox button {}
+----
+
+== Dynamic classes
+
+`data-*` attributes, not classes, SHOULD be used as DOM query targets from
+JavaScript:
+
+[source,js]
+----
+document.querySelectorAll('[data-popup="true"]');
+----
+
+This leaves the `class` attribute as the primary interface between HTML and CSS,
+and the `data-*` attributes (and, where appropriate, the `<data>` element) as
+the interface between HTML and JavaScript — a clean separation of concerns.
+
+It is acceptable for modifier classes to be injected into a document dynamically
+by a client-side script. Dynamic modifiers MUST use the `is-` prefix, so it is
+clear they were added after the page was first rendered. Temporary classes that
+transition something from one state to another are named `is-` followed by a
+verb. Permanent classes that fix a resulting state are named `is-` followed by
+an adjective:
+
+[source,css]
+----
+.is-opening {}
+.is-open {}
+.is-closing {}
+.is-closed {}
+.is-first-frame {}
+.is-animating {}
+.is-last-frame {}
+----
+
+Classes added to a document for feature detection MUST be prefixed `supports-`:
+
+[source,css]
+----
+.supports-cssboxsizing {}
+.supports-csstransforms3d {}
+.supports-webworkers {}
+----
+
+== Class name semantics
+
+Names SHOULD last the lifetime of the objects they are given to, so they SHOULD
+describe things that are unlikely to change. Names that are too literal —
+describing exact content, exact presentation, or exact function — tend to become
+inaccurate as a project evolves.
+
+Consider a component presenting a scrolling marquee of breaking news headlines.
+Naming it after its current presentation (`TopRedBox`) breaks if the box's color
+or position changes. Naming it after its current content (`BreakingNews`) breaks
+if it is later repurposed to promote a competition or a blog post. A more
+generic, slightly abstract name (`AlertBox`) is more likely to remain accurate
+over time.
+
+Layout section and component names SHOULD accurately describe the content they
+encapsulate without being overly explicit — `BANNER` and `AlertBox` rather than
+something overly literal. A degree of ambiguity is beneficial for these classes.
+Modifier classes, by contrast, generally apply a narrow, well-defined set of
+properties, so they benefit from explicit, expressive names: `rounded-corners`,
+`is-animating`.

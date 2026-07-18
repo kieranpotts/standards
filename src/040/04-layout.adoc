@@ -1,0 +1,231 @@
+= Layout
+
+A new web design project SHOULD begin by creating a wireframe-like layout. A
+series of sectioning elements — `<main>`, `<header>`, `<footer>`, `<article>`,
+`<aside>`, `<address>`, `<nav>`, `<section>`, and `<div>` — establish distinct
+sections into which content will later be placed:
+
+[source,html]
+----
+<body>
+  <div class="CONTAINER">
+    <header class="BANNER"> ... </header>
+    <nav class="NAVIGATION"> ... </nav>
+    <main class="MAIN"> ... </main>
+    <aside class="ADVERTS"> ... </aside>
+    <footer class="FOOTER">
+      <nav class="SITEMAP"> ... </nav>
+      <div class="LEGAL"> ... </div>
+    </footer>
+  </div>
+</body>
+----
+
+Each section MUST be given a unique name, written in `UPPER_CASE` with words
+delimited by underscores (see <<class-names,Class names>>). Names SHOULD
+describe the content intended for each section without being overly specific —
+`SIDEBAR` is preferable to `RELATED_LINKS`.
+
+Layout selectors MUST NOT be qualified with element types. This preserves the
+freedom to swap sectioning elements in the markup — for example, replacing an
+`<aside>` with a generic `<div>` — without needing to refactor the CSS:
+
+[source,css]
+----
+.CONTAINER {}
+.BANNER {}
+.NAVIGATION {}
+.MAIN {}
+.ADVERTS {}
+.FOOTER {}
+.SIDEBAR {}
+.LEGAL {}
+----
+
+The default layout SHOULD be optimized for mobile devices, then progressively
+enhanced for larger viewports (and for print, where relevant). Media queries
+SHOULD be written immediately after the selector they modify:
+
+[source,css]
+----
+.BANNER {
+  background: hsl(0, 0%, 93%);
+  padding: 2rem 0;
+}
+@media screen and (min-width: 90rem) {
+  .BANNER { padding: 4rem 0; }
+}
+@media screen and (min-width: 120rem) {
+  .BANNER {
+    padding: 6rem 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 250px;
+  }
+}
+@media print {
+  .BANNER { display: none; }
+}
+----
+
+Layout sections are later populated with content. That content marked up as
+elements (see <<elements,Elements>>) or components (see <<components,Components>>).
+
+Layout rulesets are concerned exclusively with establishing the visual structure
+that holds that content. Layout classes MAY position sections and give them
+backgrounds, borders, padding, and margins, but MUST NOT set typographic styles,
+style form controls, or otherwise influence the presentation of anything placed
+within a section. The aim is to be free to move content around the layout
+without changing the CSS.
+
+To that end, layout classes MUST NOT set inheritable properties — only
+non-inheritable properties, which do not cascade down to nested content,
+including:
+
+* `display`
+* `float`
+* `position`
+* `top`, `bottom`, `left`, `right`
+* `width`, `height`, `max-width`, etc.
+* `background`, `background-color`, `background-image`, etc.
+* `border`, `border-color`, etc.
+* `margin`, `margin-left`, etc.
+* `padding`, `padding-left`, etc.
+* `z-index`
+
+== Multiple layouts
+
+Not every page needs to follow the same layout. Where a layout differs from the
+default, the root `<html>` element SHOULD be given a unique class name, using
+the layout naming convention:
+
+[source,html]
+----
+<html class="SEARCH">
+----
+
+This class can then be used to encapsulate adjustments to existing sections, and
+to introduce entirely new sections specific to that page:
+
+[source,css]
+----
+.CONTAINER {}
+.BANNER {}
+.NAVIGATION {}
+.MAIN {}
+.ADVERTS {}
+.FOOTER {}
+.SITEMAP {}
+.LEGAL {}
+html.SEARCH .NAVIGATION {}
+html.SEARCH .SIDEBAR {}
+html.SEARCH .PAGINATION {}
+----
+
+The template class (`SEARCH`) SHOULD be qualified with a type selector
+(`html.SEARCH`) to make clear that it encapsulates a whole template, not a
+single layout section.
+
+In designs with many layout variations, global layout sections MAY be prefixed
+`GLOBAL_` to distinguish them from template-specific sections:
+
+[source,css]
+----
+.GLOBAL_CONTAINER {}
+.GLOBAL_BANNER {}
+.GLOBAL_NAVIGATION {}
+.GLOBAL_MAIN {}
+.GLOBAL_ADVERTS {}
+.GLOBAL_FOOTER {}
+.GLOBAL_SITEMAP {}
+.GLOBAL_LEGAL {}
+html.SEARCH .GLOBAL_NAVIGATION {}
+html.SEARCH .SIDEBAR {}
+html.SEARCH .PAGINATION {}
+----
+
+== Layout modifiers
+
+Occasional, minor modifications to a section of layout SHOULD use a modifier
+class:
+
+[source,css]
+----
+.BANNER {
+  background: hsl(0, 0%, 93%);
+  display: table-cell;
+  padding: 2rem 0;
+  vertical-align: middle;
+}
+.BANNER.banner-homepage { height: 100vh; }
+----
+
+[source,html]
+----
+<header class="BANNER banner-homepage">
+----
+
+Layout modifier classes are OPTIONAL. It MUST never be necessary to apply a
+modifier to achieve the default layout. Modifiers written lower-case,
+hyphen-delimited, and prefixed with the lower-cased name of the layout section
+they vary (`banner-homepage`, `sidenav-visible`) reduce the chance of a name
+collision with an unrelated class, and make clear in the markup what a modifier
+belongs to. Layout modifiers SHOULD also be qualified against their parent
+section's class:
+
+[source,css]
+----
+.SECTION.section-modifier { ... }
+----
+
+This further locks down the modifier's scope, and limits the impact if it is
+accidentally applied in the wrong place. See <<modifiers,Modifiers>> for the
+full modifier conventions.
+
+== Grid systems
+
+Grid systems MUST NOT be used to create layout. A traditional, uniquely named
+layout is more flexible. Because each section has a unique name, different
+sections can collapse to mobile-friendly layout at different breakpoints, which
+is difficult to achieve with a generic grid system.
+
+Grid systems ARE useful as components, for arranging content within an existing
+layout section:
+
+[source,html]
+----
+<main class="MAIN">
+  <div class="Grid">
+    <div class="grid-row">
+      <div class="grid-column-one-of-two">
+        <div class="Promotion">
+          <!-- Content of the "Promotion" component -->
+        </div>
+      </div>
+      <div class="grid-column-one-of-two">
+        <div class="PullQuote">
+          <!-- Content of a "PullQuote" component -->
+        </div>
+      </div>
+    </div>
+    <div class="grid-row">
+      <div class="grid-column-two-of-four">
+        <div class="Box box-shade1">
+          <!-- Content of the first "Box" component -->
+        </div>
+      </div>
+      <div class="grid-column-one-of-four">
+        <div class="Box box-shade2">
+          <!-- Content of the second "Box" component -->
+        </div>
+      </div>
+      <div class="grid-column-one-of-four">
+        <div class="Box box-shade3">
+          <!-- Content of the third "Box" component -->
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+----
