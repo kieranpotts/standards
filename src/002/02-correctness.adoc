@@ -36,3 +36,48 @@ Of course, there are problem spaces where other qualities may be prioritized
 differently. In distributed systems, for example, consistency of replicated data
 (a form of correctness) is often intentionally sacrificed for higher
 availability and fault tolerance.
+
+== State management
+
+Managing state is among the hardest problems in software design, and most
+correctness defects are ultimately defects of state. Two rules do most of the
+work.
+
+*Minimize mutable state.* State that cannot change cannot become inconsistent.
+Reducing the amount of mutable state in a system removes whole categories of
+defect – synchronization bugs, conflicting writes, stale reads – rather than
+merely defending against them.
+
+*Maintain one source of truth.* A single piece of state should not be stored in
+two places within the same service. However carefully the copies are kept in
+step, they _will_ diverge, at times that will appear random.
+
+Derived values are the usual temptation here. Suppose a client receives a bank
+balance from a server, and a "`spendable balance`" is derived from it. The
+correct default is to calculate the derived value on demand, rather than storing
+it alongside the original. Recalculating it whenever the source changes seems
+equivalent, but it is not: sooner or later one of those recalculations will fail
+to run, and the application will be left holding two numbers that disagree.
+
+As ever, there are trade-offs. If the derivation is genuinely expensive, caching
+the result may be the right design – extending or invalidating the cache to
+balance performance against consistency. But this should be arrived at
+deliberately, as an optimization applied to a design that was correct to begin
+with. The default for any state management design is consistency; performance
+optimizations are iterated in from that baseline, not assumed at the start.
+
+== Defensive programming
+
+Public interfaces to software components should be programmed defensively:
+raising an exception whenever a component receives input it cannot handle,
+rather than proceeding on the assumption that the input is well formed.
+
+The purpose is to convert silent corruption into loud, immediate failure. An
+invalid input that is quietly accepted will produce an invalid state somewhere
+downstream, at a point far removed from the mistake that caused it. Failing at
+the boundary forces the defect to be fixed where it originated, and makes the
+source of a problem obvious when one does occur.
+
+This connects correctness to reliability. A component that refuses invalid input
+is one that cannot be driven into an inconsistent state by its callers, which
+means failures stay contained rather than propagating through the system.
