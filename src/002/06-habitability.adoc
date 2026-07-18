@@ -44,6 +44,77 @@ future maintainers. For example, by leaving comments in code to explain tricky
 logic or to record the rationale for an unusual design choice, you're signaling
 to future maintainers that you've thought carefully about the problem.
 
+== Clarity over brevity
+
+Where the two conflict, prefer clarity to brevity. It is not a design goal to
+express a program in the fewest possible characters. It is a design goal for
+code to be as self-explanatory as it can be, without the reader having to
+consult adjacent annotation or separate documentation to understand what is in
+front of them.
+
+This has consequences for naming. Use precise, specialized terminology in code
+and in supporting artifacts, in preference to more common words that could be
+misunderstood. Avoid abbreviations and acronyms. Respect established precedent
+in the domain and in the surrounding ecosystem, rather than optimizing
+terminology for newcomers at the expense of the people who will work in the
+codebase daily. Include every word needed to remove ambiguity – and omit every
+word that carries no information.
+
+Brevity is not the enemy, and it need not be bought at the cost of clarity.
+Expressive type systems and well-chosen language features reduce boilerplate
+without obscuring intent. What should be resisted is brevity that hides meaning.
+
+A related caution applies to "`magic`" – behavior that happens implicitly,
+through convention, reflection, or framework machinery that the reader cannot
+see at the point of use. Magic makes code shorter at the cost of making it
+unpredictable to anyone who has not memorized the framework's rules. It also
+erodes the confidence of the people working in the codebase: developers who
+understand how their tools work feel capable, while developers surrounded by
+machinery they cannot inspect feel alienated from it. Err on the side of the
+explicit.
+
+== Data structures first
+
+Treat data structures, rather than code structures, as the foundation of a
+software design.
+
+Application logic tends to follow the data model. Treating the data model as an
+afterthought results in more work later, whereas a well-considered data model
+makes migrations and extensions substantially easier.
+
+[quote, Linus Torvalds]
+____
+Bad programmers worry about the code. Good programmers worry about data
+structures and their relationships.
+____
+
+Torvalds made this remark in the context of Git's design, observing that Git
+succeeded in large part because it was built around simple, stable, well
+documented data structures rather than around its algorithms.
+
+The same idea appears in Eric Raymond's _The Art of Unix Programming_ as the
+Rule of Representation: fold knowledge into data, so that program logic can be
+stupid and robust.
+
+[quote, Eric Raymond, The Art of Unix Programming]
+____
+Data is more tractable than program logic. It follows that where you see a
+choice between complexity in data structures and complexity in code, choose the
+former. More: in evolving a design, you should actively seek ways to shift
+complexity from code to data.
+____
+
+Good data structures make code easier to read, easier to maintain, and easier
+to reason about – which is to say they make a codebase more habitable. They also
+support correctness and reliability, because a data model that makes invalid
+states difficult to represent removes whole categories of defect by
+construction.
+
+In distributed systems, shared data structures deserve particular care. Where
+several services exchange data, a well-designed common representation reduces
+the need for each team to write its own converters and mappers, and with it the
+risk of inconsistencies creeping in between services.
+
 The most habitable codebases are truly joyful places. Far from being sterile,
 clinical environments, they show signs of personality and imagination. You find
 it in the small details – sly humor in a comment, a playful variable name, or a
@@ -65,3 +136,26 @@ preserve the habitability of the space.
 
 Habitable codebases are created and maintained through deliberate, incremental
 effort.
+
+== Rules of thumb are not rules
+
+Habitability is a property of the whole, and it cannot be reduced to a checklist.
+Most design guidance takes the form of heuristics that are sound in general and
+wrong in particular cases, and heuristics of this kind routinely conflict with
+one another.
+
+Consider the widely repeated advice that a function should be no more than a
+handful of lines long. Applied without judgment, it produces code that is harder
+to read, not easier: logic fragmented across many small functions, each of which
+must be located and held in mind to understand the whole. Good naming mitigates
+this but does not eliminate it. The advice to write small functions is in
+genuine tension with the advice to keep related code together, and neither wins
+outright. The right balance depends on the specific code in question.
+
+This tension is not a flaw in the guidance – it is the normal condition of
+design work. What it demands is empirical judgment: assess the result by
+reading it, and by asking whether the next person will find it comprehensible.
+
+Software developers are drawn to ideas, and therefore prone to designing code to
+conform to principles rather than designing what demonstrably works. Argue from
+evidence about the code in front of you, not only from first principles.
