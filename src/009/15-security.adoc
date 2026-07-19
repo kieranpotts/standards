@@ -86,10 +86,65 @@ provided by your repository hosting provider. At minimum:
 
 * All developers SHOULD authenticate using SSH keys or personal access tokens,
 not passwords.
-* SSH keys SHOULD be passphrase-protected and stored securely.
 * Personal access tokens SHOULD have minimal required permissions and short
 expiration windows.
 * Inactive accounts and revoked access SHOULD be removed promptly.
+
+=== SSH versus HTTPS
+
+It is RECOMMENDED to connect to remote Git repositories over SSH rather than
+HTTPS. Both are secure transport protocols, but public/private key
+authentication is more convenient and scripts more easily, since it does not
+depend on Git's credentials manager to have a password cached. If a private
+key is compromised, it can simply be revoked, without needing to change an
+account password.
+
+SSH keys SHOULD generally be passphrase-protected and stored securely. Where a
+passphrase is impractical — for example, some automation tools and Git clients
+do not handle passphrase-protected keys well — a passphrase-free key MAY be
+used instead, provided the private key is kept securely on the client device
+and is never backed up to a public cloud service. Where supported by the
+hosting provider, an expiry of up to 12 months SHOULD be applied to keys
+registered without a passphrase, to limit the exposure window if the device is
+compromised.
+
+=== Credentials manager
+
+Git includes a built-in credentials manager that caches usernames and
+passwords for repositories accessed over HTTPS, via a background daemon
+process. It is RECOMMENDED to disable the credentials manager, to encourage
+authentication over SSH instead of HTTPS.
+
+To disable it globally:
+
+[source,sh]
+----
+git config --global --unset credential.helper
+----
+
+On some Windows installations, this instead requires (run with administrator
+privileges):
+
+[source,sh]
+----
+git config --system --unset credential.helper
+----
+
+To disable it for a single repository only, overriding the global setting:
+
+[source,sh]
+----
+git config credential.helper ""
+----
+
+To fully remove the credentials manager program:
+
+[source,sh]
+----
+git credential-manager uninstall
+----
+
+Verify there is no `credential.helper` entry by running `git config --list`.
 
 For organizations, it is RECOMMENDED to use role-based access control (RBAC) to
 manage who can perform specific actions:
