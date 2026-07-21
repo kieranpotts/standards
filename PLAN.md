@@ -360,7 +360,7 @@
   - [ ] Spelling & Grammar
 
 - TS-61: AI Tools
-  - [ ] TODOs
-  - [ ] Review
-  - [ ] References
-  - [ ] Spelling & Grammar
+  - [ ] TODOs - yellow paper notes
+  - [x] Review
+  - [x] References
+  - [x] Spelling & Grammar
