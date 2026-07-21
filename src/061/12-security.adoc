@@ -92,7 +92,8 @@ compromised agent can still only do what its connected tools allow.
 requests, code execution — especially when the agent has processed external
 content.
 
-* Audit agent execution traces when tasks involve untrusted sources.
+* Audit agent execution traces — ie. the session transcript (see the section on
+auditability) — when tasks involve untrusted sources.
 
 == The lethal trifecta
 
@@ -108,7 +109,8 @@ anything the agent can read that an attacker cannot.
 output, or any input that could carry indirect injection.
 
 * *The ability to communicate externally.* Network requests, outbound API calls,
-or any channel by which data can leave the trust boundary.
+or any channel by which data can leave the trust boundary — ie. a path for *data
+exfiltration*.
 
 The underlying reason this is a problem is the same one that makes prompt
 injection possible at all. An LLM cannot reliably distinguish between data it is
@@ -119,9 +121,9 @@ may be acted upon.
 
 Any one or two parts of the trifecta in isolation is comparatively safe. It is
 the co-occurrence of all three that is the most dangerous. Untrusted content
-smuggles in instructions, which the model treats as commands to follow and, in
-obedience to those commands, reads private data and leaks it to the attacker via
-the exfiltration channel.
+smuggles in instructions (prompt injection), which the model treats as commands
+to follow and, in obedience to those commands, reads private data and leaks it to
+the attacker via the exfiltration channel (data exfiltration).
 
 An agent that can read secrets and browse the web but cannot make outbound
 requests cannot leak. But add an innocuous-looking way to communicate — a URL it
@@ -168,3 +170,55 @@ defaults, missing input validation — that models learn from their training dat
 
 Pay particular attention to the areas of code that handle authentication,
 authorization, cryptography, external input, and so on.
+
+== Auditability
+
+Reviewing agent output judges the artifact. Auditability concerns the durable
+record of _how_ that artifact came to be — what the agent was asked, what it did,
+and what data passed through it. In agentic workflows, where an agent takes many
+autonomous actions between human checkpoints, that record is essential for
+incident investigation, accountability, and demonstrating compliance.
+
+The primary audit substrate is the *session transcript* — the full sequence of
+user inputs, model outputs, and tool calls that an agent harness records for a
+session. The transcript is distinct from the model's context: the context is
+mutable and mostly discarded as a session progresses (through compaction and the
+loop overwriting it), whereas a transcript is an append-only record of everything
+that happened. When something goes wrong — an agent leaks data, deletes a file,
+or acts on an injected instruction — the transcript is what lets you reconstruct
+the sequence of events after the fact. This is why the mitigations for prompt
+injection call for auditing agent execution traces: those traces are the session
+transcript.
+
+This audit substrate complements, rather than duplicates, the version-controlled
+audit trail of workflow artifacts (see the section on agentic workflows). The two
+answer different questions. Version history records _what_ each step produced —
+the specification, the design, the plan, the code — as durable, diffable
+artifacts. The session transcript records _how_ an agent arrived at that output —
+the prompts, reasoning, and tool calls in between. Together they give end-to-end
+traceability from a triggering request through to a merged change.
+
+The following practices are RECOMMENDED:
+
+* *Retain transcripts in proportion to the risk of the work.* For low-stakes or
+throwaway work, transcripts can be ephemeral. For code that handles
+authentication, money, personal data, or safety-critical functions — or any
+work subject to regulatory or contractual audit obligations — session transcripts
+SHOULD be retained as durable records, on the same basis as any other audit log.
+
+* *Protect transcripts as sensitive data.* A transcript may contain credentials,
+proprietary code, personal data, or other secrets that passed through the agent's
+context. Store and access-control transcripts with the same care as the data they
+may contain, and apply the organization's normal retention and data-protection
+policies to them.
+
+* *Prefer tamper-evident storage for high-integrity work.* An audit record is
+only as trustworthy as its integrity. Where transcripts serve a compliance or
+accountability purpose, store them somewhere append-only or otherwise
+tamper-evident, so the record cannot be quietly altered after the fact.
+
+* *Audit transcripts after untrusted-content tasks.* Reviewing the transcript of
+a task that processed external content — web pages, emails, tool output from
+third-party MCP servers — is the way to detect whether an indirect prompt
+injection steered the agent, since the injected instruction and the agent's
+response to it are both visible in the record.
