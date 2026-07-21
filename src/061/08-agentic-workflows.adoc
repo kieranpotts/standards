@@ -13,6 +13,49 @@ another agent to verify against.
 Trust in the result is not assumed. It is earned incrementally, through the
 guides and sensors.
 
+Agentic development is distinct from *vibe coding*, which is improvisational and
+exploratory. Agentic development is a highly structured process. It requires more
+than a front-end chat interface to a model — it requires a whole ecosystem of
+supporting development tools and methods, carefully choreographed into a cohesive
+system of checks and balances that steer agent output to the required level of
+correctness, completeness, and quality. Understood this way, an agent harness
+used for _agentic_ software development, rather than merely AI-assisted
+development, is much bigger than a single program providing a user interface to a
+model. It is an extensive suite of methods and tools that extends far beyond the
+AI interface, of which reusable context bundles such as skills are only one
+component.
+
+== Objectives
+
+The overriding objective in the design of an agentic workflow is to produce
+*predictable outcomes*, and for those outcomes to be highly *consistent* across
+all mainstream coding models. Predictability comes from the guides and sensors
+wrapped around agents (see <<Guides and sensors>>) and from calibrating those
+constraints so that agents are given clear, self-verifiable criteria for what
+"done" and "correct" look like.
+
+Beneath that overriding objective sit four supporting ones, each realized by
+practices described in this section and elsewhere in this standard:
+
+* *Composability.* Each step in a workflow is a small, sharp tool with a
+well-defined interface, which any orchestrator — a human, a script, or an agent —
+can compose into new pipelines (see <<Composable pipelines>>).
+
+* *Portability.* Reusable context encodes rules, not knowledge, staying
+technology- and domain-agnostic so it runs unmodified across projects and across
+models (see the section on reusable context).
+
+* *Context economy.* The quality of a model's output degrades as its context
+window fills, so workflows are designed to keep each agent's context trim —
+through small increments of work, narrowly-scoped skills, and persisting
+distilled outputs to disk rather than carrying working state forward
+in-conversation (see <<Persistence>> and the section on context engineering).
+
+* *Earned autonomy.* As deterministic verification proves itself, fewer human
+checkpoints are needed in the loop (see the section on human-in-the-loop). The
+long-term goal is production-grade code delivered from specifications
+("specs-to-code") with minimal human involvement downstream.
+
 == Agentic versus AI-assisted development
 
 It is worth being clear about how different agentic software development is from
@@ -61,7 +104,11 @@ tasks where the environment is stable.
 Agentic workflows are dynamic and reasoning-based. Rather than following a rigid
 script, an agent uses a probabilistic model to reason through a problem. It can
 handle ambiguity, adapt to unexpected outputs from tools, and devise new
-strategies on-the-fly to overcome obstacles.
+strategies on-the-fly to overcome obstacles. This is the flip side of
+determinism: give an agent the same inputs in different sessions and you may get
+different outputs each time, whereas an automation script given the same inputs
+always produces the same result. An agentic step is therefore worth adding
+wherever judgment cannot be reduced to a deterministic rule — and nowhere else.
 
 While automation is about execution of a known path, agentic workflows are about
 navigation toward a known goal.
@@ -442,6 +489,17 @@ This is not always necessary. CI systems typically provide isolation already, by
 cloning the repository fresh into an ephemeral environment for every job, so
 there is no shared working tree to corrupt.
 
-Whether isolation is needed at all, and which mechanism provides it, is a
-decision for whoever is orchestrating the workflow, not for the individual
-steps.
+Whether isolation is needed at all, and which mechanism provides it — a worktree,
+a fresh clone, a container — is a decision for whoever is orchestrating the
+workflow, not for the individual steps.
+
+Persistence, version control, and isolation are not incidental tooling choices.
+Together they compose the infrastructure an agentic workflow runs on. This
+exposes a deliberate asymmetry in how agentic steps are coupled. The steps are
+loosely coupled _to one another_ — connected only through their input/output
+contracts, so they compose freely (see <<Composable pipelines>>). But each step
+is necessarily tightly coupled _to this shared infrastructure_: it assumes a
+durable store, version control, and isolation are already in place around it. A
+well-designed agentic workflow therefore cannot simply be dropped, unmodified,
+into any development environment. It presupposes a structured development
+environment already built around it.
