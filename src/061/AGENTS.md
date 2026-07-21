@@ -9,8 +9,9 @@ refer to AI models based on the transformer (or similar) architecture.
 
 Topics covered: the role of human judgment in AI-assisted development;
 quality assurance strategies for AI-generated code; understanding AI
-model capabilities and limitations; tuning model behavior through
-inference-time parameters; prompt and context engineering; evaluating
+model capabilities and limitations; engineering and configuring an agent
+harness; tuning model behavior through inference-time parameters; prompt
+and context engineering; evaluating
 models and prompts (evals); cost optimization techniques; task
 segmentation and workflow optimization; and security and risk
 considerations.
@@ -241,6 +242,126 @@ For general code design, see [TS-7: Code Design](../007/AGENTS.md).
 - **Start with a harness and graduate to a framework only when a concrete
   limitation forces the move** — not in anticipation of one. Consistent
   with this standard's incremental philosophy.
+
+### Harness engineering
+
+- **Harness engineering is the work of controlling the environment in
+  which a model runs.** The model is chosen from what vendors offer; the
+  environment around it is built locally, against the failure modes of a
+  specific codebase, and it is what determines an agent's capabilities
+  and constraints. Not confined to teams building on a framework — a team
+  running an off-the-shelf harness engineers one too, through
+  configuration rather than code. The build-versus-buy decision
+  determines the mechanism, not the discipline.
+
+- **The dimensions of the harness surface:** the tool surface (including
+  connected MCP servers), the context assembled (system prompt,
+  instruction files, skills), the permissions enforced, the checks that
+  fire, the models assigned to each role, and the record kept
+  (transcripts and persisted artifacts). Each is covered in its own right
+  elsewhere in this standard — context engineering, guides and sensors,
+  least-privilege tool access, auditability.
+
+- **The dimensions are interdependent.** Widening the tool surface raises
+  the burden on permissions and checks. Adding instructions to steer
+  behavior that a check could enforce mechanically spends context to buy
+  a weaker guarantee.
+
+#### Configuration is code
+
+- **Project-level harness configuration SHOULD be committed to version
+  control** alongside the code it applies to. Configuration living only
+  on one developer's machine cannot be reviewed, cannot be reproduced in
+  CI, and silently produces different agent behavior for different
+  people.
+
+- **Changes to harness configuration SHOULD be reviewed.** Widening a
+  permission list or disabling a check changes what every subsequent
+  unsupervised session may do — often more consequential than the code
+  reviewed alongside it, and easy to wave through because it is short.
+
+- **Separate project-level from personal-level configuration.** Permitted
+  tools, required checks, connected servers, and project skills belong in
+  the repository. Chosen model, interface options, and personal shortcuts
+  do not — exclude those paths from version control.
+
+- **Credentials MUST NOT be committed in harness configuration.**
+  Reference environment variables or a secrets manager.
+
+- **Record the rationale for each non-obvious rule.** A permission denial
+  or check whose reason is unrecorded will eventually be removed by
+  someone who cannot tell whether it still matters — the same failure
+  mode as an undocumented test.
+
+#### Hooks and deterministic enforcement
+
+- **A hook is a program the harness runs automatically at a defined point
+  in the agent's loop** — before a tool call, after a file write, at
+  session start, when the agent believes it has finished. The harness
+  executes it as an ordinary process and acts on its exit status, so its
+  verdict does not depend on the model's cooperation or interpretation.
+  - A hook running _before_ an action, able to block it, is an **enforced
+    guide** — a programmable extension of a permission list, able to
+    decide against arguments and current state rather than only whether a
+    tool is allowed.
+  - A hook running _after_ an action is an **enforced deterministic
+    sensor** — the formatter, linter, type checker, or test suite runs
+    because the harness ran it, not because the agent chose to.
+
+- **Where a rule is mechanically checkable and expressible as a program,
+  it SHOULD be enforced by a hook rather than stated as a behavioral
+  instruction.** Instructions compete for the attention budget on every
+  inference call and are obeyed probabilistically. A hook costs no
+  context and is obeyed absolutely.
+
+- **An instruction observed to be ignored repeatedly is a candidate for
+  promotion to a hook.** Restating it more emphatically, or in more
+  places, is the weaker and more expensive response.
+
+- **A blocking hook MUST return an error message specific enough for the
+  agent to self-correct**, otherwise it converts a recoverable mistake
+  into a stall. Hooks SHOULD be fast — they run on every matching event
+  and their latency is added to the loop. Bind expensive checks to
+  infrequent events (end of task, not every file write).
+
+#### Evolving the harness
+
+- **Start with the minimum configuration that works**, adding only in
+  response to failure modes actually observed. Configuration added in
+  anticipation tends to constrain the model against its own better
+  judgment.
+
+- **Change one thing at a time and measure.** Harness configuration is
+  one of the components evals exist to evaluate. A new check, narrowed
+  permission, or rewritten instruction either moves pass rate, latency,
+  or token cost, or it is not earning its keep.
+
+- **Review the whole harness on a model upgrade, not just the
+  instructions.** Rules written for an older model's weakness may be
+  counterproductive against a newer one; tools pitched at a less-capable
+  model may now be needlessly fine-grained.
+
+- **Prune.** Stale harness configuration is worse than none, for the same
+  reason stale context is worse than none.
+
+#### Portability
+
+- **Harness configuration is the least portable layer of an AI
+  toolchain.** Reusable context has `AGENTS.md` and skills; tool
+  integration has MCP; configuration has no equivalent. This creates a
+  tension: the most reliable enforcement mechanisms are the least
+  portable, while the most portable mechanism — written instruction — is
+  the weakest.
+
+- **Keep enforcement where it is strongest and logic where it is
+  portable.** Put the substance of a check in an ordinary repository
+  script that a developer can run by hand and CI can run unchanged, and
+  let harness-specific configuration be a thin binding that invokes it.
+  Migrating harness then means rewriting the binding, not the check.
+
+- **Prefer a project's existing quality gates over harness-specific
+  reimplementations.** A hook running the project's lint command inherits
+  every rule that command enforces, and stays correct as they change.
 
 ### Tuning model behavior
 
