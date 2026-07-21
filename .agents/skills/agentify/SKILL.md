@@ -153,7 +153,7 @@ sure about it.
 -   **Fix errors found in `AGENTS.md` during review.**
 
     Typos, grammar errors, and stale TS number references in an existing
-    `AGENTS.md` are in scope and MUST be fixed as part of an update pass.
+    `AGENTS.md` are in-scope and MUST be fixed as part of an update pass.
 
 ##  Edge cases
 

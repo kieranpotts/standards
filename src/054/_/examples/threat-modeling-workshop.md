@@ -49,7 +49,7 @@ application, mobile applications (iOS/Android), API gateway, authentication
 service, image processing pipeline, storage layer, and content delivery network.
 
 **System boundaries:** The scope includes all components from user-facing
-interfaces through to persistent storage. Out of scope are third-party payment
+interfaces through to persistent storage. Out-of-scope are third-party payment
 processing (Stripe integration), email delivery service (SendGrid), and
 monitoring/analytics platforms (DataDog).
 
