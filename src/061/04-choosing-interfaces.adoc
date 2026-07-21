@@ -11,12 +11,12 @@ suggests that, for many workflows, they can create more inefficiencies than they
 resolve. There are two principal reasons for this:
 
 * The volume of information in the output can overwhelm the user. Chatbots tend
-to produce long-form prose, and reading and processing that prose can take
-longer than completing the task by hand.
+  to produce long-form prose, and reading and processing that prose can take
+  longer than completing the task by hand.
 
 * AIs tend to mirror back whatever structure — or lack of structure — the user
-supplies as input. Disorganized prompts produce disorganized responses,
-compounding rather than resolving the user's cognitive load.
+  supplies as input. Disorganized prompts produce disorganized responses,
+  compounding rather than resolving the user's cognitive load.
 
 The longer-term solution is to use specialist interfaces tailored to specific
 domains and categories of work. These present AI capabilities in a form
@@ -29,94 +29,6 @@ IDE-integrated coding assistants such as GitHub Copilot and Cursor, and agent
 harnesses such as Claude Code and OpenCode, provide structured workflows for
 code generation, refactoring, and review — capabilities that require significant
 prompt engineering to replicate through a general-purpose chatbot.
-
-== Agent harnesses
-
-Agent harnesses are a category of specialist interface that warrants closer
-attention, because they represent a qualitative shift in how software developers
-interact with AI — not just a better chat window.
-
-To understand what a harness is, it helps to distinguish three related concepts:
-
-* *Model:* The underlying LLM — a reasoning engine that transforms input tokens
-into output tokens via a process known as inference. It has no persistent
-state, no tools, and no memory of its own.
-
-* *Agent:* A model running within an active context — equipped with tools, a
-system prompt, and a conversation history. The agent is the model in operation.
-
-* *Harness:* The infrastructure layer that creates and manages agents. It
-provides the tools the agent can use (file system access, shell execution, web
-search, and others), manages the context window, enforces guardrails, handles
-memory persistence across sessions, and orchestrates multi-step task execution.
-The harness shapes what an agent can do far more than the choice of model alone.
-
-This distinction matters in practice. Two agents powered by the same model but
-run inside different harnesses will behave very differently, because the harness
-defines the agent's capabilities and constraints.
-
-=== Harnesses vs IDE coding assistants
-
-IDE coding assistants (GitHub Copilot, Cursor) are inline tools. They observe
-the developer's active file or selection and offer completions, explanations, or
-targeted edits. The developer drives the interaction. The AI assists within the
-scope of what the developer is currently working on. The interaction is
-synchronous and fine-grained.
-
-Agent harnesses (Claude Code, OpenCode, Aider) operate at a higher level of
-abstraction. The developer specifies a goal. The harness plans and executes a
-sequence of steps to reach it, invoking tools autonomously along the way. The
-developer's role shifts from directing each individual action to supervising the
-outcome of the task as a whole. The interaction is more asynchronous and
-coarse-grained.
-
-Agent harnesses are well suited to tasks that are multi-file in scope, defined
-by a goal rather than a sequence of steps, and where the developer is
-comfortable reviewing outcomes rather than directing each change.
-
-IDE assistants remain the better choice for fine-grained, interactive work —
-completing a function, refactoring a block, or asking context-sensitive
-questions about the file in front of you.
-
-=== Adopting a harness vs building on a framework
-
-There are two broad ways to obtain an agent. You can adopt a *ready-made harness*
-— an off-the-shelf tool such as Claude Code, OpenCode, Pi, or Aider —
-or you can build a custom agent on an *agent framework* or SDK, such as
-https://github.com/microsoft/agent-framework[Microsoft Agent Framework],
-LangGraph, the OpenAI Agents SDK, or the Claude Agent SDK. The choice is a
-build-vs-buy decision at the harness layer.
-
-Ready-made harnesses are batteries-included. They ship with a curated tool set,
-context-window management, a permission system, memory persistence, and MCP
-support already wired together, and they are maintained and improved by their
-vendors. This makes them immediately usable, and well optimized for interactive,
-ad hoc development work. The cost is control: you operate within the harness's
-design decisions, you cannot easily embed the agent inside your own application,
-and you take on a degree of lock-in.
-
-Agent frameworks invert this trade-off. Building on a framework gives full
-programmatic control over orchestration, tools, guardrails, and memory, and lets
-you embed agentic capability directly into your own product or a bespoke,
-non-interactive pipeline. Frameworks like Microsoft Agent Framework are
-explicitly aimed at production-grade, multi-agent systems, with features such as
-graph-based orchestration, middleware, and observability. The cost is
-engineering effort: you own the plumbing that a harness gives for free, you are
-slower to get started, and you carry ongoing maintenance against a fast-moving
-and still-churning ecosystem.
-
-The line between the two is blurring. Many ready-made harnesses now expose SDKs
-and headless modes — the Claude Agent SDK is Claude Code's harness offered as a
-library — so a workflow can be scripted non-interactively without committing to
-a bespoke build.
-
-It is RECOMMENDED to default to a ready-made harness for interactive and ad hoc
-development, and to reserve building on a framework for when you are shipping an
-agentic _product_, embedding agentic capability into an application, or you have
-orchestration or integration needs that no available harness meets. Consistent
-with this standard's incremental philosophy, start with a harness and graduate
-to a framework only when a concrete limitation forces the move — not in
-anticipation of one.
 
 In other business domains outside of software development, equivalent specialist
 tools are emerging. Examples include:
@@ -134,3 +46,114 @@ When designing an AI-assisted workflow, it is RECOMMENDED to check whether a
 specialist tool exists for the job before defaulting to a general-purpose
 chatbot. The right interface — like the right model — materially affects the
 quality and efficiency of the outcome.
+
+== Agent harnesses
+
+Agent harnesses are a category of specialist interface that warrants closer
+attention, because they represent a qualitative shift in how software developers
+interact with AI — not just a better chat window.
+
+To understand what a harness is, it helps to distinguish four related concepts:
+
+* *Model:* The underlying LLM — a reasoning engine that transforms input tokens
+  into output tokens via a process known as inference. It has no persistent
+  state, no tools, and no memory of its own.
+
+* *Agent:* A model running within an active context — equipped with tools, a
+  system prompt, and a conversation history.
+
+* *Harness:* The infrastructure layer that creates and manages agents. It
+  provides the tools the agent can use (file system access, shell execution, web
+  search, and others), manages the context window, enforces guardrails, handles
+  memory persistence across sessions, and orchestrates multi-step task execution.
+  The harness shapes what an agent can do far more than the choice of model alone.
+
+* *Orchestrator:* It's worth mentioning the concept of an "orchestrator" here.
+  This is any coordination layer above the harness. Where a harness runs
+  one agent, an orchestrator runs many — dispatching work across multiple agents
+  (and potentially multiple harnesses and models), managing their dependencies and
+  execution order, isolating their workspaces, and consolidating their results.
+  The orchestrator is concerned with the division of labor between agents, not
+  with the capabilities of any single one. This is not not necessarily a separate
+  tool, since some harnesses can act as orchestrators, too — spawning subagents,
+  running tasks in parallel, and delegating to child sessions. So the boundary
+  between the two layers — harness and orchestrator — is one of responsibility
+  rather than packaging.
+
+This distinction between model and harness matters. Two agents powered by the
+same model but run inside different harnesses will behave very differently,
+because it is the harness defines the agent's capabilities and constraints.
+
+=== Synchronous vs asynchronous interaction
+
+Tools are often categorized by their form factor — inline IDE assistant, CLI
+agent, web interface — but this is a superficial distinction. GitHub Copilot and
+Cursor are harnesses in the sense defined above, no less so than Claude Code or
+OpenCode. What actually varies, and what actually matters when choosing between
+them, is the _mode of interaction_ between the human and the agent.
+
+*Synchronous* interaction is at-the-keyboard work. The developer supplies context
+continuously — an open file, a current selection, or the next instruction — and
+reviews each result as it arrives. The unit of work is small: a completion, an
+explanation, a targeted edit, a single function, etc. The human stays in-the-loop
+and course-corrects immediately when necessary. Latency matters the most for
+this mode of human-agent interaction.
+
+*Asynchronous* interaction is away-from-keyboard (AFK) work. The developer
+supplies a goal and the constraints under which it must be met, then steps away.
+The agent plans, executes, and self-corrects over many steps. Humans engage
+again only to review the outcome. The unit of work is large: a multi-file change,
+a migration, an investigation. Latency matters far less than the agent's ability
+to stay on task without supervision.
+
+The same harness usually supports both modes, and most real work moves between
+them. Synchronous interaction suits work where the developer holds context that
+is hard to express in a prompt, where the goal is still being discovered, or
+where mistakes are expensive to detect after the fact. Asynchronous interaction
+suits work that is well specified up front, verifiable by tests or other
+automated checks, and large enough that supervising every step would cost more
+than reviewing the result.
+
+The practical implication is that moving work from synchronous to asynchronous is
+not a matter of switching tools. Rather, it requires investing up front in what
+the agent will need in the developer's absence: an unambiguous goal, project
+conventions recorded where the agent will read them, and a way for the agent to
+verify its own work.
+
+=== Adopting a harness vs building on a framework
+
+There are two broad ways to obtain an agent. You can adopt a
+*ready-made harness* — an off-the-shelf tool such as Claude Code, OpenCode, Pi,
+or Aider — or you can build a custom agent on an *agent framework* or SDK, such
+as https://github.com/microsoft/agent-framework[Microsoft Agent Framework],
+LangGraph, the OpenAI Agents SDK, or the Claude Agent SDK.
+
+The choice is a build-vs-buy decision at the harness layer.
+
+Ready-made harnesses have batteries included. They ship with a curated tool set,
+context window management, a permissions system, memory persistence, and MCP
+support already wired together, and they are maintained and improved by their
+vendors. This makes them immediately usable, and well optimized for interactive,
+ad hoc development work. The cost is control: you operate within the harness's
+design decisions; you cannot easily embed the agent inside your own application;
+and you take on a degree of vendor lock-in.
+
+Agent frameworks invert this trade-off. Building on a framework gives full
+programmatic control over orchestration, tools, guardrails, and memory, and lets
+you embed agentic capability directly into your own product or a bespoke,
+non-interactive pipeline. Frameworks like Microsoft Agent Framework are
+explicitly aimed at production-grade, multi-agent systems, with features such as
+graph-based orchestration, middleware, and observability. The cost is
+engineering effort: you own the plumbing that a harness gives for free; you are
+slower to get started; and you carry ongoing maintenance against a fast-moving
+and still-churning ecosystem.
+
+The line between the two is blurring. Many ready-made harnesses now expose SDKs
+and headless modes — the Claude Agent SDK is Claude Code's harness offered as a
+library — so a workflow can be scripted non-interactively without committing to
+a bespoke build.
+
+It is RECOMMENDED to default to a ready-made harness for interactive and ad hoc
+development, and to reserve building on a framework for when you are shipping an
+agentic _product_, embedding agentic capability into an application, or you have
+orchestration or integration needs that no available harness meets.
