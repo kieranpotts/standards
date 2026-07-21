@@ -1,95 +1,87 @@
 = Context engineering
 
-Context engineering is a key skill in effective use of AI. It is also central to
-the development of efficient, capable agents (autonomous tools that can perform
-complex tasks with minimal human intervention).
+Context engineering is a key skill in the effective use of AI. It is also
+central to the development of efficient, capable agents.
 
 Context engineering is a superset of *prompt engineering*. Prompt engineering
-focuses on crafting effective input prompts, while context engineering
-encompasses the entire set of tokens passed to an LLM during inference — its
-full context including system prompts, examples, message history, and any other
-data that lands in the context window.
+focuses on crafting effective input prompts. Context engineering encompasses the
+entire set of tokens passed to an LLM during inference — the full context,
+including system prompts, examples, message history, and any other data that
+lands in the context window.
 
 Context engineering is about optimizing the signal-to-noise ratio of the context
-window. The issue it addresses is the trade-off between *context size* and
+window. The problem it addresses is the trade-off between *context size* and
 *attention focus*.
 
 In the transformer architecture, every token can attend to every other token
 across the entire context, producing n² pairwise relationships for n tokens. As
 the context window fills, a model's ability to manage these pairwise
-relationships gets stretched thin. Thus, as the number of tokens in the context
+relationships gets stretched thin. So as the number of tokens in the context
 window increases, the model's ability to accurately recall information from that
-context decreases — a concept known as *context rot*.
+context decreases — a phenomenon known as *context rot*.
 
-Context rot is not a hard cut-off. A model's performance does not suddenly drop
-off when context size exceeds the model's context window. We observe a
-performance gradient rather than a hard cut-off. Models remain capable with
-large contexts, but show reduced precision for information retrieval and
-long-range reasoning compared to their performance on shorter contexts.
+Context rot is not a hard cut-off. Performance does not suddenly collapse at
+some threshold. What we observe is a gradient. Models remain capable with large
+contexts, but show reduced precision for information retrieval and long-range
+reasoning compared to their performance on shorter contexts.
 
-(This phenomenon is accentuated by optimization techniques like *compaction*,
-which allow models to handle longer sequences by cleaning up redundant context —
-at the cost of some loss of nuance that may negatively impact reasoning
-performance.)
+Optimization techniques like *compaction* accentuate this. They allow models to
+handle longer sequences by cleaning up redundant context, at the cost of some
+loss of nuance that may degrade reasoning performance.
 
-This emergent behavior, known as a model's *attention budget*, is analogous to
-working memory capacity in humans. We too can lose focus and get confused once
-we reach a certain point of information overload. Like people, some models
-exhibit more gentle context rot than others, but this behavior is observed
-across all models.
+The finite capacity behind this behavior is known as a model's
+*attention budget*, and it is analogous to working memory in humans. We too lose
+focus and get confused past a certain point of information overload. Some models
+exhibit gentler context rot than others, but the behavior is observed across all
+of them.
 
-For these reasons, like our own working memory, we should treat context as a
-finite resource when working with LLMs. Even for models with large context
-windows, we need to be aware that performance degrades with context size. Every
-token added to the context depletes the model's finite attention budget. We get
-diminishing marginal returns from adding more tokens to the context and, at some
-point, adding more tokens can actively worsen performance.
+Treat context as a finite resource, then, just as working memory is. Even for
+models with large context windows, performance degrades with context size. Every
+token added to the context depletes the model's attention budget. Adding more
+tokens yields diminishing marginal returns and, past some point, actively worsens
+performance.
 
-*Context engineering*, in broad terms, is the practice of carefully curating the
-context given to LLMs. The guiding principle of context engineering is to find
-the smallest set of high-signal tokens that maximizes the likelihood of achieving
-the desired outcome.
+The guiding principle of context engineering is therefore to find the smallest
+set of high-signal tokens that maximizes the likelihood of achieving the desired
+outcome.
 
-Context engineering is particularly critical in the development of tools for use
-in AI agents. Because agents are designed to be run autonomously, with minimal
-human oversight, the tools those agents are permitted to use must be programmed
-to manage the agents' contexts effectively. This is easier said than done,
-because agents work by continuously looping through a cycle of updating their
-context based on the output from the previous iteration.
+This is particularly critical in the design of tools for AI agents. Because
+agents run autonomously, with minimal human oversight, the tools they are
+permitted to use must be programmed to manage their contexts effectively. That is
+easier said than done, because agents work by continuously looping through a
+cycle of updating their context based on the output from the previous iteration.
 
 Even as models get smarter, requiring less prescriptive prompting and handling
 larger contexts, the need for careful context engineering in tool design will
-remain. This is key to building reliable, effective agents.
+remain. It is key to building reliable, effective agents.
 
-Techniques in context engineering include compaction of long-horizon tasks,
-designing token-efficient tools for use in agents, and enabling agents to
-explore data from their local environment just-in-time. These techniques are
-explored in more detail below. They are mostly relevant for the design of tools
-for use in agents, but the underlying principles of context engineering apply to
-all interactions with LLMs, including one-off prompts and multi-turn
-conversations via chatbot UIs.
+Techniques include compaction of long-horizon tasks, designing token-efficient
+tools for use in agents, and enabling agents to explore data from their local
+environment just-in-time. Each is explored below. They are mostly relevant to the
+design of tools for agents, but the underlying principles apply to all
+interactions with LLMs, including one-off prompts and multi-turn conversations
+via chatbot UIs.
 
 == System prompts
 
 System prompts SHOULD be clear and direct, using simple, plain language for
 instruction.
 
-System prompts SHOULD be pitched at the optimum level of specificity. There is a
-balance to be found between too specific and too general. At one extreme,
-hardcoding complex and brittle logic in prompts, in an attempt to elicit exact
-behavior, creates fragility and increases maintenance overhead. At the other
-extreme, high-level guidance without concrete success criteria can fail to give
-the model the strong signals it needs to achieve the desired behavior.
+System prompts SHOULD also be pitched at the optimum level of specificity, and
+there is a balance to be found between too specific and too general. At one
+extreme, hardcoding complex and brittle logic in prompts, in an attempt to elicit
+exact behavior, creates fragility and increases maintenance overhead. At the
+other extreme, high-level guidance without concrete success criteria fails to
+give the model the strong signals it needs.
 
-The optimal level of specificity strikes a balance between being specific enough
-to guide behavior effectively and flexible enough to provide the model with
-strong heuristics to guide behavior.
+The optimum is specific enough to guide behavior effectively, and flexible
+enough to leave the model with strong heuristics rather than brittle rules.
 
-Prompts MUST be token-efficient. "Skills", "rules", "instructions", and other
-reusable prompt components should be concise and focused on the most critical
-information, to ensure they do not crowd out other high-signal context in the
-window. Best practice is to start with the minimum prompt needed to describe the
-expected behavior, and add instructions only to address specific failure modes
+Prompts MUST be token-efficient. Skills, rules, instructions, and other reusable
+prompt components should be concise and focused on the most critical
+information, so they do not crowd out other high-signal context in the window.
+Best practice is to start with the minimum prompt needed to describe the
+expected behavior, and to add instructions only to address specific failure modes
 observed in testing.
 
 Long prompts MUST be well structured. It is RECOMMENDED to organize prompts into
@@ -108,25 +100,25 @@ formatting is likely to get much less important as models become more capable.
 
 == Specialized tools
 
-Tools are programs that extend the capabilities of AI agents by allowing them to
-interact with their environment, access external data, or perform specific
-actions. They are a critical component of agent design, as they define the
-contract between the model and its information/action space.
+Tools extend the capabilities of AI agents by letting them interact with their
+environment, access external data, and perform specific actions. They are a
+critical component of agent design, because they define the contract between the
+model and its information and action space.
 
 In keeping with the Unix philosophy, tools SHOULD be small, self-contained, and
 focused on specific capabilities. Complex tasks SHOULD be decomposed into
 multiple tools that can be orchestrated together. Each tool SHOULD be
-well-defined, with clear boundaries in its responsibilities, and no overlapping
+well-defined, with clear boundaries in its responsibilities and no overlapping
 functionality with other tools. Input parameters MUST be descriptive and
-unambiguous. Bloated tools create ambiguous decision points for agents, bloating
+unambiguous. Bloated tools create ambiguous decision points for agents, filling
 the context with redundant information and increasing the likelihood of errors.
 
-Providing the agents with examples of tool usage — also known as
-*few-shot prompting* — has been demonstrated to be an effective way to train
-agents on the correct use of tools. It is RECOMMENDED to curate a set of diverse,
-canonical examples, but not to overload the context with an exhaustive
-enumeration of edge cases. If you direct the agent to what it _should_ do, there
-will be no need to overburden it with information that it should _not_ do.
+Providing agents with examples of tool usage — also known as
+*few-shot prompting* — is a demonstrably effective way to train agents on the
+correct use of tools. It is RECOMMENDED to curate a set of diverse, canonical
+examples, but not to overload the context with an exhaustive enumeration of edge
+cases. If you direct the agent to what it _should_ do, there is no need to
+overburden it with what it should _not_ do.
 
 When designing a tool's interface, aim for an abstraction level that matches how
 the agent naturally reasons about the task. A single composite operation — one
@@ -138,82 +130,73 @@ work, and consume context with intermediate state that has no lasting value.
 
 == Just-in-time retrieval
 
-An effective design pattern for managing context in agentic tools is to
-dynamically extend the context with new information only when it is needed —
-just-in-time. Rather than preloading all the context needed to operate a tool,
-agents can be instructed to load additional instructions dynamically at runtime,
-and under particular conditions. Lightweight references such as file paths,
-stored queries, or web links are ideal for this.
+An effective design pattern for managing context in agentic tools is to extend
+the context with new information only when it is needed — just-in-time. Rather
+than preloading everything a tool might require, agents can be instructed to load
+additional instructions dynamically at runtime, under predefined conditions.
+Lightweight references such as file paths, stored queries, and web links are
+ideal for this.
 
-The just-in-time data retrieval strategy mirrors human cognition. The human mind
-maintains indexes from which it can retrieve information on demand, rather than
-keeping entire bodies of knowledge in working memory. Similarly, letting agents
-dynamically retrieve information allows them to progressively discover relevant
-context as they work, keeping the context window focused on what is currently
-relevant — known as *progressive disclosure*.
+This strategy mirrors human cognition. The human mind maintains indexes from
+which it can retrieve information on demand, rather than keeping entire bodies of
+knowledge in working memory. Likewise, letting agents retrieve information
+dynamically allows them to progressively discover relevant context as they work,
+keeping the context window focused on what is currently relevant — an approach
+known as *progressive disclosure*.
 
-Just-in-time data retrieval is a powerful technique for managing context in
-agentic tools. Self-managed contexts keep the agent focused on relevant subsets
-of information. Agents can leverage note-taking strategies for additional
-persistence.
+Self-managed contexts keep the agent focused on relevant subsets of information.
+Agents can lean on note-taking strategies for additional persistence.
 
 Treat session-wide context — product taxonomy, critical constraints, syntax
 rules, project-wide conventions — as a candidate for persistent loading. Treat
 everything else as a candidate for just-in-time retrieval.
 
-Of course, there's a trade-off. Runtime exploration is slower than precomputed
-data. Worse, agents can waste time by chasing dead-ends. So this context
-engineering technique requires careful design of the agent's information
-landscape, and thoughtful engineering of the tools and heuristics that the agent
-uses to navigate it.
+There is a trade-off, of course. Runtime exploration is slower than precomputed
+data, and agents can waste time chasing dead ends. So this technique requires
+careful design of the agent's information landscape, and thoughtful engineering
+of the tools and heuristics the agent uses to navigate it.
 
-== Context history
+== Long-horizon tasks
 
-Long-horizon tasks may involve sequences of actions, operating on large
-datasets, resulting in token counts that far exceed the LLM's context window.
-For example, an agent performing a large codebase migration might need to
-analyze thousands of lines of code and make hundreds of decisions along the way.
-In these use cases, specialized context engineering techniques are required to
-manage the agent's attention and to maintain coherence across the entire task.
+Long-horizon tasks may involve long sequences of actions, operating on large
+datasets, resulting in token counts that far exceed the LLM's context window. An
+agent performing a large codebase migration, for example, might need to analyze
+thousands of lines of code and make hundreds of decisions along the way. These
+use cases call for specialized techniques to manage the agent's attention and to
+maintain coherence across the whole task.
 
 *Compaction* is the practice of taking a conversation that is nearing the
 context window threshold, summarizing its contents, and re-initiating a new
-context window with that summary. Compaction typically serves as the first lever
-in context engineering to drive better coherence across long-horizon tasks. At
-its core, compaction distills the contents of a context window in a
-high-fidelity manner, enabling the agent to continue with minimal performance
-degradation.
+context window with that summary. It is typically the first lever to reach for in
+driving better coherence across long-horizon tasks. At its core, compaction
+distills the contents of a context window in a high-fidelity manner, enabling the
+agent to continue with minimal performance degradation.
 
-Compaction can be seen at work in the UIs of coding assistant chatbots like
-Claude Code. Long-running conversations are periodically compacted to preserve
-critical context (such as architectural decisions and unresolved bugs) while
-discarding low-signal messages (such as the raw outputs of tools that have
-already been processed).
+Compaction can be seen at work in the UIs of coding assistants like Claude Code.
+Long-running conversations are periodically compacted to preserve critical
+context — architectural decisions, unresolved bugs — while discarding low-signal
+messages, such as the raw outputs of tools that have already been processed.
 
 The art of compaction lies in the selection of what to keep versus what to
-discard. Overly aggressive compaction can result in the loss of subtle but
-critical context, the importance of which only becomes evident later.
+discard. Overly aggressive compaction loses subtle but critical context, the
+importance of which often only becomes evident later.
 
-*Structured note-taking*, also known as *agentic memory*, is another technique
-for managing context across long-horizon tasks. Commonly, this technique is used
-to manage lists of outstanding tasks (to-dos) in the current session. This is an
-extension of the practice of dynamic data retrieval. The agent regularly writes
-notes which are persisted to memory outside of the LLM's context window. These
-notes can get pulled back into the context window when the agent needs to
-subsequently retrieve data from them.
+*Structured note-taking*, also known as *agentic memory*, is a second technique.
+Commonly, it is used to manage lists of outstanding tasks (to-dos) in the current
+session. It is an extension of dynamic data retrieval. The agent regularly writes
+notes, which are persisted outside the LLM's context window and pulled back in
+when the agent needs to retrieve data from them.
 
 Finally, *sub-agent architectures* provide another way to work around context
 limitations. Rather than one agent attempting to maintain state across an entire
-project, specialized sub-agents can handle focused tasks with clean context
-windows. The main agent follows a high-level plan but delegates discrete steps
-to sub-agents, each specialized for a particular domain or task. The lead
-orchestration agent (the "supervisor") stays focused on the task of synthesizing
-and analyzing the results from all the other agents.
+project, specialized sub-agents handle focused tasks with clean context windows.
+The main agent follows a high-level plan but delegates discrete steps to
+sub-agents, each specialized for a particular domain or task. The lead
+orchestration agent — the supervisor — stays focused on synthesizing and
+analyzing the results from all the others.
 
-Each of these techniques — compaction, structured note-taking, and sub-agent
-architectures — is appropriate for different types of LLM interactions.
-Compaction is great for highly interactive tasks, which require a lot of
-back-and-forth with the model. Note-taking excels at incremental tasks that can
-be planned up-front. And multi-agents are ideal for complex research and
-analysis tasks, where synthesis of analysis from multiple specialist models is
-beneficial.
+Each of these techniques suits a different type of interaction. Compaction is
+best for highly interactive tasks, which require a lot of back-and-forth with the
+model. Note-taking excels at incremental tasks that can be planned up-front. And
+multi-agent architectures are ideal for complex research and analysis tasks,
+where synthesis from multiple specialist models is beneficial.

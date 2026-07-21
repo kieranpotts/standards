@@ -9,27 +9,26 @@ dependency.
 
 == Isolation
 
-If possible, run AI models and tools in containers or virtual machines. This
+Where possible, run AI models and tools in containers or virtual machines. This
 provides an isolation boundary between models, files, runtime processes, and the
 rest of the host system.
 
 Do not run containerized model services as root.
 
-Keep model services running only when they are actively needed. Treat them as
+Keep model services running only while they are actively needed. Treat them as
 development dependencies, not always-on services.
 
 For AI-assisted development in an IDE or code editor, it is RECOMMENDED to
 develop inside a https://containers.dev/[devcontainer] rather than directly on
 the host. A devcontainer is defined by a `devcontainer.json` file specifying the
 base image, mounted volumes, and editor extensions. Both the editor and the
-agent harness (for example, Claude Code or Pi) run inside the container, with
-project files bind-mounted, so the human and the agent can collaborate on the
-same files simultaneously.
+agent harness run inside the container, with project files bind-mounted, so the
+human and the agent can collaborate on the same files simultaneously.
 
 Devcontainers are https://containers.dev/supporting[natively supported] by VS
-Code, Zed, IntelliJ IDEA, and Emacs. Other code editing environments can be
-sandboxed in the same way, but will just require more manual wiring, eg. to
-connect the editor to a container via SSH.
+Code, Zed, IntelliJ IDEA, and Emacs. Other editing environments can be sandboxed
+the same way, but require more manual wiring — connecting the editor to a
+container over SSH, for example.
 
 == Network exposure
 
@@ -38,9 +37,9 @@ change this unless remote access is explicitly required.
 
 Prefer binding to `127.0.0.1` (loopback only) for local-only access.
 
-If LAN access is required, binding to `0.0.0.0` is necessary but must be
-protected with a local firewall rule. Never expose model server ports on a
-public interface.
+If LAN access is required, binding to `0.0.0.0` is necessary, but it MUST be
+protected by a local firewall rule. Never expose model server ports on a public
+interface.
 
 For remote access, use an SSH tunnel or VPN, rather than exposing the service
 directly.
@@ -62,8 +61,8 @@ agreements for commercial projects.
 
 == Prompt injection
 
-Prompt injection is an attack in which malicious instructions embedded in data
-cause an agent to take unintended actions. There are two forms:
+Prompt injection is an attack in which malicious instructions, embedded in data,
+cause an agent to take unintended actions. It takes two forms:
 
 * *Direct injection.* A user or caller crafts input designed to override the
   agent's system prompt or behavioral instructions, for example appending "ignore
@@ -112,26 +111,25 @@ the lethal trifecta]:
   or any channel by which data can leave the trust boundary — ie. a path for
   *data exfiltration*.
 
-The underlying reason this is a problem is the same one that makes prompt
-injection possible at all. An LLM cannot reliably distinguish between data it is
-meant to process and instructions it is meant to follow. Both arrive as tokens
-in the same context, and the model has no robust internal boundary between
-"content" and "command". So untrusted content that _looks_ like an instruction
-may be acted upon.
+The underlying reason is the same one that makes prompt injection possible at
+all. An LLM cannot reliably distinguish between data it is meant to process and
+instructions it is meant to follow. Both arrive as tokens in the same context,
+and the model has no robust internal boundary between "content" and "command".
+So untrusted content that _looks_ like an instruction may be acted upon.
 
-Any one or two parts of the trifecta in isolation is comparatively safe. It is
-the co-occurrence of all three that is the most dangerous. Untrusted content
-smuggles in instructions (prompt injection), which the model treats as commands
-to follow and, in obedience to those commands, reads private data and leaks it to
-the attacker via the exfiltration channel (data exfiltration).
+One or two parts of the trifecta in isolation are comparatively safe. It is the
+co-occurrence of all three that is dangerous. Untrusted content smuggles in
+instructions (prompt injection). The model treats them as commands to follow.
+And, in obedience to those commands, it reads private data and leaks it to the
+attacker through the outbound channel (data exfiltration).
 
-An agent that can read secrets and browse the web but cannot make outbound
-requests cannot leak. But add an innocuous-looking way to communicate — a URL it
-can fetch, an image it can render — and the lethal trifecta is complete.
+An agent that can read secrets and browse the web, but cannot make outbound
+requests, cannot leak. Add an innocuous-looking way to communicate — a URL it can
+fetch, an image it can render — and the lethal trifecta is complete.
 
-The practical defense is to break the trifecta rather than to try to make prompt
-injection impossible (better to assume that prompt injection will always be a
-risk). So, the defense is to do one of these three things:
+Assume prompt injection will always be a risk. The practical defense is to break
+the trifecta rather than to try to make injection impossible, by doing one of
+these three things:
 
 * Withhold access to sensitive data.
 * Isolate the agent from untrusted input.
@@ -144,10 +142,9 @@ requests are high-risk targets for prompt injection.
 
 Limit the blast radius by applying the principle of least privilege to tool
 permissions. Grant read-only access where write access is not needed. Scope
-filesystem access to the specific filesystem paths the agent needs access to.
-Restrict shell access to specific allow-listed commands, rather than allowing
-any arbitrary shell execution. Disable network egress entirely for agents that
-do not need it.
+filesystem access to the specific paths the agent needs. Restrict shell access to
+allow-listed commands, rather than permitting arbitrary shell execution. Disable
+network egress entirely for agents that do not need it.
 
 Review agent permissions before starting a task, not just when configuring a
 harness for the first time. A permission set that was appropriate for one task
@@ -155,21 +152,21 @@ may be excessive for the next.
 
 == Reviewing agent output
 
-Sandboxing constrains what an agent can do, but does not substitute for
-reviewing what it produces.
+Sandboxing constrains what an agent can do. It does not substitute for reviewing
+what the agent produces.
 
-Keep tasks small. Break work into small, reviewable steps rather than large,
-open-ended tasks. Small diffs are easier to review, and you catch problems
-early, allowing course-correction.
+Keep tasks small. Break work into reviewable steps rather than large, open-ended
+tasks. Small diffs are easier to review, and problems are caught early, while
+course-correction is cheap.
 
-Treat agent output with the same scrutiny as a human contributor's changes.
-Remember, AI models are trained on enormous bodies of existing code, which
-includes code that contains vulnerabilities. Models are perfectly capable of
-reproducing insecure patterns — hardcoded credentials, injection sinks, insecure
-defaults, missing input validation — that models learn from their training data.
+Treat agent output with the same scrutiny as a human contributor's changes. AI
+models are trained on enormous bodies of existing code, and some of that code
+contains vulnerabilities. Models are perfectly capable of reproducing the
+insecure patterns they learned from — hardcoded credentials, injection sinks,
+insecure defaults, missing input validation.
 
-Pay particular attention to the areas of code that handle authentication,
-authorization, cryptography, external input, and so on.
+Pay particular attention to code that handles authentication, authorization,
+cryptography, and external input.
 
 == Auditability
 
@@ -180,23 +177,24 @@ autonomous actions between human checkpoints, that record is essential for
 incident investigation, accountability, and demonstrating compliance.
 
 The primary audit substrate is the *session transcript* — the full sequence of
-user inputs, model outputs, and tool calls that an agent harness records for a
-session. The transcript is distinct from the model's context: the context is
-mutable and mostly discarded as a session progresses (through compaction and the
-loop overwriting it), whereas a transcript is an append-only record of everything
-that happened. When something goes wrong — an agent leaks data, deletes a file,
-or acts on an injected instruction — the transcript is what lets you reconstruct
-the sequence of events after the fact. This is why the mitigations for prompt
-injection call for auditing agent execution traces: those traces are the session
-transcript.
+user inputs, model outputs, and tool calls that a harness records for a session.
+A transcript is distinct from the model's context. The context is mutable, and
+mostly discarded as a session progresses, through compaction and the loop
+overwriting it. A transcript is an append-only record of everything that
+happened.
+
+When something goes wrong — an agent leaks data, deletes a file, or acts on an
+injected instruction — the transcript is what lets you reconstruct the sequence
+of events after the fact. This is why the mitigations for prompt injection call
+for auditing agent execution traces. Those traces are the session transcript.
 
 This audit substrate complements, rather than duplicates, the version-controlled
 audit trail of workflow artifacts (see the section on agentic workflows). The two
 answer different questions. Version history records _what_ each step produced —
 the specification, the design, the plan, the code — as durable, diffable
-artifacts. The session transcript records _how_ an agent arrived at that output —
-the prompts, reasoning, and tool calls in between. Together they give end-to-end
-traceability from a triggering request through to a merged change.
+artifacts. The session transcript records _how_ an agent arrived at that output,
+through the prompts, reasoning, and tool calls in between. Together they give
+end-to-end traceability, from a triggering request through to a merged change.
 
 The following practices are RECOMMENDED:
 

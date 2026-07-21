@@ -7,17 +7,17 @@ in external systems. The question is how those connections are made.
 Historically, each tool or data source required bespoke integration code written
 against a specific agent or harness. Then the *Model Context Protocol (MCP)*
 came along. It is an open standard, introduced by Anthropic in late 2024, that
-defines a common protocol for how models, via agent harnesses, communicate with
-external tools and data sources.
+defines how models, via agent harnesses, communicate with external tools and data
+sources.
 
 MCP is a client-server protocol. An *MCP server* exposes a set of tools and
-resources. An *MCP client* — typically an agent harness or other AI application
-with a model at its core — connects to one or more MCP servers and uses their
-tools to fulfill tasks.
+resources. An *MCP client* — typically an agent harness, or another AI
+application with a model at its core — connects to one or more MCP servers and
+uses their tools to fulfill tasks.
 
 A single MCP client can connect to many MCP servers at once, giving it a large,
 composable action space. This makes MCP particularly relevant to the agentic
-workflows described in the previous chapter.
+workflows described earlier in this standard.
 
 When connecting an agent to external tools or data, it is RECOMMENDED to use an
 open protocol, and specifically MCP, rather than writing custom point-to-point
@@ -26,26 +26,25 @@ server), composability (one agent can draw on many servers), portability
 (integrations survive a change of harness or model), and reduced maintenance.
 
 MCP is not the only proposal in this space. Google's A2A (Agent-to-Agent) is an
-alternative protocol, though it focuses more on agent-to-agent communication,
-rather than agent-to-tools. The rest of the guidance in this section is
-concerned with MCP specifically.
+alternative, though it focuses on agent-to-agent communication rather than
+agent-to-tools. The rest of this section is concerned with MCP specifically.
 
 == Treat MCP servers as dependencies
 
 An MCP server is third-party code that runs with access to your tools, data, and
 actions. It MUST be treated with the same scrutiny as any other software
-dependency. Normal supply-chain cautions apply. A malicious or compromised MCP
-server is a vector for *data exfiltration* — it could transmit any data the agent
-can reach to an unauthorized destination, and take any action its tools permit.
+dependency, and the normal supply-chain cautions apply. A malicious or
+compromised MCP server is a vector for *data exfiltration*. It can transmit any
+data the agent can reach to an unauthorized destination, and take any action its
+tools permit.
 
-Prefer official or well-known MCP server applications. Review the source of
-community-provided MCP servers before connecting them.
+Prefer official or well-known MCP servers. Review the source of
+community-provided servers before connecting them.
 
-Pin MCP server application versions where possible, and review changes before
-upgrading.
+Pin MCP server versions where possible, and review changes before upgrading.
 
-Test unfamiliar MCP server applications in an isolated environment before
-introducing them to regular workflows.
+Test unfamiliar MCP servers in an isolated environment before introducing them to
+regular workflows.
 
 == Apply least privilege
 
@@ -85,11 +84,11 @@ should follow. Therefore:
 
 == Tool definitions are an attack surface
 
-An MCP server's tool results are not the only untrusted content it supplies. Its
-tool definitions — the names and descriptions the agent reads to decide when and
-how to call a tool — are injected into the context window and are equally
-capable of steering the agent. Security research published in 2025 identified
-two attacks that exploit this:
+Tool results are not the only untrusted content an MCP server supplies. Its tool
+definitions — the names and descriptions the agent reads to decide when and how
+to call a tool — are injected into the context window, and are equally capable of
+steering the agent. Security research published in 2025 identified two attacks
+that exploit this:
 
 * *Tool poisoning* is the embedding of malicious instructions in a tool's
   description. Because the description is loaded into context and read by the
@@ -133,8 +132,8 @@ Run MCP servers only while they are needed, rather than as always-on services.
 == Mind the context cost of connected servers
 
 Every connected MCP server injects its tool definitions into the context window,
-consuming tokens and attention budget on every inference call — not just when
-its tools are used.
+consuming tokens and attention budget on every inference call — not only when its
+tools are used.
 
-Indiscriminately connecting many MCP servers will therefore degrade performance
-(through context rot) and increase cost (through per-token billing).
+Connecting many MCP servers indiscriminately therefore degrades performance,
+through context rot, and increases cost, through per-token billing.
