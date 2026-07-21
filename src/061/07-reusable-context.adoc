@@ -5,7 +5,7 @@ exact naming varies between tools: *instructions*, *rules*, *skills*,
 *commands*, *custom prompts*, etc. Whatever the name, all these systems share
 the same underlying purpose, which is to load reusable bundles of context,
 either at the start of a session (statically), or on-demand under predefined
-conditions (dynamically).
+conditions (dynamically, just-in-time).
 
 Bundles of reusable context help to improve consistency in AI-assisted and
 agentic workflows by encoding programming conventions, architectural decisions,
@@ -18,30 +18,30 @@ competing with the user's actual prompt. Thus, the same core principles of
 context engineering apply:
 
 * Reusable context MUST be token-efficient. Start with the minimum content
-needed to elicit the desired behavior, and grow it only in response to observed
-failure modes.
+  needed to elicit the desired behavior, and grow it only in response to observed
+  failure modes.
 
 * A bundle of reusable context SHOULD be narrowly scoped. Where an agent harness
-supports it, use scoping mechanisms such as directory-specific or
-pattern-matching rules, to load content only when it is relevant to the task at
-hand.
+  supports it, use scoping mechanisms such as directory-specific or
+  pattern-matching rules, to load content only when it is relevant to the task at
+  hand.
 
 * Prefer just-in-time retrieval (see below) over always-on loading. For example,
-rather than embedding a full coding standard in a context bundle, instead
-provide a pointer to it and let the agent load it on-demand.
+  rather than embedding a full coding standard in a context bundle, instead
+  provide a pointer to it and let the agent load it when it needs it.
 
 * Reusable units of context SHOULD be reviewed and pruned regularly.
-Instructions that were once useful can become stale, redundant, or contradictory
-as projects evolve. Stale context is worse than no context, because it actively
-misleads the model.
+  Instructions that were once useful can become stale, redundant, or contradictory
+  as projects evolve. Stale context is worse than no context, because it actively
+  misleads the model.
 
 * If you're using capable, frontier coding models, you will find you will get
-little value from using context bundles to specify universal best practices like
-"never commit secrets" or "match the prevailing code style". Such knowledge will
-already be embedded in your model. Instead, use context bundles to capture
-guidelines, standards, and requirements that are specific to your project, such
-as "minimum 75% unit test coverage" and "conforms to neostandard linter
-defaults".
+  little value from using context bundles to specify universal best practices like
+  "never commit secrets" or "match the prevailing code style". Such knowledge will
+  already be embedded in your model. Instead, use context bundles to capture
+  guidelines, standards, and requirements that are specific to your project, such
+  as "minimum 75% unit test coverage" and "conforms to neostandard linter
+  defaults".
 
 == Conventions
 
@@ -108,21 +108,15 @@ SHOULD NOT, OPTIONAL, and MAY are to be interpreted as described in
 ## Project structure
 
 - **`src/`**: Application source.
-
 - **`tests/`**: Automated tests (unit, integration, system).
-
 - **`run/`**: Dev tools (Bash scripts).
-
 - **`docs/`**: Developer/maintainer docs, including architectural decision records.
-
 - **`skills/`**: On-demand context for agents.
 
 ## Tools
 
 - **`command`** to build production-grade artifacts.
-
 - **`command`** for linting.
-
 - **`command`** for testing.
 
 ## Documentation
@@ -138,9 +132,7 @@ SHOULD NOT, OPTIONAL, and MAY are to be interpreted as described in
 ## Rules
 
 - MUST NOT do this.
-
 - SHOULD do this.
-
 - MAY do this.
 
 ## Skills
@@ -259,10 +251,10 @@ skill file should explicitly define the following:
 * What input it consumes, and whether that input is OPTIONAL or REQUIRED.
 
 * Whether the skill can run non-interactively to completion, or is necessarily
-interactive — blocking to ask questions, present options, and wait for answers.
+  interactive — blocking to ask questions, present options, and wait for answers.
 
 * What output it produces, in what format, and where that output is written (a
-file, a comment, a commit, the conversation itself).
+  file, a comment, a commit, the conversation itself).
 
 * What success criteria the output should be checked against.
 
@@ -345,12 +337,12 @@ The `SKILL.md` file MUST contain YAML front-matter followed by a Markdown body.
 Two front-matter fields are REQUIRED:
 
 * `name`: 1-64 characters of lowercase alphanumerics and hyphens (no spaces or
-punctuation). SHOULD match the parent directory name, though this is not a
-requirement of the standard.
+  punctuation). SHOULD match the parent directory name, though this is not a
+  requirement of the standard.
 
 * `description`: 1-1024 characters describing both _what_ the skill does and
-_when_ to use it. See the skill loading mechanisms section, below, for more
-information about this field.
+  _when_ to use it. See the skill loading mechanisms section, below, for more
+  information about this field.
 
 OPTIONAL fields include:
 
@@ -361,7 +353,7 @@ OPTIONAL fields include:
 * `metadata`: Arbitrary key-value pairs.
 
 * `allowed-tools`: A space-separated list of tools that are pre-approved to be
-run by the agent — currently experimental.
+  run by the agent — currently experimental.
 
 Individual tools support additional proprietary fields, too.
 
@@ -376,7 +368,10 @@ documentation for agent skills.
 ----
 ---
 name: database-migration
-description: Procedures for writing safe, reversible database migrations. Use when adding, removing, or altering tables, columns, indexes, or constraints in the production schema.
+description: >-
+  Procedures for writing safe, reversible database migrations. Use when adding,
+  removing, or altering tables, columns, indexes, or constraints in the
+  production schema.
 compatibility: requires bash or zsh
 allowed-tools: Bash(git:*) Zsh(git:*)
 license: MIT
@@ -403,15 +398,15 @@ The following principles help to produce effective skill descriptions, to ensure
 that the right skills are automatically loaded in the expected scenarios:
 
 * Use imperative phrasing. "Use this skill when…" rather than "This skill
-does…".
+  does…".
 
 * Focus on user intent, not implementation detail.
 
 * Err on the side of explicitness. List every context where the skill applies,
-including cases where the user may not name the domain directly.
+  including cases where the user may not name the domain directly.
 
 * Stay under the 1024-character hard limit (content beyond it may be silently
-truncated).
+  truncated).
 
 Remember that different agent harnesses will handle skill loading in different
 ways. The Agent Skills specification targets _on-demand_ activation. Conforming
@@ -605,37 +600,37 @@ data files.
 to run. Follow these guidelines:
 
 - **No interactive prompts.** Assume the agent runs in a non-interactive shell
-that cannot respond to TTY prompts, password dialogs, or confirmation menus.
-Therefore, all input MUST be supplied via CLI flags, environment variables, or
-stdin — never an interactive prompt — or a script that blocks on input will hang
-indefinitely.
+  that cannot respond to TTY prompts, password dialogs, or confirmation menus.
+  Therefore, all input MUST be supplied via CLI flags, environment variables, or
+  stdin — never an interactive prompt — or a script that blocks on input will hang
+  indefinitely.
 
 - **`--help` as the interface.** `--help` output is how the agent learns a
-script's interface before running it. Keep it concise (it enters the context
-window) and cover the description, all flags, and a usage example.
+  script's interface before running it. Keep it concise (it enters the context
+  window) and cover the description, all flags, and a usage example.
 
 - **Self-contained dependencies.** Scripts SHOULD be self-contained. PEP 723
-inline metadata (with `uv run`) lets Python scripts declare their own
-dependencies without a separate manifest; Deno and Bun support similar inline
-specifiers. Where a script can't be self-contained, document its dependencies at
-the top of the file.
+  inline metadata (with `uv run`) lets Python scripts declare their own
+  dependencies without a separate manifest; Deno and Bun support similar inline
+  specifiers. Where a script can't be self-contained, document its dependencies at
+  the top of the file.
 
 - **One-off commands.** For simple tasks, `uvx`, `npx`, and `bunx` can invoke
-packages directly from `SKILL.md` instructions without a `scripts/` directory at
-all. Pin versions for reproducibility, e.g. `npx eslint@9.0.0`.
+  packages directly from `SKILL.md` instructions without a `scripts/` directory at
+  all. Pin versions for reproducibility, e.g. `npx eslint@9.0.0`.
 
 - **Stdout/stderr separation.** Structured output goes to stdout; progress
-messages, diagnostics, and warnings go to stderr. This lets the agent capture
-clean output while still seeing what happened.
+  messages, diagnostics, and warnings go to stderr. This lets the agent capture
+  clean output while still seeing what happened.
 
 - **Idempotency.** Agents may retry failed commands, so scripts SHOULD be
-idempotent — a "create if not exists" pattern is safer than "create and fail on
-duplicate."
+  idempotent — a "create if not exists" pattern is safer than "create and fail on
+  duplicate."
 
 - **Output size management.** Harnesses often truncate tool output past 10–30K
-characters. Scripts with large output SHOULD default to a summary view and
-support a `--limit`/`--offset` flag, or an `--output FILE` flag to write to a
-file instead of stdout.
+  characters. Scripts with large output SHOULD default to a summary view and
+  support a `--limit`/`--offset` flag, or an `--output FILE` flag to write to a
+  file instead of stdout.
 
 Scripts SHOULD give usable error and success feedback, and MUST handle edge
 cases gracefully. Prefer a widely-supported language — Bash, Python, or
@@ -661,7 +656,10 @@ harnesses.
 ----
 ---
 name: skill-name
-description: One sentence describing what the skill does. Use when [specific triggers — user phrasings, situations, file types, contexts]. Do NOT use this skill for [exceptions...].
+description: >-
+  One sentence describing what the skill does. Use when [specific triggers —
+  user phrasings, situations, file types, contexts]. Do NOT use this skill for
+  [exceptions...].
 compatibility: requires [tool] or [tool], and [tool]
 license: [license]
 metadata:
@@ -674,17 +672,21 @@ metadata:
 
 Short introduction here.
 
-This skill extends [this skill](https://raw.githubusercontent.com/...) — all rules there apply here.
+This skill extends [this skill](https://raw.githubusercontent.com/...) — all
+rules there apply here.
 
-## Interface
+**Input**: What input the skill consumes — a file, a prompt, a selection — and
+whether it is OPTIONAL or REQUIRED. State any default behavior when no input
+is given.
 
-**Input**: What input the skill consumes — a file, a prompt, a selection — and whether it is OPTIONAL or REQUIRED. State any default behavior when no input is given.
+**Interactive**: Whether the skill runs non-interactively to completion, or is
+necessarily interactive — blocking to ask questions, present options, and wait
+for answers.
 
-**Interactive**: Whether the skill runs non-interactively to completion, or is necessarily interactive — blocking to ask questions, present options, and wait for answers.
+**Output**: What the skill produces, in what format, and where it is written —
+a report, a direct edit, a file, a commit, the conversation itself.
 
-**Output**: What the skill produces, in what format, and where it is written — a report, a direct edit, a file, a commit, the conversation itself.
-
-##  Instructions
+## Instructions
 
 1.  **Run the extract script.**
 
@@ -694,46 +696,46 @@ This skill extends [this skill](https://raw.githubusercontent.com/...) — all r
 
 2.  ...
 
-##  Rules
+## Rules
 
--   **Base new scripts on this template:**
+- **Base new scripts on this template:**
 
-    ```sh
-    #!/bin/env sh
-    set -eu
+  ```sh
+  #!/bin/env sh
+  set -eu
 
-    # ...
-    ```
+  # ...
+  ```
 
--   **Variable naming convention:**
+- **Variable naming convention:**
 
-    - `UPPER_SNAKE_CASE` for variables exported to the environment.
-    - `lower_snake_case` for everything else, including functions.
+  - `UPPER_SNAKE_CASE` for variables exported to the environment.
+  - `lower_snake_case` for everything else, including functions.
 
-    ```sh
-    # ❌ No:
-    readonly OUTPUT_DIR="/tmp/out"
+  ```sh
+  # ❌ No:
+  readonly OUTPUT_DIR="/tmp/out"
 
-    # ✅ Yes:
-    readonly output_dir="/tmp/out"
+  # ✅ Yes:
+  readonly output_dir="/tmp/out"
 
-    # ✅ Yes:
-    export MY_APP_LOG_LEVEL="info"
-    ```
+  # ✅ Yes:
+  export MY_APP_LOG_LEVEL="info"
+  ```
 
-##  Success criteria
+## Success criteria
 
--   **The output matches the expected format.**
+- **The output matches the expected format.**
 
-    Describe the specific structural or syntactic requirement — eg. the regex passes, the file is in the right location, the required fields are present.
+  Describe the specific structural or syntactic requirement — eg. the regex passes, the file is in the right location, the required fields are present.
 
--   **All rules have been respected.**
+- **All rules have been respected.**
 
-    Review the completed output against the rules above before finishing.
+  Review the completed output against the rules above before finishing.
 
--   **Some domain-specific check.**
+- **Some domain-specific check.**
 
-    Add one or two concrete, observable conditions specific to this skill — things the agent can verify without running external tooling.]
+  Add one or two concrete, observable conditions specific to this skill — things the agent can verify without running external tooling.]
 
 ## Examples
 
@@ -767,20 +769,20 @@ When designing a skill for public sharing rather than internal project use,
 additional considerations apply:
 
 * *Avoid project-specific assumptions.* Internal skills can reference your
-schemas, tools, and conventions directly. Shared skills must instead teach a
-pattern that transfers across different projects and environments.
+  schemas, tools, and conventions directly. Shared skills must instead teach a
+  pattern that transfers across different projects and environments.
 
 * *Document prerequisites clearly.* Use the `compatibility` field to specify
-runtime requirements.
+  runtime requirements.
 
 * *Provide working examples.* Public audiences have less context than your
-internal team. A small set of concrete input/output examples will significantly
-reduce the friction of adoption.
+  internal team. A small set of concrete input/output examples will significantly
+  reduce the friction of adoption.
 
 * *Keep skills current.* Use the `metadata` field to record a `last_updated`
-date, and review shared skills whenever the underlying tools or APIs change. A
-widely-referenced skill that becomes stale can cause failures across many
-projects.
+  date, and review shared skills whenever the underlying tools or APIs change. A
+  widely-referenced skill that becomes stale can cause failures across many
+  projects.
 
 Before publishing a skill, validate its configuration with the `skills-ref`
 package: https://github.com/agentskills/agentskills/tree/main/skills-ref
