@@ -13,18 +13,18 @@ elsewhere in this technical standard.
   It has no inherent ability to act on computer systems. For that, it needs
   a harness.
 
-* A *model runtime* is the software and infrastructure layer that executes a
-  model's inference calls. It loads model weights, schedules GPU/TPU compute,
-  batches concurrent requests, and applies serving-time optimizations such as
-  quantization and key-value caching. Examples include vLLM, llama.cpp,
-  and TensorRT-LLM.
-
 * *Inference* is the act of running a model to produce output. The model
   consumes a context of input tokens and emits output tokens in response. Each
   such call is an *inference call*, and it is the fundamental unit of work —
   and, on metered services, the unit of billing — in every interaction with a
   model. Inference is the execution of the model's fixed weights over the input
   prompt.
+
+* A *model runtime* is the software and infrastructure layer that executes a
+  model's inference calls. It loads model weights, schedules GPU/TPU compute,
+  batches concurrent requests, and applies serving-time optimizations such as
+  quantization and key-value caching. Examples include vLLM, llama.cpp,
+  and TensorRT-LLM.
 
 * An *inference provider* is an organization that operates model runtimes as a
   hosted service. It supplies the compute a runtime needs to serve a model —
@@ -63,6 +63,25 @@ elsewhere in this technical standard.
   chain-of-thought — "thinking" — before and during its answer. This improves
   results on problems with a verifiable chain of logic (mathematics, planning,
   multi-step analysis, complex debugging) at the cost of latency and token spend.
+
+* A *prompt* is an input supplied to a model to elicit a response — most simply,
+  the text a user types, though it may also include images. A prompt is not
+  consumed as text: it is first encoded into tokens, which become the model's
+  input. The user's prompt is only one part of the wider context assembled
+  around it for each inference call.
+
+* *Context* is a model's working memory. It is the set of tokens — instructions,
+  files, conversation, tool results — made available to the model in a single
+  inference call. The *system prompt* is the initial set of instructions
+  injected into a model's context by the harness. It is typically hard-coded
+  into the harness, rather than authored by the end user. Other sources of
+  context include skills, rules, and instructions files read from the environment,
+  plus the prompts a human types directly.
+
+* A model's *context window* is the number of tokens it can consume in a single
+  inference call, and this varies from model to model. Agent harness are
+  programmed to manage an agent's context to keep it within the bounds of the
+  model's context window.
 
 * An *agent harness*, previously known as a scaffold, is a suite of conventional
   programs that wrap a model runtime. It mediates between the user, a model, and
@@ -138,14 +157,6 @@ elsewhere in this technical standard.
   capabilities of their own, so the boundary between harness and orchestrator
   is one of responsibility rather than packaging.
 
-* *Context* is a model's working memory. It is the set of tokens — instructions,
-  files, conversation, tool results — made available to the model in a single
-  inference call. The *system prompt* is the initial set of instructions
-  injected into a model's context by the harness. It is typically hard-coded
-  into the harness, rather than authored by the end user. Other sources of
-  context include skills, rules, and instructions files read from the environment,
-  plus the prompts a human types directly.
-
 * An *agent session* is a single continuous run of an agent, spanning one or more
   agent loops. It begins with a fresh context window and an initial user prompt,
   and continues through subsequent prompts within the same conversation. A
@@ -154,15 +165,11 @@ elsewhere in this technical standard.
   an identifier and persist its transcript to disk, allowing a session to be
   resumed later.
 
-* A model's *context window* is the number of tokens it can consume in a single
-  inference call, and this varies from model to model. Agent harness are
-  programmed to manage an agent's context to keep it within the bounds of the
-  model's context window.
-
-* *Compaction* is one such management technique: taking a context that is nearing
-  the window's threshold, summarizing its contents, and re-initiating a fresh
-  context window with that summary — compressing the context by distilling its
-  high-signal content and discarding low-signal noise.
+* *Compaction* is one technique a harness uses to keep an agent's context within
+  the context window: taking a context that is nearing the window's threshold,
+  summarizing its contents, and re-initiating a fresh context window with that
+  summary — compressing the context by distilling its high-signal content and
+  discarding low-signal noise.
 
 * A *transcript* is the record of a session that an agent harness may keep, for
   auditability purposes. It includes the full sequence of user inputs, model
