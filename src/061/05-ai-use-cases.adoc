@@ -6,6 +6,120 @@ transforms one task can waste time and money on another. So the first decision,
 before choosing a model or an interface, is whether the task plays to the
 technology's strengths at all.
 
+== The inherent nature of the technology
+
+Three properties of large language models are easy to forget, because the tools
+present a fluent, human-seeming surface that hides them. Each bears directly on
+which tasks the technology suits.
+
+The first is that a model does not read the world as words, sentences, or
+images. It reads it as _tokens_ — the fragments that text and images are encoded
+into before the model ever sees them. Meaning, to a model, is a matter of which
+tokens tend to follow which, learned across an enormous corpus. This is why a
+model can be fluent in the shape of a language while blind to a fact any human
+would catch, and why the boundaries of what it does well track the statistics of
+its training data rather than any human sense of what is easy or hard.
+
+The second is that a model does not behave like traditional software. We are used
+to programs that are deterministic and authoritative: given the same input, they
+return the same output, and that output is either correct or a bug.
+Predictability is the defining property of traditional software. A language model
+has neither quality. It is
+<<Output controls and determinism,non-deterministic>> — the same input can yield
+a different result on every run, by design rather than by fault — and it has no
+inherent notion of ground truth, so its confidence is no guide to its correctness
+(see <<hallucination>>). In practice it
+behaves less like a machine and more like a person: opinionated, shaped by the
+biases in its training data, and impressionable — inclined to take on whatever
+role and stance the context implies, agreeable by default. That impressionability
+is both an asset and a hazard, and is treated in full under
+<<Prompt engineering: roles and personas>>.
+
+The third is that a model can behave in ways that surprise even experienced
+users, in both directions. On the upside, it will sometimes reach a genuinely
+novel solution — an approach a human might not have thought to try — which is the
+happy face of the "alien mind" described below. On the downside, the same
+unpredictability produces stranger failures: a model will occasionally seem to
+_forget_ a capability it has demonstrated moments earlier, contradict itself, or
+answer confidently and wrongly (see <<hallucination>>). These are not bugs to be
+patched out; they are the texture of a system that works by probabilistic
+inference rather than by fixed rules.
+
+This extends to a case worth calling out on its own: a model will fabricate an
+account of _how it arrived at an answer_ just as readily as it fabricates the
+answer itself. Ask it to explain its reasoning and it will produce a fluent,
+plausible rationale — but that rationale is generated after the fact, by the same
+next-token inference as everything else, not read off any record of what actually
+happened. A language model has no inherent ability to reflect on its own
+processes, because it has no processes to reflect on in the way a human, or even
+traditional software, does: there is no stack trace, no deliberation it can
+inspect, only the next likely token given the context. Its "thinking" tokens
+improve results (see <<Tuning model behavior,reasoning>>) but are not a truthful
+log of a decision procedure. Treat a model's self-explanation as another
+plausible generation to be verified, never as privileged insight into its own
+workings. The practical consequence is to expect the
+unexpected in both directions — to leave room to exploit the pleasant surprises,
+and never to be lulled by a run of good behavior into trusting the next one
+unchecked.
+
+Taken together, these properties make a language model inherently risky, and in
+the wrong place outright dangerous: a tool that is confidently wrong some fraction
+of the time, unpredictably, is a hazard wherever its output is acted on unchecked.
+The discipline this demands is not to trust the model but to verify its output —
+never to accept a result on the model's confidence alone, and never to hand it
+work whose correctness cannot be established. This is not a lack of faith in the
+technology; it is the correct operating posture for a tool of this kind, and it
+runs through the whole of this standard — from the <<Human-in-the-loop,human in
+the loop>> to the sensors that agentic workflows depend on.
+
+Crucially, this does not change at the agent layer, and it never will. Wrapping a
+model in guides, sensors, and guardrails — the whole apparatus of
+<<Agentic workflows,agentic workflows>> — makes its outcomes _more_ predictable,
+but not predictable, and never reliable in the way traditional software is
+reliable. Predictability there is engineered around the model, not a property of
+it; the constraints reduce the residual unreliability, they do not remove it,
+because what sits at the centre is still a non-deterministic model that can be
+confidently wrong. An agent is therefore no more inherently trustworthy than the
+model driving it. The guards raise the floor; they do not eliminate the need to
+verify, and they do not license unattended trust in high-stakes work.
+
+Underlying all of this is a single caution. A capable model conveys a powerful
+_illusion_ of intelligence — it is fluent, it appears to understand, it seems to
+reason and to know itself — and that illusion is the source of every mistake
+above: trusting its confidence, believing its self-explanation, expecting it to
+be reliable. What produces the fluent surface is statistical inference over
+tokens, not comprehension, intent, or self-awareness. The model does not
+understand your problem, mean what it says, or know that it is answering; it
+simulates the outputs of something that would. We MUST NOT treat a model as
+though it were genuinely intelligent in the human sense, however convincingly it
+performs the part — not out of pedantry, but because every practice in this
+standard follows from taking the simulation for what it is. This is not to
+diminish its usefulness: a simulation of reasoning, treated as such and verified,
+is an extraordinarily powerful tool, and the "alien mind" that makes it a
+valuable thinking companion below is precisely _not_ a human intelligence. The
+error is not using it; the error is believing it.
+
+The flip side of all this is where the technology genuinely shines. The same
+properties that make a model a poor substitute for deterministic software make it
+unexpectedly good at work that used to be the exclusive preserve of humans.
+Traditional software excels at exact, rule-bound computation and is hopeless at
+anything fuzzy; a language model is the reverse. It is strong precisely where the
+task is linguistic, open-ended, or a matter of judgment rather than calculation —
+writing and rewriting prose, analyzing and summarizing a body of material,
+inventing options, making an educated guess under uncertainty, holding a
+conversation, and taking on a role or persona on demand (see
+<<Prompt engineering: roles and personas>>). These are things software has never
+done well and humans have always had to do themselves. That a machine can now do
+them at all — fluently, and at volume — is what makes the technology
+transformative, and it is the reason the fit questions in the rest of this
+section are worth asking at all.
+
+Expecting a model to be an authoritative, deterministic oracle is the root of
+most disappointment with the technology. Treating it as what it is — a
+pattern-matching mind that is fluent, fallible, and swayable, and to be trusted
+only as far as its output can be checked — is what the rest of this section
+builds on.
+
 == Using AI for what it is good at
 
 Large language models are, at core, engines of inference over patterns in
