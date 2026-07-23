@@ -1,7 +1,10 @@
 = Definitions
 
 In this technical standard, the following words and phrases have the following
-meanings.
+meanings. These are the key concepts to understand in order to use AI tools
+effectively. Lower-level terms that are not so essential to working with AI
+tools — concepts such as the inference parameter _temperature_ — are defined
+elsewhere in this technical standard.
 
 * A *model* is a large-language model (LLM), which is a type of neural network.
   It is the "brain" in an AI toolchain. Examples include Anthropic's Claude,
@@ -16,6 +19,13 @@ meanings.
   quantization and key-value caching. Examples include vLLM, llama.cpp,
   and TensorRT-LLM.
 
+* *Inference* is the act of running a model to produce output. The model
+  consumes a context of input tokens and emits output tokens in response. Each
+  such call is an *inference call*, and it is the fundamental unit of work —
+  and, on metered services, the unit of billing — in every interaction with a
+  model. Inference is the execution of the model's fixed weights over the input
+  prompt.
+
 * An *inference provider* is an organization that operates model runtimes as a
   hosted service. It supplies the compute a runtime needs to serve a model —
   infrastructure-as-a-service for inference — sparing the caller from
@@ -23,8 +33,36 @@ meanings.
 
 * An inference provider is distinct from a *model vendor* that trains and
   licenses models, though often they are the same company, as with
-  Anthropic's and OpenAI's closed systems. Other inference provides, such as
+  Anthropic's and OpenAI's closed systems. Other inference providers, such as
   OpenRouter and Ollama Cloud, serve models trained by third-party vendors.
+
+* A model's *weights*, also called its *parameters*, are the numerical values
+  learned during training that encode everything the model knows. They determine
+  how input tokens are transformed into output tokens. A larger model has more
+  parameters, linked in more ways, giving it a richer map of semantic
+  relationships. The weights are fixed at inference time. Changing a model's
+  behavior means either changing its context or retraining to alter its weights.
+
+* *Training* is the process of learning a model's weights from data.
+  *Pre-training* is the initial, most expensive phase, in which a base model
+  learns general patterns from a vast, broad corpus. It is distinct from the
+  later, narrower *fine-tuning* phase, which is the process of taking a
+  pre-trained model and further training it on a narrower corpus to optimize it
+  for a particular domain or task, for example fine-tuning a general-purpose
+  model on millions of examples of source code to produce a coding model. A
+  model's knowledge (encoded in its parameters) is bounded by its training data.
+  Gaps or biases in the training data will be reflected in the model's outputs.
+
+* An *open-weight model* is one whose trained parameters are publicly released,
+  so it can be downloaded and run on your own hardware, rather than consumed
+  as a service from an inference provider. They can also be fine-tuned by
+  non-AI organizations on their own internal corpus. Open-weight models
+  typically trail frontier models in capability, but only by some months.
+
+* A *reasoning model* is one that spends additional compute on an internal
+  chain-of-thought — "thinking" — before and during its answer. This improves
+  results on problems with a verifiable chain of logic (mathematics, planning,
+  multi-step analysis, complex debugging) at the cost of latency and token spend.
 
 * An *agent harness*, previously known as a scaffold, is a suite of conventional
   programs that wrap a model runtime. It mediates between the user, a model, and
@@ -72,9 +110,14 @@ meanings.
 * A *tool* is a function that an agent harness exposes to a model and invokes
   on the model's request — known as a *tool call*. Examples include file edits,
   Bash/shell executions, web requests, and HTTP API calls. Tools are how models
-  touch real systems beyond their context window. *MCP (Model Context Protocol)*
-  is the emerging industry standard protocol for serving tools and data to a
-  harness.
+  touch real systems beyond their context window.
+
+* *MCP (Model Context Protocol)* is the emerging industry standard protocol for
+  serving tools and data to a harness. An *MCP client* is the component —
+  typically an agent harness — that connects to one or more *MCP servers*, each
+  of which exposes a set of tools and resources over the Model Context Protocol.
+  A single client can connect to many servers at once, giving it a large,
+  composable action space.
 
 * An *orchestrator* is whoever or whatever sequences the steps of an agentic
   workflow, in which one or more agents are run in pursuit of a goal. The
@@ -114,13 +157,90 @@ meanings.
 * A model's *context window* is the number of tokens it can consume in a single
   inference call, and this varies from model to model. Agent harness are
   programmed to manage an agent's context to keep it within the bounds of the
-  model's context window. For example, methods like *compaction* can be used to
-  compress context by removing low-signal noise.
+  model's context window.
+
+* *Compaction* is one such management technique: taking a context that is nearing
+  the window's threshold, summarizing its contents, and re-initiating a fresh
+  context window with that summary — compressing the context by distilling its
+  high-signal content and discarding low-signal noise.
 
 * A *transcript* is the record of a session that an agent harness may keep, for
   auditability purposes. It includes the full sequence of user inputs, model
   outputs, and tool calls. A transcript is distinct from the model's context,
   which is mutable during a session.
+
+* *Prompt engineering* is the practice of crafting effective input prompts.
+  *Context engineering* is a superset of it, concerned with the entire set of
+  tokens passed to a model during inference — system prompts, examples, message
+  history, tool results, and everything else in a model's context. Its guiding
+  principle is to find the smallest set of high-signal tokens that achieves the
+  desired outcome. Compaction is an example of a context engineering technique.
+  Others include just-in-time retrieval, progressive disclosure, structured
+  note-taking, and delegating sub-tasks to sub-agents with their own clean
+  context windows.
+
+* *Harness engineering* is the work of controlling the environment in which a
+  model runs — its tool surface, assembled context, permissions, checks, model
+  assignment, and records.
+
+* *Loop engineering* is the work of automating an entire workflow so that it runs
+  itself — waking on a schedule, discovering its own work, and feeding its own
+  output back as the next round's input.
+
+* *Context rot* is the degradation in a model's ability to accurately recall
+  information and reason over long ranges as its context window fills. It is a
+  gradient, not a hard cut-off. The finite capacity behind this behavior is the
+  model's *attention budget*, analogous to working memory in humans: every token
+  added depletes it, and past some point yields diminishing or negative returns.
+
+* *Just-in-time retrieval* is the practice of loading information into a model's
+  context only when it is needed, rather than preloading everything up front,
+  keeping the context window focused on what is currently relevant. *Progressive
+  disclosure* is the related pattern of exposing lightweight references (file
+  paths, links, stored queries) that an agent expands into fuller content on
+  demand.
+
+* *Prompt caching* is a provider feature that reuses a stable prompt prefix
+  across inference calls at a steep discount. *Cached input tokens* — the tokens
+  covered by such a reuse — are billed far more cheaply than uncached input,
+  often by roughly an order of magnitude.
+
+* *Guardrails* are constraints that bound agent behavior to reduce the risk of
+  unintended or harmful actions. They divide into *guides* and *sensors*. A
+  *guide* is a feed-forward control that steers an agent _before_ it acts (a
+  behavioral instruction, or an enforced permission constraint). A *sensor* is a
+  feedback control that checks an agent's output _after_ it acts (a test run, a
+  type check, a review gate).
+
+* A *deterministic sensor* is a script or tool that gives the same verdict on the
+  same input every time — a linter, type checker, or test suite. An *inferential
+  sensor* is a second agent tasked with judging the output of the first; it brings
+  a fresh perspective but its judgment is itself probabilistic, so it MUST NOT
+  substitute for deterministic checks.
+
+* A *hook* is a program the harness runs automatically at a defined point in the
+  agent's loop — before a tool call, after a file is written, when a session
+  starts or ends. The harness acts on its exit status, so its verdict does not
+  depend on the model's cooperation. A hook that runs before an action and can
+  block it is an enforced guide; a hook that runs after an action is an enforced
+  deterministic sensor.
+
+* An *eval* (evaluation) is a structured test that measures how well a model,
+  agent, skill, prompt, or workflow performs on a defined set of tasks — the AI
+  equivalent of unit and regression tests. Evals answer whether a change to any
+  part of an AI setup actually improved outcomes or quietly regressed them.
+
+* A *runaway loop* is a failure mode in which an agent repeats the same action
+  without making progress, burning tokens and time until it exhausts its context
+  window. A *nodding loop* is the related failure in an unattended loop where an
+  evaluator approves flawed work by inspection rather than execution, so small
+  errors accumulate unseen across iterations.
+
+* *Vibe coding* establishes correctness by observation — the code runs and the
+  output looks right. *AI-assisted development* establishes correctness by human
+  inspection — the developer reads and reviews every change. *Agentic development*
+  establishes correctness by engineered verification — checks are built into the
+  workflow so agents have self-verifiable criteria for "done" and "correct".
 
 * Context is the main supply-chain and injection surface for agentic workflows.
   *Prompt injection* is adversarial instructions embedded in data the agent
@@ -128,3 +248,9 @@ meanings.
   user's intended instructions. *Data exfiltration* is the transmission of
   sensitive material from an agent's context or its accessible environment to an
   unauthorized destination, whether via tool calls or model output.
+
+* The *lethal trifecta* is the dangerous co-occurrence of three agent
+  capabilities: access to private data, exposure to untrusted content, and the
+  ability to communicate externally. Any one or two are comparatively safe; all
+  three together let injected instructions read sensitive data and exfiltrate it.
+  The practical defense is to break the trifecta by removing one leg.
