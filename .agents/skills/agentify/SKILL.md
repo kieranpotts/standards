@@ -75,8 +75,15 @@ sure about it.
     - **Typos and grammar errors.** Fix any found in `AGENTS.md` while
       reviewing.
 
-    - Do NOT remove rules that are present in `AGENTS.md` unless they directly
-      contradict the `.adoc` source.
+    - **Non-actionable content.** Sections that state no rule — standalone
+      glossaries/definitions, prose introductions, background rationale,
+      "why this matters" narration — do not belong in `AGENTS.md`. Remove
+      them. Fold any definition that a rule genuinely depends on into that
+      rule inline.
+
+    - Do NOT remove actual rules that are present in `AGENTS.md` unless they
+      directly contradict the `.adoc` source. This exception is for rules
+      only — non-actionable content above is always removable.
 
 6.  **Verify cross-references.**
 
@@ -87,111 +94,125 @@ sure about it.
 
 7.  **Review against the success criteria**, below, before finishing.
 
-##  Rules
+## Rules
 
--   **Be token-efficient.**
+- **Be token-efficient.**
 
-    `AGENTS.md` is consumed by AI agents at the start of every task. Every token
-    costs latency and money. Omit anything that can be derived from context, is
-    obvious to a competent IT engineer, or is only relevant to humans reading the
-    standard for the first time.
+  `AGENTS.md` is consumed by AI agents at the start of every task. Every token
+  costs latency and money. Omit anything that can be derived from context, is
+  obvious to a competent IT engineer, or is only relevant to humans reading the
+  standard for the first time.
 
-    Do NOT reproduce extended historical rationale, prose introductions, or "why
-    this matters" explanations unless they are necessary to apply the rule
-    correctly.
+  Do NOT reproduce extended historical rationale, prose introductions, or "why
+  this matters" explanations unless they are necessary to apply the rule
+  correctly.
 
--   **Preserve normative content exactly.**
+- **Include only actionable content.**
 
-    RFC 2119 keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY, RECOMMENDED,
-    OPTIONAL) carry normative weight. Do not paraphrase them in ways that change
-    the strength of the requirement. It is acceptable to omit non-normative
-    elaboration, but the normative statement itself must be preserved faithfully.
+  Every section of `AGENTS.md` MUST carry an instruction, rule, or
+  constraint an agent can act on. Do NOT reproduce a source standard's
+  standalone definitions/glossary section, terminology overview, or
+  conceptual background as its own section — these orient a human reader
+  but issue no directive. Where a rule genuinely depends on a term, define
+  that term inline at the point of use, in as few words as possible, rather
+  than in a separate glossary.
 
--   **Keep code examples.**
+- **Preserve normative content exactly.**
 
-    ✅/❌ examples are high signal for agents. Keep them. You may trim a long
-    example to the smallest version that still illustrates the rule, but do not
-    remove examples entirely unless the rule is self-evident without them.
+  RFC 2119 keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY, RECOMMENDED,
+  OPTIONAL) carry normative weight. Do not paraphrase them in ways that change
+  the strength of the requirement. It is acceptable to omit non-normative
+  elaboration, but the normative statement itself must be preserved faithfully.
 
--   **Use the template structure.**
+- **Keep code examples.**
 
-    Follow the structure in `./assets/AGENTS.md`:
+  ✅/❌ examples are high signal for agents. Keep them. You may trim a long
+  example to the smallest version that still illustrates the rule, but do not
+  remove examples entirely unless the rule is self-evident without them.
 
-    - Front-matter title and intro paragraph.
+- **Use the template structure.**
 
-    - `## Rules` section — bulleted list, each rule bolded, with details below.
+  Follow the structure in `./assets/AGENTS.md`:
 
-    - `## Examples` section — canonical full examples (OPTIONAL, include only if
-      the source contains end-to-end examples worth preserving).
+  - Front-matter title and intro paragraph.
 
-    - `## References` section — links to source standard and any closely related
-      standards.
+  - `## Rules` section — bulleted list, each rule bolded, with details below.
 
--   **Cross-reference other AGENTS.md files, not README.adoc.**
+  - `## Examples` section — canonical full examples (OPTIONAL, include only if
+    the source contains end-to-end examples worth preserving).
 
-    When a rule refers to another technical standard, link to that standard's
-    `AGENTS.md` (eg. `../031/AGENTS.md`), not its `README.adoc`. This keeps agent
-    context chains compact. Exception: use `README.adoc` paths only in the
-    `## References` section, where human-readable source links are appropriate.
+  - `## References` section — links to source standard and any closely related
+    standards.
 
--   **Inherit from parent standards explicitly.**
+- **Cross-reference other AGENTS.md files, not README.adoc.**
 
-    If the standard extends another (eg. TS-32 Bash extends TS-31 Unix Shells),
-    state this at the top of the file:
+  When a rule refers to another technical standard, link to that standard's
+  `AGENTS.md` (eg. `../031/AGENTS.md`), not its `README.adoc`. This keeps agent
+  context chains compact. Exception: use `README.adoc` paths only in the
+  `## References` section, where human-readable source links are appropriate.
 
-    "All rules from [TS-31: Unix Shells](../031/AGENTS.md) apply here."
+- **Inherit from parent standards explicitly.**
 
-    Do not re-state rules that are already covered by the parent standard unless
-    the child standard overrides or extends them.
+  If the standard extends another (eg. TS-32 Bash extends TS-31 Unix Shells),
+  state this at the top of the file:
 
--   **Follow TS-27 Markdown standards.**
+  "All rules from [TS-31: Unix Shells](../031/AGENTS.md) apply here."
 
-    All generated `AGENTS.md` files MUST follow the formatting rules specified in
-    [TS-27: Markdown](../027/AGENTS.md), including using ATX-style headings,
-    avoiding indented paragraphs, and applying soft line wraps at 80 characters.
+  Do not re-state rules that are already covered by the parent standard unless
+  the child standard overrides or extends them.
 
--   **Fix errors found in `AGENTS.md` during review.**
+- **Follow TS-27 Markdown standards.**
 
-    Typos, grammar errors, and stale TS number references in an existing
-    `AGENTS.md` are in-scope and MUST be fixed as part of an update pass.
+  All generated `AGENTS.md` files MUST follow the formatting rules specified in
+  [TS-27: Markdown](../027/AGENTS.md), including using ATX-style headings,
+  avoiding indented paragraphs, and applying soft line wraps at 80 characters.
 
-##  Edge cases
+- **Fix errors found in `AGENTS.md` during review.**
 
--   **Subdirectory includes.**
+  Typos, grammar errors, and stale TS number references in an existing
+  `AGENTS.md` are in-scope and MUST be fixed as part of an update pass.
 
-    Some standards (eg. TS-8) have subdirectories like `03-issue-types/` with
-    their own `README.adoc` and numbered include files. Read all of these — they
-    are part of the standard.
+## Edge cases
 
--   **Stub standards.**
+- **Subdirectory includes.**
 
-    Some standards contain only a heading and a placeholder. Do not create an
-    `AGENTS.md` for a stub. Report to the user that the standard is a stub and
-    ask whether to proceed anyway.
+  Some standards (eg. TS-8) have subdirectories like `03-issue-types/` with
+  their own `README.adoc` and numbered include files. Read all of these — they
+  are part of the standard.
 
--   **Standards that extend other standards.**
+- **Stub standards.**
 
-    When a standard says "see also TS-N" or "extends TS-N", link to the parent's
-    `AGENTS.md` at the top of the file and do not duplicate its rules.
+  Some standards contain only a heading and a placeholder. Do not create an
+  `AGENTS.md` for a stub. Report to the user that the standard is a stub and
+  ask whether to proceed anyway.
 
--   **Relative path depth**:
+- **Standards that extend other standards.**
 
-    Files in subdirectories (eg. `src/008/03-issue-types/05-feature.adoc`) need
-    `../../NNN/` to reference other standards, not `../NNN/`. Always verify path
-    depth when writing cross-references.
+  When a standard says "see also TS-N" or "extends TS-N", link to the parent's
+  `AGENTS.md` at the top of the file and do not duplicate its rules.
+
+- **Relative path depth**:
+
+  Files in subdirectories (eg. `src/008/03-issue-types/05-feature.adoc`) need
+  `../../NNN/` to reference other standards, not `../NNN/`. Always verify path
+  depth when writing cross-references.
 
 ## Success criteria
 
--   **All normative rules from the source `.adoc` files are represented**, either
-    directly in this `AGENTS.md` or by inheritance from a linked parent standard.
+- **All normative rules from the source `.adoc` files are represented**, either
+  directly in this `AGENTS.md` or by inheritance from a linked parent standard.
 
--   **All cross-references resolve correctly.** Every `../NNN/` path matches a
-    directory that exists in `src/`, and every TS title matches the index in
-    `src/README.adoc`.
+- **All cross-references resolve correctly.** Every `../NNN/` path matches a
+  directory that exists in `src/`, and every TS title matches the index in
+  `src/README.adoc`.
 
--   **The file is token-efficient.** No extended introductory prose, no rationale
-    paragraphs that don't change how a rule is applied, no content duplicated from
-    a linked parent standard.
+- **The file is token-efficient.** No extended introductory prose, no rationale
+  paragraphs that don't change how a rule is applied, no content duplicated from
+  a linked parent standard.
 
--   **The template structure is followed** — title, intro, `## Rules`, optional
-    `## Examples`, `## References`.
+- **Every section is actionable.** No standalone definitions/glossary
+  section, terminology overview, or conceptual-background section survives;
+  any term a rule depends on is defined inline at its point of use.
+
+- **The template structure is followed** — title, intro, `## Rules`, optional
+  `## Examples`, `## References`.

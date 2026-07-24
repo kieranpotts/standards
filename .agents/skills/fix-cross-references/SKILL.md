@@ -71,50 +71,50 @@ changes.
 
 ## Rules
 
--   **Single source of truth.** Only use `src/README.adoc` to verify TS
-    numbers and titles.
+- **Single source of truth.** Only use `src/README.adoc` to verify TS
+  numbers and titles.
 
--   **Precision.** Only modify references that are demonstrably broken. Do
-    not "clean up" references that are technically correct but stylistically
-    inconsistent, unless specifically asked.
+- **Precision.** Only modify references that are demonstrably broken. Do
+  not "clean up" references that are technically correct but stylistically
+  inconsistent, unless specifically asked.
 
--   **Path depth integrity.** Always calculate relative paths based on the
-    current file's distance from the `src/` root.
+- **Path depth integrity.** Always calculate relative paths based on the
+  current file's distance from the `src/` root.
 
--   **Preserve formatting.** If a reference is part of a specific AsciiDoc or
-    Markdown construct (eg. a link or a list item), do not alter the
-    surrounding syntax.
+- **Preserve formatting.** If a reference is part of a specific AsciiDoc or
+  Markdown construct (eg. a link or a list item), do not alter the
+  surrounding syntax.
 
--   **Standard-specific targets:**
+- **Standard-specific targets:**
 
-    - References within `.adoc` files should typically point to `README.adoc`
-      or other `.adoc` files.
+  - References within `.adoc` files should typically point to `README.adoc`
+    or other `.adoc` files.
 
-    - References within `AGENTS.md` files MUST point to the target's `AGENTS.md`
-      (as per the `agentify` skill convention).
+  - References within `AGENTS.md` files MUST point to the target's `AGENTS.md`
+    (as per the `agentify` skill convention).
 
 ## Edge cases
 
--   **External standards.** References to standards outside the `src/` directory
-    (eg. official RFCs or external industry standards) that do not follow the
-    `TS-NNN` pattern MUST be ignored.
+- **External standards.** References to standards outside the `src/` directory
+  (eg. official RFCs or external industry standards) that do not follow the
+  `TS-NNN` pattern MUST be ignored.
 
--   **Stubs.** If a reference points to a standard that exists in the index but
-    has no corresponding directory in `src/`, report it as a broken link.
+- **Stubs.** If a reference points to a standard that exists in the index but
+  has no corresponding directory in `src/`, report it as a broken link.
 
--   **Multiple matches.** If a search returns multiple potential candidates for
-    a reference, do not guess. Mark it as unresolved.
+- **Multiple matches.** If a search returns multiple potential candidates for
+  a reference, do not guess. Mark it as unresolved.
 
 ## Success criteria
 
--   **All identified broken internal references** in the target scope have been
-    corrected.
+- **All identified broken internal references** in the target scope have been
+  corrected.
 
--   **All corrected TS numbers and titles** match `src/README.adoc` exactly.
+- **All corrected TS numbers and titles** match `src/README.adoc` exactly.
 
--   **All relative paths** correctly resolve to the target directory based on the
-    current file's depth.
+- **All relative paths** correctly resolve to the target directory based on the
+  current file's depth.
 
--   **No valid references were accidentally altered.**
+- **No valid references were accidentally altered.**
 
--   **A clear report** listing fixed and unresolved references was provided.
+- **A clear report** listing fixed and unresolved references was provided.
