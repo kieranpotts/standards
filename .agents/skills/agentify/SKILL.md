@@ -141,8 +141,17 @@ sure about it.
   - `## Examples` section — canonical full examples (OPTIONAL, include only if
     the source contains end-to-end examples worth preserving).
 
-  - `## References` section — links to source standard and any closely related
-    standards.
+  - `## References` section — keep this minimal. Include only links an agent
+    would benefit from loading mid-task: the source `README.adoc`, and any
+    canonical external specifications a rule relies on. Do NOT list sibling TS
+    standards for "see also" completeness, background reading, blog posts, or
+    vendor pages — these are human-facing and waste agent context. Annotate
+    each retained link with a short trigger condition stating when to read it:
+
+    ```
+    - [AGENTS.md specification](https://agents.md):
+      Read this when authoring `AGENTS.md` files.
+    ```
 
 - **Cross-reference other AGENTS.md files, not README.adoc.**
 
