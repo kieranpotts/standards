@@ -20,16 +20,6 @@ Use this when designing, implementing, reviewing, or governing AI-assisted
 or agentic software development workflows, or when authoring reusable
 agent context (AGENTS.md files, skills).
 
-Do NOT use this for general security and secrets management — see
-[TS-52: Security and Secrets Management](../052/AGENTS.md). For privacy
-and PII handling, see [TS-53: Privacy and Data Protection](../053/AGENTS.md).
-For QA and testing practices, see [TS-12: Quality Assurance](../012/AGENTS.md)
-and [TS-13: Functional Testing](../013/AGENTS.md). For version control
-practices, see [TS-9: Version Control](../009/AGENTS.md). For Docker and
-container isolation, see [TS-58: Docker](../058/AGENTS.md). For
-application architecture, see [TS-5: Application Architecture](../005/AGENTS.md).
-For general code design, see [TS-7: Code Design](../007/AGENTS.md).
-
 ## Rules
 
 ### Definitions
