@@ -119,6 +119,46 @@ their latency is added to the loop, so they SHOULD be fast, and expensive checks
 SHOULD be bound to infrequent events — the end of a task rather than every file
 write.
 
+=== Inferential and deterministic controls
+
+Guides and sensors come in inferential and deterministic forms.
+
+*Inferential controls* are written in ordinary prose — system prompts, `AGENTS.md`,
+skills, review instructions — and they are open to interpretation by the model.
+They are flexible and easy to add, but their effect is probabilistic. A model may
+misread an instruction, forget it under pressure, or reason around it.
+
+*Deterministic controls* are programs: hooks, linters, type checkers, test suites,
+formatters, static-analysis tools, and any other script that returns a verifiable
+verdict on the same input every time. They are not open to interpretation; they
+either pass or fail.
+
+The governing principle is to make as much control deterministic as computation
+allows. Static analysis cannot catch every defect — architectural intent, user
+value, taste, and many other qualities resist mechanical checking — but it can
+catch far more than most teams expose to their agents. Every rule that can be
+expressed as a deterministic check SHOULD be expressed as one, and the harness
+SHOULD make those checks available to the agent as ordinary tools.
+
+A harness that exposes a language server, a formatter, a linter, a type checker,
+a search tool, and a refactoring tool such as OpenRewrite gives the agent the
+same deterministic instruments a developer uses by hand. The agent can then
+resolve many problems itself, inside its normal loop, rather than tripping a
+sensor and waiting to be told what went wrong.
+
+The deterministic sensors themselves can be authored with LLM assistance. A
+model is well suited to generating the small, mechanically precise scripts that
+enforce recurring rules: a script that checks for the required file header, a
+validator for a configuration schema, a checker that confirms every public
+endpoint has a corresponding test, and so on. The harness should accumulate these
+sensors over time, each one capturing a failure mode observed in practice. LLMs
+are the fastest way to build a large library of such sensors; the harness is
+where that library lives and where it is enforced.
+
+Inferential controls still matter. They cover the gaps deterministic tools
+cannot reach, and they provide steering that no script can express. But they
+MUST NOT be the only line of defense where a deterministic alternative exists.
+
 == Evolving the harness
 
 A harness is not configured once. It accumulates rules in response to observed
