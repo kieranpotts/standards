@@ -1,0 +1,82 @@
+= Persistence
+
+Requirements documents have a tendency to rot over time. Written once at the
+start of a project, they are abandoned as the system evolves past them.
+Eventually they describe a system that no longer exists, and stakeholder trust
+in the specification deteriorates.
+
+A specification can avoid that fate by binding itself to production.
+
+To achieve this, a change to the specification artifacts MUST be made
+_at the same time_ as the corresponding changes in code and configuration
+are released in production.
+
+This requires specification artifacts to be kept close to the code, and for
+the maintenance of those artifacts to be deeply integrated into normal
+software development methods and tools, such that the specification evolves
+in lockstep with the system.
+
+For this reason, this technical standard strongly RECOMMENDS that software
+specifications be persisted under the same version control systems as used to
+manage change in the software's code and configuration.
+
+The payoff is a single, trustworthy answer to the question:
+"`What does the system do right now?`" New team members, support staff,
+auditors, and other stakeholders can read the software specification and have
+confidence that it is correct.
+
+Wikis and issue trackers are commonly used to manage software requirements,
+but these keep the specification artifacts isolated from the source code
+and configuration, and subsequently the specification tends to drift from
+reality in time. Issue trackers are good for managing in-flight work but are
+poor as durable, structured records.
+
+Using version control to manage specifications has other advantages, too.
+Version control can be used to time-travel back through past snapshots of the
+specification. The specification's changelog is built-in to the version
+control substrate. Minimal friction is added to the software development
+lifecycle because the specifications live where the work already happens.
+And the SRS can be integrated into existing automation tools and delivery
+pipelines, further improving quality and productivity.
+
+Best practice is to persist software requirements artifacts under the same
+code repositories as the software itself. Several placements are possible:
+
+* *Colocated inside the service or module* (eg. `src/specification/`). The
+  specification is versioned with the code. One revision or merge updates
+  boh behavior and specification atomically. This is RECOMMENDED for a single
+  service or a small monorepo.
+
+* *A dedicated top-level folder in a monorepo* (eg. `/specification/` at the
+  root of a repo that covers several software components). This is appropriate
+  when multiple components or services share a single product-level
+  specification.
+
+* *A separate repository.* This becomes necessary when a codebase spans
+  multiple repositories. It is also necessary where non-technical stakeholders
+  need read access to the specification but should not also have write access to
+  the code. This separation adds costs to coordinate code and specification
+  changes, so it is NOT RECOMMENDED until the separation becomes necessary.
+
+.Example repository structure
+----
+my-service/
+├── src/                      ← Production code.
+├── specification/            ← Specification artifacts.
+│   ├── context/
+│   └── requirements/
+├── proposals/                ← Product proposals archive.
+└── README.md
+----
+
+== Generated views
+
+One of the trade-offs of persisting software requirements under version control
+is that they become less accessible to non-technical stakeholders.
+
+Where product owners, auditors, or external partners need a readable view of the
+specification, but should not be able to edit it directly, you SHOULD publish
+a generated, read-only rendering as part of an automated build step.
+
+The `./specification/` tree remains the single source of truth, but different
+views can be generated as derived artifacts for different audiences.
