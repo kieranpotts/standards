@@ -120,6 +120,81 @@ alongside a major version bump, so locking them down is intentional and
 appropriate. The distinction to draw when authoring a schema is between
 structure (lock it down) and business data (leave it open).
 
+== Schema composition
+
+JSON Schema provides several keywords for composing schemas out of other
+schemas. These keywords are powerful, but not all of them are well supported
+by the documentation-generation, code-generation, and validation tooling
+typically used with HTTP APIs. The following guidance SHOULD be followed when
+authoring schemas.
+
+*Extending a type with `allOf`.* The `allOf` keyword SHOULD be used where a
+schema needs to extend a common type with additional, API-specific fields.
+For example, a `shipping_address` field might reuse a shared `address` schema,
+while adding a field that is specific to shipping addresses:
+
+[source,json]
+----
+{
+  "shipping_address": {
+    "allOf": [
+      { "$ref": "address.json" },
+      {
+        "properties": {
+          "type": { "type": "string", "pattern": "^[0-9A-Z_]+$" }
+        },
+        "required": ["type"]
+      }
+    ]
+  }
+}
+----
+
+*Avoiding `anyOf` and `oneOf`.* These keywords SHOULD NOT be used to describe
+request or response payloads. A field whose shape can vary between several
+possible schemas, depending on some other field's value, is difficult for
+client tooling to work with: code generators typically cannot produce a single
+concrete type for it, and clients written in statically-typed languages are
+forced to write custom deserialization logic that standard libraries do not
+provide out of the box.
+
+A flatter structure, with one optional field per variant, is easier for
+clients to consume, at the cost of a small amount of redundancy in the schema.
+For example, prefer:
+
+[source,json]
+----
+{
+  "activity_type": { "type": "string", "pattern": "^[0-9A-Z_]+$" },
+  "payment": { "$ref": "payment.json" },
+  "money_request": { "$ref": "money_request.json" }
+}
+----
+
+– where only the field named by `activity_type` is expected to be populated –
+over a single `extensions` field typed as `oneOf` a `payment` schema or a
+`money_request` schema.
+
+*Marking fields as immutable with `readOnly`.* Where a resource has fields
+that a client MUST NOT modify via `PUT` or `PATCH`, eg. server-generated
+identifiers or timestamps, these SHOULD be marked with `"readOnly": true` in
+the schema, rather than relying only on prose documentation. This allows
+tooling to flag accidental attempts by a client to submit a value for such a
+field.
+
+[source,json]
+----
+{
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Identifier of the resource.",
+      "readOnly": true
+    }
+  }
+}
+----
+
 == Payload schema
 
 The structure of JSON payloads SHOULD be consistent across all endpoints in an
@@ -769,6 +844,82 @@ consistent client behavior.
   ]
 }
 ----
+
+Beyond the resource-CRUD and pagination relations already described, the
+following link relation types are also commonly useful, and SHOULD be used
+where their meaning applies, in preference to inventing an equivalent
+API-specific name:
+
+|===
+|Relationship |Description
+
+|`create`
+|Refers to an endpoint that can be used to create a new resource in a collection.
+
+|`edit`
+|Refers to a `PATCH` operation for partially updating the linked resource.
+
+|`replace`
+|Refers to a `PUT` operation for fully replacing the linked resource.
+
+|`collection`
+|Refers to the collection that a resource belongs to.
+
+|`latest-version`
+|Refers to the current, latest version of a resource that has multiple versions.
+
+|`search`
+|Refers to an endpoint that can be used to search the linked resource or collection.
+
+|`up`
+|Refers to the parent resource of the current resource, in a hierarchy of resources.
+|===
+
+For an action's link (see *Actions*), the action's own name SHOULD be used as
+the `rel` value, eg. `activate`, `cancel`, `refund`.
+
+=== Hypermedia use cases
+
+Embedding hypermedia links serves several concrete purposes beyond general
+discoverability. The following use cases are worth designing for explicitly.
+
+*A single entry point.* Where an API leans into HATEOAS, it SHOULD provide a
+single, well-known starting point from which every other resource and
+operation can eventually be discovered by following links, rather than
+requiring clients to have every URL pattern hard-coded in advance. Depending
+on the shape of the API, this entry point typically takes one of the
+following forms:
+
+* A natural top-level collection or object serves as the entry point, eg.
+`GET /v1/{namespace}/{resource}`, from which links to individual resources and
+their available operations are reached.
+
+* For a complex, multi-step business process, the first step in the process
+serves as the entry point, and each response returns links to the possible
+next steps, based on the current state of the process. For example, a credit
+application might begin at an `applyForCredit` action, whose response links
+to a `signAgreement` action, whose response in turn links to an `approve` or
+`decline` outcome.
+
+* For a namespace that exposes mostly independent, action-oriented endpoints
+rather than resources (see *Actions*), the `GET /v{major}/{namespace}/actions`
+endpoint described in *Actions* serves as the entry point, linking to each
+available action.
+
+*Service-controlled flow.* Because the set of links returned with a resource
+MAY vary based on that resource's current state, links can be used to
+communicate which operations are presently valid, without the client needing
+to embed that business logic itself. For example, a `cancel` link SHOULD only
+be present on an order while it is in a cancellable state, eg. `pending`, and
+SHOULD be absent once the order reaches a terminal state, eg. `completed`.
+This allows new state transitions to be introduced on the server side over
+time without requiring a corresponding client-side change to recognize them.
+
+*Error resolution links.* An error response (see *Error handling*) MAY
+include `links` that help the client resolve the error, eg. a `422
+Unprocessable Entity` response for an inactive account might include an
+`activate` link pointing the client at the operation that would resolve the
+problem.
 
 == Messages
 
