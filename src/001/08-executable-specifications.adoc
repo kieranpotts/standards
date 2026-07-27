@@ -31,6 +31,11 @@ that are well supported by most BDD-style testing frameworks. This is the
 RECOMMENDED baseline syntax. Various test frameworks support additional
 extended syntax, which you MAY opt in to.
 
+The canonical Gherkin specification lives at
+https://cucumber.io/docs/gherkin/reference/.
+Note this is the version supported by the latest release of Cucumber.
+Language support varies between other test frameworks.
+
 == Basic structure
 
 A feature is described in a plain text file with the `.feature` extension, and
@@ -95,6 +100,8 @@ Feature: Refund item
 
 == Feature files
 
+`.feature` files are the concrete, scenario-level functional requirements.
+
 How much behavior belongs in one file is a matter of judgment. A file SHOULD be
 scoped to a single feature — but where a feature is large, it is better split
 across several files, each covering one coherent aspect of it, than allowed to
@@ -103,6 +110,9 @@ subject in their head.
 
 Each file carries its own feature identifier, so a feature split across several
 files takes several identifiers. Identifiers name files, not concepts.
+
+A scenario SHOULD NOT restate a business rule that is stated in the rules
+section. Better instead to cross-reference rules by their identifiers.
 
 The opening lines of each `.feature` file MUST have the following structure:
 
@@ -196,6 +206,10 @@ Each step MUST start with one of the following keywords:
 * `And`
 * `But`
 
+An asterisk (`*`) MAY be used in place of any of these. It carries no meaning of
+its own, taking the sense of the preceding step, and is useful where a list of
+preconditions reads awkwardly as a chain of `And` steps.
+
 Steps are also known as "givens", "whens", and "thens".
 
 *Givens* are preconditions that put the system in a known state before a user or
@@ -255,6 +269,44 @@ function, which is executed. Typically, the callbacks for each `Then` step will
 inspect some aspect of the system – a log entry, user interface repaint, command
 output, etc. – to verify the assertion made in the step.
 
+=== Step arguments
+
+A step whose subject does not fit comfortably on one line MAY carry an argument
+on the lines beneath it. Two forms are available, and both are passed to the
+step definition as a final parameter.
+
+A *doc string* carries a block of text, delimited by triple quotes. It is used
+where the value is prose, a payload, or anything else whose internal line breaks
+matter.
+
+[source,feature]
+----
+Given a customer has submitted the following complaint:
+  """
+  The microwave arrived with a cracked door.
+  I would like a refund rather than a replacement.
+  """
+----
+
+A *data table* carries rows of structured values, delimited by pipes.
+
+[source,feature]
+----
+Given the catalog contains the following products:
+  | name      | status    | price |
+  | Microwave | available | 100   |
+  | Toaster   | reserved  | 40    |
+----
+
+A data table attached to a step is not the same construct as the `Examples`
+table of a scenario outline, though they look alike. A data table is a single
+argument to one step within a single scenario. (An `Examples` table generates
+_several_ scenarios from a template.)
+
+A step argument that runs to dozens of rows is usually test fixture data that
+has escaped into the specification, in which case the scenario has probably
+stopped illustrating the underlying business rule effectively.
+
 == Backgrounds
 
 The same `Given` steps can end up repeated across all scenarios in a feature
@@ -274,6 +326,42 @@ Background:
 Background sections provide context to all subsequent scenarios. Test automation
 systems will run the background script immediately before testing each scenario,
 thus putting the system-under-test into the same preset state for every test.
+
+== Rule blocks
+
+A `Rule` block groups the scenarios that together illustrate one business rule.
+It sits between the `Feature` block and the scenarios it owns.
+
+[source,feature]
+----
+Feature: Reserve a product
+
+  Rule: A product can only be reserved while it is available
+
+    Scenario: Reserve an available product
+      Given a product with status "available"
+      When a Partner reserves the product
+      Then the reservation is confirmed
+
+    Scenario: Cannot reserve a sold product
+      Given a product with status "sold"
+      When a Partner reserves the product
+      Then the response indicates the product is not available
+----
+
+This is the Gherkin counterpart of the business rules described under
+<<Rules>>. Where the specification states a rule centrally with a stable
+identifier, the `Rule` block SHOULD name that identifier, so the scenarios that
+verify a rule can be traced to the rule they verify:
+
+[source,feature]
+----
+  Rule: R3 — Reservation requires an available product
+----
+
+`Rule` is supported by current versions of the major frameworks, but it is a
+later addition to the language than the rest of the syntax described here.
+Confirm support before adopting it.
 
 == Scenario outlines
 
@@ -322,6 +410,28 @@ sections. Examples are tabular data used to populate the scenario outline's
 variables. The table MUST have a header row with column names corresponding
 to the variables encoded in the scenario outline steps. Each table row
 produces a new scenario, with the variables filled in with its values.
+
+== Tags
+
+A tag is a label attached to a feature, rule, scenario, or `Examples` table,
+written as an `@`-prefixed word on the line above.
+
+[source,feature]
+----
+@checkout @slow
+Scenario: Checkout with a saved payment method
+----
+
+Tags are metadata for the test runner, not part of the specification's meaning.
+Their main use is selection — running or excluding a subset of scenarios, such
+as a smoke-test set, or those known to be slow.
+
+Tags MAY also be used to cross-reference requirement identifiers, giving a
+machine-readable binding between a scenario and the rule or quality it verifies
+— `@R3`, or `@Q1.4`. This is a convenience for tooling, and does not replace
+stating the rule centrally.
+
+Tags SHOULD be few and their meanings documented.
 
 == Implementation
 
