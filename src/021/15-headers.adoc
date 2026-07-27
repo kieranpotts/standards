@@ -86,6 +86,34 @@ resources and collections. It SHOULD NOT be used in conjunction with the
 other, or neither, but not both.
 ****
 
+Besides controlling the shape of a response, the `Prefer` header MAY also be
+used by clients to express a preference about the consistency and freshness of
+the data returned, trading off strict accuracy for lower latency. This is
+particularly relevant for read operations on data that is expensive to compute
+or that is served from a cache or a read replica.
+
+The following tokens MAY be supported for this purpose, in decreasing order of
+consistency guarantee:
+
+* `Prefer: read-consistent`: The client requires the response to be sourced
+  from a durable, consistent data store, reflecting the result of all writes
+  already acknowledged to any client. Where an API does not offer any other read
+  consistency preference, this SHOULD be the default behavior, and clients
+  SHOULD NOT need to set this token explicitly.
+
+* `Prefer: read-eventual-consistent`: The client accepts a response that may be
+  sourced from a cache or an eventually-consistent replica, and so may not
+  reflect the most recent writes. If no such source is available, the server MAY
+  fall back to a consistent, durable data store.
+
+* `Prefer: read-cache`: The client prefers the response to be served from a
+  cache, if available, prioritizing latency over freshness. On a cache miss, the
+  server MAY fall back to an eventually-consistent or a fully consistent source.
+
+An API that supports any of these tokens MUST document which of its endpoints
+honor them, and MUST document the default behavior for endpoints where no
+`Prefer` header is supplied.
+
 == Response caching
 
 HTTP API servers MUST provide guidance to clients on appropriate caching of
