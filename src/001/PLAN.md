@@ -13,8 +13,11 @@ contradictions, several factual errors in the Gherkin material, significant
 duplication across §01a/§07/§10, and the compact `AGENTS.md` has drifted from
 the standard it summarizes, including one rule it invents outright.
 
-**Status:** tier 1 (correctness) applied — see
-[Changelog](#changelog). Tiers 2-4 are open.
+**Status:** tiers 1 (correctness) and 2 (coherence) applied, plus
+[5.1](#5-genuine-coverage-gaps) and all of
+[§3 technical accuracy](#3-technical-accuracy-elsewhere) — see
+[Changelog](#changelog). No contradictions or factual errors remain. Open: the
+rest of tier 3 (completeness) and tier 4 (conventions).
 
 ---
 
@@ -31,7 +34,8 @@ the standard it summarizes, including one rule it invents outright.
    [2.3](#23-both-templates-misalign-step-indentation) was pulled forward from
    tier 2 — see the changelog note.
 
-2. **Coherence** — [1.3](#13-qualities-must-measurable-vs-acknowledged-subjective-nfrs),
+2. ~~**Coherence**~~ — **done.**
+   [1.3](#13-qualities-must-measurable-vs-acknowledged-subjective-nfrs),
    [1.4](#14-feature-file-scope-must-vs-should-different-rules),
    [1.6](#16-success-metrics-assigned-to-both-artifacts),
    [1.7](#17-state-machine-has-no-rework-or-abandonment-path),
@@ -319,33 +323,40 @@ about each other.
 
 ## 3. Technical accuracy elsewhere
 
-- [ ] [07-qualities.adoc:55](./07-qualities.adoc#L55) — "256-bit SSL/TLS
-  encryption (for data in transit)". SSL has been deprecated for a decade
-  (RFC 7568/8996), and "256-bit SSL/TLS" conflates cipher key length with
-  protocol version. As a *conformance target*, which is what this paragraph is
-  offering, it is not specifiable. Suggest "TLS 1.3 (or TLS 1.2 restricted to
-  AEAD cipher suites)".
+**All four done 2026-07-27.**
 
-- [ ] [07-qualities.adoc:56](./07-qualities.adoc#L56) — "Web Content
-  Accessibility Guidelines (for usability)". WCAG is an accessibility standard,
-  not a usability one — and the very next section
-  ([07-qualities.adoc:73-79](./07-qualities.adoc#L73-L79)) makes the point that
-  usability/UX is the *subjective* quality that cannot be pinned to a published
-  standard. Mislabeling WCAG as usability contradicts that argument.
+- [x] [07-qualities.adoc](./07-qualities.adoc) — "256-bit SSL/TLS encryption
+  (for data in transit)". SSL has been deprecated for a decade (RFC 7568/8996),
+  and "256-bit SSL/TLS" conflated cipher key length with protocol version.
+  **Fixed:** now "TLS 1.3 (for data in transit)". "256-bit Advanced Encryption
+  Standard" was also shortened to "AES-256", and "in storage" to "at rest".
 
-- [ ] [07-qualities.adoc:57-58](./07-qualities.adoc#L57-L58) — "EU General Data
-  Protection Regulations" — singular: *Regulation*.
+- [x] [07-qualities.adoc](./07-qualities.adoc) — "Web Content Accessibility
+  Guidelines (for usability)". WCAG is an accessibility standard, not a
+  usability one — and the next section makes the point that usability/UX is the
+  *subjective* quality that cannot be pinned to a published standard.
+  **Fixed:** now "(for accessibility)".
 
-- [ ] [02-responsibility.adoc:11-14](./02-responsibility.adoc#L11-L14) — the
-  password-strength example prescribes minimum 8 characters, mandatory special
-  character, and "no dictionary words". NIST SP 800-63B has recommended
-  *against* composition rules and dictionary-word bans since 2017 (they
-  measurably reduce entropy by pushing users to predictable substitutions), in
-  favor of length minimums plus a breach-corpus check. It is only an
-  illustration of "business requirement vs. technical design", but in a
-  standards repository an illustration is read as endorsement, and a reader
-  could lift it verbatim into a spec. Either swap it for current guidance or
-  pick a domain-neutral example.
+- [x] [07-qualities.adoc](./07-qualities.adoc) — "EU General Data Protection
+  Regulations" → **Regulation** (singular).
+
+- [x] **Added while fixing the above:** a paragraph requiring conformance
+  targets to cite a specific version and conformance level ("`WCAG 2.2 Level
+  AA`", not "`accessible`"). The original text named four standards without a
+  single version between them, which is not a testable threshold — the defect
+  underlying all three items above, rather than three unrelated slips.
+
+- [x] [02-responsibility.adoc](./02-responsibility.adoc) — the password-strength
+  example prescribed minimum 8 characters, a mandatory special character, and
+  "no dictionary words", contradicting NIST SP 800-63B. **Fixed:** replaced with
+  current guidance — 12-character minimum, no maximum below 64, breach-corpus
+  check, and explicitly no composition rules or forced expiry.
+
+  The example now also earns its place: a short paragraph explains that
+  composition rules and expiry are what most stakeholders *expect* "strong" to
+  mean, and that settling it needs both parties — the business owns the risk
+  appetite, the development team knows the evidence. That is the section's
+  actual thesis, which the original example illustrated only incidentally.
 
 ---
 
@@ -806,6 +817,27 @@ TS-14) resolve with correct titles.
 
 ## Changelog
 
+### §3 — technical accuracy (2026-07-27)
+
+Uncommitted. Two files: `07-qualities.adoc`, `02-responsibility.adoc`.
+
+All four items closed. The three §07 errors turned out to be one sentence
+listing four published standards, none with a version. Rather than patch each
+name, the sentence was corrected (AES-256, TLS 1.3, WCAG for *accessibility*,
+GDPR singular) and a paragraph added requiring conformance targets to cite a
+version and level — "`WCAG 2.2 Level AA`", not "`accessible`". A standard named
+without a version is not a testable threshold, which is the underlying defect
+the three items were symptoms of.
+
+The §02 password example was replaced with current NIST SP 800-63B guidance
+(12-character minimum, no maximum below 64, breach-corpus check, no composition
+rules or forced expiry). A short paragraph was added explaining why the last
+rule is the interesting one: composition rules and expiry are what most
+stakeholders expect "strong" to mean, and settling that needs both parties —
+the business owns the risk appetite, the development team knows the evidence.
+The section's thesis is the business/technical collaboration, which the old
+example illustrated only incidentally.
+
 ### §10 "Best practices" consolidation (2026-07-27)
 
 Uncommitted. Kieran's call: the tail of §10 was nine short prose sections, each
@@ -822,12 +854,32 @@ requirements to their implementation.
 §10 is now five sections (Two artifacts, Lifecycle states, Binding the
 specification to production, Best practices) and 167 lines, down from 213.
 
-Every normative statement was carried over — including the `PROPOSED` → `DRAFT`
-rule added earlier in this session, and the requirement-identifier citation
-added by [5.1](#5-genuine-coverage-gaps). What was dropped is repetition and
-scene-setting, not rules. Checked afterwards that no `<<…>>` xref pointed at any
-of the nine removed section titles; none did, because Kieran had already removed
-the two that would have broken.
+Checked afterwards that no `<<…>>` xref pointed at any of the nine removed
+section titles; none did, because Kieran had already removed the two that would
+have broken.
+
+**Kieran's subsequent edits**, which changed what survived:
+
+- *"Enforce the state machine strictly" cut entirely* — a deliberate decision.
+  The `MUST NOT skip states` rule and the "a decision once taken MUST NOT be
+  reversed" rule are therefore no longer stated in TS-1; the diagram and the
+  `Proposed` state definition carry the transition, but nothing polices it.
+  **Known divergence:** the specs repo's `CONTRIBUTING.md` and `AGENTS.md` still
+  state both rules explicitly, so the reference implementation is now stricter
+  than the standard. Acceptable — an implementation may tighten what a standard
+  leaves open — but worth revisiting if the two should match.
+- *"Version control as the substrate" reduced to a single line* inside "Two
+  artifacts", resolving
+  [4.2](#42-the-version-control-argument-is-made-twice-at-length) more
+  aggressively than my version did, and correctly, since §01a now carries the
+  full argument.
+- *"Leave out implementation details" split out* of "Specify the end state",
+  then reordered (at my suggestion) to follow "Keep description and reasoning in
+  their proper homes", so the general boundary principle precedes its two
+  specific prohibitions.
+- *Two normative downgrades:* thread conclusions `SHOULD be summarized` →
+  `MAY be summarized`; cross-functional review restated as three separate
+  `SHOULD`s.
 
 ### Tier 2 — coherence (2026-07-27)
 
