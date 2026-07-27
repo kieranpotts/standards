@@ -17,6 +17,32 @@ non-numeric. In scenarios where this data might be used as a subordinate to
 other data, immutable string identifiers SHOULD be used for readability and
 debugging.
 
+The following additional rules apply to the design of resource identifiers:
+
+* A resource identifier's lifecycle MUST be owned by the resource's own domain
+  model. Database-generated sequence numbers MUST NOT be used as resource
+  identifiers, since doing so leaks an internal implementation detail (the
+  choice of database and its auto-increment behavior) into the public contract,
+  and typically also makes identifiers sequential and guessable. Where a UUID is
+  not suitable, eg. for performance or storage reasons, an HMAC-based hashed
+  identifier is an acceptable alternative.
+
+* Where a sub-resource identifier is used (see *Sub-resources and
+  sub-collections*), it MUST be scoped for lookup purposes within its parent
+  resource only. For example, given `/users/1234/linked-accounts/ABCD`, account
+  `ABCD` MUST NOT be returned unless it is actually linked to user `1234`, even
+  if an account with that identifier exists elsewhere in the system.
+
+* A URL path MUST NOT contain two resource identifiers in immediate
+  succession, eg. `/payments/12345/102030`, since this is ambiguous as to
+  whether the second segment is a sub-resource identifier or something else.
+  Interpose a named sub-resource segment between them, per the templates above.
+
+* Resource identifiers SHOULD be restricted to ASCII characters. Where an
+  identifier must be included in a URL and contains any character outside of
+  the URI-unreserved set, it MUST be percent-encoded, as MUST any UTF-8
+  characters in query parameter values.
+
 If the provided resource identifier is not found, even if the data is "soft
 deleted" in the data source, the response status code should be `404 Not Found`.
 Otherwise, `200 OK` MUST be returned when the resource is found.
