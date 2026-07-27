@@ -4,9 +4,10 @@ Gherkin scenarios are the RECOMMENDED format for expressing detailed, testable
 acceptance criteria, but they are not always the best starting point for
 discovering what those criteria should be.
 
-This section covers four alternative techniques that are most useful earlier in
-the life of a specification, before requirements have been broken down into
-individual scenarios.
+This section covers four techniques that are most useful earlier in the life
+of a specification, before requirements have been broken down into individual
+scenarios. Once that structure is understood, it is RECOMMENDED to express
+the detailed acceptance criteria as Gherkin scenarios.
 
 == Use cases
 
@@ -15,52 +16,51 @@ in 1992, is an alternative technique for capturing functional requirements. A
 use case describes a complete interaction between an actor and the system in
 pursuit of a goal.
 
-Use cases are most useful earlier in the life of a specification, to map out
-the full scope of an actor's interaction with the system before breaking it
-down into individual, independently testable scenarios. Once that structure is
-understood, it is RECOMMENDED to express the detailed acceptance criteria as
-Gherkin scenarios.
+Use cases are a useful tool for mapping out the full scope of an actor's
+interaction with the system before breaking it down into individual,
+independently testable scenarios.
 
 == Event storming
 
 *Event storming*, invented by
-https://ziobrando.blogspot.com/2013/11/introducing-event-storming.html[Alberto Brandolini]
-in the context of domain-driven design, is a workshop-based technique for
-exploring a business domain by collaboratively identifying the *domain events*
-— the significant things that happen — and arranging them in chronological order.
+https://ziobrando.blogspot.com/2013/11/introducing-event-storming.html[Alberto Brandolini],
+is a workshop-based technique for exploring a business domain.
 
 Unlike use cases and Gherkin, which are specification formats, event storming
-is a discovery technique. Its purpose is to build an understanding of the
-requirements in the first place. It does this by bringing together stakeholders
-and engineers who each hold a different piece of the picture.
+is a discovery technique. Technical experts collaborate with domain experts
+to identify *domain events* — the significant things that happen — and to
+arrange them in chronological order.
 
-Event storming is most useful early in the life of a specification, alongside
-use case analysis. It is particularly effective at identifying the components of
-a system and the interactions between them — which makes it a good fit for
-exploring event-driven architectures.
+In a workshop, the experts and engineers work around an unlimited modeling
+surface — ideally, a long wall or a paper scroll — and record their individual
+findings on color-coded sticky notes. A workshop typically proceeds through
+phases, each phase adding a new color of note to the timeline built up
+so far:
 
-Once the domain events and their sequence are understood, the same requirements
-are RECOMMENDED to be refined into Gherkin scenarios.
+* *Domain events (orange).* Everything of significance that happens in the
+  business, stated in the past tense (eg. "Order received"), placed on the
+  timeline in roughly the order they occur.
 
-== Story mapping
+* *Commands (blue).* The actions, taken by an actor or an external system,
+  that trigger each event.
 
-*Story mapping*, popularized by https://jpattonassociates.com/story-mapping/[Jeff Patton],
-is a technique for arranging user stories into a two-dimensional map — a
-horizontal *backbone* of the major steps in an end-to-end user journey, with
-each step broken down vertically into the individual stories that support it,
-ordered by priority.
+* *Actors (small yellow).* Who or what issues each command.
 
-The map makes it possible to see the whole shape of a system at a glance, and to
-slice out a coherent, minimal release by taking a thin horizontal band across
-the map rather than a single vertical stack of stories.
+* *Aggregates (large yellow).* The entities that receive commands and produce
+  events. Related events and commands are clustered together.
 
-Story mapping is most useful early in the life of a specification, to
-sequence and prioritize the scope identified through use case analysis or
-event storming into releasable increments. It answers _what to build first_,
-not _how a given piece of functionality should behave_.
+* *Hotspots (pink/purple).* Problems, risks, and unanswered questions
+  surfaced during the discussion.
 
-Once an increment's scope is settled, its stories SHOULD still be broken down
-into Gherkin scenarios to capture their detailed, testable acceptance criteria.
+A facilitator keeps the group moving chronologically, resolves naming
+disagreements, and ensures the surface stays a shared model rather than
+several disconnected fragments. Hotspots (pink or purple notes) are used to
+park questions for resolution at a later date, so as not to derail the current
+session.
+
+Event storming is particularly effective at identifying the components of
+a system and the interactions between them. It is an especially good fit
+for exploring the domains of event-driven architectures.
 
 == Example mapping
 
@@ -70,16 +70,64 @@ is a lightweight, timeboxed workshop technique for breaking a single user story
 down into its underlying *rules* and the concrete *examples* that illustrate
 each rule.
 
-The process uses card indexes of four colors: a white story card, yellow rule
-cards, green example cards, and red cards for questions that block progress and
-must be resolved before the story can be implemented.
+The process uses index cards of four colors:
+
+* *Story (white).*
+* *Rule (yellow).*
+* *Example (green).*
+* *Question (red).*
+
+Red cards are blockers that must be resolved before the story can be implemented.
 
 Unlike use cases, event storming, and story mapping, which operate at the
 scope of a whole system or user journey, example mapping operates directly
 on a single story, immediately before it is built.
 
-Example mapping translates directly into Gherkin scenarios, making it the
-RECOMMENDED technique for the final step of requirements elicitation before
-scenarios are written. Each rule maps onto a Gherkin scenario. And each
-example maps onto either the concrete detail of that scenario or a row in
-a scenario outline's examples table.
+Example mapping translates directly into Gherkin scenarios and examples, making
+it the RECOMMENDED technique for the final step of requirements elicitation
+before scenarios are written.
+
+== Story mapping
+
+*Story mapping*, popularized by https://jpattonassociates.com/story-mapping/[Jeff Patton],
+is a technique for arranging user stories into a two-dimensional map. A
+horizontal *backbone* shows the major steps in an end-to-end user journey, with
+each step broken down vertically into the individual stories that support it,
+ordered by priority.
+
+The map makes it possible to see the whole shape of a system at a glance, and to
+slice out a coherent, minimal release by taking a thin horizontal band across
+the map, rather than a single vertical stack of stories.
+
+A story placed on the map is a placeholder for a future conversation, not yet
+a specification. Before it is scheduled into a release, it SHOULD meet the
+"INVEST" criteria:
+
+* *Independent.* Schedule-able and implementable without depending on other
+  unscheduled stories.
+* *Negotiable.* A placeholder for discussion, not a fixed contract.
+* *Valuable.* Delivers value to an actor, not merely a technical task.
+* *Estimable.* The team has enough shared understanding to size it.
+* *Small.* Fits comfortably within a single release increment.
+* *Testable.* Has, or can be given, clear acceptance criteria.
+
+A story that fails the "small" or "estimable" tests is usually too
+coarse-grained to be scheduled. It is RECOMMENDED to split it along one of
+its natural seams, rather than attempting to size or build it as-is:
+
+* *Workflow steps.* Split a multi-step journey into one story per step.
+* *Business rule variations.* Split by rule or edge case (eg. by payment
+  method, or by validation branch) rather than building all variations at once.
+* *Data variations.* Split by input type or format handled.
+* *Operations.* Split a story that bundles create, read, update, and delete
+  into one story per operation.
+
+Splitting SHOULD stop once each resulting story is independently valuable and
+testable. Splitting a story into slices that are not independently releasable
+(eg. by architectural layer, such as "build the API" and "build the UI") is
+NOT RECOMMENDED, since neither slice delivers value on its own.
+
+Story mapping is most useful in sequencing and prioritizing the scope identified
+through use case analysis or event storming into releasable increments. In this
+regard, story mapping is a bit closer to implementation planning that it is
+to requirements discovery.
