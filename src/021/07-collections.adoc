@@ -130,6 +130,43 @@ field in the representation.
 These query parameters SHOULD be used consistently across all endpoints that
 support time-based filtering.
 
+=== Filtering by multiple values
+
+It is often necessary for a client to filter a collection by more than one
+value of the same field, eg. to request resources whose `status` is either
+`open` or `closed`. Two patterns are RECOMMENDED for this, depending on
+context.
+
+The default approach is to repeat the query parameter once for each value.
+This is natively supported by the HTTP standards and by most client and server
+libraries, without any special-case parsing logic.
+
+----
+GET /v1/{namespace}/{resource}?status=open&status=closed
+----
+
+Where this pattern is used, the query parameter's documented name SHOULD be
+singular (`status`, not `statuses`), since each occurrence carries a single
+value.
+
+Alternatively, a single query parameter MAY accept a comma-separated list of
+values, eg. `?statuses=open,closed`. This can be preferable where the number of
+values is potentially large and the 2,000-character practical limit on URL
+length is a concern. However, this pattern is NOT RECOMMENDED unless justified,
+because it requires bespoke parsing logic on both the client and server, and it
+is not universally supported by API tooling. Where this pattern is used:
+
+* The query parameter's documented name SHOULD be plural (`statuses`), to
+  signal to clients that comma-separated values are accepted.
+
+* The comma character MUST be used as the separator between values.
+
+* The API's documentation MUST specify how a client should escape a literal
+  comma character within a value, if this is possible for the field in question.
+
+A collection endpoint SHOULD implement only one of these two patterns for any
+given query parameter, not both.
+
 == Searching
 
 Search query parameters MAY be supported on collections, to allow clients to
