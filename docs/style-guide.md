@@ -56,6 +56,31 @@ for new standards.
 - Use `''''` (four single-quotes on their own line) to insert a horizontal rule,
   eg. before a `== References` section.
 
+- Quoted prose MUST use plain double quotes (`"quoted text"`). Do not use
+  AsciiDoc's curly-quote syntax (`` "`quoted text`" ``).
+
+- Backticks MUST NOT appear inside a quoted string in prose. Quote the phrase
+  or set the term in monospace, never both:
+
+  ```
+  ✅ "list responses within 300 ms at the 95th percentile"
+  ✅ The `Scenario Outline` keyword.
+  ❌ "the `Scenario Outline` keyword"
+  ```
+
+  This applies to prose only. Backticks inside code blocks are untouched by
+  this rule, including where the language being shown uses them as syntax.
+
+- Internal cross-references between sections of the same standard MUST use xref
+  syntax (`<<Section title>>`), not `link:` to the file. The section files are
+  merged into a single document by `include::`, so a file-relative link resolves
+  to the wrong place. Use `link:` only for cross-references to *other*
+  standards.
+
+  Prose references ("see the section on executable specifications") are
+  acceptable for passing mentions. Prefer an xref where the reader is being
+  directed to go and read the other section.
+
 For the full AsciiDoc language reference, see
 [TS-28: AsciiDoc](../src/028/README.adoc).
 
@@ -118,3 +143,16 @@ URLs containing variables are written according to
 [IETF RFC 6570: URI Template](https://tools.ietf.org/html/rfc6570). For example,
 a URL containing a variable called `account_id` would be shown as
 `api.example.com/v1/accounts/{account_id}`.
+
+Placeholders in code blocks and templates use angle brackets — `<placeholder>` —
+per [TS-26 §11](../src/026/11-code-blocks.adoc). The exception is a URI template,
+which follows RFC 6570 above.
+
+Where a standard documents a language that itself uses angle brackets — Gherkin
+scenario outlines, for example — the two uses are indistinguishable on the page.
+Say so explicitly in the surrounding prose rather than switching notation.
+
+Named published standards MUST be cited with a version, and with a conformance
+level where the standard defines one: "WCAG 2.2 Level AA", not "accessible";
+TLS 1.3, not SSL/TLS. A standard named without a version is not a testable
+threshold, and it ages badly.
