@@ -19,6 +19,38 @@ is the most widely used naming convention.
 Avoid using underscores or alternative letter case conventions such as
 camelCase, even for your application's own non-standard header fields.
 
+== Content negotiation
+
+HTTP APIs use a small number of standard headers to negotiate the format of
+request and response bodies.
+
+* `Accept`: Clients SHOULD send this header to indicate which media types they
+  are able to handle in the response. Servers SHOULD NOT assume this header is
+  present, since some clients omit it. Where an API cannot produce a response in
+  any of the media types requested, it MUST return `406 Not Acceptable`, rather
+  than silently falling back to a different media type than the one requested.
+
+* `Accept-Charset`: Where sent, this SHOULD include `utf-8`. HTTP APIs
+  following this standard only produce UTF-8 encoded content, so this header
+  adds little in practice, but SHOULD be handled gracefully where present.
+
+* `Content-Type`: Clients MUST include this header on any request that has a
+  body, eg. `POST`, `PUT`, and `PATCH` requests, and servers MUST include it on
+  any response that has a body. Where the media type is text-based, eg. `application/json`,
+  the header MUST include an explicit `charset` parameter, and that charset MUST
+  be `utf-8`. Where a request's `Content-Type` names a media type the server
+  does not support, the server MUST return `415 Unsupported Media Type`.
+  +
+  [source,http]
+  ----
+  Content-Type: application/json; charset=utf-8
+  ----
+
+* `Content-Language`: Responses SHOULD include this header to indicate the
+  language of the response content, using a language tag. Where an API does not
+  support content negotiation by language, it SHOULD still include this header
+  with a fixed value representing the language it always responds in, eg. `en-US`.
+
 == Non-standard headers
 
 Non-standard headers SHOULD be prefixed with `X-` to indicate that they are
