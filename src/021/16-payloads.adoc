@@ -12,6 +12,86 @@ it can still be useful for the purpose of testing (eg. using tools like
 Postman). A little bit of redundancy between payload content, headers, and
 status codes is okay.
 
+== Primitive types
+
+JSON's own type system is looser than most programming languages assume, and
+several of its primitives have known cross-language interoperability problems.
+Where JSON Schema is used to describe request and response payloads (see
+link:../029/README.adoc[TS-29: JSON Schema]), the following constraints
+SHOULD be applied to each of the JSON primitive types.
+
+*Strings.* A `string` field SHOULD always declare an explicit `minLength` and
+`maxLength`. Without a `maxLength`, it is not possible to reliably size a
+database column to store the value, nor to know in advance whether a future
+change to the value's length would be a breaking change. Without a `minLength`,
+clients are typically able to submit an empty string in a field that should
+never be empty. `pattern` SHOULD be used to further constrain a string's
+format where appropriate, eg. for structured identifiers, but fields SHOULD NOT
+be over-constrained without a good technical reason to do so.
+
+*Numbers.* JSON defines only one numeric type, an unbounded fixed-point value;
+the distinction between `number` and `integer` exists only in JSON Schema, for
+validation purposes. Many languages and runtimes, notably JavaScript, cannot
+safely represent every value permitted by this type – for example, any
+integer larger than 2^53 loses precision when parsed by a JavaScript JSON
+deserializer. For this reason:
+
+* The JSON Schema `number` type SHOULD NOT be used. Depending on the receiving
+  language, its values may be interpreted as either fixed-point or
+  floating-point, which is a common source of rounding bugs. Decimal and
+  monetary values SHOULD instead be represented as a `string`, constrained with
+  `pattern`, `minLength`, and `maxLength`.
+
+* The `integer` type SHOULD be used only for values that fit within a 32-bit
+  signed integer (`-2147483648` to `2147483647`), and an explicit `minimum` and
+  `maximum` SHOULD always be declared. If a value could plausibly grow beyond
+  this range in the future, use a `string` instead.
+
+*Arrays.* An `array` field SHOULD declare a `maxItems`, both to protect against
+unbounded response sizes and because several languages and runtimes place
+their own hard limits on array length. Unless there is a specific reason to
+choose a smaller limit, `32767` (`(2^15) - 1`) is a reasonable default upper
+bound. `maxItems` SHOULD NOT be used to communicate the page size of a
+paginated collection – that is a separate, independently-evolving concern (see
+the *Pagination* section of *Collections*). `minItems` SHOULD also be
+declared, and will typically be `0` or `1`.
+
+*Enumerations.* The JSON Schema `enum` keyword is difficult to extend safely:
+adding a new value to an `enum` is a breaking change for any client that
+validates responses against a previously-obtained copy of the schema, even
+though the API's own major version has not changed. For this reason:
+
+* `enum` SHOULD be used only where the complete set of valid values is fixed
+  and genuinely will never need to grow.
+
+  * Where new values might plausibly be added over time, use a `string` type
+  instead, constrained by `pattern` to the naming convention for enumerated
+  values (see the section on naming conventions, below), and document the
+  currently-known set of values in prose rather than enforcing it in the schema.
+  Clients consuming such a field MUST be built to tolerate unrecognized values
+  gracefully.
+
+*Null values.* APIs SHOULD NOT produce or consume `null` values. A field that
+has no value SHOULD simply be omitted from the JSON object, rather than being
+present with a value of `null`. This distinction between "absent" and "defined
+as null" is a frequent source of confusion in strongly-typed client languages,
+where a deserializer often cannot tell the two cases apart. Omitting unset
+fields entirely avoids the ambiguity.
+
+*Additional properties.* JSON Schema's `additionalProperties: false` keyword
+locks an object down to precisely the set of properties declared in its
+`properties` map. For schemas that describe extensible business data, eg. the
+`attributes` of a `ResourceItem` (see below), this keyword SHOULD NOT be set
+to `false`, because doing so turns the addition of any new field – ordinarily
+a backwards-compatible, additive change – into a schema-breaking one for any
+client that validates strictly against the schema. The envelope-level schemas
+defined later in this document are a deliberate exception: they describe the
+fixed structural "shape" of a message (the `resources`/`metadata`/`links`/
+`messages` envelope, links, errors, and so on), which SHOULD change only
+alongside a major version bump, so locking them down is intentional and
+appropriate. The distinction to draw when authoring a schema is between
+structure (lock it down) and business data (leave it open).
+
 == Payload schema
 
 The structure of JSON payloads SHOULD be consistent across all endpoints in an
@@ -1104,6 +1184,25 @@ Each issue within an error specification SHOULD include:
 
 The payload structure described above can be validated against the following
 JSON schema.
+
+.Schema version
+****
+The schemas in this document are written against the
+https://json-schema.org/draft/2020-12/schema[2020-12] draft of JSON Schema, the
+current version at the time of writing. APIs SHOULD use the same draft for
+their own schemas, for consistency, and SHOULD declare it explicitly via the
+`$schema` keyword on every schema document.
+
+Be aware that tooling support for JSON Schema drafts lags behind the
+specification itself. Some API description formats, notably older versions of
+OpenAPI, only support a constrained subset of an older JSON Schema draft, and
+some documentation-generation, code-generation, and validation tools may not
+recognize newer keywords. Before adopting a given draft version across an API
+portfolio, verify that it is supported by every tool in the toolchain –
+editors, linters, code generators, and runtime validators alike. Where a tool
+cannot be upgraded, it may be necessary to either downgrade the schema's draft
+version to match, or to hand-maintain a compatible subset of keywords.
+****
 
 .Full JSON Schema
 [source,json]
