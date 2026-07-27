@@ -43,8 +43,16 @@ for new standards.
 - All `include::` directives in a README MUST use the `[leveloffset=+1]`
   attribute.
 
-- Cross-references to other standards MUST use relative AsciiDoc link syntax:
-  `link:../NNN/README.adoc[TS-N: Title]`.
+- Cross-references to other standards MUST use relative AsciiDoc link syntax,
+  and MUST be bold: `*link:../NNN/README.adoc[TS-N: Title]*`.
+
+- Internal links MUST be bold; external links MUST NOT be. An internal link is
+  one to another technical standard in this repository; everything else —
+  including links to `github.com/kieranpotts` repositories — is external.
+
+- A link MUST NOT be broken across lines. The whole macro — target, brackets,
+  and link text — MUST sit on one source line, even where that puts the line
+  over 80 characters. This overrides the line-length convention.
 
 - Code blocks MUST specify the language where applicable: `[source,bash]`,
   `[source,sh]`, `[source,json]`, etc.
@@ -100,6 +108,11 @@ For the full AsciiDoc language reference, see
 - Content files MUST be named with a two-digit numeric prefix followed by a
   hyphen and a descriptive kebab-case name: `01-topic-name.adoc`.
 
+- The prefix MUST be purely numeric. A letter suffix (`01a-`, `05b-`) MUST NOT
+  be used to slot a new section between two existing ones — renumber the files
+  that follow it instead. Section files are referenced by title through xrefs
+  rather than by filename, so renumbering is cheap.
+
 - Asset directories MUST be named `_/`.
 
 - Subdirectory names MUST be prefixed with a two-digit number matching their
@@ -119,9 +132,36 @@ For the full AsciiDoc language reference, see
   appropriate.
 
 - A `== References` section MAY be added at the end of `README.adoc` (after
-  `''''`) to list external sources. Each reference MUST be a bulleted AsciiDoc
-  hyperlink followed by a colon and a short descriptive annotation, with a blank
-  line between items. The annotation begins with a capital letter.
+  `''''`) to list external sources. References MUST NOT be split into a separate
+  content file — the `README.adoc` is their only home, so that every standard
+  carries its references in the same place.
+
+- Reference entries MUST follow the author-date convention specified in
+  [TS-26 §12: Referencing](../src/026/12-referencing.adoc), which is a mix of
+  the Chicago and Harvard styles:
+
+  ```
+  <author> (<year>). _<title>_. <publication>
+  ```
+
+  Applied to a standard's reference list, this gives a bulleted AsciiDoc
+  hyperlink on the title, followed by a short descriptive annotation:
+
+  ```asciidoc
+  * Ubl, M (2020). https://www.industrialempathy.com/posts/design-docs-at-google/[_Design Docs at Google_].
+    Industrial Empathy. — The primary source for the Google-style design-doc
+    conventions used in this standard.
+  ```
+
+  The conventions from TS-26 §12 apply in full: surnames only where there are
+  two or three authors, "et al" beyond three, and the publisher cited as author
+  in preference to a byline for blog posts, news stories, and press releases.
+  Where a work has no identifiable author, begin with the title.
+
+  The trailing annotation is an addition to TS-26 §12, which does not provide
+  for one. It is REQUIRED here, because a reference list in a technical standard
+  has to tell a reader why the source is worth following. It begins with an em
+  dash and a capital letter. A blank line MUST separate entries.
 
 - Do not add content to stubs (standards with only a `README.adoc` containing
   placeholder text) unless explicitly asked to. Stubs are intentional
