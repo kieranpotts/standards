@@ -25,32 +25,32 @@ across five complementary sections.
 ----
 specification/
 │
-├── context/                  Descriptive — the problem space.
+├── context/              Descriptive — the problem space.
 │
-└── requirements/             Prescriptive — the contract.
+└── requirements/         Prescriptive — the contract.
     │
-    ├── behaviors/              Functional requirements.
-    │   ├── access/               Actor-permissions matrix.
-    │   ├── rules/                Policies, invariants, lifecycle transitions.
-    │   ├── features/             Scenarios.
-    │   ├── journeys/             Wireframes or call-sequences.
-    │   └── interfaces/           External contract.
+    ├── behaviors/          Functional requirements.
+    │   ├── features/         Scenarios.
+    │   ├── rules/            Invariants, policies, lifecycle transitions.
+    │   ├── access/           Which actors may exercise which capabilities.
+    │   ├── interfaces/       External contract: operations, resources, events.
+    │   └── journeys/         Wireframes and/or call-sequences.
     │
-    └── qualities/              Non-functional requirements.
+    └── qualities/          Non-functional requirements, grouped by
+                            quality characteristic.
 ----
 
 == Features
 
-The all-important features document the concrete, scenario-level behaviors of
-the system.
+Features document the concrete, scenario-level behaviors of the system.
 
 It is RECOMMENDED that features be organized by actor. Because privileges are
 inherited down the actor hierarchy (see <<Actors>>), each feature can be
 specified once against the lowest-privileged actor that can exercise it.
 
-Each feature takes an identifier (`F1`, `F2`, …), and each scenario within it
-a two-part identifier (`F1.1`, `F1.2`, …). The feature-level identifier is what
-a proposal edits and what a journey or interface refers to. The scenario-level
+Each feature takes an identifier (`F1`, `F2`, …), and each scenario within it a
+two-part identifier (`F1.1`, `F1.2`, …). The feature-level identifier is what a
+proposal edits and what a journey or interface refers to. The scenario-level
 identifier is what an automated test verifies.
 
 Acceptance criteria for functional requirements can be captured in a variety of
@@ -98,10 +98,10 @@ specification:
 == Rules
 
 A feature is a concrete, scenario-level behavior. Policies (eg. "a pet can't be
-reserved and sold at the same time") and validation constraints are cross-cutting
-concerns that tend to span multiple features. Therefore, if we specified policies
-and validation constraints at the level of features, we'd get duplication of
-these requirements, leading inevitably to drift.
+reserved and sold at the same time") and validation constraints are
+cross-cutting concerns that tend to span multiple features. Specifying them at
+the level of features would duplicate them across every feature they touch,
+leading inevitably to drift.
 
 The solution is to state policies and validation constraints as business rules
 in one central place. Each rule gets a single authoritative statement with a
@@ -127,21 +127,27 @@ artifacts. For example:
 
 This section defines which actors have permissions to exercise capabilities
 of the system. It is RECOMMENDED to be defined as a simple actor-permission
-map. Example:
-
-[cols="2,1,1"]
-|===
-| Capability | Anonymous User | Authenticated User
-
-| List and filter the catalog | — | ✓
-| Search the catalog | — | ✓
-| Retrieve a single record by ID | — | ✓
-|===
+map.
 
 Since permissions are inherited down the actor hierarchy (see <<Actors>>), a
 capability available to a lower-privileged actor can be assumed to be available
 to all higher-privileged actors. Therefore, it is sufficient to state each
-capability once, against the lowest-privileged actor that holds it.
+capability once, against the lowest-privileged actor that holds it. Example:
+
+[cols="2,1"]
+|===
+| Capability | Minimum actor
+
+| List and filter the catalog | Authenticated User
+| Search the catalog | Authenticated User
+| Retrieve a single record by ID | Authenticated User
+| Reserve a record | Authenticated User
+| Withdraw a record from the catalog | Administrator
+|===
+
+Read this as the floor, not the whole matrix. An Administrator can list, search,
+retrieve, and reserve as well, by inheritance, and stating so explicitly would
+be the duplication the hierarchy exists to avoid.
 
 Access rules are defined separately to the actors to which they apply. That's
 because, while actors are derived from the domain model (background context),
@@ -156,10 +162,11 @@ if defined in the actor-permissions map.
 Interfaces describe the system's external contract — the operations it exposes,
 the resources they act on, and any events it emits.
 
-This SHOULD be a _behavioral_ contract only. Protocol, transport, payload formats,
-and endpoint naming are technical design decisions, not requirements. State here
-only what a consumer can rely on: the operations available, their inputs and
-outputs (specified in domain terms), and the actors permitted to invoke them.
+This SHOULD be a _behavioral_ contract only. Protocol, transport, payload
+formats, and endpoint naming are technical design decisions, not requirements.
+State here only what a consumer can rely on: the operations available, their
+inputs and outputs (specified in domain terms), and the actors permitted to
+invoke them.
 
 == Journeys
 
