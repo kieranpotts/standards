@@ -34,11 +34,13 @@ extended syntax, which you MAY opt in to.
 == Basic structure
 
 Each discrete feature MUST be described in a single plain text file with the
-`.feature` extension. Like YAML, Gherkin is line-oriented and uses indentation
-to define structure. Most lines start with a special word, such as `Given`,
-`When` or `Then`. Line endings terminate statements or open new blocks. Either
-spaces or tabs MAY be used for indentation, though spaces SHOULD be preferred
-for portability.
+`.feature` extension. Gherkin is line-oriented — one statement per line, and
+line endings terminate statements or open new blocks. Structure is determined
+by keywords — `Feature`, `Background`, `Scenario`, `Given`, `When`, `Then` —
+not by indentation. Parsers ignore leading whitespace outside doc strings, so
+indentation is purely a readability convention. Nesting steps two spaces under
+their scenario, and scenarios two spaces under their feature, is the
+conventional layout and SHOULD be followed.
 
 Business rules are structured by features, scenarios, and steps. A software
 feature may have multiple scenarios, and a scenario may play out over multiple
@@ -47,32 +49,32 @@ steps.
 .Template
 [source,feature]
 ----
-Feature: {title}
-  In order to {realize some business value}
-  As a {user type}
-  I want to {achieve some goal}
+Feature: <title>
+  In order to <realize some business value>
+  As a <user type>
+  I want to <achieve some goal>
 
   Background:
-    Given {state}
-    (And {expectation})
+    Given <state>
+    (And <expectation>)
 
-  Scenario: {title}
-    ({optional description})
-    Given {state or precondition}
-     (And {state or precondition})
-     When {event or action}
-     (And {event or action})
-     Then {expected outcome}
-     (And {expected outcome})
+  Scenario: <title>
+    (<optional description>)
+    Given <state or precondition>
+    (And <state or precondition>)
+    When <event or action>
+    (And <event or action>)
+    Then <expected outcome>
+    (And <expected outcome>)
 
-  Scenario: {title}
-    ({optional description})
-    Given {state or precondition}
-     (And {state or precondition})
-     When {event or action}
-     (And {event or action})
-     Then {expected outcome}
-     (And {expected outcome})
+  Scenario: <title>
+    (<optional description>)
+    Given <state or precondition>
+    (And <state or precondition>)
+    When <event or action>
+    (And <event or action>)
+    Then <expected outcome>
+    (And <expected outcome>)
 ----
 
 .Simple example
@@ -99,10 +101,10 @@ The opening lines of each `.feature` file MUST have the following structure:
 
 [source,feature]
 ----
-Feature: {short description of feature}
-  In order to {realize some business value}
-  As a {user type}
-  I want to {achieve some goal}
+Feature: <short description of feature>
+  In order to <realize some business value>
+  As a <user type>
+  I want to <achieve some goal>
 ----
 
 This describes the business value the feature delivers, in the format of an
@@ -111,7 +113,7 @@ traditionally has the following structure:
 
 [source,feature]
 ----
-As a {user type}, I want to {some goal} so that {some reason}
+As a <user type>, I want to <some goal> so that <some reason>
 ----
 
 A user story tells us _who_ the feature is for, _what_ the user wants to
@@ -120,9 +122,9 @@ at the start of the acceptance criteria.
 
 [source,feature]
 ----
-In order to {realize some business value}
-As a {user type}
-I want to {achieve some goal}
+In order to <realize some business value>
+As a <user type>
+I want to <achieve some goal>
 ----
 
 This top section is for the benefit of humans. It is not used by machines in
@@ -144,14 +146,14 @@ a journey, made up of a sequence of steps. Scenarios MUST follow this pattern:
 .Template
 [source,feature]
 ----
-Scenario: {some determinable business situation}
-  ({optional description})
-  Given {state or precondition}
-   (And {state or precondition})
-   When {event or action}
-   (And {event or action})
-   Then {expected outcome}
-   (And {expected outcome})
+Scenario: <some determinable business situation>
+  (<optional description>)
+  Given <state or precondition>
+  (And <state or precondition>)
+  When <event or action>
+  (And <event or action>)
+  Then <expected outcome>
+  (And <expected outcome>)
 ----
 
 Scenarios are also tests. Each scenario is an executable specification of the
@@ -195,8 +197,9 @@ are also okay.
 
 [source,feature]
 ----
-Given there are no users logged on to the site
-Given I am logged in as an administrator
+Given no users are logged in
+Given the customer is logged in as an administrator
+Given a $100 microwave was sold on 2020-11-03
 ----
 
 Behavioral test frameworks will use the `Given` information to configure the
@@ -210,12 +213,16 @@ in state.
 
 [source,feature]
 ----
-When I am on "/some/page"
-When I fill "username" with "admin"
-When I fill "password" with "123456"
-When I press "login"
-When I run "ls -la"
+When the customer submits their credentials
+When the customer returns the microwave
+When the overnight settlement run completes
 ----
+
+A `When` step SHOULD name the action in business terms, not the mechanics of
+performing it. "`When the customer submits their credentials`" survives a
+redesign of the login screen; "`When the customer fills the username field and
+presses the login button`" does not, and binds the specification to a user
+interface that is an implementation choice. See <<Implementation>>.
 
 A scenario SHOULD have no more than one or two `When` steps. Any more, and the
 scenario SHOULD be split into multiple smaller ones.
@@ -284,17 +291,18 @@ Scenario Outline: Eating
     |  20   |  5  |  15  |
 ----
 
-In this case, two scenarios are generated from this scenario outline. It is the
-equivalent of writing:
+In this case, two scenarios are generated from this scenario outline — one per
+row of the `Examples` table. It is the equivalent of writing the following
+ordinary scenarios:
 
 [source,feature]
 ----
-Scenario Outline: Eating
+Scenario: Eating
   Given there are 12 cucumbers
   When I eat 5 cucumbers
   Then I should have 7 cucumbers
 
-Scenario Outline: Eating
+Scenario: Eating
   Given there are 20 cucumbers
   When I eat 5 cucumbers
   Then I should have 15 cucumbers
