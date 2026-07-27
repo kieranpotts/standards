@@ -29,22 +29,7 @@ The specification answers "what does the system do?" The archive answers
 The two artifacts SHOULD be colocated, so as to prevent drift between the
 description of the system and the record of the reasoning behind it.
 
-== Version control as the substrate
-
-A version control system — the same one used for the source code — is
-RECOMMENDED as the home for both artifacts. The general case for persisting
-specifications under version control, and the properties that make it suitable,
-are covered under <<Persistence>>.
-
-What version control adds to the proposal lifecycle specifically is a natural
-home for each state. A proposal is drafted and negotiated on a branch, decided
-through review, and merged — so the lifecycle states below map onto machinery
-the team already operates, rather than requiring a separate workflow tool.
-
-Colocating the specification with the system it describes, in the same
-repository, is what keeps the two synchronized. It makes it possible to require
-that a change-set which alters behavior also updates the specification — see
-<<Binding the specification to production>>.
+A version control system is RECOMMENDED as the home for both artifacts.
 
 == Lifecycle states
 
@@ -59,6 +44,7 @@ The following lifecycle states are RECOMMENDED for a baseline implementation.
 stateDiagram-v2
   [*] --> Draft
   Draft --> Proposed
+  Proposed --> Draft: rework
   Proposed --> Accepted
   Proposed --> Rejected
   Accepted --> Released
@@ -74,11 +60,14 @@ The states have the following meanings.
   Early feedback MAY be solicited, but no decision is being sought yet.
 
 * *Proposed.* The proposal is complete and open for a decision. It is now
-  formally reviewed and negotiated with the relevant stakeholders.
+  formally reviewed and negotiated with the relevant stakeholders. Where review
+  finds the proposal is not yet ready to be decided, it returns to `Draft` for
+  rework.
 
 * *Accepted.* The proposal is approved by the product managers. Implementation
   is being tracked via the normal product backlog system. Its specification
-  edits are not yet on the main line.
+  edits are not yet on the main line, and MAY continue to evolve during
+  implementation.
 
 * *Rejected.* The proposal will not be taken forward.
 
@@ -93,28 +82,31 @@ The states have the following meanings.
 
 A proposal's specification edits MUST be merged in the same change-set as the
 code and configuration that implement them, and MUST NOT be merged ahead of
-them. Acceptance authorizes the work; it does not license the specification to
-describe behavior that does not yet exist.
+them.
 
 It is not enough for a proposal to be approved. The change MUST also be
 designed, built, and tested before its specification edits reach the main line.
 This is what keeps the specification synchronized with the running system, and
 it makes drift a merge-time concern rather than a documentation debt.
 
-Between acceptance and merge, the specification edits MAY continue to evolve —
-in response to technical feedback, implementation discoveries, or feedback from
-real users in beta tests or staged roll-outs.
-
 Where a project batches releases rather than deploying on merge, the main line
-will briefly lead production — describing behavior that is built and merged
-but not yet deployed. This window SHOULD be kept short. It is the release
-pipeline's job to close it, not the specification's; withholding the merge
-instead would strand the specification on a long-lived branch and reintroduce
-the drift the practice exists to prevent.
+of the specification repository will briefly lead production — describing
+behavior that is built and merged but not yet deployed. This window SHOULD be
+kept short. It is the release pipeline's job to close it, not the specification's.
+Withholding the merge instead would strand the specification on a long-lived
+branch and reintroduce the drift the practice exists to prevent.
+
+== Accepted proposals evolve during implementation
+
+Between acceptance and merge, a proposal's specification edits MAY continue
+to evolve — in response to technical feedback, discoveries made while
+building, or feedback from real users in beta tests and staged roll-outs.
+It is expected that accepted proposals will continue to evolve through
+implementation.
 
 When implementation reveals that real behavior differs from the proposed
 specification, the difference MUST be reconciled back into the specification
-_before_ release, rather than shipping a specification known to be wrong.
+_before_ release.
 
 == Recording decisions
 
@@ -178,15 +170,23 @@ valuable years later.
 
 == Enforce the state machine strictly
 
-A proposal MUST NOT move backwards through its lifecycle states, and MUST NOT
-skip states. Each transition MUST have a gate that is satisfied before it is
-taken — for example, a proposal MUST NOT reach a "released" state until its
-implementation is actually in production. A state machine that can be
-bypassed is not a discipline, just a suggestion.
+A proposal MUST NOT skip states. Each transition MUST have a gate that is
+satisfied before it is taken — for example, a proposal MUST NOT reach a
+released state until its implementation is actually in production. A state
+machine that can be bypassed is not a discipline, just a suggestion.
+
+The single permitted backward transition is proposed → draft, when review
+determines a proposal is not yet ready to be decided. This is not a weakening
+of the discipline but a part of it: returning a proposal for rework keeps the
+proposed state meaning "`ready for a decision`", rather than letting it
+degrade into a holding pen for work still in progress. No other backward
+transition is permitted. In particular, a decision once taken — accepted or
+rejected — MUST NOT be quietly reversed by moving the proposal back; it is
+revisited by superseding it with a new proposal.
 
 == Review proposals cross-functionally
 
-Review of a `PROPOSED` proposal SHOULD be cross-functional — product, QA, and
+Review of a proposed proposal SHOULD be cross-functional — product, QA, and
 engineering each read the proposal for what their discipline is best placed to
 catch: product for scope and business intent, QA for missing or ambiguous
 acceptance criteria, engineering for feasibility. Ambiguities are cheaper to
