@@ -70,6 +70,40 @@ system (such as batch processes or scheduled jobs) rather than by a user.
 request. This may be useful where you want to track the behavior of a specific
 client application, rather than a specific user.
 
+== Header reliability
+
+HTTP headers are convenient for carrying cross-cutting metadata, but they
+travel through more infrastructure than the response body does – proxies,
+gateways, CDNs, and client libraries can all inspect, add, remove, or modify
+headers in transit. For this reason:
+
+* API consumers and API implementations SHOULD NOT assume that a particular
+  header will always survive the journey from server to client intact.
+  Business logic SHOULD NOT depend on a header being present or unmodified.
+  Where a value is essential to correct behavior, it SHOULD be carried in the
+  message body instead.
+
+* Infrastructure components in the request path MAY reject a request outright
+  based on a header, eg. rejecting an unauthenticated request before it reaches
+  the API implementation, but SHOULD NOT otherwise silently alter a header's
+  semantic meaning.
+
+Because of this unreliability, and because responses may be passed between
+layers of a client application that do not all have access to the original
+HTTP headers, hypermedia links MUST be conveyed in the response body rather
+than in headers. Specifically:
+
+* The `Location` header MUST NOT be used as a substitute for a `self`
+  hypermedia link in `201 Created` responses. A `201` response MUST include a
+  `self` link in the response body, even where a `Location` header is also present.
+
+* The `Link` header MUST NOT be used to convey hypermedia controls. Use the
+  `links` array in the response body instead.
+
+This does not apply to the genuine, protocol-level use of `Location` in `3xx`
+redirect responses, where the header is structurally required for HTTP
+redirection to function and is handled transparently by HTTP client libraries.
+
 == `Prefer` header
 
 HTTP APIs MAY support the `Prefer` header. This standard HTTP header is
