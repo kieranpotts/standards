@@ -149,6 +149,49 @@ message body of `DELETE` requests.
 Actions SHOULD be terminal resources within an HTTP API, which means they SHOULD
 NOT have sub-resources (including sub-actions) relative to them.
 
+== Reified actions
+
+Where clients need to see the history of actions taken against a resource,
+eg. every time a subscription was cancelled and reinstated, a plain action
+endpoint is a poor fit: actions are RPC-like calls, not resources, so they
+have no natural collection to list or paginate through.
+
+In these cases, consider *reifying* the action: instead of modelling it purely
+as a verb (`cancel`), also model it as a noun – the record of the action
+having been performed – exposed as a sub-resource collection (see
+*Sub-resources and sub-collections*) using the plural form of the action's
+name, eg. `cancel` → `cancellations`.
+
+.Template
+----
+POST /v{major}/{namespace}/{resource}/{resource_id}/{reified_action}
+GET /v{major}/{namespace}/{resource}/{resource_id}/{reified_action}
+----
+
+.Example
+----
+POST /v1/subscriptions/{subscription_id}/cancellations
+GET /v1/subscriptions/{subscription_id}/cancellations
+----
+
+Each `POST` to the collection both performs the action and creates a durable
+record of it, returned as an item in the collection; a subsequent `GET`
+retrieves the full history. This pattern aligns naturally with event
+sourcing: the reified collection *is* the event log for that kind of action
+on that resource, and the current state of the resource can, in principle, be
+derived by replaying it.
+
+Reifying every action would undermine the simplicity that actions exist to
+provide, so this pattern SHOULD be reserved for actions whose history is
+genuinely useful to clients, eg. for audit, compliance, or support purposes.
+A simple state transition that does not need a history of its own, eg.
+toggling a resource's `status` field, SHOULD continue to use a plain `PUT` or
+`PATCH` on the resource rather than being modelled as an action at all.
+It is entirely appropriate for a single resource to mix plain CRUD
+operations for its simple state transitions with one or more reified
+action collections for the transitions whose history matters – there is no
+need to force every state change on a resource through the same mechanism.
+
 == Status codes
 
 The following response codes are appropriate for successful action operations:
