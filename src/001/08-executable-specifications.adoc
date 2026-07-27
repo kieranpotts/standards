@@ -1,0 +1,362 @@
+= Executable specifications
+
+Wherever practical, it is RECOMMENDED to specify requirements in a format that
+allows automated verification without requiring tests to be maintained separately.
+This means the specifications themselves must be presented in a format that, as
+well as being accessible to humans, can also be parsed by machines and
+translated directly into generated, executable tests.
+
+This technical standard RECOMMENDS the Gherkin format for this purpose. Gherkin
+is a testable specification format. It can be parsed by machines and used as
+the basis for automated acceptance testing.
+
+The Gherkin language was originally developed as part of the https://cucumber.io/[Cucumber]
+testing framework, but it has since been adopted by other testing frameworks
+including https://specflow.org/[SpecFlow], https://docs.behat.org/[Behat],
+https://jbehave.org/[JBehave], and https://lettuce.readthedocs.io/[Lettuce].
+
+Gherkin is a business-readable domain-specific language. It specifies a software
+system on a feature-by-feature basis from the point of view of different groups
+of users. The objective is to provide a unified specification that can be
+written and understood by technical and non-technical people alike. As such,
+Gherkin provides a common language for product managers and developers to
+discuss and document the core business requirements.
+
+Gherkin SHOULD be used as much as reasonably practical to specify behavioral
+scenarios. It MAY also be used to specify some non-functional requirements, too,
+where those requirements can be reduced to a verifiable check.
+
+The following documentation covers the basic features of the Gherkin language
+that are well supported by most BDD-style testing frameworks. Additional syntax
+is supported by Cucumber and other test frameworks.
+
+== Basic structure
+
+Each discrete feature is described in a single plain text file with the
+`.feature` extension. Like YAML, Gherkin is line-oriented and uses indentation
+to define structure. Most lines start with a special word, such as `Given`,
+`When` or `Then`. Line endings terminate statements or open new blocks. Either
+spaces or tabs may be used for indentation, though spaces are generally
+preferred for portability.
+
+Business rules are structured by features, scenarios, and steps. A software
+feature may have multiple scenarios, and a scenario may play out over multiple
+steps.
+
+.Template
+[source,feature]
+----
+Feature: {title}
+  In order to {realize some business value}
+  As a {user type}
+  I want to {achieve some goal}
+
+  Background:
+    Given {state}
+    (And {expectation})
+
+  Scenario: {title}
+    ({optional description})
+    Given {state or precondition}
+     (And {state or precondition})
+     When {event or action}
+     (And {event or action})
+     Then {expected outcome}
+     (And {expected outcome})
+
+  Scenario: {title}
+    ({optional description})
+    Given {state or precondition}
+     (And {state or precondition})
+     When {event or action}
+     (And {event or action})
+     Then {expected outcome}
+     (And {expected outcome})
+----
+
+.Simple example
+[source,feature]
+----
+Feature: Refund item
+  In order to be confident in my purchases
+  As a customer
+  I want to receive refunds for faulty goods
+
+  Scenario: A customer returns a faulty microwave
+    Given a customer has bought a microwave for $100
+    And the customer has a valid receipt
+    When the customer returns the microwave
+    Then the customer should be refunded $100
+----
+
+== Feature files
+
+A `.feature` file is meant to describe a single feature of the system, or a
+particular aspect of a feature.
+
+The opening lines of each `.feature` file have the following structure:
+
+[source,feature]
+----
+Feature: {short description of feature}
+  In order to {realize some business value}
+  As a {user type}
+  I want to {achieve some goal}
+----
+
+This describes the business value the feature delivers, in the format of an
+acceptance test — a twist on the classic user story formula, which
+traditionally has the following structure:
+
+[source,feature]
+----
+As a {user type}, I want to {some goal} so that {some reason}
+----
+
+A user story tells us _who_ the feature is for, _what_ the user wants to
+achieve, and _why_. Gherkin flips this format around, putting the business value
+at the start of the acceptance criteria.
+
+[source,feature]
+----
+In order to {realize some business value}
+As a {user type}
+I want to {achieve some goal}
+----
+
+This top section is for the benefit of humans. It is not used by machines in
+behavior-driven tests.
+
+== Scenarios
+
+At this level, both user stories and Gherkin describe the problem, not the
+solution. But Gherkin goes further by describing how the problem will be solved
+in the software. This is done via one or more scenarios.
+
+A scenario is a concrete example that illustrates a business rule. It describes
+a journey, made up of a sequence of steps. Scenarios follow this pattern:
+
+* Describe an initial context.
+* Describe an event.
+* Describe an expected outcome.
+
+.Template
+[source,feature]
+----
+Scenario: {some determinable business situation}
+  ({optional description})
+  Given {state or precondition}
+   (And {state or precondition})
+   When {event or action}
+   (And {event or action})
+   Then {expected outcome}
+   (And {expected outcome})
+----
+
+Scenarios are also tests. Each scenario is an executable specification of the
+system. Examples:
+
+[source,feature]
+----
+Scenario: A user posts to their blog
+  Given a user is logged in
+  When the user publishes a new blog post
+  Then the user receives confirmation that the post was published
+  And the post is published immediately
+
+Scenario: A user schedules a post to be published in the future
+  Given a user is logged in
+  When the user publishes a new blog post
+  And the user sets the publication date to the future
+  Then the user receives confirmation that the post will be published on the requested date
+  And the post is not immediately published
+----
+
+== Steps
+
+Scenarios are composed of multiple steps. The number of steps per scenario is
+unlimited, but it is good practice to aim for five or less steps per scenario.
+Any longer, and scenarios lose their expressive power as specification and
+documentation.
+
+Each step starts with one of the following keywords:
+
+* `Given`
+* `When`
+* `Then`
+* `And`
+* `But`
+
+Steps are also known as Givens, Whens, and Thens.
+
+*Givens* are preconditions that put the system in a known state before a user or
+some external system starts interacting with it. Things that "happened earlier"
+are also okay:
+
+[source,feature]
+----
+Given there are no users logged on to the site
+Given I am logged in as an administrator
+----
+
+Behavioral test frameworks will use the `Given` information to configure the
+system-under-test to an initial state. This may involve creating mock objects or
+adding records to a database, for example.
+
+*Whens* are used to describe a system event or user action. This can be a person
+interacting with the system, or it can be an event triggered by another part of
+the system, or a combination of both. Whatever happens, it causes a transition
+in state.
+
+[source,feature]
+----
+When I am on "/some/page"
+When I fill "username" with "admin"
+When I fill "password" with "123456"
+When I press "login"
+When I run "ls -la"
+----
+
+It is good practice to have no more than one or two `When` steps per scenario.
+Any more and you should think about splitting up the scenario into multiple
+smaller ones.
+
+*Thens* are assertions — _actual_ outcomes (what the system actually does)
+compared against _expected_ outcomes (what it is supposed to do). Each `Then`
+step describes a specific, verifiable (ie. testable) result, output, or
+expected new state. Ideally, Thens observe outcomes related to the business
+value in the feature description – a report, user interface repaint, message,
+command output, etc. – rather than something deeply buried in the system, such
+as a database change. Avoid making assertions about the system's internal
+state or implementation details.
+
+It's possible to have multiple `Given`, multiple `When` and multiple `Then`
+steps within a single scenario (but they must always be grouped in that order).
+For better readability, you can swap subsequent `Given`, `When` and `Then`
+keywords for `And` or `But`.
+
+Steps are the basis for automated behavior-driven testing. Test automation
+systems will take the trailing portion of each step – the text after the
+keywords `Given`, `When`, `Then`, `And` and `But` – and map it to a callback
+function, which is executed. Typically, the callbacks for each `Then` step will
+inspect some aspect of the system – a log entry, user interface repaint, command
+output, etc. – to verify the assertion made in the step.
+
+== Backgrounds
+
+Occasionally you'll find yourself repeating the same `Given` steps across all
+scenarios in a feature file. Repeated preparation steps are usually incidental
+detail, not essential to describing individual scenarios. Gherkin lets you move
+these details to the background: a single `Background` section, placed near
+the top of a feature file between the `Feature` block and the first `Scenario`,
+written just like a scenario except with no title.
+
+[source,feature]
+----
+Background:
+  Given a $100 microwave was sold on 2020-11-03
+  And today is 2020-11-18
+----
+
+Background sections provide context to all subsequent scenarios. Test automation
+systems will run the background script immediately before testing each scenario,
+thus putting the system-under-test into the same preset state for every test.
+
+== Scenario outlines
+
+When you have a complex business rule with severable variable inputs or outputs,
+you might end up creating several scenarios that only differ by their values.
+
+Copying-and-pasting scenarios to test different values creates duplication. A
+scenario outline is an alternative to a scenario that allows the expression of a
+scenario using a template with `<placeholders>` and a table of replacement
+values.
+
+[source,feature]
+----
+Scenario Outline: Eating
+  Given there are <start> cucumbers
+  When I eat <eat> cucumbers
+  Then I should have <left> cucumbers
+
+  Examples:
+    | start | eat | left |
+    |  12   |  5  |  7   |
+    |  20   |  5  |  15  |
+----
+
+In this case, two scenarios are generated from this scenario outline. It is the
+equivalent of writing:
+
+[source,feature]
+----
+Scenario Outline: Eating
+  Given there are 12 cucumbers
+  When I eat 5 cucumbers
+  Then I should have 7 cucumbers
+
+Scenario Outline: Eating
+  Given there are 20 cucumbers
+  When I eat 5 cucumbers
+  Then I should have 15 cucumbers
+----
+
+Variables in the scenario outline steps are marked up with < and >.
+
+A scenario outline section is always followed by one or more *Examples*
+sections. Examples are tabular data which is used to populate the scenario
+outline's variables. The table must have a header row with column names
+corresponding to the variables encoded in the scenario outline steps. Each table
+row will create a new scenario, with the variables filled in with its values.
+
+[IMPORTANT]
+======
+Automating scenario outlines using UI automation such as Selenium WebDriver is
+considered a bad practice. The only good reason to use scenario outlines is to
+validate the implementation of a business rule that behaves differently based on
+variable input parameters. Validating a business rule through a UI is slow, and
+when there is a failure it is difficult to pinpoint where the error is. The
+automation code for scenario outlines should communicate directly with the
+business rule implementation, going through as few layers as possible. This is
+fast, and errors become easy to diagnose and fix.
+======
+
+== Alternative formats
+
+=== Use cases
+
+*Use case analysis*, introduced by Ivar Jacobson in 1992, is an alternative
+technique for capturing functional requirements. A use case describes a
+complete interaction between an actor and the system in pursuit of a goal —
+typically including a main success scenario plus its significant variations and
+error paths — rather than the single scenario-level slice that a Gherkin
+feature captures.
+
+Use cases are most useful earlier in the life of a specification, to map out
+the full scope of an actor's interaction with the system before breaking it
+down into individual, independently testable scenarios. Once that structure is
+understood, it is RECOMMENDED to express the detailed acceptance criteria as
+<<_features, Gherkin scenarios>>, which are directly testable and better
+suited to the ongoing maintenance of a living specification.
+
+Use case driven development is a characteristic of several process models and
+frameworks, including UP, RUP, and OUM. Its iterative, incremental nature fits
+well with agile development processes.
+
+=== Event storming
+
+*Event storming* is a workshop-based technique for exploring a business domain
+by collaboratively identifying the *domain events* — the significant things
+that happen — and arranging them in chronological order. Unlike use cases and
+Gherkin, which specify requirements once the domain is understood, event
+storming is a discovery technique: its purpose is to build that understanding
+in the first place, by bringing together stakeholders and engineers who each
+hold a different piece of the picture.
+
+Event storming is most useful early in the life of a specification, alongside
+<<_use-cases, use case analysis>>, and is particularly effective at
+identifying the components of a system and the interactions between them —
+which makes it a good fit for exploring event-driven architectures. Once the
+domain events and their sequence are understood, the same requirements are
+RECOMMENDED to be refined into <<_features, Gherkin scenarios>> for ongoing,
+testable specification.

@@ -1,36 +1,109 @@
 = Behaviors
 
-*Behaviors* are the functional requirements (FRs) of a software system: what it
-does, from the perspective of those who interact with it. (How _well_ it does
-those things at runtime — its dynamic non-functional requirements — is covered
-separately under <<_qualities>>.)
+Functional requirements ("behaviors") MUST be defined distinctly from
+non-functional requirements ("qualities").
 
-The behaviors of a system are best documented across five complementary
-sections, each giving one kind of functional requirement a single home:
+The functional requirements of a software system are what it _does_ from the
+perspective of the users who interact with it.
 
-* *Access* — the permission matrix: which <<_context, actors>> may exercise
-which capabilities.
-* *Rules* — invariants, policies, and entity lifecycles that hold across many
-features.
-* *Features* — concrete, scenario-level behaviors, written as testable Gherkin
-scenarios.
-* *Journeys* — how features combine into end-to-end flows.
-* *Interfaces* — the external contract: the operations, resources, and events
-the system exposes.
+This technical standard RECOMMENDS that the behaviors of a system be documented
+across five complementary sections.
+
+* *Features.* Concrete, scenario-level behaviors.
+
+* *Rules.* Covers policies, invariants, and entity lifecycle transitions that
+  hold across many features.
+
+* *Access.* Maps actors to functional capabilities they are permitted to access.
+
+* *Interfaces.* Defines the system's external contract — the operations,
+  resources, and events the system exposes.
+
+* *Journeys.* How features combine into end-to-end flows, from the perspective
+  of different actors.
+
+----
+specification/
+│
+├── context/                  Descriptive — the problem space.
+│
+└── requirements/             Prescriptive — the contract.
+    │
+    ├── behaviors/              Functional requirements.
+    │   ├── access/               Actor-permissions matrix.
+    │   ├── rules/                Policies, invariants, lifecycle transitions.
+    │   ├── features/             Scenarios.
+    │   ├── journeys/             Wireframes or call-sequences.
+    │   └── interfaces/           External contract.
+    │
+    └── qualities/              Non-functional requirements.
+----
+
+== Features
+
+The all-important features document the concrete, scenario-level behaviors of
+the system.
+
+It is RECOMMENDED that features be organized by actor. Because privileges are
+inherited up the actor hierarchy, each feature can be specified once against
+the lowest-privileged actor that can exercise it.
+
+Acceptance criteria for functional requirements can be captured in a variety of
+ways. A basic, unstructured list is a good starting point. For example, "As a
+newcomer I can register for an account by creating a login and providing my
+contact information" might be translated into the following technical
+condition of satisfaction:
+
+* A username must be provided.
+  ** It must be between 4 and 20 characters long.
+  ** It must be unique.
+  ** The username is case sensitive.
+* A password must be provided.
+  ** It must be between 8 and 20 characters long.
+  ** It may contain numbers, letters, and special characters.
+  ** It must contain at least one letter and one number.
+* An email must be provided.
+  ** The email must be provided in a valid format.
+  ** The email must be confirmed by double entry.
+  ** The email must not already exist in the system.
+
+But this is not sufficient for complex systems, which need a more structured
+approach. This technical standard RECOMMENDEDs the Gherkin language to specify
+features. This is covered in-depth in the section on executable specifications.
+
+== Rules
+
+A feature is a concrete, scenario-level behavior. Policies (eg. "a pet can't be
+reserved and sold at the same time") and validation constraints are cross-cutting
+concerns that tend to span multiple features. Therefore, if we specified policies
+and validation constraints at the level of features, we'd get duplication of
+these requirements, leading inevitably to drift.
+
+The solution is to state policies and validation constraints as business rules
+in one central place. Each rule gets a single authoritative statement with a
+stable identifier (eg. `R1`, `R2`) that can be cross-referenced from feature
+scenarios and elsewhere as necessary.
+
+Similarly, entity lifecycle rules live under business rules, not in the domain
+model. The states that an entity can hold are part of its structure, so the
+domain model declares that they exist. But which state transitions are allowed,
+and who may trigger them, is a prescriptive constraint — a rule. Thus, the model
+defines the vocabulary of states, but business rules define the conditions under
+which those states may transition from one to another. A state-transition
+diagram is a good way to express an entity lifecycle.
+
+State each rule so that it is unambiguous and, where possible, testable. Give
+each a stable identifier so it can be cross-referenced from other specification
+artifacts. For example:
+
+* *R1 — Single status.* A record has exactly one `status` at any time. It is
+  never in more than one state at once.
 
 == Access
 
-The *access* section is the authoritative map of which actors may exercise which
-capabilities of the system. Where <<_context, actors>> describes _who_ the
-participants are, access states _what each is permitted to do_ — and because a
-permission is something the system must enforce, it is a requirement, not mere
-description.
-
-Permissions are inherited down the <<_context, actor hierarchy>>: a capability
-available to a lower-privileged actor is available to all higher-privileged
-actors. State each capability once, against the lowest-privileged actor that
-holds it. A *permission matrix* (capability × actor → allowed?) is the single
-place to read off the complete permission picture:
+This section defines which actors have permissions to exercise capabilities
+of the system. It is RECOMMENDED to be defined as a simple actor-permission
+map. Example:
 
 [cols="2,1,1"]
 |===
@@ -41,452 +114,49 @@ place to read off the complete permission picture:
 | Retrieve a single record by ID | — | ✓
 |===
 
-Individual <<_features, features>> specify the behavior of each capability;
-<<_rules, rules>> govern any finer-grained conditions.
-
-== Rules
-
-The *rules* section documents the business rules, invariants, and policies that
-hold across the system — the constraints not tied to any single feature but
-applying wherever the relevant entities and operations appear. Capturing them
-once keeps them authoritative: a feature scenario references a rule by its
-identifier rather than restating it, so each invariant lives in exactly one
-place.
-
-State each rule so that it is unambiguous and, where possible, testable, and
-give each a stable identifier (eg. `R1`, `R2`) so it can be referenced from
-elsewhere. For example:
-
-* *R1 — Single status.* A record has exactly one `status` at any time. It is
-never in more than one state at once.
-
-Rules also document the *lifecycle* of domain entities — the states a
-<<_context, model>> entity can hold and the transitions permitted between them.
-The model defines the vocabulary of states; the rules define the legal moves
-between them, and who may trigger each. A state-transition diagram is a good way
-to express a lifecycle.
-
-== Features
-
-The *features* section documents the concrete, scenario-level behaviors of the
-system. Features are organized by actor: because privileges are inherited up the
-<<_context, actor hierarchy>>, each feature is specified once, against the
-lowest-privileged actor that can exercise it, and is thereby available to all
-higher-privileged actors. The complete map of which actor may exercise which
-capability is recorded in the <<_access, access matrix>>.
-
-Acceptance criteria for functional requirements may be captured in a variety of
-ways. A basic, unstructured list of requirements is a perfectly good starting
-point. For example, one of the listed requirements might read: "As a newcomer I
-can register for an account by creating a login and providing my contact
-information". This may get translated by the development team into the following
-technical condition of satisfaction:
-
-* A username must be provided. ** It must be between 4 and 20 characters long.
-** It must be unique. ** The username is case sensitive.
-* A password must be provided. ** It must be between 8 and 20 characters long.
-** It may contain numbers, letters, and special characters. ** It must contain
-at least one letter and one number.
-* An email must be provided. ** The email must be provided in a valid format. **
-The email must be confirmed by double entry. ** The email must not already exist
-in the system.
-
-But this is not sufficient for complex systems. For complex systems, it is
-necessary to have a more structured approach to capturing requirements. It is
-RECOMMENDED to use the Gherkin language for this purpose.
-
-=== Use cases
-
-*Use case analysis*, introduced by Ivar Jacobson in 1992, is an alternative
-technique for capturing functional requirements. A use case describes a
-complete interaction between an actor and the system in pursuit of a goal —
-typically including a main success scenario plus its significant variations and
-error paths — rather than the single scenario-level slice that a Gherkin
-feature captures.
-
-Use cases are most useful earlier in the life of a specification, when the
-goal is to map out the full scope of an actor's interaction with the system
-before it is broken down into individual, independently testable scenarios.
-Once that structure is understood, it is RECOMMENDED to express the detailed
-acceptance criteria as <<_features, Gherkin scenarios>>, which are directly
-testable and better suited to the ongoing maintenance of a living
-specification.
-
-Use case driven development is a characteristic of several process models and
-frameworks, including UP, RUP, and OUM. Its inherently iterative and
-incremental nature fits well with agile development processes.
-
-=== Event storming
-
-*Event storming* is a workshop-based technique for exploring a business domain
-by collaboratively identifying the *domain events* — the significant things
-that happen — and arranging them in chronological order. Unlike use cases and
-Gherkin, which specify requirements once the domain is understood, event
-storming is a discovery technique: its purpose is to build that understanding
-in the first place, by bringing together stakeholders and engineers who each
-hold a different piece of the picture.
-
-Event storming is most useful early in the life of a specification, alongside
-<<_use-cases, use case analysis>>, and is particularly effective at
-identifying the components of a system and the interactions between them —
-which makes it a good fit for exploring event-driven architectures. Once the
-domain events and their sequence are understood, the same requirements are
-RECOMMENDED to be refined into <<_features, Gherkin scenarios>> for ongoing,
-testable specification.
-
-*Gherkin* is a
-https://martinfowler.com/bliki/BusinessReadableDSL.html[business-readable
-domain-specific language] that is intended for the specification and
-documentation of software requirements.
-
-Gherkin specifies a software system on a feature-by-feature basis from the point
-of view of different groups of users. The objective is to provide a unified
-specification that can be written and understood by technical and non-technical
-people alike. As such, Gherkin provides a common language for product managers
-and developers to discuss and document the business requirements.
-
-Gherkin provides a *testable specification* format. The language can be parsed
-by machines and used as the basis for automated acceptance testing. See
-*link:../013/README.adoc[TS-13: Functional Testing]* for how these executable
-specifications are architected and driven against the system-under-test.
-
-The Gherkin language was originally developed as part of the
-https://cucumber.io/[Cucumber] testing framework, but it has since been adopted
-by other testing frameworks including https://specflow.org/[SpecFlow],
-https://docs.behat.org/[Behat], https://jbehave.org/[JBehave], and
-https://lettuce.readthedocs.io/[Lettuce].
-
-The following documentation covers the basic features of the Gherkin language
-that are well supported by all these frameworks. Additional syntax is supported
-by Cucumber and other test frameworks.
-
-=== Basic structure
-
-Each discrete feature is described in a single plain text file with the
-`.feature` extension. Like YAML, Gherkin is a line-oriented language that uses
-indentation to define structure. Most lines in a Gherkin file start with a
-special word, such as `Given`, `When` or `Then`. Line endings terminate
-statements or open new blocks. Either spaces or tabs may be used for
-indentation, though spaces are generally preferred for better portability.
-
-Business rules are structured by features, scenarios, and steps. A software
-feature may have multiple scenarios, and a scenario may play out over multiple
-steps.
-
-.Template
-[source,feature]
-----
-Feature: {title}
-  In order to {realize some business value}
-  As a {user type}
-  I want to {achieve some goal}
-
-  Background:
-    Given {state}
-    (And {expectation})
-
-  Scenario: {title}
-    ({optional description})
-    Given {state or precondition}
-     (And {state or precondition})
-     When {event or action}
-     (And {event or action})
-     Then {expected outcome}
-     (And {expected outcome})
-
-  Scenario: {title}
-    ({optional description})
-    Given {state or precondition}
-     (And {state or precondition})
-     When {event or action}
-     (And {event or action})
-     Then {expected outcome}
-     (And {expected outcome})
-----
-
-.Simple example
-[source,feature]
-----
-Feature: Refund item
-  In order to be confident in my purchases
-  As a customer
-  I want to receive refunds for faulty goods
-
-  Scenario: A customer returns a faulty microwave
-    Given a customer has bought a microwave for $100
-    And the customer has a valid receipt
-    When the customer returns the microwave
-    Then the customer should be refunded $100
-----
-
-=== Feature files
-
-A `.feature` file is meant to describe a single feature of the system, or a
-particular aspect of a feature.
-
-The opening lines of each `.feature` file have the following structure:
-
-[source,feature]
-----
-Feature: {short description of feature}
-  In order to {realize some business value}
-  As a {user type}
-  I want to {achieve some goal}
-----
-
-This describes the business value derived from inclusion of the feature in the
-software. The business value is defined in the format of an *[acceptance test]*.
-This is a twist on the classic *[user story]* formula, which traditionally has
-the following structure:
-
-[source,feature]
-----
-As a {user type}, I want to {some goal} so that {some reason}
-----
-
-A user story tells us _who_ the feature is for, _what_ the user wants to
-achieve, and _why_. Gherkin flips this format around, putting the business value
-at the start of the acceptance criteria.
-
-[source,feature]
-----
-In order to {realize some business value}
-As a {user type}
-I want to {achieve some goal}
-----
-
-This top section is included for the benefit of humans. It is not intended to be
-used by machines in behavior-driven tests.
-
-=== Scenarios
-
-At this level, both user stories and Gherkin describe the problem, not the
-solution. But Gherkin goes further by describing how the problem will be solved
-in the software. This is done via one or more scenarios.
-
-A scenario is a concrete example that illustrates a business rule. It describes
-a journey, made up of a sequence of steps. Scenarios follow this pattern:
-
-* Describe an initial context.
-* Describe an event.
-* Describe an expected outcome.
-
-.Template
-[source,feature]
-----
-Scenario: {some determinable business situation}
-  ({optional description})
-  Given {state or precondition}
-   (And {state or precondition})
-   When {event or action}
-   (And {event or action})
-   Then {expected outcome}
-   (And {expected outcome})
-----
-
-Scenarios are also tests. Each scenario is an executable specification of the
-system. Examples:
-
-[source,feature]
-----
-Scenario: A user posts to their blog
-  Given a user is logged in
-  When the user publishes a new blog post
-  Then the user receives confirmation that the post was published
-  And the post is published immediately
-
-Scenario: A user schedules a post to be published in the future
-  Given a user is logged in
-  When the user publishes a new blog post
-  And the user sets the publication date to the future
-  Then the user receives confirmation that the post will be published on the requested date
-  And the post is not immediately published
-----
-
-=== Steps
-
-Scenarios are composed of multiple steps. The number of steps per scenario is
-unlimited, but it is good practice to aim for five or less steps per scenario.
-Any longer, and scenarios lose their expressive power as specification and
-documentation.
-
-Each step starts with one of the following keywords:
-
-* `Given`
-* `When`
-* `Then`
-* `And`
-* `But`
-
-Steps are also known as Givens, Whens, and Thens.
-
-*Givens* are preconditions that put the system in a known state before a user or
-some external system starts interacting with it. Things that "happened earlier"
-are also okay:
-
-[source,feature]
-----
-Given there are no users logged on to the site
-Given I am logged in as an administrator
-----
-
-Behavioral test frameworks will use the `Given` information to configure the
-system-under-test to an initial state. This may involve creating mock objects or
-adding records to a database, for example.
-
-*Whens* are used to describe a system event or user action. This can be a person
-interacting with the system, or it can be an event triggered by another part of
-the system, or a combination of both. Whatever happens, it causes a transition
-in state.
-
-[source,feature]
-----
-When I am on "/some/page"
-When I fill "username" with "admin"
-When I fill "password" with "123456"
-When I press "login"
-When I run "ls -la"
-----
-
-It is good practice to have no more than one or two `When` steps per scenario.
-Any more and you should think about splitting up the scenario into multiple
-smaller ones.
-
-*Thens* are assertions. Assertions are a concept in software testing in which
-_actual_ outcomes (what the system actually does) are compared against
-_expected_ outcomes (what the system is supposed to do). In Gherkin, each `Then`
-step describes a specific, verifiable (ie. testable) result or output, or an
-expected new state. Ideally, Thens are written as observations of outcomes
-related to the business value in the feature description – a report, user
-interface repaint, message, command output, etc. – rather than something deeply
-buried in the system such as a database change. Try to avoid making assertions
-about the system's internal state, on implementation details.
-
-It's possible to have multiple `Given`, multiple `When` and multiple `Then`
-steps within a single scenario (but they must always be grouped in that order).
-For better readability, you can swap subsequent `Given`, `When` and `Then`
-keywords for `And` or `But`.
-
-Steps are the basis for automated behavior-driven testing. Test automation
-systems will take the trailing portion of each step – the text after the
-keywords `Given`, `When`, `Then`, `And` and `But` – and map it to a callback
-function, which is executed. Typically, the callbacks for each `Then` step will
-inspect some aspect of the system – a log entry, user interface repaint, command
-output, etc. – to verify the assertion made in the step.
-
-=== Backgrounds
-
-Occasionally you'll find yourself repeating the same `Given` steps in all the
-scenarios within a feature file. Repeated preparation steps are usually an
-indication they're not essential to describing individual scenarios, but rather
-are incidental details. Gherkin provides a solution to quite literally move
-these details to the background. A single `Background` section may be placed
-near the top of a feature file, sandwiched between the `Feature` block and the
-first `Scenario` section. It is written just like a scenario, except there's no
-title.
-
-[source,feature]
-----
-Background:
-  Given a $100 microwave was sold on 2020-11-03
-  And today is 2020-11-18
-----
-
-Background sections provide context to all subsequent scenarios. Test automation
-systems will run the background script immediately before testing each scenario,
-thus putting the system-under-test into the same preset state for every test.
-
-=== Scenario outlines
-
-When you have a complex business rule with severable variable inputs or outputs,
-you might end up creating several scenarios that only differ by their values.
-
-Copying-and-pasting scenarios to test different values creates duplication. A
-scenario outline is an alternative to a scenario that allows the expression of a
-scenario using a template with `<placeholders>` and a table of replacement
-values.
-
-[source,feature]
-----
-Scenario Outline: Eating
-  Given there are <start> cucumbers
-  When I eat <eat> cucumbers
-  Then I should have <left> cucumbers
-
-  Examples:
-    | start | eat | left |
-    |  12   |  5  |  7   |
-    |  20   |  5  |  15  |
-----
-
-In this case, two scenarios are generated from this scenario outline. It is the
-equivalent of writing:
-
-[source,feature]
-----
-Scenario Outline: Eating
-  Given there are 12 cucumbers
-  When I eat 5 cucumbers
-  Then I should have 7 cucumbers
-
-Scenario Outline: Eating
-  Given there are 20 cucumbers
-  When I eat 5 cucumbers
-  Then I should have 15 cucumbers
-----
-
-Variables in the scenario outline steps are marked up with < and >.
-
-A scenario outline section is always followed by one or more *Examples*
-sections. Examples are tabular data which is used to populate the scenario
-outline's variables. The table must have a header row with column names
-corresponding to the variables encoded in the scenario outline steps. Each table
-row will create a new scenario, with the variables filled in with its values.
-
-[IMPORTANT]
-======
-Automating scenario outlines using UI automation such as Selenium WebDriver is
-considered a bad practice. The only good reason to use scenario outlines is to
-validate the implementation of a business rule that behaves differently based on
-variable input parameters. Validating a business rule through a UI is slow, and
-when there is a failure it is difficult to pinpoint where the error is. The
-automation code for scenario outlines should communicate directly with the
-business rule implementation, going through as few layers as possible. This is
-fast, and errors become easy to diagnose and fix.
-======
-
-== Journeys
-
-The *journeys* section shows how the system's <<_features, features>> combine
-into coherent end-to-end flows — the path a user or consumer follows to
-accomplish a goal. Whereas features specify _what_ the system does, journeys
-show _how_ those functions come together. The form depends on the system:
-
-* For *user-facing systems*, journeys are wireframes and visual designs — the
-screens a user moves through. Keep them at the level of structure and flow;
-pixel-perfect visual design is a downstream concern and does not belong in the
-requirements specification.
-
-* For *headless systems*, journeys are annotated call-sequences — the ordered
-operations a consumer invokes to achieve a goal, with the significant inputs and
-outcomes at each step.
-
-Journeys apply only where there is a multi-step flow worth showing. A system
-whose goals are each met by a single operation has no journeys to document.
+Since permissions are inherited down the actor hierarchy, a capability available
+to a lower-privileged actor can be assumed to be available to all
+higher-privileged actors. Therefore, it is sufficient to state each capability
+once, against the lowest-privileged actor that holds it.
+
+Access rules are defined separately to the actors to which they apply. That's
+because, while actors are derived from the domain model (background context),
+access rules are rules that the system must enforce (requirements).
+
+The capabilities are defined in the feature scenarios. Rules may be used to
+govern finer-grained conditions that may otherwise introduce unwanted complexity
+if defined in the actor-permissions map.
 
 == Interfaces
 
-The *interfaces* section describes the system's external contract — the
-operations it exposes, the resources they act on, and any events it emits,
-described in terms of _what each does_, not how it is implemented.
+Interfaces describe the system's external contract — the operations it exposes,
+the resources they act on, and any events it emits.
 
-This is the _behavioral_ contract only. Protocol, transport, payload formats,
-and endpoint naming are technical design decisions, recorded separately (see
-*link:../003/README.adoc[TS-3: Design Docs]* and the companion RFC repository).
-State here only what a consumer can rely on: the operations available, their
-inputs and outputs in <<_context, domain>> terms, and the <<_context, actors>>
-permitted to invoke them (per <<_access, access>>).
+This SHOULD be a _behavioral_ contract only. Protocol, transport, payload formats,
+and endpoint naming are technical design decisions, not requirements. State here
+only what a consumer can rely on: the operations available, their inputs and
+outputs (specified in domain terms), and the actors permitted to invoke them.
+
+== Journeys
+
+While interfaces define the external contract of the system, journeys define
+the user experience.
 
 The relative weight of journeys and interfaces depends on the system. For a
-user-facing product, interfaces may be thin and journeys rich; for a headless
+user-facing product, interfaces may be thin and journeys rich. For a headless
 service, the reverse.
+
+Wireframes MAY be used to specify the journey through UI systems, while
+annotated call sequences will be more appropriate for headless systems.
+These SHOULD be at the level of structure and flow. Pixel-perfect visual
+designs are downstream concerns that do not belong in a requirements
+specification.
+
+Whatever the format, the journeys should show how the system's features combine
+into coherent end-to-end flows — the paths a consumer follows to accomplish
+their goals. Whereas features specify _what_ the system does, journeys show
+_how_ those functions come together.
+
+Journeys apply only where there is a multi-step flow worth documenting. A
+feature that is made available through a single atomic operation has no
+journey to be documented.
