@@ -96,7 +96,15 @@ three ways.
 
 ### 1.3 Qualities: MUST measurable vs. acknowledged subjective NFRs
 
-- [ ] Reconcile §07 and §10 (resolved for free by [4.1](#41-10-has-become-a-catch-all)).
+- [x] Reconcile §07 and §10. **Done 2026-07-27** via
+      [4.1](#41-10-has-become-a-catch-all), as predicted. The duplicate rule no
+      longer exists: §10's "State qualities as measurable thresholds" was folded
+      into §07 "Acceptance criteria", and the blanket `MUST` was rewritten to
+      "wherever a quality is objectively measurable, it MUST be stated as a
+      concrete threshold", with an explicit xref to
+      `<<Subjective quality requirements>>` as the exception. The redundant
+      dynamic/static paragraph was dropped rather than moved — §07 already opens
+      with that distinction.
 
 [10-proposal-lifecycle.adoc:216-217](./10-proposal-lifecycle.adoc#L216-L217)
 — "Qualities **MUST** be specified as concrete, testable thresholds."
@@ -318,7 +326,8 @@ to invite the drift catalogued here. The rename does not by itself fix the
 misfiling — it sharpens it, since four sections now sit under a title that
 plainly excludes them.
 
-**Destination map — awaiting approval before any section is moved.**
+**Executed 2026-07-27.** All moves below are applied. §10 is down from 18
+sections to 14, all of them proposal-lifecycle concerns.
 
 | Section (current line) | Verdict | Destination |
 |---|---|---|
@@ -340,26 +349,35 @@ plainly excludes them.
 | Enforce specs in continuous integration ([254](./10-proposal-lifecycle.adoc#L254)) | Open | Neither proposals nor authoring; see note below |
 | Definition of Ready ([262](./10-proposal-lifecycle.adoc#L262)) | **Moves** | A delivery gate — new file, or drop from TS-1 |
 
-Two open questions for the extraction pass:
+The two open questions were resolved by Kieran:
 
-1. **"Enforce specs in continuous integration"** — it is about verification
-   infrastructure, not the proposal lifecycle and not authoring. Candidates: a
-   new short section of its own, folding into §08 (executable specifications),
-   or folding into the traceability consolidation.
+1. **"Enforce specs in continuous integration"** → folded into §08 as a new
+   `== Enforcement` section. It closes a real gap: §08 explained how to write
+   and wire up Gherkin but never said that running it must gate the build. Adds
+   an outbound xref to TS-12 for gate stages.
 
-2. **"Definition of Ready"** — a delivery-process gate, not a property of the
-   specification. It could become its own numbered section, move to a delivery
-   standard outside TS-1, or be cut. Note the DoR is also summarized in
-   [AGENTS.md](./AGENTS.md), which would need to follow whatever is decided.
+2. **"Definition of Ready"** → kept in TS-1 as its own section,
+   `11-definition-of-ready.adoc`, **not** moved to TS-12. Rationale: most of
+   what the DoR gates is requirements readiness. The DoR/DoD pairing is created
+   by reciprocal cross-references instead —
+   [11-definition-of-ready.adoc](./11-definition-of-ready.adoc) links out to
+   TS-12, and [TS-12's DoD section](../012/02-definition-of-done.adoc) now links
+   back to TS-1. Previously TS-12 discussed the DoR without pointing anywhere.
 
-Moving "State qualities as measurable thresholds" into §07 removes the
-contradiction in
-[1.3](#13-qualities-must-measurable-vs-acknowledged-subjective-nfrs) for free,
-since it exists only because the rule is stated twice.
+Moving "State qualities as measurable thresholds" into §07 resolved
+[1.3](#13-qualities-must-measurable-vs-acknowledged-subjective-nfrs), as
+predicted — see that item.
 
 ### 4.2 The version-control argument is made twice, at length
 
-- [ ] Merge §01a and §10's version-control material into one section.
+- [x] Merge §01a and §10's version-control material into one section. **Done
+      2026-07-27.** The four benefit bullets (branching/review, immutable
+      history, diffs, blame/log) moved to §01a, replacing the weaker prose
+      paragraph that made the same points. §10's section is retained but
+      reduced: it now xrefs `<<Persistence>>` for the general case and keeps
+      only what is specific to the proposal lifecycle — that VCS branching and
+      merging give each lifecycle state a natural home, so no separate workflow
+      tool is needed.
 
 [01a-persistence.adoc](./01a-persistence.adoc) (82 lines) and
 [10-proposal-lifecycle.adoc:27-47](./10-proposal-lifecycle.adoc#L27-L47)
@@ -371,7 +389,12 @@ thesis.
 
 ### 4.3 Traceability stated three times
 
-- [ ] Consolidate to one location, xref'd from the others.
+- [x] Consolidate to one location, xref'd from the others. **Done 2026-07-27.**
+      §10 "Trace requirements to their implementation" is now the single full
+      statement. §07 "Verification" reduced to the quality-specific case; §01
+      "Executable tests" keeps its distinct argument (tests are not a substitute
+      for a specification) but no longer restates the cross-referencing
+      mechanics.
 
 [01-scope.adoc:148-159](./01-scope.adoc#L148-L159) ("Executable tests"),
 [07-qualities.adoc:107-116](./07-qualities.adoc#L107-L116) ("Verification"), and
@@ -713,6 +736,52 @@ TS-14) resolve with correct titles.
 ---
 
 ## Changelog
+
+### Tier 2 — 4.1 extraction, with 4.2, 4.3, 1.3 (2026-07-27)
+
+Uncommitted. §10 reduced from 18 sections to 14. One new file
+(`11-definition-of-ready.adoc`); one file outside TS-1 touched
+(`012/02-definition-of-done.adoc`).
+
+**Decisions taken by Kieran:**
+
+- *Definition of Ready* stays in TS-1 as its own section, rather than moving to
+  TS-12 alongside the Definition of Done. The pairing is expressed through
+  reciprocal cross-references instead. This fixed a pre-existing asymmetry: TS-12
+  already discussed the DoR but had nowhere to point.
+- *Enforce specs in continuous integration* folds into §08 as `== Enforcement`,
+  rather than moving to TS-12's quality gates.
+
+**Where each section went:**
+
+| Section | Destination |
+|---|---|
+| Write functional requirements as testable scenarios | §06 Features, as a bulleted practices list |
+| State qualities as measurable thresholds | §07 Acceptance criteria (resolves [1.3](#13-qualities-must-measurable-vs-acknowledged-subjective-nfrs)) |
+| Enforce specs in continuous integration | §08 new `== Enforcement` |
+| Definition of Ready | New `11-definition-of-ready.adoc` |
+| Version control as the substrate | Bullets → §01a; stub retained in §10 ([4.2](#42-the-version-control-argument-is-made-twice-at-length)) |
+| Trace requirements to their implementation | Stays in §10; §07 and §01 defer to it ([4.3](#43-traceability-stated-three-times)) |
+
+**Incidental fixes made in passing** (each touched a line already being
+edited):
+
+- `RECOMMENDEDs` → `RECOMMENDS` in §06 — from
+  [§8 typos](#8-typos-and-grammar).
+- §01 "cross-reference that test(s) that verify it" rewritten, clearing the
+  `that`/`the` error and the lowercase `should` — from
+  [§8 typos](#8-typos-and-grammar).
+
+**Kieran's amendments during this pass:** three internal xrefs I added were
+removed again — `<<Executable specifications>>` and
+`<<Trace requirements to their implementation>>` (§06, §01). Left as edited. The
+prose cross-reference item in [§6](#6-convention-conformance) is updated
+accordingly.
+
+**Verification.** All 13 includes resolve; no orphan files; all remaining xref
+targets resolve; the only duplicate section title is the pre-existing
+"Acceptance criteria" (not xref'd, so not ambiguous); new lines within 80
+columns. No rendering check — the repo still has no build tooling.
 
 ### §10 rename (2026-07-27)
 
