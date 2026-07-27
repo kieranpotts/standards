@@ -76,7 +76,6 @@ authoring standards are defined in the [style guide](docs/style-guide.md). Those
 conventions are normative for all content under `src/`, and that document is the
 single source of truth for them.
 
-
 ## Skills
 
 Skills specific to this project are installed in the
