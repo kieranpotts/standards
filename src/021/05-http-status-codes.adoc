@@ -97,3 +97,51 @@ media type, when the requested media type cannot be honored.
 
 ** `503 Service Unavailable`: Indicates that the server is not ready to handle
    the request, typically due to maintenance or overload.
+
+== Method-to-status mapping
+
+Not every status code is meaningful for every HTTP method. The following table
+indicates which of the commonly-used success and error codes, listed above,
+are typically appropriate for each method. A check mark (✅) indicates normal,
+expected use. A question mark (❓) indicates a status code that is valid for
+the method but only in unusual circumstances, and its use SHOULD be reviewed
+as part of API design review.
+
+|===
+|Method |200 |201 |202 |204 |400 |404 |422 |500
+
+|`GET`
+|✅ | |❓ | |✅ |✅ |❓ |✅
+
+|`POST`
+|✅ |✅ |❓ | |✅ |❓ |❓ |✅
+
+|`PUT`
+|❓ | |❓ |✅ |✅ |✅ |❓ |✅
+
+|`PATCH`
+|❓ | | |✅ |✅ |✅ |❓ |✅
+
+|`DELETE`
+|❓ | | |✅ |✅ |✅ |❓ |✅
+|===
+
+* `GET`: Retrieves a resource. `200` is the normal success response. An empty
+  collection is still `200`, but a missing single resource is `404`.
+
+* `POST`: Typically creates a resource (`201`), but is also used for actions,
+  where `200` is more usual. `202` applies where the operation is processed
+  asynchronously.
+
+* `PUT`: Typically updates or creates a resource with a client-supplied
+  identifier. `204` is the normal success response, since there is usually no
+  need to echo the request back to the client. `200` is appropriate only where
+  the response needs to carry server-generated fields the client could not have
+  supplied itself.
+
+* `PATCH`: Behaves like `PUT`, but `200` with a response body SHOULD be
+  avoided, since `PATCH` is intended for frequent, partial updates, and echoing
+  the full resource on every call wastes bandwidth unnecessarily.
+
+* `DELETE`: `204` is the normal success response, returned even where the
+  resource was already deleted, per idempotency rules.
