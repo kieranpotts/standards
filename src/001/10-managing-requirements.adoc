@@ -1,96 +1,93 @@
 = Managing requirements
 
 A specification is only as valuable as it is trustworthy, and trust depends on
-_process_: the specification must be kept current with production, and changes
-to it must be deliberate and recorded. This section describes how to manage a
-requirements specification over its lifetime. The model below is RECOMMENDED;
-the reference implementation at
-https://github.com/kieranpotts/specs[kieranpotts/specs] automates it.
+process. A specification MUST be kept current with production, and changes
+to it MUST be deliberate and recorded.
+
+This section covers best practices for managing a requirements specification
+over its lifetime.
 
 == Two artifacts
 
-A complete requirements practice maintains two artifacts side by side, in the
-same repository:
+A complete requirements practice MUST maintain two artifacts side by side, in
+the same repository:
 
-* The *specification* — mutable and always describing the as-is production
-system (the <<_structure, context and requirements>> already described).
+* The *specification*. Mutable and always describing the as-is production
+  system.
 
-* The *proposal archive* — an immutable, append-only log of every significant
-proposed change, including those that were rejected.
+* The *proposal archive*. An immutable, append-only log of every significant
+  proposed change, including those that were rejected.
 
-The specification answers "`what does the system do?`"; the archive answers
-"`why is it that way?`" Colocating them keeps both maintainable and prevents
-drift between the description of the system and the record of the reasoning
-behind it.
+The specification answers "what does the system do?" The archive answers
+"why is it that way?" The two artifacts SHOULD be colocated, so as to
+prevent drift between the description of the system and the record of the
+reasoning behind it.
 
 == The proposal lifecycle
 
-Changes to the specification SHOULD be introduced through *proposals*, each
-moving through a defined state machine. Separating the _proposer's_ work
-(drafting) from the _decision_ (taken by product managers) keeps the process
-consistent whether a human or an agent drives it.
+Changes to the specification SHOULD be introduced through *proposals*. Each
+proposal SHOULD move through a defined state machine, reflecting the process of
+drafting, discussing, and ultimately accepting or rejecting a proposed change
+to the system specification.
 
-[source]
-----
-[*] → DRAFT → PROPOSED → ACCEPTED → RELEASED → SUPERSEDED → [*]
-                   ↓
-               REJECTED → [*]
-----
+The following lifecycle states are RECOMMENDED for a baseline implementation.
 
-* *DRAFT* — the proposal is being written; not yet ready for review. Early
-feedback may be solicited, but no decision is sought.
+[mermaid]
+....
+stateDiagram-v2
+  [*] --> Draft
+  Draft --> Proposed
+  Proposed --> Accepted
+  Proposed --> Rejected
+  Accepted --> Released
+  Released --> Superseded
+  Rejected --> [*]
+  Superseded --> [*]
+....
 
-* *PROPOSED* — the proposal is complete and open for a decision. It is now
-formally reviewed and negotiated with the relevant stakeholders, technical and
-non-technical. This review SHOULD be cross-functional — product, QA, and
-engineering each read the proposal for what their discipline is best placed to
-catch: product for scope and business intent, QA for missing or ambiguous
-acceptance criteria, engineering for feasibility. Ambiguities are cheaper to
-resolve here than after the proposal is accepted.
+The states have the following meanings.
 
-* *ACCEPTED* — approved by the product managers, but not yet live. The
-specification edits may continue to evolve during implementation — in response
-to technical feedback, implementation discoveries, or feedback from real users
-in beta tests or staged roll-outs.
+* *Draft.* The proposal is being written. It is not yet ready for review. Early
+  feedback MAY be solicited, but no decision is sought.
 
-* *REJECTED* — the proposal will not be taken forward. Its specification edits
-are reverted, but the proposal document itself is preserved in the archive as a
-record of the decision.
+* *Proposed.* The proposal is complete and open for a decision. It is now
+  formally reviewed and negotiated with the relevant stakeholders, technical and
+  non-technical.
 
-* *RELEASED* — the accepted change is live in production. Only now are the
-specification edits merged, so the specification stays true to production. A
-released proposal stays in effect until a later one supersedes it.
+* *Accepted.* The proposal is approved by the product managers. Implementation
+  is being tracked via the product backlog.
 
-* *SUPERSEDED* — a previously released proposal that is no longer in effect,
-because a later proposal replaced or removed the feature.
+* *Rejected.* The proposal will not be taken forward.
 
-A proposal MUST NOT move backwards (eg. `PROPOSED` → `DRAFT`) and MUST NOT skip
-states (eg. `DRAFT` → `ACCEPTED`). Each transition has a gate — for example, a
-proposal may not reach `RELEASED` until its implementation is actually in
-production.
+* *Released.* The accepted changes are now live in production.
+
+* *Superseded.* A previously released change is no longer in effect, because
+  a later proposal replaced or removed the feature.
 
 == Binding the specification to production
 
 The central discipline is this: *an accepted proposal MUST NOT be merged until
 its change is live in production.* It is not enough for a proposal to be
-_approved_; the change must also be designed, built, tested, and released first.
+_approved_; the change MUST also be designed, built, tested, and released first.
 This is what keeps the specification on the main line synchronized with the
-running system.
+running system. Between acceptance and release, the specification edits MAY
+continue to evolve — in response to technical feedback, implementation
+discoveries, or feedback from real users in beta tests or staged roll-outs.
 
-The one exception is a *rejected* proposal: its specification edits are reverted
-and only the proposal document is merged — the system is unchanged, so its
-specification does not change.
+The one exception is a *rejected* proposal: its specification edits MUST be
+reverted and only the proposal document is merged — the system is unchanged,
+so its specification does not change.
 
 When implementation reveals that real behavior differs from the proposed
-specification, reconcile the difference back into the specification _before_
-release, rather than shipping a specification known to be wrong. A specification
-that is only _mostly_ true is one nobody can trust.
+specification, the difference MUST be reconciled back into the specification
+_before_ release, rather than shipping a specification known to be wrong. A
+specification that is only _mostly_ true is one nobody can trust.
 
 == Recording decisions
 
-Once a proposal is merged, its document is *immutable*. To revisit a decision
-already merged, open a _new_ proposal that supersedes the original,
-cross-referencing the two. The original is never edited or deleted.
+Once a proposal is merged, its document is *immutable* — it MUST NOT be edited
+or deleted. To revisit a decision already merged, a _new_ proposal MUST be
+opened that supersedes the original, cross-referencing the two.
 
 Every merged proposal SHOULD be assigned a stable, sequential identifier and
 listed in an index, so the evolution of the system is fully recorded and its
@@ -106,9 +103,9 @@ Atomic proposals are easier to reason about, quicker to decide, and cleaner to
 record.
 
 When several changes genuinely depend on one another — for example, specifying a
-greenfield system from scratch — keep them as separate atomic proposals and
-group them under an *epic*, with each child proposal referencing the epic it
-belongs to.
+greenfield system from scratch — they SHOULD be kept as separate atomic
+proposals and grouped under an *epic*, with each child proposal referencing
+the epic it belongs to.
 
 == Separation of feedback from record
 
@@ -117,4 +114,136 @@ thread* attached to each proposal, kept separate from the proposal document and
 its revision history. This keeps the document's history a clean record of how
 the proposal and specification evolved, while the thread captures how consensus
 formed. Once the final proposal is merged, the thread has served its purpose;
-its conclusions are summarized in the merged document.
+its conclusions SHOULD be summarized in the merged document.
+
+== Specify the end state, not a changelog
+
+A proposal's specification edits SHOULD describe the system as it will be _once
+the change has shipped_ — not the steps taken to get there. Write
+"`authenticated callers can filter the catalog by species,`" not "`we will add a
+species filter.`"
+
+The diff against the current specification already shows what is changing. The
+prose SHOULD read as a description of the destination, so that when the
+proposal is released the specification is simply _true_. How the change is
+rolled out — migration steps, sequencing, feature flags — is an implementation
+concern and MUST NOT be included in the specification.
+
+== Keep description and reasoning in their proper homes
+
+The specification says _what_ the system does; the proposal says _why_ a change
+was made. Rationale MUST NOT be smuggled into the specification — it is meant
+to read as a timeless description of the present. Likewise, a proposal MUST
+NOT restate the full specification — it SHOULD link to the artifacts it edits.
+
+The proposal is the place to be honest about motivation, alternatives
+considered, and trade-offs accepted. That honesty is what makes the decision log
+valuable years later.
+
+== Enforce the state machine strictly
+
+A proposal MUST NOT move backwards through its lifecycle states, and MUST NOT
+skip states. Each transition MUST have a gate that is satisfied before it is
+taken — for example, a proposal MUST NOT reach a "released" state until its
+implementation is actually in production. A state machine that can be
+bypassed is not a discipline, just a suggestion.
+
+== Review proposals cross-functionally
+
+Review of a `PROPOSED` proposal SHOULD be cross-functional — product, QA, and
+engineering each read the proposal for what their discipline is best placed to
+catch: product for scope and business intent, QA for missing or ambiguous
+acceptance criteria, engineering for feasibility. Ambiguities are cheaper to
+resolve here than after the proposal is accepted.
+
+== Record rejections as carefully as acceptances
+
+A rejected proposal is not a failure to be hidden; it is a decision worth
+remembering. Its specification edits MUST be reverted, but the proposal
+document itself MUST be preserved in the archive as a record of the decision,
+so the next person with the same idea can read why it was not pursued. The
+motivation, alternatives, and trade-offs of a doomed proposal SHOULD be
+written with the same care as a winning one.
+
+== Write functional requirements as testable scenarios
+
+Functional requirements SHOULD be expressed as <<_features, Gherkin>>
+scenarios: each is an acceptance criterion — a concrete, observable behavior
+checkable against the running system.
+
+* Scenarios SHOULD be kept concrete. Prefer "`then the response contains at
+  most 10 records`" over "`then a reasonable number of records is returned.`"
+* A scenario SHOULD define one behavior. If a scenario has two unrelated `Then`
+  outcomes, it is probably two scenarios.
+* The project's <<_context, ubiquitous language>> SHOULD be used. The same
+  term MUST mean the same thing in the glossary, the model, and every scenario.
+* Unhappy paths SHOULD be covered too — empty results, not-found, unauthorized.
+  The edge cases are where requirements are most often ambiguous.
+* Cross-cutting invariants SHOULD be lifted out of scenarios and into
+  <<_behaviors, rules>>, then referenced.
+
+== State qualities as measurable thresholds
+
+A quality requirement that cannot be measured cannot be verified, and an
+unverifiable requirement is just a wish. Qualities MUST be specified as
+concrete, testable thresholds, ideally at a named percentile and load: "`list
+responses within 300 ms at the 95th percentile under normal load,`" not "`the
+API should be fast.`" Vague qualities give the false comfort of a requirement
+without the substance of one.
+
+The qualities a specification states are its _dynamic_ ones — what the system
+MUST achieve at runtime, observable to users. Static qualities of the code and
+design (readability, modularity, and the like) are a design concern, not a
+requirement the specification states (see <<_qualities>>).
+
+== Keep the specification honest
+
+The specification's value rests entirely on one promise: that the main line
+describes production. That promise MUST be protected. An accepted proposal
+MUST NOT be merged until its change is actually live, and any divergence
+discovered during implementation MUST be reconciled back into the
+specification before release.
+
+== Trace requirements to their implementation
+
+A <<_features, feature>> or <<_qualities, quality>> is easiest to trust when a
+reader can follow it to the code that implements it and the test that verifies
+it. Where the tooling allows, each requirement SHOULD be linked to its
+implementing component, its test suite, and any tracking ticket for
+outstanding work. This traceability is a convenience, not a structural part of
+the specification — the requirement remains valid and authoritative even where
+a link is stale or missing — but it shortens the distance between "`what is
+specified`" and "`what is running`."
+
+== Enforce specs in continuous integration
+
+Where a requirement is expressed as an executable specification — a Gherkin
+scenario, a quality benchmark, a security scan — the build SHOULD fail when
+that check fails. A specification that can be silently violated without
+breaking the build is only as trustworthy as the discipline of whoever
+remembers to check it by hand.
+
+== Definition of Ready
+
+It is RECOMMENDED that software projects have a *Definition of Ready (DoR)*: a
+documentation artifact that defines a set of criteria that MUST be met before
+a new feature, user story, or other development task is considered "ready" to
+be worked on.
+
+The DoR SHOULD be formatted as a simple, short checklist. The purpose is to
+provide a quick point of reference for teams to check they've got everything
+they need to successfully complete a development task, before proceeding with
+it. The checklist SHOULD be generic enough to be applicable to all kinds of
+development tasks, and emphasis SHOULD be placed on the readiness of the
+requirements.
+
+Example:
+
+* Are the requirements clear and (sufficiently) unambiguous?
+* Are the acceptance criteria defined in a testable format, and can the tests be
+  automated?
+* Is it clear who the stakeholders are?
+* Does the team have the knowledge and resources required to complete the task?
+* Can the work be done independently of other tasks running in parallel?
+* Can the work be implemented in small increments?
+* Can the design be iterated based on feedback?

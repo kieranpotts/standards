@@ -2,7 +2,7 @@
 - TS-1: Software Requirements Specification
   - [ ] TODOs
   - [x] AGENTS.md
-  - [ ] Review
+  - [x] Review
   - [ ] References
   - [ ] Spelling & Grammar
 
