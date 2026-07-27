@@ -53,8 +53,8 @@ of them.
 Treat context as a finite resource, then, just as working memory is. Even for
 models with large context windows, performance degrades with context size. Every
 token added to the context depletes the model's attention budget. Adding more
-tokens yields diminishing marginal returns and, past some point, actively worsens
-performance.
+tokens yields diminishing marginal returns and, past some point, actively
+worsens performance.
 
 The guiding principle of context engineering is therefore to find the smallest
 set of high-signal tokens that maximizes the likelihood of achieving the desired
@@ -62,8 +62,8 @@ outcome.
 
 This is particularly critical in the design of tools for AI agents. Because
 agents run autonomously, with minimal human oversight, the tools they are
-permitted to use must be programmed to manage their contexts effectively. That is
-easier said than done, because agents work by continuously looping through a
+permitted to use must be programmed to manage their contexts effectively. That
+is easier said than done, because agents work by continuously looping through a
 cycle of updating their context based on the output from the previous iteration.
 
 Even as models get smarter, requiring less prescriptive prompting and handling
@@ -72,8 +72,8 @@ remain. It is key to building reliable, effective agents.
 
 Techniques include compaction of long-horizon tasks, designing token-efficient
 tools for use in agents, and enabling agents to explore data from their local
-environment just-in-time. Each is explored below. They are mostly relevant to the
-design of tools for agents, but the underlying principles apply to all
+environment just-in-time. Each is explored below. They are mostly relevant to
+the design of tools for agents, but the underlying principles apply to all
 interactions with LLMs, including one-off prompts and multi-turn conversations
 via chatbot UIs.
 
@@ -84,21 +84,20 @@ instruction.
 
 System prompts SHOULD also be pitched at the optimum level of specificity, and
 there is a balance to be found between too specific and too general. At one
-extreme, hardcoding complex and brittle logic in prompts, in an attempt to elicit
-exact behavior, creates fragility and increases maintenance overhead. At the
-other extreme, high-level guidance without concrete success criteria fails to
-give the model the strong signals it needs.
+extreme, hardcoding complex and brittle logic in prompts, in an attempt to
+elicit exact behavior, creates fragility and increases maintenance overhead. At
+the other extreme, high-level guidance without concrete success criteria fails
+to give the model the strong signals it needs.
 
 The optimum is specific enough to guide behavior effectively, and flexible
 enough to leave the model with strong heuristics rather than brittle rules.
 
 Prompts MUST be token-efficient. Skills, rules, instructions, and other
 <<Reusable context,reusable prompt components>> should be concise and focused on
-the most critical information, so they do not crowd out other high-signal context
-in the window.
-Best practice is to start with the minimum prompt needed to describe the
-expected behavior, and to add instructions only to address specific failure modes
-observed in testing.
+the most critical information, so they do not crowd out other high-signal
+context in the window. Best practice is to start with the minimum prompt needed
+to describe the expected behavior, and to add instructions only to address
+specific failure modes observed in testing.
 
 Long prompts MUST be well structured. It is RECOMMENDED to organize prompts into
 distinct sections, like:
@@ -148,14 +147,14 @@ work, and consume context with intermediate state that has no lasting value.
 
 An effective design pattern for managing context in agentic tools is to extend
 the context with new information only when it is needed — just-in-time. Rather
-than preloading everything a tool might require, agents can be instructed to load
-additional instructions dynamically at runtime, under predefined conditions.
-Lightweight references such as file paths, stored queries, and web links are
-ideal for this.
+than preloading everything a tool might require, agents can be instructed to
+load additional instructions dynamically at runtime, under predefined
+conditions. Lightweight references such as file paths, stored queries, and web
+links are ideal for this.
 
 This strategy mirrors human cognition. The human mind maintains indexes from
-which it can retrieve information on demand, rather than keeping entire bodies of
-knowledge in working memory. Likewise, letting agents retrieve information
+which it can retrieve information on demand, rather than keeping entire bodies
+of knowledge in working memory. Likewise, letting agents retrieve information
 dynamically allows them to progressively discover relevant context as they work,
 keeping the context window focused on what is currently relevant — an approach
 known as *progressive disclosure* (see <<Progressive disclosure>>).
@@ -183,10 +182,10 @@ maintain coherence across the whole task.
 
 *Compaction* is the practice of taking a conversation that is nearing the
 context window threshold, summarizing its contents, and re-initiating a new
-context window with that summary. It is typically the first lever to reach for in
-driving better coherence across long-horizon tasks. At its core, compaction
-distills the contents of a context window in a high-fidelity manner, enabling the
-agent to continue with minimal performance degradation.
+context window with that summary. It is typically the first lever to reach for
+in driving better coherence across long-horizon tasks. At its core, compaction
+distills the contents of a context window in a high-fidelity manner, enabling
+the agent to continue with minimal performance degradation.
 
 Compaction can be seen at work in the UIs of coding assistants like Claude Code.
 Long-running conversations are periodically compacted to preserve critical
@@ -198,22 +197,22 @@ discard. Overly aggressive compaction loses subtle but critical context, the
 importance of which often only becomes evident later.
 
 *Structured note-taking*, also known as *agentic memory*, is a second technique.
-Commonly, it is used to manage lists of outstanding tasks (to-dos) in the current
-session. It is an extension of dynamic data retrieval. The agent regularly writes
-notes, which are persisted outside the LLM's context window and pulled back in
-when the agent needs to retrieve data from them.
+Commonly, it is used to manage lists of outstanding tasks (to-dos) in the
+current session. It is an extension of dynamic data retrieval. The agent
+regularly writes notes, which are persisted outside the LLM's context window and
+pulled back in when the agent needs to retrieve data from them.
 
 Finally, *sub-agent architectures* provide another way to work around context
-limitations (see <<Multi-agent systems,agentic workflows>>). Rather than one agent
-attempting to maintain state across an entire project, specialized sub-agents
-handle focused tasks with clean context windows.
-The main agent follows a high-level plan but delegates discrete steps to
-sub-agents, each specialized for a particular domain or task. The lead
-orchestration agent — the supervisor — stays focused on synthesizing and
-analyzing the results from all the others.
+limitations (see <<Multi-agent systems,agentic workflows>>). Rather than one
+agent attempting to maintain state across an entire project, specialized
+sub-agents handle focused tasks with clean context windows. The main agent
+follows a high-level plan but delegates discrete steps to sub-agents, each
+specialized for a particular domain or task. The lead orchestration agent — the
+supervisor — stays focused on synthesizing and analyzing the results from all
+the others.
 
 Each of these techniques suits a different type of interaction. Compaction is
-best for highly interactive tasks, which require a lot of back-and-forth with the
-model. Note-taking excels at incremental tasks that can be planned up-front. And
-multi-agent architectures are ideal for complex research and analysis tasks,
+best for highly interactive tasks, which require a lot of back-and-forth with
+the model. Note-taking excels at incremental tasks that can be planned up-front.
+And multi-agent architectures are ideal for complex research and analysis tasks,
 where synthesis from multiple specialist models is beneficial.
