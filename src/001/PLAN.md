@@ -13,18 +13,23 @@ contradictions, several factual errors in the Gherkin material, significant
 duplication across §01a/§07/§10, and the compact `AGENTS.md` has drifted from
 the standard it summarizes, including one rule it invents outright.
 
-**Status:** no changes applied. Every item below is open.
+**Status:** tier 1 (correctness) applied — see
+[Changelog](#changelog). Tiers 2-4 are open.
 
 ---
 
 ## Priority order
 
-1. **Correctness** — [1.1](#11-privilege-inheritance-direction--stated-both-ways),
+1. ~~**Correctness**~~ — **done.**
+   [1.1](#11-privilege-inheritance-direction--stated-both-ways),
    [1.2](#12-spec-merge-timing--three-mutually-incompatible-rules),
    [2.1](#21-scenario-outline-expansion-uses-the-wrong-keyword),
    [2.2](#22-gherkin-uses-indentation-to-define-structure-is-wrong),
    [1.5](#15-the-when-examples-model-the-anti-pattern-the-standard-forbids),
-   [§7](#7-agentsmd-has-drifted-from-the-standard) (invented BDUF rule + typos).
+   [§7](#7-agentsmd-has-drifted-from-the-standard) (invented big-design-up-front
+   rule + typos).
+   [2.3](#23-both-templates-misalign-step-indentation) was pulled forward from
+   tier 2 — see the changelog note.
 
 2. **Coherence** — [1.3](#13-qualities-must-measurable-vs-acknowledged-subjective-nfrs),
    [1.4](#14-feature-file-scope-must-vs-should-different-rules),
@@ -51,7 +56,9 @@ the standard it summarizes, including one rule it invents outright.
 
 ### 1.1 Privilege inheritance direction — stated both ways
 
-- [ ] Resolve the direction and state it once.
+- [x] Resolve the direction and state it once. **Done** — §06 corrected to
+      "down" in both places, each now xref'ing `<<Actors>>` so §05 is the single
+      authoritative statement.
 
 [06-behaviors.adoc:47](./06-behaviors.adoc#L47) says privileges are inherited
 **up** the actor hierarchy. Two other places say **down**:
@@ -68,7 +75,12 @@ it once in §05, and xref it from §06.
 
 ### 1.2 Spec-merge timing — three mutually incompatible rules
 
-- [ ] Pick one rule, state it once, delete the other two.
+- [x] Pick one rule, state it once, delete the other two. **Done** — resolved
+      in favor of **same change-set as the behavior change** (decision by
+      Kieran, 2026-07-27). §01a states the rule; §10 "Binding the specification
+      to production" is rewritten to match and now carries the batched-release
+      caveat; §10's colocation paragraph xrefs it instead of restating it; the
+      `Released` and `Accepted` state definitions were corrected to match.
 
 | Location | Rule |
 |---|---|
@@ -109,7 +121,11 @@ Different strength *and* different content, 60 lines apart in one file.
 
 ### 1.5 The `When` examples model the anti-pattern the standard forbids
 
-- [ ] Replace the five UI/CLI step examples with business-language equivalents.
+- [x] Replace the five UI/CLI step examples with business-language equivalents.
+      **Done** — both the `When` block and the `Given` block above it (which had
+      the same first-person problem) rewritten in third-person business
+      register. Added a paragraph stating the underlying rule, xref'ing
+      `<<Implementation>>`.
 
 [08-executable-specifications.adoc:213-217](./08-executable-specifications.adoc#L213-L217):
 
@@ -168,7 +184,10 @@ confirms both gaps.
 
 ### 2.1 Scenario outline expansion uses the wrong keyword
 
-- [ ] Change the two expanded blocks to `Scenario:`.
+- [x] Change the two expanded blocks to `Scenario:`. **Done** — also clarified
+      the lead-in sentence ("one per row of the `Examples` table… the following
+      ordinary scenarios"). The outline definition itself correctly retains
+      `Scenario Outline:`.
 
 [08-executable-specifications.adoc:290-301](./08-executable-specifications.adoc#L290-L301)
 shows what a scenario outline is "the equivalent of writing" — but writes both
@@ -179,7 +198,10 @@ what expansion does.
 
 ### 2.2 "Gherkin uses indentation to define structure" is wrong
 
-- [ ] Rewrite the claim and drop the derived spaces-vs-tabs advice.
+- [x] Rewrite the claim and drop the derived spaces-vs-tabs advice. **Done** —
+      now states that structure comes from keywords, that parsers ignore leading
+      whitespace outside doc strings, and that the two-space layout is a
+      readability convention that SHOULD be followed.
 
 [08-executable-specifications.adoc:37-41](./08-executable-specifications.adoc#L37-L41)
 — "Like YAML, Gherkin is line-oriented and uses indentation to define structure…
@@ -193,7 +215,11 @@ ignore the leading whitespace entirely.
 
 ### 2.3 Both templates misalign step indentation
 
-- [ ] Align `When`/`Then` with `Given` in both templates.
+- [x] Align `When`/`Then` with `Given` in both templates. **Done** — pulled
+      forward from tier 2, because
+      [2.2](#22-gherkin-uses-indentation-to-define-structure-is-wrong) now
+      states the two-space convention normatively, which the misaligned
+      templates would have contradicted on the same page.
 
 [08-executable-specifications.adoc:61-66](./08-executable-specifications.adoc#L61-L66)
 and [08-executable-specifications.adoc:150-154](./08-executable-specifications.adoc#L150-L154)
@@ -536,29 +562,32 @@ diverges in several places.
 
 [AGENTS.md](./AGENTS.md) is meant to be a faithful compaction. It is not.
 
-- [ ] **Invents a rule not in the standard.**
-  [AGENTS.md:123](./AGENTS.md#L123) — "Avoid iterating on NFRs. **Big-design-up-front
-  is preferred for NFRs.**" This appears nowhere in
-  [07-qualities.adoc](./07-qualities.adoc), and it sits badly with the
-  standard's own incremental proposal machinery in §10. An agent following
-  AGENTS.md will apply a rule the standard does not make.
+- [x] **Invents a rule not in the standard.** **Done** — the "Avoid iterating on
+  NFRs / Big-design-up-front is preferred" sentences are deleted. Replaced with
+  the standard's actual §07 reasoning (architecturally significant, harder to
+  change than FRs) plus the SLA point.
 
-- [ ] **Typos in a file that agents act on:**
-  - [AGENTS.md:13](./AGENTS.md#L13) — "product **product** requirements
-    documents"
-  - [AGENTS.md:14](./AGENTS.md#L14) — "The **PRF** is an upstream" → PRD
-  - [AGENTS.md:15](./AGENTS.md#L15) — "**tht** provides input" → that
+  Original defect: [AGENTS.md:123](./AGENTS.md#L123) asserted a
+  big-design-up-front preference appearing nowhere in
+  [07-qualities.adoc](./07-qualities.adoc), which sat badly with the standard's
+  own incremental proposal machinery in §10.
 
-- [ ] **Internal MAY/SHOULD mismatch.** [AGENTS.md:115](./AGENTS.md#L115) — "It
-  **MAY** be appropriate to express some NFRs as user stories" — then
-  [AGENTS.md:117-118](./AGENTS.md#L117-L118) — "NFRs that map cleanly to
-  authorization/authentication rules **SHOULD** be expressed as user stories."
-  The heading is weaker than the rule under it.
+- [x] **Typos in a file that agents act on.** **Done** — "product product" →
+  "a product"; "PRF" → "PRD"; "tht" → "that".
 
-- [ ] **DoR checklist truncated.** 4 items vs 7 in
-  [10-managing-requirements.adoc:263-271](./10-managing-requirements.adoc#L263-L271);
-  drops "Is it clear who the stakeholders are?" and "Can the design be iterated
-  based on feedback?"
+- [x] **Internal MAY/SHOULD mismatch.** **Done** — heading promoted to "Some
+  NFRs SHOULD be expressed as user stories", matching the rule beneath it and
+  §07's own wording.
+
+- [x] **Merge rule contradicted the standard.** **Done** — AGENTS.md carried the
+  old "MUST NOT be merged until it is live in production" rule, which
+  [1.2](#12-spec-merge-timing--three-mutually-incompatible-rules) replaced.
+  Updated to the same-change-set rule.
+
+- [x] **DoR checklist truncated.** **Done** — restored "Is it clear who the
+  stakeholders are?" and "Can the design be iterated based on feedback?", giving
+  6 of the standard's 7 criteria. (The standard splits independence and small
+  increments into two items; AGENTS.md keeps them combined as one.)
 
 - [ ] **Omits the taxonomy the standard is built on.** AGENTS.md gives the
   context/requirements split but never mentions `rules`, `access`, `interfaces`,
@@ -650,3 +679,51 @@ TS-14) resolve with correct titles.
   to 81-84 chars; [99-references.adoc](./99-references.adoc) runs to 150. Prose
   overruns are trivial to fix; the reference file needs a wrapping decision
   (long URLs may justify an exemption — worth stating one).
+
+---
+
+## Changelog
+
+### Tier 1 — correctness (2026-07-27)
+
+Uncommitted. Five files touched: `01a-persistence.adoc`, `06-behaviors.adoc`,
+`08-executable-specifications.adoc`, `10-managing-requirements.adoc`,
+`AGENTS.md`.
+
+**Decision taken.** The §01a/§10 merge-timing conflict
+([1.2](#12-spec-merge-timing--three-mutually-incompatible-rules)) was resolved
+in favor of **specification edits merging in the same change-set as the code
+that implements them**. Kieran chose this over the alternative (hold the spec
+edit on a branch until the code is live), which would have kept the main line
+strictly true of production at the cost of long-lived proposal branches. The
+accepted rule allows the main line to briefly lead production between merge and
+deploy; §10 now states that window explicitly and assigns closing it to the
+release pipeline.
+
+**Consequential edits beyond the literal findings:**
+
+- The `Accepted` and `Released` state definitions in §10 were reworded — the old
+  `Released` text defined release as the merge event, which the new rule
+  separates into merge and deploy.
+- §10's colocation paragraph was trimmed to an xref rather than restating the
+  merge rule, so the rule now has exactly one statement.
+- [2.3](#23-both-templates-misalign-step-indentation) was pulled forward from
+  tier 2 (rationale recorded at that item).
+- The `Given` example block in §08 was rewritten alongside the `When` block; it
+  had the same first-person / UI-flavored problem but was not called out
+  separately in the original review.
+- Three `<<…>>` internal xrefs were introduced (`<<Actors>>`,
+  `<<Binding the specification to production>>`, `<<Implementation>>`); all
+  three verified to resolve against existing section titles.
+
+**Not addressed in this tier.** Two §7 items are scope decisions rather than
+defects, and remain open for tier 3: AGENTS.md omitting the
+rules/access/interfaces/journeys taxonomy, and its omission of §01a, §09,
+traceability, CI enforcement, cross-functional review, and rejection recording.
+
+**Verification performed.** Grep confirmed no stale wording survived (old merge
+phrasing, "inherited up", "uses indentation", the invented big-design-up-front
+rule, the three typos, first-person Gherkin steps). All xref targets checked
+against the set of section titles. New lines checked against the 80-column
+convention. No rendering check was possible — the repo has no build tooling, so
+the AsciiDoc output has not been visually confirmed.
