@@ -217,13 +217,13 @@ maintained specification.
 
 - **Changes go through a proposal lifecycle, recorded permanently.**
 
-  `DRAFT` → `PROPOSED` → `ACCEPTED` → `RELEASED` → `SUPERSEDED`,
-  or `PROPOSED` → `REJECTED`.
+  Draft → Proposed → Accepted → Released → Superseded,
+  or Proposed → Rejected.
 
-  `PROPOSED` → `DRAFT` (rework) is the only permitted backward transition. No
+  Proposed → Draft (rework) is the only permitted backward transition. No
   skipped states.
 
-  An `ACCEPTED` proposal MAY continue to evolve during implementation. That is
+  An accepted proposal MAY continue to evolve during implementation. That is
   expected, and does not need re-approval. What was approved is the intent. If
   the *intent* turns out to be wrong, supersede the proposal rather than
   rewriting it.
