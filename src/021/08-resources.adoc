@@ -269,3 +269,35 @@ For example, if only `GET` and `DELETE` operations are available:
   }
 }
 ----
+
+== File uploads
+
+Where a resource needs to carry binary content, eg. an image, a document, or
+an audio file, that content SHOULD NOT be embedded in a JSON payload as a
+Base64-encoded string. Base64 encoding inflates the size of the content by
+roughly a third, forces the entire file to be held in memory as a single JSON
+string on both client and server, and defeats HTTP-level features such as
+streaming and range requests. Two patterns are RECOMMENDED instead, depending
+on whether the file exists independently of other resource data.
+
+*Standalone file upload.* Where the file is itself the primary subject of the
+request, eg. uploading a profile photo, it SHOULD be submitted to a dedicated
+URL using the `multipart/form-data` media type, per
+https://www.ietf.org/rfc/rfc2388.txt[RFC 2388].
+
+[source,http]
+----
+POST /v1/{namespace}/{resource}/{resource_id}/actions/uploadDocument
+Content-Type: multipart/form-data; boundary=...
+----
+
+The response MUST include an identifier or URL for the uploaded file (see
+*Creating*), which clients then reference in subsequent requests, rather than
+re-submitting the file's content each time.
+
+*File upload as an attachment to structured data.* Where a file needs to be
+submitted together with structured JSON data in the same request, eg.
+uploading a receipt alongside an expense claim's other fields, the request
+SHOULD use `multipart/mixed` or `multipart/related`, per
+https://tools.ietf.org/html/rfc2387[RFC 2387], with one part carrying the JSON
+body and one or more further parts carrying the file content.
