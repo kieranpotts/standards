@@ -10,8 +10,8 @@ the proposal lifecycle, or Definition of Ready checklists.
 A reference implementation is maintained at
 [kieranpotts/specs](https://github.com/kieranpotts/specs).
 
-Do NOT use this when writing product product requirements documents (PRD). The
-PRF is an upstream, informal, product-owned artifact tht provides input to
+Do NOT use this when writing a product requirements document (PRD). The PRD is
+an upstream, informal, product-owned artifact that provides input to
 requirements discovery. The SRS turns the PRD into a formal, testable,
 maintained specification.
 
@@ -112,20 +112,27 @@ maintained specification.
   Where possible, specify metrics (MTBF, MTTR, crash rate) or conformance to
   published standards (eg. AES-256, WCAG, GDPR).
 
-- **It MAY be appropriate to express some NFRs as user stories.**
+- **Some NFRs SHOULD be expressed as user stories.**
 
-  Example: NFRs that map cleanly to authorization/authentication rules SHOULD be
-  expressed as user stories within the functional requirements.
+  Quality attributes that lend themselves to conventional functional testing —
+  notably authentication and authorization — SHOULD be expressed as user
+  stories within the functional requirements, rather than as standalone
+  qualities.
 
 - **NFRs MUST be identified as early as possible.**
 
-  Many NFRs are architecturally significant and expensive to change later. Avoid
-  iterating on NFRs. Big-design-up-front is preferred for NFRs.
+  Many NFRs are architecturally significant, heavily influencing fundamental
+  design choices such as technology stacks and databases, and are therefore much
+  harder to change later than functional requirements.
+
+  Some NFRs, such as uptime guarantees, are also reflected in service level
+  agreements (SLAs) and so matter directly to business stakeholders.
 
 - **A specification is a living document bound to production.**
 
-  The main line MUST describe the as-is production system. An accepted change
-  MUST NOT be merged until it is live in production.
+  The main line MUST describe the as-is production system. A proposal's spec
+  edits MUST be merged in the same change-set as the code that implements them,
+  and MUST NOT be merged ahead of it.
 
   Reconcile any divergence found during implementation back into the spec before
   release.
@@ -166,6 +173,10 @@ maintained specification.
 
   - Are acceptance criteria defined in a testable, automatable format?
 
+  - Is it clear who the stakeholders are?
+
   - Does the team have the knowledge and resources to complete the task?
 
   - Can the work be done independently and implemented in small increments?
+
+  - Can the design be iterated based on feedback?
