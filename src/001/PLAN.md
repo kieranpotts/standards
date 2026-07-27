@@ -490,15 +490,30 @@ the section makes about them.
 
 ## 5. Genuine coverage gaps
 
-- [ ] **5.1 No requirement identifier scheme.** Rules get stable IDs (`R1`,
-  `R2`) at [06-behaviors.adoc:83-84](./06-behaviors.adoc#L83-L84), but features,
-  scenarios, and qualities get none. Yet
-  [10-proposal-lifecycle.adoc:228-237](./10-proposal-lifecycle.adoc#L228-L237)
-  requires each requirement to be linked to its component, test suite, and
-  ticket, and [07-qualities.adoc:109-112](./07-qualities.adoc#L109-L112)
-  requires two-way cross-referencing between qualities and their checks.
-  Cross-reference *by what handle?* This is the missing mechanism under three
-  separate rules.
+- [x] **5.1 No requirement identifier scheme. Done 2026-07-27.** A full F/Q/R
+  scheme is now specified in a new §04 subsection,
+  `<<Identifying requirements>>`, and **retrofitted to the
+  [kieranpotts/specs](https://github.com/kieranpotts/specs) reference
+  implementation** (decision by Kieran).
+
+  The scheme: `F` features, `Q` qualities, `R` rules. Two-part identifiers
+  (`F3.2`, `Q1.4`) where one artifact holds several independently-verifiable
+  statements; rules stay single-part because they are already atomic.
+  Identifiers are permanent — never reused, stable under renaming, and gaps
+  carry information.
+
+  Granularity was Kieran's call: F and Q per file with numbered statements
+  within, rather than flat-per-scenario or file-only. The feature-level id is
+  what a proposal edits; the scenario-level id is what a test verifies — which
+  is what closes the [§07 two-way binding](./07-qualities.adoc) gap.
+
+  §06, §07, and §10 now reference the scheme rather than each implying its own.
+
+  *Discovered during this work:* the reference implementation already had a
+  coherent convention TS-1 never documented — `R1`–`R8` for rules, sequential
+  index numbers for proposals, relative file paths for everything else. Feature
+  and quality identifiers were genuinely absent there too, so the gap was real
+  in both artifacts, not just in the standard.
 
 - [ ] **5.2 `qualities/` has no internal structure.** §04 gives `behaviors/`
   five subdirectories and leaves `qualities/` flat, with no guidance on
@@ -736,6 +751,40 @@ TS-14) resolve with correct titles.
 ---
 
 ## Changelog
+
+### 5.1 — requirement identifier scheme (2026-07-27)
+
+Uncommitted, and **spans two repositories**.
+
+**In this repo:** new `== Identifying requirements` subsection in
+[04-structure.adoc](./04-structure.adoc), plus references to it from §06
+(features), §07 (qualities and the verification binding), and §10
+(traceability).
+
+**In [kieranpotts/specs](https://github.com/kieranpotts/specs):** the scheme
+retrofitted across 20 files —
+
+- 7 `.feature` files: `Feature: [F4] Reserve a product`, and every scenario
+  prefixed `[F4.1]`, `[F4.2]`, … (38 scenarios).
+- 6 quality files: `# Q2. Latency`, with each normative statement prefixed
+  `**Q2.1.**` and so on (14 statements). `idempotence.md` is prose-shaped, so it
+  takes `Q6` with no sub-ids.
+- 2 index READMEs updated so identifiers are discoverable.
+- 17 feature cross-references in interfaces, journeys, glossary, constraints,
+  and qualities annotated with their identifier — mirroring how rules were
+  already cited as `[rule R4](../rules/)`.
+
+**Decisions by Kieran:** full F/Q/R identifiers rather than documenting the
+existing path-based convention; hierarchical granularity (per file, with
+numbered statements within) for both F and Q.
+
+**Verification.** Feature files re-checked as valid Gherkin with every scenario
+tagged. Quality files diffed word-for-word against `HEAD` modulo the inserted
+identifiers — content provably unchanged. All 300 relative links across the
+specs repo re-resolved: none broken. Line lengths brought within 80 columns
+where the retrofit pushed them over. No test framework was run — the reference
+implementation has no step definitions, so the `.feature` files are not
+executable.
 
 ### Tier 2 — 4.1 extraction, with 4.2, 4.3, 1.3 (2026-07-27)
 
