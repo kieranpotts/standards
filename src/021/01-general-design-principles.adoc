@@ -135,3 +135,30 @@ service that sits behind an HTTP API.
   to different classes of consumers – internal teams, partners, or the public –
   through policy changes (eg. authentication requirements, rate limits) rather
   than through re-implementation or changes to the contract itself.
+
+== Input and output strictness
+
+An HTTP API MUST be strict in the responses it produces, and SHOULD be strict
+in the requests it accepts.
+
+Producing strict, well-formed output is uncontroversial: a service always
+knows exactly what it is sending, so there is no excuse for a response that
+deviates from the documented contract. Being strict about what is *consumed*
+is more nuanced, because it bears on Postel's Law (aka. the Robustness
+Principle), which counsels being liberal in what a system accepts.
+
+Postel's Law remains good guidance for narrow, low-risk cases, eg. tolerating
+an optional trailing slash in a URL, or accepting a request body field in
+either of two equivalent forms. But it MUST be weighed against the risks of
+permissive parsing more broadly. An API is typically integrated with once by
+each client developer, who then relies on the documented contract for the
+lifetime of their integration. If a server silently tolerates and "corrects"
+malformed input, eg. guessing the intended value of a badly-typed or
+out-of-range field rather than rejecting it, that behavior itself becomes a
+de facto part of the contract, whether or not it was ever documented –
+and a later change to tighten validation becomes a breaking change for any
+client that had come to depend on the server's leniency.
+
+Where there is doubt about whether an input deviation is safe to tolerate,
+prefer rejecting the request with a `400 Bad Request` over silently guessing
+the client's intent.
