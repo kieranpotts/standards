@@ -85,8 +85,8 @@ it once in §05, and xref it from §06.
 | Location | Rule |
 |---|---|
 | [01a-persistence.adoc:10-12](./01a-persistence.adoc#L10-L12) | Spec change made **at the same time as** code is released |
-| [10-managing-requirements.adoc:93-94](./10-managing-requirements.adoc#L93-L94) | Proposal MUST NOT be merged **until** code is released |
-| [10-managing-requirements.adoc:44-47](./10-managing-requirements.adoc#L44-L47) | A PR that changes behavior "can be required to touch the specification **in the same commit**" |
+| [10-proposal-lifecycle.adoc:93-94](./10-proposal-lifecycle.adoc#L93-L94) | Proposal MUST NOT be merged **until** code is released |
+| [10-proposal-lifecycle.adoc:44-47](./10-proposal-lifecycle.adoc#L44-L47) | A PR that changes behavior "can be required to touch the specification **in the same commit**" |
 
 These cannot all hold. If the spec edit ships in the same commit as the behavior
 change, it is merged *before* release, not after. §10's own "making drift a
@@ -98,7 +98,7 @@ three ways.
 
 - [ ] Reconcile §07 and §10 (resolved for free by [4.1](#41-10-has-become-a-catch-all)).
 
-[10-managing-requirements.adoc:216-217](./10-managing-requirements.adoc#L216-L217)
+[10-proposal-lifecycle.adoc:216-217](./10-proposal-lifecycle.adoc#L216-L217)
 — "Qualities **MUST** be specified as concrete, testable thresholds."
 
 [07-qualities.adoc:43](./07-qualities.adoc#L43) uses **SHOULD**, and
@@ -166,16 +166,16 @@ section's entire purpose is to separate the two artifacts, this undermines it.
 - [ ] Add `Proposed → Draft` (rework) and a terminal path from `Accepted`, or
       state explicitly why neither is permitted.
 
-[10-managing-requirements.adoc:170](./10-managing-requirements.adoc#L170) — "A
+[10-proposal-lifecycle.adoc:170](./10-proposal-lifecycle.adoc#L170) — "A
 proposal MUST NOT move backwards… and MUST NOT skip states."
 
-But [10-managing-requirements.adoc:176-182](./10-managing-requirements.adoc#L176-L182)
+But [10-proposal-lifecycle.adoc:176-182](./10-proposal-lifecycle.adoc#L176-L182)
 mandates cross-functional review of a `PROPOSED` proposal to catch ambiguity.
 When review sends it back for rework, the only legal moves are `Accepted` or
 `Rejected` — no `Proposed → Draft`. Likewise, a proposal that is `Accepted` but
 abandoned before release (priorities change, the feature is descoped) has no
 terminal state; `Superseded` is reachable only from `Released`. The mermaid
-diagram at [10-managing-requirements.adoc:60-71](./10-managing-requirements.adoc#L60-L71)
+diagram at [10-proposal-lifecycle.adoc:60-71](./10-proposal-lifecycle.adoc#L60-L71)
 confirms both gaps.
 
 ---
@@ -312,18 +312,48 @@ about each other.
 
 ### 4.1 §10 has become a catch-all
 
-- [ ] Move the three misfiled subsections into §06/§07/§03.
+**Renamed 2026-07-27** to `10-proposal-lifecycle.adoc` / "= Proposal lifecycle"
+(decision by Kieran). The old title, "Managing requirements", was broad enough
+to invite the drift catalogued here. The rename does not by itself fix the
+misfiling — it sharpens it, since four sections now sit under a title that
+plainly excludes them.
 
-"Managing requirements" should be about the spec's lifecycle. Three of its
-subsections are about *writing* requirements and duplicate earlier sections:
+**Destination map — awaiting approval before any section is moved.**
 
-| §10 subsection | Duplicates |
-|---|---|
-| "Write functional requirements as testable scenarios" ([193-212](./10-managing-requirements.adoc#L193-L212)) | §06 Features + §08 |
-| "State qualities as measurable thresholds" ([214-226](./10-managing-requirements.adoc#L214-L226)) | §07 Acceptance criteria — and contradicts it (see [1.3](#13-qualities-must-measurable-vs-acknowledged-subjective-nfrs)) |
-| "Definition of Ready" ([247-271](./10-managing-requirements.adoc#L247-L271)) | Neither writing nor managing the spec — it is a delivery-process gate |
+| Section (current line) | Verdict | Destination |
+|---|---|---|
+| Two artifacts ([14](./10-proposal-lifecycle.adoc#L14)) | Stays | — |
+| Version control as the substrate ([31](./10-proposal-lifecycle.adoc#L31)) | **Moves** | Merge into §01a Persistence — this is [4.2](#42-the-version-control-argument-is-made-twice-at-length) |
+| Lifecycle states ([53](./10-proposal-lifecycle.adoc#L53)) | Stays | — |
+| Binding the specification to production ([96](./10-proposal-lifecycle.adoc#L96)) | Stays | — |
+| Recording decisions ([123](./10-proposal-lifecycle.adoc#L123)) | Stays | — |
+| Atomic proposals and epics ([135](./10-proposal-lifecycle.adoc#L135)) | Stays | — |
+| Separation of feedback from record ([147](./10-proposal-lifecycle.adoc#L147)) | Stays | — |
+| Specify the end state, not a changelog ([158](./10-proposal-lifecycle.adoc#L158)) | Stays | — |
+| Keep description and reasoning in their proper homes ([172](./10-proposal-lifecycle.adoc#L172)) | Stays | — |
+| Enforce the state machine strictly ([183](./10-proposal-lifecycle.adoc#L183)) | Stays | — |
+| Review proposals cross-functionally ([191](./10-proposal-lifecycle.adoc#L191)) | Stays | — |
+| Record rejections as carefully as acceptances ([199](./10-proposal-lifecycle.adoc#L199)) | Stays | — |
+| Write functional requirements as testable scenarios ([208](./10-proposal-lifecycle.adoc#L208)) | **Moves** | §06 Behaviors (Features) |
+| State qualities as measurable thresholds ([229](./10-proposal-lifecycle.adoc#L229)) | **Moves** | §07 Qualities — resolves [1.3](#13-qualities-must-measurable-vs-acknowledged-subjective-nfrs) |
+| Trace requirements to their implementation ([243](./10-proposal-lifecycle.adoc#L243)) | **Moves** | Consolidate with §01/§07 — this is [4.3](#43-traceability-stated-three-times) |
+| Enforce specs in continuous integration ([254](./10-proposal-lifecycle.adoc#L254)) | Open | Neither proposals nor authoring; see note below |
+| Definition of Ready ([262](./10-proposal-lifecycle.adoc#L262)) | **Moves** | A delivery gate — new file, or drop from TS-1 |
 
-Moving the first two into §06/§07 would remove the contradiction in
+Two open questions for the extraction pass:
+
+1. **"Enforce specs in continuous integration"** — it is about verification
+   infrastructure, not the proposal lifecycle and not authoring. Candidates: a
+   new short section of its own, folding into §08 (executable specifications),
+   or folding into the traceability consolidation.
+
+2. **"Definition of Ready"** — a delivery-process gate, not a property of the
+   specification. It could become its own numbered section, move to a delivery
+   standard outside TS-1, or be cut. Note the DoR is also summarized in
+   [AGENTS.md](./AGENTS.md), which would need to follow whatever is decided.
+
+Moving "State qualities as measurable thresholds" into §07 removes the
+contradiction in
 [1.3](#13-qualities-must-measurable-vs-acknowledged-subjective-nfrs) for free,
 since it exists only because the rule is stated twice.
 
@@ -332,7 +362,7 @@ since it exists only because the rule is stated twice.
 - [ ] Merge §01a and §10's version-control material into one section.
 
 [01a-persistence.adoc](./01a-persistence.adoc) (82 lines) and
-[10-managing-requirements.adoc:27-47](./10-managing-requirements.adoc#L27-L47)
+[10-proposal-lifecycle.adoc:27-47](./10-proposal-lifecycle.adoc#L27-L47)
 both argue that specs belong in VCS alongside code, both list the benefits
 (history, diffs, blame, low friction), and both state the bind-to-production
 rule. §01a's "Requirements documents have a tendency to rot" opening and §10's
@@ -345,7 +375,7 @@ thesis.
 
 [01-scope.adoc:148-159](./01-scope.adoc#L148-L159) ("Executable tests"),
 [07-qualities.adoc:107-116](./07-qualities.adoc#L107-L116) ("Verification"), and
-[10-managing-requirements.adoc:228-237](./10-managing-requirements.adoc#L228-L237)
+[10-proposal-lifecycle.adoc:228-237](./10-proposal-lifecycle.adoc#L228-L237)
 ("Trace requirements to their implementation") all make the same two-way
 cross-reference argument.
 
@@ -370,7 +400,7 @@ Exactly the drift the standard warns about at
 
 Additionally, §04's tree omits `proposals/`, which
 [01a-persistence.adoc:68](./01a-persistence.adoc#L68) shows and
-[10-managing-requirements.adoc:12-20](./10-managing-requirements.adoc#L12-L20)
+[10-proposal-lifecycle.adoc:12-20](./10-proposal-lifecycle.adoc#L12-L20)
 mandates as one of two required artifacts. §04 claims to be the taxonomy where
 "every category of requirement has a single, unambiguous home" — the decision
 log has no home in it.
@@ -440,7 +470,7 @@ the section makes about them.
 - [ ] **5.1 No requirement identifier scheme.** Rules get stable IDs (`R1`,
   `R2`) at [06-behaviors.adoc:83-84](./06-behaviors.adoc#L83-L84), but features,
   scenarios, and qualities get none. Yet
-  [10-managing-requirements.adoc:228-237](./10-managing-requirements.adoc#L228-L237)
+  [10-proposal-lifecycle.adoc:228-237](./10-proposal-lifecycle.adoc#L228-L237)
   requires each requirement to be linked to its component, test suite, and
   ticket, and [07-qualities.adoc:109-112](./07-qualities.adoc#L109-L112)
   requires two-way cross-referencing between qualities and their checks.
@@ -454,7 +484,7 @@ the section makes about them.
 
 - [ ] **5.3 Single-production-deployment assumption.** "The main line MUST
   describe the as-is production system"
-  ([10-managing-requirements.adoc:4-5](./10-managing-requirements.adoc#L4-L5),
+  ([10-proposal-lifecycle.adoc:4-5](./10-proposal-lifecycle.adoc#L4-L5),
   [01-scope.adoc:5](./01-scope.adoc#L5)) is undefined for products with
   concurrently supported versions — on-prem installs, LTS branches, staged
   multi-region rollouts. Nothing addresses how the spec branches or is versioned
@@ -467,7 +497,7 @@ the section makes about them.
 
 - [ ] **5.5 No procedure for removing a requirement.** `Superseded` is a
   *proposal* state
-  ([10-managing-requirements.adoc:88-89](./10-managing-requirements.adoc#L88-L89)).
+  ([10-proposal-lifecycle.adoc:88-89](./10-proposal-lifecycle.adoc#L88-L89)).
   Nothing says what happens to the *specification* text when a feature is
   deprecated and removed from production — deleted outright, or marked? Given
   the spec describes only the present, deletion is implied, but a normative
@@ -504,9 +534,9 @@ diverges in several places.
 
 - [ ] **Quote marks — split convention.** AsciiDoc curly-quote syntax
   ``"`…`"`` appears 10 times, plain `"` about 25 times. Worst inside one file:
-  [10-managing-requirements.adoc:147-148](./10-managing-requirements.adoc#L147-L148)
+  [10-proposal-lifecycle.adoc:147-148](./10-proposal-lifecycle.adoc#L147-L148)
   uses plain quotes for a specification-phrasing example, while
-  [10-managing-requirements.adoc:199-200](./10-managing-requirements.adoc#L199-L200)
+  [10-proposal-lifecycle.adoc:199-200](./10-proposal-lifecycle.adoc#L199-L200)
   uses curly quotes for exactly the same kind of example.
 
 - [ ] **Dashes — split convention.** 73 em dashes (—) vs 10 en dashes (–) used
@@ -523,7 +553,7 @@ diverges in several places.
   - ❌ `* *Framing:* authors, purpose…` — [01-scope.adoc:76](./01-scope.adoc#L76),
     81, 87, 89 (colon inside bold, lowercase continuation)
   - ❌ `* *Branching and review*, so a proposal…` —
-    [10-managing-requirements.adoc:32-41](./10-managing-requirements.adoc#L32-L41)
+    [10-proposal-lifecycle.adoc:32-41](./10-proposal-lifecycle.adoc#L32-L41)
 
   [05-context.adoc:43-51](./05-context.adoc#L43-L51) mixes two forms **within a
   single list** — three items in the inline-bold form, then
@@ -550,7 +580,7 @@ diverges in several places.
   content.
 
 - [ ] **Mermaid rendering.**
-  [10-managing-requirements.adoc:60-71](./10-managing-requirements.adoc#L60-L71)
+  [10-proposal-lifecycle.adoc:60-71](./10-proposal-lifecycle.adoc#L60-L71)
   uses a `[mermaid]` block. The repo README states GitHub is the render target
   and there is no build tooling — confirm this actually renders through GitHub's
   AsciiDoc pipeline rather than falling back to a literal block, since the state
@@ -620,7 +650,7 @@ TS-14) resolve with correct titles.
 | [08-executable-specifications.adoc:20](./08-executable-specifications.adoc#L20) | "One of the **objective's** of the language's design" → *objectives* |
 | [08-executable-specifications.adoc:266](./08-executable-specifications.adoc#L266) | "with **severable** variable inputs" → *several* |
 | [09-requirements-elicitation.adoc:133](./09-requirements-elicitation.adoc#L133) | "closer to implementation planning **that** it is" → *than* |
-| [10-managing-requirements.adoc:94](./10-managing-requirements.adoc#L94) | "code and configuration **is** merged" → *are* |
+| [10-proposal-lifecycle.adoc:94](./10-proposal-lifecycle.adoc#L94) | "code and configuration **is** merged" → *are* |
 | [99-references.adoc:5](./99-references.adoc#L5) vs [09:26](./09-requirements-elicitation.adoc#L26) | Same Brandolini post cited as `.blogspot.co.uk` and `.blogspot.com` |
 
 ### Other prose issues
@@ -684,10 +714,35 @@ TS-14) resolve with correct titles.
 
 ## Changelog
 
+### §10 rename (2026-07-27)
+
+Uncommitted. `10-managing-requirements.adoc` → `10-proposal-lifecycle.adoc`
+(via `git mv`, so history follows), title "= Managing requirements" →
+"= Proposal lifecycle". Kieran's call: the section is about the proposal
+lifecycle, and the old broad title invited the drift catalogued in
+[4.1](#41-10-has-become-a-catch-all).
+
+Consequential edits:
+
+- The intro paragraph was extended to introduce proposals, since the section
+  now opens on that concept rather than on "managing requirements" generally.
+- The `== The proposal lifecycle` subsection was retitled `== Lifecycle states`.
+  A subsection sharing its parent document's title would have made the
+  `<<The proposal lifecycle>>` xref ambiguous, and the subsection's actual
+  content is the state machine.
+- `README.adoc` include directive updated.
+- Filename references throughout this plan updated.
+
+No section contents were moved. The destination map in
+[4.1](#41-10-has-become-a-catch-all) is proposed and awaiting approval.
+
 ### Tier 1 — correctness (2026-07-27)
 
-Uncommitted. Five files touched: `01a-persistence.adoc`, `06-behaviors.adoc`,
-`08-executable-specifications.adoc`, `10-managing-requirements.adoc`,
+Committed by Kieran across five commits (`d6f4c47`…`a8588c6`, plan at
+`b147b48`), with edits of their own on top — see
+[Kieran's amendments](#kierans-amendments-to-tier-1) below. Five files touched:
+`01a-persistence.adoc`, `06-behaviors.adoc`,
+`08-executable-specifications.adoc`, `10-proposal-lifecycle.adoc`,
 `AGENTS.md`.
 
 **Decision taken.** The §01a/§10 merge-timing conflict
@@ -727,3 +782,27 @@ rule, the three typos, first-person Gherkin steps). All xref targets checked
 against the set of section titles. New lines checked against the 80-column
 convention. No rendering check was possible — the repo has no build tooling, so
 the AsciiDoc output has not been visually confirmed.
+
+#### Kieran's amendments to tier 1
+
+Applied during commit, on top of the changes above:
+
+- **Gherkin template placeholders `{…}` → `<…>`** throughout §08, conforming to
+  [TS-26 §11](../026/11-code-blocks.adoc#L5-L7), which mandates angle brackets
+  for placeholder text.
+
+  Side effect worth tracking: §08 now uses `<…>` for two different things —
+  template placeholders, and genuine Gherkin scenario-outline variables
+  ([08:284-286](./08-executable-specifications.adoc#L284-L286)). The sentence
+  "Variables in the scenario outline steps are marked up with `<` and `>`" no
+  longer distinguishes the two. Accepted as the cost of TS-26 conformance; if
+  it proves confusing, the fix is a sentence noting the distinction, not a
+  revert.
+
+- **§08 em-dash for colon** — "Gherkin is line-oriented — one statement per
+  line", conforming to [TS-26 §13](../026/13-punctuation.adoc#L5-L7), which
+  restricts colons to introducing lists.
+
+- **AGENTS.md trimmed** — the sentence "Acceptance authorizes the work; it does
+  not license the spec to describe behavior that does not yet exist" was
+  dropped, keeping the compact version terser than the standard.
