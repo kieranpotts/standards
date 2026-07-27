@@ -92,122 +92,71 @@ it makes drift a merge-time concern rather than a documentation debt.
 Where a project batches releases rather than deploying on merge, the main line
 of the specification repository will briefly lead production — describing
 behavior that is built and merged but not yet deployed. This window SHOULD be
-kept short. It is the release pipeline's job to close it, not the specification's.
-Withholding the merge instead would strand the specification on a long-lived
-branch and reintroduce the drift the practice exists to prevent.
-
-== Accepted proposals evolve during implementation
+kept short. It is the release pipeline's job to close it, not the
+specification's. Withholding the merge instead would strand the specification
+on a long-lived branch and reintroduce the drift the practice exists to
+prevent.
 
 Between acceptance and merge, a proposal's specification edits MAY continue
 to evolve — in response to technical feedback, discoveries made while
 building, or feedback from real users in beta tests and staged roll-outs.
 It is expected that accepted proposals will continue to evolve through
-implementation.
+implementation. The important thing is that, by the time a proposal and its
+corresponding specification edits land in the main trunk, they are an accurate
+reflection of the final code and configuration changes shipped to production.
 
-When implementation reveals that real behavior differs from the proposed
-specification, the difference MUST be reconciled back into the specification
-_before_ release.
+== Best practices
 
-== Recording decisions
+* *Scope each proposal atomically.* One feature or one quality requirement —
+  the smallest thing that can be reviewed, decided, and shipped independently
+  of any other change. Where several changes genuinely depend on one another,
+  such as specifying a greenfield system, they SHOULD be kept as separate atomic
+  proposals grouped under an "epic" container.
 
-Once a proposal is merged, its document is immutable — it MUST NOT be edited
-or deleted. To revisit a decision already merged, a new proposal MUST be
-opened that supersedes the original, cross-referencing the two.
+* *Review cross-functionally.* The product teams SHOULD read a proposal for
+  scope and business intent, QA SHOULD read it for missing or ambiguous
+  acceptance criteria, and engineering SHOULD review and approve it for
+  feasibility.
 
-Every merged proposal SHOULD be assigned a stable, sequential identifier and
-listed in an index, so the evolution of the system is fully recorded and its
-current state is justified by the decision log. Even when stewardship passes to
-people with no prior knowledge of the project's history, they inherit an
-appreciation for why the system is the way it is.
+* *Specify the end state, not a changelog.* Write "authenticated callers can
+  filter the catalog by species", not "add a species filter". The diff
+  already shows what is changing. The prose SHOULD read as a description of the
+  destination, so that on release the specification is simply true.
 
-== Atomic proposals and epics
+* *Keep description and reasoning in their proper homes.* The specification
+  says _what_ the system does, while the proposals say _why_ changes were made
+  over time. Rationale MUST NOT be smuggled into the specification, and a
+  proposal MUST NOT restate the specification — it SHOULD instead link to the
+  artifacts it edits. The proposal is where to be honest about motivation,
+  alternatives, and trade-offs accepted — these are what make the decision log
+  valuable years later.
 
-A single proposal SHOULD capture one feature or one quality requirement — one
-change that can be reviewed, decided, and shipped independently of any other.
-Atomic proposals are easier to reason about, quicker to decide, and cleaner to
-record.
+* *Leave out implementation details.* How the change is rolled out — migration
+  steps, sequencing, feature flags — is an implementation concern and MUST NOT
+  appear in the specification.
 
-When several changes genuinely depend on one another — for example, specifying a
-greenfield system from scratch — they SHOULD be kept as separate atomic
-proposals and grouped under an epic task, with each child proposal referencing
-the epic it belongs to.
+* *Keep feedback out of the record.* Open-ended debate and negotiation SHOULD
+  happen in a discussion thread attached to the proposal, separate from the
+  document and its revision history. The document's history then stays a clean
+  record of how the proposal evolved. Once merged, the thread's conclusions
+  MAY be summarized in the document.
 
-== Separation of feedback from record
+* *Treat merged proposals as immutable.* A merged proposal MUST NOT be edited
+  or deleted. To revisit a decision, open a new proposal that supersedes the
+  original, cross-referencing the two. Every merged proposal SHOULD be assigned
+  a stable, sequential identifier and listed in an index, so that stewards with
+  no knowledge of the project's history still inherit an appreciation for why
+  the system is the way it is.
 
-Open-ended review, debate, and negotiation SHOULD happen in a discussion
-thread attached to each proposal, kept separate from the proposal document and
-its revision history.
+* *Record rejections as carefully as acceptances.* A rejected proposal is a
+  decision worth remembering, not a failure to hide. Its specification edits
+  MUST be reverted, but the document MUST be preserved in the archive, so the
+  next person with the same idea can read why it was not pursued. Write its
+  motivation, alternatives, and trade-offs with the same care as a winning one.
 
-This keeps the document's history a clean record of how the proposal and
-specification evolved, while the thread captures how consensus formed. Once the
-final proposal is merged, the thread has served its purpose. Its conclusions
-SHOULD be summarized in the merged document.
-
-== Specify the end state, not a changelog
-
-A proposal's specification edits SHOULD describe the system as it will be once
-the change has shipped — not the steps taken to get there. Write
-"authenticated callers can filter the catalog by species", not
-"we will add a species filter."
-
-The diff against the current specification already shows what is changing. The
-prose SHOULD read as a description of the destination, so that when the
-proposal is released the specification is simply true.
-
-How the change is rolled out — migration steps, sequencing, feature flags — is
-an implementation concern and MUST NOT be included in the specification.
-
-== Keep description and reasoning in their proper homes
-
-The specification says _what_ the system does; the proposal says _why_ a change
-was made. Rationale MUST NOT be smuggled into the specification — it is meant
-to read as a timeless description of the present. Likewise, a proposal MUST
-NOT restate the full specification — it SHOULD link to the artifacts it edits.
-
-The proposal is the place to be honest about motivation, alternatives
-considered, and trade-offs accepted. That honesty is what makes the decision log
-valuable years later.
-
-== Enforce the state machine strictly
-
-A proposal MUST NOT skip states. Each transition MUST have a gate that is
-satisfied before it is taken — for example, a proposal MUST NOT reach a
-released state until its implementation is actually in production. A state
-machine that can be bypassed is not a discipline, just a suggestion.
-
-The single permitted backward transition is proposed → draft, when review
-determines a proposal is not yet ready to be decided. This is not a weakening
-of the discipline but a part of it: returning a proposal for rework keeps the
-proposed state meaning "`ready for a decision`", rather than letting it
-degrade into a holding pen for work still in progress. No other backward
-transition is permitted. In particular, a decision once taken — accepted or
-rejected — MUST NOT be quietly reversed by moving the proposal back; it is
-revisited by superseding it with a new proposal.
-
-== Review proposals cross-functionally
-
-Review of a proposed proposal SHOULD be cross-functional — product, QA, and
-engineering each read the proposal for what their discipline is best placed to
-catch: product for scope and business intent, QA for missing or ambiguous
-acceptance criteria, engineering for feasibility. Ambiguities are cheaper to
-resolve here than after the proposal is accepted.
-
-== Record rejections as carefully as acceptances
-
-A rejected proposal is not a failure to be hidden; it is a decision worth
-remembering. Its specification edits MUST be reverted, but the proposal
-document itself MUST be preserved in the archive as a record of the decision,
-so the next person with the same idea can read why it was not pursued. The
-motivation, alternatives, and trade-offs of a doomed proposal SHOULD be
-written with the same care as a winning one.
-
-== Trace requirements to their implementation
-
-A feature or quality is easiest to trust when a reader can follow it to the
-code that implements it, and the tests that verify it.
-
-Where the tooling allows, each requirement SHOULD be linked to its
-implementing component, its test suite, and any tracking ticket for
-outstanding work.
-
-Requirement identifiers — eg. `F3.2`, `Q1.4` — SHOULD be used for this purpose.
+* *Trace requirements to their implementation.* Where the tooling allows, each
+  requirement SHOULD be linked to its implementing component, its test suite,
+  and any tracking ticket for outstanding work, citing requirement identifiers
+  such as `F3.2` or `Q1.4`. A feature or quality is easiest to trust when a
+  reader can follow it to the code that implements it and the tests that verify
+  it.

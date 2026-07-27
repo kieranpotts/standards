@@ -116,7 +116,14 @@ terms." §10's MUST forbids what §07 permits.
 
 ### 1.4 `.feature` file scope: MUST vs. SHOULD, different rules
 
-- [ ] Choose one strength and one rule.
+- [x] Choose one strength and one rule. **Done 2026-07-27.** The two statements
+      were making different claims, so they were separated rather than
+      reconciled. §08 "Basic structure" now states the file-format rule (a file
+      MUST contain at most one `Feature` block); §08 "Feature files" states the
+      scoping guidance (a file SHOULD be scoped to one feature, but a large
+      feature is better split than allowed to become a scenario dump). Added a
+      note that identifiers name files, not concepts — so a feature split across
+      files takes several identifiers.
 
 [08-executable-specifications.adoc:36](./08-executable-specifications.adoc#L36) —
 "Each discrete feature **MUST** be described in a single plain text file."
@@ -162,7 +169,13 @@ every other example uses third person.
 
 ### 1.6 Success metrics assigned to both artifacts
 
-- [ ] Assign success metrics to one artifact only.
+- [x] Assign success metrics to one artifact only. **Done 2026-07-27.**
+      Assigned to the PRD, matching the prose at
+      [01-scope.adoc:89](./01-scope.adoc#L89) — success metrics are a
+      product-outcome concern, while the SRS states verifiable behavior. The
+      table's SRS row was rewritten to name what the SRS actually holds: domain
+      model, actors, functional requirements as testable scenarios,
+      non-functional requirements as measurable thresholds.
 
 [01-scope.adoc:89](./01-scope.adoc#L89) lists "success metrics" under **PRD**
 contents. The comparison table at [01-scope.adoc:136](./01-scope.adoc#L136)
@@ -171,8 +184,28 @@ section's entire purpose is to separate the two artifacts, this undermines it.
 
 ### 1.7 State machine has no rework or abandonment path
 
-- [ ] Add `Proposed → Draft` (rework) and a terminal path from `Accepted`, or
-      state explicitly why neither is permitted.
+- [x] Add `Proposed → Draft` (rework) and a terminal path from `Accepted`, or
+      state explicitly why neither is permitted. **Done 2026-07-27**, decisions
+      by Kieran. The two halves resolved differently:
+
+      *Rework* — `PROPOSED` → `DRAFT` added to the diagram and to the `Proposed`
+      state definition. "Enforce the state machine strictly" was rewritten: it
+      no longer forbids all backward movement, but permits this one transition
+      and explains why it strengthens rather than weakens the discipline
+      (`PROPOSED` keeps meaning "ready for a decision"). A decision once taken
+      still MUST NOT be reversed by moving backwards.
+
+      *Abandonment* — **no terminal path added.** Kieran's call: an `ACCEPTED`
+      proposal is allowed to evolve during implementation, which is now
+      specified in a new §10 section, "Accepted proposals evolve during
+      implementation". It absorbs the two paragraphs previously scattered inside
+      "Binding the specification to production", and adds the limit: evolution
+      covers the wording of acceptance criteria, not the intent. Where the
+      intent turns out to be wrong, supersede the proposal rather than rewriting
+      it into something the approvers did not agree to.
+
+      **Also propagated to the [kieranpotts/specs](https://github.com/kieranpotts/specs)
+      reference implementation** at Kieran's request — see the changelog.
 
 [10-proposal-lifecycle.adoc:170](./10-proposal-lifecycle.adoc#L170) — "A
 proposal MUST NOT move backwards… and MUST NOT skip states."
@@ -404,8 +437,17 @@ cross-reference argument.
 
 ### 4.4 The directory tree is reproduced three times, and has already drifted
 
-- [ ] Show the tree once in §04; xref it from §05 and §06.
-- [ ] Add `proposals/` to the §04 taxonomy.
+- [ ] Show the tree once in §04; xref it from §05 and §06. **Attempted
+      2026-07-27, reverted by Kieran.** The §05 and §06 trees were replaced with
+      xrefs to §04; Kieran restored both. Reading the revert as a deliberate
+      preference for each section carrying its own local view of the tree, so
+      the duplication is accepted — but the drift risk it creates is real and
+      already realized (see the annotation differences below). If the trees stay,
+      they need to be kept consistent by hand, or this item reopened with a
+      different fix.
+- [x] Add `proposals/` to the §04 taxonomy. **Done 2026-07-27.** Also reordered
+      the §04 tree to match prose order and trimmed annotations to fit 80
+      columns. Kieran kept this rewrite.
 
 [04-structure.adoc:9-29](./04-structure.adoc#L9-L29),
 [05-context.adoc:10-21](./05-context.adoc#L10-L21),
@@ -430,7 +472,12 @@ log has no home in it.
 
 ### 4.5 Tree order ≠ section order
 
-- [ ] Reorder the trees to match the prose in §05 and §06.
+- [ ] Reorder the trees to match the prose in §05 and §06. **Partially done
+      2026-07-27.** The canonical §04 tree is now in prose order
+      (overview → constraints → model → actors → glossary; features → rules →
+      access → interfaces → journeys). The §05 and §06 trees were restored by
+      Kieran in their original order, so they still disagree with the prose
+      beneath them and with §04.
 
 - **§05**: tree lists overview, constraints, glossary, model, actors; prose
   sections run Overview → Constraints → **Model → Actors → Glossary**.
@@ -715,7 +762,11 @@ TS-14) resolve with correct titles.
   [TS-26 §01](../026/01-voice-and-tense.adoc#L18-L20) reserves "we" for genuine
   statements of the author's position.
 
-- [ ] **Terminology collision on "features".**
+- [x] **Terminology collision on "features". Done 2026-07-27.** §03's loose
+  sense was reworded away entirely — "what the software does, combined with the
+  constraints within which it must operate, is the whole of what the system is
+  obliged to deliver" — leaving "Features" to mean only the §06 structural
+  sense.
   [03-acceptance-criteria.adoc:34](./03-acceptance-criteria.adoc#L34) defines
   "features" as functional + non-functional requirements combined.
   [06-behaviors.adoc:12](./06-behaviors.adoc#L12) defines "Features" as
@@ -723,7 +774,10 @@ TS-14) resolve with correct titles.
   standard makes structural — a direct violation of
   [TS-26 §03](../026/03-terminology.adoc) ("use one term per concept").
 
-- [ ] **Terminology collision on "journey".**
+- [x] **Terminology collision on "journey". Done 2026-07-27.** §08 no longer
+  says a scenario "describes a journey" — a scenario is now "a concrete example
+  that illustrates a business rule, expressed as a sequence of steps", leaving
+  "journey" to mean only §06's multi-step end-to-end flow.
   [08-executable-specifications.adoc:136](./08-executable-specifications.adoc#L136)
   — a scenario "describes a **journey**" collides with §06's `journeys/`
   section.
@@ -751,6 +805,72 @@ TS-14) resolve with correct titles.
 ---
 
 ## Changelog
+
+### §10 "Best practices" consolidation (2026-07-27)
+
+Uncommitted. Kieran's call: the tail of §10 was nine short prose sections, each
+making one point, which read as a list wearing section headings. Consolidated
+into a single `== Best practices` section of nine bullets, using the style
+guide's `* *Label.* Description.` form.
+
+Sections folded in: Recording decisions, Atomic proposals and epics, Separation
+of feedback from record, Specify the end state, Keep description and reasoning
+in their proper homes, Enforce the state machine strictly, Review proposals
+cross-functionally, Record rejections as carefully as acceptances, Trace
+requirements to their implementation.
+
+§10 is now five sections (Two artifacts, Lifecycle states, Binding the
+specification to production, Best practices) and 167 lines, down from 213.
+
+Every normative statement was carried over — including the `PROPOSED` → `DRAFT`
+rule added earlier in this session, and the requirement-identifier citation
+added by [5.1](#5-genuine-coverage-gaps). What was dropped is repetition and
+scene-setting, not rules. Checked afterwards that no `<<…>>` xref pointed at any
+of the nine removed section titles; none did, because Kieran had already removed
+the two that would have broken.
+
+### Tier 2 — coherence (2026-07-27)
+
+Uncommitted, and **spans two repositories**.
+
+Closes 1.4, 1.6, 1.7, both terminology collisions, and part of 4.4/4.5.
+
+**Decisions by Kieran:**
+
+- *Rework path* — allow `PROPOSED` → `DRAFT`, narrowing the rule to forbid
+  skipping states rather than all backward movement.
+- *Abandonment* — **not required.** Instead, specify that an `ACCEPTED` proposal
+  may evolve during implementation. This reframed the problem: the gap was not a
+  missing terminal state but an unstated allowance.
+
+**In [kieranpotts/specs](https://github.com/kieranpotts/specs)**, at Kieran's
+request, the new transition propagated to every place the lifecycle is stated:
+
+- `CONTRIBUTING.md` — mermaid diagram, the allowed-transitions table (new row),
+  and the rule text, which had explicitly named `PROPOSED` → `DRAFT` as a
+  forbidden example.
+- `AGENTS.md` — transition list and rule text.
+- `docs/definition-of-ready.md` and
+  `.agents/skills/write-spec/references/definition-of-ready.md` — both said
+  refinement "does not move it backwards"; now distinguish minor refinement
+  (stays `PROPOSED`) from a substantial gap (returns to `DRAFT`).
+
+*Not changed, deliberately:* `accept-spec/SKILL.md`'s "never move backwards" is
+scoped to the accept transition and remains correct. `proposals/README.md`
+gives a happy-path summary and points at `CONTRIBUTING.md` for detail.
+
+*Gap left open:* the specs repo has one agent skill per transition, but none
+implements `PROPOSED` → `DRAFT`. A `rework-spec` skill would complete the set.
+
+**Kieran's amendments during this pass:** the §05 and §06 duplicate trees were
+restored after I replaced them with xrefs to §04 (see
+[4.4](#44-the-directory-tree-is-reproduced-three-times-and-has-already-drifted)),
+and an xref was dropped from the `Accepted` state definition. The §04 tree
+rewrite was kept.
+
+**Verification.** All xref targets resolve. No stale "MUST NOT move backwards"
+claims remain in the specs repo. New lines within 80 columns in both repos.
+No rendering check in either repo — neither has build tooling.
 
 ### 5.1 — requirement identifier scheme (2026-07-27)
 
