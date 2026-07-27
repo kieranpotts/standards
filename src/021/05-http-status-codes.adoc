@@ -7,83 +7,93 @@ interpretation of HTTP responses by clients.
 
 There are many standardized HTTP status codes. Most APIs will need only a subset
 of the full set of standard codes. The supported subset of HTTP status codes
-MUST be documented as part of the API's interface definition. Commonly-used
+MUST be documented as part of the API's interface definition, and an API MUST
+NOT return any status code outside of this documented subset. Commonly-used
 status codes include:
 
 * *1xx*: Informational response codes.
 
 ** `100 Continue`: Indicates that the initial part of the request has been
-received and the client should continue sending the rest of the request. This is
-used in the context of large payloads that cannot reasonably be transmitted in a
-single message.
+   received and the client should continue sending the rest of the request. This is
+   used in the context of large payloads that cannot reasonably be transmitted in a
+   single message.
 
 * *2xx*: Success response codes.
 
 ** `200 OK`: Indicates that the request was successful. This is the most
-widely-used success response code.
+   widely-used success response code.
 
 ** `201 Created`: Indicates that the request was successful and, as a result, a
-new resource has been created.
+   new resource has been created.
 
 ** `202 Accepted`: For asynchronous operations that will be fulfilled by the
-server at a later time. This signifies that the server has received the message,
-and has added it to a queue for processing. The outcome of that processing
-(whether successful or unsuccessful) is not yet known, therefore.
+   server at a later time. This signifies that the server has received the message,
+   and has added it to a queue for processing. The outcome of that processing
+   (whether successful or unsuccessful) is not yet known, therefore.
 
 ** `204 No Content`: Indicates that the request was successful but there is no
-content to return in the response message. This status code MUST be returned
-with an empty HTTP message body.
+   content to return in the response message. This status code MUST be returned
+   with an empty HTTP message body.
 
 * *3xx*: Redirection response codes.
 
 ** `301 Moved Permanently`: Indicates that the requested URL has been changed
-permanently. The new URL MUST be specified in the response.
+   permanently. The new URL MUST be specified in the response.
 
 ** `302 Found`: Indicates that the requested resource is temporarily under a
-different URL.
+   different URL.
 
 * *4xx*: Client error response codes.
 
 ** `400 Bad Request`: Indicates that the request cannot be understood or
-processed by the server due to a syntax error in the client's request message.
+   processed by the server due to a syntax error in the client's request message.
 
 ** `401 Unauthorized`: Indicates that the request requires authentication but
-the client has not authenticated itself.
+   the client has not authenticated itself.
 
 ** `403 Forbidden`: Indicates that the server understood the request but is
-refusing to authorize access to the specific resource or operation requested.
+   refusing to authorize access to the specific resource or operation requested.
 
 ** `404 Not Found`: Indicates that the server could not find the requested
-resource.
+   resource.
 
 ** `405 Method Not Allowed`: Indicates that the HTTP method used in the request
-is not allowed on the target resource (but the resource exists and other methods
-can be run on it).
+   is not allowed on the target resource (but the resource exists and other methods
+   can be run on it).
 
 ** `406 Not Acceptable`: Indicates that the server cannot produce a response
 matching the media type(s) requested by the client in its `Accept` header. This
 status code MUST be used, rather than falling back silently to a different
 media type, when the requested media type cannot be honored.
 
+** `412 Precondition Failed`: Indicates that a condition specified in a
+   conditional request header, eg. `If-Match`, was not satisfied. This is used to
+   implement optimistic concurrency control.
+
 ** `415 Unsupported Media Type`: Indicates that the media type of the request
-payload, as declared in its `Content-Type` header, is not supported by the
-server. This is distinct from `400 Bad Request`, which indicates that the
-payload itself, in an otherwise-acceptable media type, could not be understood.
+   payload, as declared in its `Content-Type` header, is not supported by the
+   server. This is distinct from `400 Bad Request`, which indicates that the
+   payload itself, in an otherwise-acceptable media type, could not be understood.
+
+** `422 Unprocessable Entity`: Indicates that the request was well-formed and
+   passed basic validation, but could not be completed due to a semantic error –
+   one that depends on factors outside of the request body itself, eg. business
+   rules or the current state of server-side data.
 
 ** `429 Too Many Requests`: Indicates that the client has exceeded a rate limit
-applicable to it, eg. a limit tied to its API credentials or IP address.
-Responses with this status code SHOULD include a `Retry-After` header
-indicating how long the client should wait before retrying.
+   applicable to it, eg. a limit tied to its API credentials or IP address.
+   Responses with this status code SHOULD include a `Retry-After` header
+   indicating how long the client should wait before retrying.
 
 // TODO: Link to a dedicated rate-limiting standard once one exists.
 
 * *5xx*: Server error response codes.
 
 ** `500 Internal Server Error`: Indicates that the server encountered a
-situation it doesn't know how to handle.
+   situation it doesn't know how to handle.
 
 ** `502 Bad Gateway`: Indicates that the server, while acting as a gateway or
-proxy, received an invalid response from an upstream server.
+   proxy, received an invalid response from an upstream server.
 
 ** `503 Service Unavailable`: Indicates that the server is not ready to handle
-the request, typically due to maintenance or overload.
+   the request, typically due to maintenance or overload.
