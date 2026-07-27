@@ -89,6 +89,23 @@ maintained specification.
     `Q1`. Rules are atomic, so single-part.
   - Identifiers are permanent. Never reuse one, even after the requirement is
     removed.
+  - Identifiers are stable once assigned.
+  - State the identifier at the head of the artifact it names, and index the
+    full set so an identifier can be resolved easily.
+
+- **Deprecated requirements MUST be marked in the specification.**
+
+  A requirement whose withdrawal has been agreed, but whose behavior is still
+  in production, stays in the specification, marked deprecated. It is deleted
+  only once the behavior is fully removed from production.
+
+  The marker SHOULD sit at the head of the artifact it applies to, or at the
+  statement level where the deprecation applies to a single scenario or
+  threshold rather than the whole artifact.
+
+  A machine-readable form is RECOMMENDED where the format allows one — a
+  `@deprecated` tag on a Gherkin feature or scenario — so deprecated
+  requirements can be listed mechanically.
 
 - **RECOMMENDED to use Gherkin for functional requirements.**
 
@@ -172,6 +189,16 @@ maintained specification.
   such as internal code design, modularity, etc. These are design choices, not
   requirements.
 
+- **Qualities SHOULD be grouped by quality characteristic.**
+
+  The RECOMMENDED taxonomy is the ISO/IEC 25010 product quality model:
+  functional suitability, performance efficiency, compatibility, interaction
+  capability, reliability, security, flexibility, safety.
+
+  The ISO/IEC 25010 *maintainability* characteristic (modularity, reusability,
+  testability) MAY be excluded, since it covers static qualities that are more
+  of a design concern than a business requirement.
+
 - **NFRs SHOULD be measurable, testable acceptance criteria.**
 
   Wherever a quality is objectively measurable, it MUST be stated as a concrete
@@ -215,6 +242,10 @@ maintained specification.
   Persist the spec under the same version control as the code. Wikis and issue
   trackers drift.
 
+  Where several versions are live at once the main line MUST describe the
+  newest released version, and each other supported version is a branch or tag
+  of the specification repository, cut when that version was released.
+
 - **Changes go through a proposal lifecycle, recorded permanently.**
 
   Draft → Proposed → Accepted → Released → Superseded,
@@ -243,6 +274,24 @@ maintained specification.
 
   Record rejections as carefully as acceptances. Revert the spec edits, but
   preserve the proposal document.
+
+- **Prioritize the backlog of accepted proposals with MoSCoW.**
+
+  The RECOMMENDED scheme for ordering accepted proposals awaiting implementation
+  is Must / Should / Could / Won't.
+
+  `Won't` means out-of-scope for now, while the proposal stays accepted and MAY
+  be scheduled for delivery later, when time and budget allow.
+
+- **Withdrawing a requirement goes through the same lifecycle.**
+
+  Announcing a removal and performing it are separate events:
+
+  1. *Deprecated.* The removal proposal is released. The behavior is still in
+     production, so the requirement stays in the spec, marked deprecated.
+
+  2. *Removed.* The behavior is gone from production, so the spec artifacts are
+     deleted, in the same change-set that removes the implementing code.
 
 - **Specify the end state, not a changelog.**
 
