@@ -13,11 +13,11 @@ contradictions, several factual errors in the Gherkin material, significant
 duplication across §01a/§07/§10, and the compact `AGENTS.md` has drifted from
 the standard it summarizes, including one rule it invents outright.
 
-**Status:** tiers 1 (correctness) and 2 (coherence) applied, plus
-[5.1](#5-genuine-coverage-gaps) and all of
-[§3 technical accuracy](#3-technical-accuracy-elsewhere) — see
-[Changelog](#changelog). No contradictions or factual errors remain. Open: the
-rest of tier 3 (completeness) and tier 4 (conventions).
+**Status:** tiers 1 (correctness), 2 (coherence), and 3 (completeness) applied,
+along with all of [§3 technical accuracy](#3-technical-accuracy-elsewhere) and
+the [§8 prose issues](#other-prose-issues) — see [Changelog](#changelog). No
+contradictions, factual errors, or known prose defects remain. Open: tier 4
+(conventions), three items of which need a decision.
 
 ---
 
@@ -286,8 +286,22 @@ gets it right — the templates should match.
 
 ### 2.4 Missing core Gherkin constructs
 
-- [ ] Add `Rule:`, tags, doc strings, and step data tables — or state
+- [x] Add `Rule:`, tags, doc strings, and step data tables — or state
       explicitly that they are out of the recommended baseline and why.
+      **Done 2026-07-27.** All four added, plus the `*` step keyword:
+
+      - `=== Step arguments` (under Steps) — doc strings and data tables, with a
+        note distinguishing a step data table from a scenario outline's
+        `Examples` table, since they look alike and are routinely confused.
+      - `== Rule blocks` — with the recommendation that a `Rule` block name the
+        central rule's identifier, and a caveat that `Rule` is a later language
+        addition worth confirming framework support for.
+      - `== Tags` — selection first, then identifier cross-referencing
+        (`@R3`, `@Q1.4`), with a warning that an untended tag vocabulary becomes
+        a second undocumented taxonomy.
+
+      Titled "Rule blocks", not "Rules", to avoid an xref collision with §06's
+      `== Rules`. Both `<<Rules>>` xrefs would otherwise have become ambiguous.
 
 [08-executable-specifications.adoc:182-188](./08-executable-specifications.adoc#L182-L188)
 lists the step keywords but omits `*` (the generic bullet step). More
@@ -310,8 +324,13 @@ so these omissions read as prohibitions rather than gaps.
 
 ### 2.5 `.feature` files have no stated home
 
-- [ ] Link §08 to the taxonomy, and state how a scenario cross-references a rule
-      ID.
+- [x] Link §08 to the taxonomy, and state how a scenario cross-references a rule
+      ID. **Done 2026-07-27.** §08 "Feature files" now opens by placing
+      `.feature` files at `requirements/behaviors/features/`, xref'ing
+      `<<Structure of a specification>>`, and naming `rules/` as the home of the
+      cross-cutting half. Added the rule that a scenario SHOULD NOT restate a
+      centrally-stated business rule but reference it by identifier, pointing at
+      `<<Rule blocks>>` and `<<Tags>>` for the two mechanisms.
 
 [04-structure.adoc:24](./04-structure.adoc#L24) puts Gherkin scenarios in
 `requirements/behaviors/features/`. §08 — 334 lines on Gherkin — never
@@ -448,7 +467,8 @@ cross-reference argument.
 
 ### 4.4 The directory tree is reproduced three times, and has already drifted
 
-- [ ] Show the tree once in §04; xref it from §05 and §06. **Attempted
+- [x] Show the tree once in §04; xref it from §05 and §06. **Superseded
+      2026-07-27 — trees kept, hand-aligned instead.** Attempted
       2026-07-27, reverted by Kieran.** The §05 and §06 trees were replaced with
       xrefs to §04; Kieran restored both. Reading the revert as a deliberate
       preference for each section carrying its own local view of the tree, so
@@ -483,7 +503,7 @@ log has no home in it.
 
 ### 4.5 Tree order ≠ section order
 
-- [ ] Reorder the trees to match the prose in §05 and §06. **Partially done
+- [x] Reorder the trees to match the prose in §05 and §06. **Done
       2026-07-27.** The canonical §04 tree is now in prose order
       (overview → constraints → model → actors → glossary; features → rules →
       access → interfaces → journeys). The §05 and §06 trees were restored by
@@ -500,7 +520,11 @@ In both files the tree is the odd one out.
 
 ### 4.6 §09's ordering contradicts its own stated pipeline
 
-- [ ] Reorder to use cases → event storming → story mapping → example mapping.
+- [x] Reorder to use cases → event storming → story mapping → example mapping.
+      **Done 2026-07-27.** Example mapping and story mapping swapped, matching
+      the pipeline the section already described. Added a paragraph to the intro
+      stating the order and why. Verified as a pure reorder: the file's words are
+      identical before and after, only their order changed.
 
 The section presents use cases → event storming → **example mapping** → **story
 mapping**. But it also says:
@@ -518,27 +542,42 @@ the section makes about them.
 
 ### 4.7 Coverage imbalance
 
-- [ ] **Use cases** get 8 lines
+- [x] **Use cases.** *Done 2026-07-27.* Expanded from 8 lines to a full
+  anatomy — actor, goal, preconditions, main success scenario, extensions,
+  postconditions — plus the relationship to scenarios and a warning against
+  maintaining both as specification artifacts. Original finding: use cases got
+  8 lines
   ([09-requirements-elicitation.adoc:12-22](./09-requirements-elicitation.adoc#L12-L22))
   with no guidance on how to write one (actor, goal, preconditions, main success
   scenario, extensions) — versus 40 lines for event storming and 44 for story
   mapping, both of which get full procedural detail. A reader can run an
   event-storming workshop from this text; they cannot write a use case from it.
 
-- [ ] **Impact mapping** is absent, despite being part of the project's own
+- [x] **Impact mapping.** *Done 2026-07-27.* Added as a new §09 section, placed
+  first because it decides what to build at all. Original finding: absent, despite being part of the project's own
   `discover` workflow.
 
-- [ ] **NPS** gets ~30 lines
+- [x] **NPS.** *Done 2026-07-27.* Cut from 25 lines to 11 — the survey
+  arithmetic is now a link, and the section states what it previously only
+  implied: a sentiment proxy is weaker than a threshold and why. Original
+  finding: NPS got ~30 lines
   ([07-qualities.adoc:81-105](./07-qualities.adoc#L81-L105)) explaining the
   survey question, the 0-10 bands, and the arithmetic. The style guide states
   the audience is experienced engineers and "foundational concepts do not need
   to be explained." One sentence plus a link would carry the same weight.
 
-- [ ] **§08** is 334 lines — 21% of the standard — much of it explaining what
+- [x] **§08.** *Partially done 2026-07-27.* 471 → 448 lines by removing the
+  triplicated user-story formula and a redundant second template scenario. Not
+  reduced further: the Gherkin reference material added in 2.4/2.5 is the bulk
+  of it and is load-bearing. Original finding: §08 was 334 lines — 21% of the standard — much of it explaining what
   `Given`/`When`/`Then` mean. Same audience-level concern; it reads as a Gherkin
   tutorial rather than a normative standard.
 
-- [ ] **§02 Responsibility** (22 lines) says only "write in business language,
+- [x] **§02 Responsibility.** *Done 2026-07-27 — not merged.* On inspection the
+  overlap was one sentence, not the whole section; the doctor/waiter and
+  collaboration arguments are distinct claims. Restructured instead so the
+  ownership rule leads rather than trailing the password example, and the
+  sentence §03 repeats was cut. 31 → 28 lines. Original finding: §02 (22 lines) says only "write in business language,
   collaborate with the customer, technical teams own it" — the first two of
   which §03 repeats at
   [03-acceptance-criteria.adoc:14-16](./03-acceptance-criteria.adoc#L14-L16).
@@ -573,31 +612,87 @@ the section makes about them.
   and quality identifiers were genuinely absent there too, so the gap was real
   in both artifacts, not just in the standard.
 
-- [ ] **5.2 `qualities/` has no internal structure.** §04 gives `behaviors/`
-  five subdirectories and leaves `qualities/` flat, with no guidance on
-  organizing NFRs (by attribute? by component? by SLA?). §07 does not fill the
-  gap either.
+- [x] **5.2 `qualities/` has no internal structure. Done 2026-07-27.**
+  Kieran's call: group by **ISO/IEC 25010** product quality characteristic,
+  rather than codifying the flat one-file-per-attribute layout the reference
+  implementation happens to use. New `== Organizing qualities` section in §07
+  lists the nine characteristics; §04's tree annotation updated.
 
-- [ ] **5.3 Single-production-deployment assumption.** "The main line MUST
-  describe the as-is production system"
-  ([10-proposal-lifecycle.adoc:4-5](./10-proposal-lifecycle.adoc#L4-L5),
-  [01-scope.adoc:5](./01-scope.adoc#L5)) is undefined for products with
-  concurrently supported versions — on-prem installs, LTS branches, staged
-  multi-region rollouts. Nothing addresses how the spec branches or is versioned
-  in that case, and it is a common situation.
+  **Maintainability is excluded** from the nine (Kieran's call, over my initial
+  "mostly out-of-scope" hedge): modularity, reusability, and testability are
+  static qualities, and a runtime-observable maintenance concern such as
+  time-to-restore belongs under *reliability* as recoverability. Also noted that
+  a characteristic is a filing category rather than a requirement — what is
+  verified is the threshold under it — and that the taxonomy's value is
+  prompting: reading the list surfaces categories nobody thought to ask about.
 
-- [ ] **5.4 No prioritization guidance.** MoSCoW, weighted shortest job first,
-  or any means of expressing relative importance of requirements.
-  [09-requirements-elicitation.adoc:94-96](./09-requirements-elicitation.adoc#L94-L96)
-  mentions stories "ordered by priority" without saying by what scheme.
+  **Retrofitted** to `kieranpotts/specs` — `qualities/` is now grouped into
+  `compatibility/`, `performance-efficiency/`, `flexibility/`, and
+  `reliability/`, moved with `git mv` so history is preserved. No renumbering
+  was needed: all 444 inbound links were path-based and none cited a
+  Q-identifier, and renumbering would have violated §04's own
+  stable-under-re-filing rule.
 
-- [ ] **5.5 No procedure for removing a requirement.** `Superseded` is a
-  *proposal* state
-  ([10-proposal-lifecycle.adoc:88-89](./10-proposal-lifecycle.adoc#L88-L89)).
-  Nothing says what happens to the *specification* text when a feature is
-  deprecated and removed from production — deleted outright, or marked? Given
-  the spec describes only the present, deletion is implied, but a normative
-  standard should say so.
+- [x] **5.3 Single-production-deployment assumption. Done 2026-07-27.** New
+  `== Concurrently supported versions` section in §10. The main line describes
+  the newest released version; each other supported version is a branch or tag
+  of the specification repository, cut where that version was released. Follows
+  from persisting the spec under version control, so the branching that already
+  tracks supported releases of the code tracks the spec with it.
+
+  Two constraints added: a version branch is a historical record, not a place to
+  develop new requirements, and the alternative (one document qualifying every
+  requirement with the versions it applies to) is NOT RECOMMENDED, because the
+  cost falls on every reader rather than the few who need an older version.
+
+- [x] **5.4 No prioritization guidance. Done 2026-07-27.** New
+  `== Prioritizing proposals` section in §10, recommending **MoSCoW**.
+
+  Three points beyond naming the scheme: `Won't` is what earns MoSCoW its place
+  (the other three can be approximated by ordering a backlog, but a deliberate
+  exclusion has nowhere else to live); priority belongs on a *proposal* rather
+  than on the specification's standing text, since everything in an as-is spec
+  has already shipped; and priority MUST NOT be used to soften a requirement —
+  a `Could` that ships is as binding as a `Must` that ships.
+
+  **Moved to §10 on Kieran's call**, having first been drafted into §03 with
+  acceptance criteria. The section's own argument — that priority attaches to a
+  proposal, not to standing specification text — contradicted its placement
+  among the rules for writing that standing text. §10 also supplies the
+  concrete use: ordering the backlog of *accepted* proposals awaiting
+  implementation, since acceptance fixes that a change will be made but not
+  when. Reframed accordingly, and the "as-is spec" point sharpened: a
+  specification annotated with priorities invites readers to treat some of its
+  requirements as optional, which none of them are.
+
+- [x] **5.5 No procedure for removing a requirement. Done 2026-07-27.**
+  Kieran's call: **two-phase** — mark deprecated while the behavior is still
+  live but its withdrawal agreed, then delete outright once it is gone from
+  production, in the same change-set that removes the code. New
+  `== Removing a requirement` section in §04.
+
+  The deprecation marker is the one place the specification states something
+  about the future; the section says so explicitly and justifies the exception
+  (consumers must be able to see a scheduled withdrawal, and the marker is
+  short-lived). Retired identifiers are never reused — the gap in the sequence
+  is the trace, which is the same rule that makes identifiers permanent.
+
+  **Split across §04 and §10 on Kieran's call**, having first been written as a
+  single `== Removing a requirement` section in §04. Deprecating a feature
+  requires a new proposal — it is the same lifecycle as any other change, with
+  no lightweight path — so the *process* belongs in §10 as
+  `== Withdrawing a requirement`. What the specification itself needs is the
+  *notation*, so §04 keeps `== Marking a requirement deprecated`: what the
+  marker must state, where it goes (head of artifact, or against a two-part
+  identifier where the deprecation is narrower), and a RECOMMENDED
+  machine-readable form so deprecated requirements can be listed mechanically.
+  The two sections xref each other.
+
+  §10 additionally resolves a question the original left open: whether the two
+  phases are one proposal or two. Either — one is usually simpler, staying open
+  across the deprecation period; two are warranted where that period is long
+  enough that the removal deserves review against conditions as they are by
+  then.
 
 ---
 
@@ -628,12 +723,17 @@ diverges in several places.
   (`<author> (<year>). _<title>_. <publication>`). Three conventions, none of
   which TS-1 follows.
 
-- [ ] **Quote marks — split convention.** AsciiDoc curly-quote syntax
-  ``"`…`"`` appears 10 times, plain `"` about 25 times. Worst inside one file:
-  [10-proposal-lifecycle.adoc:147-148](./10-proposal-lifecycle.adoc#L147-L148)
-  uses plain quotes for a specification-phrasing example, while
-  [10-proposal-lifecycle.adoc:199-200](./10-proposal-lifecycle.adoc#L199-L200)
-  uses curly quotes for exactly the same kind of example.
+- [x] **Quote marks — split convention. Done 2026-07-27**, and resolved
+  repo-wide rather than only in TS-1. Kieran's ruling: **plain double quotes
+  only**; AsciiDoc's curly-quote syntax is not used. Added to the
+  [style guide](../../docs/style-guide.md) along with a new rule that backticks
+  MUST NOT appear inside a quoted string in prose.
+
+  Converted 53 instances across 22 files (10 in TS-1, 43 in TS-2, TS-3, TS-21,
+  TS-22, TS-31, TS-45). Two shell-syntax instances inside code blocks were left
+  alone — the rule is prose-only. One passage
+  ([045/08-validation.adoc](../045/08-validation.adoc)) nested monospace inside
+  a quote and had to be rewritten rather than converted.
 
 - [ ] **Dashes — split convention.** 73 em dashes (—) vs 10 en dashes (–) used
   for the identical parenthetical function, concentrated in
@@ -662,11 +762,16 @@ diverges in several places.
   TS-4, TS-7, TS-13, and TS-14. Compare [TS-3](../003/README.adoc), which does
   this well.
 
-- [ ] **Prose cross-reference instead of an xref.**
-  [06-behaviors.adoc:72](./06-behaviors.adoc#L72) — "covered in-depth in the
-  section on executable specifications" should be
-  `<<Executable specifications>>`, since the files merge into one document via
-  `include::`.
+- [x] **Prose cross-reference instead of an xref. Resolved 2026-07-27** as a
+  convention rather than a defect. Kieran's ruling: mixed, decided case by case
+  — xref (`<<Section title>>`) where the reader is being directed to go and read
+  another section; plain prose for passing mentions. `link:` is reserved for
+  *other* standards, since `include::` merges section files and a file-relative
+  link resolves to the wrong place. Written into the
+  [style guide](../../docs/style-guide.md).
+
+  The specific instance at [06-behaviors.adoc](./06-behaviors.adoc) is now an
+  xref to `<<Executable specifications>>`.
 
 - [ ] **Inconsistent listing blocks.**
   [01a-persistence.adoc:61](./01a-persistence.adoc#L61) titles its block
@@ -715,17 +820,33 @@ diverges in several places.
   6 of the standard's 7 criteria. (The standard splits independence and small
   increments into two items; AGENTS.md keeps them combined as one.)
 
-- [ ] **Omits the taxonomy the standard is built on.** AGENTS.md gives the
-  context/requirements split but never mentions `rules`, `access`, `interfaces`,
-  or `journeys` — four of the five behavior sections. An agent asked to
-  structure a spec from AGENTS.md alone would produce features-and-qualities
-  only.
+- [x] **Omits the taxonomy the standard is built on. Done 2026-07-27.**
+  AGENTS.md now has a `Behaviors are documented across five sections` rule
+  naming features, rules, access, interfaces, and journeys, with a compact tree
+  showing the whole layout including `proposals/` as a sibling of
+  `specification/`. Also states the actor-hierarchy direction (privileges
+  inherited **down**), which the compact version had never carried.
 
-- [ ] **Also absent:** persistence/placement options (§01a), requirements
-  elicitation (§09 entirely), traceability, CI enforcement, cross-functional
-  review, and recording rejections. Some trimming is expected in a compact
-  version, but these are omissions worth a deliberate decision rather than
-  drift.
+- [x] **Also absent. Done 2026-07-27.** All of it added: version-control
+  persistence (folded into the living-document rule), the elicitation techniques
+  as a closing `## Elicitation techniques` section, traceability by identifier,
+  CI enforcement as its own rule, cross-functional review, and recording
+  rejections.
+
+  **Also brought up to date** — AGENTS.md had drifted further during this
+  session and now carries: the F/Q/R identifier scheme (5.1); the Gherkin
+  additions from 2.4/2.5 (`Rule:` blocks, tags, doc strings, data tables, `*`
+  keyword, keyword-not-indentation structure, one `Feature` block per file, the
+  business-language step rule, scenario outline expansion to ordinary
+  `Scenario`s); the `PROPOSED` → `DRAFT` rework transition; that an `ACCEPTED`
+  proposal may evolve during implementation; measurable-threshold wording with
+  the subjective carve-out; versioned conformance targets (WCAG 2.2 Level AA,
+  TLS 1.3); rollout mechanics excluded from the spec; and a link to
+  [TS-12](../012/AGENTS.md) for the Definition of Done.
+
+  Template placeholders switched from `{…}` to `<…>` to match the standard.
+
+  183 lines → 305.
 
 **Verified sound:** links to `../013/AGENTS.md` and `../014/AGENTS.md` resolve.
 All six standard cross-references in the body (TS-2, TS-3, TS-4, TS-7, TS-13,
@@ -751,24 +872,25 @@ TS-14) resolve with correct titles.
 
 ### Other prose issues
 
-- [ ] [03-acceptance-criteria.adoc:3](./03-acceptance-criteria.adoc#L3) —
+- [x] *Done 2026-07-27.* [03-acceptance-criteria.adoc:3](./03-acceptance-criteria.adoc#L3) —
   "**Most** requirements specifications **SHOULD** be written as acceptance
   criteria" — double-hedged; the style guide says avoid hedging. Either they
   SHOULD be, or state the exception.
 
-- [ ] [07-qualities.adoc:33-35](./07-qualities.adoc#L33-L35) — "all NFRs
+- [x] *Done 2026-07-27* — retied to a gate: identified before the increment
+  that depends on it is designed. [07-qualities.adoc:33-35](./07-qualities.adoc#L33-L35) — "all NFRs
   **MUST** be identified… **as early as possible**" — an unfalsifiable MUST.
   Nobody can demonstrate a violation. SHOULD, or tie it to a gate ("before the
   first release increment is designed").
 
-- [ ] [06-behaviors.adoc:44](./06-behaviors.adoc#L44) — "The **all-important**
+- [x] *Done 2026-07-27.* [06-behaviors.adoc:44](./06-behaviors.adoc#L44) — "The **all-important**
   features…" — editorializing filler.
 
-- [ ] [05-context.adoc:58-61](./05-context.adoc#L58-L61) — "…so the constraint
+- [x] *Done 2026-07-27.* [05-context.adoc:58-61](./05-context.adoc#L58-L61) — "…so the constraint
   itself is purely a statement of the boundary. **The constraint remains purely
   descriptive.**" The second sentence restates the first.
 
-- [ ] [06-behaviors.adoc:78-79](./06-behaviors.adoc#L78-L79) — "if **we**
+- [x] *Done 2026-07-27.* [06-behaviors.adoc:78-79](./06-behaviors.adoc#L78-L79) — "if **we**
   specified policies… **we'd** get duplication" —
   [TS-26 §01](../026/01-voice-and-tense.adoc#L18-L20) reserves "we" for genuine
   statements of the author's position.
@@ -793,21 +915,28 @@ TS-14) resolve with correct titles.
   — a scenario "describes a **journey**" collides with §06's `journeys/`
   section.
 
-- [ ] [01-scope.adoc:139](./01-scope.adoc#L139) — section titled "Executable
+- [x] *Done 2026-07-27* — retitled "Tests are not a specification", which is
+  the argument the section actually makes. [01-scope.adoc:139](./01-scope.adoc#L139) — section titled "Executable
   tests" but argues about executable *specifications*, which is §08's title.
   Align.
 
-- [ ] [06-behaviors.adoc:108-115](./06-behaviors.adoc#L108-L115) — the access
+- [x] *Done 2026-07-27* — table replaced with a Capability/Minimum-actor form
+  that demonstrates the rule, plus a note that it is the floor rather than the
+  whole matrix. [06-behaviors.adoc:108-115](./06-behaviors.adoc#L108-L115) — the access
   table renders a full matrix with explicit `—` for Anonymous, while
   [06-behaviors.adoc:117-120](./06-behaviors.adoc#L117-L120) says "it is
   sufficient to state each capability once, against the lowest-privileged actor
   that holds it." The example does not demonstrate the rule it precedes.
 
-- [ ] [08-executable-specifications.adoc:168-173](./08-executable-specifications.adoc#L168-L173)
+- [x] *Done 2026-07-27* — the post is now drafted, then scheduled.
+  [08-executable-specifications.adoc:168-173](./08-executable-specifications.adoc#L168-L173)
   — the scheduling scenario publishes the post, *then* sets the future
   publication date. Reversed causally.
 
-- [ ] **Line length.** The [style guide](../../docs/style-guide.md) implies
+- [x] **Line length.** *Done 2026-07-27, and the finding was partly wrong —
+  see the changelog.* All body-file prose is now within 80 columns. Remaining
+  overruns are URL lines and `99-references.adoc`, which still needs the
+  wrapping decision. The [style guide](../../docs/style-guide.md) implies
   80-column wrapping and most of the repo honors it. ~30 prose lines in TS-1 run
   to 81-84 chars; [99-references.adoc](./99-references.adoc) runs to 150. Prose
   overruns are trivial to fix; the reference file needs a wrapping decision
@@ -816,6 +945,169 @@ TS-14) resolve with correct titles.
 ---
 
 ## Changelog
+
+### Tier 3 completion — 4.4/4.5, 4.7, and the §8 prose sweep (2026-07-27)
+
+Uncommitted. Ten files.
+
+**4.4/4.5 — trees.** Resolved against the earlier revert rather than by
+retrying it. The §05 and §06 trees are kept, but reordered to prose order and
+hand-aligned to §04's annotations. Verified mechanically: every node the three
+trees share now carries identical text, and §05/§06 are proper subsets of §04.
+Two annotations were shortened in all three trees together to fit 80 columns.
+
+**4.7 — coverage.** Use cases expanded to a full anatomy; impact mapping added
+as a new §09 section (placed first — it decides what to build at all, where the
+other four take scope as given); NPS cut 25 → 11 lines; §08 trimmed 471 → 448;
+§02 restructured rather than merged.
+
+**§8 prose.** All fourteen items closed, including the access-table example
+that contradicted the rule it preceded, and the reversed blog-post scenario.
+
+**The line-length finding was partly wrong.** The plan reported "~30 prose lines
+running to 81-84 chars." Most of those were a measurement artifact: the original
+count used `awk`, which counts *bytes*, and an em dash is 3 bytes in UTF-8, so
+every em-dash line read 2 columns wider than it is. Recounted by character,
+the genuine prose overruns were far fewer, and all are now fixed. What remains
+is URL lines and `99-references.adoc`, which still needs its wrapping decision.
+
+**A rewrap script hung** partway through, in an inner loop that could fail to
+advance. No damage: each file is written only after its output is fully built,
+so the hang preceded any write, and `git status` confirmed `04-structure.adoc`
+was untouched. The remaining lines were then fixed with a bounded script.
+
+**Verification.** Trees aligned; all xrefs resolve to exactly one heading each
+(checked for uniqueness, not just existence); the only duplicate heading is the
+pre-existing "Acceptance criteria", which nothing xrefs; no body-file prose over
+80 characters. The Brandolini URL mismatch was settled by request — `.co.uk`
+302-redirects to `.com`, so `.com` is canonical. No rendering check is possible;
+neither repo has build tooling.
+
+**One xref corrected during authoring:** the impact-mapping section first
+pointed at `<<Keep description and reasoning in their proper homes>>`, which is
+a bullet lead-in in §10, not a heading. Retargeted to `<<Two artifacts>>`.
+
+### Tier 3 — coverage gaps and §09 reorder (2026-07-27)
+
+Uncommitted. Five files: `03-acceptance-criteria.adoc`, `04-structure.adoc`,
+`07-qualities.adoc`, `09-requirements-elicitation.adoc`,
+`10-proposal-lifecycle.adoc`.
+
+**Decisions by Kieran:** ISO 25010 grouping for qualities (over codifying the
+reference implementation's flat layout); two-phase deprecate-then-delete for
+removal (over delete-outright); and both 5.3 and 5.4 in scope (I had proposed
+dropping 5.4 as delivery-process territory).
+
+Four new sections: `== Organizing qualities` (§07), `== Removing a requirement`
+(§04), `== Priority` (§03), `== Concurrently supported versions` (§10). §09
+reordered so its four techniques appear in the order the section already said
+they are applied.
+
+**Consequence to track:** the ISO 25010 decision puts TS-1 ahead of its
+reference implementation, whose `qualities/` directory is still flat with
+Q-identifiers assigned against that layout. Retrofitting means introducing
+subdirectories and renumbering. Not done — flagged rather than assumed.
+
+**Verification.** The §09 reorder was checked as a *pure* reorder — the file's
+word multiset is identical before and after, so nothing was dropped in the
+cut-and-paste. All xrefs resolve unambiguously; the only duplicate section title
+is the pre-existing "Acceptance criteria", which is not xref'd. New lines within
+80 columns.
+
+### §7 — AGENTS.md rewrite (2026-07-27)
+
+Uncommitted. One file, 183 → 305 lines.
+
+The compact version had drifted badly: it predated the identifier scheme, the
+§10 restructure, the merge-rule change, and the Gherkin additions, and it had
+never carried the behavior taxonomy the standard is built on. Rewritten to
+match the current standard rather than patched.
+
+**Now carried that was not before:** the five behavior sections and the
+directory tree; actor-hierarchy direction; the F/Q/R identifier scheme; six
+Gherkin constructs (`Rule:`, tags, doc strings, data tables, `*`,
+keyword-not-indentation); CI enforcement; version-control persistence;
+cross-functional review; recording rejections; traceability by identifier; the
+`PROPOSED` → `DRAFT` transition; accepted-proposals-evolve; versioned
+conformance targets; the elicitation techniques (§09), previously absent
+entirely.
+
+**Verification.** Every normative claim in the rewrite was grepped back against
+the standard's source files — 16 spot-checks, all found. Links to TS-12, TS-13,
+TS-14 resolve. Line lengths within 80 columns apart from one pre-existing
+overrun.
+
+**Judgment applied.** Elicitation techniques went in as a separate closing
+section rather than as rules, since they are discovery methods rather than
+things an agent MUST do. §01's PRD/SRS comparison table, the NPS material, and
+the Gherkin tutorial prose stay out — reference detail rather than agent-usable
+rules.
+
+### 2.4 + 2.5 — Gherkin constructs and taxonomy link (2026-07-27)
+
+Uncommitted, and **spans two repositories**.
+
+**In this repo:** §08 gained three sections — `=== Step arguments`,
+`== Rule blocks`, `== Tags` — plus the `*` step keyword and the taxonomy
+placement in "Feature files". §08 is now 476 lines, up from 361.
+
+**In [kieranpotts/specs](https://github.com/kieranpotts/specs):** 23 scenarios
+across 4 feature files tagged with the rule identifiers they verify (`@R1`,
+`@R3`…). Kieran's call, chosen over `Rule:` blocks as the smaller change and the
+one with no framework-support caveat.
+
+This closed a real gap in the reference implementation, not just a documentation
+one: rules were cited *from* six artifacts but never *from* the scenarios that
+verify them, so the traceability loop the specification demands was open at
+exactly the point where it is checked.
+
+**Finding surfaced by the retrofit.** Two of the eight rules have no scenario
+coverage, and correctly so — R2 is a negative invariant (no caller-facing
+operation exists to violate it) and R5 is time-triggered, observable only as a
+later status change. Rather than fabricate scenarios, this is now stated in
+`rules/README.md`, so a reader does not mistake the gap for an oversight. The
+three read-only features (list, search, get) are untagged, which is right: they
+exercise no state-changing rule.
+
+**Verification.** All 9 xrefs in TS-1 resolve unambiguously — checked for
+ambiguity, not just existence, since two `== Rules` sections would have silently
+broken both `<<Rules>>` references. Every `@R*` tag maps to a rule that exists;
+every tag line is immediately followed by a `Scenario`; 234 links in the specs
+repo resolve; no new lines over 80 columns. No test framework run — the
+reference implementation still has no step definitions.
+
+### Style guide + repo-wide quote sweep (2026-07-27)
+
+Uncommitted. **Scope extends beyond TS-1** — 22 content files across 7
+standards, plus `docs/style-guide.md`.
+
+Four conventions established this session were written into the style guide:
+
+1. **Quoting** — plain double quotes only; AsciiDoc curly-quote syntax is not
+   used. *(I initially wrote this rule backwards, mandating curly quotes;
+   Kieran corrected it.)*
+2. **Backticks in quotes** — MUST NOT appear inside a quoted string in prose.
+   Scoped explicitly to prose, since code blocks legitimately show backticks as
+   the documented language's own syntax.
+3. **Internal cross-references** — xref for same-standard references, `link:`
+   only for other standards, prose acceptable for passing mentions.
+4. **Placeholders and versioned standards** — angle brackets per TS-26 §11
+   (with the RFC 6570 URI-template exception); named standards cited with a
+   version and conformance level.
+
+The sweep converted 53 instances. Two hand-repairs were needed:
+
+- The conversion regex mangled `031/05-variables.adoc` **twice**, where prose
+  contained `` `"$@"` `` — a monospace span whose content starts and ends with a
+  quote — eating the opening backtick. Found by diffing every changed file
+  against `HEAD` with quote markers normalized away; a backtick-count check
+  alone would have missed the second one.
+- `045/08-validation.adoc` nested monospace inside a quote, which the new rule 2
+  forbids, so it had no mechanical conversion and was rewritten.
+
+**Left for a decision:** the en-dash/em-dash split
+([§6](#6-convention-conformance)) is still open — 4 en-dashes against 74
+em-dashes in TS-1 alone. I did not invent a rule for it.
 
 ### §3 — technical accuracy (2026-07-27)
 
