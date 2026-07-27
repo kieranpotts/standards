@@ -221,11 +221,13 @@ maintained specification.
   stories within the functional requirements, rather than as standalone
   qualities.
 
-- **NFRs MUST be identified as early as possible.**
+- **Architecturally significant NFRs MUST be identified before the increment
+  that depends on them is designed.**
 
-  Many NFRs are architecturally significant, heavily influencing fundamental
-  design choices such as technology stacks and databases, and are therefore much
-  harder to change later than functional requirements.
+  Many NFRs heavily influence fundamental design choices such as technology
+  stacks and databases, and are therefore much harder to change later than
+  functional requirements. Identify them before the design commits, rather than
+  discovering them once it is built.
 
   Some NFRs, such as uptime guarantees, are also reflected in service level
   agreements (SLAs) and so matter directly to business stakeholders.
@@ -334,11 +336,23 @@ maintained specification.
 ## Elicitation techniques
 
 Gherkin is the format for detailed ACs, but not the tool for discovering them.
-Earlier in a spec's life:
+Earlier in a spec's life, in the order they are applied — the techniques narrow
+from a business goal down to a single scenario, and a project need not use all
+five:
+
+- **Impact mapping** — works backward from a business goal to the capabilities
+  worth building. Four levels: goal (why — a number to be moved, not a
+  feature), actors (who can affect it, including those who can obstruct),
+  impacts (how their behavior must change), deliverables (what the system could
+  do). A deliverable that does not trace up to a goal is a candidate to cut.
+  Its output belongs in the proposal, NOT the specification.
 
 - **Use case analysis** — a complete interaction between an actor and the
-  system in pursuit of a goal. Maps an actor's full scope before it is broken
-  down.
+  system in pursuit of a goal. States actor, goal, preconditions, main success
+  scenario, extensions, and postconditions. The extensions are the point: they
+  surface the unhappy paths. One use case yields several scenarios. Do NOT
+  maintain use cases and scenarios as parallel specification artifacts — that
+  is two descriptions of one behavior, and therefore drift.
 
 - **Event storming** — a workshop technique for exploring a domain. Domain
   events (orange), commands (blue), actors (small yellow), aggregates (large
