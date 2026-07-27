@@ -30,6 +30,44 @@ In practice, this means:
 
 * APIs MUST be designed to be extensible.
 
+The rules above capture the intent of backwards compatibility, but "no
+breaking changes" is easy to state and surprisingly easy to violate by
+accident. The following, more exhaustive list of rules SHOULD be used as a
+checklist when reviewing a proposed change to an API that is already `LIVE`.
+
+.URL and request stability
+* A resource URL MAY gain new, OPTIONAL query parameters, but MUST NOT gain a
+  new REQUIRED one.
+* A request that omits a newly-added, optional query parameter MUST continue
+  to behave exactly as it did before that parameter was introduced.
+* The semantics of an existing parameter, or of an existing resource
+  representation, MUST NOT change.
+* A previously-valid parameter value MUST continue to be accepted; it MUST NOT
+  begin to be rejected as invalid.
+* The set of HTTP methods supported on a URL MUST NOT shrink, though it MAY
+  grow to support a new method.
+* The set of HTTP status codes an endpoint can return for a given scenario
+  MUST NOT change for requests that were already valid.
+* The name and type of an existing request or response header MUST NOT
+  change, though new, OPTIONAL headers MAY be added.
+
+.Payload stability
+* An existing property of a JSON response object MUST continue to be
+  returned, with the same name and the same JSON type.
+* Where a property's value is an array, the type of the array's contents MUST
+  NOT change.
+* Where a property's value is an object, these same compatibility rules apply
+  recursively to that object.
+* New properties MAY be added to a representation at any time, provided they
+  are OPTIONAL and do not change the meaning of any existing property.
+* A property that is documented as always being present in the response MUST
+  continue to always be present.
+* For an `enum`-typed field, no previously-supported value may be removed, and
+  the meaning of any previously-supported value MUST NOT change.
+* For a hypermedia link (see the *Payloads* section), the `rel` and `href`
+  values for an existing link relation MUST remain stable in meaning, even if
+  the specific URL they point to changes.
+
 A good example of a scalable API design is one that avoids array of scalar data
 types (strings, integers, etc.). Consider the following example:
 
@@ -65,6 +103,51 @@ for a reasonable period of time to allow clients to migrate to the new version.
 
 APIs MUST have a documented *lifecycle policy*, which describes the support and
 maintenance of each major version of the API.
+
+== API lifecycle
+
+Every major version of an API MUST be understood to be in one of the
+following states at any given time. Documenting which state a version is in
+helps both API owners and API consumers plan around its availability.
+
+|===
+|State |Description
+
+|`planned`
+|Development of this version has been scheduled, but it is not yet available to any consumer.
+
+|`beta`
+|This version is operational and available to selected consumers, for the purposes of testing and validating the new version before it is generally available. Its contract MAY still change in response to feedback.
+
+|`live`
+|This version is operational, fully supported, and available to new consumers. Its contract is stable, per the backwards-compatibility rules in this document.
+
+|`deprecated`
+|This version remains operational and fully supported for existing consumers, including bug fixes, but is no longer available to new consumers. Consumers SHOULD migrate to a newer version. See *Deprecation*, below.
+
+|`retired`
+|This version is no longer available to any consumer, at any time. All server-side infrastructure supporting it SHOULD be decommissioned.
+|===
+
+At any given time, for a given piece of API functionality, there SHOULD be
+only one version in the `live` state. This gives consumers a single,
+unambiguous answer to the question of which version they should integrate
+with.
+
+A major version SHOULD NOT move to `deprecated` until a replacement version is
+`live` and provides a documented migration path for the functionality being
+carried forward. Once `deprecated`, a version MUST remain available for a
+reasonable, published period of time before it moves to `retired`, to give
+consumers adequate notice to migrate. Where a version in the `live` or
+`deprecated` state has no remaining consumers, it MAY move to `retired`
+immediately.
+
+Because introducing a new major version imposes a real migration cost on every
+existing consumer, the decision to do so SHOULD NOT be taken lightly. Before
+starting work on a new major version, it is RECOMMENDED to document why the
+change cannot be made within the current major version's expanding-contract
+model, what value the new version delivers that justifies the migration cost,
+and how existing consumers will be supported through the transition.
 
 == Deprecation
 
