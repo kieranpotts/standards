@@ -13,11 +13,10 @@ contradictions, several factual errors in the Gherkin material, significant
 duplication across §01a/§07/§10, and the compact `AGENTS.md` has drifted from
 the standard it summarizes, including one rule it invents outright.
 
-**Status:** tiers 1 (correctness), 2 (coherence), and 3 (completeness) applied,
-along with all of [§3 technical accuracy](#3-technical-accuracy-elsewhere) and
-the [§8 prose issues](#other-prose-issues) — see [Changelog](#changelog). No
-contradictions, factual errors, or known prose defects remain. Open: tier 4
-(conventions), three items of which need a decision.
+**Status:** all four tiers applied — see [Changelog](#changelog). No
+contradictions, factual errors, or known prose or convention defects remain.
+One item is still open: [mermaid rendering](#6-convention-conformance) cannot be
+verified locally and needs a manual check on GitHub.
 
 ---
 
@@ -64,12 +63,12 @@ contradictions, factual errors, or known prose defects remain. Open: tier 4
       "down" in both places, each now xref'ing `<<Actors>>` so §05 is the single
       authoritative statement.
 
-[06-behaviors.adoc:47](./06-behaviors.adoc#L47) says privileges are inherited
+[07-behaviors.adoc:47](./07-behaviors.adoc#L47) says privileges are inherited
 **up** the actor hierarchy. Two other places say **down**:
 
-- [05-context.adoc:91](./05-context.adoc#L91) — "Privileges are inherited down
+- [06-context.adoc:91](./06-context.adoc#L91) — "Privileges are inherited down
   the hierarchy."
-- [06-behaviors.adoc:117](./06-behaviors.adoc#L117) — "Since permissions are
+- [07-behaviors.adoc:117](./07-behaviors.adoc#L117) — "Since permissions are
   inherited down the actor hierarchy…"
 
 Same file, contradicting itself 70 lines apart. Both conclusions ("specify
@@ -88,9 +87,9 @@ it once in §05, and xref it from §06.
 
 | Location | Rule |
 |---|---|
-| [01a-persistence.adoc:10-12](./01a-persistence.adoc#L10-L12) | Spec change made **at the same time as** code is released |
-| [10-proposal-lifecycle.adoc:93-94](./10-proposal-lifecycle.adoc#L93-L94) | Proposal MUST NOT be merged **until** code is released |
-| [10-proposal-lifecycle.adoc:44-47](./10-proposal-lifecycle.adoc#L44-L47) | A PR that changes behavior "can be required to touch the specification **in the same commit**" |
+| [02-persistence.adoc:10-12](./02-persistence.adoc#L10-L12) | Spec change made **at the same time as** code is released |
+| [11-proposal-lifecycle.adoc:93-94](./11-proposal-lifecycle.adoc#L93-L94) | Proposal MUST NOT be merged **until** code is released |
+| [11-proposal-lifecycle.adoc:44-47](./11-proposal-lifecycle.adoc#L44-L47) | A PR that changes behavior "can be required to touch the specification **in the same commit**" |
 
 These cannot all hold. If the spec edit ships in the same commit as the behavior
 change, it is merged *before* release, not after. §10's own "making drift a
@@ -110,11 +109,11 @@ three ways.
       dynamic/static paragraph was dropped rather than moved — §07 already opens
       with that distinction.
 
-[10-proposal-lifecycle.adoc:216-217](./10-proposal-lifecycle.adoc#L216-L217)
+[11-proposal-lifecycle.adoc:216-217](./11-proposal-lifecycle.adoc#L216-L217)
 — "Qualities **MUST** be specified as concrete, testable thresholds."
 
-[07-qualities.adoc:43](./07-qualities.adoc#L43) uses **SHOULD**, and
-[07-qualities.adoc:73-79](./07-qualities.adoc#L73-L79) explicitly carves out UX
+[08-qualities.adoc:43](./08-qualities.adoc#L43) uses **SHOULD**, and
+[08-qualities.adoc:73-79](./08-qualities.adoc#L73-L79) explicitly carves out UX
 as "entirely subjective, difficult to specify and measure in quantifiable
 terms." §10's MUST forbids what §07 permits.
 
@@ -129,10 +128,10 @@ terms." §10's MUST forbids what §07 permits.
       note that identifiers name files, not concepts — so a feature split across
       files takes several identifiers.
 
-[08-executable-specifications.adoc:36](./08-executable-specifications.adoc#L36) —
+[09-executable-specifications.adoc:36](./09-executable-specifications.adoc#L36) —
 "Each discrete feature **MUST** be described in a single plain text file."
 
-[08-executable-specifications.adoc:95](./08-executable-specifications.adoc#L95) —
+[09-executable-specifications.adoc:95](./09-executable-specifications.adoc#L95) —
 "A `.feature` file **SHOULD** describe a single feature… **or a particular
 aspect of a feature.**"
 
@@ -146,7 +145,7 @@ Different strength *and* different content, 60 lines apart in one file.
       register. Added a paragraph stating the underlying rule, xref'ing
       `<<Implementation>>`.
 
-[08-executable-specifications.adoc:213-217](./08-executable-specifications.adoc#L213-L217):
+[09-executable-specifications.adoc:213-217](./09-executable-specifications.adoc#L213-L217):
 
 ```
 When I am on "/some/page"
@@ -157,13 +156,13 @@ When I run "ls -la"
 
 These are UI/CLI automation steps. They contradict:
 
-- [03-acceptance-criteria.adoc:11-12](./03-acceptance-criteria.adoc#L11-L12) —
+- [04-acceptance-criteria.adoc:11-12](./04-acceptance-criteria.adoc#L11-L12) —
   ACs "SHOULD NOT include technical implementation details, or even make
   reference to software"
-- [08-executable-specifications.adoc:229-230](./08-executable-specifications.adoc#L229-L230)
+- [09-executable-specifications.adoc:229-230](./09-executable-specifications.adoc#L229-L230)
   — "Assertions about the system's internal state or implementation details
   SHOULD be avoided"
-- [08-executable-specifications.adoc:328-334](./08-executable-specifications.adoc#L328-L334)
+- [09-executable-specifications.adoc:328-334](./09-executable-specifications.adoc#L328-L334)
   — don't automate through the UI; go close to the business rule
 
 The good examples elsewhere in the same file ("a customer returns a faulty
@@ -211,16 +210,16 @@ section's entire purpose is to separate the two artifacts, this undermines it.
       **Also propagated to the [kieranpotts/specs](https://github.com/kieranpotts/specs)
       reference implementation** at Kieran's request — see the changelog.
 
-[10-proposal-lifecycle.adoc:170](./10-proposal-lifecycle.adoc#L170) — "A
+[11-proposal-lifecycle.adoc:170](./11-proposal-lifecycle.adoc#L170) — "A
 proposal MUST NOT move backwards… and MUST NOT skip states."
 
-But [10-proposal-lifecycle.adoc:176-182](./10-proposal-lifecycle.adoc#L176-L182)
+But [11-proposal-lifecycle.adoc:176-182](./11-proposal-lifecycle.adoc#L176-L182)
 mandates cross-functional review of a `PROPOSED` proposal to catch ambiguity.
 When review sends it back for rework, the only legal moves are `Accepted` or
 `Rejected` — no `Proposed → Draft`. Likewise, a proposal that is `Accepted` but
 abandoned before release (priorities change, the feature is descoped) has no
 terminal state; `Superseded` is reachable only from `Released`. The mermaid
-diagram at [10-proposal-lifecycle.adoc:60-71](./10-proposal-lifecycle.adoc#L60-L71)
+diagram at [11-proposal-lifecycle.adoc:60-71](./11-proposal-lifecycle.adoc#L60-L71)
 confirms both gaps.
 
 ---
@@ -234,7 +233,7 @@ confirms both gaps.
       ordinary scenarios"). The outline definition itself correctly retains
       `Scenario Outline:`.
 
-[08-executable-specifications.adoc:290-301](./08-executable-specifications.adoc#L290-L301)
+[09-executable-specifications.adoc:290-301](./09-executable-specifications.adoc#L290-L301)
 shows what a scenario outline is "the equivalent of writing" — but writes both
 expansions as `Scenario Outline:`. Expansion produces `Scenario:` blocks. As
 written, the example is not valid Gherkin (a `Scenario Outline` without
@@ -248,7 +247,7 @@ what expansion does.
       whitespace outside doc strings, and that the two-space layout is a
       readability convention that SHOULD be followed.
 
-[08-executable-specifications.adoc:37-41](./08-executable-specifications.adoc#L37-L41)
+[09-executable-specifications.adoc:37-41](./09-executable-specifications.adoc#L37-L41)
 — "Like YAML, Gherkin is line-oriented and uses indentation to define structure…
 Either spaces or tabs MAY be used for indentation, though spaces SHOULD be
 preferred for portability."
@@ -266,8 +265,8 @@ ignore the leading whitespace entirely.
       states the two-space convention normatively, which the misaligned
       templates would have contradicted on the same page.
 
-[08-executable-specifications.adoc:61-66](./08-executable-specifications.adoc#L61-L66)
-and [08-executable-specifications.adoc:150-154](./08-executable-specifications.adoc#L150-L154)
+[09-executable-specifications.adoc:61-66](./09-executable-specifications.adoc#L61-L66)
+and [09-executable-specifications.adoc:150-154](./09-executable-specifications.adoc#L150-L154)
 indent `When` and `Then` one space deeper than `Given`:
 
 ```
@@ -281,7 +280,7 @@ The extra space belongs to the `(And …)` optional-marker convention but has bl
 onto `When`/`Then`. Since [2.2](#22-gherkin-uses-indentation-to-define-structure-is-wrong)
 (incorrectly) tells readers indentation is structural, a reader may take this
 alignment as meaningful. The "Simple example" at
-[08-executable-specifications.adoc:86-90](./08-executable-specifications.adoc#L86-L90)
+[09-executable-specifications.adoc:86-90](./09-executable-specifications.adoc#L86-L90)
 gets it right — the templates should match.
 
 ### 2.4 Missing core Gherkin constructs
@@ -303,13 +302,13 @@ gets it right — the templates should match.
       Titled "Rule blocks", not "Rules", to avoid an xref collision with §06's
       `== Rules`. Both `<<Rules>>` xrefs would otherwise have become ambiguous.
 
-[08-executable-specifications.adoc:182-188](./08-executable-specifications.adoc#L182-L188)
+[09-executable-specifications.adoc:182-188](./09-executable-specifications.adoc#L182-L188)
 lists the step keywords but omits `*` (the generic bullet step). More
 significantly, the section never covers:
 
 - **`Rule:`** — part of core Gherkin since v6 and supported by Cucumber. This is
   a notable omission given
-  [06-behaviors.adoc:74-100](./06-behaviors.adoc#L74-L100) makes "Rules" a
+  [07-behaviors.adoc:74-100](./07-behaviors.adoc#L74-L100) makes "Rules" a
   first-class section of the taxonomy. The standard tells you to keep rules in a
   separate central place with IDs (`R1`), while Gherkin has a native construct
   for binding scenarios to rules that goes unmentioned.
@@ -319,7 +318,7 @@ significantly, the section never covers:
   scenarios.
 
 The section claims to define "the RECOMMENDED baseline syntax"
-([08-executable-specifications.adoc:31](./08-executable-specifications.adoc#L31)),
+([09-executable-specifications.adoc:31](./09-executable-specifications.adoc#L31)),
 so these omissions read as prohibitions rather than gaps.
 
 ### 2.5 `.feature` files have no stated home
@@ -332,7 +331,7 @@ so these omissions read as prohibitions rather than gaps.
       centrally-stated business rule but reference it by identifier, pointing at
       `<<Rule blocks>>` and `<<Tags>>` for the two mechanisms.
 
-[04-structure.adoc:24](./04-structure.adoc#L24) puts Gherkin scenarios in
+[05-structure.adoc:24](./05-structure.adoc#L24) puts Gherkin scenarios in
 `requirements/behaviors/features/`. §08 — 334 lines on Gherkin — never
 references the taxonomy, never says where `.feature` files live, and never
 explains how a scenario cross-references a rule ID. The two sections do not know
@@ -344,19 +343,19 @@ about each other.
 
 **All four done 2026-07-27.**
 
-- [x] [07-qualities.adoc](./07-qualities.adoc) — "256-bit SSL/TLS encryption
+- [x] [08-qualities.adoc](./08-qualities.adoc) — "256-bit SSL/TLS encryption
   (for data in transit)". SSL has been deprecated for a decade (RFC 7568/8996),
   and "256-bit SSL/TLS" conflated cipher key length with protocol version.
   **Fixed:** now "TLS 1.3 (for data in transit)". "256-bit Advanced Encryption
   Standard" was also shortened to "AES-256", and "in storage" to "at rest".
 
-- [x] [07-qualities.adoc](./07-qualities.adoc) — "Web Content Accessibility
+- [x] [08-qualities.adoc](./08-qualities.adoc) — "Web Content Accessibility
   Guidelines (for usability)". WCAG is an accessibility standard, not a
   usability one — and the next section makes the point that usability/UX is the
   *subjective* quality that cannot be pinned to a published standard.
   **Fixed:** now "(for accessibility)".
 
-- [x] [07-qualities.adoc](./07-qualities.adoc) — "EU General Data Protection
+- [x] [08-qualities.adoc](./08-qualities.adoc) — "EU General Data Protection
   Regulations" → **Regulation** (singular).
 
 - [x] **Added while fixing the above:** a paragraph requiring conformance
@@ -365,7 +364,7 @@ about each other.
   single version between them, which is not a testable threshold — the defect
   underlying all three items above, rather than three unrelated slips.
 
-- [x] [02-responsibility.adoc](./02-responsibility.adoc) — the password-strength
+- [x] [03-responsibility.adoc](./03-responsibility.adoc) — the password-strength
   example prescribed minimum 8 characters, a mandatory special character, and
   "no dictionary words", contradicting NIST SP 800-63B. **Fixed:** replaced with
   current guidance — 12-character minimum, no maximum below 64, breach-corpus
@@ -383,7 +382,7 @@ about each other.
 
 ### 4.1 §10 has become a catch-all
 
-**Renamed 2026-07-27** to `10-proposal-lifecycle.adoc` / "= Proposal lifecycle"
+**Renamed 2026-07-27** to `11-proposal-lifecycle.adoc` / "= Proposal lifecycle"
 (decision by Kieran). The old title, "Managing requirements", was broad enough
 to invite the drift catalogued here. The rename does not by itself fix the
 misfiling — it sharpens it, since four sections now sit under a title that
@@ -394,23 +393,23 @@ sections to 14, all of them proposal-lifecycle concerns.
 
 | Section (current line) | Verdict | Destination |
 |---|---|---|
-| Two artifacts ([14](./10-proposal-lifecycle.adoc#L14)) | Stays | — |
-| Version control as the substrate ([31](./10-proposal-lifecycle.adoc#L31)) | **Moves** | Merge into §01a Persistence — this is [4.2](#42-the-version-control-argument-is-made-twice-at-length) |
-| Lifecycle states ([53](./10-proposal-lifecycle.adoc#L53)) | Stays | — |
-| Binding the specification to production ([96](./10-proposal-lifecycle.adoc#L96)) | Stays | — |
-| Recording decisions ([123](./10-proposal-lifecycle.adoc#L123)) | Stays | — |
-| Atomic proposals and epics ([135](./10-proposal-lifecycle.adoc#L135)) | Stays | — |
-| Separation of feedback from record ([147](./10-proposal-lifecycle.adoc#L147)) | Stays | — |
-| Specify the end state, not a changelog ([158](./10-proposal-lifecycle.adoc#L158)) | Stays | — |
-| Keep description and reasoning in their proper homes ([172](./10-proposal-lifecycle.adoc#L172)) | Stays | — |
-| Enforce the state machine strictly ([183](./10-proposal-lifecycle.adoc#L183)) | Stays | — |
-| Review proposals cross-functionally ([191](./10-proposal-lifecycle.adoc#L191)) | Stays | — |
-| Record rejections as carefully as acceptances ([199](./10-proposal-lifecycle.adoc#L199)) | Stays | — |
-| Write functional requirements as testable scenarios ([208](./10-proposal-lifecycle.adoc#L208)) | **Moves** | §06 Behaviors (Features) |
-| State qualities as measurable thresholds ([229](./10-proposal-lifecycle.adoc#L229)) | **Moves** | §07 Qualities — resolves [1.3](#13-qualities-must-measurable-vs-acknowledged-subjective-nfrs) |
-| Trace requirements to their implementation ([243](./10-proposal-lifecycle.adoc#L243)) | **Moves** | Consolidate with §01/§07 — this is [4.3](#43-traceability-stated-three-times) |
-| Enforce specs in continuous integration ([254](./10-proposal-lifecycle.adoc#L254)) | Open | Neither proposals nor authoring; see note below |
-| Definition of Ready ([262](./10-proposal-lifecycle.adoc#L262)) | **Moves** | A delivery gate — new file, or drop from TS-1 |
+| Two artifacts ([14](./11-proposal-lifecycle.adoc#L14)) | Stays | — |
+| Version control as the substrate ([31](./11-proposal-lifecycle.adoc#L31)) | **Moves** | Merge into §01a Persistence — this is [4.2](#42-the-version-control-argument-is-made-twice-at-length) |
+| Lifecycle states ([53](./11-proposal-lifecycle.adoc#L53)) | Stays | — |
+| Binding the specification to production ([96](./11-proposal-lifecycle.adoc#L96)) | Stays | — |
+| Recording decisions ([123](./11-proposal-lifecycle.adoc#L123)) | Stays | — |
+| Atomic proposals and epics ([135](./11-proposal-lifecycle.adoc#L135)) | Stays | — |
+| Separation of feedback from record ([147](./11-proposal-lifecycle.adoc#L147)) | Stays | — |
+| Specify the end state, not a changelog ([158](./11-proposal-lifecycle.adoc#L158)) | Stays | — |
+| Keep description and reasoning in their proper homes ([172](./11-proposal-lifecycle.adoc#L172)) | Stays | — |
+| Enforce the state machine strictly ([183](./11-proposal-lifecycle.adoc#L183)) | Stays | — |
+| Review proposals cross-functionally ([191](./11-proposal-lifecycle.adoc#L191)) | Stays | — |
+| Record rejections as carefully as acceptances ([199](./11-proposal-lifecycle.adoc#L199)) | Stays | — |
+| Write functional requirements as testable scenarios ([208](./11-proposal-lifecycle.adoc#L208)) | **Moves** | §06 Behaviors (Features) |
+| State qualities as measurable thresholds ([229](./11-proposal-lifecycle.adoc#L229)) | **Moves** | §07 Qualities — resolves [1.3](#13-qualities-must-measurable-vs-acknowledged-subjective-nfrs) |
+| Trace requirements to their implementation ([243](./11-proposal-lifecycle.adoc#L243)) | **Moves** | Consolidate with §01/§07 — this is [4.3](#43-traceability-stated-three-times) |
+| Enforce specs in continuous integration ([254](./11-proposal-lifecycle.adoc#L254)) | Open | Neither proposals nor authoring; see note below |
+| Definition of Ready ([262](./11-proposal-lifecycle.adoc#L262)) | **Moves** | A delivery gate — new file, or drop from TS-1 |
 
 The two open questions were resolved by Kieran:
 
@@ -420,10 +419,10 @@ The two open questions were resolved by Kieran:
    an outbound xref to TS-12 for gate stages.
 
 2. **"Definition of Ready"** → kept in TS-1 as its own section,
-   `11-definition-of-ready.adoc`, **not** moved to TS-12. Rationale: most of
+   `12-definition-of-ready.adoc`, **not** moved to TS-12. Rationale: most of
    what the DoR gates is requirements readiness. The DoR/DoD pairing is created
    by reciprocal cross-references instead —
-   [11-definition-of-ready.adoc](./11-definition-of-ready.adoc) links out to
+   [12-definition-of-ready.adoc](./12-definition-of-ready.adoc) links out to
    TS-12, and [TS-12's DoD section](../012/02-definition-of-done.adoc) now links
    back to TS-1. Previously TS-12 discussed the DoR without pointing anywhere.
 
@@ -442,8 +441,8 @@ predicted — see that item.
       merging give each lifecycle state a natural home, so no separate workflow
       tool is needed.
 
-[01a-persistence.adoc](./01a-persistence.adoc) (82 lines) and
-[10-proposal-lifecycle.adoc:27-47](./10-proposal-lifecycle.adoc#L27-L47)
+[02-persistence.adoc](./02-persistence.adoc) (82 lines) and
+[11-proposal-lifecycle.adoc:27-47](./11-proposal-lifecycle.adoc#L27-L47)
 both argue that specs belong in VCS alongside code, both list the benefits
 (history, diffs, blame, low friction), and both state the bind-to-production
 rule. §01a's "Requirements documents have a tendency to rot" opening and §10's
@@ -460,8 +459,8 @@ thesis.
       mechanics.
 
 [01-scope.adoc:148-159](./01-scope.adoc#L148-L159) ("Executable tests"),
-[07-qualities.adoc:107-116](./07-qualities.adoc#L107-L116) ("Verification"), and
-[10-proposal-lifecycle.adoc:228-237](./10-proposal-lifecycle.adoc#L228-L237)
+[08-qualities.adoc:107-116](./08-qualities.adoc#L107-L116) ("Verification"), and
+[11-proposal-lifecycle.adoc:228-237](./11-proposal-lifecycle.adoc#L228-L237)
 ("Trace requirements to their implementation") all make the same two-way
 cross-reference argument.
 
@@ -480,9 +479,9 @@ cross-reference argument.
       the §04 tree to match prose order and trimmed annotations to fit 80
       columns. Kieran kept this rewrite.
 
-[04-structure.adoc:9-29](./04-structure.adoc#L9-L29),
-[05-context.adoc:10-21](./05-context.adoc#L10-L21),
-[06-behaviors.adoc:25-40](./06-behaviors.adoc#L25-L40). Divergences already
+[05-structure.adoc:9-29](./05-structure.adoc#L9-L29),
+[06-context.adoc:10-21](./06-context.adoc#L10-L21),
+[07-behaviors.adoc:25-40](./07-behaviors.adoc#L25-L40). Divergences already
 present:
 
 - `features/` — "Gherkin scenarios" (§04) vs "Scenarios" (§06)
@@ -492,11 +491,11 @@ present:
   (§04) vs "Actor-permissions matrix" (§06)
 
 Exactly the drift the standard warns about at
-[06-behaviors.adoc:76-83](./06-behaviors.adoc#L76-L83).
+[07-behaviors.adoc:76-83](./07-behaviors.adoc#L76-L83).
 
 Additionally, §04's tree omits `proposals/`, which
-[01a-persistence.adoc:68](./01a-persistence.adoc#L68) shows and
-[10-proposal-lifecycle.adoc:12-20](./10-proposal-lifecycle.adoc#L12-L20)
+[02-persistence.adoc:68](./02-persistence.adoc#L68) shows and
+[11-proposal-lifecycle.adoc:12-20](./11-proposal-lifecycle.adoc#L12-L20)
 mandates as one of two required artifacts. §04 claims to be the taxonomy where
 "every category of requirement has a single, unambiguous home" — the decision
 log has no home in it.
@@ -529,10 +528,10 @@ In both files the tree is the odd one out.
 The section presents use cases → event storming → **example mapping** → **story
 mapping**. But it also says:
 
-- [09-requirements-elicitation.adoc:86-88](./09-requirements-elicitation.adoc#L86-L88)
+- [10-requirements-elicitation.adoc:86-88](./10-requirements-elicitation.adoc#L86-L88)
   — example mapping is "the RECOMMENDED technique for the **final step** of
   requirements elicitation"
-- [09-requirements-elicitation.adoc:130-133](./09-requirements-elicitation.adoc#L130-L133)
+- [10-requirements-elicitation.adoc:130-133](./10-requirements-elicitation.adoc#L130-L133)
   — story mapping "sequenc[es] and prioritiz[es] the scope identified through
   use case analysis or event storming"
 
@@ -547,7 +546,7 @@ the section makes about them.
   postconditions — plus the relationship to scenarios and a warning against
   maintaining both as specification artifacts. Original finding: use cases got
   8 lines
-  ([09-requirements-elicitation.adoc:12-22](./09-requirements-elicitation.adoc#L12-L22))
+  ([10-requirements-elicitation.adoc:12-22](./10-requirements-elicitation.adoc#L12-L22))
   with no guidance on how to write one (actor, goal, preconditions, main success
   scenario, extensions) — versus 40 lines for event storming and 44 for story
   mapping, both of which get full procedural detail. A reader can run an
@@ -561,7 +560,7 @@ the section makes about them.
   arithmetic is now a link, and the section states what it previously only
   implied: a sentiment proxy is weaker than a threshold and why. Original
   finding: NPS got ~30 lines
-  ([07-qualities.adoc:81-105](./07-qualities.adoc#L81-L105)) explaining the
+  ([08-qualities.adoc:81-105](./08-qualities.adoc#L81-L105)) explaining the
   survey question, the 0-10 bands, and the arithmetic. The style guide states
   the audience is experienced engineers and "foundational concepts do not need
   to be explained." One sentence plus a link would carry the same weight.
@@ -580,7 +579,7 @@ the section makes about them.
   sentence §03 repeats was cut. 31 → 28 lines. Original finding: §02 (22 lines) says only "write in business language,
   collaborate with the customer, technical teams own it" — the first two of
   which §03 repeats at
-  [03-acceptance-criteria.adoc:14-16](./03-acceptance-criteria.adoc#L14-L16).
+  [04-acceptance-criteria.adoc:14-16](./04-acceptance-criteria.adoc#L14-L16).
   Only the ownership sentence is unique. Merge candidate.
 
 ---
@@ -602,7 +601,7 @@ the section makes about them.
   Granularity was Kieran's call: F and Q per file with numbered statements
   within, rather than flat-per-scenario or file-only. The feature-level id is
   what a proposal edits; the scenario-level id is what a test verifies — which
-  is what closes the [§07 two-way binding](./07-qualities.adoc) gap.
+  is what closes the [§07 two-way binding](./08-qualities.adoc) gap.
 
   §06, §07, and §10 now reference the scheme rather than each implying its own.
 
@@ -701,14 +700,34 @@ the section makes about them.
 The repo [style guide](../../docs/style-guide.md) is normative for `src/`. TS-1
 diverges in several places.
 
-- [ ] **File naming.** [01a-persistence.adoc](./01a-persistence.adoc) violates
+- [x] **File naming. Done 2026-07-27 — renumbered** (decision by Kieran).
+  `01a-persistence.adoc` became `02-persistence.adoc`, and every later TS-1
+  file shifted up one, giving a clean `01`–`12`. TS-61 likewise: `05b-` and
+  `09b-` absorbed, giving `00`–`20`. All renames via `git mv`, so history is
+  preserved. The style guide now explicitly forbids letter suffixes and says to
+  renumber instead — cheap, because section files are referenced by title
+  through xrefs, not by filename.
+
+  *Fixed as a side effect:* TS-4's two inbound links pointed at
+  `../001/06-behaviors.adoc#_use-cases` and `#_event-storming`, but both
+  sections live in the elicitation file, not behaviors. They were already
+  broken before the renumber. Now retargeted to
+  `10-requirements-elicitation.adoc`, with the anchor form corrected to
+  AsciiDoc's underscore convention (`_use_cases`, not `_use-cases`).
+
+  Original finding: [02-persistence.adoc](./02-persistence.adoc) violated
   "Content files MUST be named with a two-digit numeric prefix"
   ([style-guide.md:75-76](../../docs/style-guide.md#L75-L76)). TS-61 does the
   same (`05b-`, `09b-`), so there is a de-facto convention for inserted
   sections — but it is not sanctioned by the style guide. Either legitimize
   `NN[a-z]-` there or renumber.
 
-- [ ] **References file.** TS-1 is the **only** standard of 61 that uses a
+- [x] **References file. Done 2026-07-27 — folded back** (decision by Kieran).
+  The seven entries now live in a `== References` section of
+  [README.adoc](./README.adoc) after `''''`, and `99-references.adoc` is
+  deleted. The style guide gained an explicit prohibition on splitting
+  references into a separate content file. Original finding: TS-1 was the only
+  standard of 61 that used a
   separate `99-references.adoc`; all nine others with references put
   `== References` in `README.adoc` after `''''`, per
   [style-guide.md:96-99](../../docs/style-guide.md#L96-L99). Commit
@@ -716,7 +735,21 @@ diverges in several places.
   style guide should be updated, or the file folded back. Right now TS-1 is
   silently non-conforming.
 
-- [ ] **Reference entry format.** [99-references.adoc](./99-references.adoc)
+- [x] **Reference entry format. Done 2026-07-27 — TS-26 §12 author-date,
+  applied repo-wide** (decision by Kieran). All 54 entries across 10 standards
+  converted to `<author> (<year>). _<title>_. <publication>`, with the
+  hyperlink on the title and a trailing `— annotation`. The style guide's
+  reference rule was rewritten to match, so it no longer contradicts TS-26.
+
+  The annotation is an addition to TS-26 §12, which has no provision for one.
+  It is kept because a reference list in a technical standard has to tell a
+  reader why a source is worth following.
+
+  *Fixed along the way:* a broken sentence in TS-22 ("guidance on how to a
+  webhook event publishing service"), a typo in TS-16 ("IMB Cloud" → "IBM
+  Cloud"), and TS-26's use of `-` bullets where the repo uses `*`.
+
+  Original finding: the old `99-references.adoc`
   uses a period and a new sentence, violating the style guide's "hyperlink
   followed by a **colon** and a short descriptive annotation". A third format is
   specified in [TS-26 §12](../026/12-referencing.adoc#L27-L30)
@@ -735,13 +768,17 @@ diverges in several places.
   ([045/08-validation.adoc](../045/08-validation.adoc)) nested monospace inside
   a quote and had to be rewritten rather than converted.
 
-- [ ] **Dashes — split convention.** 73 em dashes (—) vs 10 en dashes (–) used
+- [x] **Dashes. Done 2026-07-27** — normalized to em dash, which already had
+  83 uses against 8. Original finding: em dashes (—) vs en dashes (–) used
   for the identical parenthetical function, concentrated in
-  [08-executable-specifications.adoc:227-242](./08-executable-specifications.adoc#L227-L242),
-  [03-acceptance-criteria.adoc:4](./03-acceptance-criteria.adoc#L4), and
-  [07-qualities.adoc:3](./07-qualities.adoc#L3).
+  [09-executable-specifications.adoc:227-242](./09-executable-specifications.adoc#L227-L242),
+  [04-acceptance-criteria.adoc:4](./04-acceptance-criteria.adoc#L4), and
+  [08-qualities.adoc:3](./08-qualities.adoc#L3).
 
-- [ ] **Bold lead-ins — three competing forms.** The style guide mandates
+- [x] **Bold lead-ins. Done 2026-07-27** — all 16 violations converted to the
+  mandated `* *Label.* Description.` form: four `*Label:*` lists in §01, eight
+  in §08's ISO characteristics, and four inline-bold items in §02. The style
+  guide mandates
   `* *Label.* Description.` and explicitly forbids alternatives
   ([style-guide.md:66-71](../../docs/style-guide.md#L66-L71)). TS-1 uses:
 
@@ -749,13 +786,16 @@ diverges in several places.
   - ❌ `* *Framing:* authors, purpose…` — [01-scope.adoc:76](./01-scope.adoc#L76),
     81, 87, 89 (colon inside bold, lowercase continuation)
   - ❌ `* *Branching and review*, so a proposal…` —
-    [10-proposal-lifecycle.adoc:32-41](./10-proposal-lifecycle.adoc#L32-L41)
+    [11-proposal-lifecycle.adoc:32-41](./11-proposal-lifecycle.adoc#L32-L41)
 
-  [05-context.adoc:43-51](./05-context.adoc#L43-L51) mixes two forms **within a
+  [06-context.adoc:43-51](./06-context.adoc#L43-L51) mixes two forms **within a
   single list** — three items in the inline-bold form, then
   `* *Dependencies.* External systems…` in the mandated form.
 
-- [ ] **README missing related-standard links.**
+- [x] **README missing related-standard links. Done 2026-07-27** — the intro
+  now links all seven standards the body references (TS-2, TS-3, TS-4, TS-7,
+  TS-12, TS-13, TS-14), grouped into adjacent disciplines and verification.
+  Original finding:
   [style-guide.md:92-94](../../docs/style-guide.md#L92-L94) says the intro
   SHOULD link to related standards. [README.adoc](./README.adoc) links only to
   the external reference implementation, despite the body linking to TS-2, TS-3,
@@ -770,18 +810,30 @@ diverges in several places.
   link resolves to the wrong place. Written into the
   [style guide](../../docs/style-guide.md).
 
-  The specific instance at [06-behaviors.adoc](./06-behaviors.adoc) is now an
+  The specific instance at [07-behaviors.adoc](./07-behaviors.adoc) is now an
   xref to `<<Executable specifications>>`.
 
-- [ ] **Inconsistent listing blocks.**
-  [01a-persistence.adoc:61](./01a-persistence.adoc#L61) titles its block
+- [x] **Inconsistent listing blocks. Done 2026-07-27** — the three directory
+  trees now carry titles (`.Specification structure`, `.Context structure`,
+  `.Behaviors structure`), matching §02's already-titled block. The user story
+  in §08 gained `.Example user story`. It was briefly mislabeled
+  `[source,gherkin]` during this work, which was wrong — it is a user story,
+  not Gherkin. Original finding:
+  [02-persistence.adoc:61](./02-persistence.adoc#L61) titles its block
   (`.Example repository structure`); the equivalent trees in §04/§05/§06 are
-  untitled. [07-qualities.adoc:67-71](./07-qualities.adoc#L67-L71) puts a user
+  untitled. [08-qualities.adoc:67-71](./08-qualities.adoc#L67-L71) puts a user
   story in a bare `----` block while §08 uses `[source,feature]` for comparable
   content.
 
-- [ ] **Mermaid rendering.**
-  [10-proposal-lifecycle.adoc:60-71](./10-proposal-lifecycle.adoc#L60-L71)
+- [ ] **Mermaid rendering. Still open — cannot be verified here.** TS-1 uses
+  the same `[mermaid]` + `....` form as TS-61's eight diagrams, so it is at
+  least consistent with the repo convention. But no local render is possible:
+  Asciidoctor is not installed and the repo has no build tooling. Note that
+  GitHub renders ```mermaid fences in *Markdown* natively, which does not imply
+  the same for `[mermaid]` blocks in AsciiDoc — that path needs the
+  asciidoctor-diagram extension. **Needs a manual check on GitHub.** Original
+  finding:
+  [11-proposal-lifecycle.adoc:60-71](./11-proposal-lifecycle.adoc#L60-L71)
   uses a `[mermaid]` block. The repo README states GitHub is the render target
   and there is no build tooling — confirm this actually renders through GitHub's
   AsciiDoc pipeline rather than falling back to a literal block, since the state
@@ -800,7 +852,7 @@ diverges in several places.
 
   Original defect: [AGENTS.md:123](./AGENTS.md#L123) asserted a
   big-design-up-front preference appearing nowhere in
-  [07-qualities.adoc](./07-qualities.adoc), which sat badly with the standard's
+  [08-qualities.adoc](./08-qualities.adoc), which sat badly with the standard's
   own incremental proposal machinery in §10.
 
 - [x] **Typos in a file that agents act on.** **Done** — "product product" →
@@ -860,37 +912,37 @@ TS-14) resolve with correct titles.
 |---|---|
 | [01-scope.adoc:13](./01-scope.adoc#L13) | "A software requirements is a living document" → *requirements specification* |
 | [01-scope.adoc:156](./01-scope.adoc#L156) | "cross-reference **that** test(s) that verify it" → *the*; also lowercase "should" beside a SHOULD in the same sentence |
-| [01a-persistence.adoc:20](./01a-persistence.adoc#L20) | "the same version control **systems** as used to" → *system* |
-| [05-context.adoc:78](./05-context.adoc#L78) | "**They** may be a lot of necessary overlap" → *There* |
-| [05-context.adoc:98](./05-context.adoc#L98) | "who are the **participates**" → *who the participants are* |
-| [06-behaviors.adoc:71](./06-behaviors.adoc#L71) | "**RECOMMENDEDs**" → *RECOMMENDS* |
-| [08-executable-specifications.adoc:20](./08-executable-specifications.adoc#L20) | "One of the **objective's** of the language's design" → *objectives* |
-| [08-executable-specifications.adoc:266](./08-executable-specifications.adoc#L266) | "with **severable** variable inputs" → *several* |
-| [09-requirements-elicitation.adoc:133](./09-requirements-elicitation.adoc#L133) | "closer to implementation planning **that** it is" → *than* |
-| [10-proposal-lifecycle.adoc:94](./10-proposal-lifecycle.adoc#L94) | "code and configuration **is** merged" → *are* |
-| [99-references.adoc:5](./99-references.adoc#L5) vs [09:26](./09-requirements-elicitation.adoc#L26) | Same Brandolini post cited as `.blogspot.co.uk` and `.blogspot.com` |
+| [02-persistence.adoc:20](./02-persistence.adoc#L20) | "the same version control **systems** as used to" → *system* |
+| [06-context.adoc:78](./06-context.adoc#L78) | "**They** may be a lot of necessary overlap" → *There* |
+| [06-context.adoc:98](./06-context.adoc#L98) | "who are the **participates**" → *who the participants are* |
+| [07-behaviors.adoc:71](./07-behaviors.adoc#L71) | "**RECOMMENDEDs**" → *RECOMMENDS* |
+| [09-executable-specifications.adoc:20](./09-executable-specifications.adoc#L20) | "One of the **objective's** of the language's design" → *objectives* |
+| [09-executable-specifications.adoc:266](./09-executable-specifications.adoc#L266) | "with **severable** variable inputs" → *several* |
+| [10-requirements-elicitation.adoc:133](./10-requirements-elicitation.adoc#L133) | "closer to implementation planning **that** it is" → *than* |
+| [11-proposal-lifecycle.adoc:94](./11-proposal-lifecycle.adoc#L94) | "code and configuration **is** merged" → *are* |
+| `99-references.adoc:5` vs [09:26](./10-requirements-elicitation.adoc#L26) | Same Brandolini post cited as `.blogspot.co.uk` and `.blogspot.com` |
 
 ### Other prose issues
 
-- [x] *Done 2026-07-27.* [03-acceptance-criteria.adoc:3](./03-acceptance-criteria.adoc#L3) —
+- [x] *Done 2026-07-27.* [04-acceptance-criteria.adoc:3](./04-acceptance-criteria.adoc#L3) —
   "**Most** requirements specifications **SHOULD** be written as acceptance
   criteria" — double-hedged; the style guide says avoid hedging. Either they
   SHOULD be, or state the exception.
 
 - [x] *Done 2026-07-27* — retied to a gate: identified before the increment
-  that depends on it is designed. [07-qualities.adoc:33-35](./07-qualities.adoc#L33-L35) — "all NFRs
+  that depends on it is designed. [08-qualities.adoc:33-35](./08-qualities.adoc#L33-L35) — "all NFRs
   **MUST** be identified… **as early as possible**" — an unfalsifiable MUST.
   Nobody can demonstrate a violation. SHOULD, or tie it to a gate ("before the
   first release increment is designed").
 
-- [x] *Done 2026-07-27.* [06-behaviors.adoc:44](./06-behaviors.adoc#L44) — "The **all-important**
+- [x] *Done 2026-07-27.* [07-behaviors.adoc:44](./07-behaviors.adoc#L44) — "The **all-important**
   features…" — editorializing filler.
 
-- [x] *Done 2026-07-27.* [05-context.adoc:58-61](./05-context.adoc#L58-L61) — "…so the constraint
+- [x] *Done 2026-07-27.* [06-context.adoc:58-61](./06-context.adoc#L58-L61) — "…so the constraint
   itself is purely a statement of the boundary. **The constraint remains purely
   descriptive.**" The second sentence restates the first.
 
-- [x] *Done 2026-07-27.* [06-behaviors.adoc:78-79](./06-behaviors.adoc#L78-L79) — "if **we**
+- [x] *Done 2026-07-27.* [07-behaviors.adoc:78-79](./07-behaviors.adoc#L78-L79) — "if **we**
   specified policies… **we'd** get duplication" —
   [TS-26 §01](../026/01-voice-and-tense.adoc#L18-L20) reserves "we" for genuine
   statements of the author's position.
@@ -900,9 +952,9 @@ TS-14) resolve with correct titles.
   constraints within which it must operate, is the whole of what the system is
   obliged to deliver" — leaving "Features" to mean only the §06 structural
   sense.
-  [03-acceptance-criteria.adoc:34](./03-acceptance-criteria.adoc#L34) defines
+  [04-acceptance-criteria.adoc:34](./04-acceptance-criteria.adoc#L34) defines
   "features" as functional + non-functional requirements combined.
-  [06-behaviors.adoc:12](./06-behaviors.adoc#L12) defines "Features" as
+  [07-behaviors.adoc:12](./07-behaviors.adoc#L12) defines "Features" as
   scenario-level behaviors under `behaviors/`. Two meanings for a term the
   standard makes structural — a direct violation of
   [TS-26 §03](../026/03-terminology.adoc) ("use one term per concept").
@@ -911,7 +963,7 @@ TS-14) resolve with correct titles.
   says a scenario "describes a journey" — a scenario is now "a concrete example
   that illustrates a business rule, expressed as a sequence of steps", leaving
   "journey" to mean only §06's multi-step end-to-end flow.
-  [08-executable-specifications.adoc:136](./08-executable-specifications.adoc#L136)
+  [09-executable-specifications.adoc:136](./09-executable-specifications.adoc#L136)
   — a scenario "describes a **journey**" collides with §06's `journeys/`
   section.
 
@@ -922,14 +974,14 @@ TS-14) resolve with correct titles.
 
 - [x] *Done 2026-07-27* — table replaced with a Capability/Minimum-actor form
   that demonstrates the rule, plus a note that it is the floor rather than the
-  whole matrix. [06-behaviors.adoc:108-115](./06-behaviors.adoc#L108-L115) — the access
+  whole matrix. [07-behaviors.adoc:108-115](./07-behaviors.adoc#L108-L115) — the access
   table renders a full matrix with explicit `—` for Anonymous, while
-  [06-behaviors.adoc:117-120](./06-behaviors.adoc#L117-L120) says "it is
+  [07-behaviors.adoc:117-120](./07-behaviors.adoc#L117-L120) says "it is
   sufficient to state each capability once, against the lowest-privileged actor
   that holds it." The example does not demonstrate the rule it precedes.
 
 - [x] *Done 2026-07-27* — the post is now drafted, then scheduled.
-  [08-executable-specifications.adoc:168-173](./08-executable-specifications.adoc#L168-L173)
+  [09-executable-specifications.adoc:168-173](./09-executable-specifications.adoc#L168-L173)
   — the scheduling scenario publishes the post, *then* sets the future
   publication date. Reversed causally.
 
@@ -938,13 +990,115 @@ TS-14) resolve with correct titles.
   overruns are URL lines and `99-references.adoc`, which still needs the
   wrapping decision. The [style guide](../../docs/style-guide.md) implies
   80-column wrapping and most of the repo honors it. ~30 prose lines in TS-1 run
-  to 81-84 chars; [99-references.adoc](./99-references.adoc) runs to 150. Prose
+  to 81-84 chars; `99-references.adoc` (now folded into [README.adoc](./README.adoc)) runs to 150. Prose
   overruns are trivial to fix; the reference file needs a wrapping decision
   (long URLs may justify an exemption — worth stating one).
 
 ---
 
 ## Changelog
+
+### Link conventions — style guides and repo-wide sweep (2026-07-27)
+
+Uncommitted. **Scope is the whole repository** — 4 style/standard files plus a
+sweep across all 61 standards.
+
+**Four rules established** (request by Kieran):
+
+1. **Links MUST NOT be broken across lines** — added to *TS-28 §13 (AsciiDoc)*
+   and *TS-27 §09 (Markdown)*, with the rationale in each: in AsciiDoc a wrap
+   inside the macro puts a break in the rendered link text and a wrap in the
+   wrong place renders the raw syntax literally; in Markdown a wrap between `]`
+   and `(` stops CommonMark treating it as a link at all.
+
+2. **Link integrity beats line length** — recorded in both standards'
+   line-length sections (*TS-28 §23*, *TS-27 §18*), which previously carried the
+   analogous rule for inline formatting units but not for links.
+
+3. **The repo style guide cross-references TS-28** rather than restating the
+   rule, per the request.
+
+4. **Internal links MUST be bold; external MUST NOT be.** TS-28 §13 already said
+   this as a RECOMMENDED; promoted to MUST in both directions. "Internal" is
+   defined as another technical standard in this repo — so links to
+   `github.com/kieranpotts` repositories are external.
+
+**Sweep results.** 152 link macros joined across 76 files; 37 internal links
+bolded across 30 files; 1 external link un-bolded (TS-1's link to the
+`kieranpotts/specs` reference implementation, which I had bolded myself in an
+earlier step, before this rule existed). No external links were wrongly bolded
+anywhere else.
+
+**Two self-inflicted problems, both caught and fixed.**
+
+*The new style-guide rule initially violated itself* — the Markdown link in the
+rule text was wrapped across two lines. Fixed.
+
+*A paragraph-rebalancing pass overreached badly.* Joining links lengthened some
+lines past the 160-character hard limit, so I reflowed the affected paragraphs.
+The script reflowed 225 paragraphs across 143 files, far beyond the links —
+gratuitous churn in files with no link problem at all. Reverted in two stages:
+18 files whose only change was reflow and which never had a broken link, then
+link-free paragraphs within 4 files that did. Net change fell from 1515/1344 to
+1166/1001 insertions/deletions.
+
+**Six lines remain over 160 characters**, all legitimate under TS-28 §23's
+existing exemption for "tables or long URLs that cannot themselves be broken":
+four PLAN.md table rows and two single URLs longer than 160 characters.
+
+**Verification.** Zero links broken across lines; zero internal links unbolded;
+zero external links bolded; zero double-bold artifacts; zero unclosed macros;
+no new broken link targets. Pre-existing broken `link:./file.adoc` references in
+TS-5, TS-9, TS-16, and TS-28 were confirmed against a clean tree and left alone.
+
+### Tier 4 — conventions (2026-07-27)
+
+Uncommitted. **Scope extends well beyond TS-1** — 13 standards, plus
+`docs/style-guide.md`.
+
+**Three decisions by Kieran**, all taken against the recommendation in two
+cases:
+
+1. **References fold back into `README.adoc`.** `99-references.adoc` deleted;
+   the style guide now forbids splitting references into a separate file.
+
+2. **TS-26 §12 author-date is the reference format, repo-wide.** All 54 entries
+   across 10 standards converted; the style guide's conflicting colon-annotation
+   rule rewritten to match. *I initially scoped this to TS-1 alone and was
+   wrong to* — that would have made TS-1 the sole outlier, which is the exact
+   defect the first decision fixes. Kieran chose the repo-wide sweep.
+
+3. **Renumber rather than legitimize `NN[a-z]-`.** TS-1 is now `01`–`12`,
+   TS-61 `00`–`20`, all via `git mv` with history preserved.
+
+**Also closed:** dashes normalized to em (83 vs 8 already); 16 bold lead-ins
+converted to the mandated form; README related-standard links added (all seven
+the body cites); listing blocks titled consistently.
+
+**Fixed as side effects.** TS-4's two inbound links to TS-1 were already broken
+before the renumber — they pointed at `06-behaviors.adoc#_use-cases` and
+`#_event-storming`, but both sections live in the elicitation file. Retargeted,
+with the anchor form corrected to AsciiDoc's underscore convention. Also a
+broken sentence in TS-22, an "IMB Cloud" typo in TS-16, and TS-26's `-` bullets.
+
+**Two tier-3 edits were lost and restored.** The `08-qualities.adoc` NPS cut and
+the `01-scope.adoc` "Tests are not a specification" retitle had reverted on
+disk. Scoped the damage by grepping for every tier-3 marker rather than assuming
+— only those two were affected; all others survived. Both restored.
+
+**Not verified: mermaid rendering.** Asciidoctor is not installed and the repo
+has no build tooling, so no local render is possible. TS-1 uses the same
+`[mermaid]` + `....` form as TS-61's eight diagrams, so it is consistent with
+the repo convention, but consistency is not proof it renders. GitHub renders
+```mermaid fences in Markdown natively; that does not extend to `[mermaid]`
+blocks in AsciiDoc, which need the asciidoctor-diagram extension. Needs a manual
+check.
+
+**Verification.** All TS-1 xrefs resolve to exactly one heading; all `link:` and
+`include::` targets across `src/` resolve, except a set of pre-existing breakages
+in TS-5, TS-9, TS-16, and TS-28 that I confirmed against a clean tree predate
+this work and left alone. TS-61's README has 21 includes for 21 files, order
+preserved. PLAN.md's own file references updated to the new numbering.
 
 ### Tier 3 completion — 4.4/4.5, 4.7, and the §8 prose sweep (2026-07-27)
 
@@ -973,7 +1127,7 @@ is URL lines and `99-references.adoc`, which still needs its wrapping decision.
 
 **A rewrap script hung** partway through, in an inner loop that could fail to
 advance. No damage: each file is written only after its output is fully built,
-so the hang preceded any write, and `git status` confirmed `04-structure.adoc`
+so the hang preceded any write, and `git status` confirmed `05-structure.adoc`
 was untouched. The remaining lines were then fixed with a bounded script.
 
 **Verification.** Trees aligned; all xrefs resolve to exactly one heading each
@@ -989,9 +1143,9 @@ a bullet lead-in in §10, not a heading. Retargeted to `<<Two artifacts>>`.
 
 ### Tier 3 — coverage gaps and §09 reorder (2026-07-27)
 
-Uncommitted. Five files: `03-acceptance-criteria.adoc`, `04-structure.adoc`,
-`07-qualities.adoc`, `09-requirements-elicitation.adoc`,
-`10-proposal-lifecycle.adoc`.
+Uncommitted. Five files: `04-acceptance-criteria.adoc`, `05-structure.adoc`,
+`08-qualities.adoc`, `10-requirements-elicitation.adoc`,
+`11-proposal-lifecycle.adoc`.
 
 **Decisions by Kieran:** ISO 25010 grouping for qualities (over codifying the
 reference implementation's flat layout); two-phase deprecate-then-delete for
@@ -1111,7 +1265,7 @@ em-dashes in TS-1 alone. I did not invent a rule for it.
 
 ### §3 — technical accuracy (2026-07-27)
 
-Uncommitted. Two files: `07-qualities.adoc`, `02-responsibility.adoc`.
+Uncommitted. Two files: `08-qualities.adoc`, `03-responsibility.adoc`.
 
 All four items closed. The three §07 errors turned out to be one sentence
 listing four published standards, none with a version. Rather than patch each
@@ -1221,7 +1375,7 @@ No rendering check in either repo — neither has build tooling.
 Uncommitted, and **spans two repositories**.
 
 **In this repo:** new `== Identifying requirements` subsection in
-[04-structure.adoc](./04-structure.adoc), plus references to it from §06
+[05-structure.adoc](./05-structure.adoc), plus references to it from §06
 (features), §07 (qualities and the verification binding), and §10
 (traceability).
 
@@ -1253,7 +1407,7 @@ executable.
 ### Tier 2 — 4.1 extraction, with 4.2, 4.3, 1.3 (2026-07-27)
 
 Uncommitted. §10 reduced from 18 sections to 14. One new file
-(`11-definition-of-ready.adoc`); one file outside TS-1 touched
+(`12-definition-of-ready.adoc`); one file outside TS-1 touched
 (`012/02-definition-of-done.adoc`).
 
 **Decisions taken by Kieran:**
@@ -1272,7 +1426,7 @@ Uncommitted. §10 reduced from 18 sections to 14. One new file
 | Write functional requirements as testable scenarios | §06 Features, as a bulleted practices list |
 | State qualities as measurable thresholds | §07 Acceptance criteria (resolves [1.3](#13-qualities-must-measurable-vs-acknowledged-subjective-nfrs)) |
 | Enforce specs in continuous integration | §08 new `== Enforcement` |
-| Definition of Ready | New `11-definition-of-ready.adoc` |
+| Definition of Ready | New `12-definition-of-ready.adoc` |
 | Version control as the substrate | Bullets → §01a; stub retained in §10 ([4.2](#42-the-version-control-argument-is-made-twice-at-length)) |
 | Trace requirements to their implementation | Stays in §10; §07 and §01 defer to it ([4.3](#43-traceability-stated-three-times)) |
 
@@ -1298,7 +1452,7 @@ columns. No rendering check — the repo still has no build tooling.
 
 ### §10 rename (2026-07-27)
 
-Uncommitted. `10-managing-requirements.adoc` → `10-proposal-lifecycle.adoc`
+Uncommitted. `10-managing-requirements.adoc` → `11-proposal-lifecycle.adoc`
 (via `git mv`, so history follows), title "= Managing requirements" →
 "= Proposal lifecycle". Kieran's call: the section is about the proposal
 lifecycle, and the old broad title invited the drift catalogued in
@@ -1323,8 +1477,8 @@ No section contents were moved. The destination map in
 Committed by Kieran across five commits (`d6f4c47`…`a8588c6`, plan at
 `b147b48`), with edits of their own on top — see
 [Kieran's amendments](#kierans-amendments-to-tier-1) below. Five files touched:
-`01a-persistence.adoc`, `06-behaviors.adoc`,
-`08-executable-specifications.adoc`, `10-proposal-lifecycle.adoc`,
+`02-persistence.adoc`, `07-behaviors.adoc`,
+`09-executable-specifications.adoc`, `11-proposal-lifecycle.adoc`,
 `AGENTS.md`.
 
 **Decision taken.** The §01a/§10 merge-timing conflict
@@ -1375,7 +1529,7 @@ Applied during commit, on top of the changes above:
 
   Side effect worth tracking: §08 now uses `<…>` for two different things —
   template placeholders, and genuine Gherkin scenario-outline variables
-  ([08:284-286](./08-executable-specifications.adoc#L284-L286)). The sentence
+  ([08:284-286](./09-executable-specifications.adoc#L284-L286)). The sentence
   "Variables in the scenario outline steps are marked up with `<` and `>`" no
   longer distinguishes the two. Accepted as the cost of TS-26 conformance; if
   it proves confusing, the fix is a sentence noting the distinction, not a
