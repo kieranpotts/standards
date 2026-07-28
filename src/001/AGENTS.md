@@ -253,8 +253,7 @@ maintained specification.
   Draft → Proposed → Accepted → Released → Superseded,
   or Proposed → Rejected.
 
-  Proposed → Draft (rework) is the only permitted backward transition. No
-  skipped states.
+  No skipped states, and no backward transitions.
 
   An accepted proposal MAY continue to evolve during implementation. That is
   expected, and does not need re-approval. What was approved is the intent. If
