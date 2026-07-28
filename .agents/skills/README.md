@@ -5,6 +5,7 @@ Agent skills for maintaining these technical standards.
 | Skill | Summary |
 | --- | --- |
 | [agentify](./agentify/README.md) | Create or update a concise version of a technical standard for agents. |
+| [deep-dive](./deep-dive/README.md) | Review a standard in depth, then work the resulting plan tier by tier. |
 | [fix-cross-references](./fix-cross-references/README.md) | Fix broken internal links between standards. |
 
 See each skill's own `SKILL.md` for the full instructions an agent follows, and
