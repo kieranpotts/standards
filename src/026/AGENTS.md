@@ -98,7 +98,15 @@ code blocks, or citations.
     flexibility." Cut unless it adds a new concrete fact.
 
   - Promotional language: "boasts," "vibrant," "cutting-edge," "seamless,"
-    "in the heart of," "nestled." Documentation states facts; it doesn't sell.
+    "in the heart of," "nestled." Also unearned superlatives/buzzwords —
+    "revolutionary," "powerful," "intuitive," "state-of-the-art." Documentation
+    states facts; it doesn't sell. Replace with the specific fact that makes
+    the claim true, or delete it.
+  - Vague benefits: "enhanced productivity," "improved workflow," "optimized
+    performance." Ask what the underlying fact is — faster at what, by how
+    much, which steps were removed — and state that instead.
+  - Information priority: lead with the fact the reader needs (what changed,
+    what's now possible, how it works) before background or rationale.
 
   - Overused AI vocabulary: "delve," "crucial," "leverage," "foster,"
     "landscape" (abstract), "tapestry," "testament," "underscore" (verb),
