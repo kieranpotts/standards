@@ -70,6 +70,14 @@ code blocks, or citations.
   Use `<angle brackets>` for placeholders, `[square brackets]` for optional
   arguments.
 
+- **Colons only introduce a list; prefer two sentences over a semicolon.**
+
+  Never use a colon to join two independent clauses that could each stand
+  alone — write them as separate sentences. Same for semicolons: almost any
+  semicolon-joined pair of independent clauses reads better split in two.
+  Reserve semicolons for short items in an inline list, or a genuine
+  contrast/cause-effect that splitting would lose.
+
 - **Citations use a Chicago/Harvard hybrid:**
 
   `<author> (<year>). _<title>_. <publication>`
@@ -146,3 +154,6 @@ code blocks, or citations.
   - Stacked em dashes and bold: overusing em dashes for asides, or bolding
     many phrases in running prose — see the emphasis and punctuation rules
     above for when each is warranted.
+  - Colon and semicolon overuse: a colon should only ever introduce a list,
+    never an explainer; almost any semicolon-joined pair of independent
+    clauses reads better split into two plain sentences.
