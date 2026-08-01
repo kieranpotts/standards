@@ -8,7 +8,7 @@ compatibility: requires Read, Write, Edit, Bash (grep/find)
 license: MIT
 metadata:
   interactive: no
-  preferred_model: prose-writing
+  preferred_model: ollama/PROSE_STANDARD
 ---
 
 # Agentify

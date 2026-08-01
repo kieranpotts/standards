@@ -9,7 +9,7 @@ compatibility: requires Read, Write, Edit, Bash (grep/git/python3)
 license: MIT
 metadata:
   interactive: yes
-  preferred_model: prose-writing
+  preferred_model: ollama/ANALYSIS_DEEP
 ---
 
 # Deep dive
