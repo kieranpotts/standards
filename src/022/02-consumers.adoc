@@ -34,37 +34,37 @@ The following URL scheme is RECOMMENDED for webhooks.
 Where:
 
 * The initial `/_webhooks/` path component is RECOMMENDED to clearly
-differentiate webhook endpoints from the main API endpoints of the service. The
-underscore prefix indicates that these endpoints are for internal use and are
-not part of the public HTTP API of the service. This path naming convention may
-also make it easier to differentiate cross-cutting concerns such as security
-policies, routing rules, monitoring, and logging configurations for webhook
-endpoints.
+  differentiate webhook endpoints from the main API endpoints of the service.
+  The underscore prefix indicates that these endpoints are for internal use and
+  are not part of the public HTTP API of the service. This path naming
+  convention may also make it easier to differentiate cross-cutting concerns
+  such as security policies, routing rules, monitoring, and logging
+  configurations for webhook endpoints.
 
 * `{party}` is the name of the third-party service (an event producer) that
-sends events to the endpoint. This URL path component is REQUIRED.
+  sends events to the endpoint. This URL path component is REQUIRED.
 
 * `{namespace}` is an OPTIONAL path component used to scope a webhook to a
-particular service of the third-party event producer. This path component is
-recommended only if a third-party offers multiple services, each of which emits
-events in different formats, and which therefore require differential handling
-by consumers.
+  particular service of the third-party event producer. This path component is
+  recommended only if a third-party offers multiple services, each of which
+  emits events in different formats, and which therefore require differential
+  handling by consumers.
 
 * `{version}` is an OPTIONAL path component that identifies the version number
-of the event producer's webhook API or event schema that is supported by the
-endpoint. This can be omitted if the endpoint is designed to handle multiple
-versions of the producer's event schema in a backward-compatible way.
+  of the event producer's webhook API or event schema that is supported by the
+  endpoint. This can be omitted if the endpoint is designed to handle multiple
+  versions of the producer's event schema in a backward-compatible way.
 
 * `{event_type}` is an OPTIONAL path component that identifies a particular type
-of event that the endpoint is designed to receive. Normally, a single webhook
-endpoint is sufficient to handle all events from a particular producer. However,
-there may be cases where it is beneficial to have multiple webhooks handling
-different types of events. This can be useful where different event types
-require different processing logic. If this is not required, this URL path
-component MAY be the word "callback" or it MAY be omitted altogether.
+  of event that the endpoint is designed to receive. Normally, a single webhook
+  endpoint is sufficient to handle all events from a particular producer.
+  However, there may be cases where it is beneficial to have multiple webhooks
+  handling different types of events. This can be useful where different event
+  types require different processing logic. If this is not required, this URL
+  path component MAY be the word "callback" or it MAY be omitted altogether.
 
 * `{...}` refers to any additional URL path components that are required by the
-event producer, for example for the purpose of passing resource identifiers.
+  event producer, for example for the purpose of passing resource identifiers.
 
 === Examples
 
@@ -81,24 +81,24 @@ This fictional service exposes six webhook endpoints, which are used to receive
 notifications from three third-party event providers:
 
 * One webhook is for a service called AthentiQ. A single endpoint is used to
-process all events emitted by this producer. The endpoint supports version 3 of
-AuthentiQ's webhook event schema.
+  process all events emitted by this producer. The endpoint supports version 3
+  of AuthentiQ's webhook event schema.
 
 * There's a similar webhook for a service called TrueID. This endpoint is not
-versioned, which means it could handle multiple versions of TrueID's webhook
-event schema if needed. We're pretending that this is an older identity
-verification service that is being phased out, to be replaced by AuthentiQ. In
-this transition phase, the system needs to support both producers – TrueID and
-AuthentiQ – in parallel. This demonstrates that this URL scheme supports
-zero-downtime transitions to alternative service providers.
+  versioned, which means it could handle multiple versions of TrueID's webhook
+  event schema if needed. We're pretending that this is an older identity
+  verification service that is being phased out, to be replaced by AuthentiQ. In
+  this transition phase, the system needs to support both producers – TrueID and
+  AuthentiQ – in parallel. This demonstrates that this URL scheme supports
+  zero-downtime transitions to alternative service providers.
 
 * Four endpoints handle notifications from a service called Transactify. There's
-one endpoint to process "transaction-initiated" events, and another endpoint to
-process "transaction-complete" events. The system supports two different
-versions of Transactify's event schema. Perhaps most notifications are now sent
-to the v2 webhooks, but the system still needs to support the legacy v1 schema
-for a period of time, for example to handle retries and updates of historical
-events, before its deprecation.
+  one endpoint to process "transaction-initiated" events, and another endpoint
+  to process "transaction-complete" events. The system supports two different
+  versions of Transactify's event schema. Perhaps most notifications are now
+  sent to the v2 webhooks, but the system still needs to support the legacy v1
+  schema for a period of time, for example to handle retries and updates of
+  historical events, before its deprecation.
 
 These example demonstrate that the URL scheme supports multiple event producers,
 multiple event types, and multiple versions of the same event producer's event
@@ -179,13 +179,14 @@ To indicate errors, if the producer does not specify what error codes it
 expects, then the following response codes are RECOMMENDED:
 
 * `400 Bad Request` for client errors, which you should return when an event
-message fails to validate against the expected schema.
+  message fails to validate against the expected schema.
 * `401 Unauthorized` for failed authentication checks.
 * `403 Forbidden` for failed authorization checks (permissions, scopes).
 * `404 Not Found` when the webhook endpoint does not exist, for example it has
-been deprecated or moved.
+  been deprecated or moved.
 * `429 Too Many Requests` when rate limits have been exceeded.
 * `500 Internal Server Error` for any scenario in which your application
-encounters an unexpected condition that prevents it from completing its handling
-of the message. When you return a `5xx` code, you are basically saying to the
-client "please retry this later, I can't handle your request right now".
+  encounters an unexpected condition that prevents it from completing its
+  handling of the message. When you return a `5xx` code, you are basically
+  saying to the client "please retry this later, I can't handle your request
+  right now".

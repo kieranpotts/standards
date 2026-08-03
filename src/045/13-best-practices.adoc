@@ -3,65 +3,66 @@
 == Do
 
 * *Separate the migration from the switch-over.* Plan them as two operations
-with a gate between them.
+  with a gate between them.
 
 * *Preserve the source.* Keep the source writable and intact through the
-switch-over and into the soak period, so that switch-over rollback is cheap.
+  switch-over and into the soak period, so that switch-over rollback is cheap.
 
 * *Design for idempotency and resumability.* A failed or interrupted migration
-MUST be resumable by re-running it, not by reconstructing lost state.
+  MUST be resumable by re-running it, not by reconstructing lost state.
 
 * *Expand and contract.* Decompose schema changes into independently deployable,
-independently reversible steps. Never combine expand and contract in a single
-deploy.
+  independently reversible steps. Never combine expand and contract in a single
+  deploy.
 
 * *Validate before switching over.* The switch-over is gated on a passing
-validation run that includes a correctness check, not only a completeness check.
+  validation run that includes a correctness check, not only a completeness
+  check.
 
 * *Rehearse the cutover.* Run the cutover plan end-to-end against a
-non-production environment before running it against production.
+  non-production environment before running it against production.
 
 * *Test against real data.* Synthetic data does not reproduce the anomalies and
-scale that break migrations. Use a copy of production, or a stratified sample of
-it.
+  scale that break migrations. Use a copy of production, or a stratified sample
+  of it.
 
 * *Throttle and observe.* Run the migration as a monitored, throttleable
-workload, on its own dashboard, distinct from the application's telemetry.
+  workload, on its own dashboard, distinct from the application's telemetry.
 
 * *Take and verify backups.* A backup that has not been tested for restore is
-not a rollback plan.
+  not a rollback plan.
 
 * *Classify the data before you move it.* The classification determines the
-handling requirements. Stating it in the plan is non-negotiable for regulated
-data.
+  handling requirements. Stating it in the plan is non-negotiable for regulated
+  data.
 
 == Don't
 
 * *Don't combine the migration and the switch-over.* Coupling them produces a
-single failure with the worst-case rollback profile of both.
+  single failure with the worst-case rollback profile of both.
 
 * *Don't trust a row count.* A matching row count proves completeness only.
-Validation MUST include a correctness check.
+  Validation MUST include a correctness check.
 
 * *Don't ship a migration you can't pause.* An operator on duty MUST be able to
-pause, resume, and throttle the migration without the author present.
+  pause, resume, and throttle the migration without the author present.
 
 * *Don't ship an irreversible step unmarked.* Irreversible steps MUST be
-identified, gated on prior validation, and approved explicitly.
+  identified, gated on prior validation, and approved explicitly.
 
 * *Don't drop the source on cutover.* Decommissioning is a separate step,
-executed after a soak period, and it is the point of no return.
+  executed after a soak period, and it is the point of no return.
 
 * *Don't migrate data you don't need.* A migration is an opportunity to retire
-expired data, not an obligation to carry it forward.
+  expired data, not an obligation to carry it forward.
 
 * *Don't treat zero-downtime as a goal.* Zero-downtime is a tool for when the
-simpler strategies cannot meet the availability requirement. Default to the
-simplest strategy that fits.
+  simpler strategies cannot meet the availability requirement. Default to the
+  simplest strategy that fits.
 
 * *Don't skip the dual-write shadow run.* The dual-write path is where
-zero-downtime migrations fail. Exercise it under real load before you rely on
-it.
+  zero-downtime migrations fail. Exercise it under real load before you rely on
+  it.
 
 * *Don't reuse an administrative credential.* Scope a dedicated credential for
-the migration, and revoke it on completion.
+  the migration, and revoke it on completion.

@@ -108,23 +108,24 @@ images) are stored in external artifact repositories, indexed by version tag.
 The release branch workflow follows these steps:
 
 1. Create a release branch from the current tip of the `ready` trunk. Name it
-with the version number: `git checkout -b release/<version> ready`
+   with the version number: `git checkout -b release/<version> ready`
 2. Prepare release metadata on the release branch: update version numbers,
-generate or finalize release notes and changelogs, and configure any
-release-specific settings (feature flags, secrets, etc.).
+   generate or finalize release notes and changelogs, and configure any
+   release-specific settings (feature flags, secrets, etc.).
 3. Verify the release through final validation: run the full test suite, build
-the release artifacts, and perform any final checks required before deployment.
+   the release artifacts, and perform any final checks required before
+   deployment.
 4. Once verified, tag the release with the version: `git tag -a v<version>` (or
-however your versioning scheme dictates).
+   however your versioning scheme dictates).
 5. Build and store compiled artifacts in an external artifact repository
-(container registry, package repository, object storage, etc.), indexed by the
-version tag.
-6. Delete the release branch: `git branch -D release/<version>` and `git push
-origin --delete release/<version>`. The version tag remains permanently in the
-repository.
+   (container registry, package repository, object storage, etc.), indexed by
+   the version tag.
+6. Delete the release branch: `git branch -D release/<version>` and
+   `git push origin --delete release/<version>`. The version tag remains
+   permanently in the repository.
 7. Development continues on the `ready` trunk for the next release. If there are
-additional fixes needed for the current version, they flow back through `dev`
-and are promoted to `ready` like any other changes.
+   additional fixes needed for the current version, they flow back through `dev`
+   and are promoted to `ready` like any other changes.
 
 If release preparation fails — for example, tests fail, an artifact build is
 broken, or the wrong version number is committed — abandon the release branch
@@ -141,11 +142,11 @@ branches focused on a single responsibility.
 This standard distinguishes between two kinds of release artifacts:
 
 * *Compiled artifacts* — Binaries, packages, container images, and other build
-outputs. These MUST NOT be stored in version control.
+  outputs. These MUST NOT be stored in version control.
 
 * *Release metadata* — Version tags, changelogs, release notes, configuration
-(secrets, feature flags). This can be stored in version control via release
-branches.
+  (secrets, feature flags). This can be stored in version control via release
+  branches.
 
 Git is optimized for source code, not binaries. Storing compiled artifacts in
 Git repositories significantly slows clone operations, bloats the repository
@@ -155,24 +156,24 @@ stored in version control.
 Anti-patterns to avoid:
 
 * *Git Large File System (LFS)* — While useful for source-controlled media
-(images, videos), it is not suitable for release artifacts. It still ties
-artifacts to the repository, slowing operations and complicating distribution.
+  (images, videos), it is not suitable for release artifacts. It still ties
+  artifacts to the repository, slowing operations and complicating distribution.
 
 * *Orphaned branches* — Using dedicated branches to store only build artifacts
-pollutes the repository history and does not solve the fundamental problems
-above.
+  pollutes the repository history and does not solve the fundamental problems
+  above.
 
 Instead, store built artifacts in dedicated systems external to version control,
 eg.:
 
 * **Registries** — eg. Docker Hub, Amazon ECR, Maven Central, npm, PyPI, etc. —
-for containerized apps and libraries.
+  for containerized apps and libraries.
 
 * **Object storage** — eg. Amazon S3, Google Cloud Storage, Azure Blob — for
-binaries, archives, and generic build outputs.
+  binaries, archives, and generic build outputs.
 
 * **Generic artifact repositories** — eg. JFrog Artifactory, AWS CodeArtifact,
-Sonatype Nexus — for any artifact type.
+  Sonatype Nexus — for any artifact type.
 
 Best practice is to create a two-way binding between version control and
 external artifact repositories using version numbering. For example, if `v1.2.3`

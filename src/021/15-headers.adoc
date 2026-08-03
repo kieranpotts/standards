@@ -30,17 +30,17 @@ request and response bodies.
   any of the media types requested, it MUST return `406 Not Acceptable`, rather
   than silently falling back to a different media type than the one requested.
 
-* `Accept-Charset`: Where sent, this SHOULD include `utf-8`. HTTP APIs
-  following this standard only produce UTF-8 encoded content, so this header
-  adds little in practice, but SHOULD be handled gracefully where present.
+* `Accept-Charset`: Where sent, this SHOULD include `utf-8`. HTTP APIs following
+  this standard only produce UTF-8 encoded content, so this header adds little
+  in practice, but SHOULD be handled gracefully where present.
 
 * `Content-Type`: Clients MUST include this header on any request that has a
   body, eg. `POST`, `PUT`, and `PATCH` requests, and servers MUST include it on
-  any response that has a body. Where the media type is text-based, eg. `application/json`,
-  the header MUST include an explicit `charset` parameter, and that charset MUST
-  be `utf-8`. Where a request's `Content-Type` names a media type the server
-  does not support, the server MUST return `415 Unsupported Media Type`.
-  +
+  any response that has a body. Where the media type is text-based, eg.
+  `application/json`, the header MUST include an explicit `charset` parameter,
+  and that charset MUST be `utf-8`. Where a request's `Content-Type` names a
+  media type the server does not support, the server MUST return
+  `415 Unsupported Media Type`. +
   [source,http]
   ----
   Content-Type: application/json; charset=utf-8
@@ -49,7 +49,8 @@ request and response bodies.
 * `Content-Language`: Responses SHOULD include this header to indicate the
   language of the response content, using a language tag. Where an API does not
   support content negotiation by language, it SHOULD still include this header
-  with a fixed value representing the language it always responds in, eg. `en-US`.
+  with a fixed value representing the language it always responds in, eg.
+  `en-US`.
 
 == Non-standard headers
 
@@ -59,29 +60,30 @@ custom headers, and to avoid potential conflicts with future standard headers.
 Examples:
 
 * `X-Request-Id`: A unique identifier for the request, used for logging and
-tracing, and to implement idempotent operations.
+  tracing, and to implement idempotent operations.
 
 * `X-Correlation-Id`: A unique identifier to correlate requests and responses
-through distributed systems. This may be useful in scenarios where a client does
-not supply an `X-Request-Id` header, or where processes are initialized by the
-system (such as batch processes or scheduled jobs) rather than by a user.
+  through distributed systems. This may be useful in scenarios where a client
+  does not supply an `X-Request-Id` header, or where processes are initialized
+  by the system (such as batch processes or scheduled jobs) rather than by a
+  user.
 
 * `X-Client-Id`: A unique identifier for the client application making the
-request. This may be useful where you want to track the behavior of a specific
-client application, rather than a specific user.
+  request. This may be useful where you want to track the behavior of a specific
+  client application, rather than a specific user.
 
 == Header reliability
 
-HTTP headers are convenient for carrying cross-cutting metadata, but they
-travel through more infrastructure than the response body does – proxies,
-gateways, CDNs, and client libraries can all inspect, add, remove, or modify
-headers in transit. For this reason:
+HTTP headers are convenient for carrying cross-cutting metadata, but they travel
+through more infrastructure than the response body does – proxies, gateways,
+CDNs, and client libraries can all inspect, add, remove, or modify headers in
+transit. For this reason:
 
 * API consumers and API implementations SHOULD NOT assume that a particular
-  header will always survive the journey from server to client intact.
-  Business logic SHOULD NOT depend on a header being present or unmodified.
-  Where a value is essential to correct behavior, it SHOULD be carried in the
-  message body instead.
+  header will always survive the journey from server to client intact. Business
+  logic SHOULD NOT depend on a header being present or unmodified. Where a value
+  is essential to correct behavior, it SHOULD be carried in the message body
+  instead.
 
 * Infrastructure components in the request path MAY reject a request outright
   based on a header, eg. rejecting an unauthenticated request before it reaches
@@ -89,13 +91,13 @@ headers in transit. For this reason:
   semantic meaning.
 
 Because of this unreliability, and because responses may be passed between
-layers of a client application that do not all have access to the original
-HTTP headers, hypermedia links MUST be conveyed in the response body rather
-than in headers. Specifically:
+layers of a client application that do not all have access to the original HTTP
+headers, hypermedia links MUST be conveyed in the response body rather than in
+headers. Specifically:
 
-* The `Location` header MUST NOT be used as a substitute for a `self`
-  hypermedia link in `201 Created` responses. A `201` response MUST include a
-  `self` link in the response body, even where a `Location` header is also present.
+* The `Location` header MUST NOT be used as a substitute for a `self` hypermedia
+  link in `201 Created` responses. A `201` response MUST include a `self` link
+  in the response body, even where a `Location` header is also present.
 
 * The `Link` header MUST NOT be used to convey hypermedia controls. Use the
   `links` array in the response body instead.
@@ -161,9 +163,9 @@ or that is served from a cache or a read replica.
 The following tokens MAY be supported for this purpose, in decreasing order of
 consistency guarantee:
 
-* `Prefer: read-consistent`: The client requires the response to be sourced
-  from a durable, consistent data store, reflecting the result of all writes
-  already acknowledged to any client. Where an API does not offer any other read
+* `Prefer: read-consistent`: The client requires the response to be sourced from
+  a durable, consistent data store, reflecting the result of all writes already
+  acknowledged to any client. Where an API does not offer any other read
   consistency preference, this SHOULD be the default behavior, and clients
   SHOULD NOT need to set this token explicitly.
 
@@ -188,12 +190,12 @@ order to fulfil a request, it MUST forward relevant custom headers, eg.
 single client-facing request to be traced consistently across all the internal
 services that participate in fulfilling it.
 
-Standard HTTP headers that carry cross-cutting concerns, eg. `Authorization`
-and `Accept-Language`, SHOULD also be propagated downstream where the
-downstream service needs the same context. Headers that are specific to the
-transport between the client and the first-hop service, eg. `Content-Length`,
-SHOULD NOT be blindly forwarded, since they may no longer be accurate for the
-downstream request.
+Standard HTTP headers that carry cross-cutting concerns, eg. `Authorization` and
+`Accept-Language`, SHOULD also be propagated downstream where the downstream
+service needs the same context. Headers that are specific to the transport
+between the client and the first-hop service, eg. `Content-Length`, SHOULD NOT
+be blindly forwarded, since they may no longer be accurate for the downstream
+request.
 
 == Response caching
 
@@ -216,7 +218,7 @@ Response caching can also be done upstream, too:
 
 * *CDN/Edge*: Cache responses at edge locations for global distribution
 * *Application-level*: Implement in-memory or distributed caching for computed
-results
+  results
 * *Database query*: Cache expensive database operations
 
 Consider *cache invalidation* techniques.

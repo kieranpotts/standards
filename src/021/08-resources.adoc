@@ -27,21 +27,22 @@ The following additional rules apply to the design of resource identifiers:
   not suitable, eg. for performance or storage reasons, an HMAC-based hashed
   identifier is an acceptable alternative.
 
-* Where a sub-resource identifier is used (see *Sub-resources and
-  sub-collections*), it MUST be scoped for lookup purposes within its parent
-  resource only. For example, given `/users/1234/linked-accounts/ABCD`, account
-  `ABCD` MUST NOT be returned unless it is actually linked to user `1234`, even
-  if an account with that identifier exists elsewhere in the system.
+* Where a sub-resource identifier is used (see
+  *Sub-resources and sub-collections*), it MUST be scoped for lookup purposes
+  within its parent resource only. For example, given
+  `/users/1234/linked-accounts/ABCD`, account `ABCD` MUST NOT be returned unless
+  it is actually linked to user `1234`, even if an account with that identifier
+  exists elsewhere in the system.
 
-* A URL path MUST NOT contain two resource identifiers in immediate
-  succession, eg. `/payments/12345/102030`, since this is ambiguous as to
-  whether the second segment is a sub-resource identifier or something else.
-  Interpose a named sub-resource segment between them, per the templates above.
+* A URL path MUST NOT contain two resource identifiers in immediate succession,
+  eg. `/payments/12345/102030`, since this is ambiguous as to whether the second
+  segment is a sub-resource identifier or something else. Interpose a named
+  sub-resource segment between them, per the templates above.
 
 * Resource identifiers SHOULD be restricted to ASCII characters. Where an
-  identifier must be included in a URL and contains any character outside of
-  the URI-unreserved set, it MUST be percent-encoded, as MUST any UTF-8
-  characters in query parameter values.
+  identifier must be included in a URL and contains any character outside of the
+  URI-unreserved set, it MUST be percent-encoded, as MUST any UTF-8 characters
+  in query parameter values.
 
 If the provided resource identifier is not found, even if the data is "soft
 deleted" in the data source, the response status code should be `404 Not Found`.
@@ -146,11 +147,11 @@ header `Prefer:return=representation`.
 
 Any update request (whether PUT or PATCH) that fails input validation MUST
 receive a `400 Bad Request` response. If clients attempt to modify read-only
-fields, or if the resource is in a non-updatable state, this is also a `400 Bad
-Request`. If there are business rules or validation constraints, eg. for data
-type, length, etc., that are not satisfied, a `400 Bad Request` response is
-appropriate. In addition, appropriate error codes and messages SHOULD be encoded
-in the response body.
+fields, or if the resource is in a non-updatable state, this is also a
+`400 Bad Request`. If there are business rules or validation constraints, eg.
+for data type, length, etc., that are not satisfied, a `400 Bad Request`
+response is appropriate. In addition, appropriate error codes and messages
+SHOULD be encoded in the response body.
 
 For situations that require interaction with upstream servers or external APIs
 or processes, returning the `422 Unprocessable Entity` status code may be more
@@ -160,11 +161,11 @@ appropriate than `400 Bad Request`.
 
 In order to enable retries (eg. due to patchy connectivity), and for conformance
 with HTTP standards, `DELETE` operations MUST be implemented to be idempotent.
-This means that successful `DELETE` operations MUST always respond with `204 No
-Content`, even if the resource is already deleted. Returning `404 Not Found` is
-not appropriate for `DELETE` operations in this scenario, as it suggests that
-the resource never existed at all. If necessary, clients can use `GET` to verify
-the resource exists prior to `DELETE`.
+This means that successful `DELETE` operations MUST always respond with
+`204 No Content`, even if the resource is already deleted. Returning
+`404 Not Found` is not appropriate for `DELETE` operations in this scenario, as
+it suggests that the resource never existed at all. If necessary, clients can
+use `GET` to verify the resource exists prior to `DELETE`.
 
 .Template
 ----
@@ -191,9 +192,9 @@ will be unable to support DELETE requests with payloads.
 There are two ways to create resources:
 
 * Using `POST` to create a resource but have the server create an identifier for
-it.
+  it.
 * Using `PUT` to create a full resource, including a unique identifier that is
-generated client-side.
+  generated client-side.
 
 .Template
 ----
@@ -272,13 +273,13 @@ For example, if only `GET` and `DELETE` operations are available:
 
 == File uploads
 
-Where a resource needs to carry binary content, eg. an image, a document, or
-an audio file, that content SHOULD NOT be embedded in a JSON payload as a
+Where a resource needs to carry binary content, eg. an image, a document, or an
+audio file, that content SHOULD NOT be embedded in a JSON payload as a
 Base64-encoded string. Base64 encoding inflates the size of the content by
 roughly a third, forces the entire file to be held in memory as a single JSON
 string on both client and server, and defeats HTTP-level features such as
-streaming and range requests. Two patterns are RECOMMENDED instead, depending
-on whether the file exists independently of other resource data.
+streaming and range requests. Two patterns are RECOMMENDED instead, depending on
+whether the file exists independently of other resource data.
 
 *Standalone file upload.* Where the file is itself the primary subject of the
 request, eg. uploading a profile photo, it SHOULD be submitted to a dedicated
@@ -296,8 +297,8 @@ The response MUST include an identifier or URL for the uploaded file (see
 re-submitting the file's content each time.
 
 *File upload as an attachment to structured data.* Where a file needs to be
-submitted together with structured JSON data in the same request, eg.
-uploading a receipt alongside an expense claim's other fields, the request
-SHOULD use `multipart/mixed` or `multipart/related`, per
+submitted together with structured JSON data in the same request, eg. uploading
+a receipt alongside an expense claim's other fields, the request SHOULD use
+`multipart/mixed` or `multipart/related`, per
 https://tools.ietf.org/html/rfc2387[RFC 2387], with one part carrying the JSON
 body and one or more further parts carrying the file content.

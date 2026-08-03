@@ -75,9 +75,9 @@ The `page` query parameter SHOULD also be optional. If not provided by the
 client, the server MUST return the first page of results (ie. the default value
 for `page` MUST be 1).
 
-The values of both `page` and `per_page` MUST be validated by the server. A `400
-Bad Request` SHOULD be returned for semantically invalid values. However, if the
-requested range is outside of the available range of results (eg.
+The values of both `page` and `per_page` MUST be validated by the server. A
+`400 Bad Request` SHOULD be returned for semantically invalid values. However,
+if the requested range is outside of the available range of results (eg.
 `page=2&per_page=100` is requested but there are only 50 results) a `200 OK`
 response SHOULD be returned with an empty result list, not a `404 Not Found`.
 
@@ -116,29 +116,28 @@ For example, the following query parameters MAY be available for clients to
 filter collections by a time range:
 
 * `start_time` or `{property_name}_after`: An ISO-8601 date and time string that
-represents the start of a temporal range. `start_time` may be used when there is
-only one unambiguous time dimension, otherwise the property name should be used,
-eg, `processed_after`, `uploaded_after`. The property SHOULD map to a time field
-in the representation.
+  represents the start of a temporal range. `start_time` may be used when there
+  is only one unambiguous time dimension, otherwise the property name should be
+  used, eg, `processed_after`, `uploaded_after`. The property SHOULD map to a
+  time field in the representation.
 
 * `end_time` or `{property_name}_before`: An ISO-8601 date and time string
-indicating the end of a temporal range. `end_time` may be used when there is
-only one unambiguous time dimension, otherwise the property name should be used,
-eg. `processed_before`, `uploaded_before`. The property SHOULD map to a time
-field in the representation.
+  indicating the end of a temporal range. `end_time` may be used when there is
+  only one unambiguous time dimension, otherwise the property name should be
+  used, eg. `processed_before`, `uploaded_before`. The property SHOULD map to a
+  time field in the representation.
 
 These query parameters SHOULD be used consistently across all endpoints that
 support time-based filtering.
 
 === Filtering by multiple values
 
-It is often necessary for a client to filter a collection by more than one
-value of the same field, eg. to request resources whose `status` is either
-`open` or `closed`. Two patterns are RECOMMENDED for this, depending on
-context.
+It is often necessary for a client to filter a collection by more than one value
+of the same field, eg. to request resources whose `status` is either `open` or
+`closed`. Two patterns are RECOMMENDED for this, depending on context.
 
-The default approach is to repeat the query parameter once for each value.
-This is natively supported by the HTTP standards and by most client and server
+The default approach is to repeat the query parameter once for each value. This
+is natively supported by the HTTP standards and by most client and server
 libraries, without any special-case parsing logic.
 
 ----
@@ -156,8 +155,8 @@ length is a concern. However, this pattern is NOT RECOMMENDED unless justified,
 because it requires bespoke parsing logic on both the client and server, and it
 is not universally supported by API tooling. Where this pattern is used:
 
-* The query parameter's documented name SHOULD be plural (`statuses`), to
-  signal to clients that comma-separated values are accepted.
+* The query parameter's documented name SHOULD be plural (`statuses`), to signal
+  to clients that comma-separated values are accepted.
 
 * The comma character MUST be used as the separator between values.
 
@@ -185,10 +184,10 @@ client. This includes sorting by a specific field's value, and sorting order.
 The following URL parameters SHOULD be used for this purpose:
 
 * `sort_by`: A dimension by which items should be sorted. The dimension SHOULD
-map directly to an attribute in the item's representation.
+  map directly to an attribute in the item's representation.
 
 * `sort_order`: The order, one of "asc" or "desc", indicating ascending or
-descending order respectively.
+  descending order respectively.
 
 The default sort field and sort order MUST be documented for each collection.
 All collections have a default sorting, except in use cases where the order is
@@ -196,20 +195,20 @@ deliberately randomized (if so, this still needs to be specified).
 
 == Bulk operations
 
-Where a client needs to create, update, or delete a large number of resources
-in a single call, rather than issuing one request per resource, a collection
-MAY support bulk operations. Bulk operations trade off some of the simplicity
-of single-resource CRUD for a significant reduction in the number of round
-trips required.
+Where a client needs to create, update, or delete a large number of resources in
+a single call, rather than issuing one request per resource, a collection MAY
+support bulk operations. Bulk operations trade off some of the simplicity of
+single-resource CRUD for a significant reduction in the number of round trips
+required.
 
 *Homogeneous bulk operations* – applying the same operation (eg. `create`) to
 many resources of the same type – are RECOMMENDED where this trade-off is
-worthwhile. *Heterogeneous bulk operations* – combining different operations,
-or different resource types, in a single call – are NOT RECOMMENDED, because
-they are difficult to make atomic, difficult to report errors for
-consistently, and difficult for clients to reason about. Where heterogeneous
-batching is genuinely required, consider adopting an established standard
-such as the OData Batch specification, rather than inventing a bespoke format.
+worthwhile. *Heterogeneous bulk operations* – combining different operations, or
+different resource types, in a single call – are NOT RECOMMENDED, because they
+are difficult to make atomic, difficult to report errors for consistently, and
+difficult for clients to reason about. Where heterogeneous batching is genuinely
+required, consider adopting an established standard such as the OData Batch
+specification, rather than inventing a bespoke format.
 
 A homogeneous bulk operation SHOULD be modelled as an action on the collection,
 accepting an `items` array in its request body:
@@ -226,9 +225,9 @@ POST /v1/{namespace}/{resource}/actions/bulkCreate
 }
 ----
 
-The response SHOULD echo back one result per input item, in the same order,
-so that clients can correlate each result with its corresponding request item
-by index:
+The response SHOULD echo back one result per input item, in the same order, so
+that clients can correlate each result with its corresponding request item by
+index:
 
 [source,json]
 ----
@@ -249,24 +248,24 @@ by index:
 }
 ----
 
-Where an error needs to reference a specific field within a specific item of
-the request, the error's `field` JSON Pointer SHOULD include the item's index,
-eg. `/items/1/currency_code`.
+Where an error needs to reference a specific field within a specific item of the
+request, the error's `field` JSON Pointer SHOULD include the item's index, eg.
+`/items/1/currency_code`.
 
 A bulk operation MUST document whether it is *atomic* (all items succeed, or
 none are applied) or *partial* (each item succeeds or fails independently). An
-atomic bulk operation SHOULD use the normal single-resource status codes,
-since the whole operation either succeeds or fails as one. A partial bulk
-operation SHOULD normally respond with `200 OK` for the operation as a whole,
-with the per-item outcomes conveyed in the response body as shown above, since
-no single top-level status code can represent a mix of per-item successes and
-failures. Where a bulk operation is processed asynchronously, `202 Accepted`
-SHOULD be used instead.
+atomic bulk operation SHOULD use the normal single-resource status codes, since
+the whole operation either succeeds or fails as one. A partial bulk operation
+SHOULD normally respond with `200 OK` for the operation as a whole, with the
+per-item outcomes conveyed in the response body as shown above, since no single
+top-level status code can represent a mix of per-item successes and failures.
+Where a bulk operation is processed asynchronously, `202 Accepted` SHOULD be
+used instead.
 
-Bulk operations SHOULD be atomic wherever this is practical for the
-underlying system to implement. Where an operation is not atomic, this MUST be
-documented, so that clients know to check the per-item results rather than
-assuming a `2xx` response means every item succeeded.
+Bulk operations SHOULD be atomic wherever this is practical for the underlying
+system to implement. Where an operation is not atomic, this MUST be documented,
+so that clients know to check the per-item results rather than assuming a `2xx`
+response means every item succeeded.
 
 == HTTP statuses
 
