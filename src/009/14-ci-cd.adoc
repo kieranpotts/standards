@@ -32,9 +32,13 @@ users or breaking releases. The two main techniques are:
   adapter, or facade) over the existing implementation, migrate callers to use
   the abstraction, then build the new implementation behind the same
   abstraction. Both implementations can coexist in the codebase; switching
-  between them is a small, controllable change. Once the new implementation is
-  complete and validated, the old implementation and the abstraction (if no
-  longer needed) are removed.
+  between them is a small, controllable change (typically via a feature flag).
+  Once the new implementation is complete and validated, the old implementation
+  and the abstraction (if no longer needed) are removed. Typical uses include
+  swapping a database, a payment provider, or a library dependency without
+  interrupting other developers' work. The abstraction MAY be retained after
+  the migration rather than removed, if it provides a useful seam for mocking
+  in unit tests.
 
 Both techniques achieve the same goal: incomplete or in-progress work lives on
 `dev` from the start, integrating continuously with everything else, without
@@ -65,6 +69,26 @@ into smaller, reviewable chunks diminishes.
 The discipline of small, frequent commits naturally results in smaller, more
 focused pull requests. These are faster to review, easier to understand, and
 lead to more collaborative and productive review discussions.
+
+As a concrete guideline, keep each reviewable unit — a single commit, a PR, or
+a squash-merged slice of an epic — under approximately 2,000 lines of new or
+changed code. This is not a hard technical limit, but beyond this size
+reviewers tend to skim rather than read closely, and defects hide in the parts
+that received the least attention. A genuinely new, self-contained feature does
+not need every sub-feature split into its own commit or PR merely to satisfy
+this guideline. But if a reviewable unit is approaching or exceeding this size,
+that is a signal to split it — for example, by landing supporting refactors or
+scaffolding as separate, smaller changes ahead of the feature itself.
+
+Where a PR-gated workflow is unavoidable, review latency is only a problem if it blocks
+progress. When planning a larger piece of work broken into several reviewable
+units, identify up front which units are genuinely independent of one
+another — as opposed to units where the next step's design cannot be finalized
+until the prior step's review lands. For the independent units, start the next
+one as soon as the current one is submitted for review, rather than waiting
+idle for approval. This is not possible for units that are truly sequential
+(each depending on the reviewed shape of the last), so the split itself should
+be planned with this in mind, not decided arbitrarily as work proceeds.
 
 == Automation is essential
 
