@@ -268,6 +268,39 @@ operations can be run in interactive mode (`git rebase --interactive|-i`), which
 allows squashing multiple commits, dropping commits, reordering them, and
 changing commit messages.
 
+=== Conflict-resolution strategies
+
+`git merge`, `git rebase`, and `git cherry-pick` all resolve conflicting hunks
+through the same underlying three-way merge machinery, and all three accept a
+`-X` (strategy option) flag that biases *automatic* conflict resolution towards
+one side of the conflict, rather than stopping and requiring manual resolution:
+
+[source,sh]
+----
+git merge -X ours <branch>       # keep the current branch's version of any
+                                  # conflicting hunk
+git merge -X theirs <branch>     # keep the incoming branch's version instead
+
+git rebase -X theirs <branch>
+git cherry-pick -X ours <commit>
+----
+
+This only affects hunks that Git cannot merge cleanly on its own; hunks that
+merge cleanly are merged normally regardless of the flag. It is not the same as
+the whole-branch `-s ours` merge strategy, which discards the other side's
+changes entirely and unconditionally, even where no conflict exists.
+
+`-X ours`/`-X theirs` MUST NOT be used as a default or blanket setting to
+suppress conflicts in application code — doing so can silently discard changes
+that a reviewer never sees, which undermines the *provenance* objective far
+more than a manual conflict resolution would. It MAY be used narrowly, for a
+specific, well-understood file that is expected to diverge predictably and
+where one side is always correct by construction — for example, a
+generated lock file, or a changelog header — most commonly when backporting a
+fix across long-term support pipelines (see
+*link:./long-term-support.adoc[]*), where the same conflicting hunk (eg. a
+version string) recurs on every backport.
+
 === Cherry-picking
 
 Cherry-picking differs from the other integration strategies in a fundamental
