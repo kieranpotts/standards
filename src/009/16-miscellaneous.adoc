@@ -17,3 +17,40 @@ admin rights or "developer mode", while Git for Windows has a `core.symlinks`
 setting that defaults to false in some installs, which causes the symlinks to be
 checked out as plain text files. For these reasons, it is best to avoid
 committing symlinks at all.
+
+== Repository maintenance
+
+A local clone accumulates cruft over time: loose objects from rebases and
+amends that are no longer reachable from any branch or tag, stale remote-tracking
+references for branches deleted upstream, and – rarely – object corruption from
+disk faults or interrupted operations. This is independent of the repository
+history itself, which stays clean under the fix-forward discipline described
+elsewhere in this standard; it concerns the health of the local `.git` directory.
+
+It is RECOMMENDED to periodically run the following maintenance commands on
+long-lived clones, particularly ones used for day-to-day development on a
+repository with heavy commit and branch-deletion activity:
+
+[source,sh]
+----
+git gc
+git remote prune origin
+git fsck
+----
+
+`git-gc(1)` compacts loose objects into packfiles and removes objects that are
+no longer reachable, once they age past the default retention window. This
+keeps clone and fetch operations fast and the on-disk repository small.
+`git remote prune origin` (equivalently, `git fetch --prune`) removes
+remote-tracking references for branches that have been deleted on the remote,
+which otherwise accumulate indefinitely and clutter output like
+`git branch -r`. `git-fsck(1)` verifies the integrity of the object database
+and reports any corruption, which is otherwise likely to go unnoticed until a
+corrupted object is actually read.
+
+None of these commands alter recorded history; they are housekeeping only.
+Most Git installations since v2.x run a lightweight form of `git gc`
+automatically in the background after operations like `commit` and `merge`, so
+manual invocation is mostly useful for `git fsck` (which is not run
+automatically) and for forcing cleanup on repositories where the automatic
+trigger's heuristics have not kicked in.
