@@ -75,8 +75,11 @@ stable commit hash.
     build and does not introduce known test failures.
 +
 Pre-commit hooks SHOULD run a fast subset of quality checks locally (linting,
-formatting, unit tests on changed files). The full test suite runs in CI on
-every push to `dev`, which provides the authoritative stability signal.
+formatting, unit tests on changed files). Keep this fast — a few seconds at
+most. Checks slow enough to interrupt a developer's flow create pressure to
+bypass them with `git commit --no-verify`, which defeats their purpose. The
+full test suite runs in CI on every push to `dev`, which provides the
+authoritative stability signal.
 +
 ----
 git add .
@@ -169,9 +172,11 @@ git switch --create|-c temp/[<id>-]<description>
     integration into `dev`.
 +
 Pre-commit hooks SHOULD run a fast subset of quality checks locally (linting,
-formatting, unit tests on changed files). The full test suite runs in CI when
-the branch is pushed and again before integration, providing the authoritative
-stability signal.
+formatting, unit tests on changed files). Keep this fast — a few seconds at
+most. Checks slow enough to interrupt a developer's flow create pressure to
+bypass them with `git commit --no-verify`, which defeats their purpose. The
+full test suite runs in CI when the branch is pushed and again before
+integration, providing the authoritative stability signal.
 +
 ----
 git add .
@@ -272,6 +277,17 @@ several options for cleaning up WIP commits:
 * *Interactive rebase* — Use `git rebase -i` (interactive mode) to reorder,
   combine (squash), edit, or drop individual commits. This is powerful but
   requires care (see the section on interactive rebasing below).
+
+* *Fixup commits* — If you already know which earlier commit a WIP change
+  belongs to, use `git commit --fixup=<commit>` instead of manually locating
+  and reordering lines in an interactive rebase todo list. This records a
+  commit prefixed `fixup! <original subject>`. Running
+  `git rebase -i --autosquash <base>` then automatically moves each fixup
+  commit into place immediately after the commit it targets and marks it to be
+  squashed, without further editing of the rebase todo list. The related
+  `git commit --squash=<commit>` behaves the same way, except the fixup
+  commit's message is retained (concatenated onto the target's) rather than
+  discarded.
 
 * *Squash-merge* — When integrating the temporary branch into `dev`, use
   `git merge --squash` to combine all commits from the temporary branch into a
@@ -620,6 +636,28 @@ Interactive rebasing is powerful but should be used carefully:
 The safer approach for most situations is to use squash-merge when integrating
 into `dev`, rather than attempting to clean up history with interactive rebase
 beforehand.
+
+Reordering, splitting, or dropping commits during an interactive rebase can
+silently break the "don't break the build" constraint on atomic commits (see
+*link:./commits.adoc[]*) — a commit that passed its tests in its original
+position may not still pass once its context has changed. The `--exec` option
+re-runs a given command after every commit as the rebase replays them, so a
+broken intermediate commit is caught immediately rather than discovered later
+by `git bisect`:
+
+----
+git rebase -i --exec "<test-command>" <base-commit>
+----
+
+If the command fails after any commit, the rebase pauses at that point for you
+to fix the commit before continuing, the same as if a conflict had occurred.
+
+[TIP]
+======
+`--exec` can be combined with `-i` to review and rework commits interactively as
+well as retest each one, or used without `-i` to non-interactively retest an
+existing series of commits after a rebase onto a new base.
+======
 
 == Integrations to the testing and ready trunks
 
