@@ -81,6 +81,20 @@ might choose to take a bottom-up approach to the design of a feature, committing
 incremental changes, starting with low-level utility components, via
 higher-level abstractions, and finally exposing new functionality to the user.
 
+[TIP]
+======
+Sometimes the need for a preparatory refactor only becomes apparent partway
+through implementing a feature — you're midway through a change and realize
+the surrounding code should be restructured first. Don't fold the refactor into
+the commit you're already building; that produces a non-atomic commit mixing
+two unrelated concerns. Instead, run `git stash` to set aside your in-progress,
+uncommitted changes, implement and commit the refactor on its own as a clean,
+stable commit, then run `git stash pop` to restore your original work and
+continue. This keeps the refactor and the feature work as two separate,
+independently reviewable and revertible commits, even though the need for the
+refactor only surfaced mid-task.
+======
+
 Atomic commits add cognitive overhead, but there are numerous advantages to the
 extra effort. Small, incremental changes are easier to understand during code
 review. They also make it easier to track the history of the codebase and to
@@ -762,8 +776,17 @@ is just a conventional footer with no automatic effect.
 ======
 
 ----
-Closes: #123, #456
+Closes: #123
+Closes: #456
 ----
+
+Repeat the footer key once per issue rather than listing multiple issue numbers
+against a single key. Most providers' auto-close parsers match one issue
+reference per keyword instance, so `Closes: #123, #456` typically auto-closes
+only the first issue; the second is left open even though it appears in the
+same footer value. Since footer keys are not required to be unique (see
+above), repeating `Closes:` for each issue is valid syntax and is the reliable
+way to auto-close more than one issue from a single commit.
 
 It is RECOMMENDED to cross-reference any issues or pull requests that are
 relevant to the changes being implemented in a commit. If you do not want to
