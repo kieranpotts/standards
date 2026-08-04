@@ -1,0 +1,132 @@
+= Observability strategy
+
+Observability is the degree to which a system's internal state can be inferred
+from its external outputs. Logging, monitoring, alerting, and metrics are the
+mechanisms; observability is the outcome — the ability to ask arbitrary questions
+of a running system without having to instrument it anew for each question.
+
+A system with extensive telemetry but poor structure is not observable. The
+value of observability comes from treating it as a product: designed for the
+engineers who use it, consistent across systems, and exercised before it is
+needed.
+
+== Treat observability as a product
+
+Observability tooling is used under pressure — during incidents, when the cost
+of confusion is highest. It SHOULD be designed with the same care as a
+user-facing product:
+
+* *Usability.* Dashboards and logs should be easy to find, read, and navigate.
+  An engineer who has never seen a particular dashboard SHOULD be able to
+  orient themselves within seconds.
+* *Consistency.* The structure of dashboards and logs SHOULD be consistent
+  across all systems, so familiarity with one transfers to all others.
+* *Ownership.* Observability is an engineering-team-wide responsibility, not
+  the specialty of a few infrastructure engineers. Every team that owns a
+  service owns its dashboards, logs, and alerts.
+
+== Structure dashboards as a hierarchy
+
+Dashboards SHOULD be organized as a drill-down hierarchy that lets an engineer
+move from "something is wrong" to "this specific request failed" in a few
+clicks. A RECOMMENDED hierarchy has four levels:
+
+1. *Overview dashboard* — A single, bird's-eye view of every subsystem, acting
+   as a traffic light. Each subsystem's health is summarized by a small number
+   of high-level signals that go red when anything is wrong. This is the first
+   stop when an alert fires: it points to which subsystem is unhappy. It SHOULD
+   be the default landing page for the dashboard tool and SHOULD be linked from
+   team channels.
+
+2. *System dashboards* — One per subsystem, giving an exhaustive picture of
+   that subsystem's health. A system dashboard SHOULD answer: where are
+   requests being rejected, where are the bottlenecks, what are the outcomes,
+   and how much strain is the system under? Each system dashboard SHOULD link
+   out to the logs for that subsystem.
+
+3. *Logs* — The individual events. See <<logging,Logging>> for log design.
+
+4. *Traces* — The most zoomed-in view, showing where a single request spent its
+   time. Traces are the tool of last resort for slow requests.
+
+Each level SHOULD link to the next, so an engineer moves down the hierarchy
+without leaving the dashboard. Moving back up — from a trace to the broader
+context — SHOULD be equally easy.
+
+== Dashboard design
+
+* *Optimize for a glance.* An engineer SHOULD be able to tell whether a
+  dashboard is relevant to their investigation at a glance. Each dashboard
+  SHOULD have a clear focus and direct the reader to where they need to go next.
+
+* *Avoid false negatives.* An overview dashboard SHOULD go red when anything is
+  wrong, no matter how minor. It is better to investigate a false alarm than to
+  miss a real problem because the dashboard looked green.
+
+* *Use a consistent design system.* Dashboards created by different teams
+  SHOULD follow the same layout, color, and panel conventions, so an engineer
+  comfortable with one dashboard can transfer that familiarity to any other.
+
+* *Split metrics by outcome.* Where a request can have several outcomes (eg.
+  `success`, `rate_limited`, `error`), metrics SHOULD be split by outcome so
+  the dashboard shows not just how many requests there were, but how they were
+  handled.
+
+== Event logs
+
+Each significant unit of work SHOULD emit a single, consistently formatted
+*event log* on completion, regardless of outcome (success, error, or panic).
+An event log records the event name, duration, outcome, and the IDs of the
+resources involved — the high-cardinality data that cannot be captured in
+metrics.
+
+Event logs bridge the gap between metrics and logs: a metric tells you
+*that* something is wrong; the event log gives you a specific example of *what*
+went wrong. Event logs SHOULD share labels with the corresponding metrics so an
+engineer can move from a chart to a log line without changing query.
+
+[NOTE]
+======
+Emit the event log in a `defer` block (or equivalent) so it is always written,
+even when the operation panics or returns early.
+======
+
+== Exemplars
+
+Where a metric is tracked, an *exemplar* — a reference to a specific request
+that contributed to that metric value — MAY be attached. Exemplars let an
+engineer jump from a point on a chart directly to the trace for the request
+that produced it, collapsing the metric-to-trace step into a single click.
+
+== Tracing
+
+Traces show where a single request spent its time. They are the tool of last
+resort for investigating slow requests. To make traces useful:
+
+* *Trace third-party interactions.* Every call to an external API SHOULD be
+  traced, so a slow request is immediately attributable to an upstream
+  dependency. Use a shared base client that applies tracing as standard.
+
+* *Trace database queries.* Each query SHOULD be traced with its duration and,
+  where practical, the query itself, so an engineer can see both the slow query
+  and an example of it. Time spent waiting for a connection SHOULD be tracked
+  separately from time spent executing the query, to distinguish contention
+  from inefficiency.
+
+== Exercise the setup
+
+An observability setup that has never been used under pressure is unproven.
+Game days — scheduled exercises in which the team deliberately breaks something
+and uses the dashboards to diagnose it — SHOULD be run regularly. Game days
+both validate that the dashboards work and build the team's familiarity with
+them, so that real incidents are not the first time anyone opens the tooling.
+
+Treat game days like user testing: give participants minimal context, watch
+what they find easy and what they struggle with, and adjust the dashboards
+together afterward.
+
+.See also
+****
+* https://incident.io/hubs/building-on-call/building-on-call-our-observability-strategy[Building On-call: Our observability strategy — incident.io]: The article that informs this section, on treating observability as a product with structured dashboard hierarchies.
+* https://paprikati.github.io/2021/10/03/anchor-logs.html[Anchor logs — Lisa]: A deeper look at the event-log pattern in code.
+****
