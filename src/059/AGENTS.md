@@ -434,6 +434,36 @@ maintainer can find a specific resource or data source definition.
   [Terramate](https://terramate.io/) are meta-frameworks that simplify
   multi-environment configurations.
 
+### Workspaces and state scope
+
+- **Each deployment environment SHOULD have its own state.** State
+  MUST NOT be shared between production and pre-production
+  environments. The RECOMMENDED way to separate state per environment is
+  a separate root module per environment, each with its own back-end
+  configuration pointing to a distinct state path or workspace.
+
+- **Terraform workspaces allow a single root module to maintain multiple
+  named states against the same configuration.** They are best suited
+  to ephemeral, short-lived deployments that share an identical
+  configuration (eg. a temporary copy of production for testing). They
+  SHOULD NOT be used to manage long-lived environments that differ in
+  their resource configuration, because the configuration cannot vary
+  per workspace without awkward `terraform.workspace` checks.
+
+- **In HCP Terraform, a _workspace_ is a different concept:** a named
+  object holding a configuration, its variables, its state, and its run
+  settings — corresponding to a single state and a single root module.
+  HCP Terraform's
+  [best practices](https://developer.hashicorp.com/terraform/cloud-docs/workspaces/best-practices#workspace-structure)
+  recommend scoping each workspace to a single, cohesive set of
+  resources. The same principle applies to the Community Edition: keep
+  each state focused on one logical unit.
+
+- **Limit the blast radius of a single state.** A state SHOULD contain
+  only the resources that are deployed and lifecycle-managed together.
+  Resources with independent lifecycles SHOULD be split into separate
+  states and composed with `terraform_remote_state` or module outputs.
+
 #### Providers
 
 - **A single default provider configuration MUST be included for every
@@ -760,6 +790,40 @@ maintainer can find a specific resource or data source definition.
     pre-production dummy data. Particularly important for sensitive
     data (PII, financial data).
 
+#### Native testing with `terraform test`
+
+- **Terraform includes a built-in test framework**, invoked with
+  [`terraform test`](https://developer.hashicorp.com/terraform/cli/commands/test).
+  It runs `.tftest.hcl` files in the `tests/` directory against the
+  module in the current working directory, executing real Terraform
+  operations (plan, apply, destroy) in isolated, temporary state. This
+  complements static analysis — `terraform test` verifies the behavior
+  of a configuration, not just its syntax.
+
+- **Test files live in a `tests/` directory alongside the module they
+  test**, using the `.tftest.hcl` extension. Each test file declares
+  variables, runs the module with a `run` block, and asserts on the
+  resulting plan or state.
+
+- **Each `run` block executes a Terraform command** (`plan` or `apply`)
+  and makes the plan or state available for `assert` blocks. Multiple
+  `run` blocks MAY be combined in a single test file and share state
+  within that file.
+
+- **`terraform test` supports
+  [mocking](https://developer.hashicorp.com/terraform/language/tests/mocking)**
+  of providers and resources, so tests can run without real cloud
+  credentials. Mocking is RECOMMENDED for unit-style tests of module
+  logic; `apply` runs against a real provider are better suited to
+  integration tests.
+
+- **`terraform test` is RECOMMENDED for testing reusable modules** —
+  verifying that input variables produce the expected resource
+  configuration, catching regressions during refactors, and documenting
+  intended behavior through executable examples. For testing the
+  behavior of deployed infrastructure, continue to use the dynamic
+  testing tools above.
+
 ## References
 
 - [TS-59: Terraform (source)](README.adoc)
@@ -774,6 +838,8 @@ maintainer can find a specific resource or data source definition.
 - [TS-52: Security and Secrets Management](../052/AGENTS.md)
 - [TS-53: Privacy and Data Protection](../053/AGENTS.md)
 - [Terraform style guide](https://developer.hashicorp.com/terraform/language/style)
+- [Google Cloud — Root module best practices](https://cloud.google.com/docs/terraform/best-practices/root-modules)
+- [Gruntwork — Terraform style guide](https://docs.gruntwork.io/guides/style/terraform-style-guide/)
 - [TFLint](https://github.com/terraform-linters/tflint)
 - [Checkov](https://www.checkov.io/)
 - [tfsec](https://aquasecurity.github.io/tfsec/v1.20.0/)
@@ -782,3 +848,7 @@ maintainer can find a specific resource or data source definition.
 - [Terragrunt](https://terragrunt.gruntwork.io/)
 - [terraform-docs](https://github.com/terraform-docs/terraform-docs)
 - [Atlantis](https://www.runatlantis.io/)
+- [`terraform test` command reference](https://developer.hashicorp.com/terraform/cli/commands/test)
+- [Terraform test files](https://developer.hashicorp.com/terraform/language/tests)
+- [HCP Terraform workspace best practices](https://developer.hashicorp.com/terraform/cloud-docs/workspaces/best-practices)
+- [Terraform Well-Architected Framework — Enterprise reference architecture](https://developer.hashicorp.com/well-architected-framework/terraform/enterprise-reference-architecture)

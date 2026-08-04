@@ -1,0 +1,103 @@
+= Native testing with `terraform test`
+
+Terraform includes a built-in test framework, invoked with the
+https://developer.hashicorp.com/terraform/cli/commands/test[`terraform test`]
+command. It runs configuration files in the `tests/` directory against the
+module in the current working directory, executing real Terraform operations
+(plan, apply, destroy) in isolated, temporary state. This complements the
+static analysis described in <<testing,Testing>> — `terraform test` verifies
+the behavior of a configuration, not just its syntax.
+
+== Test files
+
+Test files live in a `tests/` directory alongside the module they test, and use
+the `.tftest.hcl` extension. Each test file is a self-contained configuration
+that can declare variables, run the module, and make assertions about the
+resulting plan or state.
+
+----
+modules/
+└── aws_network/
+    ├── main.tf
+    ├── variables.tf
+    ├── outputs.tf
+    └── tests/
+        └── defaults.tftest.hcl
+----
+
+A test file declares the variables to pass to the module, runs it with a `run`
+block, and asserts on the output:
+
+.tests/defaults.tftest.hcl
+[source,hcl]
+----
+variables {
+  cidr_block = "10.0.0.0/16"
+}
+
+run "vpc_is_created" {
+  command = plan
+
+  assert {
+    condition     = aws_vpc.main.cidr_block == "10.0.0.0/16"
+    error_message = "VPC CIDR block does not match the input variable"
+  }
+}
+----
+
+== Run blocks
+
+Each `run` block executes a Terraform command against the module under test.
+The `command` argument selects the operation:
+
+* `plan` — Runs `terraform plan` and makes the planned values available for
+  assertions, without applying changes. Use `plan` for fast, side-effect-free
+  checks of what _would_ happen.
+* `apply` — Runs `terraform apply` and makes the resulting state available for
+  assertions. Use `apply` when assertions depend on resources that must actually
+  exist.
+
+Multiple `run` blocks MAY be combined in a single test file, and they share
+state within that file: an `apply` run in one block is visible to subsequent
+blocks. This allows a test to apply a configuration, assert on the result, and
+then destroy it in a final block.
+
+== Assertions
+
+The `assert` block is the core of a test. Its `condition` is an expression
+evaluated against the plan or state produced by the enclosing `run` block; its
+`error_message` is shown when the condition is false. A run block MAY contain
+multiple `assert` blocks, all of which must pass for the run to succeed.
+
+== Mocking
+
+`terraform test` supports
+https://developer.hashicorp.com/terraform/language/tests/mocking[mocking]
+of providers and resources, so that tests can run without real cloud
+credentials or network access. Mocked resources return values that you define,
+allowing assertions to be tested against a deterministic, local configuration.
+Mocking is RECOMMENDED for unit-style tests of module logic; `apply` runs
+against a real provider are better suited to integration tests.
+
+== When to use `terraform test`
+
+`terraform test` is RECOMMENDED for testing reusable modules, where the inputs
+and outputs are well-defined and the behavior can be asserted without a full
+deployment. It is especially valuable for:
+
+* Verifying that input variables produce the expected resource configuration.
+* Catching regressions when a module is refactored.
+* Documenting a module's intended behavior through executable examples.
+
+For testing the behavior of deployed infrastructure — that a web server
+responds, that a database is reachable — continue to use the dynamic testing
+tools described in <<testing,Testing>>. `terraform test` validates the
+configuration; it does not validate the running system.
+
+.See also
+****
+* https://developer.hashicorp.com/terraform/cli/commands/test[`terraform test` command reference]
+* https://developer.hashicorp.com/terraform/language/tests[Test files]
+* https://developer.hashicorp.com/terraform/language/tests/mocking[Mocking]
+* https://developer.hashicorp.com/terraform/tutorials/configuration-language/test[Test modules with the Terraform test framework]
+****

@@ -1,0 +1,75 @@
+= Workspaces and state scope
+
+A single Terraform state represents one deployment of a set of resources. The
+scope of a state — which resources it contains, and which environment it
+represents — is one of the most consequential structural decisions in a
+Terraform project. Keeping the scope of each state small and focused makes
+changes safer, blast radius smaller, and state operations faster.
+
+== One state per environment
+
+Each deployment environment (development, staging, production) SHOULD have its
+own state. State MUST NOT be shared between production and pre-production
+environments. Sharing state couples the environments together: a mistake in one
+affects the other, and a change to shared resources cannot be promoted
+independently through the pipeline.
+
+The RECOMMENDED way to separate state per environment is to use a separate root
+module per environment, each with its own back-end configuration that points to a
+distinct state path or workspace. See
+<<organizing-terraform-code,Organizing Terraform code>> for the directory
+structure that supports this.
+
+== Terraform workspaces
+
+https://developer.hashicorp.com/terraform/language/state/workspaces[Terraform workspaces]
+allow a single root module to maintain multiple named states against the same
+configuration. Workspaces are a mechanism for managing multiple states from one
+set of configuration files, not for managing multiple environments with different
+configurations.
+
+Workspaces are best suited to ephemeral, short-lived deployments that share an
+identical configuration — for example, spinning up a temporary copy of a
+production environment for testing, then destroying it. They SHOULD NOT be used
+to manage long-lived environments that differ in their resource configuration,
+because the configuration cannot vary per workspace. A resource that should
+exist only in production, for instance, cannot be conditionally created based
+on the workspace name without awkward `terraform.workspace` checks scattered
+throughout the configuration.
+
+For long-lived, structurally different environments, prefer separate root
+modules (one directory per environment) over workspaces.
+
+== HCP Terraform workspaces
+
+In HCP Terraform (formerly Terraform Cloud), a _workspace_ is a different
+concept: it is a named object that holds a Terraform configuration, its
+variables, its state, and its run settings. An HCP Terraform workspace
+corresponds to a single state and a single root module.
+
+HCP Terraform's
+https://developer.hashicorp.com/terraform/cloud-docs/workspaces/best-practices#workspace-structure[best practices]
+recommend scoping each workspace to a single, cohesive set of resources — for
+example, one workspace per environment per application, or one workspace per
+shared platform component. This keeps each workspace's state small, its plan
+output readable, and its access controls precise.
+
+The same principle applies to the Community Edition: keep each state focused on
+one logical unit. A state that contains an entire production estate is hard to
+reason about, slow to plan, and dangerous to modify.
+
+== Limiting blast radius
+
+Regardless of the tool used to manage state, the guiding principle is to limit
+the blast radius of a single state. A state SHOULD contain only the resources
+that are deployed and lifecycle-managed together. Resources with independent
+lifecycles — for example, a long-lived network and a frequently-changed
+application — SHOULD be split into separate states and composed with
+`terraform_remote_state` or module outputs.
+
+.See also
+****
+* https://developer.hashicorp.com/terraform/language/state/workspaces[Terraform workspaces]
+* https://developer.hashicorp.com/terraform/cloud-docs/workspaces/best-practices[HCP Terraform workspace best practices]
+* https://developer.hashicorp.com/terraform/language/state/remote-state-data[The `terraform_remote_state` data source]
+****
