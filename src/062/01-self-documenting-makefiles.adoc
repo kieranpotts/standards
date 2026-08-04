@@ -1,0 +1,65 @@
+= Self-documenting Makefiles
+
+Makefiles SHOULD be self-documenting:. Running `make` or `make help` with no
+other arguments SHOULD list all user-facing targets along with a short
+description of what each one does. This turns the Makefile into a
+discoverable entry point for a project, without requiring a separate
+`README` section to be kept in sync by hand.
+
+== The `##` comment convention
+
+Document each user-facing target with a `##` comment on the same line as the
+target declaration:
+
+[source,makefile]
+----
+install: ## Install project dependencies
+	npm install
+
+test: ## Run the test suite
+	npm test
+
+.PHONY: install test
+----
+
+Targets that are internal implementation details – not meant to be invoked
+directly by a developer – SHOULD NOT have a `##` comment. This keeps the
+generated help output focused on the commands a developer actually needs.
+
+== The `help` target
+
+Add a `help` target that parses the Makefile's own source for the `##`
+convention and prints a formatted list of documented targets:
+
+[source,makefile]
+----
+help: ## Show this help message
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+----
+
+`$(MAKEFILE_LIST)` MUST be used in place of a hardcoded filename. It expands to
+the list of Makefiles actually read for the current invocation (including any
+`include`d files), so the help target keeps working if the Makefile is renamed
+or split up.
+
+It is RECOMMENDED to set `help` as the default target, so that running `make`
+with no arguments shows the available commands rather than running the first
+target defined in the file:
+
+[source,makefile]
+----
+.DEFAULT_GOAL := help
+----
+
+== Formatting
+
+Keep target descriptions to a single short sentence. Longer explanations
+belong in project documentation, not in the inline comment.
+
+The column width in the `printf` format string (`%-20s` in the example above)
+SHOULD be adjusted to comfortably fit the longest target name in the project's
+Makefile, so that descriptions align in the terminal output.
+
+Removing `| sort` from the `help` recipe preserves the order in which targets
+are declared in the file, which MAY be preferable when targets have a natural
+workflow order (eg. `install`, `build`, `test`, `deploy`).
