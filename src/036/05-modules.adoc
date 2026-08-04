@@ -1,10 +1,10 @@
 = Modules
 
 Standard ECMAScript modules (ESM) MUST be used exclusively for all code. Authors
-MUST NOT write CommonJS modules – Node's default and proprietary module system –
-or any other type of non-standard module system such as AMD or UMD. This means
-using `import` and `export` exclusively for all module loading and exporting,
-rather than `require` and `module.exports`.
+MUST NOT write CommonJS modules – Node's default module system – or any other
+type of non-standard module system such as AMD or UMD. This means using `import`
+and `export` exclusively for all module loading and exporting, rather than
+`require` and `module.exports`.
 
 [NOTE]
 ======
@@ -121,7 +121,7 @@ module, making it easier to find everywhere a module is used.
 
 For JavaScript applications, there are several solutions. Node has an
 environment variable `NODE_PATH` that extends the locations where the runtime
-looks for modules referenced via `require()` and `import`:
+looks for modules referenced via `require()` (it does not affect ESM `import`):
 
 [source,json]
 ----
@@ -190,20 +190,20 @@ within public libraries, where relative file paths MUST be used.
 
 === Including JSON
 
-You do not need `JSON.parse` to read JSON files in Node.js; you can `require()`
-them like any other JavaScript component:
+In Node.js, import JSON files as modules using an import attribute, which keeps
+the JSON statically analyzable:
 
 [source,javascript]
 ----
-let config = require('./config.json')
+import config from './config.json' with { type: 'json' }
 ----
 
-Be aware of side effects. `require()` caches the content of the loaded module or
-file. When the same component is required a second time, Node loads it from the
-cache rather than reading the filesystem again. This behavior can be undesirable
-for some types of configuration file, such as test fixtures. The solution is to
-load (using Node's `fs` module) and parse (using `JSON.parse()`) the file
-directly, preferably in a non-blocking manner:
+Where the runtime does not support JSON import attributes, read and parse the
+file with `fs` and `JSON.parse()`. Loading JSON via `require()` is CommonJS and
+MUST NOT be used (see <<Modules>>). Be aware that module imports are cached: the
+same file is not re-read on subsequent imports. For files that must always be
+fresh (such as test fixtures), read and parse the file directly, preferably in a
+non-blocking manner:
 
 [source,javascript]
 ----

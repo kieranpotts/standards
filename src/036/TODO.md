@@ -20,7 +20,8 @@ single dominant category is conventions (long lines from link-heavy reference
 and prose paragraphs), followed by a handful of factual errors and broken
 cross-references.
 
-**Status:** Plan written. No tiers applied yet.
+**Status:** Tier 1 (Correctness) applied and verified — 13 items (9
+  contradictions + 4 factual). Tiers 2–4 open. No tiers committed yet.
 
 ## Priority order
 
@@ -41,63 +42,68 @@ cross-references.
 
 ## 1. Contradictions
 
-- [ ] 01-language-fundamentals.adoc:145 lists "Object" among "six primitive
-  types" while 01:147 says "Most things in JavaScript are objects" — Object is
-  not a primitive, so the two statements conflict. (Also a factual error; see
-  §2.)
+- [x] 01-language-fundamentals.adoc:145 listed "Object" among "six primitive
+  types" while 01:147 said "Most things in JavaScript are objects" — Object is
+  not a primitive, so the two statements conflicted. Fixed: rewritten to "seven
+  types: six primitives (`undefined`, `null`, `boolean`, `number`, `string`,
+  `symbol`) and `object`". (Also resolves the §2 factual item.)
 
-- [ ] 05-modules.adoc:193-199 recommends `require('./config.json')` to load
-  JSON, which is CommonJS and contradicts the section's own ESM mandate at
-  05:3-7 ("ESM MUST be used exclusively ... rather than `require`"). A reader
-  following the JSON guidance violates the module rule.
+- [x] 05-modules.adoc:193-199 recommended `require('./config.json')` to load
+  JSON, which is CommonJS and contradicted the section's own ESM mandate at
+  05:3-7. Fixed: replaced with the ESM import-attribute form
+  (`import config from './config.json' with { type: 'json' }`), an `fs`+
+  `JSON.parse` fallback, and an explicit note that `require()`-based JSON
+  loading MUST NOT be used.
 
-- [ ] 01-language-fundamentals.adoc:276-278 states that "Function expressions
-  ... MUST end with a semicolon" but the accompanying example
-  `const doSomething = function () { ... }` has no trailing semicolon, so the
-  example demonstrates the opposite of the rule.
+- [x] 01-language-fundamentals.adoc:276-278 stated that function expressions
+  MUST end with a semicolon but the example lacked one. Fixed: added the trailing
+  `;` to `const doSomething = function () { ... };`.
 
-- [ ] 13-quality-assurance.adoc:44 has `Cat.meet()` throw `new Error('Missing
-  target')`, but the test at 13:70-73 asserts `.to.throw(TypeError)`. The test
-  would fail against the class as written.
+- [x] 13-quality-assurance.adoc:44 had `Cat.meet()` throw `new Error(...)` but
+  the test at 13:70-73 asserted `.to.throw(TypeError)`. Fixed: changed `meet()`
+  to throw `TypeError`, matching the test and the standard's own guidance that
+  `TypeError` suits an invalid/missing parameter.
 
-- [ ] 06-packages-and-tooling.adoc:793 uses an ESM `import` (`import fs from
-  'fs-extra'`) but then 06:796 references `__dirname`, which is undefined in
-  ESM. The example is invalid and contradicts the ESM mandate in 05.
+- [x] 06-packages-and-tooling.adoc:793 used ESM `import` but then `__dirname`
+  (undefined in ESM). Fixed: replaced `path.resolve(__dirname, './dist')` with
+  `fileURLToPath(new URL('./dist', import.meta.url))` (and `import { fileURLToPath }
+  from 'node:url'`), dropping the now-unneeded `path` import.
 
-- [ ] 03-functions.adoc:4 splits the `<<Naming conventions>>` xref across two
-  source lines (`<<Naming` / `conventions>>`). Cross-reference macros must not
-  be broken across lines; the link will not resolve.
+- [x] 04-objects-and-classes.adoc:110 had `const b = {foo:'bar'}` then `b = a`
+  (a TypeError: assignment to const). Fixed: changed `const b` to `let b` so the
+  reassignment is valid.
 
-- [ ] 06-packages-and-tooling.adoc:159 splits the
-  `<<Package command line interfaces>>` xref across two lines. Same defect:
-  the link will not resolve.
+- [x] 03-functions.adoc:4 split the `<<Naming conventions>>` xref across two
+  lines. Fixed: rewrapped so the xref sits intact on one source line.
 
-- [ ] The `<<Functions>>` xref (used in 02:scope-and-this, 04, and 10) resolves
-  to three sections titled "Functions" (03 `= Functions`; the `=== Functions`
-  subsection under 02 Comments; and one other), so it is ambiguous and resolves
-  unpredictably. Give 03 an explicit anchor and point the xrefs at it, or rename
-  the duplicate subsection(s).
+- [x] 06-packages-and-tooling.adoc:159 split the
+  `<<Package command line interfaces>>` xref across two lines. Fixed: rewrapped
+  so the xref sits intact on one line.
+
+- [x] The `<<Functions>>` xref (used in 02:150, 02:543, 02:850) resolved to
+  three sections titled "Functions". Decision (per the recommended option):
+  renamed the two 02 Comments subsections — `=== Functions` (02:629) to
+  `=== Documenting functions` and `==== Functions` (02:450) to `==== Function
+  types` — and retargeted the 02:543 and 02:850 xrefs at `<<Documenting
+  functions>>`. `02:150`'s `<<Functions>>` now resolves uniquely to section 03
+  (the only remaining "Functions" heading). Verified: no xref-ambiguity
+  remains. No anchor needed on 03.
 
 ## 2. Factual errors
 
-- [ ] 01-language-fundamentals.adoc:145 claims JavaScript has "six primitive
-  types: Undefined, Null, Boolean, Number, String, and Object (with Symbol
-  added in ES6)." `Object` is not a primitive; the six primitives are
-  `undefined`, `null`, `boolean`, `number`, `string`, `symbol` (plus `object`
-  as the non-primitive type). Verify against the ECMAScript spec.
+- [x] 01-language-fundamentals.adoc:145 — resolved by the §1 fix above
+  (rewritten to seven types: six primitives + `object`).
 
-- [ ] 05-modules.adoc:4 calls CommonJS "Node's default and proprietary module
-  system." CommonJS is a community-derived open standard, not proprietary.
-  Drop "proprietary".
+- [x] 05-modules.adoc:4 called CommonJS "proprietary." Fixed: dropped
+  "and proprietary" (now "Node's default module system").
 
-- [ ] 05-modules.adoc:122-130 states that `NODE_PATH` extends "locations where
-  the runtime looks for modules referenced via `require()` and `import`."
-  `NODE_PATH` does not affect ESM `import` resolution (only `require`). Verify
-  against the Node docs.
+- [x] 05-modules.adoc:122-130 stated `NODE_PATH` affects ESM `import`. Fixed:
+  clarified it extends lookup for `require()` and "does not affect ESM
+  `import`."
 
-- [ ] 01-language-fundamentals.adoc:259 says bitwise operators "are slow".
-  Bitwise operators are not inherently slow; the real concern is implicit 32-bit
-  integer coercion and readability. Reword to the accurate concern.
+- [x] 01-language-fundamentals.adoc:259 said bitwise operators "are slow".
+  Fixed: reworded to the accurate concern — they "coerce operands to 32-bit
+  integers and obscure intent when misused."
 
 ## 3. Structural problems
 
