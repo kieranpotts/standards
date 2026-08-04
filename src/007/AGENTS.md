@@ -272,7 +272,10 @@ rules like line-length caps.
   callers invoke the interface method. This is NOT a rule against all
   conditional logic — simple conditions for genuine business decisions are
   fine. The heuristic applies to conditionals that discriminate on object type
-  to select behavior.
+  to select behavior. Prefer guard clauses (early returns) over `if/else`
+  chains — return early for error or edge cases and leave the main path
+  unindented; where branches select behavior by state or type, use
+  polymorphism.
 
 - **Follow the Law of Demeter.**
 
@@ -289,7 +292,9 @@ rules like line-length caps.
   complementary opposites. A class that exposes data via getters/setters AND
   contains significant business logic is a poor "hybrid" design — choose one
   or the other: hide data and expose behavior, or expose data and keep
-  behavior elsewhere.
+  behavior elsewhere. Where you hide data, follow _Tell, Don't Ask_: tell an
+  object to do something, don't ask it for its data and then decide what to do.
+  Decisions based on an object's state SHOULD live inside the object itself.
 
 - **Prefer value objects over raw primitives for domain concepts.**
 
@@ -298,7 +303,10 @@ rules like line-length caps.
   raw strings, integers, booleans. Value objects make function signatures
   self-documenting, let the type system reject misuse, and centralize
   validation of invariants. Value objects SHOULD be immutable — once created
-  with valid state, they SHOULD NOT be modifiable.
+  with valid state, they SHOULD NOT be modifiable. The same principle applies
+  to collections: a class that contains a collection SHOULD contain no other
+  instance variables — give the collection its own class so filtering,
+  mapping, and validation logic has a home.
 
 - **Encapsulate boundary conditions in dedicated abstractions.**
 
@@ -317,6 +325,21 @@ rules like line-length caps.
   methods for genuinely stateless, context-free utility functions where lack
   of substitutability is an acceptable trade-off (pure math, simple string
   transforms with no alternative implementations ever needed).
+
+- **Keep methods and classes focused, not small.**
+
+  The measure of a well-designed class or method is not its length but its
+  focus — a single responsibility, one reason to change. It SHOULD be as long
+  as it needs to be to fulfill that responsibility, and no longer. Imposing
+  arbitrary length limits is counterproductive: it drives unnecessary
+  extraction, which increases dependency chains and overall system complexity.
+  Extract a method when the extracted code has a clear, independent
+  responsibility — a name that describes what it does without reference to the
+  caller — not merely to reduce line count. A class that accumulates many
+  instance variables MAY be gathering unrelated state — split it along fault
+  lines of responsibility, not at an arbitrary line count. Don't abbreviate
+  names to keep entities short — if a name feels too long, the method may be
+  over-reused or the class may have too many responsibilities.
 
 - **Separate concurrency mechanics from business logic.**
 
@@ -362,3 +385,5 @@ rules like line-length caps.
 - [TS-7 source](README.adoc)
 - [TS-2: Software Design Qualities](../002/AGENTS.md)
 - [TS-5: Application Architecture](../005/AGENTS.md)
+- [Object Calisthenics — William Durand](https://williamdurand.fr/2013/06/03/object-calisthenics/)
+- [Object Calisthenics — Jeff Bay (PDF)](http://www.cs.helsinki.fi/u/luontola/tdd-2009/ext/ObjectCalisthenics.pdf)

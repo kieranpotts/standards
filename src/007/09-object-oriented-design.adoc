@@ -62,6 +62,12 @@ pattern that is almost always better expressed through polymorphism. Doing so
 also opens the design to extension without modification: new variants can be
 added by implementing the interface rather than by editing existing chains.
 
+A related pressure: prefer guard clauses (early returns) over `if/else`
+chains. When a method branches on an error or edge case, return early and leave
+the main path unindented. `if/else` chains tend to grow over time into tangled
+conditional logic, and where the branches select behavior based on an object's
+state or type, polymorphism is the better tool.
+
 == Law of Demeter
 
 The Law of Demeter, sometimes called the "principle of least knowledge", is a
@@ -110,6 +116,13 @@ responsibilities over time, making them harder to reason about and change.
 Choose one or the other: hide the data and expose behavior, or expose the data
 and keep behavior elsewhere.
 
+Where you do hide data behind behavior, follow the _Tell, Don't Ask_ principle:
+tell an object to do something, don't ask it for its data and then decide what
+to do with it. Decisions based on an object's state SHOULD live inside the
+object itself. Exposing state through getters so that callers can inspect it
+and act on it re-introduces the hybrid — the object becomes a data structure
+again, with the logic that should belong to it scattered across its callers.
+
 == Value objects
 
 Primitive types – strings, integers, booleans, dates – are versatile, but they
@@ -134,6 +147,13 @@ Value objects should be immutable. Once created with valid state, a value object
 should not be modifiable. This eliminates an entire class of bugs related to
 shared mutable state and makes value objects safe to pass between components
 without defensive copying.
+
+The same principle applies to collections. A class that contains a collection
+SHOULD contain no other instance variables — give each collection its own class
+so that the behaviors that operate on it (filtering, mapping, validation) have a
+home. This keeps collection logic out of the classes that merely use the
+collection, and treats the collection itself as a domain concept rather than a
+raw container.
 
 == Encapsulating boundary conditions
 
@@ -173,3 +193,37 @@ Prefer non-static methods as the default. Reserve static methods for genuinely
 stateless, context-free utility functions where the lack of substitutability is
 an acceptable trade-off – for example, pure mathematical calculations or simple
 string transformations where no alternative implementation would ever be needed.
+
+== Keep methods and classes focused
+
+The measure of a well-designed class or method is not its length but its
+focus. A class or method SHOULD have a single responsibility — one reason to
+change. It SHOULD be as long as it needs to be to fulfill that responsibility
+completely, and no longer.
+
+Imposing arbitrary length limits on classes and methods is counterproductive.
+When a fixed ceiling is enforced, the tendency is toward unnecessary
+extraction: methods and classes are split purely to stay under the limit, even
+when the extracted code has no coherent responsibility of its own. Each
+extraction adds a new entity, a new name, and a new dependency between the parts
+that were previously together. This increases the dependency chain and raises
+the overall complexity of the system — the opposite of what the rule was meant
+to achieve.
+
+A method that is long because it is doing one complex thing well is better than
+several short methods that each do a fragment of it and must be read together to
+be understood. Extract a method when the extracted code has a clear, independent
+responsibility — a name that describes what it does without reference to the
+caller — not merely to reduce line count.
+
+Similarly, a class that is large because it encapsulates a single, cohesive
+concept is preferable to several small classes wired together with
+boilerplate. A class that accumulates many instance variables MAY be gathering
+unrelated state, which is a sign that it should be split — but split along the
+fault lines of responsibility, not at an arbitrary line count.
+
+Don't abbreviate names to keep entities short. Abbreviations save a few
+keystrokes at the cost of readability. If a name feels too long to repeat, the
+method is probably reused heavily — which suggests duplication, or that the
+class has too many responsibilities. If you can't find a concise, descriptive
+name, something is wrong with the abstraction.
