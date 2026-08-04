@@ -118,3 +118,26 @@ specific use case.
 
 Retries, timeouts, rate limiting, and other such policies for message delivery
 MUST be clearly defined in service level agreements (SLAs).
+
+== Response codes
+
+When messages are delivered over HTTP, the consumer MUST return an HTTP status
+code that indicates whether the message was received and processed successfully.
+The producer uses this response to decide whether to retry delivery.
+
+* `200 OK` — The message was received and processed successfully. The producer
+  SHOULD NOT retry.
+* `202 Accepted` — The message was received and queued for processing, but
+  processing has not yet completed. This is the RECOMMENDED response for
+  asynchronous processing. The producer SHOULD NOT retry.
+* `4xx` (client error) — The message was rejected due to a problem with the
+  message itself (eg. malformed payload, schema validation failure,
+  authentication failure). The producer SHOULD NOT retry, since retrying the
+  same message will produce the same error. The consumer SHOULD include a
+  descriptive error message in the response body.
+* `5xx` (server error) — The consumer encountered an error while processing the
+  message. The producer SHOULD retry, following the retry logic described above.
+
+A `2xx` response acknowledges receipt; it does not guarantee that processing has
+completed. For at-least-once delivery semantics, the producer MUST treat any
+non-`2xx` response as a failure and retry.

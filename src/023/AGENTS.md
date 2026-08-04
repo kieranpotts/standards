@@ -309,6 +309,23 @@ overlap and some aspects cross over. For HTTP API design see
 - **Retries, timeouts, rate limiting, and other delivery policies MUST be
   clearly defined in service level agreements (SLAs).**
 
+- **When messages are delivered over HTTP, the consumer MUST return an HTTP
+  status code that indicates whether the message was received and processed
+  successfully.**
+
+  - `200 OK` — received and processed successfully; producer SHOULD NOT retry.
+  - `202 Accepted` — received and queued for processing; RECOMMENDED for
+    asynchronous processing; producer SHOULD NOT retry.
+  - `4xx` — rejected due to a problem with the message itself (malformed
+    payload, schema validation failure, authentication failure); producer
+    SHOULD NOT retry; consumer SHOULD include a descriptive error message.
+  - `5xx` — consumer error while processing; producer SHOULD retry following
+    the retry logic above.
+
+  A `2xx` response acknowledges receipt; it does not guarantee processing
+  completed. For at-least-once delivery, the producer MUST treat any
+  non-`2xx` response as a failure and retry.
+
 ### Documentation
 
 - **Message publishers MUST provide comprehensive documentation, including a
