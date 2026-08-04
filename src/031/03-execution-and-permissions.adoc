@@ -40,3 +40,60 @@ chmod u-s filename
 # Remove SGID.
 chmod g-s filename
 ----
+
+== Downloading and executing remote scripts
+
+Remote scripts MUST NOT be piped directly into a shell for execution, and this
+practice is especially dangerous when combined with `sudo`:
+
+[source,sh]
+----
+# ❌ Executes unreviewed remote code, with root privileges, with no
+# opportunity for inspection and no local record of what was run.
+curl -sL https://example.com/install.sh | sudo -E bash -
+----
+
+This pattern is a common convenience shortcut in install instructions because
+it avoids the small number of steps a user could get wrong when downloading and
+running a script manually. But those same steps are what allow the script to be
+verified before it runs. Specific risks include:
+
+* *Man-in-the-middle tampering.* If the script is served over plain HTTP, a
+  network attacker can substitute their own content in transit. HTTPS mitigates
+  this by giving some confidence that what was downloaded is what the server
+  actually sent, but URLs in install instructions SHOULD always be checked to
+  confirm they use `https://`, not `http://`.
+
+* *Disabled certificate validation.* Some install instructions work around TLS
+  certificate errors by telling users to pass flags such as `curl -k` or
+  `wget --no-check-certificate`. This disables the very check that HTTPS
+  provides, re-opening the door to a machine-in-the-middle attack even though
+  the URL uses `https://`. Certificate errors MUST be resolved properly – for
+  example, by fixing the system's trusted CA store – never suppressed.
+
+* *Partial execution.* If the connection is interrupted mid-stream, the shell
+  may still execute the commands received so far. A truncated script can
+  produce a syntactically valid but unintended and potentially dangerous
+  sequence of commands, rather than simply failing.
+
+* *Server-side content negotiation.* Opening the script's URL in a browser to
+  eyeball it first does not reliably mitigate the above risks. A malicious or
+  compromised server can serve different content based on the request's
+  `User-Agent` header, showing a browser a benign script while `curl` (or a
+  pipeline) receives something else entirely.
+
+Piping to `sudo` compounds all of the above, since the arbitrary code then runs
+with root privileges.
+
+Download the script to disk, inspect it, and only then execute it:
+
+[source,sh]
+----
+# ✅
+curl -sL https://example.com/install.sh -o install.sh
+less install.sh          # Review before running.
+sudo -E bash install.sh
+----
+
+This also leaves a local artifact that can be diffed against future versions of
+the script, or checked into version control.

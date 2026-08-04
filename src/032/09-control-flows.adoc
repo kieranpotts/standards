@@ -115,3 +115,52 @@ for arg in "$@"; do
   echo "${arg}"
 done
 ----
+
+== Process substitution
+
+Process substitution, `<(command)` and `>(command)`, lets the output (or
+input) of a command be treated as if it were a file. It is RECOMMENDED as a
+lightweight alternative to `mktemp` for one-off cases where a command's
+output only needs to be read once, avoiding the need to create and clean up a
+temporary file.
+
+[source,bash]
+----
+# ❌ Requires creating and cleaning up a temporary file.
+tmp="$(mktemp)"
+first-stage > "${tmp}"
+second-stage --input "${tmp}"
+rm -f "${tmp}"
+
+# ✅ No temporary file required.
+second-stage --input <(first-stage)
+----
+
+Prefer `mktemp` over process substitution where the same output needs to be
+read multiple times, where the consuming command does not support reading from
+a named pipe, or where the file needs to persist beyond the current command.
+
+== Extended globbing
+
+The `shopt -s extglob` and `shopt -s globstar` options extend Bash's pattern
+matching. `extglob` enables extended pattern operators such as `@(pattern-list)`
+and `!(pattern-list)`, allowing more expressive filename matching within the
+shell itself. `globstar` enables `**` to match files recursively through
+subdirectories.
+
+[source,bash]
+----
+shopt -s extglob globstar
+
+# Match any file ending in .adoc, at any depth.
+files=(**/*.adoc)
+
+# Match files matching either of two patterns.
+items=(**/@(foo|bar)*)
+----
+
+These options are RECOMMENDED where they can replace an external `find`
+invocation for simple recursive or pattern-based file matching, avoiding the
+overhead of spawning a subprocess. For more complex matching – conditions on
+file type, permissions, modification time, and so on – `find` remains the
+appropriate tool.

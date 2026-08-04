@@ -106,3 +106,35 @@ In general, there is no need to quote match expressions. Pattern expressions
 SHOULD NOT be preceded by an open parenthesis.
 
 Avoid the `;&` and `;;&` notations.
+
+== Subshells vs. blocks
+
+Parentheses `( … )` and curly braces `{ … ; }` both group commands, but they
+have different scoping semantics. Parentheses run the enclosed commands in a
+*subshell* – a forked child process with its own copy of the shell's
+variables and current directory. Curly braces run the commands in the *current
+shell*, so variable assignments, `cd`, and other state changes made inside them
+persist after the block completes.
+
+[source,sh]
+----
+count=0
+
+# ❌ Subshell: the increment is lost once the subshell exits.
+( count=$(( count + 1 )) )
+echo "${count}" # → 0
+
+# ✅ Block: the increment persists in the current shell.
+{ count=$(( count + 1 )); }
+echo "${count}" # → 1
+----
+
+Use a subshell deliberately when isolation is what you want – for example, to
+`cd` into a directory and run commands without affecting the calling script's
+working directory. Use a block when the enclosed commands need to affect the
+surrounding shell's state, such as when grouping commands for a shared
+redirection or a shared `&&`/`||` chain.
+
+Note the syntactic difference: curly braces require a space after the opening
+brace and a semicolon (or newline) before the closing brace; parentheses do
+not.
