@@ -72,8 +72,60 @@ exchanging rhe data with other internal systems.
 Dates and times SHOULD be rendered in a human-readable locale-specific format
 for user interfaces.
 
+== Timestamps and the Year 2038 problem
+
+A Unix timestamp is a count of seconds since the Unix epoch (1970-01-01T00:00:00Z).
+Many systems and programming languages historically store timestamps as a signed
+32-bit integer. A signed 32-bit integer overflows at 2^31^-1 seconds from the
+epoch, which corresponds to 2038-01-19T03:14:07Z. At one second past that moment,
+the value wraps to a negative number, representing a date in 1901. This is the
+*Year 2038 problem* (Y2038, or Y2K38).
+
+=== Use 64-bit timestamps
+
+Applications and data storage systems MUST use timestamp representations that
+are wide enough to accommodate dates beyond 2038. A signed 64-bit integer counts
+seconds for hundreds of billions of years and is effectively immune to overflow.
+Most modern programming languages and databases provide 64-bit timestamp types by
+default, but this MUST be verified rather than assumed — particularly when
+interfacing with legacy systems, C libraries, file formats, or binary protocols
+that use 32-bit timestamps.
+
+=== Avoid 32-bit timestamp types
+
+The following are common sources of 32-bit timestamp limitations:
+
+* *C and C++* — `time_t` is 32-bit on some legacy platforms and embedded
+  systems. Use a 64-bit type (`int64_t` or the platform's 64-bit `time_t`)
+  explicitly.
+* *SQL* — The `TIMESTAMP` type in some database engines uses 32-bit storage
+  and cannot represent dates beyond 2038. Prefer `DATETIME` or a 64-bit
+  `TIMESTAMP` where available. See *link:../043/README.adoc[TS-43: Relational
+  Databases and SQL]*.
+* *Binary formats and protocols* — Some file formats and wire protocols reserve
+  32 bits for timestamps. When designing new formats, use at least 64 bits. When
+  consuming existing formats, check the specification and document the
+  limitation.
+
+=== Prefer string representations for storage and exchange
+
+The most robust defense against timestamp overflow is to store and exchange
+dates and times as RFC 3339 strings rather than as integer timestamps. A string
+representation has no fixed width and is not subject to integer overflow. See
+the main body of this standard for the RECOMMENDED formats.
+
+Where an integer timestamp is required — for example, in a compact binary
+protocol — it MUST be at least 64 bits wide.
+
+.See also
+****
+* https://www.codereliant.io/p/the-2038-problem[The 2038 Problem — CodeReliant]: A summary of the Y2038 problem and its causes.
+* https://en.wikipedia.org/wiki/Year_2038_problem[Year 2038 problem — Wikipedia]: Background and a list of affected systems.
+****
+
 ''''
 
-toc::[]
+== References
 
-include::./01-references.adoc[leveloffset=+1]
+* https://ijmacd.github.io/rfc3339-iso8601/[RFC 3339 vs ISO 8601]:
+  A useful venn diagram showing where these two standards overlap.

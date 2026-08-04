@@ -61,6 +61,29 @@ code design, see [TS-7: Code Design](../007/AGENTS.md).
   times SHOULD be rendered in a human-readable locale-specific format for
   user interfaces.
 
+### Timestamps and the Year 2038 problem
+
+- **Use timestamp representations wide enough for dates beyond 2038.** A
+  signed 32-bit integer overflows at 2038-01-19T03:14:07Z (the Year 2038
+  problem, Y2038). Applications and data storage systems MUST use
+  representations that accommodate dates beyond 2038 — a signed 64-bit
+  integer is effectively immune to overflow. Verify rather than assume,
+  particularly with legacy systems, C libraries, file formats, or binary
+  protocols that may use 32-bit timestamps.
+
+- **Avoid 32-bit timestamp types.** Common sources: `time_t` on legacy C/C++
+  platforms (use a 64-bit type explicitly); `TIMESTAMP` in some SQL engines
+  (prefer `DATETIME` or a 64-bit `TIMESTAMP` — see
+  [TS-43](../043/AGENTS.md)); binary formats and wire protocols (use at
+  least 64 bits when designing new formats; check specs when consuming
+  existing ones).
+
+- **Prefer string representations for storage and exchange.** The most
+  robust defense against timestamp overflow is to store and exchange dates
+  and times as RFC 3339 strings, which have no fixed width and are not
+  subject to integer overflow. Where an integer timestamp is required (eg.
+  a compact binary protocol), it MUST be at least 64 bits wide.
+
 ## References
 
 - [TS-47: Dates and Times (source)](README.adoc)
