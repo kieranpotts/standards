@@ -11,6 +11,7 @@ Do NOT use this for general application architecture (see
 broader UI guidance and usability testing see
 [TS-15: User Interfaces](../015/AGENTS.md) (where it exists). Accessibility
 testing process is covered by [TS-14: Performance Testing](../014/AGENTS.md).
+For URL design, see [TS-63: URL Design](../063/AGENTS.md).
 
 ## Rules
 
@@ -297,5 +298,6 @@ testing process is covered by [TS-14: Performance Testing](../014/AGENTS.md).
 - [TS-18 source](README.adoc)
 - [TS-5: Application Architecture](../005/AGENTS.md)
 - [TS-14: Performance Testing](../014/AGENTS.md)
+- [TS-63: URL Design](../063/AGENTS.md)
 - [WCAG 2.2](https://www.w3.org/WAI/standards-guidelines/wcag/)
 - [WCAG in Plain English](https://aaardvarkaccessibility.com/wcag-plain-english/)

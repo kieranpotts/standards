@@ -9,7 +9,7 @@ The focus is on disciplined content habits over technical tricks.
 Do NOT use this for web GUI performance optimization mechanics (server-rendering,
 pre-fetching, caching, fonts) — those are covered by
 [TS-18: Web GUIs](../018/AGENTS.md). Web vitals metrics are referenced here for
-SEO context only.
+SEO context only. For URL design, see [TS-63: URL Design](../063/AGENTS.md).
 
 ## Rules
 
@@ -102,4 +102,5 @@ SEO context only.
 
 - [TS-19 source](README.adoc)
 - [TS-18: Web GUIs](../018/AGENTS.md)
+- [TS-63: URL Design](../063/AGENTS.md)
 - [Core Web Vitals](https://support.google.com/webmasters/answer/9205520)
