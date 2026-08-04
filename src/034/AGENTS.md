@@ -1,7 +1,9 @@
 # TS-34: PHP
 
-PHP coding standards for projects that use PHP. Summarizes and extends the
-[PER Coding Style v2.0](https://www.php-fig.org/per/coding-style/).
+PHP coding standards for projects that use PHP. The
+[PER Coding Style v2.0](https://www.php-fig.org/per/coding-style/) is the
+definitive standard for PHP coding style; this standard summarizes and extends
+it, but where it is silent, PER Coding Style is authoritative.
 
 Use this when writing, reviewing, or refactoring PHP code.
 
