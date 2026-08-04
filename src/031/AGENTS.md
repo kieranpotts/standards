@@ -371,6 +371,34 @@ Use project-specific shell skills if available.
   chmod g-s filename   # Remove SGID.
   ```
 
+- **Delimit sections with banner comments.**
+
+  Longer scripts SHOULD be divided into clearly delimited sections. Use a
+  consistent two-level hierarchy of banner-style delimiters so the structure
+  is visible at a glance:
+
+  - **Major sections** — a banner of equals signs:
+
+    ```sh
+    # ==============================================================================
+    # Section Title
+    # ==============================================================================
+    ```
+
+  - **Subsections** — a banner of hyphens:
+
+    ```sh
+    # ------------------------------------------------------------------------------
+    # Subsection Title
+    # ------------------------------------------------------------------------------
+    ```
+
+  Banners SHOULD be 80 characters wide (`#` plus 78 delimiter characters).
+  A banner SHOULD be followed by ordinary comment lines summarizing the
+  section's purpose. Ordinary single-line explanations use a plain `#` with
+  no banner. A script that needs more than two levels of banners is probably
+  too long and SHOULD be split into separate files.
+
 - **Document all functions with a structured comment block.**
 
   All functions SHOULD have a comment block immediately above the declaration
