@@ -107,11 +107,10 @@ cross-references.
 
 ## 3. Structural problems
 
-- [ ] "Version number constraints" is a section title in both
-  07-dependency-management.adoc and 11-runtimes.adoc, and 11:104-110 restates
-  07's `^`/`~` material (then cross-references it). Duplicate title plus
-  overlapping content invites drift. Consolidate the version-constraint rule in
-  07; in 11 keep only the Node-specific `engines` note or rename the section.
+- [x] "Version number constraints" was a duplicate title in both 07 and 11.
+  Fixed: renamed 11's section to "Node version constraints" and replaced the
+  restated content with a cross-reference to 07. The duplicate title is gone;
+  07 keeps the full version-constraint rule.
 
 - [ ] The private-members rule is stated in two places: 04-objects-and-classes
   .adoc:237-277 ("Authors MUST NOT use TypeScript's `private` modifier ...")
