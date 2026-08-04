@@ -534,3 +534,21 @@ All major web browsers now implement the standard JavaScript module system via
 server. Where the cost of many separate module requests outweighs the benefit,
 modules MAY be bundled for delivery to the browser using an ESM-compatible
 bundler.
+
+== Dynamic imports and code splitting
+
+Static `import` declarations are evaluated at compile time, which enables static
+analysis, bundling, and tree shaking. For runtime-driven loading – a module
+chosen by user language, lazy-loading for performance, or robustness against a
+non-critical module failing to load – use the dynamic `import()` expression
+(standardized in ES2020). It returns a promise for the module namespace object,
+and its specifier is evaluated at runtime, so it need not be a string literal:
+
+[source,javascript]
+----
+const mod = await import(`./i18n/${navigator.language}.js`)
+----
+
+Bundlers such as Rollup and Webpack automatically code-split at `import()`
+boundaries, producing separate bundles that load on demand. This keeps the
+initial bundle small by deferring code the user may never need.

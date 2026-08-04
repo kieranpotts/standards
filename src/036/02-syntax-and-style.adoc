@@ -3,6 +3,40 @@
 Low-level code style concerns SHOULD be enforced through linting tools such as
 ESLint.
 
+== Code style
+
+Low-level style (indentation, spacing, quotes) SHOULD be enforced automatically
+by a linter running in continuous integration, taking subjectivity out of code
+review. The conventions below are the defaults where a project does not specify
+otherwise.
+
+*Indentation.* Use two spaces per level; prefer spaces over tabs. The only wrong
+indentation is inconsistent indentation – when joining a project, adopt its
+prevailing conventions.
+
+*Quotes.* Prefer single quotes (`'`) for string literals, switching to double
+quotes where that avoids escaping (see <<Strings>>). Single quotes are
+particularly helpful for embedding HTML attribute strings.
+
+*Parentheses.* Use parentheses only where required by the syntax and semantics,
+or where they improve readability. Never parenthesize unary operators (`delete`,
+`typeof`, `void`) or follow keywords such as `return`, `throw`, `case`, `in`, or
+`new`.
+
+*Clarity over brevity.* Write for humans first – assume maintainers may be less
+familiar with the code than you, and prefer consistency and clarity over terse
+one-liners. Include arrow-function parentheses and braces consistently rather
+than only where the syntax forces them:
+
+[source,javascript]
+----
+const doubled = arr.map((el) => { return el * 2 })
+----
+
+*Naming.* Prefer explicit names over implicit ones: `sleepForSeconds(t)` is
+clearer than `sleep(t)`, because the unit the parameter expects is evident from
+the function name alone. (See <<Naming conventions>>.)
+
 == Naming conventions
 
 === Classes
@@ -61,6 +95,58 @@ parameter with a single commonly-used value is a candidate for a default.
 Prefer to locate parameters with defaults towards the end of the parameter list.
 Parameters without defaults are usually more essential to the semantics of a
 method, and provide a stable initial pattern of use where methods are invoked.
+
+== Variable declarations
+
+Modern JavaScript has three declaration keywords: `const`, `let`, and `var`.
+
+* Prefer `const` for any binding that is not reassigned. `const` is the strongest
+  signal of intent: the binding will not change.
+
+* Use `let` where reassignment is genuinely needed – loop counters, value
+  swaps, accumulators. A `let` binding MAY be reassigned but is still
+  block-scoped.
+
+* Avoid `var` entirely. It is function-scoped (not block-scoped), hoisted, and
+  permits redeclaration, all of which are sources of bugs. Any `var` can be
+  replaced with `const` or `let`, and a remaining `var` is a code smell.
+
+`const` and `let` are block-scoped and are not hoisted in the way `var` is:
+accessing them before their declaration throws a `ReferenceError` (the temporal
+deal zone).
+
+`const` makes the *binding* immutable, not the value. For primitives this means
+the value cannot change; for objects, the binding cannot be reassigned but the
+object's properties can still be mutated. To make an object truly immutable,
+combine `const` with `Object.freeze()` (see <<Objects and classes>>).
+
+Declare each variable on its own line and initialize it at the point of
+declaration where practical. An identifier SHOULD represent a single concept for
+the whole of its lifetime – do not reuse a variable for a different purpose.
+
+== Scope and `this`
+
+JavaScript has three scopes: *block* scope (the default for `const` and `let`),
+*function* scope (the unit for `var`), and *module* scope (the top level of an ES
+module is its own scope, not the global scope). Variables assigned without a
+declaration keyword become properties of the global object.
+
+The global object differs by runtime (`window` in browsers, `self` in workers,
+`global` in Node). ES2020's `globalThis` is the standard alias for the global
+object across all runtimes.
+
+Global variables SHOULD be avoided. Encapsulate state in modules, functions, and
+custom objects instead. Globals can be changed by any code in the same thread,
+inviting naming collisions and unpredictable behavior. All variables used inside
+a function MUST be either passed as arguments or declared within the function –
+a function SHOULD NOT read or mutate variables from an outer (non-module) scope.
+
+`this` is a binding created at call time that refers to the current execution
+context. It is not necessarily the object in which a function was defined – the
+same function can be called against different objects, and `this` changes
+accordingly. Arrow functions do not bind their own `this` (they inherit it
+lexically), so `call`, `apply`, and `bind` cannot rebind them. For details of
+`this` binding and `call`/`apply`/`bind`, see <<Functions>>.
 
 == Comments
 

@@ -5,6 +5,51 @@ TypeScript MUST be used to enforce strong typing across all JavaScript code.
 Any standalone JavaScript packages that we create MUST export TypeScript type
 definition files (`*.d.ts`).
 
+== Type safety
+
+JavaScript is weakly typed: it provides minimal support for enforcing that
+values assigned to variables and passed to functions match what the logic
+expects. Developers typically fall back to duck typing – if it looks like a
+duck and quacks like a duck, it probably is a duck – which has limited utility
+in guaranteeing correct types. The interpreter's quiet type coercion and the
+ease of building ad-hoc object structures compound the problem, creating a
+whole class of bugs that do not exist in statically typed languages.
+
+We can implement type safety manually, with `typeof` and `instanceof` checks or
+an assertion library:
+
+[source,javascript]
+----
+import { assert } from 'some-assertion-library'
+
+function truncate (str, maxlen, cont = '…') {
+  assert(str).is.string()
+  assert(maxlen).is.number()
+  assert(cont).is.string()
+
+  return (str.length > maxlen)
+    ? str.slice(0, maxlen) + cont
+    : str
+}
+----
+
+This fails early and loudly, but only at runtime – and it bloats the function
+with code unrelated to its business logic. A static type system catches such
+errors far earlier, as the developer types, and with no runtime cost:
+
+[source,typescript]
+----
+function truncate (str: string, maxlen: number, cont: string = '…'): string {
+  return (str.length > maxlen)
+    ? str.slice(0, maxlen) + cont
+    : str
+}
+----
+
+The stronger a language's type system, the more classes of bug are eliminated
+at compile time. At the scale of modern JavaScript applications, weak typing
+becomes a hindrance – which is why we use TypeScript.
+
 == Embedding types in JSDoc notations
 
 Where types cannot be expressed directly in TypeScript, they MAY be embedded in
@@ -216,3 +261,102 @@ automatically by the compiler. Where libraries are written in JavaScript,
 authors can either write `.d.ts` files manually or embed JSDoc/TSDoc-compatible
 API documentation within inline source comments, from which the TypeScript
 compiler can generate `.d.ts` declarations. See <<Comments>>.
+
+== Decorators
+
+Decorators are a compact syntax for wrapping one piece of code in another –
+literally "decorating" it. The technique is functional composition, and a
+decorator is a higher-order function: a function that returns another function,
+called with the details of the item being decorated. Decorators first reached
+most JavaScript developers via TypeScript and Angular, and are on the
+standardization track for ECMAScript (usable today via transpilation).
+
+A decorator function produces a new function that can be called in exactly the
+same way as the function it wraps, adding behavior such as logging:
+
+[source,javascript]
+----
+function logDecorator (fn) {
+  return function () {
+    const result = fn.apply(this, arguments)
+    console.log(result)
+    return result
+  }
+}
+
+const myFn = () => { /* ... */ }
+const wrapped = logDecorator(myFn)
+
+wrapped()
+----
+
+With decorator syntax, the `@` prefix applies a decorator immediately before
+the item it decorates, and multiple decorators compose into a pipeline:
+
+[source,javascript]
+----
+@log
+@immutable
+class Example {
+
+  @time()
+  fn () {
+    // ...
+  }
+
+}
+----
+
+The main advantage of the syntax is that the same clean notation applies to
+class constructors, properties, and methods – composition that was previously
+much harder.
+
+=== Class member decorators
+
+Class member decorators are applied to a single member (property, method,
+getter, or setter). The decorator function is called with three parameters:
+`target` (the class), `name` (the member name), and `descriptor` (the property
+descriptor, as passed to `Object.defineProperty`). A `@readonly` decorator:
+
+[source,javascript]
+----
+function readonly (target, name, descriptor) {
+  descriptor.writable = false
+  return descriptor
+}
+
+class Example {
+  @readonly
+  b () {
+    // ...
+  }
+}
+
+const e = new Example()
+e.b = 2 // TypeError: Cannot assign to read only property 'b'
+----
+
+=== Class decorators
+
+Class decorators are applied to an entire class definition. The decorator
+function receives the constructor being decorated. This is generally less
+useful than member decorators – anything done here can be done by wrapping the
+constructor with an ordinary function – and a class decorator decorates every
+instance of the class.
+
+[source,javascript]
+----
+function logDecorator (Class) {
+  return (...args) => {
+    console.log(args)
+    return new Class(...args)
+  }
+}
+
+@log
+class Example {
+  constructor () {
+    // ...
+  }
+}
+----

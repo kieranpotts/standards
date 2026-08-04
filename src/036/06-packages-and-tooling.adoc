@@ -498,6 +498,14 @@ registry later:
 $ npm unpublish --force <packagename>[@<version>]
 ----
 
+Once published, a package or version can no longer be fully removed without
+breaking dependents; instead, mark it as deprecated to discourage use:
+
+[source,bash]
+----
+$ npm deprecate <packagename> "This package is deprecated"
+----
+
 The `npm` program maintains a local cache of downloaded packages. To ensure you
 install the very latest build, clean the cache first:
 
@@ -829,3 +837,52 @@ broadly comparable feature parity, but Yarn is generally easier to use.
 All contributors to an ECMAScript project SHOULD use the same package manager.
 Yarn and NPM resolve dependencies differently and can produce different
 dependency trees within the `node_modules` directory.
+
+`npx` (bundled with npm) and `yarn dlx` execute packages without installing them
+permanently: they run a binary from the local `node_modules/.bin`, or fetch and
+run a package from the registry on demand. Prefer `npx`/`yarn dlx` over global
+installs for one-off commands and generators (e.g. `npx create-react-app`), so the
+latest version runs without a permanent global install.
+
+== Transpilation and bundling
+
+Transpilation is source-to-source compilation: transforming modern JavaScript
+syntax (and polyfilling missing APIs) into a form supported by the target
+runtime. Modern runtimes support most recent syntax natively, so transpilation
+is needed only when targeting older runtimes or proposed features not yet
+widely supported.
+
+https://babeljs.io/[Babel] is the standard transpiler; the source remains
+standard JavaScript, transformed via
+https://babeljs.io/docs/en/babel-preset-env[`@babel/preset-env`] to the
+configured targets. Prefer Babel over compile-to-JavaScript languages – it keeps
+the source as standard JavaScript and future-proofs it.
+
+Bundling combines many modules into one (or a few) artifacts, reducing the
+number of requests needed to load a web application. Bundlers include
+https://rollupjs.org/[Rollup], https://webpack.js.org/[Webpack], and
+https://parceljs.org/[Parcel]. Bundlers also enable *tree shaking* – eliminating
+unused exports – which requires ES modules. Use dynamic `import()` (see
+<<Modules>>) and bundler code-splitting to lazy-load code on demand rather than
+shipping one large bundle.
+
+The goal is to transpile and bundle as little as possible: prefer native ES
+modules (loaded asynchronously per the spec) over transpiled, synchronously
+loaded bundles wherever the target runtimes support them.
+
+== Package design
+
+*Package cohesion* – classes within a package SHOULD be a closely related family
+and either all reusable or none of them; tightly coupled classes belong in the
+same package, and unrelated classes should be split out.
+
+*Package coupling* – prefer a dependency hierarchy where higher-order packages
+depend only on lower-order, simpler ones, and avoid dependencies between large
+packages, which risk circular references. Packages may iterate rapidly but
+their public APIs and behavior SHOULD be stable.
+
+Do not aspire to add features to a package indefinitely; each package has a
+natural saturation point, after which it SHOULD be iterated for simplicity and
+to support infrastructure changes (avoiding software rot). Within packages,
+keep DRY; between packages, it is often sensible to repeat small bits of logic
+rather than introduce an inter-package dependency for a trivial task.

@@ -106,7 +106,6 @@ dependencies on development tools such as Yarn and NPM:
 Use of the `^` character is the RECOMMENDED way to lock versions to a
 particular major release of a dependency. `^10.13.0` means all minor and patch
 releases from that version onwards (10.14.0, 10.15.0, 10.15.1, etc.) but not the
-) but not the
 next major version (11.x.x). See <<Dependency management>> for further guidance
 on version number constraints.
 
@@ -123,6 +122,32 @@ import fs from 'node:fs/promises'
 This syntax is available from Node v12.20.0 and v14.13.1, and in `require()`
 from Node v14.18.0 and v16.0.0.
 
+Node's standard library is organized into built-in modules. The principal ones
+are:
+
+* *Globals* – `__filename`, `__dirname`, `module`, `exports`, `process`, and
+  `Buffer` (in CommonJS; these are not global in ESM – use `import.meta` and the
+  `node:` modules instead).
+
+* *Console and timers* – `console`, `setTimeout`/`clearTimeout`,
+  `setInterval`/`clearInterval`, `setImmediate`/`clearImmediate`.
+
+* *Process* – `process` for argv, env, stdio, exit, signals, and metadata.
+
+* *Events and streams* – `events.EventEmitter`, and the `stream` readable /
+  writable / transform streams.
+
+* *File system and path* – `fs` and `path`.
+
+* *Networking* – `http`, `https`, `net`, `url`, `querystring`.
+
+* *Utilities* – `util` (including `util.promisify`), `os`, `assert`, `child_process`.
+
+Where a module offers both callback and promise APIs, prefer the promise API –
+for example `node:fs/promises` over the callback `node:fs`, or `util.promisify`
+for legacy callback functions. Prefer streams for large or streaming I/O over
+reading entire buffers into memory.
+
 == Web
 
 All major web browsers now implement the standard JavaScript module system via
@@ -131,3 +156,113 @@ server (see <<Modules>>). Where the cost of many separate module requests
 outweighs the benefit, modules MAY be bundled for delivery. A "cut-the-mustard"
 progressive-enhancement strategy MAY be used to load JavaScript only in browsers
 that meet baseline runtime requirements.
+
+== Host APIs and feature detection
+
+ECMAScript itself provides no I/O – no networking, storage, or graphics. These
+facilities are provided by the host environment (a web browser, Node, a web
+worker, etc.), and the available host APIs vary between runtimes. Code that
+depends on host APIs MUST detect the specific feature it needs rather than
+assuming its presence.
+
+=== Object detection over UA sniffing
+
+Sniff for the specific feature you intend to use, not for a feature that
+correlates with it. The presence of one feature does not imply the presence or
+absence of another – browsers add, remove, and fix features independently. Do
+not, for example, assume that a browser exposing a particular DOM feature must
+also expose some other (especially nonstandard) feature.
+
+Do not user-agent (UA) sniff to target current or future browser versions. If
+you must UA-sniff, use it only to target past versions of specific browsers, and
+always keep a default code path that runs in unknown and current browsers.
+
+Do not create separate codepaths for different browsers when one of the paths
+works everywhere – browsers converge behavior, and branching risks breaking the
+site as that convergence happens.
+
+=== Vendor prefixes
+
+Vendor-prefixed features are provided for experimentation and are not meant for
+production: their behavior can change as the specification evolves, and the
+prefixed version is usually removed once the feature ships unprefixed. Avoid
+prefixed features except to target old, buggy versions of a browser.
+
+Where you must support a prefixed version, always prefer the unprefixed version
+when available, and put the unprefixed declaration last so it wins:
+
+[source,css]
+----
+.pretty-element {
+  -vnd-make-it-pretty: sometimes; /* old browsers */
+  make-it-pretty: sometimes;       /* current browsers */
+}
+----
+
+Do not use the unprefixed version of a property or API until at least one browser
+supports it – the final syntax may differ from any prefixed version. When using
+cutting-edge features that are not universally implemented, test the fallback
+path in a browser that does not implement the feature.
+
+=== Detecting DOM event support
+
+The DOM does not specify a way to detect exactly which events a browser
+understands. The reliable solution is to use only DOM events known to be
+supported by all target browsers, rather than relying on imperfect detection
+hacks.
+
+== Universal JavaScript
+
+Universal JavaScript (also called isomorphic JavaScript) is code that runs in
+any runtime environment – in web applications, the same code runs both
+client-side in browsers and server-side in Node. Sharing code between client
+and server reduces duplication of business logic and supports progressive
+rendering.
+
+General-purpose utility libraries that do not depend on host-specific APIs
+SHOULD be written to be universal where practical, to maximize reuse. But do
+not take this too far: a universal component that branches on `process.browser`
+to use different implementations per runtime ships unnecessary code to each
+environment (e.g. Node's `crypto` is large when bundled for the browser) and
+skews coverage reports. Beyond genuinely host-agnostic utilities, it is
+acceptable to write packages for a narrowly defined range of runtimes.
+
+Working with globals in universal code can require convoluted logic across
+Node's `global`, the browser's `window`, and a worker's `self`.
+
+== Date
+
+The `new Date()` constructor always returns a `Date` instance, even for an
+invalid date-time string, so an `instanceof Date` check does not verify the
+_value_. Validate a date by checking its timestamp:
+
+[source,javascript]
+----
+const date = new Date('an invalid date-time string')
+if (isNaN(date.getTime())) {
+  // Date is invalid.
+}
+----
+
+`Date.prototype.toISOString()` returns a date in simplified extended ISO 8601
+format (`YYYY-MM-DDTHH:mm:ss.sssZ`), always in UTC (the `Z` suffix). To produce
+a local-time string, account for the timezone offset:
+
+[source,javascript]
+----
+const offset = new Date().getTimezoneOffset() * 60000
+const localISO = new Date(Date.now() - offset).toISOString().slice(0, -1)
+----
+
+`Date.prototype.toLocaleString()` produces a language-sensitive representation.
+Historically its output was inconsistent across engines; the ECMAScript
+Internationalization API (ECMA-402) adds `locales` and `options` arguments (a
+BCP-47 tag and format options) for consistent output, though support is not yet
+universal. Where consistent formatting matters and ECMA-402 is not available,
+use a dedicated date-time library.
+
+[source,javascript]
+----
+const d = new Date(Date.UTC(2019, 11, 1, 9, 0, 0))
+d.toLocaleString('en-GB', { timeZone: 'UTC' })
+----

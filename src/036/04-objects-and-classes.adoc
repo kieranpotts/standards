@@ -7,6 +7,30 @@ is more flexible than the hard objects of class-based languages, and it means
 deep inheritance hierarchies are rarely needed – shallow hierarchies tend to be
 more efficient and expressive.
 
+Developers MUST NOT modify or extend objects they do not own. In particular,
+never change the APIs of native objects (`Array`, `Math`, `Object`, etc.) or host
+objects (such as the DOM in web browsers) – this is widely regarded as
+https://humanwhocodes.com/blog/2010/03/02/maintainable-javascript-dont-modify-objects-you-down-own/[bad practice].
+
+=== Types of objects
+
+Every object in a JavaScript program is one of:
+
+* *Native objects* – defined in the ECMAScript specification and available in
+  every runtime (`Array`, `Boolean`, `Date`, `Error`, `Function`, `Math`,
+  `Number`, `RegExp`, `String`, `Object`, `Symbol`).
+
+* *Host objects* – provided by the host environment rather than the language;
+  their APIs are not defined by ECMAScript. In browsers these include `window`,
+  `document`, `HTMLElement`, `Event`, `XMLHttpRequest`, and the web APIs; in Node
+  they include `process`, `Buffer`, and the built-in modules (see <<Runtimes>>).
+
+* *User-defined objects* – created by application developers or by third-party
+  libraries and frameworks. These are the building blocks of JavaScript
+  applications.
+
+All objects derive from `Object`; even functions are objects.
+
 === Kinds of properties
 
 JavaScript distinguishes three kinds of properties:
@@ -57,6 +81,82 @@ obj.bar = 'foo' // TypeError: obj.bar is read-only
 
 Object.defineProperty(obj, 'bar', { value: 'foo' })
 obj.bar // 'foo'
+----
+
+=== Object APIs
+
+`Object.keys(obj)` returns the enumerable own property names;
+`Object.getOwnPropertyNames(obj)` returns all own property names, enumerable or
+not. `Object.create(proto, props)` creates a new object with `proto` as its
+prototype – a shortcut for prototypal inheritance (see <<Inheritance>>).
+
+`Object.seal(obj)` prevents new properties from being added and existing
+property descriptors from being changed or deleted, but property values can
+still be modified. `Object.freeze(obj)` does all of that and also makes property
+values non-writable – it is the way to make an object fully immutable in
+JavaScript. Once frozen, an object cannot be unfrozen.
+
+=== Object equality
+
+Objects are compared by reference, not by value. Two objects with identical
+properties are not equal unless they are the same instance:
+
+[source,javascript]
+----
+const a = { foo: 'bar' }
+const b = { foo: 'bar' }
+
+a === b // false
+b = a
+a === b // true
+----
+
+To compare two objects by value, implement a function that enumerates properties
+and compares their values (or use a library).
+
+=== `toString()`
+
+`toString()` returns a string representation of an object, useful for debugging.
+Custom types SHOULD override it to produce a meaningful representation:
+
+[source,javascript]
+----
+class Color {
+  constructor(r, g, b) {
+    this.r = r
+    this.g = g
+    this.b = b
+  }
+  toString() {
+    return `rgb(${this.r}, ${this.g}, ${this.b})`
+  }
+}
+
+const red = new Color(255, 0, 0)
+red.toString() // 'rgb(255, 0, 0)'
+----
+
+=== Property access
+
+Use dot notation by default (`obj.prop`). Use square-bracket notation when the
+property name is computed at runtime, is not a valid identifier, or contains
+characters that dot notation cannot express:
+
+[source,javascript]
+----
+obj.prop
+obj[computedName]
+form.elements['name[]']
+----
+
+=== `delete`
+
+The `delete` operator removes a property from an object – it removes the
+property itself, not just its value:
+
+[source,javascript]
+----
+delete cat.age
 ----
 
 == Classes
