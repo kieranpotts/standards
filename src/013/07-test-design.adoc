@@ -56,10 +56,50 @@ Give tests descriptive names that read as a statement of expected behavior:
 `calculatesTaxAtStandardRateForDomesticOrders`, not `testCalc`. The name should
 make the intent immediately clear without reading the test body.
 
-Structure each test consistently around the arrange–act–assert (AAA) pattern:
-set up the preconditions, invoke the behavior under test, then assert the
-expected outcome. Keep each phase visually distinct, using blank lines or
-comments to separate them if the test body is more than a few lines long.
+=== The Given/When/Then pattern
+
+Structure each test consistently around three phases, in order:
+
+1. *Given* — establish the preconditions. Create or configure the component
+   under test and its dependencies, including any test doubles and their
+   canned responses.
+2. *When* — invoke the single behavior under test. This phase should be a
+   single statement or a small block of calls that exercises the one action
+   the test is verifying.
+3. *Then* — verify the expected outcomes. Assert the returned values, the
+   state changes, and the interactions that should (or should not) have
+   occurred with any test doubles.
+
+This is the same pattern as *arrange–act–assert (AAA)*; the Given/When/Then
+labels originate from behavior-driven development (BDD) and read more naturally
+as prose. Keep each phase visually distinct, using blank lines or comments to
+separate them if the test body is more than a few lines long. A test that
+follows this structure reads top-to-bottom as a short narrative: here is the
+starting state, here is what happened, here is what we expect.
+
+[source,php]
+----
+public function testCannotReadReport(): void
+{
+    // Given
+    $this->user->shouldReceive('can')
+        ->once()
+        ->with('read_own_report')
+        ->andReturn(false);
+
+    // When
+    $actual = $this->policy->canRead($this->user, $this->report);
+
+    // Then
+    $this->assertFalse($actual);
+}
+----
+
+The *When* phase SHOULD contain exactly one action. A test with multiple
+actions in its *When* phase is testing more than one behavior and should be
+split. The *Given* phase SHOULD contain only the setup that the test genuinely
+needs; shared, reusable setup belongs in a fixture or factory, not repeated in
+every test.
 
 Avoid introducing logic into tests — conditionals, loops, and helper
 computations make tests harder to read and introduce the risk of bugs in the

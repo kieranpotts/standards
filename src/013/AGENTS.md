@@ -503,14 +503,45 @@ Common-agreed definitions (the terms are widely misused — when in doubt prefer
 
   Give tests descriptive names that read as a statement of expected behavior
   (`calculatesTaxAtStandardRateForDomesticOrders`, not `testCalc`) — the name
-  should make intent clear without reading the body. Structure each test
-  consistently around the **arrange–act–assert (AAA)** pattern: set up
-  preconditions, invoke the behavior under test, assert the expected outcome.
-  Keep each phase visually distinct (blank lines or comments if the body is
-  more than a few lines). Avoid logic in tests — conditionals, loops, and
-  helper computations make tests harder to read and risk bugs in the test code
-  itself. If a test requires complex setup, extract it into a clearly named
-  fixture or factory rather than embedding it inline.
+  should make intent clear without reading the body.
+
+- **Structure every test around the Given/When/Then pattern** (the same
+  pattern as arrange–act–assert / AAA). The Given/When/Then labels originate
+  from BDD and read more naturally as prose:
+
+  - **Given** — establish the preconditions (the component under test, its
+    dependencies, any test doubles and their canned responses).
+  - **When** — invoke the single behavior under test. This phase SHOULD
+    contain exactly one action; a test with multiple actions is testing more
+    than one behavior and should be split.
+  - **Then** — verify the expected outcomes (returned values, state changes,
+    interactions with test doubles).
+
+  Keep each phase visually distinct (blank lines or comments). A test that
+  follows this structure reads top-to-bottom as a short narrative: here is the
+  starting state, here is what happened, here is what we expect.
+
+  ```php
+  public function testCannotReadReport(): void
+  {
+      // Given
+      $this->user->shouldReceive('can')
+          ->once()
+          ->with('read_own_report')
+          ->andReturn(false);
+
+      // When
+      $actual = $this->policy->canRead($this->user, $this->report);
+
+      // Then
+      $this->assertFalse($actual);
+  }
+  ```
+
+  Avoid logic in tests — conditionals, loops, and helper computations make
+  tests harder to read and risk bugs in the test code itself. If a test
+  requires complex setup, extract it into a clearly named fixture or factory
+  rather than embedding it inline.
 
 - **Aim for one logical assertion per test (a guideline, not a mechanical
   rule).**
