@@ -262,12 +262,673 @@ useful subset of the tags specified by JSDoc and TSDoc:
 
 All tags are block-level except `@link`, which is inline.
 
-=== TypeScript interfaces
+=== Types
 
-To document TypeScript interfaces, JSDoc comments may be written in two places:
-preceding the interface definition, or preceding individual properties of an
-interface. Any combination is possible; both are parsed by the TypeScript type
-checker and piped into VS Code's IntelliSense.
+Type information is provided via the `@type`, `@param`, and `@returns` tags, with help from `@typedef` and `@callback`. Types are written in curly braces – e.g. `{string}`, `{number}`, `{boolean}`, `{null}`, `{42}` (the literal number 42), `{'close' | 'open'}` (one of two literal strings), `{string[]}` (an array of strings), `{...string}` (a variable number of string arguments), or `{MyElement}` (a custom type).
+
+JavaScript's primitive types are written in full lower case: `boolean`, `number`, `string`, `undefined`, `null`. For functions that return `undefined`, declare the return type as `void` – a TypeScript-specific type for functions with no `return` statement.
+
+`string` is a different type to `String`, but the distinction is often immaterial because engines implicitly coerce primitives to their object wrappers. Prefer to declare types as primitives (`string`, `number`, `boolean`) rather than object wrappers (`String`, `Number`, `Boolean`). Any built-in object (`Object`, `RegExp`, `Function`, `Array`, `Date`, `Error`, `TypeError`, etc.) is supported, as are host types such as `HTMLElement` where the runtime provides a DOM.
+
+[source,javascript]
+----
+/**
+ * @type {HTMLElement}
+ */
+const el = document.querySelector(selector)
+el.dataset.myData = ''
+----
+
+==== Union and nullable types
+
+Variables that may reference more than one type MUST declare the full range of possible types using union syntax, which is also used for nullable types:
+
+[source,javascript]
+----
+/**
+ * @type {string | boolean}
+ */
+
+/**
+ * @type {number | null}
+ */
+----
+
+Place one space either side of the pipe `|`, for consistency with TypeScript notation.
+
+==== Objects
+
+Objects SHOULD be fully typed. For simple structures, prefer TypeScript syntax:
+
+[source,javascript]
+----
+/**
+ * @type {{ a: string, b: number }}
+ */
+
+/**
+ * @type {{ a: string, b?: number }}
+ */
+----
+
+Optional properties MAY use the `?` notation (equivalent to `b: number | undefined`). Map-like objects use index signatures:
+
+[source,javascript]
+----
+/**
+ * @type {{ [x: string]: number }}
+ */
+----
+
+For more complex structures, use `@typedef` (see <<Type definitions>>).
+
+==== Arrays
+
+[source,javascript]
+----
+/**
+ * @type {string[]}
+ */
+
+/**
+ * @type {(string | number)[]}
+ */
+----
+
+The `Array<string>` syntax is also supported.
+
+==== Promises
+
+For promises whose resolved value is insignificant:
+
+[source,javascript]
+----
+/**
+ * @type {Promise}
+ */
+----
+
+Where the resolved value is significant, declare it:
+
+[source,javascript]
+----
+/**
+ * @type {Promise<string>}
+ * @type {Promise<(string | number)>}
+ */
+----
+
+Rejected values (which can be expected to be some `Error` type) are not documented.
+
+==== Functions
+
+[source,javascript]
+----
+/**
+ * @type {(s: string, b: boolean) => number}
+ */
+const fn = (s, b) => {
+  // ...
+}
+----
+
+==== Unknown and any types
+
+For an unknown structure from an external, untyped source, declare `Object` and document why the structure cannot be typed:
+
+[source,javascript]
+----
+/**
+ * An arbitrary data structure provided by an external web service.
+ *
+ * @type {Object}
+ */
+----
+
+For functions with complex signatures you cannot document, use `Function`. To declare the equivalent of TypeScript's `any`, use JSDoc's `*` type:
+
+[source,javascript]
+----
+/**
+ * This variable is a return value from an external component,
+ * and could be of any type.
+ *
+ * @type {*}
+ */
+----
+
+Non-specific `any` types SHOULD be avoided; wherever you disable the type checker, you MUST document your reasons. Do not use the `?` ("unknown") type – use `*` ("any") instead.
+
+=== Type definitions
+
+`@typedef` documents complex types – the equivalent of a TypeScript interface:
+
+[source,typescript]
+----
+interface Address {
+  street: string;
+  city: string;
+  zip?: number;
+}
+----
+
+The equivalent inline, using TypeScript syntax (the identifier `Address` is just a reference and need not match anything in the source):
+
+[source,javascript]
+----
+/**
+ * @typedef {{ street: string, city: string, zip?: number }} Address
+ */
+----
+
+Or, to comment each property, JSDoc syntax:
+
+[source,javascript]
+----
+/**
+ * @typedef {Object} Address
+ * @prop {string} street
+ * @prop {number} city
+ * @prop {number} [zip]
+ */
+----
+
+`@typedef` blocks stand on their own and need not document the code immediately below them; once declared, the type can be referenced from any subsequent `@type`, `@param`, or `@returns` tag:
+
+[source,javascript]
+----
+/**
+ * @typedef Token
+ * @property {boolean} valid True if the token is valid.
+ * @property {string} id The user id bound to the token.
+ */
+
+/**
+ * Consume a token.
+ * @param {string} token Token string.
+ * @returns {Promise<Token>} A promise that resolves to the token.
+ */
+const consumeToken = (string) => {
+  // ...
+}
+----
+
+`@typedef` can also bring definition to functions with complex signatures (see <<Functions>>).
+
+==== Imported type definitions
+
+The TypeScript compiler can import TypeScript type declaration files (`.d.ts`) directly into JavaScript via inline JSDoc, using the `import()` syntax on `@type`, `@param`, or `@returns`:
+
+[source,typescript]
+----
+// types.d.ts
+export type Pet = {
+  name: string
+}
+----
+
+[source,javascript]
+----
+/**
+ * @param { import('./types').Pet } pet
+ */
+function walk (pet) {
+  console.log(`Walking ${pet.name}...`)
+}
+----
+
+A cleaner option is to `import()` a type into `@typedef`, alias it, and reference the alias:
+
+[source,javascript]
+----
+/**
+ * @typedef { import('./types').Pet } Pet
+ */
+
+/**
+ * @type {Pet}
+ */
+let myPet
+----
+
+Combine `import()` with `typeof` to discover the type of a value from a JavaScript module:
+
+[source,javascript]
+----
+/**
+ * @type {typeof import('./accounts').userAccount }
+ */
+const x = require('./accounts').userAccount
+----
+
+=== Variables
+
+The data types held by variables are declared with `@type`:
+
+[source,javascript]
+----
+/**
+ * @type {string}
+ */
+let s
+----
+
+Anything exported from a module MUST have its range of possible types declared with `@type`. It is RECOMMENDED to declare types for internal variables too, to improve type-checking accuracy. Descriptions SHOULD be included for variables whose purpose is not obvious:
+
+[source,javascript]
+----
+/**
+ * Regular expression used to contain individual keystrokes within the
+ * input control. Only numbers and ASCII-range letters are allowed.
+ *
+ * @type {RegExp}
+ */
+const allowedCharactersPattern = /[A-Z0-9]/gi
+----
+
+==== Type casts
+
+TypeScript borrows cast syntax from Google Closure: add a `@type` tag before any parenthesized expression. This is the only place single-line JSDoc notation is used:
+
+[source,javascript]
+----
+/**
+ * @type {number | string}
+ */
+let numberOrBool = Math.random() < 0.5 ? false : 0
+let assumedNumber = /** @type {number} */ (numberOrBool)
+----
+
+=== Functions
+
+Functions SHOULD be fully typed, declaring all argument and return types. For concise APIs, TypeScript notation MAY be used:
+
+[source,javascript]
+----
+/**
+ * @type {(s: string, b?: boolean) => number}
+ */
+const fn = (s, b) => {
+  // ...
+}
+----
+
+For complex signatures, or where individual parameters and return values should be commented, JSDoc notation is better. A function's signature is described with `@param`, `@returns`, and `@throws` tags, listed in that order. `@param` and `@returns` tags are clustered together, one per line, with no blank lines between them.
+
+[source,javascript]
+----
+/**
+ * Delete the contents of a directory.
+ *
+ * @param {string} dir Path to the target directory.
+ * @returns {Promise<string>} Path to the cleaned directory.
+ *
+ * @throws `TypeError` if missing or invalid parameters.
+ */
+----
+
+Both styles work for function declarations and function expressions.
+
+==== Parameters
+
+`@param` uses the same syntax as `@type` but adds a parameter name. Optional parameters are enclosed in square brackets. All parameters SHOULD have comments unless their purpose is obvious:
+
+[source,javascript]
+----
+/**
+ * @param {string} p1 A string parameter.
+ * @param {string} [p2] An optional string parameter.
+ */
+----
+
+Default values:
+
+[source,javascript]
+----
+/**
+ * @param {string} p1
+ * @param {string} [p2='default']
+ */
+----
+
+Rest arguments:
+
+[source,javascript]
+----
+/**
+ * @param {...string} other
+ */
+----
+
+TypeScript or JSDoc notation MAY describe object structures. JSDoc notation is particularly good for options objects – nested properties are prefixed with the parameter name:
+
+[source,javascript]
+----
+/**
+ * @param {Object} options
+ * @param {string} options.prop1
+ * @param {number} [options.prop2]
+ * @param {number} [options.prop3=42]
+ */
+----
+
+The same notation documents destructured parameters:
+
+[source,javascript]
+----
+/**
+ * @param {Object} options
+ * @param {string} options.prop1
+ * @param {number} options.prop2
+ */
+const fn = ({ prop1, prop2 }) => {
+  // ...
+}
+----
+
+==== Return types
+
+Function docblocks MUST have a single `@returns` tag declaring all possible return types, REQUIRED even if the function returns `undefined` or is `async`. Every `@returns` tag MUST have a comment (shown in VS Code tooltips). Type checkers can infer promises from `async`, but you MUST declare the return type for functions that `return new Promise()` rather than use `async`, and SHOULD declare it where the resolved value is significant. Even a promise with no meaningful value should be declared `Promise<undefined>`.
+
+[source,javascript]
+----
+/**
+ * @returns {boolean | null} Returns `true`, `false`, or `null`.
+ */
+
+/**
+ * @returns {Promise<string>} Returns a promise that resolves to a string.
+ */
+async function ps () {
+  // ...
+}
+----
+
+For functions with no `return` statement:
+
+[source,javascript]
+----
+/**
+ * @returns {void} No return value.
+ */
+----
+
+The `void` type is a TypeScript-specific subtype of `undefined` for functions that return nothing.
+
+==== Thrown values
+
+A block of `@throws` tags MAY follow the `@param`/`@returns` block, separated by a single empty line. Use one `@throws` tag per error type (do not use the union operator). For VS Code tooltip compatibility, the thrown type MUST NOT be wrapped in `{}`; instead, each tag has a short comment beginning with the type name in backticks:
+
+[source,javascript]
+----
+/**
+ * @throws `TypeError` if any argument is of an unexpected type.
+ */
+
+/**
+ * @throws `DivideByZero` if argument `x` is not a non-zero value.
+ */
+----
+
+`@throws` is informational only – it does not restrict other types from being thrown.
+
+==== Callbacks
+
+`@typedef` MAY declare function signatures reusable across multiple `Function` instances:
+
+[source,javascript]
+----
+/**
+ * @typedef {(path?: string) => boolean} onFileOperation
+ */
+
+/**
+ * @type {onFileOperation}
+ */
+const ok = (s) => !(s.length % 2)
+----
+
+The `@callback` tag serves the same purpose, originating from JSDoc and giving room to comment individual parameters, return types, and thrown types. As with `@typedef`, `@callback` declarations can be referenced from `@type`, `@param`, and `@returns`:
+
+[source,javascript]
+----
+/**
+ * @callback onFileOperation
+ *
+ * @param {string} [path] Path to a source file.
+ * @returns {boolean} Whether the file was modified.
+ */
+
+/**
+ * @type {onFileOperation}
+ */
+function onChange (path) {
+  // ...
+}
+----
+
+==== `@this`
+
+The TypeScript compiler infers the type of `this` from call context. Where context is not provided, specify it with `@this`:
+
+[source,javascript]
+----
+/**
+ * @this {HTMLElement}
+ * @param {*} e An `Event` instance.
+ */
+function callback (event) {
+  // ...
+}
+----
+
+=== Classes
+
+All classes SHOULD be described with a docblock:
+
+[source,javascript]
+----
+/**
+ * Description of this class.
+ */
+class ExampleClass {
+  // ...
+}
+----
+
+Construction parameters, if any, MUST be declared in a docblock on the `constructor`:
+
+[source,javascript]
+----
+/**
+ * @param {number} data
+ */
+constructor (data) {
+  // ...
+}
+----
+
+Note that even the TypeScript type checker allows classes to be invoked without `new`; the result is treated as `any`.
+
+Class fields need type declarations only where the type cannot be inferred from an assigned value. Where a field is declared and its value set elsewhere, declare the expected type:
+
+[source,javascript]
+----
+/**
+ * @type {number}
+ */
+size
+----
+
+Class method signatures use the same JSDoc syntax as standalone functions (see <<Functions>>).
+
+=== Templates
+
+`@template` declares generic types that "flow through" functions or classes:
+
+[source,javascript]
+----
+/**
+ * @template T
+ * @param {T} x
+ * @returns {T}
+ */
+function id (x) {
+  return x
+}
+
+id('str')
+id(123)
+id({})
+----
+
+This is a better option than `any` for type checking, but is not expressive for the human reader – add a comment explaining that `T` is a container for the passed-in type. The letter `T` is conventional; any identifier works, and a single upper-case letter is conventional. Multiple templates MAY be declared comma-separated via one `@template` tag, or one per tag. `@template` can be combined with `@extends` to pass argument types down from a generic base class:
+
+[source,javascript]
+----
+/**
+ * @template T
+ * @extends {Set<T>}
+ */
+class SortableSet extends Set {
+  // ...
+}
+----
+
+=== File-level docblocks
+
+All JavaScript/TypeScript files MUST have a single file-level docblock, beginning on line 1:
+
+[source,javascript]
+----
+/**
+ * A short description of the file contents.
+ *
+ * @see       {@link https://example.com/docs}
+ * @author    Your Name
+ * @copyright Your Org
+ * @license   MIT
+ */
+----
+
+`@file` and `@fileOverview` are not used; the leading prose serves as the module description. `@author` is required only if authorship differs from the copyright owner. Contact details such as email addresses MUST NOT be embedded in any docblock tags. Copyright declarations MAY be dated and MAY list multiple holders comma-separated; it is RECOMMENDED to omit the date so notices need not be updated yearly. These tags MAY be repeated in other docblocks within a file wherever the copyright or license differs from the file-level default, and where used MUST be positioned after all other tags.
+
+=== Release stages
+
+The `@experimental`, `@alpha`, `@beta`, and `@deprecated` tags MAY declare the release stage of a component. Where used, they SHOULD be positioned near the top of a docblock, preferably immediately after the description:
+
+[source,javascript]
+----
+/**
+ * Returns the average of two numbers.
+ *
+ * @beta
+ *
+ * @param x The first input number.
+ * @param y The second input number.
+ *
+ * @returns The mean of `x` and `y`.
+ */
+----
+
+For experimental and deprecated components, include a comment to draw attention:
+
+[source,javascript]
+----
+/**
+ * @deprecated This export will be removed in the next major release.
+ */
+----
+
+`@since` and `@version` MUST NOT be used; versioning is defined in `package.json` and API changes recorded in changelogs.
+
+=== Examples
+
+Code samples are included with `@example` (ignored by the type checker, but shown in VS Code tooltips). There MAY be multiple `@example` blocks, each preceded by a single empty line; the next line MUST start the code. Example code MUST be correct and executable in isolation without modification.
+
+[source,javascript]
+----
+/**
+ * Adds two numbers together.
+ *
+ * @param {number} x
+ * @param {number} y
+ *
+ * @returns {number}
+ *
+ * @example
+ * // Prints `2`.
+ * console.log(add(1, 1))
+ *
+ * @example
+ * // Prints `0`.
+ * console.log(add(1, -1))
+ */
+function add (x, y) {
+  // ...
+}
+----
+
+=== References
+
+Use `@see` with `@link` to reference documentation and related resources. `@see` specifies a "see also" item; `@link` is an inline tag that creates hyperlinks, usable within block-level tags like `@see`:
+
+[source,javascript]
+----
+/**
+ * @see {@link https://example.com/docs}
+ */
+----
+
+Multiple `@see` blocks are allowed, and links may be given a human-friendly title:
+
+[source,javascript]
+----
+/**
+ * @see {@link https://example.com/ Project website}
+ */
+----
+
+Documentation references SHOULD be included in most file-level docblocks and wherever relevant external documentation exists.
+
+=== Other docblock syntax
+
+The TypeScript compiler supports a handful more tags (`@override`, `@implements`, `@public`, `@private`, `@protected`), but these have not been particularly useful for JavaScript. JSDoc and TSDoc define further syntax, but much of JSDoc is legacy for pre-ES6 code (e.g. `@constructor`), and TSDoc is an emerging superset aimed at a wider range of tools.
+
+You MAY use any additional tags supported by the TypeScript compiler, JSDoc, or TSDoc, but additional markup SHOULD be used sparingly. Docblocks work best with _just enough_ information for type checking and correct API usage. Used wisely, docblocks reduce cognitive load; misused, they do the opposite. Above all, docblocks MUST be readable and understandable even to developers unfamiliar with JSDoc/TSDoc.
+
+JSDoc/TSDoc notation is a stepping stone from JavaScript to TypeScript. If an application grows complex enough to benefit from tags like `@enum`, consider incrementally refactoring to full TypeScript:
+
+[source,javascript]
+----
+/**
+ * @enum {boolean}
+ */
+const ModalOpenState = {
+  Closed: false,
+  Open: true,
+}
+----
+
+=== TypeScript docblocks
+
+Docblocks SHOULD be included in TypeScript files; the only difference is that types already declared in the code are not duplicated:
+
+[source,typescript]
+----
+/**
+ * Returns the average of two numbers.
+ *
+ * @param x The first number.
+ * @param y The second number.
+ * @returns The mean of `x` and `y`.
+ */
+function getAverage (x: number, y: number): number {
+  return (x + y) / 2.0
+}
+----
+
+To document TypeScript interfaces, JSDoc comments may be placed preceding the interface definition or preceding individual properties. Any combination is parsed by the type checker and piped into VS Code's IntelliSense:
 
 [source,typescript]
 ----
@@ -289,9 +950,19 @@ export interface BasketItemInterface {
 }
 ----
 
-Interface-level docblocks are OPTIONAL but SHOULD be included for interfaces
-whose purpose is not clear from the interface identifier itself. Property-level
-docblocks are OPTIONAL but SHOULD be included for the subset of properties whose
-purpose is not clear from their identifiers alone. In both cases, if it is
-necessary to reverse-engineer usage in code to understand what the interface or
-property is for, authors SHOULD add a comment so this work becomes unnecessary.
+Interface-level docblocks are OPTIONAL but SHOULD be included where the purpose is not clear from the interface name. Property-level docblocks are OPTIONAL but SHOULD be included for properties whose purpose is not clear from their identifiers. If reverse-engineering usage in code is needed to understand what an interface or property is for, authors SHOULD add a comment so this work becomes unnecessary.
+
+=== VS Code configuration
+
+To benefit from inline type checking of JavaScript files in VS Code, JavaScript validation must be enabled (it is by default), and the type checker must parse docblocks in JS files. This can be enabled per file with a `// @ts-check` comment on the first line, or globally with the `js/ts.implicitProjectConfig.checkJs` setting:
+
+[source,json]
+----
+{
+  "js/ts.implicitProjectConfig.checkJs": true
+}
+----
+
+The type checker parses https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html[compatible docblocks] in each file for type information that cannot be inferred from the code. If enabled globally, it can be disabled per file with `// @ts-nocheck`; `@ts-ignore` suppresses type errors on the next line.
+
+For a consistent experience across environments, it is strongly RECOMMENDED to both enable `js/ts.implicitProjectConfig.checkJs` at the repository level (committing `.vscode/settings.json`) and add either `@ts-check` or `@ts-nocheck` to the top of every JavaScript file – the repository setting is ignored when the folder is opened within a broader workspace.

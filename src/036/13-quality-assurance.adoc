@@ -1,1 +1,335 @@
 = Quality assurance
+
+== Testing
+
+Automated tests are an indirect but highly effective way to improve JavaScript
+code. Test frameworks are, at their core, a convenient API for making
+assertions about the behavior of code; test cases are scripts that use that API
+to define the assertions to verify.
+
+Our preference is Mocha plus Chai and Sinon, which together cover everything from
+small packages to large applications. https://mochajs.org/[Mocha] is a test
+framework that structures test suites and test cases (`describe`, `it`);
+https://chaijs.com/[Chai] is an assertion library; https://sinonjs.org/[Sinon]
+provides spies and stubs. Alternatives include Jest, Ava, and Jasmine. Other
+specialized tools include https://github.com/nock/nock[Nock] for HTTP mocking,
+https://www.npmjs.com/package/jsdom[jsdom] (with mocha-jsdom) for emulating a
+browser environment, and https://www.selenium.dev/[Selenium] or Cypress for
+web automation.
+
+Test cases live in a `./test/` directory. It is conventional for unit tests to
+use the `.test.js` suffix and behavior-driven tests to use the `.spec.js` suffix.
+All tests SHOULD be written with standard ECMAScript module notation. Add a
+test script to `package.json`:
+
+[source,json]
+----
+{
+  "scripts": {
+    "test": "mocha --recursive \"./test/**/[^_]*.test.js\""
+  }
+}
+----
+
+A unit test for a `Cat` class:
+
+[source,javascript]
+----
+// ./src/Cat.js
+class Cat {
+  constructor(name) {
+    this.name = name || 'Kitty'
+  }
+  meet(target) {
+    if (!target) throw new Error('Missing target')
+    return this.name + ', meet ' + target
+  }
+}
+export { Cat }
+----
+
+[source,javascript]
+----
+// ./test/Cat.test.js
+import { expect } from 'chai'
+import { Cat } from '../src/Cat'
+
+describe('Cat', function () {
+  describe('constructor', function () {
+    it('should use Kitty as the default name', function () {
+      const cat = new Cat()
+      expect(cat.name).to.equal('Kitty')
+    })
+    it('should set the name if provided', function () {
+      const cat = new Cat('Feral')
+      expect(cat.name).to.equal('Feral')
+    })
+  })
+
+  describe('meet()', function () {
+    it('should throw a TypeError if no target parameter', function () {
+      expect(function () {
+        (new Cat()).meet()
+      }).to.throw(TypeError)
+    })
+    it('should meet the target', function () {
+      const meet = (new Cat('Paw')).meet('Meow')
+      expect(meet).to.equal('Paw, meet Meow')
+    })
+  })
+})
+----
+
+=== Testing best practices
+
+The independence of test cases is a key principle of unit testing. Isolate the
+units under test as much as practically possible, so that the source of errors
+is easy to pinpoint when tests fail. Use the framework's hooks to reset state
+between cases, and stub or mock dependencies of the unit under test where
+needed. Test both passing _and_ failing conditions: if expected failing
+conditions are not tested, the code may erroneously pass in some circumstances.
+
+== Linting
+
+A linter statically analyses source code without running it. A good linter
+does three things:
+
+* *Catches programmer mistakes* early, shortening the development cycle.
+  Static analysis is not a replacement for runtime test coverage, but linters
+  are good at catching certain categories of bug – for example, an infinite
+  loop:
+
++
+[source,javascript]
+----
+for (let i = 0; i < 10; i--) {
+  // This loop runs infinitely.
+}
+----
+
+* *Checks for best practices*, flagging design anti-patterns that make code
+  harder to maintain – for example, `==` and `!=` instead of `===` and `!==`:
+
++
+[source,javascript]
+----
+// Bad.
+if (x == 42)
+
+// Good.
+if (x === 42)
+----
+
+* *Checks code style* – the visual formatting and presentation of the code.
+
+https://eslint.org/[ESLint] is the industry-standard tool for static analysis
+of JavaScript code. Low-level style concerns SHOULD be enforced through ESLint
+rather than by hand.
+
+=== Disabling ESLint
+
+From time to time you will need to disable ESLint for particular snippets – for
+example, where you use proprietary syntax or features from very recent
+proposals that ESLint does not yet support. Prefer to disable ESLint on a
+line-by-line basis. Where it makes sense to disable ESLint for a whole file,
+place the following block comment near the top of the file, before any code:
+
+[source,javascript]
+----
+/* eslint-disable */
+----
+
+== Errors
+
+JavaScript provides seven error types in its standard library:
+
+* *`Error`* – the parent of all other built-in `*Error` classes; represents
+  problems not described by the other types.
+
+* *`EvalError`* – historically thrown on misuse of `eval()`; now effectively a
+  built-in custom error type you MAY throw for "evaluation errors".
+
+* *`RangeError`* – thrown when a number falls outside an expected range (e.g.
+  `Number.prototype.toFixed()` with an out-of-range argument).
+
+* *`ReferenceError`* – thrown when a non-existent variable is accessed (e.g. a
+  misspelled or out-of-scope name).
+
+* *`SyntaxError`* – thrown when the engine fails to interpret malformed code.
+  Syntax errors are unique in that a program cannot recover from them.
+
+* *`TypeError`* – thrown when a value is not of the expected type; the most
+  useful built-in type in userland, and the most appropriate to throw when a
+  custom function receives an invalid parameter.
+
+* *`URIError`* – thrown by URI-handling built-ins like `encodeURI()` and
+  `decodeURI()` on malformed input.
+
+All error objects have two public properties: `name` (the name of the `Error`
+class) and `message` (the string passed to the constructor).
+
+=== Custom error types
+
+Custom error types extend the built-in `Error` class using normal prototypal
+inheritance. They MUST extend `Error` (or another `Error` subclass): plain
+objects thrown as errors behave inconsistently with built-ins and lack stack
+traces. Prefer the class syntax:
+
+[source,javascript]
+----
+class StackOverflowError extends Error {
+  constructor(message) {
+    super(message)
+    this.name = this.constructor.name
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, this.constructor)
+    } else {
+      this.stack = (new Error(message)).stack
+    }
+  }
+}
+----
+
+To avoid repeating this constructor boilerplate for every custom error,
+encapsulate it in an abstract error class and extend that:
+
+[source,javascript]
+----
+class AbstractCustomError extends Error {
+  constructor(message) {
+    super(message)
+    Object.defineProperty(this, 'name', {
+      configurable: true,
+      enumerable: false,
+      value: this.constructor.name,
+      writable: true
+    })
+    if (typeof Error.captureStackTrace === 'function') {
+      Error.captureStackTrace(this, this.constructor)
+    } else {
+      this.stack = (new Error(message)).stack
+    }
+  }
+}
+
+class AssertionError extends AbstractCustomError {}
+class DomainError extends AbstractCustomError {}
+class ParseError extends AbstractCustomError {}
+class TimeoutError extends AbstractCustomError {}
+----
+
+=== Throwing exceptions
+
+There is no restriction on what may be thrown in JavaScript – `throw 1`,
+`throw 'hello'`, `throw {}` are all valid. This is a quirky feature that SHOULD
+be ignored. Always throw new instances of the built-in error types or a custom
+error type that extends `Error`. Engines give `Error` instances special
+treatment (notably stack traces); anything else produces no stack trace.
+
+[source,javascript]
+----
+throw new TypeError('Invalid or missing parameters')
+----
+
+Exceptions SHOULD be thrown whenever a custom component is not used as
+designed – for example, when a function receives a parameter of an unexpected
+type or out-of-range value. This is defensive programming that produces robust,
+debuggable programs.
+
+=== Handling exceptions
+
+Code that may throw under some circumstances MUST be wrapped in a `try`
+clause. The `try` clause must be followed by a `catch` clause, a `finally`
+clause, or both. `catch` receives the error instance and stops propagation up
+the call stack; `finally` runs regardless of whether an error was thrown or
+caught, and is useful for cleaning up resources.
+
+[source,javascript]
+----
+try {
+  // Attempt to execute this code.
+} catch (error) {
+  // Receives the Error instance.
+} finally {
+  // Always executed.
+}
+----
+
+Handle different error types differently with the `instanceof` operator:
+
+[source,javascript]
+----
+try {
+  // ...
+} catch (error) {
+  if (error instanceof TypeError) {
+    // Handle TypeError exceptions.
+  } else if (error instanceof ReferenceError) {
+    // Handle ReferenceError exceptions.
+  } else {
+    // Handle all other exception types.
+  }
+}
+----
+
+== Dangerous features
+
+Some legacy features of JavaScript are error-prone and insecure, and most are
+excluded by default in strict mode.
+
+`eval()` executes a string as JavaScript code. It is slow and dangerous –
+especially when the code originates from an external source – and the problems
+it solves are almost always better solved another way (e.g. with callbacks or
+dynamic `import()`). `eval()` MUST NOT be used.
+
+`with` extends the scope chain with the properties of an object, making it
+ambiguous whether a name refers to a variable or an object property. It slows
+down execution and obscures intent. `with` MUST NOT be used.
+
+== Performance
+
+JavaScript is a garbage-collected language: memory is allocated to objects on
+creation and reclaimed when no references to them remain. Memory leaks occur
+when objects are not cleaned up by the garbage collector, and they were
+historically common in old browsers (notably Internet Explorer) because of
+separate garbage collectors for DOM nodes and JS objects that failed to detect
+circular references between the two.
+
+Circular references – where two or more objects refer to each other – and
+closures (which can hide such references) remain the common mechanisms for
+leaks. Break circular references by explicitly setting objects to `null` when
+finished with them, and use closures carefully.
+
+[source,javascript]
+----
+window.onload = function () {
+  obj = document.getElementById('mydiv')
+  document.getElementById('mydiv').customProperty = obj // circular reference
+}
+----
+
+=== Premature optimisation
+
+Do not over-optimise too early. Simple loops generally benchmark better than
+equivalent function-based patterns, but elegance and readability often matter
+more than micro-efficiency. The basic rule: do not worry about efficiency until
+a program is provably too slow, then find the slow parts and trade elegance for
+efficiency there. Code for humans first; optimise for computers only when
+necessary – but do not ignore performance altogether.
+
+== Polyfills
+
+A polyfill is a JavaScript shim that replicates a modern, standard API in
+runtimes that do not support it natively. Polyfills are less necessary now that
+the ecosystem has matured, and every polyfill adds weight to an application. A
+polyfill SHOULD be used only where a modern feature is essential to the
+application and there is no other way to implement the desired behavior – and
+there MUST be a good business reason for that.
+
+== Logging
+
+Avoid `console.*` calls in production code; they are appropriate only for
+debugging. Use a structured logging library for application logging so that
+logs can be filtered, leveled, and shipped to a log aggregator. Keep
+`console.log` statements out of committed code unless they serve a documented
+purpose.

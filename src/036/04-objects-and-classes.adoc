@@ -1,5 +1,139 @@
 = Objects and classes
 
+== Objects
+
+JavaScript objects are soft: members can be added and modified at any time. This
+is more flexible than the hard objects of class-based languages, and it means
+deep inheritance hierarchies are rarely needed – shallow hierarchies tend to be
+more efficient and expressive.
+
+=== Kinds of properties
+
+JavaScript distinguishes three kinds of properties:
+
+* *Named data properties* – the most common kind; any property with a value,
+  including methods (whose value is a `Function`).
+
+* *Named accessor properties* – a property backed by a getter or setter.
+
+* *Internal properties* – used by the engine, referred to in double square
+  brackets (e.g. `[[Prototype]]`); not directly accessible via the language API
+  (though `[[Prototype]]` is retrievable via `Object.getPrototypeOf()`).
+
+=== Property attributes
+
+All properties have `enumerable` and `configurable` attributes. Named data
+properties also have `value` and `writable`; named accessor properties have
+`get` and `set`. Non-enumerable properties are skipped by `for...in` and
+`Object.keys()`; non-configurable properties cannot have their attributes
+changed (except value) via `Object.defineProperty()`.
+
+=== Definition versus assignment
+
+Defining a property is not the same as assigning it. Definition
+(`Object.defineProperty()`) adds an own property with explicit attributes.
+Assignment (`obj.prop = value`) either invokes a setter found on the object or
+its prototype chain, or creates an own property with default attributes.
+Assignment never changes properties in prototypes, only own properties.
+
+Use *assignment* to change the value of an already-defined property, and
+*definition* to create fresh properties with specific attributes. A read-only
+property in a prototype prevents assignment from creating an own property of
+the same name (in strict mode it throws), but `Object.defineProperty()` can
+still override it – be wary of this, as it is a source of subtle bugs.
+
+[source,javascript]
+----
+'use strict'
+
+const proto = {
+  get bar() {
+    return 'bar'
+  }
+}
+
+const obj = Object.create(proto)
+obj.bar = 'foo' // TypeError: obj.bar is read-only
+
+Object.defineProperty(obj, 'bar', { value: 'foo' })
+obj.bar // 'foo'
+----
+
+== Classes
+
+Classes (introduced in ES2015) are the preferred construct for encapsulating
+related data and functionality. They are syntactic sugar over JavaScript's
+prototype-based inheritance model, but with real advantages over constructor
+functions: they guarantee an initialization function is called, static
+properties are inherited, and built-in constructors – including exotic ones
+like `Array` – can be subclassed. Class constructors cannot be invoked without
+`new`.
+
+[source,javascript]
+----
+class MyClass {
+  constructor() { /* ... */ }
+  method1() { /* ... */ }
+  method2() { /* ... */ }
+}
+----
+
+No commas separate class members (unlike object literals).
+
+=== Declarations and expressions
+
+Classes support both declarations and expressions, named or unnamed:
+
+[source,javascript]
+----
+// Declaration.
+class Area {
+  constructor(height, width) {
+    this.height = height
+    this.width = width
+  }
+}
+
+// Expression (unnamed).
+const Area = class { /* ... */ }
+
+// Expression (named).
+const MyArea = class Area { /* ... */ }
+----
+
+Unlike functions, class declarations and expressions are _not_ hoisted; a
+class MUST be declared before it is used. The body of a class is always
+executed in strict mode.
+
+=== Constructors, methods, and fields
+
+The `constructor` is a special method for creating and initializing an
+instance; there can be only one per class. Prototype methods and getters are
+defined in the class body as usual. Static methods and properties belong to
+the class itself, not instances:
+
+[source,javascript]
+----
+class Point {
+  constructor(x, y) {
+    this.x = x
+    this.y = y
+  }
+  static distance(a, b) {
+    const dx = a.x - b.x
+    const dy = a.y - b.y
+    return Math.hypot(dx, dy)
+  }
+}
+
+const p1 = new Point(5, 5)
+const p2 = new Point(10, 10)
+Point.distance(p1, p2)
+----
+
+Class fields may be declared at the top level of a class body; their types need
+annotation only where the type cannot be inferred from an assigned value.
+
 == Private members
 
 Authors MUST NOT use TypeScript's `private` modifier:
@@ -41,3 +175,51 @@ The TypeScript compiler keeps `#` private fields private in build artifacts,
 while TypeScript's `private` modifier is used only for error checking at compile
 time. Private fields are therefore RECOMMENDED as the stricter, more
 future-proof implementation.
+
+== Inheritance
+
+Subclasses incorporate another class's state and behavior using `extends` and
+`super`:
+
+[source,javascript]
+----
+class Animal {
+  constructor(name) {
+    this.name = name
+  }
+  speak() {
+    return `${this.name} makes a sound`
+  }
+}
+
+class Dog extends Animal {
+  constructor(name) {
+    super(name)
+  }
+  speak() {
+    return `${this.name} barks`
+  }
+}
+----
+
+Any use of a superclass instance SHOULD be substitutable by a subclass instance
+– the Liskov Substitution Principle. Beware overuse of inheritance: too much
+inheritance creates monolithic classes that dilute encapsulation and are hard
+to reuse. Where inheritance and composition can both reasonably express a
+design, prefer composition. JavaScript uses prototypal inheritance (objects
+inherit directly from other objects via delegation), not classical
+inheritance; deep hierarchies are rarely needed, and shallow designs are the
+norm.
+
+== Class design best practices
+
+* Each class SHOULD be responsible for one thing and have one reason to
+  change.
+
+* Code to an interface (a "contract") rather than concrete types.
+
+* Avoid tight coupling; dependencies SHOULD be injected, preferably via
+  constructor injection against an interface.
+
+* Favor cohesion, loose coupling, encapsulation, testability, readability,
+  and focus.
