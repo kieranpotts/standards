@@ -335,10 +335,15 @@ overlap and some aspects cross over. For HTTP API design see
   Large catalogs SHOULD be easily searchable.
   [Event Catalog](https://www.eventcatalog.dev/) is an open-source tool for
   creating and maintaining message catalogs. Message schemas MAY be documented
-  using [JSON Schema](https://json-schema.org/). Interface description languages
-  (IDLs) like [AsyncAPI](https://www.asyncapi.com/en) and
+  using [JSON Schema](https://json-schema.org/). JSON Schema is RECOMMENDED
+  for internal message schemas because it allows messages and events to evolve
+  independently from the request-response API lifecycle. Interface description
+  languages (IDLs) like [AsyncAPI](https://www.asyncapi.com/en) and
   [OpenAPI](https://www.openapis.org/) tend to be more appropriate for public
-  APIs and webhooks.
+  APIs and webhooks. OpenAPI v3.1 introduced support for describing webhook
+  event schemas, but for internal message-driven systems where messages
+  evolve on their own lifecycle, a standalone JSON Schema is the more
+  flexible choice.
 
 ## References
 
