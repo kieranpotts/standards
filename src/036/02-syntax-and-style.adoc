@@ -1,1 +1,297 @@
 = Syntax and style
+
+Low-level code style concerns SHOULD be enforced through linting tools such as
+ESLint.
+
+== Naming conventions
+
+=== Classes
+
+Use `UpperCamelCase` for class names.
+
+Protocols that describe _what_ something SHOULD read as nouns, e.g.
+`Collection`. Protocols that describe a _capability_ SHOULD be named using
+suffixes like "able", "ible" or "ing", e.g. `Equitable`, `ProgressReporting`.
+
+=== Functions and methods
+
+Use `lowerCamelCase` for functions and methods.
+
+Name functions and methods according to their side effects. Methods without side
+effects SHOULD read as noun phrases: `obj.distance({ from: x, to: y })`. Those
+with side effects SHOULD read as imperative verb phrases: `print()`, `sort()`,
+`append()`.
+
+Factory methods SHOULD be prefixed with the verb "make": `makeModel()`,
+`makeIterator()`.
+
+Mutating and non-mutating methods SHOULD be distinguishable from their naming.
+When the operation is naturally described by a verb, use the verb's imperative
+for the mutating method (`sort()`, `append()`) and apply the "ed" or "ing"
+suffix to name its non-mutating equivalent that returns a new, modified instance
+(`sorted()`, `appending()`).
+
+When the operation is naturally described by a noun, use the noun for the
+non-mutating method (`union()`, `successor()`) and apply the "clone" prefix to
+its mutating counterpart (`cloneUnion()`, `cloneSuccessor()`).
+
+In keeping with the principles of functional programming, prefer to implement
+non-mutating methods and functions wherever practical. Most objects SHOULD be
+immutable after construction. The exception to this rule is objects that are
+built over time, such as the object that represents the HTTP message to be
+emitted by a web application.
+
+Uses of boolean methods and properties SHOULD read as assertions about the
+receiver when the use is non-mutating (`isEmpty()`, `intersects()`).
+
+=== Variables and properties
+
+Use `lower_case` for properties and variables.
+
+Name variables, parameters and their associated types according to their roles,
+rather than to their type constraints.
+
+Choose parameter names to serve as documentation. Even though parameter names
+do not appear at a method's point of use, they play an important explanatory
+role.
+
+Take advantage of default properties when it simplifies common uses. Any
+parameter with a single commonly-used value is a candidate for a default.
+
+Prefer to locate parameters with defaults towards the end of the parameter list.
+Parameters without defaults are usually more essential to the semantics of a
+method, and provide a stable initial pattern of use where methods are invoked.
+
+== Comments
+
+Comments are annotations in source code that are ignored by parsers but let
+developers leave notes for each other. Start by making programs as
+self-documenting as possible – meaningful names, clear structure – but
+well-written code documents only _what_ a program does, not _why_ the developer
+chose a given approach. Comments transfer that remaining knowledge to other
+developers.
+
+=== Syntax
+
+There are two ways to write comments in JavaScript:
+
+[source,javascript]
+----
+/* A multiline comment is written like this. */
+
+// A one-line or end-of-line comment
+----
+
+The `//` inline syntax MUST be used for all unstructured inline annotations. It
+is fine to use this notation for longer, multi-line comments, but all comments
+SHOULD be on their own lines; authors SHOULD NOT write comments on the end of
+lines.
+
+[source,javascript]
+----
+// Enable or disable spelling errors on compound words like
+// 'errormessage' and 'builddir'.
+----
+
+The multi-line comment syntax is used for machine-readable API documentation
+(docblocks), covered below.
+
+=== Language
+
+All inline source code comments MUST be written in American English, using
+proper sentences and grammar throughout.
+
+=== Inline API documentation
+
+The block-level comment syntax is extended to demarcate comments that are both
+machine-parsable and human-readable, for the purpose of generating API
+documentation. The convention is to add an extra asterisk immediately after the
+opening `/*`:
+
+[source,javascript]
+----
+/** A single-line API comment. */
+----
+
+[source,javascript]
+----
+/**
+ * A multi-line API comment block.
+ */
+----
+
+These comment blocks – called *docblocks* – document the code that immediately
+follows them:
+
+[source,javascript]
+----
+/**
+ * Error type representing failed assertions.
+ *
+ * @example
+ * throw new AssertionError('Expected a number, received a string')
+ */
+class AssertionError extends ValidationError {}
+----
+
+Writing API documentation inline in source code keeps it more likely to be
+maintained alongside the code, and provides an at-a-glance reference in the
+editor. Using a machine-readable format brings further benefits: tools can
+generate API documentation automatically, and IDEs can pipe the schema into
+IntelliSense for code completion and static analysis.
+
+In the JavaScript ecosystem, variations on the syntax supported by
+https://jsdoc.app/[JSDoc] are widely used to embed structured API information,
+including type information, into source code comments. These tools have now
+been largely supplanted by TypeScript: the TypeScript compiler supports an
+https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html[extended subset of JSDoc], and the emerging https://tsdoc.org/[TSDoc]
+specification further extends TypeScript-flavoured JSDoc for a wider range of
+tools.
+
+Using TypeScript-compatible JSDoc/TSDoc notation is an easy and effective way to
+maintain API documentation for JavaScript modules, and to bring much of
+TypeScript's type system to plain `.js` files – including real-time type
+checking in editors like VS Code. For library development, the TypeScript
+compiler can generate `*.d.ts` type declaration files from comments embedded in
+plain `.js` files, so typed versions of JavaScript libraries can be distributed.
+
+It is our policy to fully cover the source code of all our JavaScript libraries
+and applications with inline structured API information, using a minimal subset
+of JSDoc/TSDoc that is easy to write and maintain and that improves the
+developer experience by conveying information not readily understood from the
+source code alone.
+
+Internally, VS Code's IntelliSense uses the TypeScript compiler (`tsc`) – for
+both TypeScript and plain JavaScript files – to infer type information and to
+generate API documentation from code. To build a complete profile of a
+program's internal API, `tsc` parses information encoded in JSDoc-compatible
+comments.
+
+=== Docblock style
+
+Authors MUST use the multi-line docblock notation, not the single-line notation,
+so that docblocks are easily distinguished from normal comments:
+
+[source,javascript]
+----
+/**
+ * @type {string}
+ */
+let s
+----
+
+Except for file-level docblocks (which start on the very first line of a file),
+every docblock MUST have a single empty line before it, and the immediate next
+line after a docblock MUST be the start of the code it documents. These rules
+differ from `//` comments, which MAY be padded with empty lines above and below.
+
+Descriptions are OPTIONAL. Where included, they MUST be written on the first
+line of the docblock, with one empty line between the description and the
+docblock's tags:
+
+[source,javascript]
+----
+/**
+ * A description of what the return value of this promise represents.
+ *
+ * @type {Promise<string>}
+ */
+const promisedString
+----
+
+Descriptions MAY span multiple lines and paragraphs but SHOULD be kept concise
+and focused on API information. Proper sentences in American English are
+REQUIRED.
+
+Markdown MAY be used in docblock descriptions and in end-of-line descriptions
+for `@param`, `@returns`, and `@throws` tags: backticks for inline code, single
+asterisks for bold, underlines for italics, and `[Link text](http://...)`
+hyperlink syntax. Authors MUST NOT use inline HTML or other rich-text markup.
+
+[source,javascript]
+----
+/**
+ * Returns `true` for anything that can be coerced into a valid number.
+ *
+ * **Important:** This note will be rendered in VS Code's IntelliSense tooltips.
+ *
+ * @param {*} test Test variable.
+ * @returns {boolean} Returns `true` if numerical, else `false`.
+ */
+function isNumeric (test) {
+  // ...
+}
+----
+
+While code and standard comments SHOULD be less than 80 characters long,
+docblocks MAY be longer – up to 120 characters or more – to avoid hard-wrapping
+long `@tag` lines. Where a tag needs a longer description, hard-wrapped lines
+are indented by two spaces:
+
+[source,javascript]
+----
+/**
+ * @param {string} author The author of the book, presumably some
+ *   person who writes well and does so for a living!
+ */
+----
+
+Authors MUST NOT align the types, names, and descriptions of a group of tags.
+Alignment makes line lengths longer and forces every line to change when any
+one is updated, making source-control merges noisier.
+
+[source,javascript]
+----
+/**
+ * @typedef {Object} SpecialType Creates a new type named 'SpecialType'.
+ * @prop {string} prop1 A string property of SpecialType.
+ * @prop {number} prop2 A number property of SpecialType.
+ * @prop {number} [prop3=42] An optional number property of SpecialType with default.
+ */
+----
+
+=== Tags
+
+Tags, prefixed with `@`, provide machine-readable information. We use a small,
+useful subset of the tags specified by JSDoc and TSDoc:
+
+`@alpha`, `@author`, `@beta`, `@callback`, `@copyright`, `@deprecated`,
+`@example`, `@experimental`, `@extends`, `@license`, `@link`, `@param`,
+`@prop`, `@see`, `@returns`, `@template`, `@this`, `@throws`, `@type`,
+`@typedef`.
+
+All tags are block-level except `@link`, which is inline.
+
+=== TypeScript interfaces
+
+To document TypeScript interfaces, JSDoc comments may be written in two places:
+preceding the interface definition, or preceding individual properties of an
+interface. Any combination is possible; both are parsed by the TypeScript type
+checker and piped into VS Code's IntelliSense.
+
+[source,typescript]
+----
+/**
+ * Represents an item in a customer's basket.
+ */
+export interface BasketItemInterface {
+  /** A unique identifier, expected to be in the UUID format. */
+  id: string
+
+  /** Stock-keeping unit, unique to each type of product. */
+  sku: string
+
+  /** The name of the product as printed in the UI and on receipts. */
+  name: string
+
+  /** The item's retail price. */
+  price: PriceType
+}
+----
+
+Interface-level docblocks are OPTIONAL but SHOULD be included for interfaces
+whose purpose is not clear from the interface identifier itself. Property-level
+docblocks are OPTIONAL but SHOULD be included for the subset of properties whose
+purpose is not clear from their identifiers alone. In both cases, if it is
+necessary to reverse-engineer usage in code to understand what the interface or
+property is for, authors SHOULD add a comment so this work becomes unnecessary.

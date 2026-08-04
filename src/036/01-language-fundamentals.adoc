@@ -1,1 +1,70 @@
 = Language fundamentals
+
+== Type system
+
+JavaScript is generally used as a duck typed language. We do not have to tell a
+function what type of parameters to expect, so we often pass by type – this is
+duck typing. If the object looks like a duck and quacks like a duck, it must be
+a duck. But it might not actually be a duck; the passed object might just have
+an interface that is compatible with the `Duck` type.
+
+JavaScript is weakly typed. It does not support strong typing natively, but we
+can improve the language by extending it with static type analysis at compile
+time. We use TypeScript for this purpose; see <<TypeScript>>.
+
+There are sometimes advantages to duck typing, and sometimes it may even be
+preferable to strong typing. The explicit nature of strong typing is that it
+can make function signatures too rigid. Dynamic methods that accept and return
+different types based on context are impossible to implement with strong
+typing. We should use the most appropriate type system depending on the context
+in which the API is expected to be used.
+
+The main advantage of strong typing is that the compiler can often provide
+build-time error checking, before the program is even run.
+
+== Primitive values
+
+ECMAScript has two numeric representations: the IEEE 754 floating-point
+`Number` type, and `BigInt` for arbitrary-precision integers.
+
+=== Numbers
+
+JavaScript's `number` type uses IEEE 754 binary floating point, which cannot
+exactly represent most decimal fractions. The classic illustration:
+
+[source,javascript]
+----
+0.1 + 0.2 !== 0.3 // true
+----
+
+Binary floating point is ill-suited to monetary and other business
+calculations. To avoid these errors, decimal values SHOULD be scaled to whole
+numbers – for example, monetary values represented as `2550` cents instead of
+`25.50` dollars. If precision to two decimal places is needed, scale by 100; to
+four, scale by 10,000. Integer addition, subtraction, and multiplication then
+produce exact results, up to the limits of the `number` type.
+
+[source,javascript]
+----
+1.0 + 2.0 === 3.0 // true
+0.1 + 0.2 === 0.3 // false
+----
+
+Where scaling is impractical, custom value types or dedicated libraries – such
+as https://github.com/MikeMcl/decimal.js[Decimal.js] or
+https://github.com/MikeMcl/bignumber.js/[bignumber.js] – provide exact decimal
+arithmetic:
+
+[source,javascript]
+----
+const n1 = new Decimal('1234')
+const n2 = new Decimal('8765')
+n1.add(n2) // new Decimal('9999')
+----
+
+=== BigInt
+
+`BigInt` is the appropriate type for integers that exceed
+`Number.MAX_SAFE_INTEGER`. It cannot be perfectly polyfilled, so `BigInt` MUST
+be used only in programs that target runtime environments that support it
+natively.

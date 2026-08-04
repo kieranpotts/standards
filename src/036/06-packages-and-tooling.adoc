@@ -1,1 +1,831 @@
 = Packages and tooling
+
+Distributable packages are built from source code kept in a source control
+repository. Build scripts produce artifacts to a directory called `dist`, and
+these artifacts are subsequently deployed via a centralized package registry.
+
+== Filesystem structure of packages
+
+Every package MUST have:
+
+* A package manifest (`package.json`).
+
+* A README (written in Markdown).
+
+* A plain text LICENSE file.
+
+* Either a `lib` directory (via which the package's programmatic API is
+  exported) or a `bin` directory (via which the package's CLI is made
+  available), or both.
+
+A package MAY include:
+
+* A CHANGELOG file (written in Markdown).
+
+----
+.
+│
+├─ bin/*
+├─ lib/**/*.js
+├─ CHANGELOG.md
+├─ LICENSE.txt
+├─ README.md
+└─ package.json
+----
+
+== Package manifests
+
+The `package.json` file is a _de facto_ manifest standard for JavaScript
+packages. It is not part of the ECMAScript specification; rather, it evolved by
+convention, originally for the NPM package manager and subsequently extended by
+Node and other tools.
+
+In general, `package.json` files serve two purposes: they provide metadata for
+shareable packages, and they define development dependencies, run-scripts, and
+other configuration for the development, testing, building, and distribution of
+those packages. These concerns SHOULD be separated, with a _package manifest_
+distinct from the _repository manifest_ (see <<Repository manifests>>). This keeps
+manifests simpler and means production `dependencies` never co-exist with
+`devDependencies` in the same `node_modules` directory, which makes production
+dependency trees easier to audit.
+
+This is the template for package manifests:
+
+[source,json]
+----
+{
+  "name": "@[namespace]/[pkgname]",
+  "version": "1.0.0-alpha.0",
+  "description": "A short description.",
+  "keywords": [
+    "key",
+    "words"
+  ],
+  "author": "Your Org <dev@example.com>",
+  "contributors": [
+    "First LastName <dev@example.com>"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/[organisation]/[repo]#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/[organisation]/[repo].git"
+  },
+  "bugs": {
+    "url": "https://github.com/[organisation]/[repo]/issues"
+  },
+  "files": [
+    "CHANGELOG.md",
+    "LICENSE.md",
+    "README.md",
+    "lib/**/*"
+  ],
+  "engines": {
+    "node": "^14.15.0 || ^16.13.0 || ^18.12.0"
+  },
+  "type": "module",
+  "bin": {
+    "cmdName": "./bin/cmd-name"
+  },
+  "main": "./lib/cjs/index.js",
+  "module": "./lib/esm/index.js",
+  "exports": {
+    ".": {
+      "require": "./lib/cjs/index.js",
+      "import": "./lib/esm/index.js"
+    }
+  },
+  "dependencies": {},
+  "peerDependencies": {}
+}
+----
+
+Most of these fields provide metadata for package management tools and
+registries, based on NPM's specification. Node extends this with `type`,
+`main`, `exports`, and `imports`, which determine how packages are imported and
+interpreted at runtime.
+
+=== `name` and `version`
+
+The `name` field specifies a unique identifier for a package. It is REQUIRED for
+publicly-distributed packages, and MUST be unique among all packages in the
+registry via which it is distributed. Package names can be global (e.g.
+`lodash-es`) or scoped (`@[scope]/[name]`, e.g. `@babel/core`). It is strongly
+RECOMMENDED that all new packages be distributed with scoped names, since only
+the scope MUST be unique in the registry.
+
+A `version` is REQUIRED for packages distributed via public registries. See
+<<Dependency management>> for guidance on version constraints.
+
+=== `description`, `keywords`, `author`, and `contributors`
+
+These fields are OPTIONAL and are used only to make packages easier to find in
+registries.
+
+=== `license`, `homepage`, `repository`, and `bugs`
+
+These fields provide metadata linking to the package's license, homepage, source
+repository, and issue tracker.
+
+=== `files`
+
+The `files` field whitelists the files included in the published package
+archive. It SHOULD be used to keep published artifacts small and to avoid leaking
+development-only files.
+
+=== `engines`
+
+The `engines` field specifies with which versions of Node a package is
+compatible. For publicly-distributed packages, it is our policy to support only
+the active and maintenance LTS releases of Node. At any time there are usually
+three supported versions; only when a "current" release becomes the active LTS
+release do we bump support. See <<Runtimes>> for further guidance.
+
+=== `type`
+
+The `type` field is used by Node as an "implicit toggle" for its module
+interpreter. By default, Node interprets all `.js` files as CommonJS scripts. If
+a package is mostly composed of ES modules, this field SHOULD be set to
+`"module"` so all `.js` files are treated as ES modules. The possible values are
+`"commonjs"` (the default) and `"module"`.
+
+All package manifests MUST include the `type` field, even when the value is
+`"commonjs"`. This future-proofs the package and makes it easier for tools to
+determine how `.js` files should be interpreted. See <<Modules>> for background
+on the `type` field.
+
+=== `bin`
+
+The `bin` field maps command names to executable scripts. See <<Package command
+line interfaces>>.
+
+=== `main`, `module`, and `exports`
+
+These fields configure the entry points to a package. See <<Package exports>>.
+
+=== `dependencies` and `peerDependencies`
+
+Only production `dependencies` and `peerDependencies` SHOULD be defined in
+package manifests. `devDependencies` SHOULD be used only in repository manifests.
+
+=== `scripts`
+
+The `scripts` field configures run-scripts that automate phases of the
+development, testing, and release lifecycle. It SHOULD NOT be included in
+package manifests, only in repository manifests (see <<Repository manifests>>).
+
+== Package exports
+
+There are three fields for defining entry points to a package: `main`,
+`module`, and `exports`. The information in these fields is used by Node and by
+bundlers such as Webpack and Rollup to resolve "bare specifier" `import`,
+`import()`, and `require()` expressions. These fields affect the resolution of
+bare specifier imports only.
+
+[source,javascript]
+----
+// Bare specifier
+import { pkgName } from '@pkg/name'
+
+// Relative specifier
+import { config } from '../config.js'
+----
+
+=== `main`
+
+The `main` field is Node's legacy methodology for defining a package's entry
+point. It can define only a single entry point.
+
+[source,json]
+----
+{
+  "main": "./lib/index.js"
+}
+----
+
+If neither `main` nor `exports` is defined, Node will attempt to resolve the
+package to `index.js` or `index.node`.
+
+=== `module`
+
+For years after ESM was standardized but before Node supported it natively,
+bundlers such as Webpack and Rollup drove a convention to use a custom `module`
+property to point to the ESM entry point, with `main` pointing to the CommonJS
+entry point:
+
+[source,json]
+----
+{
+  "main": "./lib/cjs/index.js",
+  "module": "./lib/esm/index.js"
+}
+----
+
+The `module` convention has largely been superseded by `exports`, but
+publicly-distributed libraries MAY maintain this field for the benefit of
+consuming applications that run on deprecated Node lines or use older
+transpilation toolchains.
+
+=== `exports`
+
+Since v12.20 and v14.13, Node has supported an `exports` field (an "export map")
+with far more extensive capabilities than `main`. Where `exports` is present, it
+overrides `main` and prevents consumers from importing entry points that are not
+explicitly defined. The `exports` field allows packages to have multiple entry
+points and conditional exports.
+
+The simplest form defines a single entry point:
+
+[source,json]
+----
+{
+  "exports": "./lib/index.js"
+}
+----
+
+More commonly, `exports` is an object whose default entry point is keyed by `.`:
+
+[source,json]
+----
+{
+  "exports": {
+    ".": "./lib/index.js",
+    "./feature1": "./lib/feature1/index.js",
+    "./feature2": "./lib/feature2/index.js"
+  }
+}
+----
+
+Patterns are possible too:
+
+[source,json]
+----
+{
+  "exports": {
+    "./feature/*": "./lib/feature/*.js"
+  }
+}
+----
+
+Consumers append the subpath to the package's bare specifier:
+
+[source,javascript]
+----
+import feature1 from '@namespace/package/feature1'
+----
+
+Because `exports` encapsulates the package, introducing it can be a breaking
+change for consumers who relied on implicit entry points. To make the
+introduction non-breaking, all old implicit entry points MUST be defined as
+explicit exports:
+
+[source,json]
+----
+{
+  "exports": {
+    ".": "./lib/index.js",
+    "./feature": "./feature/index.js",
+    "./feature/*": "./feature/*.js",
+    "./package.json": "./package.json"
+  }
+}
+----
+
+Encapsulation can be disabled entirely:
+
+[source,json]
+----
+{
+  "main": "./lib/main.js",
+  "exports": {
+    ".": "./lib/main.js",
+    "./*": "./*"
+  }
+}
+----
+
+This is NOT RECOMMENDED: it increases the surface area for misuse, loses
+encapsulation, and makes testing harder. It MAY serve as a pragmatic interim
+step when migrating from `main` to `exports` and consumption patterns are
+uncertain.
+
+=== Conditional exports
+
+Conditional exports define different entry points for different target
+environments. This is most useful for hybrid packages that export modules in both
+ESM and CJS formats, letting Node load the appropriate version automatically:
+
+[source,javascript]
+----
+// CJS
+require('@namespace/package')
+
+// ESM
+import '@namespace/package'
+----
+
+A minimal hybrid package:
+
+[source,json]
+----
+{
+  "exports": {
+    "require": "./index.js",
+    "import": "./index.js"
+  }
+}
+----
+
+Conditional exports can be combined with multiple entry points:
+
+[source,json]
+----
+{
+  "exports": {
+    ".": {
+      "require": "./lib/cjs/index.js",
+      "import": "./lib/esm/index.js"
+    },
+    "./feature": {
+      "require": "./lib/cjs/feature/index.js",
+      "import": "./lib/esm/feature/index.js"
+    }
+  }
+}
+----
+
+Hybrid packages MAY use the conventional `.js` extension for both CJS and ESM
+files; the `require` and `import` keys of `exports` are enough to select the
+correct interpreter. When developing hybrid packages, all exported modules MUST
+be stateless: because ESM and CJS run through different interpreters, an
+application could import two separate instances of the same module, and a
+stateful module could then behave unexpectedly.
+
+=== Putting it together
+
+A combination of `main`, `module`, and `exports` supports a very wide range of
+runtimes:
+
+[source,json]
+----
+{
+  "main": "./lib/cjs/index.js",
+  "module": "./lib/esm/index.js",
+  "exports": {
+    ".": {
+      "require": "./lib/cjs/index.js",
+      "import": "./lib/esm/index.js"
+    }
+  }
+}
+----
+
+For publicly-distributed packages that may run in legacy runtimes, a
+configuration similar to this – with `exports` and `main`, and possibly
+`module` – is RECOMMENDED. But there is a cost to maintaining many ways to
+consume a package: if support for old runtimes or bundlers is not needed, the
+`main` and `module` fields SHOULD be dropped, and the `require` condition on
+`exports` MAY be dropped too.
+
+== Package imports
+
+Node's `imports` field defines "subpath imports" for a package. Each top-level
+property is prefixed with `#` to disambiguate subpath imports from package
+specifiers:
+
+[source,json]
+----
+{
+  "imports": {
+    "#dep": {
+      "node": "dep-node-native",
+      "default": "./dep-polyfill.js"
+    }
+  },
+  "dependencies": {
+    "dep-node-native": "^1.0.0"
+  }
+}
+----
+
+Within the package itself:
+
+[source,javascript]
+----
+import '#dep'
+----
+
+This resolves to `dep-node-native`, falling back to `./dep-polyfill.js` relative
+to the `package.json` file if that is unavailable.
+
+== Package command line interfaces
+
+If a package is to be used via the command line, place the relevant scripts in a
+`bin` directory and map command names to them via the `bin` field:
+
+[source,json]
+----
+{
+  "bin": {
+    "cmdName": "./bin/cmd-name"
+  }
+}
+----
+
+The `bin` property maps commands to scripts; `npm` symlinks each script, placing
+the symlink in `./node_modules/.bin/` for local installs. A package may ship
+multiple command line tools. Omit the `.js` file extension from files in `bin`.
+
+Within scripts, use `process.argv` to fetch arguments entered in the terminal
+after `node <commandname>`:
+
+[source,javascript]
+----
+#!/usr/bin/env node
+
+'use strict'
+
+const path = require('path')
+const fs = require('fs')
+
+const args = [null, null]
+if (process.argv.length > 2) {
+  args[0] = Number(process.argv[2])
+  args[1] = Number(process.argv[3])
+}
+
+const lib = path.join(path.dirname(fs.realpathSync(__filename)), '../lib')
+const out = require(lib + '/modulename').add(args[0], args[1])
+console.log(out)
+----
+
+== Distributing packages
+
+Before publishing updates to a package, you MUST test it extensively – not just
+by running the test scripts, but by fully testing the end-to-end journey of
+installing and consuming the package. You SHOULD test locally before uploading
+to the NPM registry.
+
+Test the package via its command line interface, then verify the package archive
+with `npm pack`, which generates a `<packagename>-<version>.tgz` archive:
+
+[source,bash]
+----
+$ npm pack
+----
+
+From another empty directory, install the archive locally and interact with it:
+
+[source,bash]
+----
+$ npm install ./path/to/packagename-1.0.0.tgz
+$ ./node_modules/.bin/<commandname> arg1 arg2
+----
+
+To publish to the NPM registry, you must be an NPM user. Register once via
+`npm adduser`, then from the directory containing the package's `package.json`:
+
+[source,bash]
+----
+$ npm publish
+----
+
+Run this whenever you want to publish updates. To remove a package from the
+registry later:
+
+[source,bash]
+----
+$ npm unpublish --force <packagename>[@<version>]
+----
+
+The `npm` program maintains a local cache of downloaded packages. To ensure you
+install the very latest build, clean the cache first:
+
+[source,bash]
+----
+$ npm cache clean
+----
+
+Generally, local installs are preferred to global installs; use global installs
+cautiously and only for build tools used across multiple projects.
+
+== Vendor packages
+
+All dependencies – especially production dependencies – MUST be carefully
+audited before being used. There are many examples of updates to vendor packages
+inadvertently breaking production applications, whether by accident or through
+https://arstechnica.com/information-technology/2022/01/foss-developer-who-nuked-his-apps-embraced-qanon-theory-involving-aaron-swartz/[malicious intent].
+
+Good test coverage is REQUIRED to ensure that upgrades of vendor packages do
+not introduce unexpected regressions, and security auditing is REQUIRED every
+time a new vendor component is installed or an existing component is updated.
+
+== Repositories
+
+This section provides general guidelines for the organization of source control
+repositories for ECMAScript applications and libraries, including the trade-offs
+of multi-repos versus mono-repos and filesystem conventions (`bin`, `lib`, `src`,
+etc).
+
+=== Repository filesystem structure
+
+The filesystem structure for repositories varies a little depending on whether
+the encapsulated packages are applications or libraries.
+
+==== Libraries
+
+This is the filesystem structure for the source control repositories of
+ECMAScript-based libraries:
+
+----
+.
+│
+├─ (dist)
+│  └─ **/*
+│
+├─ docs
+│  └─ en/**/*.md
+│
+├─ lib
+│  └─ **/*.js
+│
+├─ (node_modules) - excluded from source control
+│  └─ **/*
+│
+├─ run
+│  └─ **/*.js
+│
+├─ src
+│  └─ @[namespace]
+│     └─ [pkgname]
+│        ├─ bin
+│        │  └─ **/*
+│        │
+│        ├─ lib
+│        │  └─ **/*.js
+│        │
+│        ├─ specs
+│        │  └─ **/*
+│        │
+│        ├─ test
+│        │  └─ **/*
+│        │
+│        ├─ CHANGELOG.md
+│        ├─ LICENSE.txt
+│        ├─ package.json
+│        └─ README.md
+│
+├─ srv
+│  └─ **/*
+│
+├─ .editorconfig
+├─ .gitattributes
+├─ .gitignore
+├─ LICENSE.txt
+├─ README.md
+└─ package.json
+----
+
+The top-level directories have the following uses:
+
+* *`dist`.* Temporary directory capturing compiled artifacts; excluded from
+  source control.
+
+* *`docs`.* Documentation for developers and maintainers of the project.
+
+* *`lib`.* Custom libraries developed for the project. At the root of a
+  repository, `lib` encapsulates custom scripts for the automation of
+  development, compilation, testing, release, and other maintenance activities,
+  commonly executed by run-scripts in the `run` directory.
+
+* *`run`.* Run-scripts referenced from the `scripts` section of the
+  repository-level `package.json` manifest.
+
+* *`src`.* Source code. The sub-directory tree SHOULD be organized to mirror
+  how the distributed packages will be installed in `node_modules`.
+
+* *`srv`.* Source files for the project's public web site, if it has one.
+
+The same directory structure is used for both multi-repos and mono-repos, so a
+repository can start with a single package and extend into a mono-repo without
+major refactoring:
+
+----
+// Multi-repo
+.
+└─ src
+   └─ @[namespace]
+      └─ [pkg1]
+
+// Mono-repo
+.
+└─ src
+   └─ @[namespace]
+      ├─ [pkg1]
+      ├─ [pkg2]
+      └─ [pkg3]
+----
+
+The source code for each package's libraries (the modules exported from the
+package) MUST be encapsulated in a sub-directory called `lib`. If the package
+exposes a CLI as well as an API, the binaries MUST be encapsulated in a
+sub-directory called `bin`. Automated test scripts MAY be included in an
+adjacent `test` directory, and behavioral specifications in a `specs` directory;
+these SHOULD be excluded from distributable artifacts.
+
+==== Applications
+
+The filesystem structure of the source control repositories for ECMAScript
+applications is similar. Applications additionally include source for the
+application's deployment artifacts and runtime configuration.
+
+=== Repository manifests
+
+Each package SHOULD have its own `package.json` file, separate from the
+root-level manifest of the package's originating source control repository. A
+`package.json` file SHOULD be either a repository manifest or a package
+manifest, never both. This keeps manifests focused and means production
+`dependencies` do not co-exist with `devDependencies` in the same `node_modules`
+directory, making production dependency trees easier to audit.
+
+This is the template for repository manifests:
+
+[source,json]
+----
+{
+  "private": true,
+  "name": "[project-name]",
+  "workspaces": [
+    "pkg/@[namespace]/*"
+  ],
+  "engines": {
+    "node": "^18.12.0",
+    "npm": "^9.8.0"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@[namespace]/[package]": "^[major].[minor].[patch]",
+    "[package]": "^[major].[minor].[patch]"
+  },
+  "scripts": {
+    "clean": "node ./run/clean.js",
+    "build": "node ./run/build.js",
+    "lint": "node ./run/lint.js",
+    "test": "node ./run/test.js"
+  }
+}
+----
+
+==== `private`
+
+For repository manifests, the `name` and `version` fields SHOULD be omitted and
+`private` MUST be set to `true`. This prevents the repository from being
+accidentally published to a package registry – `npm publish` will fail if the
+manifest declares the package private. Most other metadata fields (`description`,
+`keywords`, `author`, `license`, `homepage`, etc.) can also be omitted.
+
+==== `name`
+
+The `name` field has no significance for a private manifest but is often read by
+development tools (e.g. prompt customizers render it in the terminal prompt). In
+a repository manifest, its value SHOULD be the name of the project.
+
+==== `workspaces`
+
+The `workspaces` key is picked up by package managers such as Yarn and npm and
+helps manage mono-repos – single repositories that store the source for multiple
+packages. See <<Workspaces>>.
+
+==== `engines`
+
+In a repository manifest, the `engines` field specifies which versions of Node
+and `npm`/`yarn` MUST be used in development and test environments. This SHOULD
+be more constrained than in package manifests. A package manifest's `engines`
+describes the target production system; a repository manifest's `engines`
+describes the baseline requirements for development environments.
+
+[source,json]
+----
+{
+  "engines": {
+    "node": "^18.12.0",
+    "npm": "^9.8.0"
+  }
+}
+----
+
+==== `type`
+
+Since most source code is compliant with the ES module standard, it is
+RECOMMENDED to set `"type": "module"` at the repository level to toggle Node's
+default interpreter. See <<Modules>> for background.
+
+==== `devDependencies`
+
+The `devDependencies` field SHOULD be managed by the package manager rather
+than edited manually.
+
+==== `scripts`
+
+The `scripts` field configures run-scripts that automate phases of the
+development, testing, and release lifecycle. It SHOULD NOT be included in
+package manifests but MAY be included in the top-level manifest of the original
+code repository.
+
+The `scripts` object has a handful of special keys whose scripts are run
+automatically by `npm` and `yarn` in response to events (e.g. `prepare` and
+`prepublish` run on publish). More commonly, the `scripts` object references
+arbitrary scripts that automate repetitive processes: transpilation, linting,
+testing, and so on.
+
+[source,json]
+----
+{
+  "devDependencies": {
+    "eslint": "^4.19.0",
+    "jest-cli": "^22.4.2",
+    "webpack": "^5.38.1",
+    "webpack-cli": "^4.7.2"
+  },
+  "scripts": {
+    "build": "webpack",
+    "lint": "eslint .",
+    "test": "jest"
+  }
+}
+----
+
+Run a script with the `run` command:
+
+[source,bash]
+----
+$ npm run build
+$ yarn run build
+----
+
+Because CLI arguments get messy and `package.json` cannot be commented, each
+run-script SHOULD call a single JavaScript file, which then interacts with Node
+and the installed development dependencies via their programmatic interfaces:
+
+[source,json]
+----
+{
+  "scripts": {
+    "clean": "node ./run/clean.js",
+    "build": "node ./run/build.js",
+    "lint:style": "node ./run/lint/style.js",
+    "test": "node ./run/test.js"
+  }
+}
+----
+
+[source,javascript]
+----
+// ./run/clean.js
+import fs from 'fs-extra'
+import path from 'path'
+
+const distdir = path.resolve(__dirname, './dist')
+fs.emptyDir(distdir)
+----
+
+This approach is sometimes overkill or impossible – some tools (e.g.
+https://flow.org/en/[Flow]) have no programmatic interface, and simple CLI
+utilities such as https://www.npmjs.com/package/rimraf[rimraf] do the job
+perfectly well:
+
+[source,json]
+----
+{
+  "scripts": {
+    "clean": "rimraf ./dist",
+    "lint:types": "flow"
+  }
+}
+----
+
+Keep repository manifests as light as possible. JSON files cannot be commented,
+so configuration is hard to understand without prior knowledge. Wherever
+possible, pass configuration to devtools via alternative means – for example,
+prefer a separate `.eslintrc.js` file over putting ESLint's config in the
+manifest.
+
+=== Workspaces
+
+Workspaces allow a single repository to manage multiple packages (a
+mono-repo). The `workspaces` field points the package manager at the package
+directories, which it then treats as local symlinks, so inter-package
+dependencies resolve to the local source rather than the registry. Lerna MAY be
+used as an OPTIONAL alternative for orchestrating builds and releases across
+workspace packages.
+
+== Package managers
+
+https://yarnpkg.com/[Yarn] is RECOMMENDED as the package manager for ECMAScript
+applications, libraries, and development toolchains that run in runtime
+environments like Node. Yarn and NPM – the built-in Node Package Manager – have
+broadly comparable feature parity, but Yarn is generally easier to use.
+
+All contributors to an ECMAScript project SHOULD use the same package manager.
+Yarn and NPM resolve dependencies differently and can produce different
+dependency trees within the `node_modules` directory.

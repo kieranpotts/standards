@@ -28,3 +28,127 @@ dependency updates.
 
 Dependencies MAY be updated as part of other development work, but it is
 RECOMMENDED to have dedicated issues assigned to these tasks.
+
+== Third-party packages
+
+We SHOULD use vendor libraries to solve specific problems in our applications.
+We SHOULD NOT reinvent the wheel, solving problems that have already been
+solved by others.
+
+At the same time, we SHOULD work to minimize the number of dependencies in our
+code. Too many dependencies can make it harder to maintain an application. Even
+when using package managers, we SHOULD be careful to choose libraries that are
+well-maintained and have a good reputation.
+
+== Dependency injection
+
+We SHOULD use dependency injection whenever practical.
+
+Dependency injection (DI) is a design pattern in which a component's
+dependencies are provided to it by an external service that the component is not
+aware of. A component that needs to use a particular dependency does not also
+need to know how to create that dependency, separating the concerns of
+construction and use. DI also makes components easier to test, because it is
+easier to replace dependencies with fakes.
+
+In JavaScript, an example of a class _without_ dependency injection:
+
+[source,javascript]
+----
+import { Database } from 'fictional-database';
+
+class MyClass {
+
+  constructor () {
+    this.database = new Database().connect();
+  }
+
+  myFunction () {
+    this.database.query();
+  }
+
+}
+----
+
+The version _with_ dependency injection:
+
+[source,javascript]
+----
+class MyClass {
+
+  constructor (database) {
+    this.database = database.connect();
+  }
+
+  myFunction () {
+    return this.database.query();
+  }
+
+}
+----
+
+The DI pattern is complemented by the factory pattern. A factory is a function
+that creates objects. In the example above, a `DatabaseFactory` class could be
+created to assume responsibility for creating the database objects that are
+injected into the components that depend on them, like `MyClass`.
+
+== Version number constraints
+
+JavaScript packages are versioned using a numbering system extended from the
+https://semver.org/[Semantic Versioning] convention. A semantic version number
+consists of three parts:
+
+* *Major version.* Incremented when breaking API changes are made.
+
+* *Minor version.* Incremented when functionality is added in a
+  backward-compatible manner.
+
+* *Patch version.* Incremented when backward-compatible fixes are made.
+
+NPM/Yarn's default behavior is to apply the `^` constraint on version numbers
+defined for installed dependencies. When you `(yarn|npm) upgrade` your
+dependencies, this constraint gets you the latest minor and patch versions, but
+never a higher major version. So `^2.3.4` automatically upgrades to all releases
+from `2.3.4` to `<3.0.0`.
+
+If you want only the latest patch releases, prefix the version numbers with the
+tilde `~` character instead. `~1.2.3` constrains releases from `1.2.3` to
+`<1.3.0`.
+
+Using either the `^` or `~` constraints increases demand for testing resources.
+End-to-end testing MUST be repeated whenever `(yarn|npm) upgrade` generates a new
+dependency lock file (`yarn.lock` or NPM's `package-lock.json`). Where we use `^`
+or `~`, we put trust in the authors of the minor and patch releases of our
+dependencies. For consumers of _our_ libraries to have the same trust in us, we
+MUST NOT blindly accept _any_ update (not even patches) to the production
+dependencies of our publicly-distributed packages.
+
+A bad dot release, deep within a dependency tree, can easily cause a chain
+reaction and introduce regressions in unexpected places. It is not enough to
+rely on automated unit tests to verify the correctness of dependency upgrades;
+extensive and manual end-to-end testing MUST be undertaken whenever dependencies
+are upgraded, even patch releases.
+
+For this reason, it is RECOMMENDED to use the patch constraint (`~1.2.3`) rather
+than the minor constraint (`^1.2.3`) for production dependencies. We SHOULD
+manually upgrade the minor (and major) versions of production dependencies only
+when we want to tap into new features of those dependencies. Minor version
+constraints (`^`) MAY be used for development dependencies (`devDependencies`),
+however.
+
+== Production dependencies and source control
+
+As a general rule, package managers are used for installation of development
+dependencies, but production dependencies in JavaScript applications SHOULD be
+committed to source control rather than fetched from remote registries via
+package managers.
+
+Wherever practical, all dependencies that application software needs to run
+SHOULD be committed to its source control repository. This guarantees that the
+application can be rebuilt at any point in its history to produce exactly the
+same build artifact. (This aim could also be achieved with package managers,
+for example via Yarn's https://yarnpkg.com/features/zero-installs[zero installs]
+feature.) A second reason to avoid package managers for production dependencies
+is that installing dependencies manually makes engineers think twice about what
+they add, leading to a fuller understanding of the application's dependency
+tree.

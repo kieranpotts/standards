@@ -1,1 +1,218 @@
 = TypeScript
+
+TypeScript MUST be used to enforce strong typing across all JavaScript code.
+
+Any standalone JavaScript packages that we create MUST export TypeScript type
+definition files (`*.d.ts`).
+
+== Embedding types in JSDoc notations
+
+Where types cannot be expressed directly in TypeScript, they MAY be embedded in
+JSDoc notations. Importing a type inline keeps the annotation colocated with the
+declaration:
+
+[source,javascript]
+----
+/** @typedef {import('glob').GlobOptions} GlobOptions */
+/** @type {GlobOptions} */
+const glob_options = {
+  // …
+}
+----
+
+The `@typedef` line can be omitted when the imported type is used only once:
+
+[source,javascript]
+----
+/** @type {import('glob').GlobOptions} */
+const glob_options = {
+  // …
+}
+----
+
+== Using a subset of TypeScript
+
+We use TypeScript only for applications that are of a scale and complexity to
+benefit from the upgrade. We use only a subset of the full TypeScript language,
+and as much as possible we stick with standard ECMAScript syntax and APIs over
+TypeScript-specific notation. For example, we use ECMAScript's `#` prefix for
+private fields rather than TypeScript's `private` modifier.
+
+Since we use TypeScript as a development tool, we regularly upgrade to the
+latest major and minor release to benefit from TypeScript's newest features. The
+minimum supported TypeScript version is 4.5.0.
+
+== Operators
+
+=== Non-null assertions
+
+Since TypeScript 2.0, an exclamation mark `!` may be placed immediately after
+_expressions_. This is the *non-null assertion operator* and it tells the type
+checker to assume that its operand is not `null` or `undefined`.
+
+[source,typescript]
+----
+function processEntity(e?: Entity) {
+  let s = e!.name // Assert that `e` is non-null.
+  // ...
+}
+----
+
+This operator was added because it is necessary in some domain contexts that the
+type checker does not understand, for example where components are instantiated
+automatically. Nevertheless, developers MUST use this operator sparingly.
+Consider also using the `any` and `unknown` types, which can achieve the same
+effect. Wherever you disable the type checker, it becomes your responsibility to
+type check at runtime instead. You SHOULD throw meaningful exceptions wherever
+your assumptions about the non-nullness of expressions turn out to be wrong.
+
+[NOTE]
+======
+Non-null assertions can also be disabled globally by switching off
+`strictNullChecks` in `tsconfig.json`.
+======
+
+=== Definite assignment assertions
+
+Since TypeScript 2.7, an exclamation mark `!` may be placed immediately after
+_declarations_ of variables and properties. This is the *definite assignment
+assertion operator* and it tells the type checker to assume that the variable is
+assigned, even if the type checker cannot automatically detect the assignment.
+
+[source,typescript]
+----
+let x: number
+x + x // Error: Variable 'x' is used before being assigned.
+----
+
+[source,typescript]
+----
+let x!: number
+x + x // No error.
+----
+
+The same effect can be achieved with the non-null assertion operator, but
+definite assignment assertions SHOULD be preferred where _all_ instances of a
+variable or property will be assigned:
+
+[source,typescript]
+----
+let x: number
+x! + x! // No error.
+----
+
+== Handling "possibly undefined" values
+
+A common error from the TypeScript compiler is:
+
+----
+TS2322: Type 'string | undefined' is not assignable to type 'string'.
+Type 'undefined' is not assignable to type 'string'.
+----
+
+This happens whenever a value is typed as a certain type _or_ `undefined`, but
+is passed to a component that expects the type and is not programmed to handle
+`undefined`.
+
+[source,typescript]
+----
+function validateToken(token: string) {
+  return token
+}
+
+const token = 'abc' as string | undefined
+
+validateToken(token)
+----
+
+The same error occurs when accessing optional properties of an interface:
+
+[source,typescript]
+----
+interface ProductInterface {
+  id: string
+  name?: string
+}
+
+class ProductModel implements ProductInterface {
+  public id = ''
+  public name
+
+  constructor(id: string, name?: string) {
+    this.id = id
+    this.name = name || undefined
+  }
+}
+
+const product = new ProductModel('1')
+product.name // Error
+product?.name // No error
+----
+
+There are several ways to keep the type checker happy; none is universally
+right or wrong, and the options suit different use cases.
+
+The easiest solution is a conditional statement wherever you use a
+possibly-undefined value. Prefer to be as specific as possible:
+
+[source,typescript]
+----
+if (typeof token === 'string') {
+  validateToken(token)
+}
+----
+
+Another option is the logical OR operator to pass a fallback value:
+
+[source,typescript]
+----
+validateToken(token || 'default-token')
+----
+
+The nullish coalescing operator `??` is stricter: it checks only for `undefined`
+and `null`, while `||` checks for all falsy values (`false`, `0`, `NaN`, empty
+strings):
+
+[source,typescript]
+----
+validateToken(token ?? 'default-token')
+----
+
+Alternatively, use the `as` keyword to assert that the value will be of the
+declared type at this point in the runtime:
+
+[source,typescript]
+----
+validateToken(token as string)
+----
+
+Or use the non-null assertion operator `!` to tell the type checker that the
+value will not be `undefined` or `null`. Again, prefer to declare the type you
+_do_ expect rather than the ones you _don't_:
+
+[source,typescript]
+----
+validateToken(token!)
+----
+
+== Declaration files
+
+TypeScript applications commonly consume untyped JavaScript libraries. To
+improve static type-checking coverage, the untyped APIs of JavaScript libraries
+can be defined in separate type declaration files (`.d.ts`), so that where a
+TypeScript application imports a JavaScript module the type checker can gain
+knowledge of its API and types.
+
+A public repository of thousands of type declaration files exists for popular
+open source JavaScript libraries. However, these are maintained separately from
+the libraries themselves, and research has shown that mismatches between type
+declarations and the libraries they describe are frequent – causing the type
+checker to reject correct programs and accept incorrect ones. For this reason,
+library authors SHOULD maintain TypeScript type declarations in parallel with
+development of the libraries themselves.
+
+Where libraries are written in TypeScript, declaration files are generated
+automatically by the compiler. Where libraries are written in JavaScript,
+authors can either write `.d.ts` files manually or embed JSDoc/TSDoc-compatible
+API documentation within inline source comments, from which the TypeScript
+compiler can generate `.d.ts` declarations. See <<Comments>>.

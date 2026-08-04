@@ -1,1 +1,46 @@
 = Asynchronous programming
+
+== Promise constructors
+
+Use of `Promise` constructors (i.e. `new Promise()`) is considered an
+anti-pattern.
+
+== Async iterators
+
+If you want to do something _after_ a collection of promises have run, use
+`Promise.all`.
+
+If you want to handle data as it becomes available when individual promises in a
+collection of promises are resolved, use *async iterators*.
+
+The `for-of` construct is the easiest pattern to use to iterate through the
+results of a collection of promises. You cannot use `forEach` for this purpose;
+it is impossible to `await` a `forEach`. You MUST use either:
+
+* A `for-of` loop, in which the `await` keyword will work as expected.
+
+* `Promise.all` with `Array.prototype.map`.
+
+[source,javascript]
+----
+// https://www.npmjs.com/package/glob
+const g = new Glob('**/foo', {})
+
+for await (const file of g) {
+  console.log('found a foo file:', file)
+}
+----
+
+However, this pattern reads in sequence. If you want to read the results in
+parallel — which can be more efficient — use a combination of `Promise.all` and
+`Array.prototype.map` mapping to an `async` callback.
+
+[source,javascript]
+----
+const g = new Glob('**/foo', {})
+
+await Promise.all(g.map(async (file) => {
+  const contents = await fs.readFile(file, 'utf8')
+  // …
+}))
+----
