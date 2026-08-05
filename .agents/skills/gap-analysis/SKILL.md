@@ -152,6 +152,42 @@ Prompt the user for clarification if either is ambiguous.
     issue (and its sub-issues) yield no discoverable resources at all, report
     that and ask the user for clarification rather than guessing.
 
+3b. Before ingesting a reference resource that is a YouTube URL
+    (`https://www.youtube.com/watch?v=<id>` or `https://youtu.be/<id>`),
+    note that the video itself cannot be fetched — YouTube watch pages are
+    JavaScript-rendered, and a plain web fetch returns only page chrome with
+    no video content or transcript. Do not report the URL as a simple fetch
+    failure; the creator's own summary of the video's argument is available
+    without any API key.
+
+    Run the helper script to extract the video's title, author, length,
+    keywords, and full description:
+
+    ```sh
+    python3 .agents/skills/gap-analysis/scripts/youtube_description.py <video-id-or-url>
+    ```
+
+    The argument may be a bare 11-character video id, a watch URL, or a
+    `youtu.be` short URL. The script reads YouTube's public oEmbed endpoint
+    (title, author) and the `ytInitialPlayerResponse` blob embedded in the raw
+    watch-page HTML (full description, keywords, length) and prints them as
+    plain text. It uses only the Python 3 standard library.
+
+    Treat the returned description as the creator's own summary of the
+    video's thesis and key claims, and compare the standard against that. Be
+    transparent that the comparison is against the description, not a full
+    transcript: note this in the `GAPS.md` Unresolved section (or alongside
+    any gap it produces), since claims present only in the spoken audio could
+    not be verified.
+
+    If the description links to a full transcript on another page (some
+    creators host one), fetch that transcript per the normal rules in step 3
+    and use it as the primary source, with the description as a fallback.
+
+    If the script fails (eg. the video is private, age-restricted, or
+    removed, or YouTube changes its page structure), report that against the
+    resource and continue with the rest.
+
 4.  Compare coverage, point by point. Break each reference resource down into
     its atomic claims, rules, or topics. For each one, check whether the target
     standard addresses it, and classify it as one of:
@@ -242,7 +278,22 @@ Prompt the user for clarification if either is ambiguous.
   will simply have nothing to compare against. This is not itself a
   finding and should not be reported.
 
+- **YouTube videos.** A YouTube URL is a reference resource whose primary
+  content (spoken audio) cannot be fetched. Use the helper script in step 3b
+  to extract the creator-supplied description and keywords, and compare
+  against that — it is the author's own summary of the video's argument, not
+  a full transcript. Say so plainly in `GAPS.md` so the user knows the depth
+  of the comparison. If a full transcript is linked from the description,
+  prefer that.
+
 ## Assets
 
 - [GAPS.md template](./assets/GAPS.md): The structure to follow when
   writing or updating the report in step 5.
+
+- [YouTube description extractor](./scripts/youtube_description.py): The
+  helper script used in step 3b. Reads a video's title, author, length,
+  keywords, and full description from YouTube's public oEmbed endpoint and the
+  `ytInitialPlayerResponse` blob embedded in the watch page, with no API
+  key. Run as `python3 .agents/skills/gap-analysis/scripts/youtube_description.py
+  <video-id-or-url>`.

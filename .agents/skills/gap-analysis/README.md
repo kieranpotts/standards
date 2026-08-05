@@ -18,6 +18,15 @@ the issue's description, comments, and sub-issues, and expands it into
 whatever URLs or files are actually linked from there — recursing into any
 sub-issue that is itself a `kieranpotts/*` issue.
 
+A YouTube URL is a special case: the video's spoken audio cannot be fetched, so
+the agent runs a small helper script to extract the video's title, author,
+keywords, and full creator-supplied description from YouTube's public oEmbed
+endpoint and the embedded page metadata — no API key required. The agent then
+compares against that description, and is explicit in `GAPS.md` that the
+comparison is against the creator's summary, not a full transcript. If the
+description links to a full transcript elsewhere, that is fetched and used
+instead.
+
 It breaks the reference material down into individual claims, rules, or
 topics. Then it check each one against the standard, classifying it as one of:
 
