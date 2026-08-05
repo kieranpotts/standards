@@ -28,6 +28,7 @@ the standard does not, never the reverse.
 - **Reference resources — REQUIRED.** A web URL, a local file, or a local
   directory. If a directory, recurse through every Markdown, AsciiDoc, and
   other plain-text files within it — treat each as a reference resource.
+  Treat `.URL` files as web resources — follow their `URL=` path.
 
 Prompt the user for clarification if either is ambiguous.
 
