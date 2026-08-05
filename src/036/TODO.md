@@ -21,7 +21,10 @@ and prose paragraphs), followed by a handful of factual errors and broken
 cross-references.
 
 **Status:** Tier 1 (Correctness) applied and verified — 13 items (9
-  contradictions + 4 factual). Tiers 2–4 open. No tiers committed yet.
+  contradictions + 4 factual). Tier 2 (Coherence) applied and verified — 3 items
+  resolved (private-members duplication confirmed already cross-referenced; Date
+  and Decorators left in place by user decision), 1 deferred to Tier 4 (recurring
+  short titles). Tiers 3–4 open. No tiers committed yet.
 
 ## Priority order
 
@@ -112,25 +115,43 @@ cross-references.
   restated content with a cross-reference to 07. The duplicate title is gone;
   07 keeps the full version-constraint rule.
 
-- [ ] The private-members rule is stated in two places: 04-objects-and-classes
+- [x] The private-members rule is stated in two places: 04-objects-and-classes
   .adoc:237-277 ("Authors MUST NOT use TypeScript's `private` modifier ...")
   and 08-typescript.adoc:83-84 ("we use ECMAScript's `#` prefix ... rather than
   TypeScript's `private` modifier"). Same rule, two locations. Keep it in one and
-  cross-reference.
+  cross-reference. Resolved: on re-reading, 08:83-85 already states the rule only
+  as a one-sentence *example* of the broader "prefer standard ECMAScript over
+  TS-specific notation" principle and immediately cross-references
+  `<<Private members>>`, which resolves uniquely to 04:237. The full normative
+  rule lives in 04; 08's mention is a cross-referenced example, not a duplicate
+  rule. No edit needed.
 
-- [ ] 11-runtimes.adoc:233 ("== Date") documents a language native object under
+- [x] 11-runtimes.adoc:233 ("== Date") documents a language native object under
   "Runtimes". Date is not a runtime concern; it belongs in 01 Language
-  fundamentals (or its own section). [User decision — minor.]
+  fundamentals (or its own section). [User decision — minor.] Resolved: left in
+  place. The section is not about the `Date` type but about runtime/engine
+  portability pitfalls of `Date` (`new Date('invalid')` returning an instance,
+  `toISOString()` always UTC, `toLocaleString()` output varying across engines
+  and ECMA-402 availability) — genuine runtime concerns. Moving it would also
+  collide with 01's existing structure. No edit.
 
-- [ ] 08-typescript.adoc:265 ("== Decorators") covers an ECMAScript feature that
+- [x] 08-typescript.adoc:265 ("== Decorators") covers an ECMAScript feature that
   is not TypeScript-specific. It may fit better under 03 Functions or 04 Objects
-  and classes. [User decision — minor.]
+  and classes. [User decision — minor.] Resolved: left in place. The section
+  explicitly frames decorators as TS-originated ("first reached most JavaScript
+  developers via TypeScript and Angular") and currently ECMAScript-bound
+  ("usable today via transpilation"); decorator syntax is still stage-3 and in
+  practice used almost exclusively via TS. Moving it would split the
+  member/class/field decorator material awkwardly. No edit.
 
 - [ ] Several short section titles recur across files (Operators, Loops, Arrays,
   Classes, Objects, Promises, Parameters, Callbacks, References, `engines`,
   `type`, `scripts`, Performance). None is currently an xref target, but each is
   a latent xref-ambiguity risk if one is ever referenced. Worth a pass to
-  disambiguate (explicit anchors) where titles repeat. [Low priority.]
+  disambiguate (explicit anchors) where titles repeat. [Low priority.] Deferred
+  to Tier 4 (Conventions) by user decision. Mechanical xref-uniqueness check
+  across TS-36 confirmed zero ambiguous targets today; handle reactively when a
+  real xref needs disambiguation.
 
 ## 4. Coverage gaps
 
