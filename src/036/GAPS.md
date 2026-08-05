@@ -13,6 +13,14 @@ following reference resources:
 - https://mythbusters.js.org/ (Kikobeats — *MythBusters JS*, a JavaScript
   performance & readability handbook; source repo
   https://github.com/Kikobeats/js-mythbusters)
+- https://zellwk.com/blog/ignoring-files-from-npm-package/ (Liew — "How to
+  ignore files from your npm package")
+- https://jdxcode.medium.com/for-the-love-of-god-dont-use-npmignore-f93c08909d8d
+  (Jeff D. — "For the love of god, don't use .npmignore")
+- https://web.archive.org/web/20260305114536/https://2ality.com/2021/06/typescript-esm-nodejs.html
+  (Rauschmayer, 2ality — "TypeScript and native ESM on Node.js"; archived copy)
+- https://medium.com/cameron-nokes/the-30-second-guide-to-publishing-a-typescript-package-to-npm-89d93ff7bccd
+  (Nokes — "The 30-second guide to publishing a TypeScript package to NPM")
 
 **Assessment (rsjs).** RSJS is a guide for structuring JavaScript in *non-SPA,
 server-rendered web applications* — component behaviors bound to DOM
@@ -64,6 +72,62 @@ method and flag usage (TS-36 has no RegExp guidance at all), string-to-number
 parsing specifics, the `new`-omission behavior of custom constructors,
 deep-clone anti-patterns, and WeakMap for private state.
 
+**Assessment (zellwk.com — "How to ignore files from your npm package").** A
+short beginner-level explainer of the three mechanisms npm uses to decide
+which files go into a published package: `.gitignore`, `.npmignore`, and the
+`files` manifest field. It is squarely within TS-36's stated scope — the
+standard has a `files` subsection (`src/036/06-packages-and-tooling.adoc:130`)
+and a "Distributing packages" section (`src/036/06-packages-and-tooling.adoc:465`)
+that covers `npm pack` verification. TS-36 covers the `files` whitelist concept
+and `npm pack` verification, but omits `.gitignore` and `.npmignore` as npm
+mechanisms entirely, the critical interaction between them (`.npmignore`
+overrides `.gitignore`), the always-included file set, and the recommendation
+to pick one method deliberately.
+
+**Assessment (jdxcode — "For the love of god, don't use .npmignore").** An
+argument from a maintainer who accidentally leaked AWS credentials by adding
+a `.npmignore` that silently disabled npm's `.gitignore` consultation. It is
+within TS-36's scope (package manifests, distributing packages). The article
+overlaps the zellwk piece on the three mechanisms but adds the security
+rationale for preferring `files` whitelisting, the `/`-anchoring convention for
+`files` entries, the one valid `.npmignore` use case (excluding a subdir from a
+whitelisted dir), the tar-inspection one-liner, and the npm@6 packed-file
+display behavior. The tooling feature requests at the end (npm/yarn should
+warn or fail; `npm init` should default to `files`) are out-of-scope.
+
+**Assessment (2ality — "TypeScript and native ESM on Node.js").** A practical
+guide to producing TypeScript packages that emit native ESM for Node.js. It is
+within TS-36's scope (TypeScript, modules, package exports) but sits at the
+intersection the standard handles least thoroughly: TypeScript *compiler
+configuration*. TS-36 has a TypeScript section (`src/036/08-typescript.adoc`)
+covering type safety, operators, undefined handling, declaration files, and
+decorators, but no `tsconfig.json` guidance at all — no mention of `module`,
+`moduleResolution`, `target`, `lib`, `strict`, `allowSyntheticDefaultImports`/
+`esModuleInterop`, or `NodeNext`. The standard covers package `exports`
+(`src/036/06-packages-and-tooling.adoc:232`), conditional exports, `"type":
+"module"`, and file extensions in relative imports, so the article's package-
+exports and extension material is largely already covered. The gaps are
+concentrated in TypeScript-specific ESM configuration (`tsconfig` settings,
+`typesVersions`, CJS-default-import compiler options) and two narrow package-
+exports details (`null` exclusion, the within-package-vs-cross-package extension
+convention). The VS Code settings and regex workflow tips are out-of-scope.
+
+**Assessment (Nokes — "The 30-second guide to publishing a TypeScript package
+to NPM").** A short 2018 walkthrough of the mechanics of publishing a
+TypeScript package: emitting `.d.ts` files, pointing consumers at them via the
+`types` manifest field, keeping compiled output out of Git, automating the
+build with a `prepublish` script, and verifying locally with `npm link`. It is
+within TS-36's scope (TypeScript declaration files, package manifests,
+distributing packages). TS-36 covers declaration-file generation conceptually
+(`src/036/08-typescript.adoc:263`), the `dist`-excluded-from-VCS convention
+(`src/036/06-packages-and-tooling.adoc:602`), and `npm pack`-based local
+verification (`src/036/06-packages-and-tooling.adoc:472`), so those points are
+not findings. The gaps are the `types` manifest field (not in TS-36's manifest
+field list), the `declaration` compiler option (overlaps the existing 2ality
+tsconfig gap), the rule that public-facing types must be exported, the
+`prepublish`/`prepare` lifecycle hook, and `npm link` as a verification
+alternative. The `npm init`/`tsc --init` scaffolding tips are out-of-scope.
+
 **Status:** Re-run, 2026-08-05.
   - rsjs: all four in-scope gaps (2 missing, 2 partial) have been addressed in
     the standard and are checked off below. The 15 web-client out-of-scope
@@ -76,6 +140,16 @@ deep-clone anti-patterns, and WeakMap for private state.
   - MythBusters JS: first run against this reference. 4 missing and 4 partial
     gaps identified below; all open. The remaining content is out-of-scope
     (engine micro-optimization) and grouped under Out-of-scope.
+  - zellwk.com / jdxcode npm-package-contents: first run against these
+    references. 5 missing and 4 partial gaps identified below; all open.
+    2 out-of-scope items (tooling feature requests) grouped under
+    Out-of-scope.
+  - 2ality TypeScript-ESM-Node.js: first run against this reference. 4 missing
+    and 2 partial gaps identified below; all open. 2 out-of-scope items (IDE
+    config, editor workflow) grouped under Out-of-scope.
+  - Nokes publishing-a-TypeScript-package: first run against this reference.
+    3 missing and 2 partial gaps identified below; all open. 1 out-of-scope
+    item (scaffolding commands) grouped under Out-of-scope.
 
 ## Missing
 
@@ -171,6 +245,140 @@ deep-clone anti-patterns, and WeakMap for private state.
       eliminating unused exports without noting its limits. Recommend a
       sentence under "Transpilation and bundling" noting that tree shaking
       is best-effort and does not remove every unused reference.
+
+- [ ] https://zellwk.com/blog/ignoring-files-from-npm-package/#excluding-files-with-gitignore,
+      https://jdxcode.medium.com/for-the-love-of-god-dont-use-npmignore-f93c08909d8d#meanwhile
+      — npm consults the repository's `.gitignore` to decide which files to
+      exclude from a published package when no `.npmignore` is present.
+      TS-36 mentions `.gitignore` only as a file that exists in the repository
+      tree (`src/036/06-packages-and-tooling.adoc:594`); it never states that
+      npm uses it as the default package-contents filter. Recommend a note in
+      the `=== files` subsection (`src/036/06-packages-and-tooling.adoc:130`)
+      or a new subsection under "Distributing packages"
+      (`src/036/06-packages-and-tooling.adoc:465`) explaining npm's three
+      mechanisms and their precedence.
+
+- [ ] https://zellwk.com/blog/ignoring-files-from-npm-package/#blacklisting-files-with-npmignore,
+      https://jdxcode.medium.com/for-the-love-of-god-dont-use-npmignore-f93c08909d8d#the-hidden-gotcha
+      — `.npmignore` as a package-contents blacklist, and the critical gotcha
+      that creating a `.npmignore` causes npm to consult it *instead of*
+      `.gitignore` (not in addition to it). TS-36 does not mention `.npmignore`
+      at all. Recommend placing in the `=== files` subsection
+      (`src/036/06-packages-and-tooling.adoc:130`) or a new subsection under
+      "Distributing packages" (`src/036/06-packages-and-tooling.adoc:465`).
+
+- [ ] https://jdxcode.medium.com/for-the-love-of-god-dont-use-npmignore-f93c08909d8d#the-hidden-gotcha
+      — the security hazard: because `.npmignore` overrides `.gitignore`, any
+      gitignored dotfile (e.g. `.envrc` with credentials, `.nyc_output`) is
+      silently included in the published package unless manually re-listed in
+      `.npmignore`. TS-36's `files` subsection says the field should be used
+      "to avoid leaking development-only files"
+      (`src/036/06-packages-and-tooling.adoc:133`) but never explains the
+      `.npmignore`-overrides-`.gitignore` failure mode that makes blacklisting
+      dangerous. Recommend a clause in the `=== files` subsection or
+      "Distributing packages" warning that `.npmignore` disables npm's
+      `.gitignore` consultation and can leak secrets.
+
+- [ ] https://zellwk.com/blog/ignoring-files-from-npm-package/#whitelisting-files-with-the-files-property,
+      https://jdxcode.medium.com/for-the-love-of-god-dont-use-npmignore-f93c08909d8d#whitelisting
+      — the set of files npm always includes regardless of the `files` field
+      (`package.json`, `README`/`README.md`, `LICENSE`/`LICENCE`, and the
+      `main`/`bin`/`exports` targets) so authors need not list them. TS-36's
+      `files` subsection (`src/036/06-packages-and-tooling.adoc:130`) and
+      manifest template (`src/036/06-packages-and-tooling.adoc:77`) do not
+      state which files are always included. Recommend a sentence in the
+      `=== files` subsection listing the always-included set.
+
+- [ ] https://jdxcode.medium.com/for-the-love-of-god-dont-use-npmignore-f93c08909d8d#the-one-time-npmignore-is-ok
+      — the one valid use of `.npmignore`: combined with `files` to exclude a
+      subdirectory from an otherwise-whitelisted directory (e.g. `files:`
+      `["/lib"]` plus `.npmignore` entry `__test__` so `/lib/__test__` is
+      excluded while `/lib/index.js` is included). TS-36 does not mention
+      `.npmignore` at all. Recommend a note in the `=== files` subsection
+      (`src/036/06-packages-and-tooling.adoc:130`) describing this as the only
+      case where `.npmignore` is acceptable.
+
+- [ ] https://web.archive.org/web/20260305114536/https://2ality.com/2021/06/typescript-esm-nodejs.html#the-basics
+      — `tsconfig.json` configuration for emitting native ESM on Node.js: the
+      `module` (`"ES2020"`/`"NodeNext"`), `moduleResolution`
+      (`"Node"`/`"NodeNext"`), `target`, `lib`, `strict`, `declaration`, and
+      `rootDir`/`outDir` settings. TS-36 has no `tsconfig.json` guidance at all
+      — none of these compiler options are mentioned anywhere in the standard.
+      Recommend a new "TypeScript compiler configuration" subsection under
+      "TypeScript" (`src/036/08-typescript.adoc`). (Scope call: flagged for
+      user confirmation — TS-36's TypeScript section covers language usage but
+      not compiler configuration; the standard may intend to delegate tsconfig
+      guidance to TS-38 or a dedicated tooling TS.)
+
+- [ ] https://web.archive.org/web/20260305114536/https://2ality.com/2021/06/typescript-esm-nodejs.html#typescript-47-better-support-package-exports-and-nodes-esm
+      — the `typesVersions` field in `package.json`: the pre-TypeScript-4.7
+      workaround that maps TypeScript type-definition paths to match a
+      package's `exports` map, and the fact that TypeScript 4.7+ understands
+      `exports` natively so `typesVersions` is no longer needed. TS-36 does not
+      mention `typesVersions` anywhere, and its package-manifest field
+      subsections (`src/036/06-packages-and-tooling.adoc:108` onward) omit it.
+      Recommend a `=== typesVersions` subsection under "Package manifests"
+      (`src/036/06-packages-and-tooling.adoc:36`) noting it as a legacy
+      workaround for TypeScript < 4.7.
+
+- [ ] https://web.archive.org/web/20260305114536/https://2ality.com/2021/06/typescript-esm-nodejs.html#the-basics
+      — the `allowSyntheticDefaultImports` (and related `esModuleInterop`)
+      TypeScript compiler option, needed to import legacy CommonJS modules
+      using default-import syntax where `module.exports` is the default
+      export. TS-36 covers the *runtime* CJS-into-ESM import pattern
+      (`src/036/05-modules.adoc:447`, "import the whole module using the
+      default import syntax") but never mentions the TypeScript compiler
+      option that enables this syntax. Recommend a clause in the "Importing
+      CJS into ESM" subsection (`src/036/05-modules.adoc:447`) or the new
+      TypeScript-compiler-configuration subsection noting
+      `allowSyntheticDefaultImports`/`esModuleInterop`.
+
+- [ ] https://web.archive.org/web/20260305114536/https://2ality.com/2021/06/typescript-esm-nodejs.html#exposing-a-subtree-while-hiding-parts-of-it
+      — the `null` value in a package `exports` map to exclude/hide a
+      subpath from an otherwise-exposed pattern (e.g.
+      `"./internal/*": null` prevents deep imports into `./dist/src/internal/`
+      while `"./*": "./dist/src/*"` exposes everything else). TS-36's
+      `exports` section (`src/036/06-packages-and-tooling.adoc:232`) covers
+      patterns and encapsulation but never mentions the `null` exclusion
+      mechanism. Recommend a clause in the `=== exports` subsection
+      (`src/036/06-packages-and-tooling.adoc:232`) noting that mapping a
+      subpath to `null` hides it.
+
+- [ ] https://medium.com/cameron-nokes/the-30-second-guide-to-publishing-a-typescript-package-to-npm-89d93ff7bccd#2-add-types-index-d-ts-to-your-package-json
+      — the `types` field in `package.json` (e.g. `"types":
+      "dist/index.d.ts"`), which tells the TypeScript compiler where to find a
+      package's type definitions, typically matching the `main` entry point's
+      `.d.ts` counterpart. TS-36's package-manifest field subsections
+      (`src/036/06-packages-and-tooling.adoc:108` onward) omit the `types`
+      field entirely, and the manifest template
+      (`src/036/06-packages-and-tooling.adoc:54`) does not include it.
+      Recommend a `=== types` subsection under "Package manifests"
+      (`src/036/06-packages-and-tooling.adoc:36`) and an entry in the
+      template. (Where `exports` is used with TypeScript, `typesVersions` or
+      per-condition `types` keys may also apply — see the existing
+      `typesVersions` gap above.)
+
+- [ ] https://medium.com/cameron-nokes/the-30-second-guide-to-publishing-a-typescript-package-to-npm-89d93ff7bccd#1-add-declaration-true-to-your-tsconfigjson
+      — the rule that when `declaration: true` is set, any type that is part
+      of a public-facing API (and is not an inline type) MUST be `export`-ed,
+      or the compiler will complain about private types. TS-36's declaration-
+      files section (`src/036/08-typescript.adoc:247`) discusses generating
+      `.d.ts` files but never states that public API types must be explicitly
+      exported for declarations to emit cleanly. Recommend a clause in
+      "Declaration files" (`src/036/08-typescript.adoc:247`) noting that
+      public-facing types MUST be exported.
+
+- [ ] https://medium.com/cameron-nokes/the-30-second-guide-to-publishing-a-typescript-package-to-npm-89d93ff7bccd#4-run-your-build
+      — the `prepublish` (modern equivalent: `prepare`) npm lifecycle script
+      for automating the TypeScript compilation step before publishing (e.g.
+      `"prepublish": "tsc"`). TS-36's `scripts` subsection
+      (`src/036/06-packages-and-tooling.adoc:174`) and "Distributing packages"
+      section (`src/036/06-packages-and-tooling.adoc:465`) do not mention npm
+      lifecycle hooks (`prepublish`, `prepare`, `prepublishOnly`) for
+      automating build-before-publish. Recommend a note in "Distributing
+      packages" (`src/036/06-packages-and-tooling.adoc:465`) or the `scripts`
+      subsection on using `prepare`/`prepublishOnly` to compile before
+      publishing.
 
 ## Partial
 
@@ -303,6 +511,111 @@ deep-clone anti-patterns, and WeakMap for private state.
       want a one-line pointer. Recommend, if added, a brief note in
       "Transpilation and bundling" (`src/036/06-packages-and-tooling.adoc:853`).
 
+- [ ] https://zellwk.com/blog/ignoring-files-from-npm-package/#which-method-to-use
+      — the three mechanisms (`.gitignore`, `.npmignore`, `files`) and their
+      precedence: `files` takes priority over the other two, and `.npmignore`
+      takes priority over `.gitignore`. TS-36's `files` subsection
+      (`src/036/06-packages-and-tooling.adoc:130`) covers only the `files`
+      whitelist and omits the other two mechanisms and the precedence order.
+      Partial rather than missing because TS-36 does recommend `files` (the
+      highest-precedence mechanism); the gap is the absence of the full
+      picture. Recommend extending the `=== files` subsection
+      (`src/036/06-packages-and-tooling.adoc:130`) to describe the three
+      mechanisms and their precedence, or a new subsection under
+      "Distributing packages".
+
+- [ ] https://jdxcode.medium.com/for-the-love-of-god-dont-use-npmignore-f93c08909d8d#whitelisting
+      — the rationale for preferring whitelisting (`files`) over blacklisting
+      (`.gitignore`/`.npmignore`): blacklisting is whack-a-mole, projects
+      relying on it routinely ship unnecessary files (tests, log files, sqlite
+      databases), and a single missed dotfile can leak secrets. TS-36's
+      `files` subsection (`src/036/06-packages-and-tooling.adoc:130`)
+      recommends `files` but does not explain why whitelisting is safer than
+      blacklisting. Partial rather than missing because TS-36 does recommend
+      `files`. Recommend a clause in the `=== files` subsection stating the
+      whitelisting-over-blacklisting rationale.
+
+- [ ] https://jdxcode.medium.com/for-the-love-of-god-dont-use-npmignore-f93c08909d8d#whitelisting
+      — the convention of prefixing `files` entries with `/` to anchor them to
+      the package root, so that e.g. `"lib"` does not also match a `test/lib`
+      directory. TS-36's manifest template
+      (`src/036/06-packages-and-tooling.adoc:77`) uses `"lib/**/*"` without a
+      leading `/` and does not discuss anchoring. Partial rather than missing
+      because the template's `lib/**/*` glob happens to avoid the named
+      collision in practice, but the rule is unstated. Recommend a note in the
+      `=== files` subsection (`src/036/06-packages-and-tooling.adoc:130`) on
+      anchoring `files` entries with `/`.
+
+- [ ] https://jdxcode.medium.com/for-the-love-of-god-dont-use-npmignore-f93c08909d8d#meanwhile
+      — `npm publish` does not display the files packed (pre-npm@6); npm@6+
+      began showing which files will be packed, and the one-liner
+      `npm pack && tar -xvzf *.tgz && rm -rf package *.tgz` inspects the
+      tarball contents without publishing. TS-36's "Distributing packages"
+      section (`src/036/06-packages-and-tooling.adoc:472`) covers `npm pack`
+      and installing the archive into an empty directory for verification — a
+      more thorough check — but does not mention the quick tar-inspection
+      one-liner or the npm@6 packed-file display. Partial rather than missing
+      because TS-36 already mandates `npm pack` verification. Recommend a
+      brief note in "Distributing packages"
+      (`src/036/06-packages-and-tooling.adoc:465`) mentioning the tar
+      one-liner as a faster alternative.
+
+- [ ] https://web.archive.org/web/20260305114536/https://2ality.com/2021/06/typescript-esm-nodejs.html#recommendations-for-using-package-exports
+      — the module-specifier convention: use filename extensions for imports
+      *within* the current package (e.g. `'../tools/config-parser.js'`) but
+      avoid extensions for imports *from another package* via its exported
+      entry points (e.g. `'format-checker/strict'`). TS-36 requires extensions
+      in relative imports (`src/036/05-modules.adoc:99`, "You MUST specify the
+      file name") and its examples consistently use `.js`, but it never
+      addresses the cross-package convention of omitting extensions for
+      `exports`-mapped entry points. Partial rather than missing because the
+      within-package rule is covered; the gap is the cross-package counterpart.
+      Recommend a clause in "Internal imports"
+      (`src/036/05-modules.adoc:107`) or "Package exports"
+      (`src/036/06-packages-and-tooling.adoc:232`) stating the
+      within-package-vs-cross-package extension convention.
+
+- [ ] https://web.archive.org/web/20260305114536/https://2ality.com/2021/06/typescript-esm-nodejs.html#the-basics
+      — the specific TypeScript constraint that `"type": "module"` is
+      *required* for TypeScript ESM packages because TypeScript does not
+      support the `.mjs` extension (it emits `.js` only). TS-36 covers both
+      pieces separately — `.mjs` is "NOT RECOMMENDED" and "many development
+      tools – notably TypeScript – do not recognize it"
+      (`src/036/05-modules.adoc:412`), and `"type": "module"` is the
+      recommended toggle (`src/036/05-modules.adoc:416`) — but never joins them
+      into the explicit rule that TypeScript ESM packages MUST set `"type":
+      "module"` because it is the only available ESM toggle for `.js` output.
+      Partial rather than missing because both facts are stated; the gap is the
+      combined TypeScript-specific recommendation. Recommend a sentence in
+      "Toggling interpreters" (`src/036/05-modules.adoc:397`) or the `type`
+      manifest subsection (`src/036/06-packages-and-tooling.adoc:146`).
+
+- [ ] https://medium.com/cameron-nokes/the-30-second-guide-to-publishing-a-typescript-package-to-npm-89d93ff7bccd#1-add-declaration-true-to-your-tsconfigjson
+      — the `declaration` compiler option in `tsconfig.json` (set to `true`
+      to emit `.d.ts` files alongside compiled JS). TS-36's declaration-files
+      section (`src/036/08-typescript.adoc:263`) states that "declaration
+      files are generated automatically by the compiler" for TypeScript-
+      authored libraries, but never names the `declaration` compiler option
+      that controls this behavior. Partial rather than missing because the
+      concept of automatic `.d.ts` generation is covered; the gap is the
+      specific compiler option (which overlaps the existing 2ality `tsconfig`
+      gap). Recommend a clause in "Declaration files"
+      (`src/036/08-typescript.adoc:247`) naming the `declaration` option, or
+      coverage in the new TypeScript-compiler-configuration subsection
+      recommended by the 2ality gap.
+
+- [ ] https://medium.com/cameron-nokes/the-30-second-guide-to-publishing-a-typescript-package-to-npm-89d93ff7bccd#5-run-npm-publish
+      — `npm link` (and `npm link <package-name>` in a consumer project) as a
+      local verification alternative to `npm pack` + install. TS-36's
+      "Distributing packages" section (`src/036/06-packages-and-tooling.adoc:472`)
+      mandates `npm pack` and installing the archive into an empty directory —
+      a more thorough verification — but does not mention `npm link` as a
+      faster iterative alternative. Partial rather than missing because TS-36
+      already covers local verification more rigorously; the gap is the
+      absence of `npm link` as an additional option. Recommend a brief note in
+      "Distributing packages" (`src/036/06-packages-and-tooling.adoc:465`)
+      mentioning `npm link` for rapid local iteration.
+
 ## Out-of-scope
 
 The 15 web-client/DOM out-of-scope items from the initial run (component
@@ -409,6 +722,33 @@ TS-37. They have been re-classified against TS-18's scope there (10 missing,
       nullish coalescing, so the `== null` advice is contradicted rather than
       missing). Flagged out-of-scope.
 
+- [ ] https://jdxcode.medium.com/for-the-love-of-god-dont-use-npmignore-f93c08909d8d#npm-and-yarn-patch-this-please
+      — the recommendation that npm/yarn should fail or warn (and emit the
+      exact files being packed) if a user uses `.npmignore` without `files`,
+      and that `npm init`/`yarn init` should default to including `files`.
+      Flagged out-of-scope: these are feature requests against the npm/yarn
+      CLIs, not ECMAScript coding conventions. Plausible home if kept: none
+      within TS-36; belongs in TS-38 (Node.js Applications) if anywhere.
+
+- [ ] https://web.archive.org/web/20260305114536/https://2ality.com/2021/06/typescript-esm-nodejs.html#visual-studio-code
+      — VS Code settings (`javascript.preferences.importModuleSpecifierEnding`,
+      `typescript.preferences.importModuleSpecifierEnding`) to make
+      auto-imports include `.js` extensions. Flagged out-of-scope: this is
+      IDE-specific configuration, not an ECMAScript coding convention. No
+      plausible home within TS-36.
+
+- [ ] https://web.archive.org/web/20260305114536/https://2ality.com/2021/06/typescript-esm-nodejs.html#visual-studio-code
+      — a regex search-and-replace pattern for retroactively adding `.js`
+      extensions to existing local imports. Flagged out-of-scope: this is an
+      editor workflow tip, not a coding convention. No plausible home within
+      TS-36.
+
+- [ ] https://medium.com/cameron-nokes/the-30-second-guide-to-publishing-a-typescript-package-to-npm-89d93ff7bccd#if-you-havent-written-your-ts-based-package-yet
+      — the scaffolding commands `npm init -y` and `tsc --init` for
+      generating a default `package.json` and `tsconfig.json`. Flagged
+      out-of-scope: these are getting-started workflow tips, not coding
+      conventions. No plausible home within TS-36.
+
 ## Unresolved
 
 - https://www.sitepoint.com/premium/books/javascript-best-practice/read/2/
@@ -425,3 +765,13 @@ TS-37. They have been re-classified against TS-18's scope there (10 missing,
 - https://bitsofco.de/what-is-tree-shaking/, https://ricostacruz.com/rsjs/,
   and https://mythbusters.js.org/ (all ~30 tip pages via the docsify markdown
   source) were fetched successfully in full.
+
+- https://zellwk.com/blog/ignoring-files-from-npm-package/ and
+  https://jdxcode.medium.com/for-the-love-of-god-dont-use-npmignore-f93c08909d8d
+  were fetched successfully in full.
+
+- https://web.archive.org/web/20260305114536/https://2ality.com/2021/06/typescript-esm-nodejs.html
+  was fetched successfully in full (Internet Archive copy).
+
+- https://medium.com/cameron-nokes/the-30-second-guide-to-publishing-a-typescript-package-to-npm-89d93ff7bccd
+  was fetched successfully in full.
