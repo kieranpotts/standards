@@ -67,6 +67,32 @@ more tightly here because no human sees each iteration:
   a <<Composable pipelines,composable pipeline>>, so that a failing lint, type
   check, or test halts the iteration regardless of what any agent claims.
 
+== Bootstrapping a loop
+
+A loop's first iteration runs against an empty history. There is no progress
+log to read, no baseline commit to diff against, and no record of what "done"
+looks like for the task the loop exists to advance. Treat that first pass
+differently from every iteration that follows it.
+
+Run a distinctly-prompted *initializer* pass before the loop's ordinary
+iterations begin. Its job is not to make progress on the task but to build the
+scaffolding every later iteration will depend on:
+
+* A script that starts the environment and runs a basic smoke test, so every
+  later iteration can confirm the system still works before it changes
+  anything.
+* A durable, human-readable progress log, seeded with the starting state.
+* A granular backlog of the individual units of work the task decomposes into,
+  each carrying its own executable success criterion (see <<Success
+  criteria,success criteria>>), recorded as not yet met.
+* An initial commit, so every later iteration diffs against a known baseline
+  rather than an undocumented starting point.
+
+Once this scaffolding exists, ordinary iterations read it rather than rebuild
+it. An iteration that instead spends its budget rediscovering the state of the
+world, because no one wrote it down, is spending the same tokens the
+initializer pass exists to save.
+
 == Bounding the loop
 
 Because a loop re-triggers itself, it can run away in ways a single agent run
@@ -91,6 +117,29 @@ state MUST live outside the conversation. Each iteration's distilled output is
 which the next iteration reads with a clean context. Where iterations run
 concurrently, each MUST be given its own <<Isolated environments,isolated
 working copy>>, so parallel turns cannot corrupt one another.
+
+Each iteration SHOULD open with a fixed routine before it does anything else:
+confirm its working directory and environment, read the progress log and
+recent commit history for what the previous iteration left behind, consult the
+backlog for the next unmet criterion, and run the baseline smoke test to
+confirm nothing already in place is broken. This costs a small, predictable
+amount of context, and it is cheaper than the alternative — an iteration that
+skips it may redo finished work, build on top of a regression it doesn't know
+is there, or contradict a decision a previous iteration already made.
+
+Each iteration SHOULD also take on a single unit of work, not as much of the
+remaining task as it can. An iteration that attempts everything left tends to
+exhaust its context mid-implementation, leaving the next iteration to recover
+a partial, possibly uncommitted change rather than build on a finished one.
+Scoping each iteration to one verifiable increment keeps every handoff clean.
+
+Commit each completed, verified increment before moving to the next, with a
+message specific enough to explain what changed and why. This is more than the
+handoff mechanism described in <<Persistence,persistence>> — it is a rollback
+point. An iteration that goes wrong can be reverted to the last good commit
+without losing the increments that came before it, which holds only if
+increments are committed individually rather than accumulated into one large,
+uncommitted change.
 
 == The hidden costs
 
