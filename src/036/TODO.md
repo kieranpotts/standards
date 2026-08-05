@@ -20,34 +20,38 @@ single dominant category is conventions (long lines from link-heavy reference
 and prose paragraphs), followed by a handful of factual errors and broken
 cross-references.
 
-**Status:** Tier 1 (Correctness) applied and verified — 13 items (9
-  contradictions + 4 factual). Tier 2 (Coherence) applied and verified — 3 items
-  resolved (private-members duplication confirmed already cross-referenced; Date
-  and Decorators left in place by user decision), 1 deferred to Tier 4 (recurring
-  short titles). Tier 3 (Completeness) applied and verified — 2 items resolved
-  (Node version examples generalized to placeholder notation across 5 spots in
-  11-runtimes.adoc and 3 spots in 06-packages-and-tooling.adoc — the latter two
-  weren't separately named in the original item but shared the identical defect;
-  TypeScript minimum-version floor dropped in favour of the existing
-  always-upgrade policy). A new style-guide rule was added (`docs/style-guide.md`
-  §Conventions) prohibiting pinned real version numbers of fast-moving tools in
-  illustrative examples, to prevent recurrence repo-wide. Tier 4 (Conventions)
-  applied and verified — all 11 §5 convention items resolved (README.adoc
-  references and long-line prose across 02/05/10-*.adoc rewrapped;
-  `[source,...]` attributes added to 14-barrel-files.adoc and 08-typescript.adoc;
-  en-dash/bold-terminology/semicolon conformance fixed); §6 `AGENTS.md`
-  regenerated from stub via the `agentify` skill (855 lines, 19 topic
-  subsections, cross-references verified against `src/README.adoc`); all 7 §7
-  prose defects resolved, including a full-sweep rewrite of general-behaviour
-  "we"/"our" in 01/07/08/10/11 (scope confirmed with user for 10 and 11) while
-  preserving the one genuine team-position exception in 10 (`We SHOULD apply FP
-  principles to our code`). While re-reading 11-runtimes.adoc, found and fixed a
-  leftover defect from the Tier 3 pass: two spots still pinned literal Node
-  version numbers/codenames (Dubnium/Hydrogen, a dated Feb 2022/2023 example, and
-  a duplicate `.Example` block), violating the very style-guide rule Tier 3
-  introduced — not caught by that pass's own verification. All tiers now
-  resolved; nothing left open except the low-priority Tier 2 deferral (recurring
-  short titles, to be handled reactively). Not yet committed.
+**Status:** All four tiers applied and verified. Tier 1 (Correctness) — 13
+  items (9 contradictions + 4 factual). Tier 2 (Coherence) — 3 items resolved
+  (private-members duplication confirmed already cross-referenced; Date and
+  Decorators left in place by user decision), 1 originally deferred to Tier 4
+  (recurring short titles) and since resolved (see below). Tier 3
+  (Completeness) — 2 items resolved (Node version examples generalized to
+  placeholder notation across 5 spots in 11-runtimes.adoc and 3 spots in
+  06-packages-and-tooling.adoc — the latter two weren't separately named in the
+  original item but shared the identical defect; TypeScript minimum-version
+  floor dropped in favour of the existing always-upgrade policy). A new
+  style-guide rule was added (`docs/style-guide.md` §Conventions) prohibiting
+  pinned real version numbers of fast-moving tools in illustrative examples, to
+  prevent recurrence repo-wide. Tier 4 (Conventions) — all 11 §5 convention
+  items resolved (README.adoc references and long-line prose across
+  02/05/10-*.adoc rewrapped; `[source,...]` attributes added to
+  14-barrel-files.adoc and 08-typescript.adoc; en-dash/bold-terminology/
+  semicolon conformance fixed); §6 `AGENTS.md` regenerated from stub via the
+  `agentify` skill (855 lines, 19 topic subsections, cross-references verified
+  against `src/README.adoc`); all 7 §7 prose defects resolved, including a
+  full-sweep rewrite of general-behaviour "we"/"our" in 01/07/08/10/11 (scope
+  confirmed with user for 10 and 11) while preserving the one genuine
+  team-position exception in 10 (`We SHOULD apply FP principles to our code`).
+  While re-reading 11-runtimes.adoc, found and fixed a leftover defect from the
+  Tier 3 pass: two spots still pinned literal Node version numbers/codenames
+  (Dubnium/Hydrogen, a dated Feb 2022/2023 example, and a duplicate `.Example`
+  block), violating the very style-guide rule Tier 3 introduced — not caught by
+  that pass's own verification (see §8). The deferred recurring-short-titles
+  item was converted from reactive to proactive by user decision and resolved:
+  27 explicit `[#id]` anchors added across the 13 duplicate-title groups. All
+  four tiers of the deep dive are now fully resolved; nothing left open.
+  Tier 4 (§5-§7, §8) committed as 35a3b12; the short-titles anchor pass is
+  staged but not yet committed.
 
 ## Priority order
 
@@ -167,14 +171,23 @@ cross-references.
   practice used almost exclusively via TS. Moving it would split the
   member/class/field decorator material awkwardly. No edit.
 
-- [ ] Several short section titles recur across files (Operators, Loops, Arrays,
+- [x] Several short section titles recur across files (Operators, Loops, Arrays,
   Classes, Objects, Promises, Parameters, Callbacks, References, `engines`,
   `type`, `scripts`, Performance). None is currently an xref target, but each is
   a latent xref-ambiguity risk if one is ever referenced. Worth a pass to
   disambiguate (explicit anchors) where titles repeat. [Low priority.] Deferred
   to Tier 4 (Conventions) by user decision. Mechanical xref-uniqueness check
   across TS-36 confirmed zero ambiguous targets today; handle reactively when a
-  real xref needs disambiguation.
+  real xref needs disambiguation. Resolved (converted from reactive to
+  proactive by user decision): added an explicit `[#id]` anchor above each of
+  the 27 duplicate-titled headings (13 title groups, 2-3 occurrences each),
+  using descriptive kebab-case ids that distinguish each occurrence by content
+  (e.g. `#operators` vs `#typescript-operators`; `#engines-package-manifest`
+  vs `#engines-repository-manifest`). Existing title-text xrefs (`<<...>>`)
+  are unaffected — none targeted a duplicate title, and the new explicit ids
+  are additive, giving future xrefs an unambiguous target without changing
+  current auto-generated anchor resolution. Verified no duplicate ids and no
+  new line-length violations.
 
 ## 4. Coverage gaps
 
