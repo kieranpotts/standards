@@ -12,6 +12,12 @@ Next, the agent ingests every reference resource — fetching URLs, reading loca
 files, or recursing through a directory's Markdown, AsciiDoc, and plain-text
 files.
 
+A reference resource that is a `kieranpotts/*` GitHub issue URL is treated as
+an index rather than a resource in its own right. The agent uses `gh` to pull
+the issue's description, comments, and sub-issues, and expands it into
+whatever URLs or files are actually linked from there — recursing into any
+sub-issue that is itself a `kieranpotts/*` issue.
+
 It breaks the reference material down into individual claims, rules, or
 topics. Then it check each one against the standard, classifying it as one of:
 

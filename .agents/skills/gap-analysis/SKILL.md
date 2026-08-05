@@ -33,6 +33,12 @@ the standard does not, never the reverse.
   tools). Treat each found text file as a reference resource. Treat `.URL` files
   as web resources — follow their `URL=` path.
 
+  A reference resource that is a URL to a GitHub issue under
+  `https://github.com/kieranpotts/*` is never itself the resource — treat it
+  as an index. Expand it into the actual reference resources listed in its
+  description, comments, and sub-issues, using the `gh` commands in step 3a,
+  before ingesting anything.
+
 Prompt the user for clarification if either is ambiguous.
 
 ## Success criteria
@@ -88,6 +94,63 @@ Prompt the user for clarification if either is ambiguous.
     with a narrow task. Read the assigned material and return a flat list
     of atomic claims, rules, or topics, each with a precise citation
     (URL#section, or `<file>:<line>`).
+
+3a. Before ingesting a reference resource matching
+    `https://github.com/kieranpotts/<repo>/issues/<number>`, run these `gh`
+    commands to pull the candidate resources out of it, then treat each
+    discovered URL (or attached file) as its own reference resource.
+
+    - Issue title and body:
+
+      ```sh
+      gh issue view <url> --json title,body
+      ```
+
+    - Comments, in full:
+
+      ```sh
+      gh issue view <url> --json comments --jq '.comments[].body'
+      ```
+
+    - Sub-issues (title, state, URL):
+
+      ```sh
+      gh api repos/kieranpotts/<repo>/issues/<number>/sub_issues \
+        --jq '.[] | "\(.number)\t\(.state)\t\(.title)\t\(.html_url)"'
+      ```
+
+      If the `sub_issues` endpoint 404s (older `gh`/API version), fall back
+      to GraphQL:
+
+      ```sh
+      gh api graphql -f query='
+        query($owner:String!, $repo:String!, $number:Int!) {
+          repository(owner:$owner, name:$repo) {
+            issue(number:$number) {
+              subIssues(first: 100) {
+                nodes { number title url state }
+              }
+            }
+          }
+        }' -f owner=kieranpotts -f repo=<repo> -F number=<number>
+      ```
+
+    - Extract every URL mentioned across the title, body, and comments in one
+      pass (dedupe, then drop the issue's own URL and any sub-issue URLs
+      already captured above — those are handled separately, not as
+      resources in their own right):
+
+      ```sh
+      gh issue view <url> --json body,comments \
+        --jq '[.body, (.comments[].body)] | join("\n")' \
+        | grep -oE 'https?://[^ )>"'"'"']+' | sort -u
+      ```
+
+    If a sub-issue is itself under `kieranpotts/*`, apply this same expansion
+    to it rather than treating the sub-issue as a resource. Ingest each
+    _discovered_ URL/file per the normal rules in step 3 above. If the
+    issue (and its sub-issues) yield no discoverable resources at all, report
+    that and ask the user for clarification rather than guessing.
 
 4.  Compare coverage, point by point. Break each reference resource down into
     its atomic claims, rules, or topics. For each one, check whether the target
