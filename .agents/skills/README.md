@@ -7,6 +7,7 @@ Agent skills for maintaining these technical standards.
 | [agentify](./agentify/README.md) | Create or update a concise version of a technical standard for agents. |
 | [deep-dive](./deep-dive/README.md) | Review a standard in depth, then work the resulting plan tier by tier. |
 | [fix-cross-references](./fix-cross-references/README.md) | Fix broken internal links between standards. |
+| [gap-analysis](./gap-analysis/README.md) | Check a standard for coverage gaps against external reference resources. |
 
 See each skill's own `SKILL.md` for the full instructions an agent follows, and
 `README.md` for invocation examples.
