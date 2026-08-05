@@ -31,8 +31,23 @@ cross-references.
   TypeScript minimum-version floor dropped in favour of the existing
   always-upgrade policy). A new style-guide rule was added (`docs/style-guide.md`
   §Conventions) prohibiting pinned real version numbers of fast-moving tools in
-  illustrative examples, to prevent recurrence repo-wide. Tier 4 open. No tiers
-  committed yet.
+  illustrative examples, to prevent recurrence repo-wide. Tier 4 (Conventions)
+  applied and verified — all 11 §5 convention items resolved (README.adoc
+  references and long-line prose across 02/05/10-*.adoc rewrapped;
+  `[source,...]` attributes added to 14-barrel-files.adoc and 08-typescript.adoc;
+  en-dash/bold-terminology/semicolon conformance fixed); §6 `AGENTS.md`
+  regenerated from stub via the `agentify` skill (855 lines, 19 topic
+  subsections, cross-references verified against `src/README.adoc`); all 7 §7
+  prose defects resolved, including a full-sweep rewrite of general-behaviour
+  "we"/"our" in 01/07/08/10/11 (scope confirmed with user for 10 and 11) while
+  preserving the one genuine team-position exception in 10 (`We SHOULD apply FP
+  principles to our code`). While re-reading 11-runtimes.adoc, found and fixed a
+  leftover defect from the Tier 3 pass: two spots still pinned literal Node
+  version numbers/codenames (Dubnium/Hydrogen, a dated Feb 2022/2023 example, and
+  a duplicate `.Example` block), violating the very style-guide rule Tier 3
+  introduced — not caught by that pass's own verification. All tiers now
+  resolved; nothing left open except the low-priority Tier 2 deferral (recurring
+  short titles, to be handled reactively). Not yet committed.
 
 ## Priority order
 
@@ -188,94 +203,132 @@ cross-references.
 
 ## 5. Convention conformance
 
-- [ ] README.adoc:35-97 — every reference entry places author + link + publisher
+- [x] README.adoc:35-97 — every reference entry places author + link + publisher
   + annotation on one source line, exceeding the 160-char hard limit (e.g. :35
   277, :57 272, :83 237). Per TS-28/23 only unbreakable URLs are excepted; wrap
   the publisher and annotation onto a continuation line (indented two spaces),
-  matching the style-guide reference example.
+  matching the style-guide reference example. Fixed: all 30 entries rewrapped
+  onto author/link/publisher/annotation lines; the 3 remaining over-160 lines
+  are single unbreakable link macros (the documented TS-28 exception).
 
-- [ ] 02-syntax-and-style.adoc has many lines over 160 chars (mechanical check:
+- [x] 02-syntax-and-style.adoc has many lines over 160 chars (mechanical check:
   :354, :356, :358, :487, :523, :547, :603, :643, :661, :690, :718, :747, :778,
   :840, :872, :901, :905, :934, :961, :983, :985, :987, :1018, :1040, :1044,
   :1053, :1055). Soft-wrap the prose to ≤160, keeping inline link macros on one
-  line.
+  line. Fixed: all flagged lines (line numbers had drifted from earlier Tier
+  1-3 edits; a fresh mechanical check found 28 current offenders) rewrapped;
+  file is now clean.
 
-- [ ] 05-modules.adoc:528 is a single 799-char paragraph containing seven
+- [x] 05-modules.adoc:528 is a single 799-char paragraph containing seven
   inline links. Wrap at sentence/clause boundaries, keeping each link macro
-  intact.
+  intact. Fixed, plus one more over-160 line found at the same mechanical
+  check (:489).
 
-- [ ] 10-functional-programming.adoc:22 (165), :525 (175), :533 (248), :787
+- [x] 10-functional-programming.adoc:22 (165), :525 (175), :533 (248), :787
   (162), :788 (247) — link-heavy lines exceed 160. Wrap surrounding prose, keep
-  link macros intact.
+  link macros intact. Fixed.
 
-- [ ] 14-barrel-files.adoc:12-47 — the TS/JS code blocks use bare `----`
+- [x] 14-barrel-files.adoc:12-47 — the TS/JS code blocks use bare `----`
   without a `[source,<lang>]` attribute. TS-28/06 requires a language attribute
-  (e.g. `[source,typescript]`). [Pre-existing barrel-files content.]
+  (e.g. `[source,typescript]`). [Pre-existing barrel-files content.] Fixed:
+  `[source,typescript]` added to the four TS/JS blocks; `[source,plaintext]`
+  added to the one non-language directory-tree diagram.
 
-- [ ] 08-typescript.adoc:153-156 — the compiler error message is in a bare
+- [x] 08-typescript.adoc:153-156 — the compiler error message is in a bare
   `----` block; TS-28/06 recommends `[source,plaintext]` for non-language
-  code.
+  code. Fixed.
 
-- [ ] 07-dependency-management.adoc:20 uses an ASCII hyphen-minus (" - ") as a
+- [x] 07-dependency-management.adoc:20 uses an ASCII hyphen-minus (" - ") as a
   dash ("regularly - best practice") where the rest of TS-36 uses an en dash
-  ("–"). Use an en dash for consistency.
+  ("–"). Use an en dash for consistency. Fixed.
 
-- [ ] 14-barrel-files.adoc:7 uses an em dash ("—") for a parenthetical aside
+- [x] 14-barrel-files.adoc:7 uses an em dash ("—") for a parenthetical aside
   where the rest of TS-36 uses an en dash ("–"). Use an en dash for
-  consistency.
+  consistency. Fixed.
 
-- [ ] 01:181 (`*truthy*`/`*falsy*`), 09:142 (`*async iterators*`), and
+- [x] 01:181 (`*truthy*`/`*falsy*`), 09:142 (`*async iterators*`), and
   10:543-544 (`*tacit programming*`/`*point-free style*`/`*point-free
   composition*`) use bold for new terms at their point of definition. TS-26/06
   reserves bold for UI elements and italics for introducing a new term. Use
-  italics.
+  italics. Fixed.
 
-- [ ] 06:875-882 bold lead-ins `*Package cohesion*` and `*Package coupling*`
+- [x] 06:875-882 bold lead-ins `*Package cohesion*` and `*Package coupling*`
   are followed by an en dash, not terminated with a period. The style guide
   requires lead-in labels to be bold and terminated with a period
   (`*Package cohesion.* ...`). The `*`Promise.all`* – ...` pattern at 09:73-84
-  is the same shape; apply consistently.
+  is the same shape; apply consistently. Fixed both spots (06's two lead-ins,
+  09's four `Promise.*` combinator bullets).
 
-- [ ] 10-functional-programming.adoc:886 and :902 end function-expression examples
+- [x] 10-functional-programming.adoc:886 and :902 end function-expression examples
   with a trailing `;`, inconsistent with the other examples in TS-36 (which omit
-  semicolons). Drop for consistency.
+  semicolons). Drop for consistency. Fixed.
 
 ## 6. `AGENTS.md` drift
 
-- [ ] AGENTS.md is a stub (`<!-- TODO -->`) and does not cover any of the 14
+- [x] AGENTS.md is a stub (`<!-- TODO -->`) and does not cover any of the 14
   sections' rules. It should be regenerated to reflect the current content (the
-  `agentify` skill is the intended tool).
+  `agentify` skill is the intended tool). Fixed: regenerated from scratch via
+  the `agentify` skill (855 lines, 19 topic subsections under `## Rules`, plus
+  `## References`). All RFC 2119 keywords preserved faithfully; sibling
+  cross-references (TS-27, TS-37, TS-38, TS-47, TS-52, TS-12, TS-13) verified
+  to exist and resolve.
 
 ## 7. Prose defects
 
-- [ ] First-person "we/our" is used for general behaviour, not only genuine
+- [x] First-person "we/our" is used for general behaviour, not only genuine
   team-position, contrary to TS-26/01 (which reserves "we" for the author's or
   team's position). Representative general-behaviour uses: 01:46/52/60,
   07:34-45/120-123, 08:80-88, 10:60/107/292/592/600/671/908, 11:24/71-77.
   Genuine team-position statements such as 10:923 ("We SHOULD apply FP
   principles to our code") are acceptable and should be kept. Recommend a pass
   to convert general-behaviour "we" to impersonal or "you". [Judgment call —
-  user may set scope.]
+  user may set scope.] Resolved: 01/07/08 fixed to the representative lines
+  named above. For 10/11, user chose a full sweep rather than just the named
+  lines (10-functional-programming.adoc had ~50 "we"/"our" instances,
+  including tutorial-walkthrough narration not originally flagged); all
+  general-behaviour instances converted to impersonal/"you" phrasing across
+  both files, preserving the one genuine team-position exception verbatim
+  (10: "We SHOULD apply functional programming principles to our
+  JavaScript/TypeScript code").
 
-- [ ] 10:88-92 — the claim that `val1 === val2` "will always return `false`
+- [x] 10:88-92 — the claim that `val1 === val2` "will always return `false`
   because every value is guaranteed to exist in a different memory space" is
   muddled: it is true of any two distinct object references, not a consequence
-  of immutability. Reword for clarity.
+  of immutability. Reword for clarity. Fixed: reworded to state reference
+  equality directly, then explain why immutability makes that a useful change
+  check.
 
-- [ ] 05:99 — "you cannot import directories ... you MUST specify the `index.js`
+- [x] 05:99 — "you cannot import directories ... you MUST specify the `index.js`
   file name" overstates the case (ESM supports directory imports via package
   `exports`); the real point is that relative imports need explicit extensions.
-  Tighten.
+  Tighten. Fixed: reworded to state the actual point (ESM relative imports
+  don't auto-resolve to `index.js` the way CJS `require()` does). Also fixed
+  the same overstatement where it had been echoed into the new `AGENTS.md`.
 
-- [ ] 12-architecture-and-design.adoc:11 — "constructed using Domain-Driven
+- [x] 12-architecture-and-design.adoc:11 — "constructed using Domain-Driven
   Design (DDD) building methods" is awkward ("building methods"). Reword, e.g.
-  "built using Domain-Driven Design (DDD)".
+  "built using Domain-Driven Design (DDD)". Fixed.
 
-- [ ] 03-functions.adoc:17-24 — the example places `function fooBar () {}` and
+- [x] 03-functions.adoc:17-24 — the example places `function fooBar () {}` and
   `const fooBar = () => {}` in one block; the `const` redeclares the
   function-declared `fooBar` (a `SyntaxError` if run as one snippet). Split into
-  two blocks or rename one identifier.
+  two blocks or rename one identifier. Fixed: renamed the second identifier to
+  `bazQux`.
 
-- [ ] 01:368-370 — prose says guard `for...in` with "hasOwnProperty" but the
+- [x] 01:368-370 — prose says guard `for...in` with "hasOwnProperty" but the
   example uses `Object.hasOwn`. Use the same identifier in prose and code
-  (`Object.hasOwn` is the current API).
+  (`Object.hasOwn` is the current API). Fixed.
+
+## 8. Regression found during Tier 4 re-read
+
+- [x] While re-reading 11-runtimes.adoc for the "we/our" pass, found the Tier 3
+  fix for pinned Node versions (§4 above) was incomplete: two spots still
+  pinned literal version numbers/codenames — a dated "in February 2022 ...
+  v17 ..." example, the "Dubnium"/"Hydrogen" codename example
+  (`v10.13.0`/`v18.12.0`), and a duplicate `.Example` JSON block
+  (`^14.15.0 || ...`) that just repeated the placeholder example above it with
+  real numbers. All three directly violated the style-guide rule Tier 3 itself
+  introduced, and Tier 3's own verification pass hadn't caught them. Fixed:
+  removed the dated example and codename illustration, deleted the duplicate
+  `.Example` block, and cleaned up stray blank lines left over from the Tier 3
+  edit.
