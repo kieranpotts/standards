@@ -24,7 +24,15 @@ cross-references.
   contradictions + 4 factual). Tier 2 (Coherence) applied and verified — 3 items
   resolved (private-members duplication confirmed already cross-referenced; Date
   and Decorators left in place by user decision), 1 deferred to Tier 4 (recurring
-  short titles). Tiers 3–4 open. No tiers committed yet.
+  short titles). Tier 3 (Completeness) applied and verified — 2 items resolved
+  (Node version examples generalized to placeholder notation across 5 spots in
+  11-runtimes.adoc and 3 spots in 06-packages-and-tooling.adoc — the latter two
+  weren't separately named in the original item but shared the identical defect;
+  TypeScript minimum-version floor dropped in favour of the existing
+  always-upgrade policy). A new style-guide rule was added (`docs/style-guide.md`
+  §Conventions) prohibiting pinned real version numbers of fast-moving tools in
+  illustrative examples, to prevent recurrence repo-wide. Tier 4 open. No tiers
+  committed yet.
 
 ## Priority order
 
@@ -155,15 +163,28 @@ cross-references.
 
 ## 4. Coverage gaps
 
-- [ ] 11-runtimes.adoc:11-14, 42-43, 29-37, 83 and 06:84 give concrete Node
+- [x] 11-runtimes.adoc:11-14, 42-43, 29-37, 83 and 06:84 gave concrete Node
   version examples dated 2022-2023 referencing Node 10/12/14/16/18, all EOL by
-  2026. The "support the three active/maintenance LTS" policy is sound; the
-  concrete numbers are stale. [User decision: update to current LTS or
-  generalise the examples.]
+  2026. [User decision: generalise, and capture the policy in the style guide.]
+  Fixed: all five spots in 11-runtimes.adoc rewritten to state the release
+  policy in prose (current = odd major above active LTS; maintenance = the two
+  even majors before it) with `engines` JSON examples using angle-bracket
+  placeholders (`^<active-lts>.x.x`, etc.) instead of literal versions; the
+  Dubnium–Hydrogen codename/patch-version list replaced with a generic
+  statement that each major's LTS start is a specific patch, not `.0.0`,
+  documented in that major's own changelog. The same defect also existed at
+  06:670 and 06:719 (not separately named in this item) and was fixed
+  identically. Added a new rule to `docs/style-guide.md` (§Conventions):
+  illustrative examples MUST NOT pin real version numbers of fast-moving tools
+  where the point is a policy/pattern, not a testable requirement — use
+  placeholder notation instead.
 
-- [ ] 08-typescript.adoc:88 sets "The minimum supported TypeScript version is
-  4.5.0" (from 2021), stale for a 2026 standard. [User decision: bump or
-  reword.]
+- [x] 08-typescript.adoc:88 set "The minimum supported TypeScript version is
+  4.5.0" (from 2021), stale for a 2026 standard. [User decision: drop the
+  floor, keep the policy.] Fixed: removed the numeric floor; reworded to "No
+  specific minimum version is mandated; a recent, actively-supported release
+  SHOULD always be used," consistent with the section's existing
+  always-upgrade-to-latest policy.
 
 ## 5. Convention conformance
 
