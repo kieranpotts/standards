@@ -549,6 +549,70 @@ server. Where the cost of many separate module requests outweighs the benefit,
 modules MAY be bundled for delivery to the browser using an ESM-compatible
 bundler.
 
+=== No inline scripts
+
+All JavaScript MUST live in `.js` files loaded via `<script type="module">`
+(or a bundler output), not inline in HTML. Inline `<script>...</script>` blocks
+and inline event handlers (`onclick`, `onload`, and similar HTML `on*`
+attributes) MUST NOT be used. Inlining imperative logic in HTML makes it harder
+to test, harder to reuse across pages, and impossible to lint or cache
+independently. Keep HTML declarative and JavaScript imperative: the HTML
+describes *what* the page contains, the scripts describe *how* it behaves.
+
+This rule is what makes the ES-modules-only stance above load-bearing on the
+web: there is no second, inline channel for JavaScript to reach the page.
+
+=== Passing server data to client scripts
+
+A common anti-pattern is to inject server-side data into the page via an inline
+`<script>` that assigns to a global:
+
+[source,html]
+----
+<script>window.userData = { email: 'john@example.com', id: 9283 }</script>
+----
+
+This reintroduces both inline scripts and global state, which this standard
+prohibits. Server-rendered data MUST instead be passed to client scripts
+through the HTML itself, in one of two ways.
+
+For data consumed by a single component, embed it in the component's markup as
+a `data-*` attribute and let the behavior read it:
+
+[source,html]
+----
+<div class="user-info" data-user-info='{"email":"john@example.com","id":9283}'>
+</div>
+----
+
+[source,javascript]
+----
+const el = document.querySelector('[data-user-info]')
+const data = JSON.parse(el.dataset.userInfo)
+----
+
+For data shared across multiple components, emit it as `<meta>` tags in the
+document `<head>` and read them with a small helper:
+
+[source,html]
+----
+<meta name="app:user-data:email" content="john@example.com">
+<meta name="app:user-data:id" content="9283">
+----
+
+[source,javascript]
+----
+function getMeta (name) {
+  const el = document.querySelector(`meta[name="${CSS.escape(name)}"]`)
+  return el?.content
+}
+
+getMeta('app:user-data:email') // 'john@example.com'
+----
+
+This keeps the HTML declarative and the JS imperative, and it avoids both
+inline scripts and global variables.
+
 == Dynamic imports and code splitting
 
 Static `import` declarations are evaluated at compile time, which enables static

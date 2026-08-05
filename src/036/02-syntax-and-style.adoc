@@ -143,6 +143,22 @@ inviting naming collisions and unpredictable behavior. All variables used inside
 a function MUST be either passed as arguments or declared within the function –
 a function SHOULD NOT read or mutate variables from an outer (non-module) scope.
 
+Where a global is genuinely unavoidable – typically when integrating with a host
+page that is not an ES module – confine all public identifiers to a single
+namespace object on the global object rather than scattering many globals:
+
+[source,javascript]
+----
+globalThis.App = globalThis.App ?? {}
+
+App.formatError = function (err) {
+  return `${err.project_id} error: ${err.message}`
+}
+----
+
+This keeps the global surface to one name and groups related functionality. It
+is a fallback for legacy integration only, not a substitute for ES modules.
+
 `this` is a binding created at call time that refers to the current execution
 context. It is not necessarily the object in which a function was defined – the
 same function can be called against different objects, and `this` changes
