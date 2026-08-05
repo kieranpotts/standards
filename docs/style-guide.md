@@ -196,3 +196,12 @@ Named published standards MUST be cited with a version, and with a conformance
 level where the standard defines one: "WCAG 2.2 Level AA", not "accessible";
 TLS 1.3, not SSL/TLS. A standard named without a version is not a testable
 threshold, and it ages badly.
+
+Illustrative examples MUST NOT pin a real version number of a fast-moving tool
+or runtime (Node.js, npm, TypeScript, etc.) where the point being made is a
+policy or pattern, not a testable version requirement. State the policy in
+prose (e.g. "the two most recent maintenance LTS releases") and use
+placeholder notation (`<placeholder>`) for any version numbers in the
+accompanying code example, so the standard does not need re-editing every time
+the ecosystem moves on. This does not apply to a version cited as an actual
+testable requirement (per the rule above), which MUST be a real number.
