@@ -6,10 +6,7 @@ description: >-
   to "deep dive TS-N", "review TS-N thoroughly", or to continue an existing
   review from its TODO.md.
 compatibility: requires Read, Write, Edit, Bash (grep/git/python3)
-license: MIT
-metadata:
-  interactive: yes
-  preferred_model: ollama/ANALYSIS_DEEP
+license: CC0-1.0
 ---
 
 # Deep dive

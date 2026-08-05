@@ -7,7 +7,7 @@ description: >-
   for gaps with <file>", or "gap-check TS-<N> against the directory of vendor
   docs in <path>."
 compatibility: requires Read, Write, Edit, WebFetch, Bash (grep/find), Agent
-license: CC0
+license: CC0-1.0
 ---
 
 # Gap analysis
@@ -27,8 +27,11 @@ the standard does not, never the reverse.
 
 - **Reference resources — REQUIRED.** A web URL, a local file, or a local
   directory. If a directory, recurse through every Markdown, AsciiDoc, and
-  other plain-text files within it — treat each as a reference resource.
-  Treat `.URL` files as web resources — follow their `URL=` path.
+  other plain-text files within it and its sub-directories. It is RECOMMENDED
+  to use a shell command like `cat` to traverse directories, in case they are
+  Git-ignored (which will prevent them being accessible to you via your file
+  tools). Treat each found text file as a reference resource. Treat `.URL` files
+  as web resources — follow their `URL=` path.
 
 Prompt the user for clarification if either is ambiguous.
 

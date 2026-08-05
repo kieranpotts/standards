@@ -5,10 +5,7 @@ description: >-
   relative paths) between technical standards. Use when asked to
   "fix references in TS-N" or "fix all broken cross-references".
 compatibility: requires Read, Write, Edit, Bash (grep/find)
-license: MIT
-metadata:
-  interactive: no
-  preferred_model: ollama/WORKFLOW_BASIC
+license: CC0-1.0
 ---
 
 # Fix cross-references

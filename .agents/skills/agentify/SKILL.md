@@ -5,10 +5,7 @@ description:
   token-efficient AGENTS.md for AI agent consumption. Use when asked to
   "agentify TS-<N>" or to create/update an AGENTS.md for a technical standard.
 compatibility: requires Read, Write, Edit, Bash (grep/find)
-license: MIT
-metadata:
-  interactive: no
-  preferred_model: ollama/PROSE_STANDARD
+license: CC0-1.0
 ---
 
 # Agentify
