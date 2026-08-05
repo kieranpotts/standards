@@ -21,6 +21,17 @@ following reference resources:
   (Rauschmayer, 2ality — "TypeScript and native ESM on Node.js"; archived copy)
 - https://medium.com/cameron-nokes/the-30-second-guide-to-publishing-a-typescript-package-to-npm-89d93ff7bccd
   (Nokes — "The 30-second guide to publishing a TypeScript package to NPM")
+- https://dev.to/yugjadvani/how-to-write-better-typescript-code-best-practices-for-clean-effective-and-scalable-code-38d2
+  (Jadvani — "How to Write Better TypeScript Code")
+- https://github.com/airbnb/javascript (Airbnb — *Airbnb JavaScript Style Guide*; the
+  main guide only — the React and CSS-in-JavaScript companion guides are
+  out-of-scope for TS-36)
+- https://deno.com/blog/document-javascript-package (Deno — "How to document
+  your JavaScript package", a JSDoc best-practices guide for package authors)
+- https://github.com/nodeshift/nodejs-reference-architecture/blob/main/docs/functional-components/webframework.md
+  (nodeshift — Node.js reference architecture, "Web Framework" page)
+- https://www.linkedin.com/posts/progressivethinker_javascript-frontend-technology-activity-7274626911429967872-3_2G/
+  (Ahuja — "JavaScript Array Methods" cheatsheet)
 
 **Assessment (rsjs).** RSJS is a guide for structuring JavaScript in *non-SPA,
 server-rendered web applications* — component behaviors bound to DOM
@@ -128,7 +139,77 @@ tsconfig gap), the rule that public-facing types must be exported, the
 `prepublish`/`prepare` lifecycle hook, and `npm link` as a verification
 alternative. The `npm init`/`tsc --init` scaffolding tips are out-of-scope.
 
-**Status:** Re-run, 2026-08-05.
+**Assessment (dev.to — Jadvani, "How to Write Better TypeScript Code").** A
+beginner-level list of 10 TypeScript tips (strict tsconfig options, interface
+vs type, unknown over any, readonly, utility types, explicit return types,
+null/undefined handling, enums, never for exhaustive checks, pure functions).
+It is within TS-36's scope (TypeScript) but narrower than TS-36's TypeScript
+section where they overlap (non-null assertions, possibly-undefined handling,
+declaration files, decorators — TS-36 covers each more deeply). TS-36's
+null/undefined and pure-function tips are already covered. The gaps are the
+TypeScript features TS-36 does not address at all: the `interface` vs `type`
+distinction, the `readonly` modifier, built-in utility types (`Partial`/`Pick`/
+`Omit`), enums (and the `as const` alternative the comments recommend), and
+`never` for exhaustive checks. The strict-tsconfig-options tip overlaps the
+existing 2ality `tsconfig` gap. The explicit-return-types tip is recorded but
+noted as contested — the article's own commenters disagree.
+
+**Assessment (Airbnb JavaScript Style Guide).** A comprehensive, widely-cited
+JS coding-conventions guide covering types, references, objects, arrays,
+destructuring, strings, functions, arrow functions, classes, modules,
+iterators/generators, properties, variables, hoisting, equality, blocks,
+control statements, comments, whitespace, commas, semicolons, coercion,
+naming, accessors, events, jQuery, ES6+ styles, standard library, testing, and
+performance. It is the same scope as TS-36, and the great majority of its rules
+are already covered by TS-36 (often with TS-36 taking the more modern position).
+Three deliberate conflicts are NOT recorded as gaps — they are disagreements,
+not omissions: Airbnb says omit filename extensions in imports (10.10) while
+TS-36 requires them; Airbnb says prefer default exports (10.6) while TS-36 calls
+default exports bad practice; Airbnb uses camelCase for variables while TS-36
+mandates `lower_case` (snake_case). The genuine gaps are the distinctive Airbnb
+rules TS-36 does not address: `Number.isNaN`/`Number.isFinite` over their global
+counterparts (standard library), the rule against TC39 proposals below stage 3,
+the rule against `++`/`--`, acronym/initialism casing in identifiers, generator
+guidance, mutable-export bindings, and the accessor pattern (prefer
+`getVal()`/`setVal()` functions over getter/setter syntax). The jQuery and
+Events sections are out-of-scope (DOM/jQuery, delegated to TS-37), and the
+Performance section is out-of-scope (engine micro-optimization).
+
+**Assessment (deno.com — "How to document your JavaScript package").** A JSDoc
+best-practices guide for package authors (summaries, type info, tags, examples,
+what to document, markdown, internal linking, keeping docs current, auditing).
+It is squarely within TS-36's JSDoc/TSDoc scope, and TS-36's JSDoc section is in
+many ways more prescriptive (a fuller tag list, type syntax, function/class
+rules, file-level docblocks, release-stage tags, VS Code integration). The gaps
+are refinements TS-36 omits: the `@module` tag for multi-module packages (not in
+TS-36's tag list), `@linkcode`/`@linkplain` inline link tags, the
+first-paragraph-as-summary emphasis for IDE tooltips, the requirement to
+document each property/method of interfaces and classes, markdown features
+beyond TS-36's narrow permitted list (headings, lists, blockquotes,
+`[!IMPORTANT]`), and the `@example` title/description convention. The
+Deno-specific audit tooling (`deno doc --lint`, `deno test --doc`) and the
+docs-driven-development process recommendation are out-of-scope (runtime-specific
+tooling and workflow, not coding conventions).
+
+**Assessment (nodeshift nodejs-reference-architecture — "Web Framework").** A
+Node.js reference-architecture page recommending Express 4.x with `~4.x.y`
+version pinning, separate business/admin ports, liveness/readiness endpoints,
+global middleware before routes, Helmet, `--max-http-header-size`, and a
+`"test"` npm script. It is entirely application-level Node.js architecture, which
+TS-36 explicitly delegates to TS-38 (Node.js Applications) — see
+`src/036/AGENTS.md:696`. The `"test"` npm script convention is already covered
+by TS-36's manifest templates (`src/036/06-packages-and-tooling.adoc:683`,
+`:757`, `:786`). Every other item is out-of-scope for TS-36.
+
+**Assessment (LinkedIn — Ahuja, "JavaScript Array Methods").** A beginner
+cheatsheet of seven array methods (`map`, `filter`, `find`, `findIndex`,
+`fill`, `some`, `every`). It is narrower than TS-36 in every area it touches —
+TS-36's functional-programming section covers array iteration methods and
+immutability more deeply. Per the "reference narrower than the standard" edge
+case, no gaps.
+
+**Status:** Re-run, 2026-08-05 (updated with five additional reference
+resources from GitHub issue #54).
   - rsjs: all four in-scope gaps (2 missing, 2 partial) have been addressed in
     the standard and are checked off below. The 15 web-client out-of-scope
     items have been relocated to `src/018/GAPS.md` (TS-18: Web GUIs) at the
@@ -150,6 +231,28 @@ alternative. The `npm init`/`tsc --init` scaffolding tips are out-of-scope.
   - Nokes publishing-a-TypeScript-package: first run against this reference.
     3 missing and 2 partial gaps identified below; all open. 1 out-of-scope
     item (scaffolding commands) grouped under Out-of-scope.
+  - rsjs: re-verified — all 4 in-scope gaps (2 missing, 2 partial) remain
+    addressed (confirmed present in the standard: "No inline scripts" and
+    "Passing server data to client scripts" in `src/036/05-modules.adoc:552`,
+    `:565`; vendor-bundle separation in `src/036/06-packages-and-tooling.adoc:879`;
+    `globalThis.App` legacy namespace in `src/036/02-syntax-and-style.adoc:148`).
+  - dev.to Jadvani TypeScript tips: first run against this reference. 6 missing
+    and 2 partial gaps identified below; all open. The strict-options tip
+    overlaps the existing 2ality `tsconfig` gap.
+  - Airbnb JavaScript Style Guide: first run against this reference. 6 missing
+    and 1 partial gaps identified below; all open. 3 conflicts with TS-36 noted
+    in the assessment (not recorded as gaps). jQuery, Events, and Performance
+    sections out-of-scope.
+  - deno.com JSDoc guide: first run against this reference. 1 missing and 5
+    partial gaps identified below; all open. 2 out-of-scope items (Deno tooling,
+    docs-driven-dev process) grouped under Out-of-scope.
+  - nodeshift webframework: first run against this reference. 0 missing, 0
+    partial; all items out-of-scope (Node.js app architecture, delegated to
+    TS-38); the `"test"` script convention is already covered by TS-36.
+  - LinkedIn array-methods cheatsheet: first run. 0 gaps (reference narrower
+    than the standard).
+  - The standard's `.adoc` files were not modified between the prior run and
+    this one, so all previously-open gaps remain open unchanged.
 
 ## Missing
 
@@ -379,6 +482,110 @@ alternative. The `npm init`/`tsc --init` scaffolding tips are out-of-scope.
       packages" (`src/036/06-packages-and-tooling.adoc:465`) or the `scripts`
       subsection on using `prepare`/`prepublishOnly` to compile before
       publishing.
+
+- [ ] https://github.com/airbnb/javascript#standard-library--isnan (rules 29.1–29.2)
+      — use `Number.isNaN` over the global `isNaN`, and `Number.isFinite` over
+      the global `isFinite`, because the global forms coerce non-numbers to
+      numbers and return misleading results. TS-36's coercion section
+      (`src/036/01-language-fundamentals.adoc:144`) covers
+      `Number()`/`String()`/`Boolean()` but never mentions the
+      `Number.isNaN`/`Number.isFinite` vs global `isNaN`/`isFinite` distinction;
+      TS-36 itself uses the global `isNaN(date.getTime())` at
+      `src/036/11-runtimes.adoc:231`, exactly the pattern Airbnb warns against.
+      Recommend a new "Standard library" note under "Types and coercion"
+      (`src/036/01-language-fundamentals.adoc:144`).
+
+- [ ] https://github.com/airbnb/javascript#tc39-proposals (rule 28.2) — do not
+      use TC39 proposals that have not reached stage 3 (they are not finalized
+      and may change or be withdrawn). TS-36 has no rule restricting the use of
+      non-standardized language features. Recommend a clause in "Using a subset
+      of TypeScript" (`src/036/08-typescript.adoc:78`) or a new note in
+      `src/036/01-language-fundamentals.adoc`.
+
+- [ ] https://github.com/airbnb/javascript#variables--unary-increment-decrement
+      (rule 13.6) — avoid unary `++`/`--`, use `+= 1`/`-= 1` instead (ASI
+      footguns, more expressive mutation). TS-36 has no such rule and in fact
+      uses `i++` in for-loop examples (`src/036/01-language-fundamentals.adoc:366`,
+      `src/036/03-functions.adoc:140`, `src/036/10-functional-programming.adoc:136`).
+      Missing — note the conflict with existing examples. (Scope call: flagged
+      for user confirmation — TS-36's examples endorse `++`.) Recommend a
+      clause in "Statements, control flow" (`src/036/01-language-fundamentals.adoc`).
+
+- [ ] https://github.com/airbnb/javascript#naming--Acronyms-and-Initialisms
+      (rule 23.9) — acronyms and initialisms in identifiers SHOULD be
+      all-uppercase or all-lowercase (e.g. `SMSContainer`, not `SmsContainer`).
+      TS-36's naming section (`src/036/02-syntax-and-style.adoc:41`) covers
+      class/function/variable casing but not acronym casing. Recommend a
+      clause in "Naming conventions" (`src/036/02-syntax-and-style.adoc:41`).
+
+- [ ] https://github.com/airbnb/javascript#generators--nope (rules 11.2–11.3)
+      — generator function guidance. TS-36 has no generator/`yield` guidance at
+      all. Airbnb's rationale ("don't use generators — they don't transpile well
+      to ES5", rule 11.2) is dated: ES5 transpilation is no longer a concern and
+      generators are standard ES6, so TS-36's "use standard ECMAScript syntax"
+      stance would not prohibit them. Missing, but flagged as borderline — the
+      Airbnb rationale is obsolete; the only durable content is the `function*`
+      spacing rule (11.3). (Scope call: user may consider this out-of-scope.)
+      Recommend, if added, a brief note in "Functions" (`src/036/03-functions.adoc`)
+      confirming generators are standard and the `function*` spacing convention.
+
+- [ ] https://github.com/airbnb/javascript#modules--no-mutable-exports
+      (rule 10.5) — do not export mutable bindings (`let`); export `const`
+      references only. TS-36's modules section (`src/036/05-modules.adoc`)
+      covers named/default exports and its FP section covers immutability
+      generally, but neither addresses the specific rule against exporting
+      mutable bindings. Recommend a clause in "Named exports"
+      (`src/036/05-modules.adoc:289`).
+
+- [ ] https://dev.to/yugjadvani/how-to-write-better-typescript-code-best-practices-for-clean-effective-and-scalable-code-38d2#use-types-and-interfaces-wisely
+      (tip #2) — when to use `interface` (extensible object shapes, declaration
+      merging) vs `type` alias (unions, intersections, complex compositions).
+      TS-36's TypeScript section (`src/036/08-typescript.adoc`) uses `interface`
+      in examples (`:181`) but never discusses when to prefer `interface` over
+      `type`. Recommend a clause in "TypeScript" (`src/036/08-typescript.adoc`).
+
+- [ ] https://dev.to/yugjadvani/how-to-write-better-typescript-code-best-practices-for-clean-effective-and-scalable-code-38d2#use-readonly-and-immutable-types-for-safety
+      (tip #4) — the `readonly` modifier for properties/parameters to prevent
+      accidental mutation at the type level. TS-36 covers immutability via
+      `Object.freeze` (FP section) but never mentions TypeScript's `readonly`
+      modifier. Recommend a clause in "TypeScript" (`src/036/08-typescript.adoc`).
+
+- [ ] https://dev.to/yugjadvani/how-to-write-better-typescript-code-best-practices-for-clean-effective-and-scalable-code-38d2#5-define-utility-types-for-reusability
+      (tip #5) — TypeScript's built-in utility types (`Partial`, `Pick`, `Omit`,
+      `Readonly`, `Record`, etc.) for deriving variants without repeating
+      definitions. TS-36 does not mention utility types. Recommend a clause in
+      "TypeScript" (`src/036/08-typescript.adoc`).
+
+- [ ] https://dev.to/yugjadvani/how-to-write-better-typescript-code-best-practices-for-clean-effective-and-scalable-code-38d2#8-utilize-enum-for-meaningful-values
+      (tip #8 + comments) — enums, and the community recommendation (in the
+      article's comments) to prefer `as const` objects + `keyof` over TypeScript
+      enums. TS-36 does not mention enums at all, nor the controversy. Recommend
+      a clause in "TypeScript" (`src/036/08-typescript.adoc`) covering the
+      `as const` alternative.
+
+- [ ] https://dev.to/yugjadvani/how-to-write-better-typescript-code-best-practices-for-clean-effective-and-scalable-code-38d2#9-use-never-for-exhaustive-checks
+      (tip #9) — the `never` type as an exhaustiveness-checking tool in `switch`
+      statements over union types, so adding a new case without handling it is a
+      compile error. TS-36 does not cover `never`. Recommend a clause in
+      "TypeScript" (`src/036/08-typescript.adoc`).
+
+- [ ] https://dev.to/yugjadvani/how-to-write-better-typescript-code-best-practices-for-clean-effective-and-scalable-code-38d2#6-define-return-types-explicitly
+      (tip #6) — whether to annotate function return types explicitly. TS-36
+      does not address this. The article recommends always specifying them; its
+      commenters disagree (prefer inference except for overloads or drift-prone
+      functions). Missing/borderline — the community is split. (Scope call:
+      flagged for user confirmation.) Recommend a clause in "TypeScript"
+      (`src/036/08-typescript.adoc`) if the maintainers want a position.
+
+- [ ] https://deno.com/blog/document-javascript-package#but-what-should-i-document
+      — the `@module` JSDoc tag for packages that expose multiple modules, used
+      in a file-level docblock to provide a module description and examples.
+      TS-36's JSDoc tag list (`src/036/AGENTS.md:208`) omits `@module`, and its
+      file-level-docblock rule (`src/036/AGENTS.md:246`) says
+      `@file`/`@fileOverview` are not used (leading prose is the description) but
+      does not mention `@module` for multi-module packages. Recommend adding
+      `@module` to the tag list and a note in the file-level-docblock rule
+      (`src/036/02-syntax-and-style.adoc`, JSDoc section).
 
 ## Partial
 
@@ -616,6 +823,90 @@ alternative. The `npm init`/`tsc --init` scaffolding tips are out-of-scope.
       "Distributing packages" (`src/036/06-packages-and-tooling.adoc:465`)
       mentioning `npm link` for rapid local iteration.
 
+- [ ] https://github.com/airbnb/javascript#accessors--no-getters-setters
+      (rules 24.2–24.4) — prefer `getVal()`/`setVal()` functions over JavaScript
+      getter/setter syntax (getters/setters cause unexpected side effects and are
+      harder to test); boolean accessors use `isVal()`/`hasVal()`; be consistent.
+      TS-36 mentions named accessor properties descriptively
+      (`src/036/04-objects-and-classes.adoc:42`) and mandates boolean methods
+      read as assertions (`isEmpty()`, `src/036/02-syntax-and-style.adoc:80`), and
+      notes consistent getter/setter naming
+      (`src/036/12-architecture-and-design.adoc:22`). What TS-36 omits: the
+      prescriptive rule to prefer `getVal()`/`setVal()` functions over getter/setter
+      syntax. Partial rather than missing because TS-36 covers boolean naming and
+      accessor existence. Recommend a clause in "Objects and classes"
+      (`src/036/04-objects-and-classes.adoc`).
+
+- [ ] https://dev.to/yugjadvani/how-to-write-better-typescript-code-best-practices-for-clean-effective-and-scalable-code-38d2#3-prefer-unknown-over-any
+      (tip #3) — prefer `unknown` over `any` for uncertain types, because `unknown`
+      forces narrowing before use while `any` disables the type checker. TS-36's
+      non-null assertion section mentions `any`/`unknown` as alternatives
+      (`src/036/08-typescript.adoc:112`) and the JSDoc rule says `any` SHOULD be
+      avoided (`src/036/AGENTS.md:219`), but never states the "prefer `unknown`
+      over `any`" rule with its rationale. Partial rather than missing because
+      both types are named in passing. Recommend a clause in "TypeScript"
+      (`src/036/08-typescript.adoc:112`).
+
+- [ ] https://dev.to/yugjadvani/how-to-write-better-typescript-code-best-practices-for-clean-effective-and-scalable-code-38d2#1-leverage-strict-typing-options
+      (tip #1),
+      https://web.archive.org/web/20260305114536/https://2ality.com/2021/06/typescript-esm-nodejs.html#the-basics
+      — the granular strict-mode `tsconfig.json` options (`noImplicitAny`,
+      `strictNullChecks`, `strictFunctionTypes`) recommended in addition to
+      `"strict": true`. TS-36 mentions `strictNullChecks` only in a NOTE as
+      something that can be switched off (`src/036/08-typescript.adoc:120`); it
+      never recommends enabling strict mode or its sub-options. This overlaps the
+      existing 2ality `tsconfig` gap (see Missing above) which covers `strict`
+      broadly; the dev.to article reinforces it with the specific recommended
+      sub-options. Partial rather than missing because `strictNullChecks` is
+      named (in passing). Recommend coverage in the new
+      TypeScript-compiler-configuration subsection proposed by the 2ality gap
+      (`src/036/08-typescript.adoc`).
+
+- [ ] https://deno.com/blog/document-javascript-package#link-internally-to-other-parts-of-your-documentation
+      — the `@linkcode` and `@linkplain` inline link tags (variants of `@link`
+      that render as inline code / plain links). TS-36's JSDoc tag list includes
+      `@link` (inline) but not `@linkcode` or `@linkplain`
+      (`src/036/AGENTS.md:208`). Partial rather than missing because `@link` is
+      covered. Recommend adding `@linkcode`/`@linkplain` to the tag list.
+
+- [ ] https://deno.com/blog/document-javascript-package#a-brief-intro-to-jsdoc
+      — the first paragraph of a JSDoc comment is the symbol's summary, shown in
+      IDE tooltips, auto-complete, and search, and is the most important
+      paragraph. TS-36 says descriptions are optional and written on the
+      docblock's first line (`src/036/AGENTS.md:204`) but does not emphasize the
+      first-paragraph-as-summary's role in tooltips/autocomplete or its primacy.
+      Partial rather than missing because the first-line description rule exists.
+      Recommend a clause in the JSDoc "Descriptions" rule
+      (`src/036/02-syntax-and-style.adoc`, JSDoc section).
+
+- [ ] https://deno.com/blog/document-javascript-package#but-what-should-i-document
+      — the rule to document every exported symbol's members: each property and
+      method of a class or interface, not just the symbol itself. TS-36 mandates
+      exported symbols have `@type` (`src/036/AGENTS.md:237`) and classes have
+      class-level docblocks + constructor params (`src/036/AGENTS.md:240`), but
+      does not explicitly require documenting each property/method of an interface
+      or each method/property of a class. Partial rather than missing because
+      class-level and constructor documentation is covered. Recommend extending
+      the JSDoc "Classes"/exported-types rules (`src/036/02-syntax-and-style.adoc`,
+      JSDoc section).
+
+- [ ] https://deno.com/blog/document-javascript-package#use-markdown-for-a-better-documentation-experience
+      — markdown features in JSDoc beyond TS-36's narrow permitted list: section
+      headings (`#`), bullet lists (`-`), blockquotes (`>`), and `[!IMPORTANT]`
+      callouts. TS-36 permits "backticks, `*bold*`, `_italic_`, `[text](url)`"
+      (`src/036/AGENTS.md:206`). Partial rather than missing because a markdown
+      subset is permitted. Recommend extending the markdown list in the JSDoc
+      "Descriptions" rule.
+
+- [ ] https://deno.com/blog/document-javascript-package#add-examples-to-jsdoc
+      — the `@example` title/description convention: text immediately after
+      `@example` serves as the example title, and text beneath the code block
+      becomes its description (rendered in generated docs). TS-36 requires
+      `@example` be correct and executable in isolation (`src/036/AGENTS.md:256`)
+      but does not describe the title/description sub-syntax. Partial rather than
+      missing because the `@example` correctness rule exists. Recommend a clause
+      in the `@example` rule (`src/036/02-syntax-and-style.adoc`, JSDoc section).
+
 ## Out-of-scope
 
 The 15 web-client/DOM out-of-scope items from the initial run (component
@@ -749,6 +1040,49 @@ TS-37. They have been re-classified against TS-18's scope there (10 missing,
       out-of-scope: these are getting-started workflow tips, not coding
       conventions. No plausible home within TS-36.
 
+- [ ] https://github.com/airbnb/javascript#events (rule 25.1) — pass an object
+      literal ("hash") rather than a raw value as an event payload, so subsequent
+      contributors can add fields without updating every handler. Flagged
+      out-of-scope: DOM/Backbone event conventions belong in TS-37 (Web Platform
+      APIs) or TS-18 (Web GUIs), which TS-36 delegates browser/DOM guidance to.
+      (The underlying "prefer structured payloads" principle is already covered
+      by TS-36's API-consistency rule, `src/036/12-architecture-and-design.adoc`.)
+
+- [ ] https://github.com/airbnb/javascript#jquery (rules 26.1–26.4) — jQuery
+      `$`-prefix convention, lookup caching, and scoped `find` queries. Flagged
+      out-of-scope: jQuery is a legacy DOM library; TS-36 delegates browser/DOM
+      guidance to TS-37.
+
+- [ ] https://github.com/airbnb/javascript#ecmascript-5-compatibility (rule 27.1)
+      and `#performance` — ES5 compatibility-table references and the
+      performance-links section. Flagged out-of-scope: ES5 transpilation is
+      obsolete, and performance micro-optimization is out-of-scope per TS-36's
+      "don't over-optimize early" stance (`src/036/AGENTS.md:762`).
+
+- [ ] https://deno.com/blog/document-javascript-package#audit-your-jsdoc —
+      Deno-specific JSDoc audit tooling: `deno doc`, `deno doc --lint`,
+      `deno test --doc`, and the `jsdoc` CLI. Flagged out-of-scope: these are
+      Deno-runtime-specific (or generic) CLI tools, not ECMAScript coding
+      conventions. Plausible home if kept: none within TS-36 (a tooling/CI
+      standard if anywhere).
+
+- [ ] https://deno.com/blog/document-javascript-package#keep-jsdoc-up-to-date-with-code-changes
+      — docs-driven development as a process for keeping JSDoc current, and
+      `deno test --doc` for type-checking doc examples. Flagged out-of-scope: a
+      workflow/process recommendation, not a coding convention.
+
+- [ ] https://github.com/nodeshift/nodejs-reference-architecture/blob/main/docs/functional-components/webframework.md
+      — the entire page (Express 4.x recommendation with `~4.x.y` version
+      pinning; separate business/admin ports via `PORT`/`ADMIN_PORT` env vars;
+      liveness/readiness endpoints; global middleware before routes; Helmet for
+      HTTP headers; `--max-http-header-size`/`NODE_OPTIONS`; testability via
+      component/route decomposition). Flagged out-of-scope: this is Node.js
+      application architecture, which TS-36 explicitly delegates to TS-38 (Node.js
+      Applications) — see `src/036/AGENTS.md:696`. The `"test"` npm script
+      convention is the only in-scope item and is already covered by TS-36's
+      manifest templates (`src/036/06-packages-and-tooling.adoc:683`, `:757`,
+      `:786`).
+
 ## Unresolved
 
 - https://www.sitepoint.com/premium/books/javascript-best-practice/read/2/
@@ -775,3 +1109,11 @@ TS-37. They have been re-classified against TS-18's scope there (10 missing,
 
 - https://medium.com/cameron-nokes/the-30-second-guide-to-publishing-a-typescript-package-to-npm-89d93ff7bccd
   was fetched successfully in full.
+
+- https://dev.to/yugjadvani/how-to-write-better-typescript-code-best-practices-for-clean-effective-and-scalable-code-38d2,
+  https://github.com/airbnb/javascript (raw README.md),
+  https://deno.com/blog/document-javascript-package,
+  https://github.com/nodeshift/nodejs-reference-architecture/blob/main/docs/functional-components/webframework.md,
+  and https://www.linkedin.com/posts/progressivethinker_javascript-frontend-technology-activity-7274626911429967872-3_2G/
+  were fetched successfully in full. The Airbnb React and CSS-in-JavaScript
+  companion guides were not fetched (out-of-scope for TS-36).
