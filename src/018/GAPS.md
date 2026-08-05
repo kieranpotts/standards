@@ -11,6 +11,9 @@ resources:
   - https://csswizardry.com/2019/08/time-to-first-byte-what-it-is-and-why-it-matters/
   - https://www.bramstein.com/writing/web-font-loading-patterns.html
   - https://w3ctag.github.io/design-principles/ — W3C TAG Web Platform Design Principles
+- https://ricostacruz.com/rsjs/ (rsjs — "Reasonable System for JavaScript
+  Structure"; relocated from TS-36's gap analysis as web-client JS-structure
+  material)
 
 **Assessment.** TS-18 is narrow: it covers three pillars — performance
 optimization, WCAG 2.2 accessibility at Level AA, and web font handling. The
@@ -27,8 +30,13 @@ reference that the standard does not address. Font coverage is otherwise
 strong; accessibility coverage is strong at the criterion level but thin on
 implementation guidance.
 
-**Status:** First run (2026-08-05). No gaps checked off yet. All items below
-are open.
+**Status:** Second run (2026-08-05). The RSJS reference was added this run
+  and its web-client JS-structure items were relocated here from TS-36's gap
+  analysis (at the maintainer's direction — web-client JS structure belongs in
+  TS-18 rather than TS-37). This effectively expands TS-18's scope beyond its
+  current three pillars; the architecture-leaning items also border on TS-5
+  (application architecture). Flagged for the maintainer to confirm the scope
+  expansion. No gaps checked off yet. All items below are open.
 
 ## Missing
 
@@ -55,6 +63,83 @@ are open.
 - [ ] https://www.bramstein.com/writing/web-font-loading-patterns.html#optimise-for-caching — the sessionStorage cache-state pattern: record that fonts have loaded so repeat page views render the custom font immediately (avoiding FOUT on navigation). Not addressed. Recommend a new subsection in `03-fonts.adoc` under "Loading strategy".
 
 - [ ] https://www.bramstein.com/writing/web-font-loading-patterns.html#basic-font-loading — JavaScript-based font loaders (e.g. Font Face Observer) and the patterns built on them (basic, grouped, timeout-raced loading). TS-18 relies entirely on native `font-display`/preload and does not cover JS loader patterns. Note these predate `font-display` and are largely superseded, but the reference presents them. Recommend a new subsection in `03-fonts.adoc` (flag as a legacy alternative).
+
+The following items were relocated from TS-36's gap analysis (rsjs). They are
+recorded as missing on the maintainer's scope call that web-client JS structure
+belongs in TS-18. They would all sit in a proposed new section/file
+(`05-javascript-behaviors.adoc` or similar), since TS-18 currently has no
+JavaScript-behavior content. The architecture-leaning ones also border on TS-5
+(application architecture) — flagged for the maintainer to confirm.
+
+Note: rsjs's event-delegation point (`#use-event-delegation`) is not
+re-listed here — it is already tracked as missing above (from the
+`web-clients` reference, performance angle).
+
+- [ ] https://ricostacruz.com/rsjs/#think-in-component-behaviors — the
+      "component behavior" pattern: a piece of JavaScript affects exactly one
+      DOM subtree (a component), kept in its own behavior file. TS-18 has no
+      guidance on how client-side JavaScript is organized around GUI
+      components. Recommend a new section (proposed
+      `05-javascript-behaviors.adoc`). Borders on TS-5 (application
+      architecture) — flagged.
+
+- [ ] https://ricostacruz.com/rsjs/#one-component-per-file — one self-contained
+      behavior file per component, kept in a `behaviors/` directory and named
+      after its selector. TS-18 does not address front-end behavior file
+      organization. Recommend a new section (proposed
+      `05-javascript-behaviors.adoc`). Borders on TS-5 — flagged.
+
+- [ ] https://ricostacruz.com/rsjs/#load-components-in-all-pages — the strategy
+      of concatenating all behaviors into one main bundle that is safe to load
+      on every page (because each behavior is localized to its selector), so
+      behaviors are reusable across pages without per-page script includes.
+      TS-18 does not address this loading strategy. Recommend a new section
+      (proposed `05-javascript-behaviors.adoc`); the performance angle also
+      touches `01-performance-optimization.adoc`. Borders on TS-5 — flagged.
+
+- [ ] https://ricostacruz.com/rsjs/#use-a-data-attribute — the convention of
+      marking components and their inner hooks with `data-js-___` attributes
+      (rather than classes or IDs) to disambiguate JavaScript hooks from CSS
+      styling hooks. TS-18 has no selector/hook convention guidance. Recommend
+      a new section (proposed `05-javascript-behaviors.adoc`).
+
+- [ ] https://ricostacruz.com/rsjs/#dont-overload-class-names — where classes
+      are used for JS hooks, prefix them with `js-` and do not attach JS
+      behaviors to classes that carry styles, so restyling does not break
+      behavior and the source of a behavior is obvious. TS-18 does not address
+      the JS/CSS hook separation. Recommend a new section (proposed
+      `05-javascript-behaviors.adoc`).
+
+- [ ] https://ricostacruz.com/rsjs/#use-document-ready — binding behaviors
+      inside the `DOMContentLoaded` (document-ready) handler so the target
+      element is guaranteed to exist. TS-18 has no DOM-lifecycle guidance for
+      behavior initialization. Recommend a new section (proposed
+      `05-javascript-behaviors.adoc`).
+
+- [ ] https://ricostacruz.com/rsjs/#avoid-side-effects — bailing out early
+      (e.g. `if (!$nav.length) return;`) when a behavior's target element is
+      absent from the page, so the behavior has no effect and throws no error
+      on pages that do not use it. TS-18 has no guidance on this DOM-presence
+      guard. Recommend a new section (proposed `05-javascript-behaviors.adoc`).
+
+- [ ] https://ricostacruz.com/rsjs/#dynamic-content — re-running behavior
+      initialization on dynamically-injected DOM (AJAX modals, etc.) with an
+      idempotent include-guard pattern so already-initialized elements are
+      skipped. TS-18 has no guidance on binding behaviors to dynamic content.
+      Recommend a new section (proposed `05-javascript-behaviors.adoc`).
+
+- [ ] https://ricostacruz.com/rsjs/#organize-your-helpers — placing
+      cross-behavior reusable functions in a `helpers/` directory and a shared
+      namespace. TS-18 does not address front-end utility organization.
+      Recommend a new section (proposed `05-javascript-behaviors.adoc`).
+      Borders on TS-5 — flagged.
+
+- [ ] https://ricostacruz.com/rsjs/#third-party-libraries — integrating
+      third-party scripts (select2, WOW.js, etc.) as component behaviors bound
+      to dedicated hooks, so they follow the same localization rules as
+      first-party behaviors. TS-18 has no guidance on third-party script
+      integration into the GUI. Recommend a new section (proposed
+      `05-javascript-behaviors.adoc`). Borders on TS-5 — flagged.
 
 ## Partial
 
@@ -119,6 +204,31 @@ are open.
 - [ ] https://w3ctag.github.io/design-principles/ — the W3C TAG Web Platform Design Principles (priority of constituencies, safe-to-visit, trusted UI, user activation, feature detectability, etc.). Out of scope: this document is aimed at designers of web-platform specifications/APIs, not at builders of web GUIs.
 
 - [ ] https://webstyleguide.com/ — Web Style Guide (Lynch & Horton) covers Strategy, Research, Process, Information Architecture, Site/Page Structure, Interface Design, Graphic Design, Typography, Editorial Style, Images, and Video. Out of scope: broader UI/usability guidance (TS-15). Only the table-of-contents page was retrievable; the per-chapter content was not fetched (see Unresolved).
+
+The following items were relocated from TS-36's gap analysis (rsjs). They are
+out-of-scope for TS-18 because they are library-specific, jQuery-specific, or
+dated tooling recipes rather than web-GUI design/implementation guidance.
+
+- [ ] https://ricostacruz.com/rsjs/#consider-using-onmount — recommending the
+      `onmount` library specifically is a library/tooling recommendation for
+      jQuery-era DOM lifecycles, outside TS-18's scope.
+
+- [ ] https://ricostacruz.com/rsjs/#use-each-when-needed — using `jQuery.each`
+      to initialize per-element state is a jQuery-specific pattern, outside
+      TS-18's scope.
+
+- [ ] https://ricostacruz.com/rsjs/#load-3rd-party-resources-asynchronously —
+      async-loading external vendor scripts (e.g. Google Maps) via a helper
+      that defers a global to a callback is a legacy pattern superseded by
+      dynamic `import()`. The script-loading-strategy gap is already tracked
+      above from the `web-clients` reference. Out of scope as a dated
+      technique.
+
+- [ ] https://ricostacruz.com/rsjs/#loading-component-files — the appendix
+      recipes for bulk-loading `behaviors/` via Rails Sprockets `require_tree`,
+      Browserify `require-globify`, Webpack `require.context`, and Brunch
+      `glob-brunch` are dated tooling recipes for concatenation pipelines,
+      outside TS-18's scope.
 
 ## Unresolved
 
