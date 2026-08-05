@@ -19,8 +19,8 @@ material, plus bookmarked external resources):
   https://painlesscss.com/top-10-css-mistakes.html ,
   http://vanseodesign.com/css/css-specificity-inheritance-cascaade/ .
 
-**Assessment.** The `__TODO__` directory is the author's own working material,
-so a large share of it (the `css2/` drafts and the `architecture.md` /
+**Assessment (run 1).** The `__TODO__` directory is the author's own working
+material, so a large share of it (the `css2/` drafts and the `architecture.md` /
 `introduction.md` / `principles.md` long-form drafts) is the source from which
 TS-40 was condensed and is already covered. The genuinely external resources
 (the two PDFs and the three bookmarked URLs) are broad general CSS references;
@@ -33,7 +33,67 @@ calculation, `@supports`, custom properties) and modern layout primitives
 (Flexbox, CSS Grid) that the standard — clearly written before they were
 ubiquitous — does not address.
 
-**Status:** First run. All gaps below are open. Date: 2026-08-05.
+### Run 2 — GitHub issue #64 reference resources
+
+A second run compared TS-40 against the four external CSS resources bookmarked in
+https://github.com/kieranpotts/standards/issues/64 :
+
+- https://cssguidelin.es/ — Harry Roberts, *CSS Guidelines*. A high-level advice
+  document covering syntax/formatting, commenting, naming (BEM-like), selectors,
+  specificity, and architectural principles (OOCSS, SRP, OCP, DRY, composition,
+  SoC).
+- https://github.com/anthonyshort/idiomatic-sass — Anthony Short, *Idiomatic
+  Sass*. OOP-Sass principles, BEM/Montage naming, and Sass-specific tooling
+  (modules, packages, mixins, load paths, Bower).
+- https://github.com/necolas/idiomatic-css — Nicolas Gallagher, *Idiomatic CSS*.
+  General principles, whitespace, comments, and ruleset formatting.
+- http://web.archive.org/web/20220227093948/http://rscss.io/ — Rico Sta. Cruz,
+  *rscss*. A component-based methodology: two-word component names, one-word
+  elements, dash-prefixed variants, nested-component rules, layouts, helpers.
+
+**Assessment (run 2).** These are methodology/style-guide resources, so they sit
+closer to TS-40's scope than run 1's general CSS references. Even so, most of
+their content is either already covered by TS-40 (often via a different but
+equivalent mechanism) or is explicitly out-of-scope:
+
+- cssguidelin.es' *Syntax and Formatting* and *Commenting* sections, all of
+  idiomatic-css, and the Sass-tooling half of idiomatic-sass (modules, packages,
+  mixins, functions, load paths) are excluded by `01-overview.adoc:95-99` and
+  the tooling/workflow exclusion at `01-overview.adoc:45-49`.
+- cssguidelin.es' *Selector Performance* mechanics (right-to-left matching, key
+  selector) and idiomatic-sass' performance notes are out-of-scope (performance
+  optimization/tooling, `01-overview.adoc:46-49`); cssguidelin.es itself states
+  selector performance "should be fairly low on your list of things to optimise."
+- The alternative *naming conventions* — BEM `__`/`--` syntax, Montage
+  namespacing, rscss's two-word component rule, dash-prefixed `-variant` names,
+  underscore-prefixed `_helper` names — are deliberately divergent from TS-40's
+  own conventions (CamelCase components, parent-prefixed modifiers,
+  `UPPER_CASE` layout). TS-40 names BEM and the others in its overview and
+  references and prescribes its own system; these are alternative methodologies,
+  not gaps. (Note: TS-40 explicitly rejects the leading-dash modifier form at
+  `07-modifiers.adoc:7-8`, reserving it for vendor extensions.)
+- rscss's substantive methodology rules — think in components, keep positioning
+  out of components, avoid over-nesting, one component per file, don't reach
+  into nested components — are all already covered by TS-40 (components §,
+  `06-components.adoc:75-77` and `:232-236`, `08-filesystem.adoc:4-6`). rscss
+  prevents element-name bleed via `>` child selectors; TS-40 prevents it via
+  parent-prefixed modifier names (`06-components.adoc:188-212`). Different
+  mechanisms, same concern.
+- cssguidelin.es' architectural principles (SRP, OCP, DRY, composition over
+  inheritance, SoC, OOCSS structure/skin) are already covered by TS-40's
+  `02-principles.adoc` (Composition `:282`, Open/closed `:319`, DRY `:331`,
+  SoC `:218`) and reinforce the existing run-1 partial gap on surveying
+  methodologies.
+- cssguidelin.es' *IDs in CSS* ("never use IDs") and idiomatic-sass' *Never uses
+  IDs* reinforce the existing run-1 missing gap on ID selectors; no new entry
+  is created (the original citation is retained per the re-run rules).
+
+The two genuinely new partial gaps from run 2 both fall under cssguidelin.es'
+*Specificity* section: proactive `!important` for utility classes, and
+specificity remediation hacks.
+
+**Status:** Run 2 added against issue #64's four URLs. All gaps remain open.
+Date: 2026-08-05.
 
 ## Missing
 
@@ -167,6 +227,30 @@ ubiquitous — does not address.
       modifier-override rationale. Recommend adding the rationale at
       `02-principles.adoc:188`.
 
+- [ ] https://cssguidelin.es/#specificity ("`!important`") endorses the
+      *proactive* use of `!important` on utility/helper classes that must always
+      win — `.one-half { width: 50% !important; }`, `.hidden { display: none
+      !important; }` — applied before any specificity problem arises, as a
+      guarantee. The standard discusses `!important` (`07-modifiers.adoc:76-92`)
+      but frames it narrowly as reserved for "cases where a property must not be
+      overridable by the client's own style sheets" (`:88`); it does not address
+      the proactive utility-class pattern where `!important` guarantees a class
+      always beats project CSS. Recommend expanding the `!important` guidance at
+      `07-modifiers.adoc:88` to cover the proactive utility-class case (or
+      explicitly reject it). (Borderline — the standard's existing rationale
+      overlaps; flagged for the user.)
+
+- [ ] https://cssguidelin.es/#specificity ("Hacking Specificity") gives two
+      remediation techniques for when a high-specificity selector cannot be
+      refactored: self-chaining a class to double its specificity without adding
+      location dependency (`.site-nav.site-nav {}`), and selecting an ID-bearing
+      element via an attribute selector (`[id="foo"] {}`) to get class-level
+      specificity. The standard's philosophy is to avoid specificity trouble
+      entirely (shallow selectors, no IDs, avoid `!important`) but it is silent
+      on what to do when an offending high-specificity ruleset cannot be removed
+      (eg. third-party or legacy CSS). Recommend a note in `02-principles.adoc`
+      (Defensive programming or a new subsection) on safe specificity escalation.
+
 ## Out-of-scope
 
 - [ ] `__TODO__/css/` (terminology, charset formatting, selector/property/value
@@ -211,14 +295,69 @@ ubiquitous — does not address.
       `--` modifiers, two-word component names, app-namespace prefixes) and
       `__TODO__/css2/_conventions.md` (special-character class names like
       `OFF_CANVAS/BANNER`) are an *alternative, unadopted* methodology whose
-      naming heuristics partly contradict the standard's own examples (e.g.
+      naming heuristics partly contradict the standard's own examples (eg.
       `Logo`, `Card`, `Box`). Treated as not adopted rather than as gaps;
       flagged for the user to overrule if any heuristic (e.g. an app-namespace
       prefix for components shared across apps) is wanted.
 
+- [ ] https://cssguidelin.es/#syntax-and-formatting (Multiple Files, Table of
+      Contents, 80 Characters Wide, Titling, Anatomy of a Ruleset, Indenting,
+      Meaningful Whitespace, HTML quoting/multiclass grouping) and the entire
+      https://github.com/necolas/idiomatic-css (whitespace, comments, ruleset
+      format, declaration order) cover CSS *syntax formatting* and *commenting*.
+      TS-40 explicitly excludes these (`01-overview.adoc:95-99`).
+
+- [ ] https://github.com/anthonyshort/idiomatic-sass from "Naming Conventions"
+      onward (Selectors, Properties, Ordering, Nesting, Indentation, File
+      Structure, Functions, Mixins, Modules/Packages, Namespacing, Load Paths,
+      Bower package management) is Sass-specific *tooling and preprocessor
+      workflow*. TS-40 excludes tooling (`01-overview.adoc:45-49`) and states it
+      applies equally to plain CSS or Sass (`01-overview.adoc:101-102`).
+
+- [ ] https://cssguidelin.es/#css-selectors "Selector Performance" (browsers
+      read selectors right-to-left; the key selector; descendant vs. child
+      selector cost) and idiomatic-sass' nesting-depth-as-performance notes
+      cover CSS selector *performance mechanics*. Performance optimisation and
+      tooling are out-of-scope (`01-overview.adoc:46-49`); cssguidelin.es itself
+      says selector performance "should be fairly low on your list of things to
+      optimise."
+
+- [ ] https://cssguidelin.es/#naming-conventions (BEM `__`/`--` syntax, hyphen-
+      delimited-only, no camelCase), https://github.com/anthonyshort/idiomatic-sass
+      "Naming Conventions" (BEM, Montage `namespace-BlockName-childName`), and
+      http://rscss.io/ (two-word dashed component names; one-word elements;
+      dash-prefixed `-variant` names; underscore-prefixed `_helper` names) are
+      *alternative naming methodologies*. TS-40 names BEM, SMACSS, SUIT CSS, and
+      OOCSS in its overview (`01-overview.adoc:87-93`) and references, and
+      prescribes its own conventions (CamelCase components, parent-prefixed
+      lower-case modifiers, `UPPER_CASE` layout). TS-40 explicitly rejects the
+      leading-dash modifier form (`07-modifiers.adoc:7-8`). Alternative
+      conventions are not gaps; flagged for the user to overrule if any specific
+      heuristic (e.g. a `js-` hook prefix, which cssguidelin.es advocates over
+      TS-40's `data-*` approach at `03-class-names.adoc:171-183`) is wanted.
+
+- [ ] https://cssguidelin.es/#css-selectors "Quasi-Qualified Selectors"
+      (`/*ul*/.nav`) and "Naming UI Components" (`data-ui-component` attribute)
+      are *formatting/annotation techniques* for signalling a class's intended
+      context. TS-40 addresses the same concerns via defensive type-qualification
+      (`02-principles.adoc:166-194`) and abstract naming
+      (`03-class-names.adoc:212-231`); the commented-out and attribute-based
+      variants are formatting/annotation conventions, out-of-scope.
+
 ## Unresolved
 
-- [ ] None. All reference resources were retrieved. The two PDFs are binary but
-      were readable via `pdftotext` (`/tmp/cssmaster.txt`, `/tmp/csshandbook.txt`
-      — temporary extraction files, not part of the project). The three `.URL`
-      bookmarks were fetched successfully.
+- [ ] None. All reference resources were retrieved.
+
+  - *Run 1:* The two PDFs are binary but were readable via `pdftotext`
+    (`/tmp/cssmaster.txt`, `/tmp/csshandbook.txt` — temporary extraction files,
+    not part of the project). The three `.URL` bookmarks were fetched
+    successfully.
+
+  - *Run 2:* All four issue-#64 URLs were fetched successfully.
+    https://cssguidelin.es/ returned the full single-page document.
+    https://github.com/anthonyshort/idiomatic-sass and
+    https://github.com/necolas/idiomatic-css returned their README content via
+    GitHub's rendered page. The rscss resource is offline; it was retrieved from
+    the Web Archive snapshot, with the main content pages (components, elements,
+    variants, nested-components, layouts, helpers, css-structure, pitfalls)
+    fetched individually from the archived `rscss.io` site.
