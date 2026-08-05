@@ -10,6 +10,9 @@ following reference resources:
 - https://www.sitepoint.com/premium/books/javascript-best-practice/read/1/
   (SitePoint — *JavaScript: Best Practice*, ch. 1 "The Anatomy of a Modern
   JavaScript Application"; chapters 2–8 are paywalled)
+- https://mythbusters.js.org/ (Kikobeats — *MythBusters JS*, a JavaScript
+  performance & readability handbook; source repo
+  https://github.com/Kikobeats/js-mythbusters)
 
 **Assessment (rsjs).** RSJS is a guide for structuring JavaScript in *non-SPA,
 server-rendered web applications* — component behaviors bound to DOM
@@ -47,6 +50,20 @@ runners (Grunt/Gulp), SPA and Universal/Isomorphic application architecture,
 deployment workflow and CI servers, and the KISS principle. Chapters 2–8 were
 not retrievable (paywalled) and are listed under Unresolved.
 
+**Assessment (MythBusters JS).** A JavaScript performance & readability
+handbook (~30 short tip pages across Array, Date, Number, Function, RegExp,
+Object, V8, and Workflow topics). It is overwhelmingly a *performance
+micro-optimization* guide — V8 hidden classes, monomorphism, inline
+initialization, sparse-array storage, property-access caching, loop reversal,
+etc. TS-36 deliberately does not cover engine micro-optimization; its QA
+section states "Don't over-optimize early. Optimize only once a program is
+provably too slow, and only the slow parts." The great majority of the
+handbook is therefore out-of-scope. The in-scope gaps are concentrated where
+the handbook states *correctness/usage* guidance that TS-36 omits: RegExp
+method and flag usage (TS-36 has no RegExp guidance at all), string-to-number
+parsing specifics, the `new`-omission behavior of custom constructors,
+deep-clone anti-patterns, and WeakMap for private state.
+
 **Status:** Re-run, 2026-08-05.
   - rsjs: all four in-scope gaps (2 missing, 2 partial) have been addressed in
     the standard and are checked off below. The 15 web-client out-of-scope
@@ -56,8 +73,41 @@ not retrievable (paywalled) and are listed under Unresolved.
     3 partial gaps identified below; all open.
   - SitePoint *JavaScript: Best Practice*: first run against this reference.
     0 missing, 0 partial, 5 out-of-scope (see below); chapters 2–8 paywalled.
+  - MythBusters JS: first run against this reference. 4 missing and 4 partial
+    gaps identified below; all open. The remaining content is out-of-scope
+    (engine micro-optimization) and grouped under Out-of-scope.
 
 ## Missing
+
+- [ ] https://mythbusters.js.org/regexp/correct-methods.md#use-the-correct-method —
+      TS-36 has no guidance on choosing between `RegExp.prototype.test`
+      (boolean match), `String.prototype.match`/`matchAll` (retrieval with the
+      `g` flag), and `.exec`. The handbook recommends `.test` for fast boolean
+      checks and `.match` to retrieve all matches under the `g` flag. Recommend
+      a new "RegExp" subsection under "Operators"
+      (`src/036/01-language-fundamentals.adoc:213`) or a dedicated section;
+      RegExp is a core language built-in and TS-36 does not delegate it
+      elsewhere. (Scope call: flagged for user confirmation — TS-36 does not
+      currently treat RegExp explicitly.)
+
+- [ ] https://mythbusters.js.org/regexp/global-flag.md#global-flag-g — the
+      `lastIndex` statefulness gotcha: repeated `RegExp.prototype.test()`
+      calls on the same regex carrying the `g` flag advance `lastIndex` and
+      produce inconsistent results until a failed match resets it. This is a
+      well-known bug source and is not addressed in TS-36. Recommend placing
+      alongside the RegExp method guidance above (new "RegExp" section).
+
+- [ ] https://mythbusters.js.org/regexp/unicode-flag.md#unicode-flag-u — the
+      rule that the `u` (unicode) flag is mandatory when matching Unicode
+      strings, especially astral-plane characters (emoji, surrogate pairs) —
+      without it `/^.$/` fails to match a single astral character. Not
+      addressed in TS-36. Recommend placing in the new "RegExp" section.
+
+- [ ] https://mythbusters.js.org/regexp/dot-all-flag.md#dot-all-flag-s — the
+      `s` (dotAll) flag makes `.` match line terminators, replacing the
+      `[\s\S]`/`[^]` workarounds needed for multi-line matching (e.g. across
+      template-literal line breaks). Not addressed in TS-36. Recommend
+      placing in the new "RegExp" section.
 
 - [x] https://ricostacruz.com/rsjs/#no-inline-scripts — the rule that
       imperative JavaScript MUST NOT be inlined in HTML (`<script>...</script>`
@@ -124,6 +174,43 @@ not retrievable (paywalled) and are listed under Unresolved.
 
 ## Partial
 
+- [ ] https://mythbusters.js.org/number/parse-string.md#parsing-string — the
+      handbook gives string-to-number conversion guidance that TS-36's
+      coercion rules (`src/036/01-language-fundamentals.adoc:167`, "use
+      `Number()`, `String()`, `Boolean()` without `new`"; "shorthand
+      coercions `+val`, `!!val` work but are less clear") only touches in
+      passing. What the reference adds: `parseInt`/`parseInt(_, 10)` stops at
+      the first non-numeric character (truncated integer), `parseFloat`
+      handles fractions but also stops, `Number()`/`+`/`*1`/`-0` return `NaN`
+      for inputs with leading non-numeric characters, and `~~` coerces to a
+      32-bit integer (discouraged — changes meaning above 2^31-1). Recommend
+      a clause in "Types and coercion" (`src/036/01-language-fundamentals.adoc:144`)
+      on choosing between `parseInt`/`parseFloat`/`Number()`.
+
+- [ ] https://mythbusters.js.org/workflow/how-to-clone.md#dont-clone-serializing —
+      the handbook warns that `JSON.parse(JSON.stringify(value))` cloning is
+      lossy (drops function members, omits `undefined` object keys, turns
+      array `undefined` entries into `null`, converts `Date` to ISO-8601
+      strings) and throws on circular references. TS-36's FP/Immutability rule
+      (`src/036/AGENTS.md:655`) notes that shallow copies are insufficient for
+      nested structures and recommends a dedicated library (Immer,
+      Immutable.js) for deep copies, but does not call out the JSON-clone
+      anti-pattern. Recommend a sentence in the Immutability rule
+      (`src/036/10-functional-programming.adoc`, FP section) warning against
+      `JSON.parse(JSON.stringify())` for deep cloning.
+
+- [ ] https://mythbusters.js.org/object/weak-map.md#when-to-use-weakmap-over-map —
+      the handbook recommends `WeakMap` for associating private
+      metadata/state with objects you do not control (e.g. DOM nodes,
+      third-party objects) so the key can be garbage-collected, and notes
+      native private class fields (`#`) are preferred for objects you own.
+      TS-36 covers private `#` fields (`src/036/AGENTS.md:240`, "Prefer
+      ECMAScript `#` private fields over TypeScript's `private` modifier")
+      but does not mention `WeakMap`/`Map` as the private-state tool for
+      foreign objects, nor the memory-leak avoidance rationale. Recommend a
+      clause in "Objects and classes" (`src/036/04-objects-and-classes.adoc`)
+      on `WeakMap` for external-object private state.
+
 - [x] https://ricostacruz.com/rsjs/#separate-your-vendor-libs — RSJS
       recommends splitting third-party libraries into a separate `vendor.js`
       bundle so browsers cache it independently and app deploys don't
@@ -154,6 +241,26 @@ not retrievable (paywalled) and are listed under Unresolved.
       **Addressed:** added a legacy-integration fallback paragraph (single
       `globalThis.App` namespace object) to the "Scope and `this`" section of
       `src/036/02-syntax-and-style.adoc`.
+
+- [ ] https://mythbusters.js.org/function/new.md#new-agnostic — the
+      handbook describes making a constructor return an instance even when
+      called without `new` (the "new-agnostic" pattern:
+      `if (!(this instanceof User)) return new User(...)`). TS-36 mandates
+      `class` over constructor functions (`src/036/AGENTS.md:308`) and permits
+      function-declaration constructors only in a narrow case
+      (`src/036/AGENTS.md:266`), but never states the relevant consequence: an
+      ES2015 `class` constructor *throws* `TypeError` when invoked without
+      `new`, so the missing-`new` footgun (silent `undefined` return; `this`
+      leaking to the global object) that motivated the new-agnostic pattern is
+      already eliminated by `class` — this is now language-enforced fail-fast,
+      not a style-guide concern. What TS-36 omits: (a) an explicit note that
+      `class` enforces `new` as a rationale for preferring it over constructor
+      functions, and (b) for the permitted constructor-function case, any
+      warning about the missing-`new` footgun. Recommend a clause in "Objects
+      and classes" (`src/036/04-objects-and-classes.adoc`) noting that `class`
+      enforces `new` (throws without it), and that constructor functions —
+      where still used — MUST be called with `new`; the legacy new-agnostic
+      guard is NOT recommended for new code.
 
 - [ ] https://bitsofco.de/what-is-tree-shaking/#how-does-tree-shaking-work —
       the article explains *why* tree shaking requires ES modules by
@@ -256,6 +363,52 @@ TS-37. They have been re-classified against TS-18's scope there (10 missing,
       generic software-design principle, not an ECMAScript convention; it
       plausibly belongs in a general design TS rather than TS-36.
 
+- [ ] https://mythbusters.js.org/v8-tips/* (Float Number, Freeing memory,
+      Hidden classes, Inline initialization, Monomorphic, Properties names,
+      Sparse arrays, Use strict) — V8 engine internals and micro-optimization
+      (value tagging, hidden-class transitions, monomorphism, array storage
+      strategies, `delete` performance, property-name coercion trivia).
+      Flagged out-of-scope: TS-36's stated purpose is language *coding
+      conventions*, and its QA section explicitly says "Don't over-optimize
+      early. Optimize only once a program is provably too slow, and only the
+      slow parts." Engine-specific optimization belongs in a dedicated
+      performance standard, not TS-36. (`use strict` itself is covered by
+      TS-36 at `src/036/AGENTS.md:125`; only the performance angle is
+      out-of-scope.)
+
+- [ ] https://mythbusters.js.org/array/pop-or-shift.md,
+      array/preallocation.md, function/bind.md, workflow/spread-syntax.md,
+      workflow/variable-access.md, workflow/lookup-table.md, workflow/math.md,
+      workflow/memoization.md — performance micro-optimizations (`.pop` vs
+      `.shift`, array preallocation/reuse, `.bind` vs `.call` vs `self = this`,
+      avoiding spread-in-`reduce`, caching property/`length` lookups, loop
+      reversal, lookup tables vs `if`/`else`, precalculated `Math` constants,
+      memoization). Flagged out-of-scope per TS-36's "don't over-optimize
+      early" stance; several also overlap TS-36's existing guidance (e.g.
+      `const`/`let`/`Object.freeze` in scope.md, pure functions in
+      passing-by-value.md) which TS-36 already covers.
+
+- [ ] https://mythbusters.js.org/workflow/defer.md — timer functions
+      (`setTimeout`, `setImmediate`, `process.nextTick`, `Promise#then`) for
+      deferring by a tick. Flagged out-of-scope: Node-specific scheduling
+      belongs in TS-38 (Node.js Applications), and the angle is performance.
+
+- [ ] https://mythbusters.js.org/date/timestamp.md — `Date.now()` vs
+      `new Date().getTime()` allocation, monotonic clocks
+      (`performance.now()`, `process.hrtime`), system-clock drift for elapsed
+      time. Flagged out-of-scope: date/time handling is delegated to TS-47
+      (Dates and Times); the `performance.now()`/`hrtime` angle is performance
+      measurement.
+
+- [ ] https://mythbusters.js.org/array/arguments.md,
+      object/empty-prototype.md, workflow/null-or-undefined.md —
+      partly-covered or legacy usage notes: `arguments` optimization
+      (superseded by TS-36's rest-parameter/Spread guidance),
+      `Object.create(null)` for dictionary objects (niche/perf), and
+      `null`-vs-`undefined` / `value == null` (TS-36 mandates `===` and covers
+      nullish coalescing, so the `== null` advice is contradicted rather than
+      missing). Flagged out-of-scope.
+
 ## Unresolved
 
 - https://www.sitepoint.com/premium/books/javascript-best-practice/read/2/
@@ -269,5 +422,6 @@ TS-37. They have been re-classified against TS-18's scope there (10 missing,
   above. If a subscriber can supply the text, re-run the analysis to extend
   coverage.
 
-- https://bitsofco.de/what-is-tree-shaking/ and
-  https://ricostacruz.com/rsjs/ were fetched successfully in full.
+- https://bitsofco.de/what-is-tree-shaking/, https://ricostacruz.com/rsjs/,
+  and https://mythbusters.js.org/ (all ~30 tip pages via the docsify markdown
+  source) were fetched successfully in full.
