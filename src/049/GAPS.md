@@ -27,6 +27,17 @@ multi-product isolation content.
 
 **Status:** Initial run, 2026-08-05. All gaps open.
 
+**Second run, 2026-08-05.** Re-run against
+https://12factor.net/[The Twelve-Factor App] (Adam Wiggins, 2017), covering
+Factor IX (Disposability), Factor X (Dev/Prod Parity), and Factor XII (Admin
+Processes) — the three factors judged closest to this standard's platform-
+engineering scope (see the top-level analysis conversation for the full
+factor-to-standard mapping). `02-development-and-testing-environments.adoc`
+already states the dev/prod parity requirement in general terms; the reference
+adds specific sub-claims TS-49 does not currently carry. Disposability and
+Admin Processes are both entirely new topics for this standard. All new gaps
+open.
+
 ## Missing
 
 - [ ] [https://docs.aws.amazon.com/whitepapers/latest/tagging-best-practices/defining-needs-and-use-cases.html]
@@ -144,6 +155,61 @@ multi-product isolation content.
       tagging strategy. TS-49 treats neither, and does not relate the two.
       Recommend the new naming and tagging sections, with this relationship
       stated explicitly.
+
+- [ ] https://12factor.net/dev-prod-parity ("Make the time gap small: a
+      developer may write code and have it deployed hours or even just minutes
+      later... Make the personnel gap small: developers who wrote code are
+      closely involved in deploying it and watching its behavior in
+      production") is not addressed. TS-49's dev/prod parity content
+      (`02-development-and-testing-environments.adoc:16-22`) addresses only
+      infrastructure/config similarity (the "tools gap" in the reference's own
+      terminology); the time-gap (deploy latency) and personnel-gap (developers
+      own their own production deploys) dimensions are absent. Recommend
+      expanding `02-development-and-testing-environments.adoc` with these two
+      additional dimensions, or a new subsection distinguishing all three
+      gaps (time, personnel, tools).
+
+- [ ] https://12factor.net/dev-prod-parity ("Resist the temptation to use
+      different backing services between development and production, even when
+      adapters theoretically abstract away any differences in backing services
+      [...] use the same database engine" — eg. not SQLite locally against
+      Postgres in production) is not addressed.
+      `02-development-and-testing-environments.adoc` requires environments to
+      be "close replicas" with "essentially the same underlying infrastructure
+      and configuration" but does not name backing services specifically or
+      warn against the common shortcut of substituting a lightweight local
+      equivalent for a production-grade service. Recommend adding this as a
+      concrete example under the existing close-replica requirement
+      (`02-development-and-testing-environments.adoc:16`).
+
+- [ ] https://12factor.net/disposability ("Twelve-factor app processes are
+      disposable [...] can be started or stopped at a moment's notice [...]
+      minimize startup time [...] shut down gracefully when they receive a
+      SIGTERM signal") is not addressed anywhere in TS-49. The standard's
+      environment-lifecycle content
+      (`02-development-and-testing-environments.adoc:11-14`) covers
+      automatically spinning environments up and down for cost reasons, but
+      says nothing about individual process/instance disposability — fast
+      startup and graceful shutdown — which is a precondition for the
+      ephemeral-environment and autoscaling patterns this standard already
+      recommends. Recommend a new subsection, or a cross-reference to TS-5 if
+      the user decides process-level disposability belongs there instead (see
+      `../005/GAPS.md`, which now carries a corresponding item).
+
+- [ ] https://12factor.net/admin-processes ("One-off admin processes should be
+      run in an identical environment as the regular long-running processes of
+      the app. They run against a release, using the same codebase and config
+      as any process run against that release [...] In production, developers
+      [...] use ssh or other remote command execution mechanism") is not
+      addressed anywhere in TS-49. Self-service platforms, which this standard
+      is centrally about, are exactly where a team would need to run one-off
+      admin tasks (migrations, data backfills, maintenance scripts) against a
+      live release. Recommend a new section on one-off/administrative task
+      execution within the self-service platform model. This is a three-way
+      boundary call between TS-49, TS-10 (Releasing), and TS-45 (Data
+      Migrations) — see the corresponding item raised in `../010/GAPS.md`;
+      the user should decide which standard owns the general principle versus
+      the platform-specific mechanics.
 
 ## Partial
 

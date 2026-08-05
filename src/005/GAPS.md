@@ -29,6 +29,18 @@ standards (TS-9, TS-10, TS-45, TS-48, TS-49) and is flagged out-of-scope.
 
 **Status:** First run, 2026-08-05. All gaps open.
 
+**Second run, 2026-08-05.** Re-run against
+https://12factor.net/[The Twelve-Factor App] (Adam Wiggins, 2017), fetched
+directly rather than via the `__TODO__/` drafts (which were themselves derived
+from this source — see the Assessment above). This corroborates most of the
+first run's Missing items on configuration, statelessness, backing services,
+and port binding almost claim-for-claim, and adds detail the `__TODO__/` drafts
+did not capture: explicit dependency-declaration/isolation tooling (Factor II),
+the Unix process-model detail behind concurrency (Factor VIII), and specific
+SIGTERM/shutdown-protocol detail behind disposability (Factor IX). New items
+below are additive to, not replacements for, the first-run items on the same
+themes. All new gaps open.
+
 ## Missing
 
 - [ ] `__TODO__/configuration.adoc:3` (also `configuration.md:9`,
@@ -166,7 +178,69 @@ standards (TS-9, TS-10, TS-45, TS-48, TS-49) and is flagged out-of-scope.
       testing complexity. Not addressed. Recommend extending
       `03-feature-flags.adoc`.
 
+- [ ] https://12factor.net/dependencies ("A twelve-factor app never relies on
+      implicit existence of system-wide packages. It declares all dependencies,
+      completely and exactly, via a dependency declaration manifest... uses a
+      dependency isolation tool during execution to ensure that no implicit
+      dependencies 'leak in' from the surrounding system... applied uniformly
+      to both production and development") is not addressed. `04-dependencies.adoc`
+      covers minimizing, vetting, and updating dependencies, but never states
+      the more basic requirement that all dependencies MUST be declared in a
+      manifest and installed via an isolation mechanism (eg. a lockfile plus a
+      per-project virtual environment or `node_modules`), applied identically
+      in development and production. Recommend a new "Dependency declaration"
+      subsection at the top of `04-dependencies.adoc`, before the current
+      opening paragraph.
+
+- [ ] https://12factor.net/dependencies ("If the app needs to shell out to a
+      system tool, that tool should be vendored into the app") is not
+      addressed. `04-dependencies.adoc` does not mention shell-out dependencies
+      on system tools (eg. ImageMagick, curl) at all. Recommend adding to the
+      new subsection proposed above.
+
+- [ ] https://12factor.net/concurrency ("twelve-factor app processes should
+      never daemonize or write PID files. Instead, rely on the operating
+      system's process manager [...] to manage output streams, respond to
+      crashed processes, and handle user-initiated restarts and shutdowns")
+      is not addressed anywhere in TS-5. `06-services.adoc` covers service
+      decomposition, reactive state machines, and CQRS, but says nothing about
+      how an individual process's lifecycle (start, crash recovery, restart,
+      shutdown) should be managed, nor that this responsibility belongs to an
+      external process manager rather than the application itself. This
+      borders TS-6 (Distributed System Design), which is currently an
+      unwritten stub — see `../006/GAPS.md`. Recommend either a new
+      subsection here or, once TS-6 is authored, there instead.
+
+- [ ] https://12factor.net/disposability ("Processes shut down gracefully when
+      they receive a SIGTERM signal. For a web process, graceful shutdown is
+      achieved by ceasing to listen [...] then finishing any current requests
+      [...] Worker processes [...] return the current job to the work queue")
+      is more specific than the existing disposability gap
+      (`__TODO__/principles/state.md:9`, first run above), which captures only
+      the general "fast startup/shutdown" claim. The signal-handling mechanism
+      and the distinct web-process vs worker-process shutdown protocols are
+      new detail. Recommend folding into whichever new section addresses the
+      first-run disposability gap.
+
+- [ ] https://12factor.net/disposability ("all jobs [must be] reentrant [...]
+      typically [...] wrapping the job in a transaction, or making the
+      operation idempotent") is not addressed. Neither `04-dependencies.adoc`'s
+      graceful-degradation section nor `06-services.adoc`'s reactive-systems
+      section states that queued/background jobs MUST be safely re-runnable.
+      Recommend adding to the disposability material proposed above, or to
+      `06-services.adoc`'s reactive-systems section given its existing
+      messaging-durability discussion (`06-services.adoc:100-113`).
+
 ## Partial
+
+- [ ] https://12factor.net/backing-services ("Resources can be attached to and
+      detached from deploys at will [...] a resource may be spun up or torn
+      down by the deploy's administrator") extends the first-run gap on
+      `__TODO__/principles/services.md:3-5` above — beyond "backing services
+      are attached, network-accessible resources," the reference adds that
+      resources should be attachable/detachable by an administrator, without
+      code changes, independent of application deploys. `06-services.adoc`
+      does not cover this operational dimension.
 
 - [ ] `__TODO__/principles/services.md:3-5` covers the "backing services as
       attached network resources" model more explicitly than
