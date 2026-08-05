@@ -6,7 +6,7 @@ description: >-
   when asked to "do a gap analysis between TS-<N> and <url>", "analyze TS-<N>
   for gaps with <file>", or "gap-check TS-<N> against the directory of vendor
   docs in <path>."
-compatibility: requires Read, Write, Edit, WebFetch, Bash (grep/find)
+compatibility: requires Read, Write, Edit, WebFetch, Bash (grep/find), Agent
 license: CC0
 ---
 
@@ -77,6 +77,14 @@ Prompt the user for clarification if either is ambiguous.
     external resource (eg. a general industry style guide) will likely cover
     more ground than the technical standard.
 
+    Where a resource is large — a directory with more than about 15 files,
+    or several sizeable URLs — do not read it all directly into your own
+    context. Instead, fan the extraction out. Spawn one sub-agent per
+    resource (or per batch of ~10-15 files, for a large directory), each
+    with a narrow task. Read the assigned material and return a flat list
+    of atomic claims, rules, or topics, each with a precise citation
+    (URL#section, or `<file>:<line>`).
+
 4.  Compare coverage, point by point. Break each reference resource down into
     its atomic claims, rules, or topics. For each one, check whether the target
     standard addresses it, and classify it as one of:
@@ -130,6 +138,11 @@ Prompt the user for clarification if either is ambiguous.
 - You MUST NOT fabricate reference content. If a URL cannot be fetched, or a
   file cannot be read, report exactly that. Do not infer or recall it from
   your memory.
+
+- Sub-agents, if used, MUST only be used to extract content from reference
+  materials, and MUST NOT be used to analyze and classify gaps. A sub-agent
+  spawned to extract claims from a reference resource MUST return only
+  citation-tagged claims, never a missing/partial/out-of-scope verdict.
 
 - You MUST preserve prior findings across re-runs. Where `GAPS.md` already
   exists, do not discard its history. A gap that is still open stays open with

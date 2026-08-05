@@ -20,6 +20,12 @@ topics. Then it check each one against the standard, classifying it as one of:
 - **Out-of-scope.** Covered by the reference, but plausibly outside what
   this standard is meant to address.
 
+For a large reference resource — a directory of many files, or several
+sizeable URLs — the agent fans the reading-and-extraction step out to
+sub-agents, one per resource or per batch of files. Sub-agents only ever
+extract citation-tagged claims, while the orchestrating agent does the gap
+analysis.
+
 Findings are written to `GAPS.md` as a flat checklist, each citing where the
 gap comes from and where in the standard it would best fit.
 
