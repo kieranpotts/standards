@@ -9,6 +9,14 @@ following reference resources:
 - `src/001/__TODO__/_200-owl.md`
 - `src/001/__TODO__/_todo/User story - Wikipedia.URL` → https://en.wikipedia.org/wiki/User_story
 - `src/001/__TODO__/_todo/User Story And Use Case Comparison.URL` → http://wiki.c2.com/?UserStoryAndUseCaseComparison
+- https://github.com/kieranpotts/standards/issues/67 (issue titled "Requirements"),
+  which expands to the following discovered resources:
+  - https://sobolevn.me/2019/02/engineering-guide-to-user-stories
+  - https://www.youtube.com/watch?v=_gteHp-ZR9k
+  - https://www.youtube.com/watch?v=vSuJqMRG1WM
+  - https://www.youtube.com/watch?v=4aHKsolzCv4
+  - https://www.youtube.com/watch?v=XxxJZ_oduqo
+  - https://www.youtube.com/watch?v=JDD5EEJgpHU
 
 **Assessment.** Most of the reference material falls outside TS-1's stated
 scope. The OpenAPI cheat sheet, and the RDF/OWL semantic-web material, describe
@@ -16,13 +24,40 @@ implementation-level notations (HTTP API definitions, ontology languages) that
 TS-1 deliberately excludes — the standard keeps the Interfaces contract
 behavioural and protocol-agnostic (`07-behaviors.adoc:160-169`) and defers
 modelling techniques to TS-4 (`06-context.adoc:83`). The Wikipedia *User story*
-article is the only resource with meaningful in-scope overlap, and most of what
-it covers (story mapping, INVEST, acceptance criteria, Given-When-Then, the
-limitations of card-based stories) TS-1 already addresses by a different route.
-The genuine findings are a small number of missing and partial items, plus one
-fetch failure.
+article is the only resource from the first batch with meaningful in-scope
+overlap, and most of what it covers (story mapping, INVEST, acceptance criteria,
+Given-When-Then, the limitations of card-based stories) TS-1 already addresses by
+a different route. The second batch (issue #67) added the sobolevn.me blog post
+on writing correct user stories; its atomic points (consistent language via a
+glossary, separating user goals from implementation details, clarifying roles,
+making stories verifiable via BDD/Gherkin, covering unhappy paths, MoSCoW
+prioritization, and linking requirements to code/tests) are all already covered
+by TS-1 — ubiquitous language (`06-context.adoc:105-124`), actor hierarchy
+(`06-context.adoc:85-103`), executable specifications
+(`09-executable-specifications.adoc`), unhappy paths (`07-behaviors.adoc:93`),
+MoSCoW (`11-proposal-lifecycle.adoc:77-92`), and requirements traceability
+(`11-proposal-lifecycle.adoc:201-206`). It produced no new gaps. The five unique
+YouTube videos linked from issue #67 (one URL was duplicated in the issue body)
+were ingested via their creator-supplied descriptions and keywords, extracted
+from the page metadata via YouTube's oEmbed endpoint and the embedded
+`ytInitialPlayerResponse`; one (Bridging the Gap) also published a full transcript,
+which was fetched. Their theses — user stories shouldn't be too big, technical
+stories don't work, "non-functional requirements" is a bad name for cross-cutting
+concerns, use case thinking avoids missing requirements, and acceptance tests
+as executable specifications — are mostly already covered by TS-1 (INVEST "Small"
+and story splitting at `10-requirements-elicitation.adoc:160-177`; qualities
+terminology and architectural significance at `08-qualities.adoc:3-56`; use case
+extensions surfacing unhappy paths at `10-requirements-elicitation.adoc:83-86`;
+executable specifications and enforcement at `09-executable-specifications.adoc`).
+The one genuine new finding is the "technical stories" anti-pattern (see
+Partial). The genuine findings otherwise remain the small number of missing and
+partial items from the first batch, plus the c2.com fetch failure.
 
-**Status:** Initial run. All gaps open. Last run 2026-08-05.
+**Status:** Re-run against issue #67 resources. sobolevn.me blog produced no new
+gaps. Five unique YouTube videos ingested via metadata/transcript; produced one
+new Partial gap (technical stories) and one new Out-of-scope note (industry
+document-format taxonomy). All prior gaps remain open and were re-verified. Last
+run 2026-08-05.
 
 ## Missing
 
@@ -54,6 +89,25 @@ fetch failure.
       `11-proposal-lifecycle.adoc:157`. (The reference's *theme* and *initiative*
       hierarchy levels are not used by the standard and are treated as
       out-of-scope below.)
+
+- [ ] https://www.youtube.com/watch?v=vSuJqMRG1WM (Dave Farley, "TECHNICAL
+      STORIES DON'T WORK") argues that "technical stories" / "technical user
+      stories" — stories written for technical or enabling work (infrastructure,
+      refactoring, tooling) alongside user stories — are a planning anti-pattern
+      that decouples work from user value and degrades prioritization and
+      quality. TS-1's principles imply technical work does not belong in the
+      specification as stories — INVEST "Valuable: delivers value to an actor,
+      not merely a technical task" (`10-requirements-elicitation.adoc:158`),
+      the warning against splitting by architectural layer
+      (`10-requirements-elicitation.adoc:175-177`), and "implementation details
+      MUST NOT appear in the specification" (`11-proposal-lifecycle.adoc:178-180`)
+      — but the standard never names the "technical story" practice or explains
+      why it is problematic, so a team currently using technical stories would
+      find no explicit guidance to stop. Recommend a short note at
+      `10-requirements-elicitation.adoc` after the splitting discussion (around
+      line 177), or in `07-behaviors.adoc` Features. Note: this borders on
+      work/backlog management, which may sit outside a requirements
+      *specification* standard; the user may decide it is out-of-scope.
 
 ## Out-of-scope
 
@@ -102,6 +156,20 @@ fetch failure.
       concern, not requirements specification. Flagged for the user to confirm
       or overrule.
 
+- [ ] https://www.bridging-the-gap.com/functional-specification/ (transcript of
+      https://www.youtube.com/watch?v=XxxJZ_oduqo, "Functional Requirements and
+      Specifications: A Quick Tutorial") surveys industry document formats for
+      functional specifications — Functional Requirements Documents (FRDs),
+      System Requirements Specifications (SRSs), Business Requirements Documents
+      (BRDs), tabular "system shall" statements — and gives the pros and cons of
+      each versus use cases and user stories. TS-1 takes a definitive position
+      (its own structure, with Gherkin scenarios and use cases for discovery)
+      rather than surveying alternative industry formats, so a reader arriving
+      from an FRD/BRD/"system shall" background gets no explicit bridge to the
+      standard's approach. This is plausibly outside TS-1's purpose as an
+      opinionated standard rather than a tutorial. Flagged for the user to
+      confirm or overrule.
+
 ## Unresolved
 
 - [ ] http://wiki.c2.com/?UserStoryAndUseCaseComparison could not be retrieved:
@@ -109,3 +177,11 @@ fetch failure.
       "javascript required to view this site" notice. Not included in the
       comparison above. (The Wikipedia article's "Comparing with use cases"
       section covers the same topic at a high level and was used instead.)
+
+- [ ] The five YouTube videos from issue #67 were ingested only via their
+      creator-supplied descriptions and keywords (extracted from page
+      metadata), not full video transcripts. Four of the five have no public
+      transcript, so atomic claims beyond the description's thesis could not be
+      verified. The descriptions were treated as the author's own summary of
+      each video's argument and compared on that basis. If full transcripts
+      become available, a follow-up run could surface additional gaps.
