@@ -432,6 +432,22 @@ and output become the contract between steps.
 The orchestrator of a workflow — whether a human, a script, or an agent — is
 then responsible for determining the order in which steps run.
 
+Different steps in a pipeline SHOULD be assigned to different models, rather
+than running the same model end-to-end. Each model has its own blind spots and
+failure modes, and a pipeline that uses one model throughout lets those
+weaknesses compound across every step. Assigning steps to models from
+different providers breaks that chain: a gap one model misses is likely to be
+caught by a model trained on a different data mix with different biases. For
+example, use one model to perform gap analysis on a specification, and a
+different model to implement the findings.
+
+For high-stakes analytical steps, an even stronger pattern is to run two models
+independently on the same step and only act on the findings they both agree
+on. Discarding the disagreements filters out the idiosyncratic errors each
+model makes on its own, at the cost of some coverage. This consensus approach is
+worth the extra tokens where a false positive would send the pipeline down the
+wrong branch — gap analysis, triage, and review are good candidates.
+
 == Persistence
 
 The input/output contract described above only decouples steps in the abstract.
