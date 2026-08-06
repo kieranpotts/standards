@@ -68,6 +68,14 @@ rendering. Use [TS-28: AsciiDoc](../028/AGENTS.md) for those cases.
   use `text` or `plaintext` to disable highlighting. Inline code uses single
   backticks; double backticks for code containing backticks.
 
+- **Placeholders: MUST use `[placeholder]`, not `<placeholder>`.**
+
+  The general convention across these standards is angle-bracket placeholders (see
+  [TS-26](../026/AGENTS.md)). Markdown is an exception: raw HTML is permitted
+  inline, so angle brackets are reserved for HTML tags and a `<placeholder>` may
+  be parsed as an unknown element and stripped. Use square brackets in Markdown
+  code examples (`git clone git@[hostname]:[group]/[project].git`).
+
 - **Write links as `[text](url)`.**
 
   An optional title in double quotes may follow the URL. Bare URLs/email SHOULD

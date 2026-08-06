@@ -186,7 +186,9 @@ a URL containing a variable called `account_id` would be shown as
 
 Placeholders in code blocks and templates use angle brackets — `<placeholder>` —
 per [TS-26 §11](../src/026/11-code-blocks.adoc). The exception is a URI template,
-which follows RFC 6570 above.
+which follows RFC 6570 above. Markdown is also an exception: placeholders MUST
+use square brackets (`[placeholder]`) because angle brackets are reserved for
+raw HTML. See [TS-27](../src/027/08-code.adoc).
 
 Where a standard documents a language that itself uses angle brackets — Gherkin
 scenario outlines, for example — the two uses are indistinguishable on the page.
