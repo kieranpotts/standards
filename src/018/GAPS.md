@@ -51,6 +51,14 @@ implementation guidance. The issue-#61 resources add performance gaps around Cor
   all previously-open gaps remain open; the new issue-#61 gaps are appended
   below. No gaps checked off yet.
 
+**Fourth run, 2026-08-06.** Re-run against Brandur Leppka's "Implementing
+Stripe-like Idempotency Keys in Postgres" (https://brandur.org/idempotency-keys),
+section "Beyond APIs". One point was routed to TS-18: double form submission
+prevention via a hidden idempotency-key input. It is Missing — TS-18 has no
+form-submission-integrity guidance (only a WCAG confirm-before-consequential-
+action rule and pointer-release activation, which address different problems).
+One new Missing gap added; all prior gaps remain open.
+
 ## Missing
 
 - [ ] https://csswizardry.com/2019/08/time-to-first-byte-what-it-is-and-why-it-matters/#what-is-ttfb — Time to First Byte (TTFB) as a performance metric and its contributors (latency, routing, application runtime, DB queries, SSR cost). TS-18 mentions LCP but never TTFB. Recommend a new subsection in `01-performance-optimization.adoc` after the LCP note (~L53). Reinforced by https://web.dev/articles/top-cwv#3-use-a-cdn-to-optimize-ttfb, which frames TTFB as CDN-optimizable and additionally recommends caching static HTML at the edge (even briefly) and moving dynamic logic to edge compute — TS-18's CDN/Squid bullets (L31-34) cover CDN and proxy caching but not edge-cached HTML or edge compute.
@@ -196,6 +204,30 @@ section (see the rsjs items above); the performance items sit in
 - [ ] https://frontendmasters.com/blog/patterns-for-memory-efficient-dom-manipulation/#cleaning-up-event-listeners — event-listener cleanup: `removeEventListener`, the `addEventListener` `once` option, and `AbortController` to unbind groups of listeners at once. TS-18 has no event-listener lifecycle guidance. Missing. Recommend a new section (proposed `05-javascript-behaviors.adoc`).
 
 - [ ] https://neurodiversity.design/ — neurodiversity / cognitive-accessibility design guidance: the Neurodiversity Design System covers Font, Typography, Colour, Buttons/Links/Inputs, Interface, Communications, Numbers, and Animations for neurodivergent learners (e.g. font shapes that help dyslexic readers; typography that supports reading on screens). TS-18's opening states it covers "cognitive disabilities" and targets WCAG 2.2 Level AA, but its body provides no neurodiversity-specific guidance beyond `prefers-reduced-motion` (animations) and general colour contrast. Missing (with a scope nuance: TS-18 explicitly claims cognitive disabilities, so this is in scope; much of the NDS goes beyond WCAG AA, but TS-18's own framing invites it). Recommend a new subsection in `02-web-accessibility.adoc`. NOTE: only the NDS landing page was retrieved — see Unresolved.
+
+- [ ] https://brandur.org/idempotency-keys ("Beyond APIs") covers double
+      form submission prevention, which is not addressed anywhere in the
+      standard. The reference describes the technique: when rendering a
+      form initially, add a hidden `<input type="hidden">` containing an
+      idempotency key; this value stays the same across multiple
+      submissions, and the server uses it to dedup the request — important
+      when a submission has non-idempotent side effects (eg. charging the
+      user) and a user clicks "Submit" twice in quick succession. TS-18 has
+      no form-submission-integrity guidance: the WCAG-derived requirement
+      that consequential submissions be reviewable/confirmable beforehand
+      (`02-web-accessibility.adoc:199-201`) and the pointer-release
+      activation guidance (`:149-151`) address different problems (informed
+      consent and accidental activation), and neither covers server-side
+      dedup via an idempotency key nor alternatives like disabling the
+      submit button after click or POST-redirect-GET. Recommend a new
+      "Form submission integrity" subsection (proposed
+      `05-javascript-behaviors.adoc` or a new forms section) covering
+      double-submit prevention. Note: the client-side hidden-input technique
+      is squarely a web-GUI concern; the server-side dedup half overlaps
+      TS-21 (HTTP APIs) — see the idempotency-key entries in
+      `../021/GAPS.md`. Flagged: TS-18's current pillars are performance,
+      accessibility, and fonts, so form-integrity is a scope expansion (but
+      form handling is a core web-GUI concern).
 
 ## Partial
 

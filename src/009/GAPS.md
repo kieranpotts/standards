@@ -19,6 +19,15 @@ principles in their own right.
 
 **Status:** First run, 2026-08-05. All gaps open.
 
+**Second run, 2026-08-06.** Re-run against the UK Government Design
+Principles (https://www.gov.uk/guidance/government-design-principles). Of
+its 11 principles, only #10 ("Make things open: it makes things better")
+was routed to TS-9. TS-9 covers the *mechanical* layer of openness
+(fork-and-PR workflow, attribution) but not openness as a *value* —
+defaulting to public repositories, sharing code/designs/ideas/failures,
+contributing back to upstream open source, working in the open. One new
+Partial gap added; all prior gaps remain open.
+
 ## Missing
 
 - [ ] https://12factor.net/codebase ("Multiple apps sharing the same code is a
@@ -60,6 +69,27 @@ principles in their own right.
       section states this converse framing (many running instances, still one
       codebase) as an explicit principle. This is a minor gap; the standard's
       existing structure already produces the correct outcome.
+
+- [ ] https://www.gov.uk/guidance/government-design-principles (Principle 10,
+      "Make things open: it makes things better") covers openness as a value
+      and practice more thoroughly than `03-repositories.adoc:13-26` (public
+      open source projects, fork-and-clone) and `10-workflows.adoc:414-422`
+      (fork workflow) — specifically, the principle prescribes sharing what
+      you're doing with colleagues, users, and the world (code, designs,
+      ideas, intentions, failures); defaulting to working in the open so
+      "the more eyes there are on a service the better it gets"; and
+      contributing back to the open source community ("we should pay that
+      back"). TS-9 treats openness only as an access-control topology (who
+      can write, who must fork) and never advises teams to default to
+      public repositories, to share non-code artefacts, to upstream patches
+      to dependencies, or to maintain contribution guidelines/licensing
+      for community contributions. Recommend a new "Working in the open"
+      subsection in `03-repositories.adoc` (or `02-objectives.adoc`),
+      covering default-public posture, contribute-back practice, and
+      accepting community contributions. Note: parts (licensing,
+      contribution guidelines) may border on TS-25 (Technical
+      Documentation) or a dedicated open-source standard; the user may
+      decide to split.
 
 ## Out-of-scope
 

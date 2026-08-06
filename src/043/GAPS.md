@@ -50,6 +50,27 @@ confirm.
 **Status:** First run (2026-08-05). All gaps open. Re-runs should preserve
 these citations and check off items as the standard is expanded.
 
+**Second run, 2026-08-06.** Re-run against Brandur Leppka's "Building Robust
+Systems with ACID and Constraints" (https://brandur.org/acid). Four points
+were routed to TS-43 (atomicity, consistency+constraints, isolation,
+durability). All four are already recorded as Missing above (sourced from
+the Wikipedia ACID article), so no new Missing items were added; the
+article largely restates the same ACID gaps. One new Partial entry added
+capturing the article's distinctive contributions beyond the Wikipedia
+entries (document-level atomicity critique, "data janitor" consequences, the
+four isolation levels enumerated with their phenomena, and the custom-
+locking-is-slow/buggy vs. built-in argument). All prior gaps remain open.
+
+**Third run, 2026-08-06.** Re-run against Brandur Leppka's "Using Atomic
+Transactions to Power an Idempotent API" (https://brandur.org/http-transactions).
+One point was routed to TS-43: SERIALIZABLE isolation for concurrency
+protection with retry and UNIQUE defense-in-depth (C). It is Missing —
+distinct from the existing Wikipedia isolation Missing entry and the
+Brandur "acid" Partial entry, which cover isolation in the abstract and
+the four levels/phenomena respectively, but not the practical API race
+pattern, retry-on-serialization-failure, or the UNIQUE-as-defense-in-
+deepth layering. One new Missing gap added; all prior gaps remain open.
+
 ## Missing
 
 ### SQL style and formatting
@@ -396,6 +417,28 @@ these citations and check off items as the standard is expanded.
       all participants are prepared before formalizing the commit. Not
       addressed. Recommend a new section.
 
+- [ ] https://brandur.org/http-transactions ("Concurrency protection" /
+      "Retrying an abort" / "Data protection in layers") covers practical
+      SERIALIZABLE-isolation usage not captured by the existing isolation
+      entries above — specifically: (a) using `SERIALIZABLE` to emulate
+      serial execution and abort one of two concurrent check-then-insert
+      requests that would otherwise duplicate a row (eg. two "create user"
+      requests both passing `SELECT ... WHERE email = ?` then both
+      `INSERT`); (b) retrying a serialization failure within the same
+      request loop, manually or automatically via an ORM facility like
+      Sequel's `retry_on: [Sequel::SerializationFailure]`; and (c) "data
+      protection in layers" — adding a `UNIQUE` constraint even when using
+      `SERIALIZABLE`, as defense-in-depth against incorrectly invoked
+      transactions or buggy code (the constraint as a second layer
+      beyond the isolation level). TS-43 has no transactions/isolation
+      content (only `01-sharding.adoc`), so none of this is addressed.
+      Recommend folding into the new "Transactions and consistency"
+      section proposed by the existing entries, with a worked check-then-
+      insert example, the retry pattern, and the constraint-plus-
+      isolation defense-in-depth guidance. Note: the request-level retry
+      loop overlaps TS-21 (HTTP APIs), which lacks the 1:1
+      request↔transaction model (see `../021/GAPS.md`).
+
 ## Partial
 
 - [ ] `https://en.wikipedia.org/wiki/ACID#Consistency` and
@@ -408,6 +451,25 @@ these citations and check off items as the standard is expanded.
       does not cover transaction consistency models, isolation levels, or
       ACID/BASE trade-offs. Recommend a new section on transactions and
       consistency, cross-linked from the sharding section.
+
+- [ ] https://brandur.org/acid ("Building Robust Systems with ACID and
+      Constraints") adds article-specific framing beyond the Wikipedia ACID
+      entries above (Missing: atomicity, consistency, isolation, durability) —
+      specifically: (a) "document-level atomicity" (MongoDB/RethinkDB/CouchBase)
+      is atomic per row only and insufficient for multi-object writes, and the
+      consequences of lacking transactional atomicity — invalid intermediate
+      state, retries, "fixer scripts," engineers as "data janitors," and code
+      mutating to defensively handle accumulated bad-state combinations; (b)
+      the four isolation levels enumerated by name (read uncommitted, read
+      committed, repeatable read, serializable) with the phenomena each allows
+      (dirty read, nonrepeatable read, phantom read, serialization anomaly),
+      and the argument that custom pessimistic locking is slow, inefficient,
+      labor-intensive, and probably buggy versus a built-in ACID MVCC locking
+      system; (c) the duplicate-email registration example for uniqueness-
+      constraint-based consistency. Recommend folding these specifics into the
+      new transactions/consistency section proposed by the existing entries.
+      Note: the article's broader schemaless-easy-not-simple and default-to-
+      ACID/vertical-scaling points were routed to TS-44.
 
 ## Out-of-scope
 

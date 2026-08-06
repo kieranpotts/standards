@@ -23,6 +23,14 @@ audio could not be verified.
 
 **Status:** First run, 2026-08-05. All gaps below are newly identified and open.
 
+**Second run, 2026-08-06.** Re-run against Gergely Orosz's "The Product-Minded
+Software Engineer" (https://blog.pragmaticengineer.com/the-product-minded-engineer/),
+trait 6. One point was routed to TS-13: pragmatic edge-case triage. Partial —
+TS-13 covers identifying edge cases (negative testing) and risk-based
+test-effort allocation, but not triaging edge cases for *remediation* by
+impact vs effort, deciding which to fix before shipping, or non-engineering
+remedies. One new Partial gap added; all prior gaps remain open.
+
 ## Missing
 
 - [ ] [SWE Book Ch. 12, "Write Clear Failure Messages"](https://abseil.io/resources/swe-book/html/ch12.html)
@@ -175,6 +183,32 @@ audio could not be verified.
       does not catalog BDD antipatterns. (Comparison is against the video
       description only; the "5 mistakes" are detailed in the spoken audio,
       which could not be verified.)
+
+- [ ] https://blog.pragmaticengineer.com/the-product-minded-engineer/
+      (Trait 6: "Pragmatic handling of edge cases") covers edge-case
+      *remediation triage* more directly than `01-test-strategies.adoc:95`
+      (negative testing — exhaustive identification of edge/error cases) and
+      `01-test-strategies.adoc:176` (risk-based testing — likelihood × impact
+      to allocate *test effort*) — specifically, the reference argues for
+      *evaluating the impact of an edge case against the engineering effort
+      of handling it* and deciding which edge cases to address before
+      shipping an early version vs defer (the "minimum lovable product"
+      depth concept: deliberately limiting edge-case coverage for an early
+      release), and for considering *non-engineering remedies* when an edge
+      case isn't worth engineering — eg. if one in a thousand users might
+      hit an error, can customer support help during validation, can the
+      user retry and succeed next time, or can the product be slightly
+      modified so the edge case doesn't occur? TS-13 treats edge cases as
+      things to *test* (and prioritizes *where* to test them) but never as
+      things to *triage for remediation* or *absorb via the product/support
+      process*; the coverage-vs-value tradeoff at `04-test-coverage.adoc:56,78`
+      is about test coverage, not edge-case remediation. Recommend a new
+      "Edge-case remediation triage" subsection in `01-test-strategies.adoc`
+      covering impact-vs-effort triage, deferring edge cases before shipping,
+      and non-engineering remedies (support, retry, product modification).
+      Note: the "minimum lovable product" depth concept borders on
+      product/process scope (the repo excludes feedback-loop methods) —
+      flagged for the user.
 
 ## Out-of-scope
 

@@ -21,6 +21,32 @@ Migrations), which the user may prefer as the primary home for parts of it.
 
 **Status:** First run, 2026-08-05. All gaps open.
 
+**Second run, 2026-08-06.** Re-run against the UK Government Design
+Principles (https://www.gov.uk/guidance/government-design-principles). Of
+its 11 principles, only #5 ("Iterate. Then iterate again") was routed to
+TS-10. It is out-of-scope: the repository's `src/README.adoc` explicitly
+excludes "iterative and incremental development driven by feedback loops,"
+and TS-10 is scoped to production-release mechanics (`README.adoc:13-14`
+excludes pre-production). Recorded as out-of-scope, flagged for the user.
+No in-scope gaps added; all prior gaps remain open.
+
+**Third run, 2026-08-06.** Re-run against Jeff Hodges' "Notes on
+Distributed Systems for Young Bloods"
+(https://www.somethingsimilar.com/2013/01/14/notes-on-distributed-systems-for-young-bloods/).
+One point was routed to TS-10: P12 ("Feature flags are how infrastructure
+is rolled out"). Partial — TS-10 covers flags and gradual rollout but not
+the infrastructure-migration framing (staged parallel-write / shadow-read /
+comparison-check sequence, multi-version infrastructure as norm, per-user
+migration). One new Partial gap added; all prior gaps remain open.
+
+**Fourth run, 2026-08-06.** Re-run against tef's "Write code that is easy to
+delete, not easy to extend" (https://programmingisterrible.com/post/139222674273/write-code-that-is-easy-to-delete-not-easy-to),
+Step 7. One point was routed to TS-10: feature flags as release/branch
+decoupling and runtime control. Partial — TS-10 covers deployment/release
+decoupling and a trunk-based bullet, but not the Chrome long-lived-branch
+rationale or the SRE runtime-operability angle. One new Partial gap added;
+all prior gaps remain open.
+
 ## Missing
 
 - [ ] https://12factor.net/build-release-run ("strict separation between the
@@ -72,9 +98,75 @@ Migrations), which the user may prefer as the primary home for parts of it.
       a supervised process while run-time errors occur unattended. Recommend
       folding into the new build/release/run section proposed above.
 
+- [ ] https://www.somethingsimilar.com/2013/01/14/notes-on-distributed-systems-for-young-bloods/
+      ("Feature flags are how infrastructure is rolled out") covers
+      infrastructure migration via feature flags more thoroughly than
+      `02-release-strategies.adoc:119-157` (Feature flags — decouple
+      deployment from release; gradual rollouts) and
+      `04-rollback.adoc:17-20` (a dual-write-then-switch-readers schema
+      migration) — specifically, the reference frames flags as the
+      mechanism for *infrastructure* rollout (replacing a database/backend
+      service, not just user-facing feature toggling); prescribes a
+      multi-flag migration sequence (ramp writes to the new service in
+      parallel with the old, a separate flag to read from the new service
+      without using data in responses — shadow reads, a flag for
+      comparison/verification checks, a final flag to ramp real reads);
+      states that multiple versions of infrastructure and data is the norm;
+      and supports per-user migration cohorts. TS-10 establishes flags and
+      gradual rollout and sketches a one-shot dual-write migration, but
+      never frames flags as infrastructure-rollout tooling, never describes
+      the staged parallel-write / shadow-read / comparison-check sequence,
+      never treats multi-version infrastructure as a norm, and never
+      addresses per-user migration. Recommend a new "Infrastructure
+      migrations via feature flags" subsection in `02-release-strategies.adoc`
+      (after the Feature flags section) covering the staged parallel-run /
+      shadow-read pattern. Note: this overlaps TS-45 (Data Migrations); the
+      user may decide to split.
+
+- [ ] https://programmingisterrible.com/post/139222674273/write-code-that-is-easy-to-delete-not-easy-to
+      (Step 7: feature flags as release/branch decoupling and runtime
+      control) covers the branch-merging and operability angles beyond
+      `02-release-strategies.adoc:119-130` (flags decouple deployment from
+      release; runtime enable/disable without redeploy) and `:134-136`
+      (trunk-based: flags let incomplete features merge to main) —
+      specifically: flags *decouple feature releases from merging branches*
+      (the Google Chrome example — the hardest part of a regular release
+      cycle was merging long-lived feature branches; by toggling new code
+      on/off without recompiling, larger changes break into smaller merges
+      without impacting existing code, and long-running feature development
+      becomes visible early so cross-cutting impact surfaces sooner); and
+      the *SRE runtime-operability* angle — being able to change your mind
+      at runtime becomes increasingly important as rollout duration grows
+      (hours/days/weeks), and "any system that can wake you up at night is
+      one worth being able to control at runtime." TS-10 frames runtime
+      toggling as a risk-management/gradual-rollout convenience, not as the
+      operability argument tied to rollout duration and on-call. This is
+      distinct from the existing "feature flags are how infrastructure is
+      rolled out" Partial above (infrastructure migration). Recommend
+      expanding the trunk-based bullet (`02-release-strategies.adoc:134-136`)
+      with the Chrome long-lived-branch rationale, and adding an
+      operability/runtime-control note tying runtime control to rollout
+      duration and on-call. Note: the branch-merging angle overlaps TS-9
+      (Version Control) trunk-based/branching guidance.
+
 ## Out-of-scope
 
 (None identified in this run.)
+
+- [ ] https://www.gov.uk/guidance/government-design-principles (Principle 5,
+      "Iterate. Then iterate again") covers starting small with MVPs,
+      releasing early, progressing alpha → beta → live, iterating based on
+      user feedback, deleting what doesn't work, and scrapping prototypes.
+      This sits outside this standard because the repository's top-level
+      `src/README.adoc` declares that "Methods and tools that help us to
+      achieve our design goals – things like iterative and incremental
+      development driven by feedback loops – are out-of-scope," and TS-10
+      is scoped to production-release mechanics (`README.adoc:13-14`
+      excludes pre-release environments). The fragments that touch
+      feedback-driven refinement (A/B testing `02-release-strategies.adoc:138`,
+      kill switches `02-release-strategies.adoc:141-146`) are operational
+      enablers, not the iterate-to-learn process itself. Flagged for the
+      user to confirm or overrule.
 
 ## Unresolved
 

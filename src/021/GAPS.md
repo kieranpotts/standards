@@ -74,6 +74,28 @@ internal structure is not something the standard needs to reproduce.
 was not modified). New gaps from issue #58 are appended to each section below.
 Date of last run: 2026-08-05.
 
+**Third run, 2026-08-06.** Re-run against Brandur Leppka's "Using Atomic
+Transactions to Power an Idempotent API" (https://brandur.org/http-transactions).
+Three points were routed to TS-21: the 1:1 request↔transaction model (A),
+idempotent endpoint design (B), and non-idempotent requests (E). All three
+are Partial — TS-21 has the building blocks (composite-action atomicity,
+PUT-for-create, async operations, idempotency keys) but not the central
+request-as-transaction principle, the "design endpoints to be naturally
+idempotent" philosophy, or multi-stage transactions for genuinely
+non-idempotent operations. Three new Partial gaps added; all prior gaps
+remain open.
+
+**Fourth run, 2026-08-06.** Re-run against Brandur Leppka's "Implementing
+Stripe-like Idempotency Keys in Postgres" (https://brandur.org/idempotency-keys)
+— the "part two" deep dive on the multi-stage-transaction model that entry E
+above anticipates. Nine points were routed to TS-21; all are Partial (TS-21
+has the idempotency-key cache-and-replay substrate and general fault-
+tolerance framing, but not the state-machine recovery, atomic phases,
+recovery points, idempotency-key locking/409/SERIALIZABLE upsert, DAG,
+completer/reaper, or indeterminate-error handling). Three new Partial entries
+added capturing the concrete design beyond entry E; all prior gaps remain
+open.
+
 ## Missing
 
 - [ ] `__TODO__/http/api/api-keys.md:3-9` — API keys as an authentication
@@ -428,6 +450,135 @@ Date of last run: 2026-08-05.
       Flagged: borderline scope (the standard is JSON-focused), but symmetric
       with its upload guidance. Recommend placing at `08-resources.adoc` (new
       subsection).
+
+- [ ] https://brandur.org/http-transactions ("Using Atomic Transactions to
+      Power an Idempotent API" — The 1:1 Model) covers the request-as-
+      transaction principle more directly than `11-actions.adoc:25-33`
+      (composite actions commit all changes together) and
+      `07-collections.adoc:255,265` (bulk operations SHOULD be atomic) —
+      specifically, the article states the general principle that every
+      idempotent HTTP request maps 1:1 to a single backend database
+      transaction, so all operations in the request commit or abort
+      together; frames the ordinary request lifecycle (clear beginning,
+      end, single result) as a transactional boundary; and motivates it
+      with the failure modes (client disconnects mid-request, application
+      bugs failing a request partway, timeouts) that occur regularly at
+      volume and against which a wrapping transaction protects integrity.
+      TS-21 states atomicity only for composite actions and bulk
+      operations, never as a general per-request principle. Recommend a
+      new "Request-scoped transactions" subsection in `11-actions.adoc` (or
+      a new file) stating the 1:1 request↔transaction model for idempotent
+      requests. Note: the transaction-isolation mechanism this relies on
+      is TS-43's scope.
+
+- [ ] https://brandur.org/http-transactions ("A simple user creation
+      service") covers naturally-idempotent endpoint design more directly
+      than `10-safeness-and-idempotency.adoc:25-31` (GET/HEAD/PUT/DELETE
+      idempotent by definition; PATCH SHOULD be) and
+      `04-http-methods.adoc:32` (PUT for create with a client-generated
+      identifier) — specifically, the article's philosophy that a healthy
+      majority of endpoints can be made idempotent *by massaging verbs and
+      behaviour* (eg. `PUT /users?email=...` with a check-then-insert inside
+      the transaction returning `201 Created` on first creation and `200 OK`
+      on a repeat), preferring such naturally-idempotent shapes before
+      reaching for idempotency keys, and moving non-idempotent network
+      calls to background jobs. TS-21 covers PUT-for-create and async
+      operations (`12-asynchronous-operations.adoc:8-13`) but takes the
+      opposite posture on the rest — treating POST as inherently
+      non-idempotent and prescribing idempotency keys as the universal
+      remedy (`10-safeness-and-idempotency.adoc:45`) — and never describes
+      the check-then-insert `201`/`200` pattern or the "design the endpoint
+      itself to be idempotent" guidance. Recommend a new "Naturally-
+      idempotent endpoint design" subsection in `10-safeness-and-idempotency.adoc`
+      advocating idempotent shapes before idempotency keys.
+
+- [ ] https://brandur.org/http-transactions ("Non-idempotent requests")
+      covers genuinely non-idempotent operations more directly than
+      `10-safeness-and-idempotency.adoc:33-104` (the idempotency-key
+      cache-and-replay mechanism) and `11-actions.adoc:9-11` (lists
+      "charge a credit card" as an action) — specifically, the article
+      argues that response-cache idempotency keys are *insufficient* for
+      operations with irreversible external side effects (calling an
+      external payment gateway with a credit card, provisioning a server,
+      any synchronous network request), because the side effect cannot be
+      safely replayed; such operations must instead be built on
+      *multi-stage transactions* where each stage is recorded as a
+      separate transactional step so retries resume from the last
+      committed state. TS-21 prescribes idempotency-key cache-and-replay
+      as the complete solution for all non-idempotent operations, never
+      calls out this distinct class, never warns that cache-and-replay
+      does not protect external side effects, and never describes
+      multi-stage transactions or any resumable/recoverable model.
+      Recommend a new "Genuinely non-idempotent operations" subsection
+      in `10-safeness-and-idempotency.adoc` distinguishing external-side-
+      effect operations and describing multi-stage transactions (with a
+      forward reference to idempotency keys per the article's part two).
+
+- [ ] https://brandur.org/idempotency-keys ("Implementing Stripe-like
+      Idempotency Keys in Postgres") realizes the multi-stage-transaction
+      model that entry E above anticipates, adding concrete machinery TS-21
+      lacks — specifically: (a) the idempotency-key record carries request
+      *status*, and on retry with the same key the server *continues the
+      state machine from where it left off* rather than merely replaying a
+      cached response (`10-safeness-and-idempotency.adoc:45-104` is
+      cache-and-replay only); (b) *atomic phases* — local state mutations
+      executed in a transaction *between* foreign state mutations, with each
+      phase committed *before* initiating any foreign mutation so local
+      state records what happened for retry (TS-21's atomicity is whole-
+      request via composite actions `11-actions.adoc:21-33`, not phased);
+      (c) *recovery points* — named checkpoints (`started` → … →
+      `finished`) stored on the idempotency-key record, the transition
+      committed with the phase, letting a retried request jump to just
+      before the last failure; and (d) the request as a *directed acyclic
+      graph state machine* whose states are recovery points, moving
+      forward-only to `finished`. Recommend a new "Idempotency keys with
+      atomic phases" subsection in `10-safeness-and-idempotency.adoc`
+      (extending entry E's proposed "Genuinely non-idempotent operations"
+      subsection) covering state-machine recovery, atomic phases, recovery
+      points, and the DAG. Note: the SERIALIZABLE-upsert mechanism is TS-43's
+      scope.
+
+- [ ] https://brandur.org/idempotency-keys ("The idempotency key relation" /
+      "Idempotency key upsert") covers idempotency-key concurrency control
+      not addressed in TS-21 — specifically: a `locked_at` field and lock-
+      acquisition on a seen key; `409 Conflict` for an in-progress
+      (already-locked) key or for a params mismatch (TS-21 uses `422` for
+      the mismatch at `10-safeness-and-idempotency.adoc:91-92` and does not
+      list `409` in its status-code subset at `05-http-status-codes.adoc:46-88`);
+      the upsert run under `SERIALIZABLE` isolation so two concurrent
+      transactions locking the same key see one aborted; unlock-on-error so
+      another request can retry; and an already-`finished` key short-
+      circuiting to return the stored response. Recommend a new
+      "Idempotency-key locking" subsection in `10-safeness-and-idempotency.adoc`
+      (and consider documenting `409 Conflict` for in-progress idempotency
+      keys). Note: the SERIALIZABLE-upsert mechanism is TS-43's scope.
+
+- [ ] https://brandur.org/idempotency-keys ("Foreign state mutations" /
+      "Other processes" / "Complications" / "Cultivating passive safety")
+      covers operational and design-philosophy aspects not addressed in
+      TS-21 — specifically: (a) the explicit *local (ACID, rollbackable) vs
+      foreign (irreversible — once the first foreign mutation is made
+      you're committed and must not lose track of it)* taxonomy, including
+      that internal infrastructure calls (eg. Kafka) count as foreign, not
+      atomic; (b) *supporting processes* — a *completer* that finds
+      unfinished requests whose clients have dropped and pushes them to
+      completion, and a *reaper* that deletes old idempotency keys after a
+      ~72h threshold (long enough to survive a bad Friday deploy through the
+      weekend) and surfaces permanently-failed requests for human attention
+      (TS-21 has only a 24h response-purge at
+      `10-safeness-and-idempotency.adoc:100-104`, no completer); (c)
+      *indeterminate-error handling* — when a foreign mutation is non-
+      idempotent and the foreign service provides no idempotency-key
+      mechanism, a failure may have to be persisted as permanently errored,
+      and indeterminate errors (connection reset, timeout) must be marked
+      failed (conservative), with an exception for an explicit "safe to
+      retry" signal; and (d) *passive safety* as an explicit design goal —
+      a backend should end in a stable state regardless of failures, with
+      users never left broken, idempotent transactions and idempotency keys
+      with atomic phases being the two complementary techniques. Recommend
+      folding (a)-(d) into the new idempotency-key/atomic-phase subsections
+      proposed above. Note: (b)'s enqueuer is the transactional outbox (see
+      `../023/GAPS.md`).
 
 ## Out-of-scope
 

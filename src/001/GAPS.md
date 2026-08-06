@@ -17,6 +17,8 @@ following reference resources:
   - https://www.youtube.com/watch?v=4aHKsolzCv4
   - https://www.youtube.com/watch?v=XxxJZ_oduqo
   - https://www.youtube.com/watch?v=JDD5EEJgpHU
+- https://www.gov.uk/guidance/government-design-principles (UK Government
+  Design Principles)
 
 **Assessment.** Most of the reference material falls outside TS-1's stated
 scope. The OpenAPI cheat sheet, and the RDF/OWL semantic-web material, describe
@@ -58,6 +60,17 @@ gaps. Five unique YouTube videos ingested via metadata/transcript; produced one
 new Partial gap (technical stories) and one new Out-of-scope note (industry
 document-format taxonomy). All prior gaps remain open and were re-verified. Last
 run 2026-08-05.
+
+**Fourth run, 2026-08-06.** Re-run against the UK Government Design
+Principles (https://www.gov.uk/guidance/government-design-principles). Of its
+11 principles, only #1 ("Start with user needs") was routed to TS-1; the
+rest were routed to other standards. Principle #1 is partially covered —
+TS-1 grounds the specification in identified actors and their goals and
+expects engineers to push back on requirements that would not achieve the
+underlying outcome, but is silent on the means the principle prescribes
+(user research, talking to users, behavioural-data analysis, empathy, and
+the explicit "asked-for ≠ needed" distinction). One new Partial gap added;
+all prior gaps remain open.
 
 ## Missing
 
@@ -108,6 +121,26 @@ run 2026-08-05.
       line 177), or in `07-behaviors.adoc` Features. Note: this borders on
       work/backlog management, which may sit outside a requirements
       *specification* standard; the user may decide it is out-of-scope.
+
+- [ ] https://www.gov.uk/guidance/government-design-principles (Principle 1,
+      "Start with user needs") covers the means of discovering user needs
+      more thoroughly than `06-context.adoc:85-103` (Actors) and
+      `03-responsibility.adoc:1-34` (Responsibility) — specifically, the
+      principle prescribes doing user research, analysing data, and talking
+      to users rather than making assumptions; having empathy for users;
+      and the distinction that what users ask for isn't always what they
+      need. TS-1 derives actors and features from the domain model and
+      expects engineers to push back on stated requirements that would not
+      achieve the underlying outcome, but it never mentions user research,
+      talking to users, behavioural-data analysis, empathy, or the
+      asked-for ≠ needed distinction as a discovery practice, and it
+      locates user/problem framing in the upstream PRD
+      (`01-scope.adoc:57-101`) rather than the SRS workflow. Recommend a
+      short "User research and need discovery" note in
+      `03-responsibility.adoc` or `06-context.adoc` (Actors),
+      cross-referencing the PRD. Note: TS-1 may legitimately defer the
+      *means* of user research to a UX/product standard (eg. TS-15); the
+      user may decide it is out-of-scope here.
 
 ## Out-of-scope
 

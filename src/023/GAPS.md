@@ -16,6 +16,26 @@ covering delivery reliability, retries, and dead letters.
 **Status:** First run (2026-08-05). No prior `GAPS.md` existed. One missing gap
 (observability) and two out-of-scope items flagged for the user.
 
+**Second run, 2026-08-06.** Re-run against Brandur Leppka's "Using Atomic
+Transactions to Power an Idempotent API" (https://brandur.org/http-transactions).
+One point was routed to TS-23: the transactionally-staged job drain
+(transactional outbox) pattern (D). It is Missing — TS-23 recommends
+idempotent messages (`03-delivery-and-reliability.adoc:16-28`, a
+prerequisite) but never addresses producer-side atomic enqueuing or the
+outbox pattern. One new Missing gap added; all prior gaps remain open.
+
+**Third run, 2026-08-06.** Re-run against Brandur Leppka's "Transactionally
+Staged Job Drains in Postgres" (https://brandur.org/job-drain). This is a
+deeper treatment of the same outbox pattern recorded as Missing above (the
+http-transactions D entry). The standard still doesn't cover it, so no new
+Missing item is added; instead one new Partial entry captures the deeper
+article's additions beyond the existing D entry — the before-commit race
+failure mode, the bad-alternatives anti-patterns (after_commit silent loss;
+retry-thrash), enqueuer implementation details (single-enqueuer lock,
+repeatable read for DELETE/SELECT consistency, batch + exponential backoff),
+and the in-database-queue scaling/locking critique. All prior gaps remain
+open.
+
 ## Missing
 
 - [ ] `src/023/__TODO__/event-driven.md:7` states that logging, monitoring, and
@@ -31,9 +51,62 @@ covering delivery reliability, retries, and dead letters.
       observability standard, but since TS-23 already covers operational
       reliability concerns, observability is a natural fit here.)
 
+- [ ] https://brandur.org/http-transactions ("Transaction-staged jobs")
+      covers the transactional outbox pattern, which is not addressed
+      anywhere in the standard. The reference describes the
+      "transactionally-staged job drain": enqueueing a background job
+      (eg. to Sidekiq) within an HTTP request risks an invalid job if the
+      surrounding database transaction rolls back (the job references
+      data that no longer exists and can never succeed); the solution is
+      to write jobs to a job-staging table *within* the transaction (so
+      by isolation the staged job is invisible to other transactions
+      until commit, and a rolled-back job is never seen), and a separate
+      enqueuer process drains the staging table in batches, enqueues
+      each job to the real queue, and deletes the staged rows in the same
+      transaction. The enqueuer guarantees at-least-once (not exactly-
+      once) delivery, so jobs must be idempotent; and putting the job
+      queue directly in the database (eg. Que) risks table bloat on
+      systems like Postgres. TS-23 treats delivery reliability as a
+      transport/network concern (`03-delivery-and-reliability.adoc:1-143`)
+      and recommends idempotent messages with a `message_id` idempotency
+      key (`:16-28`) — a prerequisite for the outbox's correctness — but
+      never addresses the producer-side atomicity problem (enqueuing
+      outside the transaction it depends on), staging tables, the
+      enqueuer-drain pattern, or in-database-queue bloat. Recommend a
+      new "Transactional outbox" subsection in
+      `03-delivery-and-reliability.adoc` covering the staged-drain
+      pattern and its at-least-once/idempotent-consumer requirements.
+      Note: the database-transaction mechanism this relies on is TS-43's
+      scope.
+
 ## Partial
 
-_(None identified.)_
+- [ ] https://brandur.org/job-drain ("Transactionally Staged Job Drains in
+      Postgres") is a deeper treatment of the outbox pattern recorded as
+      Missing above (the http-transactions "Transaction-staged jobs" entry)
+      and adds specifics that entry doesn't capture — specifically: (a) the
+      *before-commit* failure mode, distinct from rollback: a fast queue
+      lets a worker run a job before its enclosing transaction commits, so
+      the job fails to find data that isn't visible yet (eg. a job to look
+      up a just-inserted user record); (b) the common bad alternatives and
+      why they're worse — enqueueing after commit (eg. Rails' `after_commit`)
+      risks a crash between commit and enqueue producing *silent,
+      unmonitored* job loss, and letting early retries fail to rely on the
+      queue's retry scheme thrashes and floods errors; (c) enqueuer
+      implementation details — a single enqueuer (held under a lock),
+      `REPEATABLE READ` isolation so the post-enqueue `DELETE` sees the
+      same jobs as the `SELECT`, batched selection, and exponential backoff
+      sleep when the staging table is empty; and (d) the scaling critique of
+      in-database queues (delayed_job, que, queue_classic) — workers
+      locking jobs directly in the DB don't scale under load (long-running
+      transactions slow job locking, the queue spirals), so the staged
+      drain selects primed jobs in bulk and feeds them to a store like
+      Redis better-suited to distributing to competing workers. TS-23's
+      existing idempotency guidance (`03-delivery-and-reliability.adoc:16-28`)
+      is a prerequisite but none of the above is addressed. Recommend
+      folding these specifics into the "Transactional outbox" subsection
+      proposed by the existing Missing entry. Note: the `REPEATABLE READ`
+      isolation rationale is TS-43's scope.
 
 ## Out-of-scope
 

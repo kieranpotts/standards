@@ -24,6 +24,27 @@ content) are flagged out-of-scope.
 
 **Status:** Initial run, 2026-08-05. All gaps below remain open.
 
+**Second run, 2026-08-06.** Re-run against the UK Government Design
+Principles (https://www.gov.uk/guidance/government-design-principles). Three
+principles were routed to TS-15: #6 ("This is for everyone"), #7
+("Understand context"), and #9 ("Be consistent, not uniform"). #7 is a
+new Missing gap (no context-of-use treatment exists). #6 and #9 are
+Partial — existing entries already cover much of their ground
+(accessibility via CFPB/usability.gov/Laws of UX; consistency via Nielsen
+Heuristic 4 and Jakob's Law); the new entries capture only what those
+existing entries omit (#6: sacrificing elegance, prioritising the
+hardest-to-reach users; #9: the consistency-vs-uniformity distinction and
+evolving/sharing patterns). All prior gaps remain open.
+
+**Third run, 2026-08-06.** Re-run against Nelson Elhage's "Reflections on
+software performance" (https://blog.nelhage.com/post/reflections-on-performance/).
+One point was routed to TS-15: "performance changes how users use software"
+(B). It is Missing — TS-15 has no response-time thresholds (not even the
+100ms instantaneous-perception threshold) and no treatment of performance
+changing interaction patterns; the existing Doherty Threshold (400ms) entry
+is adjacent but distinct. One new Missing gap added; all prior gaps remain
+open.
+
 ## Missing
 
 - [ ] https://www.nngroup.com/articles/ten-usability-heuristics/ (Heuristic 1:
@@ -303,6 +324,43 @@ content) are flagged out-of-scope.
       severe errors should be sincere and direct. Recommend the new "Error
       messages" section, or a new section "Voice and tone".
 
+- [ ] https://www.gov.uk/guidance/government-design-principles (Principle 7,
+      "Understand context") is not addressed anywhere in the standard. The
+      principle holds that we design for people, not screens, and must
+      consider the context of use — where the user is (a library, a public
+      space), the device (a phone), their familiarity with the web or
+      specific products ("only really familiar with Facebook"), and
+      first-time/no-prior-web users. TS-15 acknowledges only device screen
+      size via responsive design (`01-design-principles.adoc:25-26`) and
+      touches users' prior software exposure (`:51-53`) and physical-world
+      knowledge (`:55-60`), but never frames design as context-of-use
+      analysis and has no section on user research, personas, or
+      situational context. Recommend a new "Understand context" / "Context
+      of use" section in `01-design-principles.adoc`, possibly alongside a
+      user-research/personas treatment.
+
+- [ ] https://blog.nelhage.com/post/reflections-on-performance/ ("Performance
+      changes how users use software") is not addressed anywhere in the
+      standard. The reference argues that fast tools don't just let users
+      accomplish tasks faster — they enable entirely new types of tasks and
+      new ways of working, and users choose faster tools more frequently:
+      Sorbet became the fastest code-feedback loop (typecheck in 10-20s vs
+      a 10-15min CI suite) so users reached for it first and tolerated its
+      false errors; livegrep responds inside 100ms — the well-documented
+      threshold at which a response appears "instantaneous" — so users use
+      it *interactively*, entering a query then refining/iterating against
+      the result list in real time, which adds power and approachability.
+      TS-15 has no response-time/responsiveness thresholds at all (no 100ms
+      instantaneous threshold) and never addresses performance changing
+      *how* users use a tool. The existing Doherty Threshold entry
+      (`GAPS.md:47-51`) is a 400ms productivity threshold, distinct from
+      the 100ms instantaneous-perception threshold and from the
+      "performance changes usage patterns" thesis. Recommend a new
+      "Responsiveness and response-time thresholds" section in
+      `01-design-principles.adoc` stating the 100ms/400ms/1s thresholds and
+      how performance enables new interaction patterns (interactive
+      iteration, new task types).
+
 ## Partial
 
 - [ ] https://www.nngroup.com/articles/ten-usability-heuristics/ (Heuristic 4:
@@ -346,6 +404,39 @@ content) are flagged out-of-scope.
       accessibility guidance: clear headings and action-oriented descriptions
       aid assistive-technology users, carousels can be difficult for them, and
       accessibility testing is required to ensure equal access.
+
+- [ ] https://www.gov.uk/guidance/government-design-principles (Principle 6,
+      "This is for everyone") covers inclusive-design posture more directly
+      than `01-design-principles.adoc:33-36` (color must not be the sole
+      carrier of information) — specifically, the principle states that
+      accessible design is good design and everything should be "as
+      inclusive, legible and readable as possible"; that "if we have to
+      sacrifice elegance - so be it"; and that "the people who most need
+      our services are often the people who find them hardest to use," so
+      the hardest-to-reach users should be considered from the start.
+      TS-15's existing accessibility treatment is a single color caveat; the
+      broader assistive-technology/motor/cognitive/auditory coverage is
+      already captured by the CFPB and usability.gov entries above, but the
+      prioritise-the-hardest-to-reach-users-first posture and the
+      willingness-to-sacrifice-elegance principle are not. Recommend
+      strengthening `01-design-principles.adoc:33-36` into a first-class
+      "Accessibility and inclusivity" section that states these as
+      objectives, not a color caveat.
+
+- [ ] https://www.gov.uk/guidance/government-design-principles (Principle 9,
+      "Be consistent, not uniform") covers the consistency-vs-uniformity
+      distinction more directly than `01-design-principles.adoc:14` ("Use a
+      consistent layout and design language throughout the application") —
+      specifically, the principle states consistency is "not a straitjacket
+      or a rule book," that when patterns that work are found they should
+      be shared and the reasons talked about, and that patterns should be
+      improved or changed when better ways are found or user needs change.
+      The existing Nielsen Heuristic 4 entry above covers internal +
+      external consistency and Jakob's Law, but not the explicit licence
+      to diverge from uniformity, the practice of sharing patterns across
+      teams and explaining why, or the evolution of patterns over time.
+      Recommend expanding `01-design-principles.adoc:14` to address when
+      to diverge and how shared patterns evolve.
 
 ## Out-of-scope
 

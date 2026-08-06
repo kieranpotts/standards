@@ -55,6 +55,58 @@ scope and are unaddressed, chiefly: domain analysis before microservices, the
 Self-Contained Systems (SCS) pattern, and the abstraction-layer-as-dependency
 trade-off for vendor facades. All new gaps open.
 
+**Fourth run, 2026-08-06.** Re-run against the UK Government Design
+Principles (https://www.gov.uk/guidance/government-design-principles). Of
+its 11 principles, only #8 ("Build digital services, not websites") was
+routed to TS-5. The principle is a user-facing service-design thesis
+(services help people do things; uncover user needs; the digital world
+connects to the real world; think about all aspects of a service
+end-to-end) that sits outside TS-5's stated purpose (the internal
+architecture of standalone applications) — TS-5's `06-services.adoc`
+covers SOA/microservices as a code-decomposition strategy, a different
+sense of "service." Recorded as out-of-scope, flagged for the user. No
+in-scope gaps added; all prior gaps remain open.
+
+**Fifth run, 2026-08-06.** Re-run against Jeff Hodges' "Notes on
+Distributed Systems for Young Bloods"
+(https://www.somethingsimilar.com/2013/01/14/notes-on-distributed-systems-for-young-bloods/).
+One point was routed to TS-5: P18 ("Extract services"). Partial — TS-5
+covers independent deployability and incremental extraction but not the
+services-vs-shared-libraries trade-off (deployment and social coordination
+costs, strict boundary preventing shortcuts) or the storage-migration-
+hiding use case. One new Partial gap added; all prior gaps remain open.
+
+**Sixth run, 2026-08-06.** Re-run against Nelson Elhage's "Reflections on
+software performance" (https://blog.nelhage.com/post/reflections-on-performance/).
+Two points were routed to TS-5: "architecture strongly impacts performance"
+(D) and "performant foundations simplify architecture" (F). Both Missing —
+TS-5 mentions performance only incidentally (as a framework-selection factor
+at `05-frameworks.adoc:79-84` and a multi-process motivation at
+`README.adoc:11-12`), with no thesis that architecture determines
+performance or that a fast core simplifies architecture. Two new Missing
+gaps added; all prior gaps remain open.
+
+**Seventh run, 2026-08-06.** Re-run against tef's "Write code that is easy
+to delete, not easy to extend" (https://programmingisterrible.com/post/139222674273/write-code-that-is-easy-to-delete-not-easy-to).
+One point was routed to TS-5: layering (boilerplate, simple-on-simple,
+protocol vs policy, wrap third-party libraries). Partial — TS-5 strongly
+covers wrapping third-party libraries behind facades but not
+boilerplate-as-dependency-avoidance, simple-on-simple API stacking, the
+protocol/policy split, or the pleasant-vs-extensible API tension. One new
+Partial gap added; all prior gaps remain open.
+
+**Eighth run, 2026-08-06.** Re-run against Dan McKinley's "Choose Boring
+Technology" (https://mcfunley.com/choose-boring-technology). Three points
+were routed to TS-5: optimize globally (P1), deliberate adoption process
+(P2), and polyglot operational toil (P3). All Partial — TS-5 has
+"frameworks as platforms" (org-wide TCO) and "frameworks as destinations"
+(build-without-framework) and dependency-minimization, but no
+global-optimization/least-worst thesis, no operational/cognitive cost
+items, no deliberate org-visible adoption process, no migration-timeline
+governance, and no polyglot-toil thesis (and `05-frameworks.adoc:69-72`
+contradicts McKinley by recommending per-app "best tool for the job"). Two
+new Partial gaps added; all prior gaps remain open.
+
 ## Missing
 
 - [ ] `__TODO__/configuration.adoc:3` (also `configuration.md:9`,
@@ -322,6 +374,156 @@ trade-off for vendor facades. All new gaps open.
       its own maintenance cost. Recommend adding this caution to the "Vendor
       facades" section of `04-dependencies.adoc` (after `04-dependencies.adoc:89`).
 
+- [ ] https://www.somethingsimilar.com/2013/01/14/notes-on-distributed-systems-for-young-bloods/
+      ("Extract services") covers the services-vs-shared-libraries
+      trade-off more thoroughly than `06-services.adoc:16-28` (independent
+      deployability as the defining microservice characteristic) and
+      `06-services.adoc:69-83` (incremental extraction from a modular
+      monolith) — specifically, the reference compares extracting a service
+      to distributing a shared library and argues the service wins on
+      deployment coordination: upgrading a library requires coordinating a
+      deploy of every client system (harder when out-of-order deploys risk
+      data corruption, and a higher *social* coordination cost when clients
+      have different maintainers), whereas a service deploys independently;
+      the service boundary is *strict* in a way a library boundary is not,
+      preventing the "shortcuts" (direct access to internals, shared
+      in-memory state) that libraries permit; and the canonical use case is
+      hiding a storage layer undergoing changes/migration behind a
+      reduced-surface-area service API. TS-5 names independent
+      deployability and endorses incremental extraction but never compares
+      a service to a shared library, never makes the deployment/social-
+      coordination-cost argument, never states the strict-boundary-
+      prevents-shortcuts benefit, and never names the storage-migration-
+      hiding use case (its vendor-facade pattern at `04-dependencies.adoc:74-89`
+      is an in-process abstraction, not a deployed service). Recommend a
+      new "Services vs shared libraries" subsection in `06-services.adoc`
+      covering the trade-off and the storage-migration-hiding use case.
+
+- [ ] https://blog.nelhage.com/post/reflections-on-performance/ ("Architecture
+      strongly impacts performance") is not addressed anywhere in the
+      standard. The reference argues that a system's basic architecture —
+      high-level structure, dataflow, and organization — has profound
+      performance implications; that early architectural decisions (eg.
+      Sorbet's local-only type inference, which made it simpler, faster,
+      and easier to parallelize/incrementalize) are cheap to make up front
+      but extraordinarily costly to change later (the Flow team's
+      multi-year refactor); and that to build truly performant software you
+      must keep performance in mind while making early design/architectural
+      decisions, lest you paint yourself into a corner. TS-5 mentions
+      performance only incidentally — as one factor in framework choice
+      (`05-frameworks.adoc:79-84`) and a reason for multi-process designs
+      (`README.adoc:11-12`) — and never states that architecture determines
+      performance or warns of architectural lock-in on performance.
+      Recommend a new "Performance as an architectural concern" subsection
+      (eg. in `README.adoc` or a new `07-performance.adoc`) stating that
+      high-level structure and dataflow profoundly impact performance and
+      that early architectural decisions are cheap up front but costly to
+      reverse. Note: this borders on TS-2 (Software Design Qualities),
+      which covers performance as a design quality — but the architectural-
+      decision angle is TS-5's scope.
+
+- [ ] https://blog.nelhage.com/post/reflections-on-performance/ ("Performant
+      foundations simplify architecture") is not addressed anywhere in the
+      standard. The reference argues that starting with a performant core
+      can drastically *simplify* architecture for a given level of
+      functionality: attempts to add performance to a slow system often add
+      complexity (complex caching, distributed systems, fine-grained
+      incremental-recomputation bookkeeping) that introduces bugs,
+      overhead, and worse straight-line performance; when a tool is fast in
+      the first place those layers may be unnecessary, yielding a net
+      simpler system (Sorbet outperformed a slower Ruby tool *without*
+      caching; its cache format has no forward/backward compatibility
+      because cold-start is fast enough, avoiding the cache-invalidation
+      complexity MyPy faced). TS-5 has adjacent instincts (cautions against
+      premature decomposition and unnecessary dependencies/abstractions)
+      but never connects them to *performance* as the driver, never states
+      that a fast foundation can make caching/distribution/incremental
+      layers unnecessary, and never warns that bolting performance onto a
+      slow core is a complexity trap (it even defers caching to TS-46).
+      Recommend a new "Performant foundations simplify architecture"
+      subsection in `README.adoc` (or `07-performance.adoc`) covering the
+      performance-simplicity trade-off. Note: the caching/distributed-
+      systems layers it references border on TS-46 (Distributed Data and
+      Caching) and TS-6 (Distributed System Design).
+
+- [ ] https://programmingisterrible.com/post/139222674273/write-code-that-is-easy-to-delete-not-easy-to
+      (Steps 3-4: layering — boilerplate, simple-on-simple, protocol vs
+      policy, wrap third-party libraries) covers API layering beyond
+      `01-horizontal-layers.adoc:43-46,98-123` (architectural layers;
+      Vendors layer facades) and `04-dependencies.adoc:74-89` /
+      `05-frameworks.adoc:21-54` (vendor/framework facades to avoid lock-in)
+      — specifically: *boilerplate as a deliberate dependency-avoidance
+      trade-off* (duplicate code to *use* a library, accepting verbosity to
+      avoid introducing a dependency and retain flexibility — TS-5's
+      dependency guidance is about minimizing/vetting deps, not accepting
+      verbosity as a substitute for one); *simple-on-simple API stacking*
+      (build a simple-to-use API on top of a simpler-to-implement but
+      clumsy-to-use one — the `requests`-on-`urllib3` pattern; TS-5's
+      layers are concern-separation layers, not API-stacking layers);
+      *protocol vs policy* as a named distinction (wire formats, network
+      protocols, parsing kits are the hard-to-delete code where business
+      logic must be kept out — TS-5 keeps business logic in the Model layer
+      but frames it as domain isolation, not protocol/policy contamination
+      risk); the *pleasant-to-use vs extensible API tension* (wrapping
+      resolves it by layering an opinionated API over a flexible one);
+      empathy for the programmers who will use the API; and keeping `util`
+      free of business logic. Recommend a new "Layering APIs: simple on
+      simple" subsection in `04-dependencies.adoc` (or
+      `01-horizontal-layers.adoc`) covering boilerplate-as-dependency-
+      avoidance, simple-on-simple stacking, the protocol/policy split, and
+      the pleasant-vs-extensible tension.
+
+- [ ] https://mcfunley.com/choose-boring-technology ("Optimize globally" /
+      "Just ship") covers global technology-selection optimization and
+      polyglot-toil beyond `05-frameworks.adoc:8-19` ("frameworks as
+      platforms" — org-wide standardization reduces total cost of ownership
+      across a portfolio) and `04-dependencies.adoc:3-5` (minimize
+      dependencies; each adds complexity/maintenance overhead) —
+      specifically: technology choices should be optimized *globally across
+      the org and the emerging system*, not per-problem ("best tool for the
+      job" is myopic — the "best" tool is the "least worst" for as many of
+      your problems as possible); adding tech carries *operations* and
+      *cognitive overhead* (monitoring, unit tests, initial knowledge to
+      hack on it, init scripts) that adds up fast; long-term costs of
+      keeping a system working reliably vastly exceed build-time
+      inconveniences; and polyglot freedom generates day-to-day operational
+      toil that crushes teams ("technology for its own sake is snake oil";
+      mindful choice frees minds for bigger questions). TS-5 argues
+      standardization from the *benefits* side but never from the
+      *cost-of-polyglot* side, never names polyglot proliferation as a
+      risk, and `05-frameworks.adoc:69-72` actively recommends per-
+      application "best tool for the job" selection — the myopia McKinley
+      warns against. Recommend a "Global technology optimization" addition
+      to `04-dependencies.adoc` (or a new `07-technology-selection.adoc`)
+      covering least-worst-for-many-problems, the operational/cognitive
+      cost items, and the polyglot-toil thesis.
+
+- [ ] https://mcfunley.com/choose-boring-technology ("Choose new technology,
+      sometimes") covers a deliberate adoption-governance process beyond
+      `04-dependencies.adoc:41-44` (each dependency MUST be carefully
+      considered/justified — vetting provenance/security) and
+      `05-frameworks.adoc:56-72` ("frameworks as destinations" — the
+      build-without-the-framework thought experiment) — specifically:
+      adding tech requires *company-wide visibility/conversation* (set
+      cultural expectations that "this is something we all talk about");
+      exercise (a) consider how to solve the immediate problem *without
+      adding anything new* (this detects the case where the "problem" is
+      that someone just wants to use the technology — abort if so — TS-5's
+      build-without-framework check is a design-fit test, not this
+      tech-for-tech's-sake guard); exercise (b) write down exactly what
+      about the current stack makes the problem prohibitively expensive;
+      and exercise (c) when new tech overlaps/replaces existing tech, set
+      clear *migration expectations with a proposed timeline* (policy
+      typically "we're committed to migrating") to keep wreckage
+      manageable and avoid proliferating locally-optimal solutions. TS-5's
+      facades address making future migration *cheaper* but not the
+      *governance* (migration-timeline policy, anti-proliferation
+      rationale). Recommend a "Deliberate technology adoption" addition to
+      `04-dependencies.adoc` covering the org-wide conversation, the
+      solve-without-adding-new check, the write-down-prohibitive-cost
+      exercise, and migration-timeline governance. Note: the migration-
+      timeline angle overlaps TS-10 (Releasing) and TS-45 (Data Migrations).
+
 ## Out-of-scope
 
 - [ ] `__TODO__/automation.md:3-9` covers CI/CD automation, build/release/run
@@ -458,6 +660,20 @@ trade-off for vendor facades. All new gaps open.
       standard because secrets and security concerns are covered by TS-52
       (Security and Secrets Management). Flagged for the user to confirm or
       overrule.
+
+- [ ] https://www.gov.uk/guidance/government-design-principles (Principle 8,
+      "Build digital services, not websites") covers service-as-something-
+      that-helps-people, uncovering user needs, the explicit "not a website"
+      framing, end-to-end consideration of all aspects of a service, the
+      connection between the digital and real world, and service mapping.
+      This plausibly sits outside this standard because TS-5's stated
+      purpose is the internal architecture of standalone applications
+      (`README.adoc:5-14`); its `06-services.adoc` addresses
+      SOA/microservices as a code-decomposition strategy, a different sense
+      of "service." Holistic user-facing service design is more a
+      product/service-design concern with no current home in the standards
+      corpus. Flagged for the user to confirm or overrule, or to route to a
+      future service-design standard.
 
 ## Unresolved
 
