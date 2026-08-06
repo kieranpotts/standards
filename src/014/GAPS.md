@@ -1,60 +1,23 @@
-# TS-14 gap analysis
+# GAPS — TS-14 Performance Testing
 
-Gaps found comparing TS-14: *Performance Testing* against the following
-reference resource:
+Coverage gaps identified by comparing external sources against this standard.
 
-- https://blog.nelhage.com/post/reflections-on-performance/ (Nelson Elhage,
-  "Reflections on software performance", 2020)
+---
 
-**Assessment.** Of the article's points, one was routed to TS-14:
-"Performance isn't just about hot spots" (E). TS-14 is written entirely at
-the level of system-level performance testing — load, soak, spike, capacity,
-and scalability tests measuring end-to-end response time, throughput, and
-resource utilization against thresholds, with regression detection via
-baselines and CI/CD automation. It never descends to the code-profiling
-level where the hot-spot-vs-diffuse-profile distinction lives: there is no
-discussion of profilers, flame graphs, hot functions, or the fact that some
-systems have no dominant hot spot and so cannot be sped up by localized
-optimization — nor the corresponding remedy (whole-codebase techniques like
-cache-optimized data structures or a lower-level implementation language that
-make every line faster). The point is Missing.
+## Performance engineering requires multi-layer understanding
 
-**Status:** First run, 2026-08-06. One Missing gap open.
+- **Source**: https://blog.nelhage.com/post/computers-can-be-understood/
+- **What the source says**: Reasoning about performance often demands understanding multiple stack layers — you can't write efficient Python without some grasp of the CPython implementation, and cache-efficient C requires understanding generated code and the hardware.
+- **Coverage check**: TS-14 is about testing performance and other NFRs. TS-2 frames performance as an architecturally-significant NFR. Neither addresses the engineering practice of digging through implementation layers to reason about and improve performance.
+- **Gap**: The standards cover performance as a quality to specify and test, but not the practice of understanding lower layers of the stack to diagnose and optimize performance.
+- **Cross-references**: TS-2 (Software Design Qualities)
 
-## Missing
+---
 
-- [ ] https://blog.nelhage.com/post/reflections-on-performance/ ("Performance
-      isn't just about hot spots") is not addressed anywhere in the standard.
-      The reference argues that some systems (compilers/typecheckers like
-      Sorbet) have very few hot spots — time is diffuse, spread evenly across
-      major passes — so you can't make a slow typechecker fast by optimizing
-      hot spots since there aren't any; instead, techniques like cache-optimized
-      data structures or writing in C++ make *every* line faster in a way that
-      adds up across the whole application, and SQLite 3.8.7 got 50% faster via
-      many stacked improvements each under 1%. TS-14 covers system-level
-      metrics (response time p50/p95/p99, throughput, utilization at
-      `02-performance-testing.adoc:14-28`), drift/baseline regression
-      detection (`:30-40,69-74`), and "monitor all layers … to identify where
-      bottlenecks occur" (`:79-80`), but never discusses profiling, hot-spot
-      vs diffuse/flat profiles, the limits of profile-and-optimize-hotspots,
-      or whole-codebase techniques (data structures, implementation language)
-      that make every line faster. The "bottlenecks" framing (`:79-80`,
-      `01-shift-left.adoc:13-19`, `03-capacity-testing.adoc`) is load-driven,
-      not profile-driven. Recommend a new "Profiling and hot spots" subsection
-      in `02-performance-testing.adoc` covering profilers/flame graphs, the
-      hot-spot-vs-diffuse-profile distinction, and the limits of hot-spot
-      optimization. Note: the whole-codebase techniques (data structures,
-      language choice) border on TS-7 (Code Design) and TS-2 (Software Design
-      Qualities).
+## Evaluating candidate technologies against real-world conditions
 
-## Partial
-
-(None identified in this run.)
-
-## Out-of-scope
-
-(None identified in this run.)
-
-## Unresolved
-
-(None.)
+- **Source**: https://newsletter.posthog.com/p/how-we-choose-technologies
+- **What the source says**: Teams evaluate technologies "as close to reality as possible" — building proof-of-concepts tested with real slow queries, mirroring live traffic to project costs/performance.
+- **Coverage check**: TS-14 is concerned with testing the quality attributes of your own system, not with benchmarking third-party candidate technologies before adoption.
+- **Gap**: No guidance on benchmarking candidate technologies against realistic production workloads as part of a technology-selection process.
+- **Cross-references**: TS-3 (Design Docs)
