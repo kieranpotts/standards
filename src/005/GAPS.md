@@ -41,6 +41,20 @@ SIGTERM/shutdown-protocol detail behind disposability (Factor IX). New items
 below are additive to, not replacements for, the first-run items on the same
 themes. All new gaps open.
 
+**Third run, 2026-08-06.** Re-run against the *Architecture Playbook* (AR
+Playbook) by Maikel Mardjan / nocomplexity.com
+(https://nocomplexity.com/documents/arplaybook/introduction.html), traversing
+its Business, Data, Applications, and Technology Infrastructure sections plus the
+Software Architecture, Software Development, Quality, NFR Capabilities, and
+Architecture References pages. The AR Playbook is a broad Enterprise
+Architecture reference — tool/template/checklist/NFR heavy and deliberately
+method-agnostic — so the large majority of its content sits outside TS-5's
+stated purpose (the architecture of standalone applications) and is flagged
+out-of-scope below. Only a handful of prescriptive points fall inside TS-5's
+scope and are unaddressed, chiefly: domain analysis before microservices, the
+Self-Contained Systems (SCS) pattern, and the abstraction-layer-as-dependency
+trade-off for vendor facades. All new gaps open.
+
 ## Missing
 
 - [ ] `__TODO__/configuration.adoc:3` (also `configuration.md:9`,
@@ -231,6 +245,26 @@ themes. All new gaps open.
       `06-services.adoc`'s reactive-systems section given its existing
       messaging-durability discussion (`06-services.adoc:100-113`).
 
+- [ ] https://nocomplexity.com/documents/arplaybook/architecture-references.html#microservices
+      (AR Playbook, Architecture References → Microservices) — "Before
+      designing/building/running a microservices architecture, perform domain
+      analysis first." Not addressed — `06-services.adoc:16-28` discusses the
+      challenge of microservice interfaces and `06-services.adoc:30-67` covers
+      bounded contexts, but the standard never states that domain analysis must
+      precede microservices design. Recommend extending `06-services.adoc`'s
+      Microservices section (after `06-services.adoc:28`) or the premature-
+      decomposition section (`06-services.adoc:69-83`).
+
+- [ ] https://nocomplexity.com/documents/arplaybook/architecture-references.html#architecture-methods
+      (AR Playbook, Architecture References → Architecture Methods) —
+      Self-Contained Systems (SCS): an architectural approach that separates a
+      larger system's functionality into many independent, collaborating
+      (self-contained) systems. Not addressed — `02-vertical-slices.adoc` and
+      `06-services.adoc` cover the modular monolith → microservices extraction
+      path, but the standard does not name or characterize the SCS pattern.
+      Recommend a new subsection in `06-services.adoc` (or `02-vertical-slices.adoc`),
+      noting SCS overlaps with the modular-monolith-to-services progression.
+
 ## Partial
 
 - [ ] https://12factor.net/backing-services ("Resources can be attached to and
@@ -278,6 +312,16 @@ themes. All new gaps open.
       journey optimization based on usage analysis and may be managed by
       non-developer stakeholders (UX designers, content authors).
 
+- [ ] https://nocomplexity.com/documents/arplaybook/ti-architecture.html#abstraction-tools
+      (AR Playbook, Technology Infrastructure → Abstraction Tools) — abstraction
+      layers ease implementation and portability, but the trade-off is that the
+      extra layer adds another dependency. Partial — `04-dependencies.adoc:74-89`
+      and `05-frameworks.adoc:21-54` advocate vendor facades to decouple
+      application code from frameworks/vendors, but never state the trade-off
+      that an abstraction layer/facade is itself an additional dependency with
+      its own maintenance cost. Recommend adding this caution to the "Vendor
+      facades" section of `04-dependencies.adoc` (after `04-dependencies.adoc:89`).
+
 ## Out-of-scope
 
 - [ ] `__TODO__/automation.md:3-9` covers CI/CD automation, build/release/run
@@ -324,6 +368,96 @@ themes. All new gaps open.
       which plausibly sits outside this standard because it is an operational
       concern covered by TS-10 (Releasing) and TS-45 (Data Migrations).
       Flagged for the user to confirm or overrule.
+
+- [ ] https://nocomplexity.com/documents/arplaybook/application-architecture.html#tools-for-creating-an-application-architecture
+      (AR Playbook, Applications → Tools) — "Creating good interfaces (APIs) is
+      a MUST for every good architecture; APIs form the connecting glue between
+      modern applications," plus API design-first tooling (API Blueprint,
+      Swagger/OpenAPI, RAML). API/interface design as a discipline plausibly
+      sits outside this standard because it is covered by TS-20 (Network APIs)
+      and TS-21 (HTTP APIs); TS-5 only addresses service interfaces at the
+      architectural-boundary level (`06-services.adoc:55-67`). Flagged for the
+      user to confirm or overrule.
+
+- [ ] https://nocomplexity.com/documents/arplaybook/software-architecture.html
+      (AR Playbook, Software Architecture) — architecture documentation and
+      visualization methods/tools: the C4 model, arc42, Structurizr, Mermaid, the
+      Bounded Context Canvas, Systemizer, and standardized templates
+      (ISO/IEC/IEEE 42010:2011, SAD, SEI Architecture template). These are
+      architecture-documentation concerns that plausibly sit outside this
+      standard because they belong to TS-3 (Design Docs). Flagged for the user
+      to confirm or overrule.
+
+- [ ] https://nocomplexity.com/documents/arplaybook/architecture-references.html#architecture-methods,
+      `arplaybook-template-architecturedecisions.html`, and `ADR-template.html`
+      (AR Playbook) — Architectural Decision Records (ADRs) and structured
+      architecture-decision logging. This plausibly sits outside this standard
+      because recording design decisions is a documentation concern covered by
+      TS-3 (Design Docs). Flagged for the user to confirm or overrule.
+
+- [ ] https://nocomplexity.com/documents/arplaybook/software-development.html
+      (AR Playbook, Software Development) — version control from day one,
+      branching-model choice (GitHub flow), coding-style guides, code-quality
+      analysis services, release-early/release-often, and semantic versioning.
+      These plausibly sit outside this standard because they are delivery and
+      code-level concerns covered by TS-9 (Version Control), TS-11 (Versioning),
+      and TS-7 (Code Design). Flagged for the user to confirm or overrule.
+
+- [ ] https://nocomplexity.com/documents/arplaybook/quality.html and
+      `capabilities.html` (AR Playbook, Quality & NFR Capabilities) — the
+      architecture must address quality attributes (performance, availability,
+      maintainability, modifiability, security, privacy, testability,
+      operability, flexibility), the ISO/IEC 25010 quality model, and NFR
+      capabilities (high availability, disaster recovery, manageability,
+      footprint, supportability, service levels). These plausibly sit outside
+      this standard because software design qualities are covered by TS-2
+      (Software Design Qualities), and HA/DR/deployment-topology concerns belong
+      to TS-6 (Distributed System Design) and TS-49 (Cloud Platform Engineering).
+      Flagged for the user to confirm or overrule.
+
+- [ ] https://nocomplexity.com/documents/arplaybook/businessprinciples.html
+      (AR Playbook, Business Principles) — start simple, MVP within one month,
+      make-it-easy-then-fast, reuse-before-buy-buy-before-build, business
+      continuity, ease-of-use, open data/standards/source, strategic focus.
+      These are enterprise/product-ownership and delivery principles that
+      plausibly sit outside this standard because TS-5 explicitly excludes "the
+      means of getting there" and these concern business rather than application
+      architecture. Flagged for the user to confirm or overrule.
+
+- [ ] https://nocomplexity.com/documents/arplaybook/data-architecture.html and
+      `data-principles.html` (AR Playbook, Data) — data modelling vs database
+      design, conceptual/logical/physical data models, and data principles
+      (timely, machine-processable, primary data). These plausibly sit outside
+      this standard because data and database concerns are covered by TS-43
+      (Relational Databases and SQL) and TS-44 (Non-Relational Databases).
+      Flagged for the user to confirm or overrule.
+
+- [ ] https://nocomplexity.com/documents/arplaybook/ti-architecture.html
+      (AR Playbook, Technology Infrastructure, non-abstraction portion) —
+      network-usage sizing (per-user IOPS/bandwidth peaks) and cloud-provider
+      abstraction libraries (Apache Libcloud). These plausibly sit outside this
+      standard because technology-infrastructure and cloud-platform concerns are
+      covered by TS-49 (Cloud Platform Engineering) and TS-51 (AWS). The
+      abstraction-layer-as-dependency trade-off from the same page is captured
+      as a partial gap above. Flagged for the user to confirm or overrule.
+
+- [ ] https://nocomplexity.com/documents/arplaybook/architecture-references.html
+      (AR Playbook, Architecture References, catalog entries) — external
+      reference architectures and pattern catalogs: BIAN, OASIS SOA Reference
+      Architecture, Open Group SOA Reference Architecture, Microsoft Cloud
+      Design Patterns, Cloud Computing Patterns, and the Red Hat Microservice
+      Architecture Reference Architecture. These are external reference catalogs
+      rather than prescriptive rules for this standard, and pattern catalogs for
+      cloud/distributed systems plausibly belong to TS-6 (Distributed System
+      Design). Flagged for the user to confirm or overrule.
+
+- [ ] https://nocomplexity.com/documents/arplaybook/capabilities.html (AR
+      Playbook, NFR Capabilities → `requirements.csv`) — "sensitive data must
+      not be logged in clear text; database connections/passwords/keys/secrets
+      must not be stored in plain text." This plausibly sits outside this
+      standard because secrets and security concerns are covered by TS-52
+      (Security and Secrets Management). Flagged for the user to confirm or
+      overrule.
 
 ## Unresolved
 
