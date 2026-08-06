@@ -123,6 +123,16 @@ OPTIONAL, and MAY are to be interpreted as described in
   mode. Use a link checker to audit for broken links. For effective link text
   guidance see [TS-26](../026/AGENTS.md).
 
+- **In-page cross-references: targets MUST use explicit `[[<id>]]` anchors,
+  referenced via `<<id>>`.**
+
+  Define the anchor directly above the labeled element (`[[worse-is-better]]`
+  then `== Worse is Better`). Reference it by ID (`<<worse-is-better>>`), not by
+  section title. Auto-generated IDs (derived from section titles) change when a
+  section is renamed and silently break references; explicit anchor IDs are
+  stable and make it straightforward to mechanically verify that every `<<...>>`
+  reference resolves to a defined `[[...]]` anchor.
+
 - **Document titles SHOULD be title case; chapter names and headings SHOULD be
   sentence case (no termination punctuation).**
 
