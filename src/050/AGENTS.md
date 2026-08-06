@@ -38,6 +38,14 @@ distributed data, see [TS-46: Distributed Data and Caching](../046/AGENTS.md).
   times, and communicate these limitations transparently (eg. via SLAs
   and status pages).
 
+  This is a quality trade-off, not just a configuration value. The cap MUST
+  be set consistently with any specified availability threshold; a cap that
+  cannot be reconciled with it is a requirements problem to escalate, not a
+  value to tune. See [TS-1: Software Requirements Specification](../001/AGENTS.md)
+  for specifying and costing availability, and
+  [TS-2: Software Design Qualities](../002/AGENTS.md) for resolving the
+  availability-vs-cost conflict.
+
 - **Match revenue-per-user to costs-per-user before fully opening up
   auto-scaling.** Do not enable auto-scaling until you have set up a
   paywall, subscription model, or other monetization strategy that
@@ -123,6 +131,8 @@ distributed data, see [TS-46: Distributed Data and Caching](../046/AGENTS.md).
 ## References
 
 - [TS-50: Cloud Economics (source)](README.adoc)
+- [TS-1: Software Requirements Specification](../001/AGENTS.md)
+- [TS-2: Software Design Qualities](../002/AGENTS.md)
 - [TS-5: Application Architecture](../005/AGENTS.md)
 - [TS-6: Distributed System Design](../006/AGENTS.md)
 - [TS-46: Distributed Data and Caching](../046/AGENTS.md)

@@ -54,6 +54,22 @@ evaluate software designs and guide architectural decisions.
   - **Alignment**: Align the interface and implementation through the shared
     domain model to reduce cognitive load.
 
+- **Resolve quality conflicts deliberately, and record them.** The qualities
+  mostly reinforce one another, but some pairs pull against each other directly:
+  security vs. experience (MFA, session timeouts, rate limits), performance vs.
+  simplicity (caching, denormalization), performance vs. portability,
+  correctness vs. performance (eventual consistency), completeness vs.
+  simplicity.
+
+  Three rules: (1) try to dissolve the conflict before accepting it — many
+  apparent trade-offs are artifacts of a particular design; (2) defer to the
+  priority order set by the requirements, and escalate rather than silently
+  overriding a stated priority; (3) record what was given up, for what, and
+  under which constraints — in a design doc.
+
+  A compromise is decided under the constraints of its moment, and those move.
+  The reasoning is worth more in the record than the decision is.
+
 ## References
 
-- Related: [TS-5: Application Architecture](../005/AGENTS.md), [TS-7: Code Design](../007/AGENTS.md)
+- Related: [TS-1: Software Requirements Specification](../001/AGENTS.md), [TS-3: Design Docs](../003/AGENTS.md), [TS-5: Application Architecture](../005/AGENTS.md), [TS-7: Code Design](../007/AGENTS.md)

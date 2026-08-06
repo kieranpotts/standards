@@ -1,0 +1,74 @@
+= Trade-offs
+
+The nine qualities largely reinforce one another. A simple design tends also to
+be reliable, changeable, and cohesive, and the effort spent on one is rarely
+wasted on the others. This is the general case, and it is why the qualities are
+presented as a single design philosophy rather than a menu.
+
+It is not the universal case. Some pairs of qualities pull against each other
+directly, and no amount of skill dissolves the tension. Every design resolves
+those conflicts somehow. The distinction that matters is between a conflict
+resolved deliberately and one resolved by accident — by whichever quality
+happened to be on the mind of whoever wrote the code that week.
+
+== Where the qualities conflict
+
+The recurring conflicts are worth naming, because they are predictable enough to
+anticipate rather than discover:
+
+* *Security against experience.* Multi-factor authentication, short session
+  lifetimes, re-authentication before sensitive operations, aggressive rate
+  limits — each buys security with friction the user pays for directly. This is
+  the most common conflict in ordinary business software, and the one most often
+  settled without anyone noticing a decision was made.
+
+* *Performance against simplicity.* Caching, denormalization, batching, and
+  hand-tuned code paths all buy speed by adding state, duplication, and
+  coupling. A cache is a second copy of the truth, and every second copy is an
+  invalidation problem.
+
+* *Performance against portability.* Tuning for a specific runtime, database
+  engine, or instruction set buys throughput by binding the system to the thing
+  it was tuned for.
+
+* *Correctness against performance.* Relaxing consistency — eventual consistency
+  across replicas, reading a value that may be stale — buys latency and
+  availability with a weakened guarantee about the state of the system.
+
+* *Completeness against simplicity.* Every feature added to serve an unmet need
+  costs interface simplicity, and the cost compounds. This is the tension behind
+  the discipline described in the section on simplicity: focusing on what users
+  genuinely need now, rather than what they might someday want.
+
+== Resolving a conflict
+
+Three rules apply when a design meets one of these tensions.
+
+*First, try to dissolve it before accepting it.* Many apparent trade-offs are
+artifacts of a particular design rather than properties of the problem.
+Passkeys are the standard illustration: for years, stronger authentication meant
+worse usability, until a design arrived that improved both at once. A trade-off
+is real only once a genuine attempt to avoid it has failed. Reaching for the
+compromise first is how designs acquire costs nobody had to pay.
+
+*Second, defer to the priority order set by the requirements.* Which qualities
+matter most is a business question, settled during requirements specification
+and recorded there — see
+*link:../001/README.adoc[TS-1: Software Requirements Specification]*. The
+design's job is to honor that ranking, not to re-decide it. Where a conflict
+surfaces that the requirements did not anticipate, or where honoring the ranking
+turns out to be disproportionately expensive, escalate it rather than quietly
+picking a winner. A design decision that silently overrides a stated priority is
+indistinguishable from a defect.
+
+*Third, record the compromise and its reasoning.* What was given up, in exchange
+for what, and under which constraints. A design doc is the natural home for this
+— see *link:../003/README.adoc[TS-3: Design Docs]*. Without the record, the
+compromise reads to a future maintainer as an oversight, and gets "fixed."
+
+That last point has a corollary. A trade-off is decided under the constraints of
+its moment: the cost of hardware, the maturity of a library, the size of the
+team, the load the system was then carrying. Those constraints move. A
+compromise that was correct when it was made can quietly stop being correct
+without anything in the code changing, which is why the reasoning is worth more
+in the record than the decision is.

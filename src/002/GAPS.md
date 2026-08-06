@@ -2,6 +2,9 @@
 
 Coverage gaps identified by comparing external sources against this standard.
 
+**Status: 1 of 5 gaps resolved (2026-08-06).** The trade-offs gap was closed
+alongside the related TS-1 work. The remaining four are open.
+
 ---
 
 ## Trade-offs and conflicts between quality attributes
@@ -11,6 +14,7 @@ Coverage gaps identified by comparing external sources against this standard.
 - **Coverage check**: TS-2 covers synergy between qualities and notes relative importance differs by domain, but does not address conflicts or trade-offs between qualities.
 - **Gap**: No guidance on the inevitable conflicts/trade-offs between quality attributes or how to reason about and document the compromises accepted.
 - **Cross-references**: TS-1 (Software Requirements Specification)
+- **RESOLVED**: Closed by a new closing section, `10-trade-offs.adoc`, included from `README.adoc`. Names the five recurring conflicts (security/experience, performance/simplicity, performance/portability, correctness/performance, completeness/simplicity) and gives three rules for resolving one: try to dissolve it before accepting it, defer to the priority order set by the requirements and escalate rather than silently override it, and record what was given up and why in a design doc. The README's existing synergy claim is now qualified as the general rather than universal case. Summarized in `AGENTS.md`; source added to a new `== References` section in `README.adoc`. The requirements-side counterpart is TS-1's new `== Prioritizing qualities` section.
 
 ---
 

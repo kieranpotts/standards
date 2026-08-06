@@ -199,6 +199,29 @@ maintained specification.
   testability) MAY be excluded, since it covers static qualities that are more
   of a design concern than a business requirement.
 
+- **Qualities MUST be prioritized relative to one another.**
+
+  Qualities compete — MFA raises security and lowers usability; caching raises
+  performance and risks correctness. No design maximizes all of them, so an
+  unranked list of qualities leaves the trade-off to whoever writes the code.
+
+  Rank the quality characteristics, not the individual thresholds. Where two
+  qualities conflict directly, the spec MUST state which takes precedence and
+  the proposal MUST record why.
+
+  This is a different axis from the MoSCoW ranking of the proposal backlog. A
+  quality may rank highest for the product and still sit low in delivery order.
+
+- **A quality goal MUST be justified by value against cost.**
+
+  Specify the level at which the value of meeting the threshold exceeds the cost
+  of meeting it — not the highest level achievable. "Availability of 99.99%" is
+  arbitrary until someone states what an hour of downtime costs.
+
+  The business stakeholder is the authority on the loss; the threshold that
+  follows is a technical judgment. Where a higher threshold was rejected on
+  cost, the proposal SHOULD record that, so it is not re-costed at every review.
+
 - **NFRs SHOULD be measurable, testable acceptance criteria.**
 
   Wherever a quality is objectively measurable, it MUST be stated as a concrete
@@ -367,3 +390,19 @@ five:
   (yellow), examples (green), and questions (red). Red cards block. Translates
   directly into Gherkin, so it is the RECOMMENDED final step before scenarios
   are written.
+
+All five discover what the system does, not what it must be like while doing it.
+Qualities need their own line of questioning:
+
+- **Eliciting qualities** — stakeholders state qualities as adjectives
+  ("reliable", "fast"), which are concerns, not requirements. Two questions do
+  most of the work: how would we tell whether it was reliable enough, and what
+  are some examples of it NOT being reliable enough. Counterexamples are easier
+  to produce than definitions, and they name the real concern. Then: under what
+  conditions (load, data volume, network), who notices, and what does it cost
+  when it happens.
+
+  Elicit from operations, support, security, and compliance, not only users —
+  they hold most of the availability, recoverability, and regulatory
+  requirements. No separate workshop is needed: event storming hotspots and
+  example mapping's red cards are frequently quality concerns in disguise.
