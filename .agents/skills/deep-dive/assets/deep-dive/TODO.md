@@ -6,7 +6,8 @@ Findings from a deep review of TS-<N>: <Title>
 
 Assessed against the repository [style guide](../../docs/style-guide.md),
 [TS-26: Technical Writing Style Guide](../026/README.adoc),
-[TS-28: AsciiDoc](../028/README.adoc)
+[TS-27: Markdown](../027/README.adoc),
+[TS-28: AsciiDoc](../028/README.adoc),
 and the [template](../../template/).
 
 **Assessment.** Two or three sentences. Lead with what is sound. Then state

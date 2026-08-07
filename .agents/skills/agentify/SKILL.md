@@ -1,256 +1,142 @@
 ---
 name: agentify
-description:
-  Compacts a technical standard (README.adoc + included files) into a
-  token-efficient AGENTS.md for AI agent consumption. Use when asked to
-  "agentify TS-<N>" or to create/update an AGENTS.md for a technical standard.
-compatibility: requires Read, Write, Edit, Bash (grep/find)
+description: >-
+  Compact a technical standard in this repository into a token-efficient
+  AGENTS.md for AI agent consumption. Use when the user says "agentify TS-<N>",
+  or asks to create, update, or refresh the AGENTS.md for a technical standard.
+  Do not use this skill to edit a standard's own AsciiDoc source files.
+compatibility: requires Read, Write, Edit, Glob
 license: CC0-1.0
 ---
 
 # Agentify
 
-Compact a technical standard (its `README.adoc` and all included files) into a
-token-efficient `AGENTS.md` for AI agent consumption. The compaction preserves
-normative rules, keeps high-signal code examples, strips non-actionable prose,
-and cross-references sibling standards by their `AGENTS.md` files rather than
-their `README.adoc` sources.
-
-## Input
-
-You require a single technical standard, eg. TS-10, as the target. You
-MUST prompt the user to confirm the target standard, if this is not obvious
-from the context. Otherwise you MUST NOT prompt the user to make decisions.
-Do your best work with the information you have, and report back anything
-you were not sure about.
-
-## Output
-
-You MUST either create or update an `AGENTS.md` file in the directory of the
-target technical standard, or do nothing. Your changes MUST be saved to
-disk, but you MUST NOT commit your changes or perform any other actions.
-Report back on the changes you implemented, and anything you left because
-you were not sure about it.
-
-This task runs non-interactively to completion. It does not block for user
-input. If in doubt about any of the requirements of this task, stop and
-print an error message.
-
-## Instructions
-
-1.  Resolve the target directory.
-
-    Look up the target technical standard in `src/README.adoc`. The
-    directory name is zero-padded to three digits. For example, the root
-    directory for TS-31 is `src/031/`.
-
-    If the target is ambiguous or it's not listed in the index, stop
-    and ask the user to clarify.
-
-2.  Read all source files.
-
-    Read `src/<NNN>/README.adoc`. It may contain `include::` directives
-    pointing to numbered files (`01-topic.adoc`, `02-topic.adoc`, etc.)
-    and possibly subdirectories with their own `README.adoc` and included
-    files.
-
-    Read every included file in full.
-
-3.  Check whether `AGENTS.md` already exists.
-
-    Run: `ls src/<NNN>/AGENTS.md`.
-
-    - Does not exist → proceed to step 4 (create).
-    - Already exists → proceed to step 5 (update).
-
-4.  Create `AGENTS.md` from scratch.
-
-    Write `src/<NNN>/AGENTS.md` using the template at
-    `.agents/skills/agentify/assets/AGENTS.md` as the structural guide.
-
-    Follow the compaction rules below.
-
-5.  Update an existing `AGENTS.md`.
-
-    Read the existing `AGENTS.md` in full. Then compare it against the
-    source `.adoc` files rule by rule:
-
-    - Missing rules. Rules present in the `.adoc` source but absent
-      from `AGENTS.md` — add them.
-
-    - Stale content. Rules in `AGENTS.md` that contradict or no longer
-      match the `.adoc` source — update them.
-
-    - Stale cross-references. TS numbers or file paths that do not
-      match the current index in `src/README.adoc` — fix them.
-
-    - Typos and grammar errors. Fix any found in `AGENTS.md` while
-      reviewing.
-
-    - Non-actionable content. Sections that state no rule —
-      standalone glossaries/definitions, prose introductions,
-      background rationale, "why this matters" narration — do not
-      belong in `AGENTS.md`. Remove them. Fold any definition that a
-      rule genuinely depends on into that rule inline.
-
-    - Do NOT remove actual rules that are present in `AGENTS.md` unless
-      they directly contradict the `.adoc` source. This exception is
-      for rules only — non-actionable content above is always
-      removable.
-
-6.  Verify cross-references.
-
-    Any cross-reference to another TS standard (eg.
-    `[TS-31: Unix Shells](../031/AGENTS.md)`) MUST be validated against
-    `src/README.adoc`. Use the index there as the single source-of-truth
-    for current TS numbers and titles.
-
-7.  Review against the success criteria, below, before finishing.
-
-## Rules
-
-- Be token-efficient.
-
-  `AGENTS.md` is consumed by AI agents at the start of every task.
-  Every token costs latency and money. Omit anything that can be
-  derived from context, is obvious to a competent IT engineer, or is
-  only relevant to humans reading the standard for the first time.
-
-  Do NOT reproduce extended historical rationale, prose introductions,
-  or "why this matters" explanations unless they are necessary to apply
-  the rule correctly.
-
-- Include only actionable content.
-
-  Every section of `AGENTS.md` MUST carry an instruction, rule, or
-  constraint an agent can act on. Do NOT reproduce a source standard's
-  standalone definitions/glossary section, terminology overview, or
-  conceptual background as its own section — these orient a human
-  reader but issue no directive. Where a rule genuinely depends on a
-  term, define that term inline at the point of use, in as few words
-  as possible, rather than in a separate glossary.
-
-- Preserve normative content exactly.
-
-  RFC 2119 keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY,
-  RECOMMENDED, OPTIONAL) carry normative weight. Do not paraphrase
-  them in ways that change the strength of the requirement. It is
-  acceptable to omit non-normative elaboration, but the normative
-  statement itself must be preserved faithfully.
-
-- Keep code examples.
-
-  ✅/❌ examples are high signal for agents. Keep them. You may trim
-  a long example to the smallest version that still illustrates the
-  rule, but do not remove examples entirely unless the rule is
-  self-evident without them.
-
-- Use the template structure.
-
-  Follow the structure in `./assets/AGENTS.md`:
-
-  - Front-matter title and intro paragraph.
-
-  - `## Rules` section — bulleted list, each rule bolded, with details
-    below.
-
-  - `## Examples` section — canonical full examples (OPTIONAL, include
-    only if the source contains end-to-end examples worth preserving).
-
-  - `## References` section — keep this minimal. Include only links an
-    agent would benefit from loading mid-task: the source
-    `README.adoc`, and any canonical external specifications a rule
-    relies on. Do NOT list sibling TS standards for "see also"
-    completeness, background reading, blog posts, or vendor pages —
-    these are human-facing and waste agent context. Annotate each
-    retained link with a short trigger condition stating when to read
-    it:
-
-    ```sh
-    - [AGENTS.md specification](https://agents.md):
-      Read this when authoring `AGENTS.md` files.
-    ```
-
-- Cross-reference other AGENTS.md files, not README.adoc.
-
-  When a rule refers to another technical standard, link to that
-  standard's `AGENTS.md` (eg. `../031/AGENTS.md`), not its
-  `README.adoc`. This keeps agent context chains compact. Exception:
-  use `README.adoc` paths only in the `## References` section, where
-  human-readable source links are appropriate.
-
-- Inherit from parent standards explicitly.
-
-  If the standard extends another (eg. TS-32 Bash extends TS-31 Unix
-  Shells), state this at the top of the file:
-
-  "All rules from [TS-31: Unix Shells](../031/AGENTS.md) apply here."
-
-  Do not re-state rules that are already covered by the parent
-  standard unless the child standard overrides or extends them.
-
-- Follow TS-27 Markdown standards.
-
-  All generated `AGENTS.md` files MUST follow the formatting rules
-  specified in [TS-27: Markdown](../027/AGENTS.md), including using
-  ATX-style headings, avoiding indented paragraphs, and applying
-  soft line wraps at 80 characters.
-
-- Fix errors found in `AGENTS.md` during review.
-
-  Typos, grammar errors, and stale TS number references in an
-  existing `AGENTS.md` are in-scope and MUST be fixed as part of an
-  update pass.
-
-## Edge cases
-
-- Subdirectory includes.
-
-  Some standards (eg. TS-8) have subdirectories like `03-issue-types/`
-  with their own `README.adoc` and numbered include files. Read all of
-  these — they are part of the standard.
-
-- Stub standards.
-
-  Some standards contain only a heading and a placeholder. Do not
-  create an `AGENTS.md` for a stub. Report to the user that the
-  standard is a stub and ask whether to proceed anyway.
-
-- Standards that extend other standards.
-
-  When a standard says "see also TS-N" or "extends TS-N", link to the
-  parent's `AGENTS.md` at the top of the file and do not duplicate its
-  rules.
-
-- Relative path depth.
-
-  Files in subdirectories (eg.
-  `src/008/03-issue-types/05-feature.adoc`) need `../../NNN/` to
-  reference other standards, not `../NNN/`. Always verify path depth
-  when writing cross-references.
+Compact a single technical standard — its `README.adoc` and every file that
+README pulls in — into a token-efficient `AGENTS.md` beside the source. Carry
+the normative rules and the high-signal examples across, and leave the prose,
+the rationale, and the glossaries behind.
+
+## Parameters
+
+Determine the following information from the surrounding context and
+environment, if possible. If you're uncertain about the required parameters,
+prompt the user for clarification.
+
+- **The target standard — REQUIRED.** One technical standard, identified as
+  `TS-<N>`. Its directory is that number zero-padded to three digits, so TS-31
+  is `src/031/`. If the user does not name one, and the context or the working
+  directory already establishes a `src/<NNN>/` standard, treat that as the
+  target.
 
 ## Success criteria
 
-- All normative rules from the source `.adoc` files are represented,
-  either directly in this `AGENTS.md` or by inheritance from a linked
+- `src/<NNN>/AGENTS.md` MUST exist, and MUST carry every normative rule from
+  the standard's source files, either directly or by inheritance from a linked
   parent standard.
 
-- All cross-references resolve correctly. Every `../NNN/` path
-  matches a directory that exists in `src/`, and every TS title matches
-  the index in `src/README.adoc`.
+- Every `../NNN/` path in the file MUST resolve to a directory that exists
+  under `src/`, and every TS number and title MUST match the standards index
+  at `src/README.adoc`.
 
-- The file is token-efficient. No extended introductory prose, no
-  rationale paragraphs that don't change how a rule is applied, no
-  content duplicated from a linked parent standard.
+- Every section MUST issue a rule, instruction, or constraint that an agent
+  can act on. A standalone glossary, terminology overview, or
+  conceptual-background section MUST NOT survive the compaction.
 
-- Every section is actionable. No standalone definitions/glossary
-  section, terminology overview, or conceptual-background section
-  survives; any term a rule depends on is defined inline at its point
-  of use.
+- The file MUST follow the bundled template's structure: title, intro,
+  `## Rules`, an OPTIONAL `## Examples`, and `## References`.
 
-- The template structure is followed — title, intro, `## Rules`,
-  optional `## Examples`, `## References`.
+- The standard's `.adoc` source files MUST be unchanged, and nothing MUST be
+  staged or committed. This skill writes exactly one file.
+
+## Instructions
+
+1.  Resolve the target directory from the standards index at
+    `src/README.adoc`. If the target is ambiguous, or the index does not list
+    it, stop and ask the user to clarify.
+
+2.  Read the standard in full: `src/<NNN>/README.adoc`, every file it pulls in
+    via `include::`, and any subdirectory carrying its own `README.adoc` and
+    numbered files. Subdirectory content is part of the standard, not an
+    appendix to it. Do not start writing until all of it is read.
+
+3.  Establish whether `src/<NNN>/AGENTS.md` already exists. If it does not,
+    write it from scratch, following the bundled template and the rules below.
+
+4.  If it does exist, read it in full, then reconcile it against the source
+    rule by rule:
+
+    - Add rules present in the source but absent from `AGENTS.md`.
+    - Rewrite rules that contradict, or no longer match, the source.
+    - Correct stale TS numbers, titles, and relative paths.
+    - Fix any typos and grammar errors you meet along the way.
+    - Delete non-actionable content — glossaries, prose introductions,
+      background rationale, "why this matters" narration.
+
+    You MUST NOT delete a rule from an existing `AGENTS.md` unless it
+    contradicts the source. A maintainer may have added it deliberately, and
+    the source may simply be behind. Non-actionable content carries no such
+    risk, so it is always removable.
+
+5.  Verify every cross-reference against `src/README.adoc`, then review the
+    result against the success criteria above.
+
+## Rules
+
+- The file MUST be token-efficient.
+
+  `AGENTS.md` is loaded at the start of every agent task, so every token costs
+  latency and money. Omit anything derivable from context, obvious to a
+  competent engineer, or written to orient a first-time human reader.
+
+- Normative statements MUST be preserved at their original strength.
+
+  RFC 2119 keywords carry the weight of the standard. You MAY drop the
+  elaboration around a requirement, but you MUST NOT paraphrase the
+  requirement itself into something stronger or weaker.
+
+- Terms a rule depends on MUST be defined inline at the point of use, in as
+  few words as possible, rather than collected into a section of their own.
+
+- Worked ✅/❌ examples SHOULD be kept. They are high signal for agents. You
+  MAY trim a long example down to the smallest version that still illustrates
+  the rule, but SHOULD NOT drop it unless the rule is self-evident without it.
+
+- A rule that refers to another technical standard MUST link to that
+  standard's `AGENTS.md`, eg. `../031/AGENTS.md`, never its `README.adoc`.
+  This keeps agent context chains compact. The `## References` section is the
+  exception: human-readable `README.adoc` links belong there.
+
+- Where the standard extends another, the top of the file MUST say so — eg.
+  "All rules from [TS-31: Unix Shells](../031/AGENTS.md) apply here." — and
+  MUST NOT restate the parent's rules unless this standard overrides or
+  extends them.
+
+- The `## References` section MUST stay minimal, and every link in it MUST
+  carry a short trigger condition stating when to read it. Include only the
+  source `README.adoc` and any canonical external specification a rule relies
+  on. Sibling "see also" links, background reading, blog posts, and vendor
+  pages are human-facing and waste agent context.
+
+## Edge cases
+
+- The standard is a stub, holding only a heading and a placeholder.
+
+  There is nothing to compact. Report this and ask the user whether to
+  proceed anyway, rather than writing an `AGENTS.md` with no content in it.
+
+- The rule you are writing lives in a subdirectory of the standard.
+
+  Relative paths out to a sibling standard need one `../` per level of depth.
+  From `src/008/03-issue-types/`, another standard is `../../031/`, not
+  `../031/`. Verify the depth of every path you write.
+
+## Assets
+
+- [AGENTS.md template](./assets/agentify/AGENTS.md) \
+  The structure to follow when writing or updating the file in steps 3 and 4.
 
 ## References
 
-None.
+- [TS-27: Markdown](https://raw.githubusercontent.com/kieranpotts/standards/refs/heads/latest/dev/src/027/AGENTS.md) \
+  Read before writing, for the Markdown conventions the generated `AGENTS.md`
+  MUST follow — ATX headings, no indented paragraphs, 80-character soft wraps.

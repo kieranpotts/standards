@@ -1,58 +1,47 @@
 # Gap analysis
 
-This skill instructs agents to check a single technical standard for coverage
-gaps against one or more external reference resources — web pages, files, or
-a whole directory of them — and record every gap found in a `GAPS.md` artifact.
+Checks a single technical standard for coverage gaps against external
+reference resources — web pages, files, or a whole directory of them — and
+records what it finds in a `GAPS.md` beside the standard.
 
-The agent is instructed to read the target standard in full — its
-`README.adoc`, every `include::`d file, any subdirectories, and its
-`AGENTS.md`.
-
-Next, the agent ingests every reference resource — fetching URLs, reading local
-files, or recursing through a directory's Markdown, AsciiDoc, and plain-text
-files.
-
-A reference resource that is a `kieranpotts/*` GitHub issue URL is treated as
-an index rather than a resource in its own right. The agent uses `gh` to pull
-the issue's description, comments, and sub-issues, and expands it into
-whatever URLs or files are actually linked from there — recursing into any
-sub-issue that is itself a `kieranpotts/*` issue.
-
-A YouTube URL is a special case: the video's spoken audio cannot be fetched, so
-the agent runs a small helper script to extract the video's title, author,
-keywords, and full creator-supplied description from YouTube's public oEmbed
-endpoint and the embedded page metadata — no API key required. The agent then
-compares against that description, and is explicit in `GAPS.md` that the
-comparison is against the creator's summary, not a full transcript. If the
-description links to a full transcript elsewhere, that is fetched and used
-instead.
-
-It breaks the reference material down into individual claims, rules, or
-topics. Then it check each one against the standard, classifying it as one of:
+The agent reads the standard in full — `README.adoc`, every `include::`d file,
+any subdirectories, and its `AGENTS.md` — then ingests every reference
+resource, breaks it down into individual claims, rules, and topics, and checks
+each one against the standard. Every point is classified as one of:
 
 - **Missing.** Not addressed at all, and within the standard's own scope.
 - **Partial.** Touched on, but more shallowly than the reference.
-- **Out-of-scope.** Covered by the reference, but plausibly outside what
-  this standard is meant to address.
+- **Out-of-scope.** Covered by the reference, but plausibly outside what this
+  standard is meant to address.
 
-For a large reference resource — a directory of many files, or several
-sizeable URLs — the agent fans the reading-and-extraction step out to
-sub-agents, one per resource or per batch of files. Sub-agents only ever
-extract citation-tagged claims, while the orchestrating agent does the gap
-analysis.
+Only missing and partial items count as gaps. Out-of-scope items are recorded
+anyway, so the user can overrule the agent's scope call.
 
-Findings are written to `GAPS.md` as a flat checklist, each citing where the
-gap comes from and where in the standard it would best fit.
+Two kinds of resource get special handling. A `kieranpotts/*` GitHub issue URL
+is treated as an index rather than a resource: the agent uses `gh` to pull its
+description, comments, and sub-issues, and expands it into whatever is actually
+linked from there, recursing into sub-issues under the same account. A YouTube
+URL cannot be fetched at all, so a small bundled script pulls the video's
+title, author, keywords, and full creator-supplied description from YouTube's
+public oEmbed endpoint and the embedded page metadata, with no API key needed.
+The agent is then explicit in `GAPS.md` that it compared against the creator's
+summary rather than a transcript.
 
-Re-running the skill against an existing `GAPS.md` re-verifies old findings and
-adds new ones, rather than starting over. The agent is explicitly instructed to
-not change any other files on disk — only `GAPS.md`.
+For large reference material, the reading is fanned out to sub-agents, one per
+resource or per batch of files. Sub-agents only ever return citation-tagged
+claims; the orchestrating agent does all of the classification, since that
+needs the whole standard in context.
+
+Findings are a flat checklist, each citing where the gap comes from and where
+in the standard it would best fit. Re-running against an existing `GAPS.md`
+re-verifies the old findings and adds new ones, rather than starting over.
 
 ## Interactivity
 
-The agent prompts for the target standard or the reference resources if
-either is unclear, and stops after presenting the report — it does not go on
-to fix anything it finds.
+Interactive. The agent prompts for the target standard or the reference
+resources when either is unclear, and asks before analyzing a standard that is
+still a stub. It stops at the report — it does not go on to close any of the
+gaps it finds.
 
 ## How to invoke
 
@@ -62,9 +51,19 @@ to fix anything it finds.
 
 > Gap-check TS-42 against the directory of vendor docs in [path].
 
-You MUST define a specific technical standard. The agent will not proceed unless
-the target standard is clear.
+Both the target standard and the reference resources are required. The agent
+will not proceed until it can identify a single specific standard.
 
 ## Recommended models
 
-A strong reasoning model will work best here.
+A premium frontier reasoning model. Deciding whether a point in the reference
+material is genuinely absent from the standard, merely thinner there, or
+outside its scope entirely is exactly the open-ended judgment that a weaker
+model gets wrong in both directions.
+
+## Related skills
+
+- [**deep-dive**](../deep-dive/) \
+  Both produce a flat checklist of findings beside the standard. A gap
+  analysis measures the standard against external reference material; a deep
+  dive measures it against itself and the repository's own conventions.

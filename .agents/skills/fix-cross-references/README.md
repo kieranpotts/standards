@@ -1,34 +1,51 @@
 # Fix cross-references
 
-This skill instructs agents to scan technical standards for broken internal
-cross-references and to repair them.
+Scans the technical standards for broken internal cross-references and repairs
+them, so that every reference from one standard to another carries the right
+number, the right title, and a path that actually resolves.
 
-It ensures that all references to other standards (TS numbers, titles, and
-relative paths) are accurate and consistent across the entire project.
+The agent builds an index of TS numbers, titles, and directories from
+`src/README.adoc`, then sweeps the `.adoc` and `.md` files in scope — either a
+single standard or the whole of `src/` — for anything that looks like a
+reference to another standard.
 
-## What it does
+Each candidate is checked on three axes: does the number exist, does the stated
+title match the index, and does the relative path resolve from where the
+referring file actually sits. Only the ones that fail a check are touched; the
+link syntax around them is left alone.
 
-Builds a reference index from `src/README.adoc` and scans `.adoc` and `.md`
-files in the target scope (either a specific standard or the entire `src/`
-directory).
+Anything ambiguous is deliberately not repaired. A reference with more than one
+plausible target keeps its original text and is reported as unresolved, on the
+grounds that a wrong guess is worse than a flagged uncertainty because it looks
+fixed.
 
-The agent is instructed to:
+## Interactivity
 
-- **Validate identifiers.** Ensure `TS-NNN` numbers exist in the project index.
-
-- **Verify titles.** Check that standard titles in references (eg.
-  `[TS-31: Unix Shells]`) match the index exactly.
-
-- **Correct paths.** Calculate and fix relative paths based on the file's
-  depth relative to the `src/` root.
-
-- **Maintain consistency.** Ensure `AGENTS.md` files point to other `AGENTS.md`
-  files, while `.adoc` files point to the source standards.
-
-- **Avoid guesswork.** Mark ambiguous references as unresolved rather than
-  making incorrect assumptions.
+Interactive, but only barely. The agent prompts when the scope is unclear —
+one standard, or the whole repository — and otherwise runs to completion,
+reporting fixes and unresolved references at the end rather than asking about
+them along the way.
 
 ## How to invoke
 
-> Fix references in TS-10
-> Fix all broken cross-references
+> Fix references in TS-10.
+
+> Fix all broken cross-references.
+
+> The links out of TS-31 are pointing at the wrong standard.
+
+## Recommended models
+
+A small, fast model is sufficient. The work is mechanical validation against a
+known index, and the skill is written to escalate anything ambiguous to the
+report rather than to reason about it.
+
+## Related skills
+
+- [**agentify**](../agentify/) \
+  That skill validates cross-references only within the one file it writes.
+  This one sweeps every standard in scope.
+
+- [**deep-dive**](../deep-dive/) \
+  Broken cross-references are a conventions-tier finding in a deep dive. Run
+  this skill to clear them in one pass, rather than one at a time.
