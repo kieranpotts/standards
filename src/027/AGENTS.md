@@ -44,17 +44,20 @@ rendering. Use [TS-28: AsciiDoc](../028/AGENTS.md) for those cases.
   backslash. Prefer separate paragraphs or lists. Be aware trailing whitespace
   is invisible in most editors.
 
-- **Use asterisks, not underscores, for emphasis.**
+- **Use underscores for italics, double asterisks for bold.**
 
-  Underscores inside a word are not interpreted as emphasis by some processors;
-  asterisks are reliable in all positions. `*italic*`, `**bold**`,
-  `***bold and italic***`. GFM strikethrough uses `~~`. Do not nest emphasis
-  unnecessarily or apply it to whole paragraphs.
+  `_italic_`, `**bold**`, `**_bold and italic_**`. Keeping the markers distinct
+  makes intent obvious in source. Underscores inside a word are not interpreted
+  as emphasis by some processors, so use `*text*` where emphasis must fall
+  intra-word. GFM strikethrough uses `~~`. Do not nest emphasis unnecessarily
+  or apply it to whole paragraphs.
 
 - **Use one list marker consistently.**
 
   Unordered lists use `-` plus a single space. Do not mix `-`, `*`, `+` within a
-  list. Ordered lists use a number, period, single space; numbers SHOULD be
+  list. Ordered lists use a number, period, then one or two spaces — two are
+  RECOMMENDED where items carry continuation paragraphs or nested blocks, since
+  that aligns content on the four-space nesting indent. Numbers SHOULD be
   sequential in source even though CommonMark renumbers output. Nested list
   indentation MUST be consistent; four spaces per nesting level is RECOMMENDED.
   Continuation paragraphs/blocks in a list item are indented four spaces (or
@@ -68,13 +71,17 @@ rendering. Use [TS-28: AsciiDoc](../028/AGENTS.md) for those cases.
   use `text` or `plaintext` to disable highlighting. Inline code uses single
   backticks; double backticks for code containing backticks.
 
-- **Placeholders: MUST use `[placeholder]`, not `<placeholder>`.**
+- **Placeholders: `<placeholder>` inside code, `[placeholder]` everywhere else.**
 
   The general convention across these standards is angle-bracket placeholders (see
-  [TS-26](../026/AGENTS.md)). Markdown is an exception: raw HTML is permitted
-  inline, so angle brackets are reserved for HTML tags and a `<placeholder>` may
-  be parsed as an unknown element and stripped. Use square brackets in Markdown
-  code examples (`git clone git@[hostname]:[group]/[project].git`).
+  [TS-26](../026/AGENTS.md)), and it holds inside code spans and fenced blocks,
+  where nothing is parsed as HTML (`git clone git@<hostname>:<group>/<project>.git`).
+  Outside code formatting — bare prose, headings, table cells — Markdown permits
+  raw HTML inline, so a `<placeholder>` may be parsed as an unknown element and
+  stripped. Use square brackets there. YAML front matter MUST follow the same
+  rule as the body: square by default, angle only where the value is
+  code-formatted. No HTML hazard applies there, but one rule per document is
+  easier to apply and to check than two.
 
 - **Write links as `[text](url)`.**
 
