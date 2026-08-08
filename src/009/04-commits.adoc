@@ -3,26 +3,25 @@
 The following is a guide to the best practices for committing changes to a
 source code repository.
 
-Clear and structured commit messages make an important contribution to the
-internal quality of a software system. The output of `git log` is a valuable
-artifact in its own right. Most crucially, it is the source-of-truth for
-understanding the evolution of a codebase over time.
+Clear and structured commit logs support multiple objectives:
 
-A repository's commit history is also likely to endure longer than other
-artifacts such as tickets (issue trackers may be replaced) and decision logs
-(which have a tendency to grow stale over time).
+* Automation, enabling tooling to parse and act on commit metadata.
 
-Consistent commit message formats support greater automation of recurring
-development and operations tasks. Detailed commit messages also make tools like
-`git blame` more useful. Clean commit logs support multiple objectives:
-automation (enabling tooling to parse and act on commit metadata), quality
-control (through atomic commits that don't break the build), and provenance
-(creating a machine-parsable changelog linked to business requirements).
+* Quality control, through stable atomic commits that don't break the build.
 
-Good commit hygiene greatly improves the maintainability of a software system.
-You SHOULD commit deliberately and strategically, with the same care and
-attention to detail as given to the code itself. _Clean commits_ are as
-important as _clean code_.
+* Provenance, creating a machine-parsable changelog from which changes can be
+  traced back to the requirements, issues, or incidents where they originated.
+
+Besides these objectives, the output of `git log` is a valuable artifact in its
+own right. Most crucially, it is the source-of-truth for understanding the
+evolution of a codebase over time, and it is likely to endure for longer than
+other artifacts such as tickets (issue trackers may be replaced) and decision
+logs (which have a tendency to grow stale over time).
+
+In short, good commit hygiene greatly contributes to the developer experience
+on a software project. Indeed, in this regard clean commits are just as
+important as clean code. So we SHOULD commit deliberately and strategically,
+with the same level of care and attention to detail as given to the code itself.
 
 == Atomic commits
 
@@ -31,8 +30,8 @@ A clean, searchable commit log is formed from atomic commits.
 An atomic commit is a small, self-contained, incremental change to a codebase
 that does not break the build or fail any tests. An atomic commit does not
 necessarily represent a "complete" feature, bug fix, refactor, upgrade, or
-performance optimization, but it does represent a small logical step toward one
-of those outcomes.
+performance optimization, but it does represent a small, logical, stable step
+toward one of those outcomes.
 
 [quote, The Git project]
 ____
@@ -45,10 +44,10 @@ discrete changes are preferred to a smaller number of large, monolithic changes.
 
 As a general rule, the smaller the individual commits, the better. If your
 commits are too granular, you can squash them together. It is harder to do the
-opposite – to split a large commit into smaller ones.
+opposite, to split a large commit into smaller ones.
 
-But atomicity is not only about small commits. Atomicity is several constraints:
-small, stable, and self-contained.
+But atomicity is not only about small commits. Atomic commits are also stable
+and self-contained.
 
 Each commit SHOULD be stable. This means, in every commit, the software compiles
 and both static and runtime tests pass. This constraint means you should avoid
@@ -60,11 +59,11 @@ https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks[Git hooks] can be used
 to enable this.
 
 Self-contained commits are those that can be reverted independently, without
-requiring prior commits to be reverted as well, to maintain stability. This
+requiring prior commits to be reverted as well to maintain stability. This
 means changes to application code SHOULD be committed with changes to automated
-tests – just enough to verify the correctness of the code changes. If code and
+tests, just enough to verify the correctness of the code changes. If code and
 tests are committed independently, you have two or more commits that are
-dependent on one another – so those are not atomic commits.
+dependent on one another. Those are not atomic commits.
 
 Ideally, a commit SHOULD be scoped to a single concern and technology layer. For
 example, database schema changes SHOULD be committed separately from application
@@ -72,7 +71,8 @@ code changes, and back-end service changes SHOULD be committed separately from
 front-end GUI changes, and so on. However, this constraint often comes into
 conflict with the constraint of keeping the build stable. Authors SHOULD prefer
 larger commits, with changes across multiple technology layers if necessary, if
-that is what is required to not break the build.
+that is what is required to not break the build and keep the commit
+self-contained.
 
 Achieving atomic commits requires a disciplined approach to implementing code
 changes. Atomic commits are easier to achieve when you have a plan for
@@ -135,10 +135,12 @@ The rule applies differently to different branch types:
 * *Trunks* (`dev`, `test`, `ready`, release branches): history MUST NOT be
   rewritten under any circumstances. Force-push MUST be disabled in repository
   configuration.
+
 * *Temporary branches* (`temp/*`): owned by a single developer, so rewriting
   pushed history is technically safe. Cleanup via interactive rebase, amend, or
   squash before integration is RECOMMENDED to produce a clean, atomic series of
   commits.
+
 * *Epic branches* (`epic/*`): shared between multiple developers, so rewriting
   pushed history MUST be coordinated with all contributors. The merge-down sync
   strategy described in *link:./branches.adoc[]* deliberately avoids the need
