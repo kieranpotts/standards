@@ -189,4 +189,61 @@ reports, audits). They wouldn't make sense applied to, say, `bookmarks` or
 `garden`, so they shouldn't be folded into either existing list.
 
 **Status:** proposal for discussion — not yet drafted into
-`04-commits.adoc`.
+`04-commits.adoc`. Superseded by the decision in §5, below.
+
+## 5. Decision: consolidate on `create` / `update` / `delete`
+
+Rather than the six-type lifecycle list proposed in §4, the call is to go
+smaller: three CRUD types, replacing TS-9's existing alternative-type triad
+(`add`/`edit`/`remove`) rather than sitting alongside it. Lifecycle *stage*
+(draft/proposed/accepted/rejected/shipped) is left to structural state that
+GitHub already tracks — draft PR, requested reviewers, merged vs.
+closed-unmerged — and to the document's own front matter/status field,
+rather than being re-encoded a second time in the commit type. The commit
+type answers one question only: was a document created, changed, or
+removed.
+
+This also resolves the `delete`-vs-`remove` naming drift flagged in §3.1 for
+free: the new canonical word is `delete`, which is what three of the repos
+were already using.
+
+`garden` remains excluded from this exercise, per the original scoping —
+its gardening-metaphor verbs aren't part of this consolidation.
+
+### 5.1 Mapping: old types → new types
+
+| Old type(s) | Used in | New type | Why |
+|---|---|---|---|
+| `add` | `bookmarks`, `cheats`, `standards` | `create` | direct CRUD equivalent |
+| `edit` | `bookmarks`, `cheats`, `standards` | `update` | direct CRUD equivalent |
+| `delete` | `bookmarks`, `cheats`, `standards` | `delete` | already the canonical word |
+| `report` | `risks` | `create` / `update` | new workshop report → `create`; amendments → `update` |
+| `register` | `risks` | `update` | almost always an edit to the existing living register |
+| `plan` | `plans` | `create` / `update` | new plan → `create`; revisions → `update` |
+| `audit` | `audits` | `create` / `update` | new audit report → `create`; revisions → `update` |
+| `design` | `design` | `create` / `update` | new design doc → `create`; revisions → `update` |
+| `rfc` | `rfc` | `create` / `update` | new RFC → `create`; revisions → `update` |
+| `epic` | `specs` | `create` | scaffolds a new proposal document |
+| `quality` | `specs` | `create` | scaffolds a new proposal document |
+| `draft` | `rfc`, `thoughts` | `create` | the document starts existing |
+| `propose` | `rfc` | `update` | status change on an existing document |
+| `accept` | `rfc` | `update` | status change on an existing document |
+| `reject` | `rfc` | `update` | status change on an existing document (doc is kept, marked rejected) |
+| `implement` | `rfc` | `update` | status change on an existing document |
+| `supersede` | `rfc` | `update` | status change on an existing document |
+| `publish` | `thoughts` | `update` | status change on an existing document |
+| `abandon` | `plans` (skill-level, not yet in a hook) | `update` | status change; the plan document is kept as a record, not deleted |
+
+Net result: TS-9's alternative revision-type list becomes `create` /
+`update` / `delete` (three words, same size as today's `add`/`edit`/
+`remove`), and every repo currently using a `repo: local` hook — `risks`,
+`plans`, `bookmarks`, `audits`, `design`, `rfc`, `thoughts`, `cheats`,
+`specs`, `standards` — can drop its local hook and local CI workflow
+override entirely, going back to consuming the shared `pre-commit-hooks`
+hook and the shared `validate-commit-messages` CI action like every other
+repo in §1.
+
+**Status:** decided direction. Next steps: update
+[04-commits.adoc](./04-commits.adoc)'s alternative revision-type list, then
+retire the eleven local hooks/workflow overrides listed in §3 in favor of
+the shared ones (once §1's `performance`→`runtime` fix has also landed).
