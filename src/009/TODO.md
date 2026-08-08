@@ -243,7 +243,15 @@ override entirely, going back to consuming the shared `pre-commit-hooks`
 hook and the shared `validate-commit-messages` CI action like every other
 repo in §1.
 
-**Status:** decided direction. Next steps: update
-[04-commits.adoc](./04-commits.adoc)'s alternative revision-type list, then
-retire the eleven local hooks/workflow overrides listed in §3 in favor of
-the shared ones (once §1's `performance`→`runtime` fix has also landed).
+**Status:** implemented. `04-commits.adoc` and `AGENTS.md` updated with the
+new "Extended revision types" (`create`/`update`/`delete`). The shared
+`pre-commit-hooks` hook and `actions/validate-commit-messages` action have
+both been updated (`performance`→`runtime`, plus the three extended types
+added) but not yet tagged/released/pushed. All ten non-garden local-hook
+repos (`risks`, `plans`, `bookmarks`, `audits`, `design`, `rfc`, `thoughts`,
+`cheats`, `specs`, `standards`) have had their local hook/workflow retired in
+favor of the shared ones, and every hardcoded old-type commit/PR-title
+example in their skills and docs rewritten to `create`/`update`/`delete`.
+All of the above exists only as uncommitted working-tree edits pending
+review — nothing has been committed, tagged, or pushed. `garden` was
+excluded throughout, per scope.
