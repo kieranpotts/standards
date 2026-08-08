@@ -142,11 +142,11 @@ to adapt, not a rigid framework.
   - **merge** / **revert** — capture the corresponding Git operations.
 
   For non-executable content repositories (docs, specs, handbooks), the
-  RECOMMENDED types are: `add`, `edit`, `fix`, `remove`, `restructure`,
-  `style`, `chore`, `release`, `merge`, `revert`. (`add` introduces new
-  content; `edit` improves existing content; `fix` corrects broken/incorrect
-  content; `remove` deletes outdated content; `restructure` reorganizes
-  without changing meaning.)
+  RECOMMENDED extended types are: `create`, `update`, `delete`. (`create`
+  introduces new content — new documents, sections, or substantial new
+  material; `update` edits existing content; `delete` removes outdated or
+  redundant content.) These extend, rather than replace, the standard set
+  above — eg. `style` still applies to markup/formatting updates.
 
   Commit types map loosely to issue types in
   [TS-8](../008/AGENTS.md) but a one-to-one mapping is NOT mandated (a
