@@ -110,3 +110,83 @@ Three patterns account for all eighteen words:
    `reject`/`implement`/`supersede`/`publish`) is common enough across repos
    to warrant its own note in TS-9, given it's a distinct, recurring idiom
    that TS-9 doesn't currently describe.
+
+## 4. Proposal: extend TS-9 with governance-document lifecycle types
+
+The variation catalogued in §3 creates real development/operations friction —
+every governance-style repo has independently invented its own commit-type
+vocabulary, so the meaning of a `git log --oneline` prefix isn't portable
+between repos the way TS-9 intends. The eighteen extension words split into
+two problems that need different fixes, not one:
+
+### 4.1 Subject-matter nouns should NOT become new TS-9 types
+
+`report`, `register`, `plan`, `audit`, `design`, `rfc`, `epic`, `quality` each
+name *what kind of document* changed, not *what kind of change* happened —
+a different axis from every type TS-9 already defines. `feature`/`fix`/
+`refactor`/etc. all describe the change; the artifact is inferred from the
+diff, the repo, or a footer. If TS-9 grows a new type every time a repo
+introduces a new document kind, the vocabulary never stops growing — that's
+the friction this proposal is meant to eliminate, not encode. Recommendation:
+retire these eight in favor of TS-9's existing generic types — mostly `add`/
+`edit` — with the document kind left to context (repo identity, path,
+`Refs:` footer). `risks`' `update-register` skill already models this
+correctly in spirit: "mark TA1 mitigated" is just an edit; it doesn't need
+its own type.
+
+### 4.2 Lifecycle-stage words are a genuine gap, worth adding
+
+`draft`, `propose`, `accept`, `reject`, `implement`, `supersede`, `publish`
+describe a governance state-transition — independent of diff content — that
+TS-9 has no vocabulary for at all today. This isn't only visible in the
+pre-commit hooks: the repository's own skill set already encodes a consistent
+six-stage lifecycle across six document families (rfc, spec, design, plan,
+report, audit) — draft → propose → accept/reject → complete/implement/release
+→ supersede, with `plan` adding an `abandon` off-ramp. The hooks simply
+haven't caught up to what the skills already assume.
+
+Proposed minimal set — six new types, following the vocabulary the skills
+already converged on independently:
+
+| New type | Marks | Precedent in skills |
+|---|---|---|
+| `draft` | a new proposal/document opened, not yet ready for review | `draft-rfc`, `draft-spec`, `draft-design`, `draft-plan`, `draft-report`, `draft-audit` |
+| `propose` | draft taken out of draft, ready for stakeholder review | `propose-rfc`, `propose-spec`, `propose-plan` |
+| `accept` | reviewers approve the proposal | `accept-rfc`, `accept-spec` |
+| `reject` | reviewers do not approve it | `reject-rfc`, `reject-spec` |
+| `complete` | the decision has been realized and the record lands in `main` | `complete-audit`, `complete-design`, `complete-plan`, `complete-report`, `complete-rfc`, `release-spec` |
+| `supersede` | a previously-completed decision is retired in favor of a newer one | `supersede-rfc`, `supersede-spec` |
+
+Two folding decisions still open:
+
+- **`publish` (thoughts) → `complete`.** A lightweight, blog-style repo
+  collapses draft→review→ship into draft→publish; `complete` already means
+  "this document's content is now live/real" for every other repo, so
+  `publish` doesn't need to survive as its own word.
+- **`abandon` (plans) → `reject`.** Both mean "this doesn't happen," just at
+  different points in the timeline (reject = at the review gate, abandon =
+  mid-flight after acceptance). Folding keeps the set at six instead of
+  seven; keeping them separate preserves the timing distinction. Judgment
+  call, no strong preference either way yet.
+
+### 4.3 Net effect on the eighteen words
+
+- `add` / `edit` / `delete` — kept, as TS-9's existing alternative types
+  (fixing `delete` → `remove` per §3.1).
+- `report`, `register`, `plan`, `audit`, `design`, `rfc`, `epic`, `quality` —
+  retired, replaced by `add`/`edit` + context.
+- `draft`, `propose`, `accept`, `reject`, `implement`, `supersede`, `publish`
+  — consolidated into six new types (`draft`, `propose`, `accept`, `reject`,
+  `complete`, `supersede`).
+
+### 4.4 Where this lives in TS-9
+
+Frame the six new types as a **third revision-type list** in
+[04-commits.adoc](./04-commits.adoc), alongside the existing "core" (code
+repos) and "alternative" (generic content repos) lists — scoped specifically
+to governance/decision documents (RFCs, specs, design docs, plans, workshop
+reports, audits). They wouldn't make sense applied to, say, `bookmarks` or
+`garden`, so they shouldn't be folded into either existing list.
+
+**Status:** proposal for discussion — not yet drafted into
+`04-commits.adoc`.
