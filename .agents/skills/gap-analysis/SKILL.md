@@ -8,7 +8,7 @@ description: >-
   "gap-check TS-<N> against the vendor docs in <path>". Do not use it to close
   the gaps it finds.
 compatibility: >-
-  requires Read, Write, Edit, Glob, Grep, WebFetch, Bash (gh, python3)
+  requires Read, Write, Edit, Glob, Grep, WebFetch, Agent, Bash (gh, python3)
 license: CC0-1.0
 ---
 
