@@ -151,8 +151,8 @@ The rule applies differently to different branch types:
 To help enforce the constraint of atomic commits, each commit MUST be scoped to
 exactly one of the following eleven revision types:
 
-1.  *Feature*
-2.  *Runtime*
+1.  *Behavior*
+2.  *Quality*
 3.  *Fix*
 4.  *Step*
 5.  *Refactor*
@@ -163,45 +163,47 @@ exactly one of the following eleven revision types:
 10. *Merge*
 11. *Revert*
 
-A *feature* is a change in a user-facing operation or behavior of the software.
-Features will typically toggle an externally-facing operation or behavior, such
-as enabling a new API endpoint. This type of revision covers changes and
-extensions to existing features, and the deprecation and removal of old
-features.
+A *behavior* is a change in a user-facing operation of the software. This name
+matches how *link:../001/README.adoc[TS-1: Software Requirements
+Specification]* labels functional requirements. Behavior revisions will
+typically toggle an externally-facing operation, such as enabling a new API
+endpoint. This type of revision covers changes and extensions to existing
+behaviors, and the deprecation and removal of old ones.
 
-While features capture the implementation of functional specifications,
-*runtime* revisions capture the implementation of non-functional requirements.
-The commit type is named "runtime" because it concerns the system's *dynamic*
-quality attributes — those that emerge at runtime and are observable externally
-— such as latency, throughput, availability, security, responsiveness,
-reliability, resilience, and so on. Performance in the strict sense (speed and
-capacity) is just one of these, not the whole of it.
+While behavior revisions capture the implementation of functional
+requirements, *quality* revisions capture the implementation of non-functional
+requirements. The commit type takes the same name TS-1 uses for this class of
+requirement ("qualities") because it concerns the system's *dynamic* quality
+attributes — those that emerge at runtime and are observable externally — such
+as latency, throughput, availability, security, responsiveness, reliability,
+resilience, and so on. Performance in the strict sense (speed and capacity) is
+just one of these, not the whole of it.
 
-Both features and runtime revisions are user-facing changes. However, not all
-runtime revisions will be observed by users in any kind of quantifiable way. For
+Both behavior and quality revisions are user-facing changes. However, not all
+quality revisions will be observed by users in any kind of quantifiable way. For
 example, the implementation of more concurrent processing may reduce the
 operational costs for the software vendor, rather than reduce latency for users.
-The defining characteristic of runtime revisions is that the change is
+The defining characteristic of quality revisions is that the change is
 observable and measurable externally of the system at runtime.
 
 A *fix* is any change that resolves some sort of defect – whether a bug,
 regression, vulnerability, or incident. A fix could also silence entries in
 error logs that, on analysis, turn out not to be errors at all.
 
-Features, runtime revisions, and fixes will typically be associated with tickets
-logged in the project's requirements specification or issue tracking system.
-Many of these changes will be of interest to users and other stakeholders, and
-may therefore be recorded in user-facing artifacts such as release notes and
-changelogs.
+Behavior revisions, quality revisions, and fixes will typically be associated
+with tickets logged in the project's requirements specification or issue
+tracking system. Many of these changes will be of interest to users and other
+stakeholders, and may therefore be recorded in user-facing artifacts such as
+release notes and changelogs.
 
 The remaining commit types capture changes that are not directly user-facing and
 which are mostly of interest to the developers and maintainers of the software.
 
 Typically, there would be a number of incremental changes to code and
-configuration before a feature, runtime revision, or fix is complete. These
-*steps* compose the building blocks for larger changes, or they explore possible
-design paths in an iterative fashion. Individually, these commits do not change
-user-facing operations or runtime qualities of the software, but they do
+configuration before a behavior revision, quality revision, or fix is complete.
+These *steps* compose the building blocks for larger changes, or they explore
+possible design paths in an iterative fashion. Individually, these commits do
+not change user-facing operations or qualities of the software, but they do
 represent small increments toward such changes being enabled.
 
 The necessity of step commits arises when implementing changes that are too
@@ -212,21 +214,21 @@ reducing the risk of merge conflicts and forming the basis for continuous
 delivery and deployment practices.
 
 A *refactor* is any improvement to the design or internal structure of the code
-or configuration of the software, without changing the software's features or
-degrading its performance. Refactoring work includes changes to automated tests
+or configuration of the software, without changing the software's behaviors or
+degrading its qualities. Refactoring work includes changes to automated tests
 and build scripts, as well as to source code and configuration, and the data
 structures and data flows, of the software itself.
 
-.Runtime revisions versus refactoring
+.Quality revisions versus refactoring
 ****
-Runtime revisions and refactoring are both concerned with improving the
+Quality revisions and refactoring are both concerned with improving the
 _quality_ of the software, but they focus on different sets of quality
 attributes:
 
-* Runtime revisions address qualities like availability, consistency, latency,
+* Quality revisions address qualities like availability, consistency, latency,
   security, and compliance. These are _external_ quality attributes of a system,
   because they impact the user experience. They are also _dynamic_ quality
-  attributes, because they tend to emerge at runtime. (Hence the `runtime`
+  attributes, because they tend to emerge at runtime. (Hence the `quality`
   commit type.)
 
 * Refactoring is about making improvements to the _internal_, _static_ qualities
@@ -235,7 +237,7 @@ attributes:
   at or before compile time, and they impact developers more than they do users.
 
 The focus of refactoring work is on the needs of the developers and maintainers
-of the software, whereas the focus of runtime revisions is on delivering better
+of the software, whereas the focus of quality revisions is on delivering better
 quality user experiences.
 ****
 
@@ -271,7 +273,7 @@ required to capture specific Git operations.
 [NOTE]
 ======
 Some of these commit types map directly to issue types, as defined in
-*link:../008/README.adoc[TS-8: Issue Tracking]*. For example, `feature` commits
+*link:../008/README.adoc[TS-8: Issue Tracking]*. For example, `behavior` commits
 will typically be associated with "feature" issues, and `fix` commits will
 typically be associated with "bug", "vulnerability", and "incident" issues.
 However, these technical standards do not mandate a one-to-one mapping between
@@ -353,8 +355,8 @@ separated by a colon and exactly one space.
 The `<type>` part MUST be one of the following words, which maps to the
 different revision types listed above:
 
-1.  `feature`
-2.  `runtime`
+1.  `behavior`
+2.  `quality`
 3.  `fix`
 4.  `step`
 5.  `refactor`
@@ -367,7 +369,7 @@ different revision types listed above:
 
 Using predefined revision types as a prefix for commit messages makes it easy to
 filter out unimportant changes (like chores) using `git bisect`. Separating
-discrete development concerns – feature delivery, bug fixes, runtime revisions,
+discrete development concerns – behavior delivery, bug fixes, quality revisions,
 refactoring, etc. – into separate commit objects also helps to enforce the
 principle of atomic commits.
 
@@ -393,7 +395,7 @@ step: add openapi specification
 fix: invalid yaml formatting
 refactor: move openapi spec to resources directory
 chore: proofread readme content
-feature: enable route to openapi spec
+behavior: enable route to openapi spec
 release: v0.0.0-beta
 ----
 
@@ -463,7 +465,7 @@ The *BREAKING* flag MUST be used to signpost breaking changes that are
 introduced to the software. Example:
 
 ----
-feature: remove password from login endpoint - BREAKING
+behavior: remove password from login endpoint - BREAKING
 ----
 
 A breaking change is one that introduces a change to the interface that will be
@@ -478,8 +480,8 @@ whether those users are human or machine – via release notes or other such
 artifacts, so those users can continue to use the system effectively, then the
 change MUST be flagged as BREAKING.
 
-Typically, the BREAKING flag will be most commonly applied to features, but this
-is not a requirement.
+Typically, the BREAKING flag will be most commonly applied to behavior
+revisions, but this is not a requirement.
 
 The BREAKING flag MAY be used by automation tools to programmatically bump major
 version numbers (see *link:../011/README.adoc[TS-11: Versioning]*), and to
@@ -856,7 +858,7 @@ generally be avoided in favor of fast-forward-only merging, which maintains a
 clean linear history. However, if explicit merge commits are necessary (eg. for
 integrations that require recording an integration point), prefer to specify the
 type of changes being introduced from the source branch as the prefix – eg.
-`feature:`, `refactor:`, `runtime:` – rather than a generic `merge:` prefix.
+`behavior:`, `refactor:`, `quality:` – rather than a generic `merge:` prefix.
 This makes the commit history more informative by indicating what kind of work
 is being integrated via the merge commit.
 ======
@@ -911,7 +913,7 @@ top – this is where the cursor will be placed when the user's editor is opened
 #
 # <type> can be:
 #   - chore        A insignificant change to non-production artifacts.
-#   - feature      A new/changed/removed user-facing operation/behavior.
+#   - behavior     A new/changed/removed user-facing operation.
 #   - fix          A fix for a bug, error, regression, or incident.
 #   - style        Low-level code formatting changes.
 #   - maintenance  Dependency updates, tool configs, docs edits, etc.
@@ -919,7 +921,7 @@ top – this is where the cursor will be placed when the user's editor is opened
 #   - refactor     An improvement to the programs's internal design.
 #   - release      Marks a new numbered version of the product.
 #   - revert       Reverts an earlier commit.
-#   - runtime      A change to a dynamic quality attribute (latency, etc.).
+#   - quality      A change to a dynamic quality attribute (latency, etc.).
 #   - step         An increment toward implementing a larger change.
 #
 # <flag> can be:

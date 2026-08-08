@@ -115,21 +115,23 @@ to adapt, not a rigid framework.
 
 - **Each commit MUST be scoped to exactly one of eleven revision types.**
 
-  For software repositories: `feature`, `runtime`, `fix`, `step`, `refactor`,
+  For software repositories: `behavior`, `quality`, `fix`, `step`, `refactor`,
   `style`, `maintenance`, `chore`, `release`, `merge`, `revert`.
 
-  - **feature** — change in user-facing operation/behavior (new, changed,
-    deprecated, removed). Maps to functional requirements.
-  - **runtime** — implementation of non-functional/dynamic quality attributes
-    (latency, throughput, availability, security, resilience). Observable
-    and measurable externally at runtime. Distinct from `refactor` (internal,
-    static qualities for developers).
+  - **behavior** — change in user-facing operation (new, changed, deprecated,
+    removed). Maps to functional requirements ("behaviors" in
+    [TS-1](../001/AGENTS.md)).
+  - **quality** — implementation of non-functional/dynamic quality attributes
+    ("qualities" in [TS-1](../001/AGENTS.md)): latency, throughput,
+    availability, security, resilience. Observable and measurable externally
+    at runtime. Distinct from `refactor` (internal, static qualities for
+    developers).
   - **fix** — resolves a defect: bug, regression, vulnerability, or incident.
-  - **step** — incremental building block toward a larger feature/runtime/fix
+  - **step** — incremental building block toward a larger behavior/quality/fix
     that does not itself change user-facing behavior. Enables CI of large
     changes.
-  - **refactor** — improves internal design/structure without changing features
-    or degrading performance (includes test/build-script/data-structure
+  - **refactor** — improves internal design/structure without changing
+    behaviors or degrading qualities (includes test/build-script/data-structure
     changes).
   - **style** — presentation-only changes (whitespace, indentation, wrapping,
     formatter runs like `prettier`/`black`/`gofmt`). Distinct from `refactor`.
@@ -150,7 +152,9 @@ to adapt, not a rigid framework.
 
   Commit types map loosely to issue types in
   [TS-8](../008/AGENTS.md) but a one-to-one mapping is NOT mandated (a
-  `refactor` commit may be associated with a "feature" issue, etc.).
+  `refactor` commit may be associated with a "feature" issue, etc. — TS-8's
+  issue-type vocabulary is separate from TS-9's commit-type vocabulary and is
+  not renamed by this change).
 
 - **Format commit messages as header, optional body, optional footers,
   separated by single blank lines.**
@@ -179,7 +183,7 @@ to adapt, not a rigid framework.
   chore: initial commit, add readme
   step: add openapi specification
   fix: invalid yaml formatting
-  feature: enable route to openapi spec
+  behavior: enable route to openapi spec
   release: v0.0.0-beta
   ```
 
@@ -240,7 +244,7 @@ to adapt, not a rigid framework.
   `revert:` prefix and a `Reverts:` footer.**
 
   Merge commits: use `--edit` (default since Git v1.7.10), keep Git's default
-  body (parent hashes), and prefix the header with the change type (`feature:`,
+  body (parent hashes), and prefix the header with the change type (`behavior:`,
   `refactor:`, etc.) rather than a generic `merge:` when an explicit merge
   commit is necessary. Prefer fast-forward-only merging to avoid merge commits
   entirely. Revert commits: `revert: "<original header>"`, no body, footer
@@ -575,7 +579,7 @@ integration:
 
   PR titles become the commit message when squash-merged: lowercase type
   prefix, optional scope, `BREAKING`/`INCOMPAT` flag where applicable, concise
-  imperative subject (eg. `feature(auth): add OAuth device flow`). Task lists
+  imperative subject (eg. `behavior(auth): add OAuth device flow`). Task lists
   (Markdown checkboxes) give the author a self-checklist, reviewers a quick
   view of progress, and make cross-PR dependencies explicit.
 
