@@ -253,13 +253,13 @@ Does this involve changes to code or configuration?
    │           │
    ├─ Does this change system behavior from the user's perspective?
    │  │
-   │  ├─ YES ─── FEATURE
+   │  ├─ YES ─── BEHAVIOR
    │  │
    │  └─ NO ────┐
    │            │
    ├─ Is this about a runtime quality attribute (latency, availability, security, etc.)?
    │  │
-   │  ├─ YES ─── RUNTIME
+   │  ├─ YES ─── QUALITY
    │  │
    │  └─ NO ────┐
    │            │
