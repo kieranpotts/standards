@@ -12,7 +12,7 @@ architects, and technical leads. They are reference material, not tutorials.
 
 ## Documentation
 
-- [**Index of standards**](./src/README.adoc)
+- [**Index of standards**](./src/modules/ROOT/pages/index.adoc)
 - [**Contributing**](./CONTRIBUTING.md)
 - [**Style guide**](./docs/style-guide.md)
 - [**Committing**](./docs/committing.md)

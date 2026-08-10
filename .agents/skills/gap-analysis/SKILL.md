@@ -26,9 +26,10 @@ environment, if possible. If you're uncertain about the required parameters,
 prompt the user for clarification.
 
 - **The target standard — REQUIRED.** One technical standard, identified as
-  `TS-<N>`, not several. Its directory is that number zero-padded to three
-  digits, so TS-1 is `src/001/`. If the user does not name one, and the
-  context or the working directory already establishes a `src/<NNN>/`
+  `TS-<N>`, not several. Its number zero-padded to three digits identifies its
+  files, so TS-1 is the page `src/modules/ROOT/pages/001-<slug>.adoc` plus
+  everything under `src/modules/ROOT/partials/001/`. If the user does not name
+  one, and the context or the working directory already establishes a
   standard, treat that as the target.
 
 - **The reference resources — REQUIRED.** A web URL, a local file, or a local
@@ -40,9 +41,9 @@ prompt the user for clarification.
 
 ## Success criteria
 
-- `src/<NNN>/GAPS.md` MUST exist, MUST follow the bundled template, and MUST
-  list every gap as a flat checklist bullet — no sub-headings, tables, or
-  per-gap subsections.
+- `src/modules/ROOT/partials/<NNN>/GAPS.md` MUST exist, MUST follow the
+  bundled template, and MUST list every gap as a flat checklist bullet — no
+  sub-headings, tables, or per-gap subsections.
 
 - Every gap MUST cite both a concrete source location in the reference
   material — a URL with a section anchor where possible, or
@@ -65,16 +66,18 @@ prompt the user for clarification.
 
 ## Instructions
 
-1.  Resolve the target directory from the standards index at
-    `src/README.adoc`, then check for `src/<NNN>/GAPS.md`. If it exists, this
-    is a re-run against the same or an updated set of resources. Read it
-    first, carry every unchecked gap forward for re-verification, and re-check
-    every checked gap to confirm the standard still covers it.
+1.  Resolve the target from the standards index at
+    `src/modules/ROOT/pages/index.adoc`, then check for
+    `src/modules/ROOT/partials/<NNN>/GAPS.md`. If it exists, this is a re-run
+    against the same or an updated set of resources. Read it first, carry
+    every unchecked gap forward for re-verification, and re-check every
+    checked gap to confirm the standard still covers it.
 
-2.  Read the standard in full: `src/<NNN>/README.adoc`, every file it pulls in
-    via `include::`, and any subdirectory carrying its own `README.adoc`. Read
-    its `AGENTS.md` too, if it has one — that file reveals which rules the
-    maintainers consider load-bearing.
+2.  Read the standard in full: its page (`src/modules/ROOT/pages/<NNN>-<slug>.adoc`),
+    every file it pulls in via `include::`, and any subdirectory under
+    `partials/<NNN>/` carrying its own `README.adoc`. Read its `AGENTS.md`
+    too, if it has one — that file reveals which rules the maintainers
+    consider load-bearing.
 
 3.  Ingest every reference resource in full, noting its own scope and audience
     as you read. A broad external resource, such as a general industry style

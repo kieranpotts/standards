@@ -1,0 +1,548 @@
+= Integrations
+
+In collaborative development, multiple contributors work on separate branches,
+each implementing independent features or fixes. Eventually, these changes must
+be brought back together, by reintegrating them into shared trunk lines.
+
+There are multiple ways to do this, and each option has its own advantages and
+disadvantages.
+
+== Integration strategies
+
+Git supports several strategies for taking changes committed to one branch (a
+_source_ branch) and integrating those changes into another branch (a _target_
+branch). Broadly, the options are:
+
+* Fast-forward merging
+* Explicit merging
+* Squash-merging
+* Rebasing
+* Cherry-picking
+* Patching
+
+Each integration strategy has its own strengths and trade-offs. Choosing the
+right integration strategy is crucial to maintaining a clean, navigable commit
+history that serves as a useful changelog for the project while also reflecting
+the development workflow of the team. This document describes the available
+strategies and provides recommendations for their use.
+
+First, let us look at merging. Git supports three distinct merge behaviors:
+fast-forward merging, explicit merging, and squash-merging.
+
+=== Fast-forward merging
+
+When merging changes from a source branch into a target branch, if there is no
+divergent work in the target branch, Git's default merge behavior is to
+fast-forward the tip of the target branch to the tip of the source branch. No
+merge commit is recorded. If the source branch is later deleted, no trace of it
+will be left in the history. The end state will be a clean, linear history of
+commits, in chronological order, as if all the commits had been implemented
+directly on the target branch in the first place.
+
+The below animation demonstrates this workflow. "A" and "B" are initial commits
+on a branch named `target`. A new branch, named `source`, is created from commit
+"B". Commits "C", "D", and "E" are subsequently introduced to the source branch.
+The source branch is then merged into the target branch:
+
+[source,sh]
+----
+git checkout <target-branch>
+git merge <source-branch>
+----
+
+Because there are no new commits on the target branch, Git will handle the merge
+by simply fast-forwarding the target branch to the tip of the source branch,
+which is commit "E". The end result is both branches referencing the same
+commit. Therefore, both branches have identical commit histories.
+
+Finally, the source branch is deleted, leaving no trace of its existence.
+
+image::009/integration-strategies/merge-ff.svg[]
+
+[NOTE]
+======
+This behavior is equivalent to using the `--ff` flag. However, since it is the
+default behavior of `git merge`, the flag can be omitted in most cases.
+======
+
+The fast-forward merge integration strategy has numerous advantages. It
+preserves the history of commits in their true chronological order, and the end
+result is a clean, linear history. It is also a very fast and reliable
+operation. Fast-forward merging never requires resolution of merge conflicts.
+
+Fast-forwarding is the default behavior of the `git merge` command. If a merge
+cannot be fast-forwarded, an explicit merge commit will be recorded instead.
+Alternatively, you can tell Git to fail a merge operation if fast-forwarding is
+not possible. You do this by supplying the `--ff-only` (fast-forward-only) flag:
+
+[source,sh]
+----
+git checkout <target-branch>
+git merge --ff-only <source-branch>
+----
+
+=== Explicit merging
+
+In busy projects, it is common for new commits to be introduced to the target
+branch that do not exist in the history of the source branch. In this situation,
+Git cannot simply fast-forward the tip of the target branch to the tip of the
+source branch, else the new commits on the target branch would be lost.
+
+Instead, Git records an explicit merge commit on the target branch. The merge
+commit will reference its two parent commits, and so create a non-linear history
+through two parallel branches of development. The merge commit will also record
+any changes needed to resolve conflicts arising from divergence between the
+merged branches.
+
+The following animation demonstrates a no-fast-forward merge. As in the previous
+example, "A" and "B" are initial commits on the target branch, the source branch
+is created from commit "B", and commits "C", "D", and "E" are introduced to the
+source branch. But this time commits "F" and "G" are introduced to the target
+branch. These commits do not exist on the source branch. When the source branch
+is merged into the target branch, because the target branch has changes that do
+not exist in the source branch, the target branch cannot be simply
+fast-forwarded to the tip commit on the source branch. So Git handles the merge
+by recording an explicit merge commit, "H", on the target branch.
+
+image::009/integration-strategies/merge-no-ff.svg[]
+
+Even when the source branch is deleted, its unique commit history will be
+persisted via the merge commit, "H", which still exists in the target branch's
+history.
+
+Merges are fast-forwarded by default. If Git can resolve a merge without
+requiring an explicit merge commit, it will do so. Git will create merge commits
+only if the target branch contains divergent work that does not exist in the
+source branch. You can override this default behavior, forcing an explicit merge
+commit to be recorded every time, by using the `--no-ff` (no-fast-forward) flag.
+
+[source,sh]
+----
+git checkout <target-branch>
+git merge --no-ff <source-branch>
+----
+
+This is demonstrated in the next animation. As before, "A" and "B" are initial
+commits on the target branch, the source branch is created from commit "B", and
+commits "C", "D", and "E" are introduced to the source branch. This time, no new
+commits are added to the target branch. The source branch is merged into the
+target branch using the `--no-ff` flag. Even though a merge commit is not
+required to reconcile divergence between the two branches, an explicit merge
+commit, "F", is nonetheless created on the target branch.
+
+image::009/integration-strategies/merge-explicit-no-ff.svg[]
+
+There are several advantages to explicitly recording merges in commit logs.
+Merge commits preserve the context in which changes were implemented and record
+how any divergence between parallel development branches was resolved. They also
+allow for easy reversal of integrations: you can revert a merge commit to remove
+all changes from a source branch in a single, clean operation—a powerful tool if
+an integration proves unstable.
+
+// TODO: Add an animation to show an undo operation.
+
+The trade-off is that explicit merging produces non-linear commit histories on
+the target branches. In busy projects with many integrations, merge commits
+create considerable noise that makes the commit log difficult to reason with.
+Merge commits tell us _that_ two branches were integrated, but not _what_
+changed. The `git log` output becomes less useful as a product-level changelog.
+
+=== Squash-merging
+
+Like fast-forward merging, squash-merging is an integration strategy capable of
+producing a clean, linear commit history.
+
+It works like this. At the time of integration, Git collects all the changes
+introduced across every commit in the source branch, aggregates them all into a
+single changeset, and stages the diff. At this point, no commit is recorded. The
+user can then commit the changes, appending them to the target branch's commit
+stack in a single commit. The user has the opportunity to review the changes,
+and make further modifications if necessary, before committing the changes to
+the target branch.
+
+The end result is a single atomic commit, at the tip of the target branch, that
+captures all the changes introduced via the source branch. This is a new commit
+with no association to the original commits on the source branch. No merge
+commit is recorded, either.
+
+The squash-merge strategy is demonstrated by the following animation. As before,
+"A" and "B" are initial commits on the target branch, the source branch is
+created from commit "B", and commits "C", "D", and "E" are introduced to the
+source branch. Next, commit "F" is introduced to the target branch. Finally, the
+source branch is squash-merged into the target branch using the `--squash` flag:
+
+[source,sh]
+----
+git checkout <target-branch>
+git merge --squash <source-branch>
+----
+
+Git aggregates all the changes from commits "C", "D", and "E", and stages them.
+The user commits the staged changes, creating commit
+"G*" on the target branch. "G*" incorporates all the changes from commits "C",
+"D", and "E", but it is a new commit with no link to those source commits. When
+the source branch is subsequently deleted, no trace of it is preserved in the
+commit history.
+
+image::009/integration-strategies/squash-merge.svg[]
+
+It is worth noting that the behavior of `git merge --squash` varies depending on
+the fast-forward configuration. You cannot use the `--squash` and `--no-ff`
+options at the same time. The two flags are logically contradictory, because
+`--squash` explicitly suppresses any merge commit, while `--no-ff` forces one.
+But you can use `--squash` with `--ff-only`. With this config combination, Git
+will check if the merge can be fast-forwarded and, if it can, it will proceed
+with the squash operation. This can be a useful constraint if you want to
+resolve conflicts in the source branch, but you also want to clean-up the source
+branch's messy history before merging it into the target branch.
+
+Using the `--squash` flag is particularly well-suited to integrating source
+branches that have noisy, work-in-progress histories. The intermediate commits
+that accumulate during development – the fixes, the experiments, and the
+incremental, unstable revisions – often tell a useful story within the context
+of the source branch, but they contribute little to the product changelog.
+Squashing strips away that granular history, replacing it with a single,
+meaningful commit that represents the completion of a discrete, stable unit of
+work.
+
+The advantage of squash-merging is that trunk line history remains clean: every
+commit on the mainline represents a discrete, meaningful piece of work, not the
+messy intermediate steps. The trade-off is that useful context – decisions
+taken, alternative approaches tried, how conflicts were resolved – is
+irretrievably lost.
+
+An important constraint: after a squash-merge, the source branch MUST be
+promptly deleted. Because the squashed commit on the target branch is not linked
+to the original commits on the source branch, Git cannot recognize that those
+changes have already been integrated. Any subsequent attempt to merge or rebase
+the same source branch will reintroduce the same changes and produce conflicts
+that Git cannot automatically resolve.
+
+=== Rebasing
+
+Rebasing is a more advanced integration strategy. The API is similar to
+`git merge`, but the underlying operation is more complex. You checkout the
+target branch and run `git rebase`. As with `git merge`, you pass the name of
+the source branch as the first argument:
+
+[source,sh]
+----
+git checkout <target-branch>
+git rebase <source-branch>
+----
+
+Rebase operations are more complex than `git merge`. Git walks back through the
+history of the checked-out branch, undoing its unique commits one-by-one, until
+it reaches the first commit that it shares with the source branch. At this
+point, the checked-out branch is at the common ancestor of both branches. Git
+then fast-forwards the checked-out branch to the tip of the source branch,
+incorporating the source branch's recent commits. Finally, the
+previously-removed commits are reapplied. The original changes are reintroduced
+as entirely new commits – new hashes are assigned to them.
+
+In effect, the commits that are unique to the target branch are given a new base
+commit from which they inherit – literally, the commits are "rebased".
+
+The following animation demonstrates a rebase operation. As in prior examples,
+commits "A" and "B" are added to the target branch, then the source branch is
+created from commit "B", and commits "C", "D", and "E" are subsequently
+introduced to the source branch. Next, commits "F" and "G" are introduced to the
+target branch. This time, the target branch is rebased on the source branch. Git
+undoes commits "F" and "G" on the target branch, so that the target branch now
+references commit "B", which is the nearest common ancestor it has with the
+source branch. Git then moves the tip of the target branch to the tip of the
+source branch, which is commit "E". Finally, Git replays the changes previously
+introduced in commits "F" and "G", now using commit "E" as their new base. The
+new commits added to the target branch will be given different hashes – in this
+animation the new commits are labelled "F*" and "G*".
+
+image::009/integration-strategies/rebase.svg[]
+
+If conflicts arise during the rebasing process, the commits being replayed onto
+the target branch will need to be updated to remain compatible with the changes
+introduced in the source branch. Thus commits "F*" and "G*" may not have exactly
+the same changes as the original "F" and "G" commits respectively.
+
+Like squash-merging, rebasing gives users considerable flexibility. Rebasing
+operations can be run in interactive mode (`git rebase --interactive|-i`), which
+allows squashing multiple commits, dropping commits, reordering them, and
+changing commit messages.
+
+=== Conflict-resolution strategies
+
+`git merge`, `git rebase`, and `git cherry-pick` all resolve conflicting hunks
+through the same underlying three-way merge machinery, and all three accept a
+`-X` (strategy option) flag that biases *automatic* conflict resolution towards
+one side of the conflict, rather than stopping and requiring manual resolution:
+
+[source,sh]
+----
+git merge -X ours <branch>       # keep the current branch's version of any
+                                  # conflicting hunk
+git merge -X theirs <branch>     # keep the incoming branch's version instead
+
+git rebase -X theirs <branch>
+git cherry-pick -X ours <commit>
+----
+
+This only affects hunks that Git cannot merge cleanly on its own; hunks that
+merge cleanly are merged normally regardless of the flag. It is not the same as
+the whole-branch `-s ours` merge strategy, which discards the other side's
+changes entirely and unconditionally, even where no conflict exists.
+
+`-X ours`/`-X theirs` MUST NOT be used as a default or blanket setting to
+suppress conflicts in application code — doing so can silently discard changes
+that a reviewer never sees, which undermines the *provenance* objective far
+more than a manual conflict resolution would. It MAY be used narrowly, for a
+specific, well-understood file that is expected to diverge predictably and
+where one side is always correct by construction — for example, a
+generated lock file, or a changelog header — most commonly when backporting a
+fix across long-term support pipelines (see
+*xref:009-version-control.adoc[]*), where the same conflicting hunk (eg. a
+version string) recurs on every backport.
+
+=== Cherry-picking
+
+Cherry-picking differs from the other integration strategies in a fundamental
+way. Rather than integrating all of the unique commits on a source branch into a
+target branch, cherry-picking selectively applies individual commits from
+anywhere in the repository's history. It is a surgical tool for extracting
+specific changes from one branch and reintroducing them on another, without
+carrying across the surrounding history.
+
+It works like this. You identify one or more specific commits and instruct Git
+to apply their changes to the current branch using the `git cherry-pick`
+command. Git replays each selected commit onto the target branch, recording the
+same changes as a new commit. If there are conflicts with the target branch,
+these will need to be resolved in the new commit – which would mean the diff is
+different from the original commit.
+
+Like rebasing, the new commit will have a different hash from its original.
+Cherry-picked commits are distinct objects in Git's history – even if their diff
+is identical to the original commits.
+
+The following animation demonstrates a cherry-pick operation. "A" and "B" are
+initial commits on the target branch. The source branch is created from commit
+"B". Commits "C", "D", and "E" are introduced to the source branch. Commits "F"
+and "G" are introduced to the target branch. A cherry-pick operation is then
+performed from the target branch, selecting commit "D" from the source branch.
+Git replays the changes introduced in commit "D" onto the target branch,
+recording a new commit, "D*", after "G". The source branch remains unchanged.
+
+image::009/integration-strategies/cherry-pick.svg[]
+
+Cherry-picking is most useful when integrating an entire branch is not desirable
+or appropriate. A common scenario is backporting – applying a bug fix or
+security patch from a release branch to the current development trunk, so the
+fix is applied to the next release too. Cherry-picking is also useful when a
+single, well-scoped commit on a long-running feature branch needs to be promoted
+to a target branch ahead of the rest of the feature.
+
+The trade-off is that cherry-picked commits are copies. They are not linked to
+their originating commits in the source branch. If the source branch is later
+merged or rebased onto the same target branch in full, Git will not recognize
+that some of those incoming changes have already been applied. The result can be
+conflicts that are difficult to resolve. For this reason, cherry-picking is best
+treated as a targeted, exceptional tool rather than a routine integration
+strategy.
+
+=== Patching
+
+Patching is the oldest of Git's integration strategies, and the one from which
+Git itself grew. The Linux kernel project pioneered this workflow, where patches
+– self-contained, portable files describing a set of changes – were emailed
+between contributors and applied manually by maintainers. Git was designed by
+Linus Torvalds specifically to support this style of distributed, email-based
+collaboration.
+
+It works like this. Changes are exported from a source branch as patch files
+using the `git format-patch` command. Each file captures the diff of a single
+commit, along with metadata such as the author, the commit message, and the
+timestamp. These files can be shared by any means – emailed, archived, or
+transferred directly – and applied to a target branch in any repository using
+`git am`. The applied changes are recorded as new commits on the target branch,
+with the original authorship preserved.
+
+Patching is the only integration strategy that does not require the source and
+target branches to share a common remote repository. This makes it useful in
+contexts where direct repository access is not possible – air-gapped systems, or
+contributions to projects whose maintainers do not grant write access to
+external contributors. Outside of the Linux kernel ecosystem, however, it is
+rarely encountered in practice. Modern collaborative workflows, built around
+shared remote repositories and pull request systems, have made it largely
+redundant.
+
+== Recommendations
+
+The choice of integration strategy depends on your goals for the commit history
+and your team's workflow. This technical standard recommends different
+strategies for different contexts.
+
+=== Integrating between trunk lines
+
+To maintain a clean, linear history on a project's trunk lines – so that
+`git log` serves as a useful, high-level changelog – fast-forward-only merging
+is the clear choice. This supports the objectives of *provenance* (clear change
+history) and *simplicity* (straightforward integration without merge commits).
+Use this for moving `test` to catch-up with `dev`, and `ready` to catch-up with
+`test`:
+
+[source,sh]
+----
+git checkout test
+git merge --ff-only dev
+
+git checkout ready
+git merge --ff-only test
+----
+
+This works well as long as no changes are ever committed directly to any trunks
+except `dev`. The trunk lines are treated as a single branch in which all
+commits originate on `dev` and incrementally flow via `test` to `ready`.
+
+=== Integrating temporary branches into dev
+
+For integrating `temp` branches into `dev`, this technical standard RECOMMENDS a
+two-stage approach: rebase followed by fast-forward merge. This is the best
+balance between clean history, safety, and practical workflow.
+
+**Stage 1: Rebase the temporary branch on dev**
+
+First, rebase the `temp` branch on the latest `dev`:
+
+[source,sh]
+----
+git checkout temp/*
+git rebase dev
+----
+
+This ensures that the `temp` branch is compatible with the latest changes in
+`dev`, and conflicts are resolved in the `temp` branch before integration into
+the shared trunk. The rebase replay means that when the final integration
+happens, it can simply fast-forward without additional conflict resolution.
+
+image::009/integration-workflows/rebase.svg[]
+
+Rebase your temporary branches on `dev` at least once per day. Do NOT merge
+`dev` into temporary branches, as this can introduce regressions.
+
+**Stage 2: Fast-forward merge into dev**
+
+Once the rebase is complete, integrate using a clean fast-forward merge:
+
+[source,sh]
+----
+git checkout dev
+git merge --ff-only temp/*
+----
+
+This ensures the integration is clean, fast, and reliable. The trunk line gains
+your commits as if they had always been there.
+
+image::009/integration-workflows/rebase-plus-ff-merge.svg[]
+
+**Why this strategy?** Rebasing + fast-forward merging produces a clean linear
+history while resolving conflicts safely in source branches rather than the
+target branch. This avoids merge conflicts in the shared trunk. Even so, good
+test coverage is critical because two branches can integrate without line-level
+conflicts yet still produce regressions.
+
+The main trade-off is that commit timestamps reflect the time of integration
+rather than the time of authorship. If you need to preserve original author
+dates, use `git rebase --committer-date-is-author-date`.
+
+=== Alternative: Rebase + no-fast-forward merge
+
+For larger integrations where the ability to undo the integration in a single
+operation is valuable, use `--no-ff` instead of fast-forward:
+
+[source,sh]
+----
+git checkout dev
+git merge --no-ff temp/*
+----
+
+image::009/integration-workflows/rebase-plus-no-ff-merge.svg[]
+
+This creates an explicit merge commit that records the integration point.
+Because conflicts are already resolved in the rebased commits, the merge commit
+records only the integration, not additional conflict resolution. The downside
+is a less linear history, but you gain the ability to revert the entire
+integration with a single `git revert` on the merge commit if it proves
+unstable.
+
+=== Integrating epic branches into dev
+
+Epic branches are long-lived, accumulating commits from multiple contributors
+over weeks or months. By the time they're ready for integration, their commit
+history is typically noisy with intermediate work-in-progress commits,
+merge-down commits from `dev`, and incremental steps that are meaningful within
+the context of the epic but add little to the trunk's changelog.
+
+For this reason, **squash-merge** is the RECOMMENDED integration strategy for
+epic branches. Squash-merge consolidates the epic's entire history into a
+single, well-described commit on `dev` that represents the completion of the
+epic's work.
+
+Epic integrations are typically performed via a pull request, which provides a
+structured forum for review and approval of the consolidated change. See
+*xref:009-version-control.adoc[PR config]*.
+
+If integrating directly via the Git CLI:
+
+[source,sh]
+----
+git checkout dev
+git merge --squash epic/*
+git commit
+----
+
+image::009/integration-workflows/squash-merge.svg[]
+
+After squash-merging, delete the source branch immediately. Because the squashed
+commit is not linked to the original commits, Git cannot recognize they've been
+integrated; a future merge would reintroduce them and cause conflicts.
+
+The trade-off is reduced traceability on the trunk: how changes were implemented
+within the epic, and how conflicts were resolved during merge-downs from `dev`,
+is not preserved as individual commits. The epic's full commit history can be
+preserved through the PR's audit log if needed.
+
+=== Special case: Cherry-picking
+
+Cherry-picking is useful for extracting specific commits rather than integrating
+an entire branch:
+
+[source,sh]
+----
+git checkout dev
+git cherry-pick <commit>
+----
+
+image::009/integration-workflows/cherry-pick.svg[]
+
+Cherry-picking is best treated as a targeted, exceptional tool rather than a
+routine integration strategy. It's valuable for backporting bug fixes or
+selectively promoting commits, but it creates copies that Git doesn't recognize
+as already integrated, leading to potential conflicts if you later merge the
+full branch.
+
+=== Summary
+
+For most workflows, the recommendations are:
+
+* **Trunk-to-trunk integrations** (`dev` → `test` → `ready`): fast-forward-only
+  merge.
+* **Temporary branches into `dev`**: rebase followed by fast-forward merge,
+  typically performed locally as part of continuous integration.
+* **Epic branches into `dev`**: squash-merge, typically performed via a pull
+  request.
+
+Together, these strategies produce a clean, linear history on the trunk lines
+while managing conflicts safely. The objective is for `git log` to serve as a
+useful public changelog reflecting the high-level progress of the project,
+supporting the objective of *provenance*.
+
+For larger temporary-branch integrations where the ability to revert the entire
+integration in a single step is critical, the rebase + no-fast-forward merge
+alternative described above is also available.

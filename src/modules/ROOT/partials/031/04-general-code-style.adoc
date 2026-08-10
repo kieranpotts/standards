@@ -1,0 +1,213 @@
+= General code style
+
+For legacy code, stay faithful to the existing prevailing code conventions. Else
+follow the guidelines below for new shell scripts.
+
+== Source order
+
+The source code for shell scripts SHOULD follow this order:
+
+1. Shebang and `set` operations
+2. File-level comments
+3. Variables
+4. Functions
+5. Main program
+
+Keep all custom functions together in one block. Try to avoid hiding executable
+code between functions. It makes the code hard to follow.
+
+This structure also provides a useful framework for decomposing large scripts
+into smaller, more manageable files.
+
+[source,sh]
+----
+#!/usr/bin/env sh
+
+# File description here.
+# Copyright: <Legal Name>
+# License: MIT
+
+. variables.sh
+. functions.sh
+
+main "$@"
+----
+
+For libraries – ie. shell scripts that are intended only for sourcing into other
+scripts, rather than direct execution – the shebang line is optional but
+RECOMMENDED. Including the shebang in all shell scripts, including sourced ones,
+provides clarity over which shell the script targets for compatibility.
+
+== main()
+
+For complex scripts – anything more than a couple of hundred lines, or anything
+with non-linear control flows – it is RECOMMENDED to define a function called
+`main` that will be the main entry point for the program. This SHOULD be the
+first function defined, but it should be called last, at the very end of the
+script.
+
+Thus, the very last line in a shell script SHOULD be a call to the `main`
+function. Arguments passed to the script SHOULD, normally, be forwarded to the
+main function.
+
+[source,sh]
+----
+main "$@"
+----
+
+== Indentation
+
+Use two spaces. Never use tabs for indentation.
+
+The only exception for use of tabs is in tab-indented here-documents, ie. in the
+body of `<<-`.
+
+== Blank lines
+
+Insert blank lines between discrete blocks of code, to improve readability.
+
+== Line length
+
+Most code lines – except literal strings that can't be wrapped – SHOULD be kept
+under 80 characters in length.
+
+It is RECOMMENDED to use continuation lines to break up long commands,
+expressions, and other statements that would otherwise exceed the line length
+limit.
+
+[source,sh]
+----
+command1 \
+    && command2 \
+    && command3
+----
+
+Continuation lines MUST be indented to show that they are continuations of the
+preceding line. It is RECOMMENDED to use double indentation – four spaces – for
+continuation lines.
+
+Expressions SHOULD be broken _before_, not _after_.
+
+Pipelines are another good use case for continuation lines. Put the pipe symbol
+followed by the next command in the chain on a new line. Comments will need to
+precede the whole pipeline. If the pipeline is complex, and individual commands
+within it require extensive explanation, extract those commands into separate
+functions and use function-level comments to capture the information.
+
+[source,bash]
+----
+# Comment for the whole pipeline.
+command1 \
+    | command2 \
+    | command3 \
+    | command4
+----
+
+Code lines MAY be longer than 80 characters where breaking the line decreases
+readability.
+
+== Naming conventions
+
+=== General guidelines for naming things
+
+As per *xref:007-code-design.adoc[TS-7: Code Design]*, err on the side of clarity
+over brevity in the naming of things. Do not truncate or abbreviate the names of
+things where doing so would decrease understandability of the code.
+
+The names of all things – functions, variables, etc. – SHOULD be descriptive in
+the places in which those things are _used_, not only in the places where they
+are _defined_. This means you can't rely on adjacent comments to document the
+meaning of things where they are declared, because those names will appear in
+other code contexts where those descriptions are not present.
+
+=== File names
+
+Shell scripts SHOULD be named with all-lowercase ASCII letters, with words
+delimited by hyphens.
+
+The `.sh` extension MAY be omitted for files that are intended to be executed
+like binaries. The `.sh` extension SHOULD be kept for shell libraries – ie.
+files that are intended to be sourced by other shell scripts, or be executed by
+other build tools such as `make`.
+
+Thus, the omission of the `.sh` extension informs users that the script is
+intended to be directly executed as a command: `./<script-name> <arg1> <arg2>
+...`.
+
+=== Variable names
+
+The names of variables should be composed from lowercase ASCII letters only,
+with underscores used to delimit words. Numbers (0-9) MAY be used in variable
+names in appropriate scenarios.
+
+A common convention is to use UPPER_SNAKE_CASE for variable names. This is bad
+practice. Using this naming convention risks collisions with shell-defined
+variables and environment variables.
+
+*Constants* – which are declared with the `readonly` keyword – also SHOULD NOT
+be capitalized. This too is a common convention, but it is bad practice for the
+same reason.
+
+[source,sh]
+----
+# ❌
+readonly PATH_TO_FILES='/some/path'
+
+# ✅
+readonly path_to_files='/some/path'
+----
+
+The only exception to this naming convention is for variables exported to the
+environment – ie. environment variables that will be made available to all child
+processes spawned from the current shell. These SHOULD be capitalized, following
+the prevailing conventions for Unix environment variables. Environment variables
+are, after all, intended for use by other scripts and programs, so it is best to
+stick with the community's naming conventions here.
+
+.Examples
+[source,sh]
+----
+export PATH="/usr/local/bin:$PATH"
+----
+
+For the sake of clarity, use of `readonly` and `export` are RECOMMENDED over the
+use of `declare` commands. Even if you want to export a constant, be explicit
+and use separate `readonly` and `export` statements, rather than combine them
+into a single `declare` command.
+
+[source,sh]
+----
+# ✅
+readonly ORACLE_SID='PROD'
+export ORACLE_SID
+
+# ❌
+declare -xr ORACLE_SID='PROD'
+----
+
+Consider using a vendor-specific prefix for all the variables your scripts
+export to the environment. This helps to reduce the likelihood of collisions
+with environment variables set by other scripts and programs, or even by the
+shell itself.
+
+=== Function names
+
+Functions SHOULD follow the same naming convention as for variables; that is,
+function names SHOULD be composed from lowercase ASCII letters with underscores
+used to delimit words.
+
+Functions that are part of the public interface of a package SHOULD be
+namespaced. It is RECOMMENDED to use the following naming convention for this
+purpose.
+
+----
+<package_name>::<function_name>
+----
+
+.Example
+[source,sh]
+----
+my_pkg::my_func() {
+  # ...
+}
+----

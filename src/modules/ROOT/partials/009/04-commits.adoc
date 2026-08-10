@@ -1,0 +1,943 @@
+= Commits
+
+The following is a guide to the best practices for committing changes to a
+source code repository.
+
+Clear and structured commit logs support multiple objectives:
+
+* Automation, enabling tooling to parse and act on commit metadata.
+
+* Quality control, through stable atomic commits that don't break the build.
+
+* Provenance, creating a machine-parsable changelog from which changes can be
+  traced back to the requirements, issues, or incidents where they originated.
+
+Besides these objectives, the output of `git log` is a valuable artifact in its
+own right. Most crucially, it is the source-of-truth for understanding the
+evolution of a codebase over time, and it is likely to endure for longer than
+other artifacts such as tickets (issue trackers may be replaced) and decision
+logs (which have a tendency to grow stale over time).
+
+In short, good commit hygiene greatly contributes to the developer experience
+on a software project. Indeed, in this regard clean commits are just as
+important as clean code. So we SHOULD commit deliberately and strategically,
+with the same level of care and attention to detail as given to the code itself.
+
+== Atomic commits
+
+A clean, searchable commit log is formed from atomic commits.
+
+An atomic commit is a small, self-contained, incremental change to a codebase
+that does not break the build or fail any tests. An atomic commit does not
+necessarily represent a "complete" feature, bug fix, refactor, upgrade, or
+performance optimization, but it does represent a small, logical, stable step
+toward one of those outcomes.
+
+[quote, The Git project]
+____
+Each commit is a minimal coherent idea.
+____
+
+When implementing changes, developers SHOULD commit one small change at a time.
+Large changes SHOULD be split into smaller, stable partial changes. Many small,
+discrete changes are preferred to a smaller number of large, monolithic changes.
+
+As a general rule, the smaller the individual commits, the better. If your
+commits are too granular, you can squash them together. It is harder to do the
+opposite, to split a large commit into smaller ones.
+
+But atomicity is not only about small commits. Atomic commits are also stable
+and self-contained.
+
+Each commit SHOULD be stable. This means, in every commit, the software compiles
+and both static and runtime tests pass. This constraint means you should avoid
+adding revisions that "fix the tests that were broken in the previous commit".
+
+The golden rule for every commit is: _don't break the build_. It is RECOMMENDED
+to automate the build and test runs on every commit.
+https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks[Git hooks] can be used
+to enable this.
+
+Self-contained commits are those that can be reverted independently, without
+requiring prior commits to be reverted as well to maintain stability. This
+means changes to application code SHOULD be committed with changes to automated
+tests, just enough to verify the correctness of the code changes. If code and
+tests are committed independently, you have two or more commits that are
+dependent on one another. Those are not atomic commits.
+
+Ideally, a commit SHOULD be scoped to a single concern and technology layer. For
+example, database schema changes SHOULD be committed separately from application
+code changes, and back-end service changes SHOULD be committed separately from
+front-end GUI changes, and so on. However, this constraint often comes into
+conflict with the constraint of keeping the build stable. Authors SHOULD prefer
+larger commits, with changes across multiple technology layers if necessary, if
+that is what is required to not break the build and keep the commit
+self-contained.
+
+Achieving atomic commits requires a disciplined approach to implementing code
+changes. Atomic commits are easier to achieve when you have a plan for
+incremental implementation of the changes you need to make. For example, you
+might choose to take a bottom-up approach to the design of a feature, committing
+incremental changes, starting with low-level utility components, via
+higher-level abstractions, and finally exposing new functionality to the user.
+
+[TIP]
+======
+Sometimes the need for a preparatory refactor only becomes apparent partway
+through implementing a feature — you're midway through a change and realize
+the surrounding code should be restructured first. Don't fold the refactor into
+the commit you're already building; that produces a non-atomic commit mixing
+two unrelated concerns. Instead, run `git stash` to set aside your in-progress,
+uncommitted changes, implement and commit the refactor on its own as a clean,
+stable commit, then run `git stash pop` to restore your original work and
+continue. This keeps the refactor and the feature work as two separate,
+independently reviewable and revertible commits, even though the need for the
+refactor only surfaced mid-task.
+======
+
+Atomic commits add cognitive overhead, but there are numerous advantages to the
+extra effort. Small, incremental changes are easier to understand during code
+review. They also make it easier to track the history of the codebase and to
+identify the purpose of each change. And small, incremental, stable changes can
+be regularly integrated into shared trunk lines, reducing the risk of
+integration conflicts ("merge hell"), and forming the basis for continuous
+integration, delivery, and deployment practices.
+
+Stage changes deliberately. Avoid `git add -A` and `git commit -a` for routine
+work — they assume that every local change is intended for the next commit,
+which conflicts with the atomic-commit principle and makes it easy to bundle
+unrelated changes (or accidentally stage build outputs, debug prints, or stray
+edits). Prefer `git add <path>` for specific files, or `git add -p` to stage
+individual hunks. A Git GUI that supports hunk-level staging serves the same
+purpose.
+
+Avoid combining a file rename with substantial edits to that file in the same
+commit. Git relies on content similarity to detect renames; mixing rename and
+edit can cause Git to show the change as a delete-plus-add rather than a rename,
+which makes the diff harder to review and can break tools like
+`git log --follow` that trace a file's history through renames. Commit the
+rename in one revision, then commit the edits in a separate revision.
+
+Note that `git mv` does not affect rename detection — it is just a convenience
+for `mv && git rm && git add`. Git detects renames from content similarity at
+diff and log time, regardless of which commands were used to perform the move.
+
+== Rewriting history
+
+Do not rewrite history that has been pushed to a shared branch. Rebasing,
+amending, squashing, or force-pushing a commit that other people may have pulled
+breaks references for everyone downstream — their local clones diverge silently,
+and recovering requires a coordinated reset. The fix-forward rule on trunks (see
+*xref:009-version-control.adoc[]*) is one application of this principle.
+
+The rule applies differently to different branch types:
+
+* *Trunks* (`dev`, `test`, `ready`, release branches): history MUST NOT be
+  rewritten under any circumstances. Force-push MUST be disabled in repository
+  configuration.
+
+* *Temporary branches* (`temp/*`): owned by a single developer, so rewriting
+  pushed history is technically safe. Cleanup via interactive rebase, amend, or
+  squash before integration is RECOMMENDED to produce a clean, atomic series of
+  commits.
+
+* *Epic branches* (`epic/*`): shared between multiple developers, so rewriting
+  pushed history MUST be coordinated with all contributors. The merge-down sync
+  strategy described in *xref:009-version-control.adoc[]* deliberately avoids the need
+  for rebases on epic branches.
+
+== Revision types
+
+To help enforce the constraint of atomic commits, each commit MUST be scoped to
+exactly one of the following eleven revision types:
+
+1.  *Behavior*
+2.  *Quality*
+3.  *Fix*
+4.  *Step*
+5.  *Refactor*
+6.  *Style*
+7.  *Maintenance*
+8.  *Chore*
+9.  *Release*
+10. *Merge*
+11. *Revert*
+
+A *behavior* is a change in a user-facing operation of the software. This name
+matches how *xref:001-software-requirements-specification.adoc[TS-1: Software Requirements
+Specification]* labels functional requirements. Behavior revisions will
+typically toggle an externally-facing operation, such as enabling a new API
+endpoint. This type of revision covers changes and extensions to existing
+behaviors, and the deprecation and removal of old ones.
+
+While behavior revisions capture the implementation of functional
+requirements, *quality* revisions capture the implementation of non-functional
+requirements. The commit type takes the same name TS-1 uses for this class of
+requirement ("qualities") because it concerns the system's *dynamic* quality
+attributes — those that emerge at runtime and are observable externally — such
+as latency, throughput, availability, security, responsiveness, reliability,
+resilience, and so on. Performance in the strict sense (speed and capacity) is
+just one of these, not the whole of it.
+
+Both behavior and quality revisions are user-facing changes. However, not all
+quality revisions will be observed by users in any kind of quantifiable way. For
+example, the implementation of more concurrent processing may reduce the
+operational costs for the software vendor, rather than reduce latency for users.
+The defining characteristic of quality revisions is that the change is
+observable and measurable externally of the system at runtime.
+
+A *fix* is any change that resolves some sort of defect – whether a bug,
+regression, vulnerability, or incident. A fix could also silence entries in
+error logs that, on analysis, turn out not to be errors at all.
+
+Behavior revisions, quality revisions, and fixes will typically be associated
+with tickets logged in the project's requirements specification or issue
+tracking system. Many of these changes will be of interest to users and other
+stakeholders, and may therefore be recorded in user-facing artifacts such as
+release notes and changelogs.
+
+The remaining commit types capture changes that are not directly user-facing and
+which are mostly of interest to the developers and maintainers of the software.
+
+Typically, there would be a number of incremental changes to code and
+configuration before a behavior revision, quality revision, or fix is complete.
+These *steps* compose the building blocks for larger changes, or they explore
+possible design paths in an iterative fashion. Individually, these commits do
+not change user-facing operations or qualities of the software, but they do
+represent small increments toward such changes being enabled.
+
+The necessity of step commits arises when implementing changes that are too
+large or complex to be completed as a single atomic commit. By breaking such
+work into a sequence of small, stable, and self-contained steps (atomic
+commits), we can achieve continuous integration into shared trunk lines,
+reducing the risk of merge conflicts and forming the basis for continuous
+delivery and deployment practices.
+
+A *refactor* is any improvement to the design or internal structure of the code
+or configuration of the software, without changing the software's behaviors or
+degrading its qualities. Refactoring work includes changes to automated tests
+and build scripts, as well as to source code and configuration, and the data
+structures and data flows, of the software itself.
+
+.Quality revisions versus refactoring
+****
+Quality revisions and refactoring are both concerned with improving the
+_quality_ of the software, but they focus on different sets of quality
+attributes:
+
+* Quality revisions address qualities like availability, consistency, latency,
+  security, and compliance. These are _external_ quality attributes of a system,
+  because they impact the user experience. They are also _dynamic_ quality
+  attributes, because they tend to emerge at runtime. (Hence the `quality`
+  commit type.)
+
+* Refactoring is about making improvements to the _internal_, _static_ qualities
+  of a system – things like choices of languages, design patterns, data
+  structures, and coding conventions. Typically, these qualities are observable
+  at or before compile time, and they impact developers more than they do users.
+
+The focus of refactoring work is on the needs of the developers and maintainers
+of the software, whereas the focus of quality revisions is on delivering better
+quality user experiences.
+****
+
+A *style* commit applies presentation-only changes to code – updates to
+whitespace, indentation, line wrapping, or code style. These changes affect the
+appearance of the code without altering its structure, logic, or behavior.
+Formatter runs (eg. `prettier`, `black`, `gofmt`) and bulk code-style
+adjustments belong here, distinct from `refactor` commits, which restructure
+logic, data, or design. Keeping pure reformatting in its own commit type also
+makes it easier to filter such commits out when reviewing history with tools
+like `git log` and `git bisect`.
+
+*Maintenance* commits capture changes that are required in the upkeep of the
+software – to keep it in good running order. This category of work includes
+updating dependencies, improvements to automated tests, reconfiguring CI
+workflows and other tools, and extending documentation. Some maintenance tasks
+will typically be recurring, and they may be scheduled in advance (for example,
+using the issue tracking system) or triggered by external events (for example, a
+security scanning tool revealing a vulnerability in a dependency).
+
+There also tends to be many small housekeeping *chores* around the maintenance
+of a code repository. Chores are small, insignificant maintenance tasks that are
+not important enough to be tracked via an issue tracker, whereas larger
+maintenance tasks normally are. Chores typically do not touch code or
+configuration, and so they will not even require peer review, and may therefore
+be committed directly to shared trunk lines, skipping the regular quality
+assurance gates.
+
+Finally, a *release* commit captures a set of changes made in preparation of a
+new software release. The remaining two commit types, *merge* and *revert*, are
+required to capture specific Git operations.
+
+[NOTE]
+======
+Some of these commit types map directly to issue types, as defined in
+*xref:008-issue-tracking.adoc[TS-8: Issue Tracking]*. For example, `behavior` commits
+will typically be associated with "feature" issues, and `fix` commits will
+typically be associated with "bug", "vulnerability", and "incident" issues.
+However, these technical standards do not mandate a one-to-one mapping between
+commit types and issue types. For example, a `refactor` commit may be associated
+with a "refactor" issue, but equally it may be associated with a "feature"
+issue, if the refactoring work is necessary to implement the feature.
+======
+
+=== Extended revision types
+
+The revision types described above are suitable for code repositories that
+capture the code and configuration for software applications, services, and
+libraries, and also for things like infrastructure configuration, data
+migrations, and other executable artifacts.
+
+But version control repositories are widely used for other kinds of
+non-executable artifacts, such as technical documentation, requirements
+specifications, and risk registers. For these repositories, the following
+set of revision types is RECOMMENDED:
+
+1.  *Create*
+2.  *Update*
+3.  *Delete*
+
+A *create* commit introduces new content – new documents, sections, or
+substantial new material that did not previously exist. An *update* commit
+makes edits to existing content. A *delete* commit removes outdated or
+redundant content that is no longer needed.
+
+This extended set of commit types can be used in conjunction with the standard
+set. For example, **style** can be used to capture updates to markup and
+formatting.
+
+== Commit message format
+
+To meet the objectives set out at the start of this technical standard, there
+must be precise rules for the formatting of commit messages.
+
+The following commit message convention is loosely based on
+https://www.conventionalcommits.org/[Conventional Commits], which in turn is
+based on the conventions of the
+https://github.com/angular/angular/blob/22b96b9/CONTRIBUTING.md#-commit-message-guidelines[Angular project].
+
+Each commit message consists of a header, a body, and one or more footers. Each
+block is separated by a single empty line.
+
+[source,txt]
+----
+<header>
+
+[<body>]
+
+[<footers>]
+----
+
+Commit messages SHOULD be written in American English using only US-ASCII
+characters.
+
+=== Commit message header
+
+The `<header>`, also known as the subject line, is the only REQUIRED component
+of a commit message. It functions like the subject line of an email message.
+
+The header of a commit SHOULD convey just enough information for the reader to
+understand the contents of the commit object.
+
+The header has a special format that includes a type and a description,
+separated by a colon and exactly one space.
+
+[source,txt]
+----
+<type>: <description>
+
+[<body>]
+
+[<footers>]
+----
+
+The `<type>` part MUST be one of the following words, which maps to the
+different revision types listed above:
+
+1.  `behavior`
+2.  `quality`
+3.  `fix`
+4.  `step`
+5.  `refactor`
+6.  `style`
+7.  `maintenance`
+8.  `chore`
+9.  `release`
+10. `merge`
+11. `revert`
+
+Using predefined revision types as a prefix for commit messages makes it easy to
+filter out unimportant changes (like chores) using `git bisect`. Separating
+discrete development concerns – behavior delivery, bug fixes, quality revisions,
+refactoring, etc. – into separate commit objects also helps to enforce the
+principle of atomic commits.
+
+The description part MUST be included, and it SHOULD be a short message that
+summarizes the change. This SHOULD be written in lowercase, with no period (full
+stop) or other punctuation to terminate the statement.
+
+Generally, commits SHOULD NOT contain multiple distinct changes, but if they do,
+the descriptions of each change SHOULD be separated by a comma.
+
+The objective is for the command `git log --oneline` – which only outputs the
+header part of commit messages – to produce an easily readable, high-level view
+of the sequence of incremental changes. Many Git UIs will also show only the
+first line of the commit message.
+
+In the following example, the chronological order of the commits runs from
+top-to-bottom:
+
+----
+$ git log --oneline
+chore: initial commit, add readme
+step: add openapi specification
+fix: invalid yaml formatting
+refactor: move openapi spec to resources directory
+chore: proofread readme content
+behavior: enable route to openapi spec
+release: v0.0.0-beta
+----
+
+To improve the readability and usefulness of this output, commit headers SHOULD
+be written in the imperative mood in the present tense. This means writing
+commit messages as though you're giving a current command or instruction. So you
+should write "change" not "changed" or "changes", and "update" not "updated" or
+"updates".
+
+This written style is not intuitive at first, because you tend to write commit
+messages as a log of something that _you_ have recently done (past tense). But
+it is better to think of a commit message as a description of the impact that
+applying the commit will have on the software under version control. Commits are
+not so much records of past actions as they are representations of states that
+can be checked out, merged, reverted, or cherry-picked at any time.
+
+Consider the following two examples:
+
+* `refactor: removed deprecated prefixes from vars` ✗
+* `refactor: remove deprecated prefixes from vars` ✓
+
+The difference is subtle, but the second makes more sense in most contexts in
+which a Git log is consumed. This style is also consistent with how Git itself
+generates messages for operations like `merge` and `revert` – it writes "merge"
+not "merged", and "revert" not "reverts", etc.
+
+If written correctly, the `<description>` part of the commit message should
+complete this sentence:
+
+[quote]
+____
+If applied, this commit will <description>.
+____
+
+Generally, the `<description>` SHOULD start with a verb describing the _action_
+that is being taken by applying the commit. There are some exceptions. Bug fixes
+need only describe the _problem_ that is being fixed. And release commits can
+simply give the version number of the release.
+
+----
+fix: invalid yaml formatting
+release: v0.0.0-beta
+----
+
+==== Flags
+
+The header line of a commit message MAY include an optional flag on the end.
+When included, the flag is demarcated from the description by a spaced hyphen:
+
+[source,txt]
+----
+<type>: <description> - <flag>
+----
+
+Flags are a single word, written in full capital letters, which MAY be one of
+the following:
+
+* `BREAKING`
+* `INCOMPAT`
+* `WIP`
+* `EXPERIMENT`
+* `TEMPORARY`
+
+Additional flags MAY be added as required to support the workflow of a project.
+
+The *BREAKING* flag MUST be used to signpost breaking changes that are
+introduced to the software. Example:
+
+----
+behavior: remove password from login endpoint - BREAKING
+----
+
+A breaking change is one that introduces a change to the interface that will be
+incompatible with existing client applications that interact with the system.
+
+Breaking changes are mostly relevant in the context of systems that expose APIs.
+However, you could extend the principle to GUIs and other human-oriented user
+interfaces, too.
+
+The rule is: if a change needs to be communicated with users of the software –
+whether those users are human or machine – via release notes or other such
+artifacts, so those users can continue to use the system effectively, then the
+change MUST be flagged as BREAKING.
+
+Typically, the BREAKING flag will be most commonly applied to behavior
+revisions, but this is not a requirement.
+
+The BREAKING flag MAY be used by automation tools to programmatically bump major
+version numbers (see *xref:011-versioning.adoc[TS-11: Versioning]*), and to
+automate the generation of release notes, changelogs, and other such artifacts.
+
+While the BREAKING flag marks changes that are incompatible with external client
+applications, the *INCOMPAT* flag is used to mark _internal breaking changes_.
+An internal breaking change is, for example, a change to a function signature
+that requires changes to all calling code. Incompatible changes may also be done
+to data structures, database schema, message and event schema, and facades to
+dependencies and third-party systems.
+
+----
+step: remove third param of login action - INCOMPAT
+----
+
+In keeping with the principle of atomic commits, the necessary refactorings
+should be implemented in the same revision as the incompatible change, to keep
+the build stable. However, it is still useful to flag internal breaking changes.
+Other developers may be working on parallel changes that will break once their
+changes are integrated with yours, due to shared code and configuration. This is
+the purpose of the INCOMPAT flag – to draw the attention of other developers to
+changes you've made that may impact their own changes.
+
+Where either of the BREAKING or INCOMPAT flags are included in the commit
+message header, use the message body to describe the change, the justification
+for breaking client or internal APIs, and the consequences of doing so. (See
+below for more information on writing commit message bodies.)
+
+The *WIP* flag is used to signpost changes that are a work-in-progress.
+
+Commits that "break the build" – ie. when static or runtime tests fail, or
+compilation fails – MUST be flagged as WIP.
+
+WIP commits MUST NOT be pushed to the trunk lines (`dev`, `test`, `ready`). They
+are permitted only on temporary or epic branches, and MUST be cleaned up
+(rebased, squashed, or amended) before integration into `dev`. See
+*xref:009-version-control.adoc[]*.
+
+In the following example, a WIP commit on a temporary or epic branch is followed
+by a stable one that completes the work (the chronological order is
+top-to-bottom).
+
+----
+refactor: rewire search algorithms - WIP
+step: extend search algorithms
+----
+
+WIP commits serve a couple of purposes.
+
+First, it is not always possible to implement a clean, stable change in a single
+atomic commit. Sometimes, no matter how disciplined you are in your committing
+practice, development tasks become necessarily messy. Including intermediate WIP
+commits (ideally via temporary branches, not shared trunks) provides a solution
+to keeping individual changes small while implementing large, destructive
+changes.
+
+Second, WIP commits can be used to backup work that you started, but did not
+complete, before the end of a working day. You can commit your WIP to a
+temporary branch, push to the upstream reference repository for backup purposes,
+and then resume your work the following day.
+
+[TIP]
+======
+If you end up with lots of changes in your working tree, which are not all
+stable, you might still be able to make some stable commits from them, by using
+`git add -p` to stage only some parts of changed files.
+======
+
+The *EXPERIMENT* flag MAY be used to signpost changes that are experimental.
+Experimental changes are not intended to be permanent, and are expected to be
+rolled back (eg. through `git revert`). Use cases for experimental commits
+include testing a new library or trying alternative design patterns.
+
+----
+maintenance: test version bump of utils library - EXPERIMENT
+revert: maintenance: test version bump of utils library - EXPERIMENT
+----
+
+Finally, the *TEMPORARY* flag MAY be used to signpost commits that are not
+intended to be permanent, and which will be removed from the history before
+integration with the `dev` branch.
+
+The difference between a TEMPORARY commit and an EXPERIMENT commit is that the
+author fully intends to revert a temporary one, whereas an experiment may, in
+the end, be kept. A classic use case for temporary commits is to add debugging
+output to help investigate a problem. Once the problem is resolved, the
+temporary commit can be reverted, and the debugging output removed from the
+codebase.
+
+----
+maintenance: add more logging - TEMPORARY
+revert: maintenance: add more logging - TEMPORARY
+----
+
+==== Header line length
+
+The length of the header line – revision type, description, plus optional flag –
+SHOULD NOT be more than 50 characters and MUST NOT be more than 72. (Only
+`merge` and `revert` commits, which are automated, are excluded from this rule.)
+
+The purpose of this constraint is to ensure that `git log` output is readable in
+most contexts. If the header line is long, it may be truncated in printed
+output. If you use Vim as your commit message editor, it already knows about 50
+characters being the recommended soft limit for Git commit subject lines, which
+is why the color changes after the 50th character by default.
+
+=== Commit message body
+
+The `<body>` component of a commit message is OPTIONAL. If included, the message
+body is separated from the header by a single empty line (ie. two consecutive
+line breaks).
+
+[source,txt]
+----
+<header>
+
+[<body>]
+
+[<footers>]
+----
+
+[IMPORTANT]
+======
+It is important to ensure the message body is delimited from the message header
+by a single blank line. Some Git operations, like `rebase`, can get confused if
+the two run together.
+======
+
+The message body MAY be used to provide a longer description of the changes
+included in the commit, than can be included within the 50-character soft limit
+on the message header. Use the message body to explain how the new behavior
+differs from the old, if this cannot be fully understood from the message header
+on its own.
+
+But the focus of the message body should be on recording the motivation for the
+changes, any contextual background information that is relevant, and why the
+changes were implemented the way they were, and whether other approaches were
+considered but rejected.
+
+While the header line describes _what_ changed (summarizing the commit's diff),
+the commit body goes into detail about the _why_.
+
+Use the message body to share any knowledge learnt through the lifecycle of the
+revision, that cannot be intuited from the changes to the artifacts under
+version control themselves. You might also consider including information about
+things that the code does _not_ do, and why these things were omitted. Indeed,
+any information that may be relevant to the future maintainers of the code
+should be included in the message body.
+
+Do not write redundant information in the message body that can be extracted
+from the commit object itself. For example, there is no reason to list the files
+that changed – that can already be deduced from the commit's diff. The message
+body is for providing any other knowledge or context about the revision that
+would not otherwise be available, and which would risk being lost if not
+recorded with the revision.
+
+The message body can be any freeform text. It should be written in full, proper
+sentences, terminated by periods (full stops). The body may consist of multiple
+paragraphs, delimited by single blank lines. Bullet lists (in Markdown style)
+MAY also be included, using hanging indents for wrapped lines – in fact, this is
+a great way to summarize the contents of the changeset:
+
+.Example
+----
+step: improve robustness and flexibility of /realize prompt arguments
+
+- Support multiple spec sources.
+- Support `file://` URLs.
+- Support Github shorthand, `owner/repo#42`.
+- Other input argument hygiene.
+----
+
+The length of any individual line SHOULD NOT exceed 72 characters. This is
+slightly longer than the RECOMMENDED maximum line length of the message header –
+50 characters. It provides more practical space for writing out lengthy
+descriptions, while still benefitting from good readability in terminal output.
+For example, `git log` does not do any special formatting of commit messages.
+The default pager is set to `less -S`, so long lines will simply flow off the
+edge of the window. In a traditional 80-column terminal, if we subtract 4
+columns for the left indent and 4 more for symmetry on the right, we are left
+with 72 columns.
+
+.Example
+----
+fix: prevent racing of requests
+
+Introduce a request id and a reference to the latest request. Dismiss
+incoming responses other than from latest request.
+
+Remove timeouts which were previously used to mitigate the racing
+issue but which are now obsolete.
+
+Reviewed-by: Z
+Refs: #123
+----
+
+[TIP]
+======
+Multi-line commit messages are not easy to input inline via the `git commit`
+command. Instead, omit the `--message|-m` option from the commit command. Git
+will open your default text editor, where you can easily write a full commit
+message. Simply exit from the editor when you've finished making your changes,
+and Git will complete the commit operation with the provided message.
+======
+
+=== Commit message footers
+
+One or more footers MAY be included in commit messages.
+
+The footers are a continuous block separated from the message body (or message
+header) by a single blank line. Individual footer entries within the block are
+delimited by a single line break.
+
+A footer entry is a key-value pair written in the following format:
+
+[source,txt]
+----
+<key>: <value>
+----
+
+The key and value are separated by a colon and exactly one space.
+
+The `<key>` is a string of contiguous characters, with words delimited by
+hyphens. The key is case insensitive, so `reviewed-by` and `REVIEWED-BY` are
+equivalent. Git itself uses message footers and its convention is to upper case
+only the first word of the key: `Reviewed-by`. For consistency, it is
+RECOMMENDED to follow this convention. But tools that operate on commit object
+footers MUST implement case-insensitive parsing.
+
+The `<value>` is any freeform text. Values are terminated by a single newline or
+the end of the document, unless the next line is indented by at least one space
+character, which denotes a continuation of the value from the previous line
+(like the "folding" in RFC 822).
+
+Keys do not need to be unique within a footer block. Multiple instances of the
+same key, each with different values, MAY be included in a commit message's
+footers. Parsers MUST capture all the values in a list structure in the order in
+which they appear in the footer. The
+https://git-scm.com/docs/git-interpret-trailers[`git interpret-trailers`]
+command can be used to capture structured information from commit messages that
+follow the conventions described here. (The format of Git trailers is inspired
+by the encoding of headers in email messages, as defined in RFC 822.)
+`git interpret-trailers` can also be used to customize default trailers, which
+will be added automatically to all commit messages.
+
+.Examples
+----
+Closes: #123
+Reviewed-by: Charlie <charlie@example.com>, Dave <dave@example.com>,
+  Eve <eve@example.com>
+Signed-off-by: Alice <alice@example.com>
+Signed-off-by: Bob <bob@example.com>
+----
+
+Footers provide structured data used in automation. Therefore, you can specify
+whatever footers are required for each project's tools.
+
+[NOTE]
+======
+Some hosting providers (GitHub, GitLab, Bitbucket, etc.) automatically close
+referenced issues when a commit containing a `Closes:` footer is merged to the
+repository's default branch. The exact set of recognised keywords varies by
+provider — `Closes`, `Fixes`, and `Resolves` are widely supported, and most
+providers also accept lowercase or alternate prefixes (`closes`, `fix`, etc.).
+Consult your provider's documentation. Self-hosted Git without an integrated
+issue tracker does not provide this automation; in that environment, `Closes:`
+is just a conventional footer with no automatic effect.
+======
+
+----
+Closes: #123
+Closes: #456
+----
+
+Repeat the footer key once per issue rather than listing multiple issue numbers
+against a single key. Most providers' auto-close parsers match one issue
+reference per keyword instance, so `Closes: #123, #456` typically auto-closes
+only the first issue; the second is left open even though it appears in the
+same footer value. Since footer keys are not required to be unique (see
+above), repeating `Closes:` for each issue is valid syntax and is the reliable
+way to auto-close more than one issue from a single commit.
+
+It is RECOMMENDED to cross-reference any issues or pull requests that are
+relevant to the changes being implemented in a commit. If you do not want to
+close the referenced issues automatically on integration of the changes, you can
+use the `Refs` footer instead.
+
+----
+Refs: #123, #456
+----
+
+In all-in-one DevOps systems like GitHub and GitLab, this syntax creates a
+binding between issues and commits. In Git logs, the issue references will often
+be automatically linked to the relevant issue URLs. And vice versa: links will
+be automatically created from the issues to the relevant commits. This
+automation is incredibly useful.
+
+If the issue tracking system is not integrated with the version control system
+in your upstream reference repository, you should instead use the full URLs to
+relevant issues.
+
+This metadata is useful for finding the provenance of changes when auditing the
+history of a repository – for example, to understand the root cause of a bug
+that you're working on fixing, or why some changes recently introduced to the
+project trunk conflict with your work. It will also allow you to query Git for
+any commits related to a particular issue or PR. Thus, these cross-references
+help to create a two-way binding between the issue tracking and version control
+systems.
+
+****
+Issue numbers SHOULD NOT be encoded in the subject line of commit messages.
+Instead, encode this information in footers. Once changes have been integrated
+and the issue is closed, the original requirements of the issue have effectively
+been transferred into the code, configuration, and other artifacts encapsulated
+in the repository, making the issue identifier less significant for future
+readers of the commit log. The footers provide a precise, machine-parsable
+binding without cluttering the subject line.
+
+However, note that temporary branches SHOULD be cross-referenced with the issue
+tracker, eg. `temp/123-add-feature`.
+****
+
+`Signed-off-by` is another standard footer, which originated in the Linux Kernel
+project and which is built-in to Git itself. It can be included by adding the
+`--signoff|-s` option to the `git commit` operation:
+
+----
+git commit -s -m "fix: authorization error"
+----
+
+This will automatically add the `Signed-off-by` header with the value being
+composed from the `user.name` and `user.email` fields in the Git config. This is
+used in some open source software projects as a lightweight mechanism for
+external contributors to opt-in to "sign" the terms of the
+https://developercertificate.org/[Developer Certificate of Origin (DCO)], which
+states that the author has the right to submit the changes and agreed for them
+to be distributed under the terms of the project's license.
+
+Other footers that you may consider for your projects include:
+
+* `Co-authored-by`
+* `Reviewed-by`
+* `Tested-by`
+
+=== Auto-generated commit messages
+
+Git will automatically generate commit messages for operations such as `merge`
+and `rebase`.
+
+==== Merge commits
+
+Merge commits are generated automatically by Git on certain `git merge`
+operations. It is RECOMMENDED to use the `--edit` option to customize the
+message of merge commits. (This is the default behavior since Git v1.7.10, so
+the `--edit` option is no longer explicitly required. The raw `git merge`
+command will open a text editor, unless a custom message is explicitly inputted
+via the `--message|-m` option.)
+
+----
+git merge [--edit] <branch>
+----
+
+It is RECOMMENDED to edit the header line to conform with other committing
+conventions described in this technical standard. However, the default body of
+the message SHOULD be maintained. This is generated by Git and it contains
+useful information about the merge operation, including the hashes of all the
+commits integrated via the merge commit.
+
+[NOTE]
+======
+As described in the section on integration strategies, merge commits SHOULD
+generally be avoided in favor of fast-forward-only merging, which maintains a
+clean linear history. However, if explicit merge commits are necessary (eg. for
+integrations that require recording an integration point), prefer to specify the
+type of changes being introduced from the source branch as the prefix – eg.
+`behavior:`, `refactor:`, `quality:` – rather than a generic `merge:` prefix.
+This makes the commit history more informative by indicating what kind of work
+is being integrated via the merge commit.
+======
+
+==== Revert commits
+
+If a commit reverts a previous commit, its header should be prefixed with
+`revert: `, followed by the original header quoted in double quotes. There
+should be no body, and the footer should have a single `Reverts` header, as
+shown in the example below, where `<hash>` is the SHA of the commit that is
+being reverted.
+
+----
+revert: "refactor: move location of overlay component"
+
+Reverts: d7o8k8l
+----
+
+As with `git merge` operations, Git generates a default message for revert
+commits, so you will need to edit it on a case-by-case basis.
+
+== Commit message templates
+
+It is RECOMMENDED to configure your local Git client to use a custom commit
+message template, which will make it easier to follow the commit message
+conventions when you use the `git commit` command (without the `--message` or
+`-m` option) to create a new commit object.
+
+https://git-scm.com/book/en/v2/Customizing-Git-Git-Configuration#_commit_template[Here's how to configure a custom commit template]
+and below is a template you can use. Be sure to include the empty line at the
+top – this is where the cursor will be placed when the user's editor is opened.
+
+.Commit message template
+[source,txt]
+----
+<empty-line-here>
+# <type>: <subject> - <flag>
+# |<--------  maximum of 50 characters  -------->|
+
+# <body>
+# Provide a detailed description of this change. Wrap text over
+# multiple lines as needed.
+# |<------------   maximum line length of 72 characters   ------------>|
+
+# <footer>
+# Optional footers. Uncomment as needed.
+
+#Refs: #<issue>
+#Closes: #<issue>
+
+# **********************************************************************
+#
+# <type> can be:
+#   - chore        A insignificant change to non-production artifacts.
+#   - behavior     A new/changed/removed user-facing operation.
+#   - fix          A fix for a bug, error, regression, or incident.
+#   - style        Low-level code formatting changes.
+#   - maintenance  Dependency updates, tool configs, docs edits, etc.
+#   - merge        An explicit merge commit.
+#   - refactor     An improvement to the programs's internal design.
+#   - release      Marks a new numbered version of the product.
+#   - revert       Reverts an earlier commit.
+#   - quality      A change to a dynamic quality attribute (latency, etc.).
+#   - step         An increment toward implementing a larger change.
+#
+# <flag> can be:
+#   - BREAKING     A breaking change to an external API.
+#   - EXPERIMENT   A code experiment.
+#   - INCOMPAT     Internal breaking API change.
+#   - TEMPORARY    A temporary commit that will be reverted.
+#   - WIP          Work-in-progress that breaks the build.
+#
+# Tips:
+#   - Do not capitalize the subject line.
+#   - Use the imperative mood in the subject line.
+#   - Do not end the subject line with a period.
+#   - Separate subject from body with a single blank line.
+#   - Use the body to explain what and why, not how.
+#   - Use "-" for bullet points in the body.
+#
+# **********************************************************************
+----

@@ -1,0 +1,145 @@
+= Introduction
+
+Git is unopinionated about how it is used. There are endless ways to organize
+repositories, record revisions, manage parallel branches of work, and handle
+integrations between them.
+
+This flexibility comes with a cost. Git doesn't impose any opinions, which means
+it provides no built-in constraints on how you use it. Yet constraints in how
+code repositories are used are necessary to avoid common pitfalls, like
+incompatible changes evolving in parallel branches, and regressions occurring
+through incorrect resolution to merge conflicts. Without constraints, code
+repositories can become the source of considerable friction in the software
+development process.
+
+Git itself is fairly complex, with many features and many ways to combine them.
+But you don't need all of its features. A good workflow constrains how Git is
+used to a small, well-defined set of operations, reducing mental overhead rather
+than increasing it. Most contributors need only a handful of `git` commands and
+a clear sense of when to use each.
+
+Some popular workflows expose Git's complexity unnecessarily.
+https://nvie.com/posts/a-successful-git-branching-model/[GitFlow], for example,
+requires contributors to track multiple long-lived branches (`master`,
+`develop`), feature branches, release branches, hotfix branches, and support
+branches, with rules for how each merges into the others. It is also brittle:
+fixes that land on one branch must often be merged backwards into others, and it
+is easy to forget a back-merge, leaving fixes stranded. The workflow described
+in this standard deliberately avoids that overhead by keeping the number of
+branch types small and their semantics clear, with changes flowing in only one
+direction along the trunks.
+
+Responsibility falls on software developers to design appropriate workflows and
+conventions for using Git, and for enforcing those workflows and conventions. We
+need to be very intentional in how we use Git, so that we can confidently
+deliver working software changes to production, reliably, consistently, and at
+an appropriate pace.
+
+There's lots to consider. The foundation for any version control workflow is a
+robust branching and merging strategy. On top of this baseline, we need to think
+about commit message conventions, versioning standards, releasing strategies,
+and how we can automate by plugging in to events in the version control system.
+
+The optimum design for a version control workflow will vary between projects,
+but there are some common design patterns that have proven to work well in a
+wide variety of contexts.
+
+This technical standard defines a version control workflow that's rooted in
+established best practices. The workflow described here should not be treated as
+a rigid framework, but as a template to be adapted and extended as necessary to
+fit the particular requirements of each project.
+
+The key principle is that a version control workflow should model the real-world
+software development process as closely as possible. Your version control
+workflow should be designed to support the way your development team _actually_
+works. Design and fine-tune your ways of working first, then, once your process
+is settled, model that process in your version control workflow. This approach
+supports the objective of simplicity and scalability: a lightweight, intuitive
+workflow can be incrementally extended as a project grows.
+
+This standard is intentionally pluralistic. It accommodates a wide range of
+working styles — from continuous integration with direct commits to the trunk,
+through PR-based review workflows, to long-lived epic branches for coordinated
+big-bang integrations — rather than forcing teams into a single methodology.
+Where it recommends practices such as continuous integration, those describe
+what the workflows make cheap and natural, not what they require. Teams
+operating under stricter governance, with distributed contributors, or with
+complex coordination needs are first-class within the standard.
+
+== Version control systems
+
+https://git-scm.com/[Git] is the _de facto_ industry standard for version
+control. This technical standard is written with Git as the assumed version
+control system, and examples and explanations are specific to Git's capabilities
+and workflows.
+
+However, the workflows described in this technical standard are portable to
+other decentralized version control systems such as
+https://www.mercurial-scm.org/[Mercurial] and https://fossil-scm.org/[Fossil],
+which share similar core concepts and abstractions.
+
+Centralized version control systems, such as
+https://subversion.apache.org/[Subversion (SVN)], operate under fundamentally
+different models and are not recommended by this technical standard. That said,
+there are legitimate use cases and organizational contexts in which centralized
+systems may be appropriate, such as enterprise environments with specific
+regulatory or compliance requirements, or organizations with substantial
+investment in specific VCS tooling.
+
+== Toolchains
+
+This technical standard RECOMMENDS that version control be integrated with both
+issue tracking and CI/CD systems. Good integrations across all three systems
+make it substantially easier to manage and track changes in source code and
+configuration, and they enable a high degree of automation in the software
+delivery process.
+
+Integrating version control with CI/CD pipelines is particularly valuable. It
+enables automated builds, tests, and deployments to be triggered directly by
+repository events such as commits, merges, and tags. This reduces manual
+overhead, accelerates feedback loops, and helps enforce quality gates before
+changes reach production.
+
+All-in-one DevOps toolchains such as https://github.com/[GitHub],
+https://about.gitlab.com/[GitLab],
+https://azure.microsoft.com/en-us/products/devops/[Azure DevOps], and
+https://www.atlassian.com/[Atlassian] products provide deep integrations between
+version control, issue tracking, and CI/CD systems, while
+https://fossil-scm.org/[Fossil] embeds bug tracking directly into the version
+control system itself. These integrated toolchains are RECOMMENDED for their
+ease of use.
+
+This technical standard focuses on version control, not the toolchains
+integrated with it. Therefore, this technical standard documents the low-level
+Git commands for committing, branching, and integrating changes in source code.
+Many of these steps can be automated, but this is beyond the scope of this
+technical standard.
+
+See also *xref:008-issue-tracking.adoc[TS-8: Issue Tracking]*, which establishes a
+framework for issue tracking that is compatible with the version control
+conventions outlined in TS-9. *xref:060-github-actions.adoc[TS-60: GitHub Actions]*
+covers best practices for working with GitHub's integrated CI/CD tools.
+
+== Terminology
+
+This technical standard uses railway metaphors in its explanations of version
+control branching-and-merging strategies.
+
+*Trunk lines* are the never-ending main line tracks that represent the main
+development path. Many Git workflows have just a single trunk line, which is
+typically named `main`, `master`, `develop`, or `trunk`. But it is also
+possible, as with railway systems, to have multiple trunk lines running parallel
+to each other, with integration points along their routes where they are
+synchronized. This is the pattern recommended in this technical standard.
+
+Continuing the railway metaphor, *branch lines* are short-lived tracks that
+diverge briefly from the trunks before merging back later. In version control
+systems, branch lines are used for parallel development of software features,
+bug fixes, and configuration changes.
+
+image::009/branch-lines.svg[]
+
+It is important to understand that, in Git's implementation of version control,
+everything is a branch. Git does not distinguish between a trunk and a branch in
+its internal data structure. The concept of trunk lines is a convention, not a
+technical constraint enforced by the version control system.

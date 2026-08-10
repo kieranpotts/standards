@@ -14,21 +14,38 @@ and formatting conventions described below.
 
 ## Tech stack
 
-- **Format**: AsciiDoc (`.adoc`) for all standard content. Markdown (`.md`) for
-  repository meta-documents only (README, AGENTS, CONTRIBUTING, etc.).
+- **Format**: AsciiDoc (`.adoc`) for all standard content, in a native
+  [Antora](https://antora.org) module — this repository is a content source
+  for [kieranpotts.com](https://kieranpotts.com), consumed the same way as the
+  `garden`, `thoughts`, and `bookmarks` sibling repositories. Markdown (`.md`)
+  for repository meta-documents (README, AGENTS, CONTRIBUTING, etc.) and for
+  each standard's `AGENTS.md`/`GAPS.md`/`TODO.md`, none of which are part of
+  the published site.
 
-- **No build tooling**: There is no build script or preview server. The AsciiDoc
-  files are the source-of-truth and are rendered by the GitHub UI and compatible
-  AsciiDoc readers.
+- **No build tooling in this repository**: There is no build script or
+  preview server here. The website repository runs the actual Antora build;
+  this repository only has to be a valid Antora content source.
 
 ## Project structure
 
-- **`src/`**: The main content. Each technical standard lives in a zero-padded
-  numbered subdirectory (`001/`, `002/`, etc.). Each subdirectory contains a
-  `README.adoc` entry point plus zero or more numbered content files that are
-  included from the README.
+- **`src/antora.yml`**: The Antora component descriptor (`name: standards`).
 
-- **`src/README.adoc`**: The master index of all standards.
+- **`src/modules/ROOT/pages/`**: One page per technical standard,
+  `<NNN>-<slug>.adoc` (eg. `031-unix-shells-and-posix-standards.adoc`), plus
+  `index.adoc`, the master index of all standards. A page is the entry point
+  for its standard — title, intro, `toc::[]`, then `include::` directives
+  pulling in that standard's partials.
+
+- **`src/modules/ROOT/partials/<NNN>/`**: Everything else that belongs to
+  standard `TS-<N>` but isn't the page itself: numbered content files
+  included from the page, that standard's `AGENTS.md` and `GAPS.md` (and
+  `TODO.md`, when a deep-dive is in progress), and any subdirectories.
+
+- **`src/modules/ROOT/images/<NNN>/`**: That standard's referenced images and
+  diagrams.
+
+- **`src/modules/ROOT/nav.adoc`**: The component's navigation menu — every
+  standard, in numeric order.
 
 - **`docs/`**: Repository meta-documentation, including the style guide
   (`docs/style-guide.md`).
@@ -37,37 +54,54 @@ and formatting conventions described below.
   body text that demonstrates the established document structure, formatting,
   and conventions. Copy this directory as the starting point for a new standard.
 
-### Standard directory structure
+### Standard file layout
 
 ```
-NNN/
-├── README.adoc         ← Entry point.
-├── 01-<topic>.adoc
-├── 02-<topic>.adoc
-├── ...
-└── _/                  ← Referenced images and diagrams.
+src/modules/ROOT/
+├── pages/
+│   ├── index.adoc
+│   └── NNN-<slug>.adoc          ← Entry point for TS-N.
+├── partials/
+│   └── NNN/
+│       ├── AGENTS.md
+│       ├── GAPS.md
+│       ├── 01-<topic>.adoc
+│       ├── 02-<topic>.adoc
+│       ├── ...
+│       └── NN-<group>/          ← Used when a topic warrants its own
+│           ├── README.adoc      ←   section with multiple files.
+│           ├── 01-<item>.adoc
+│           └── ...
+└── images/
+    └── NNN/                     ← Referenced images and diagrams.
 ```
 
-Subdirectories (used when a topic warrants its own section with multiple files)
-follow the same pattern — a `README.adoc` that includes numbered files:
+Subdirectories under `partials/NNN/` MUST be prefixed with a two-digit number
+matching their position in the page's include order.
 
-```
-NNN/
-├── README.adoc
-├── 01-<topic>.adoc
-├── NN-<group>/
-│   ├── README.adoc
-│   ├── 01-<item>.adoc
-│   └── ...
-└── _/
-```
+The `examples/` subdirectory (under `partials/NNN/`) is reserved for
+standalone example files (eg. template reports, worked examples) that are
+referenced inline from prose, but not included via `include::` directives.
 
-Subdirectory names MUST be prefixed with a two-digit number matching their
-position in the parent README's include order.
+### Cross-references
 
-The `examples/` subdirectory is reserved for standalone example files (eg.
-template reports, worked examples) that are referenced inline from prose, but
-not included via `include::` directives.
+A page's `include::` directives target its own partials with the
+`partial$` resource ID: `include::partial$NNN/01-topic.adoc[leveloffset=+1]`.
+A partial including a sibling in the same subdirectory uses a bare relative
+path, unprefixed: `include::./01-item.adoc[leveloffset=+1]`.
+
+A cross-reference from any `.adoc` file to another standard uses an Antora
+`xref:`, targeting that standard's page directly — never a relative
+`link:../NNN/...` path, and never a subsection fragment (each standard is one
+merged page, so a fragment would need to replicate Asciidoctor's section-ID
+algorithm for no real benefit over landing on the right page):
+`*xref:NNN-slug.adoc[TS-N: Title]*`.
+
+`AGENTS.md`/`GAPS.md` files are Markdown, outside Antora's reach, and keep
+their own convention: a relative link to another standard's `AGENTS.md`, eg.
+`../031/AGENTS.md`. Every `AGENTS.md`/`GAPS.md` lives at the same depth
+(`partials/<NNN>/`), so this is always exactly one `../` regardless of how
+deeply nested the *source* content being summarized was.
 
 ## Rules
 

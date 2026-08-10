@@ -26,7 +26,7 @@ Do NOT use this when <exceptions>.
 condition. Omit sibling-standard "see also" links and human-facing
 background reading.>
 
-- [TS-<N> (source)](README.adoc):
+- [TS-<N> (source)](../../pages/<NNN>-<slug>.adoc):
   Read this for the full standard, rationale, and context.
 
 - [<Spec name>](<url>):

@@ -1,0 +1,350 @@
+= Requests for comments (RFCs)
+
+A request for comments (RFC) records one architecturally significant technical
+decision: its motivation, the alternatives considered, the trade-offs accepted,
+and the solution decided upon.
+
+A chronologically-ordered archive of RFCs forms a technical decision log — the
+"how we got here" that design docs, being decision-free, deliberately omit.
+
+RFCs are conceptually equivalent to key design decisions (KDDs) and
+architectural decision records (ADRs). Where design docs and architecture audits
+describe the system, an RFC justifies a choice about it.
+
+== Related artifacts
+
+An RFC is one of several documents that surround a software project. It is worth
+distinguishing it from its neighbors.
+
+=== RFC versus ADR
+
+An architectural decision record (ADR) captures a _single_ decision and its
+rationale. An RFC, as used in this standard, captures the _overall_ design of a
+system or change, which typically bundles many decisions.
+
+The two pair well: an ADR is the right shape for a self-contained, potentially
+contentious decision that will be referenced often; an RFC is the right shape
+for a larger design that needs context, goals, and a coherent narrative. An RFC
+MAY reference or spawn ADRs for the individual decisions it depends on.
+
+=== "RFC" as process versus artifact
+
+A request for comments is, strictly, a _process_ — a document circulated for
+review — rather than a document type. In practice the terms are used
+interchangeably: many organizations call their design docs "RFCs" and run a
+lightweight review process around them. This standard uses "RFC" for the
+artifact and treats review as one phase of its lifecycle (see <<_review>>).
+
+== When an RFC is warranted
+
+Writing an RFC is overhead. The decision to write one comes down to a single
+trade-off: do the benefits — consensus, senior review, cross-cutting coverage,
+organizational memory — outweigh the cost of writing and reviewing the document?
+
+At the center of that decision is ambiguity. If the right design is obvious, an
+RFC adds little value. If the problem or the solution is complex, contentious,
+or novel, an RFC is usually worth the investment.
+
+An RFC is RECOMMENDED when one or more of the following are true:
+
+* The right design is uncertain, and upfront investigation would buy certainty
+  before costly implementation.
+* Senior engineers who cannot review every change should weigh in on the design.
+* The design is contentious, and organizational consensus around it is valuable.
+* The team has a habit of forgetting cross-cutting concerns such as security,
+  privacy, or observability.
+* The organization needs high-level records of why legacy systems look the way
+  they do.
+* The change impacts multiple technical stakeholders — for example, changes to
+  the system architecture or data models, the technology stack or production
+  infrastructure, interfaces with significant downstream impact, service level
+  agreements, development or operations tooling and lifecycle processes, or
+  other technical standards.
+
+If three or more of these apply, an RFC is almost certainly the right starting
+point. Routine feature work, bug fixes, and trivial changes go through the
+normal pull-request workflow instead.
+
+An RFC SHOULD NOT be written when the solution is obvious and uncontested. If a
+document would amount to an implementation manual — "this is how we will build
+it" with no trade-offs, no alternatives, and no decisions to defend — the
+implementation SHOULD be written directly instead. If there were no trade-offs,
+there was no design decision to document.
+
+The overhead of an RFC is not always compatible with prototyping and rapid
+iteration. But most projects have a set of _actually known problems_ that
+prototyping does not excuse one from solving. "I tried it and it works" is one
+of the strongest arguments an RFC can make for a chosen design — prototyping and
+RFCs are complements, not alternatives. A prototype MAY be conducted as part of
+writing the RFC.
+
+[quote, John Maeda]
+____
+If a picture is worth 1000 words, a prototype is worth 1000 meetings.
+____
+
+== Arriving at a design
+
+Before a design is written down, it is worked out collaboratively. No one
+engineer owns the architecture of a system; design decisions are made by the
+team, not handed down. When a problem calls for a design, it is RECOMMENDED to
+assemble a small group of engineers with relevant expertise, rather than have
+one person design a solution in isolation.
+
+A lightweight process that works well:
+
+* Start with the business problem, not a proposed solution.
+* Brainstorm approaches at a high level, ranging widely before narrowing down.
+* Whiteboard the approach the group is converging on. A design that cannot be
+  sketched and explained on a whiteboard is not yet well understood.
+* Write it up, using simple diagrams (see
+  *xref:004-modeling.adoc[TS-4: Modeling]*).
+* Circulate the write-up and gather feedback (see <<_review>>).
+
+Clear design, like clean code, is easy to read and easy to comprehend. Avoid
+jargon, and favor simplicity over cleverness.
+
+Familiarity with common architectural patterns shortens design discussions by
+providing shared vocabulary, but the patterns are not themselves the goal — they
+are no substitute for simple, well-reasoned design. Patterns emerge _after_
+engineers observe that a particular solution recurs; the aim when designing is
+to solve the problem well, drawing on prior solutions where useful, rather than
+to apply a named pattern for its own sake.
+
+== Structure of an RFC
+
+RFCs are informal documents and do not follow a strict template. The first rule
+is to write the document in whatever form makes most sense for the decision.
+
+That said, a structure has emerged that serves the majority of RFCs well. The
+following sections are RECOMMENDED, in this order:
+
+1. <<_context_and_scope, Context and scope>>
+2. <<_goals_and_non_goals, Goals and non-goals>>
+3. <<_the_design, The design>>
+4. <<_alternatives_considered, Alternatives considered>>
+5. <<_cross_cutting_concerns, Cross-cutting concerns>>
+
+An RFC MAY omit any section that does not apply, and MAY add sections the
+project demands. Every omission SHOULD be a deliberate choice, not an oversight.
+
+The document moves from _facts_ to _direction_ to _decisions_. Context and scope
+are objective background. Goals and non-goals turn that background into a
+direction. The design proposes a solution. Alternatives considered justify why
+that solution was chosen over the others. Cross-cutting concerns close the loop
+on the obligations the design does not center on but must not ignore.
+
+The center of gravity is the trade-off. Given the facts (context) and the
+direction (goals), the RFC is the place to show why a particular solution best
+satisfies the goals — and why the alternatives, which a reader is likely to
+wonder about, do not.
+
+An RFC SHOULD be detailed enough to be useful, but short enough to be read by
+busy people. The sweet spot for a larger project is roughly 10 to 20 pages. Well
+beyond that, the problem SHOULD be split into more manageable sub-problems, each
+with its own RFC. A 1 to 3 page "mini RFC" is perfectly acceptable for an
+incremental improvement or a well-bounded sub-task — the same steps apply; the
+prose is simply terser and the scope narrower.
+
+[#_context_and_scope]
+=== Context and scope
+
+This section gives the reader a rough overview of the landscape the new system
+is being built in, and what is actually being built. It is not a requirements
+document. Keep it succinct.
+
+The goal is to bring readers up to speed so they can engage with the design, not
+to re-educate them from zero. Assume some prior knowledge, and link out to
+detailed background rather than reproducing it.
+
+This section SHOULD be limited to objective background facts. Opinions, goals,
+and design proposals belong in later sections.
+
+[#_goals_and_non_goals]
+=== Goals and non-goals
+
+A short list of bullet points: what the goals of the system are, and — often
+more importantly — what the non-goals are.
+
+Non-goals are not negated goals. "The system should not crash" is not a
+non-goal; it is a negated goal. A non-goal is something that could reasonably be
+a goal, but is explicitly chosen not to be. For example, when designing a data
+store, "ACID compliance" could reasonably be either a goal or a non-goal — and
+the reader needs to know which.
+
+A non-goal is not a ban. If a non-goal can be achieved without compromising the
+goals, the chosen design MAY still deliver it. The point is that the design is
+not obliged to.
+
+Stating non-goals explicitly is what stops a design from being pulled in every
+direction by unstated expectations. It is one of the most valuable parts of the
+document.
+
+[#_the_design]
+=== The design
+
+This section should start with an overview, then go into detail. It is the place
+to write down the trade-offs made in designing the software — that is the
+document's core purpose and the source of its long-term value.
+
+Given the context (facts) and the goals and non-goals (requirements), the design
+section proposes a solution and shows why it best satisfies the goals. Because
+the point of writing a document over a more formal medium is flexibility, there
+is no fixed prescription for how to describe the design. A few topics recur
+often enough to be worth addressing:
+
+*System-context diagram.* For most systems, a diagram showing the system as part
+of its larger technical landscape is valuable. It lets readers contextualize the
+new design against an environment they already know. For diagram conventions,
+see *xref:025-technical-documentation.adoc[TS-25: Technical Documentation]*.
+
+*APIs.* If the system exposes an API, sketch it. Focus on the parts relevant to
+the design and its trade-offs. Avoid copy-pasting formal interface or data
+definitions — they are verbose, carry unnecessary detail, and go stale quickly.
+
+*Data storage.* If the system stores data, describe how and in what rough form.
+As with APIs, avoid pasting complete schema definitions. Focus on what is
+relevant to the design and its trade-offs.
+
+*Code and pseudo-code.* An RFC SHOULD rarely contain code or pseudo-code. The
+exception is a novel algorithm, where the algorithm itself is the design
+decision. Where implementability is in question, link to a prototype instead of
+embedding code.
+
+*Degree of constraint.* The shape of a design — and therefore of the design
+section — depends on how constrained the solution space is. At one extreme is a
+greenfield project: the goals are known, the solution is open. The document
+ranges widely but must quickly define rules that zoom in on a manageable set of
+solutions. At the other extreme is a highly constrained system — a legacy system
+that resists change, or a library that must fit its host language. The possible
+moves are easy to enumerate but hard to combine into a solution. Such a document
+SHOULD focus on selecting the best combination given all the identified
+trade-offs, and on explaining why no great option exists.
+
+[#_alternatives_considered]
+=== Alternatives considered
+
+This section lists the alternative designs that would reasonably have achieved
+similar outcomes. The focus is on the trade-offs each alternative makes, and how
+those trade-offs led to the selection of the design that is the document's
+primary topic.
+
+This is one of the most important sections of an RFC. It shows, explicitly, why
+the selected solution is the best given the project goals, and how the
+alternatives a reader is likely to wonder about introduce trade-offs that are
+less desirable given those goals.
+
+Rejected alternatives MAY be described succinctly, but they MUST NOT be
+dismissed without reasoning. A bare "we considered X and decided against it" is
+not enough; the reader needs the trade-off that ruled it out.
+
+If an alternative was not seriously considered, it does not belong here. The
+section is for plausible alternatives, not for an exhaustive catalogue of
+everything in the design space.
+
+[#_cross_cutting_concerns]
+=== Cross-cutting concerns
+
+This is where the design accounts for concerns that cut across the whole system
+but are not the design's primary subject. Typically short subsections, each
+explaining how the design impacts the concern and how the concern is addressed.
+
+Teams SHOULD standardize which concerns their RFCs must address. Common
+examples:
+
+* *Security* — how the design affects the system's attack surface and how
+  threats are mitigated. See
+  *xref:052-security-and-secrets-management.adoc[TS-52: Security and Secrets Management]*.
+* *Privacy* — what personal data the design touches and how it is protected. See
+  *xref:053-privacy-and-data-protection.adoc[TS-53: Privacy and Data Protection]*.
+* *Observability* — how the system's behavior will be measured and diagnosed in
+  production. See
+  *xref:057-logging-monitoring-observability.adoc[TS-57: Logging, Monitoring, Observability]*.
+* *Compatibility* — impact on existing interfaces, clients, and data.
+* *Operability* — deployment, rollback, capacity, and runbook implications.
+
+For concerns that warrant deeper treatment — security and privacy in particular
+— a dedicated companion RFC MAY be produced, and the central RFC references it
+instead of reproducing it. Engage with the relevant specialists early, while the
+design can still be shaped by their input, rather than only at launch.
+
+== Lifecycle
+
+An RFC MUST be a single, atomic decision, and moves through a defined state
+machine:
+
+* *Draft.* The proposal is being written.
+* *Proposed.* The proposal is complete and open for stakeholder feedback.
+* *Accepted.* The decision is settled, and implementation may proceed. The
+  document MAY continue to evolve in response to what is learned while building.
+* *Implemented.* The decision has been implemented in code, and the tooling and
+  infrastructure the decision calls for are in place.
+* *Rejected.* The proposal is not taken forward, but is preserved permanently
+  alongside accepted decisions.
+* *Superseded.* A previously implemented decision has been replaced by a later
+  RFC.
+
+Transitions MUST NOT move backwards or skip states. Categorize each RFC under
+one of: architecture, process, technology, or tooling.
+
+As a rule of thumb: if the change described by an accepted RFC has not yet
+shipped, the document MUST be updated as the design changes during
+implementation. After ship, changes are often captured in separate follow-up
+RFCs rather than rewritten into the original; links from the original to these
+amendments SHOULD be maintained, so future maintainers can follow the trail.
+
+When an engineer encounters a system they did not build, their first question is
+often "where is the RFC?". An RFC is usually the most accessible entry point to
+the thinking that created a system, even after it has drifted from the
+implementation. Authors SHOULD re-read their own RFCs a year or two later and
+ask: what did I get right? What did I get wrong? What would I decide differently
+today? That exercise is one of the most effective ways to grow as a designer.
+
+== Review
+
+Every RFC MUST have an associated discussion thread, opened when the pull
+request is opened, where all review feedback is gathered — kept separate from
+the pull request's own comment history, which stays focused on edits to the RFC
+document itself. Feedback SHOULD be solicited from everyone who will be impacted
+by the decision, and from anyone with relevant expertise.
+
+The lightweight form of review is to share the RFC with the wider team and let
+discussion happen in the discussion thread. This is usually sufficient for most
+RFCs.
+
+The heavier form is a formal design-review meeting in which the author presents
+the RFC — often via a dedicated presentation — to a senior engineering audience.
+Some teams hold recurring review meetings for this purpose. Formal reviews
+SHOULD NOT become a bottleneck: waiting for a recurring meeting can slow
+development significantly. Authors SHOULD seek the most crucial feedback
+directly and SHOULD NOT block progress on wider review.
+
+The primary value of review is to fold the combined experience of the
+organization into the design before it is expensive to change. Its most
+consistent contribution is ensuring cross-cutting concerns — observability,
+security, privacy — are addressed (see
+<<_cross_cutting_concerns>>). The value of review is not that issues are discovered, but that they are discovered _early_.
+A review that finds a security gap before a line of code is written has paid for
+the whole review process.
+
+== Immutability
+
+An RFC's document becomes immutable once it reaches the implemented or rejected
+states.
+
+To revisit a settled decision, open a new RFC that supersedes it. Never edit the
+original, and never delete an RFC document, including rejected ones.
+
+This preserves institutional memory. Future contributors can see what was
+already considered, and why, without repeating the same ground.
+
+== Format
+
+RFCs SHOULD be written in an informal, conversational style. They are, after
+all, proposals, not specifications.
+
+A convincing RFC includes the motivation for the change, an honest account of
+its trade-offs and risks, and the alternatives considered with the reasoning
+that ruled each out.
+
+A bare "we considered X and decided against it" is not enough.

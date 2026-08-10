@@ -1,0 +1,251 @@
+= Security
+
+Version control systems form the foundation of the software development
+lifecycle and contain valuable intellectual property, configuration data, and
+sometimes sensitive credentials. Securing the repository is therefore critical
+to the overall security posture of an organization. This section outlines best
+practices for securing Git repositories and the information they contain,
+supporting the objectives of quality control and provenance through audit trails
+and access controls.
+
+== Secrets and PII
+
+Secrets, such as access keys, database passwords, API tokens, and encryption
+keys, and personally identifiable information (PII) MUST NOT be committed to
+version control.
+
+It is RECOMMENDED to use a dedicated secrets management system to manage secrets
+and to inject them into applications at runtime — typically as environment
+variables resolved from the vault by the deployment pipeline or container
+runtime. Examples of secrets management systems include HashiCorp Vault, AWS
+Secrets Manager, Azure Key Vault, and 1Password. See also
+*xref:052-security-and-secrets-management.adoc[TS-52: Security and Secrets Management]* and
+*xref:048-environment-variables.adoc[TS-48: Environment Variables]*.
+
+It is also RECOMMENDED to integrate static analysis tools that check code for
+secrets and other security risks. Examples include `TruffleHog`, and
+`detect-secrets`.
+
+These tools SHOULD run at multiple points in the workflow, defence-in-depth
+style:
+
+* As a Git *pre-commit hook* on each developer's machine, catching secrets
+  before they enter Git history at all. This is the most valuable layer — once a
+  secret reaches even a local commit, recovery is more invasive.
+* As part of the *CI pipeline* on every push, catching anything that bypassed
+  local hooks.
+* As a *merge gate* on protected branches, blocking integration if secrets are
+  detected.
+
+Pre-commit hook configuration (eg. via the `pre-commit` framework, or `husky`
+for Node.js projects) SHOULD live in the repository so all contributors run the
+same checks.
+
+Once secrets have been committed to a branch like `dev` or `test`, in which the
+commit history is treated as immutable, it can be incredibly difficult to remove
+the secret from the repository. Mutating history will often require coordination
+among multiple developers, each of whom will have their own clones of the
+repository, all of which must be synchronized. Even if the secret is removed
+from the latest commit, it will remain in the repository's history and can be
+recovered by anyone with access to the repository.
+
+Once a secret has been committed to version control, even to a temporary branch,
+the only remedy is to rotate the key or otherwise invalidate the secret. This is
+why it is so important to avoid committing secrets to version control in the
+first place.
+
+== Commit signing and verification
+
+Commit signing allows you to cryptographically verify the identity of the author
+of a commit. Without signing, anyone with access to a repository can create
+commits that appear to have been authored by someone else, because the
+`user.name` and `user.email` values recorded in commits are taken directly from
+local Git configuration and are not verified.
+
+It is RECOMMENDED to enable commit signing for all repositories, particularly
+for open source projects, critical infrastructure, and other contexts where
+supply chain security is a concern. For closed-source projects where push access
+is already controlled by authentication mechanisms, commit signing is less
+critical but still useful for audit trails and regulatory compliance.
+
+Git supports three signing formats: GPG (GNU Privacy Guard), SSH, and X.509. SSH
+signing is the simplest to set up if you already use SSH keys for Git
+authentication.
+
+To enable SSH-based commit signing, configure your Git client as described in
+the *xref:009-version-control.adoc[Git configuration section]*.
+
+It is RECOMMENDED to configure your repository hosting provider (GitHub, GitLab,
+etc.) to require signed commits on protected branches. This ensures that all
+changes to critical branches have been verified.
+
+== Access control
+
+Access to repositories SHOULD be controlled through authentication mechanisms
+provided by your repository hosting provider. At minimum:
+
+* All developers SHOULD authenticate using SSH keys or personal access tokens,
+  not passwords.
+* Personal access tokens SHOULD have minimal required permissions and short
+  expiration windows.
+* Inactive accounts and revoked access SHOULD be removed promptly.
+
+=== SSH versus HTTPS
+
+It is RECOMMENDED to connect to remote Git repositories over SSH rather than
+HTTPS. Both are secure transport protocols, but public/private key
+authentication is more convenient and scripts more easily, since it does not
+depend on Git's credentials manager to have a password cached. If a private key
+is compromised, it can simply be revoked, without needing to change an account
+password.
+
+SSH keys SHOULD generally be passphrase-protected and stored securely. Where a
+passphrase is impractical — for example, some automation tools and Git clients
+do not handle passphrase-protected keys well — a passphrase-free key MAY be used
+instead, provided the private key is kept securely on the client device and is
+never backed up to a public cloud service. Where supported by the hosting
+provider, an expiry of up to 12 months SHOULD be applied to keys registered
+without a passphrase, to limit the exposure window if the device is compromised.
+
+=== Credentials manager
+
+Git includes a built-in credentials manager that caches usernames and passwords
+for repositories accessed over HTTPS, via a background daemon process. It is
+RECOMMENDED to disable the credentials manager, to encourage authentication over
+SSH instead of HTTPS.
+
+To disable it globally:
+
+[source,sh]
+----
+git config --global --unset credential.helper
+----
+
+On some Windows installations, this instead requires (run with administrator
+privileges):
+
+[source,sh]
+----
+git config --system --unset credential.helper
+----
+
+To disable it for a single repository only, overriding the global setting:
+
+[source,sh]
+----
+git config credential.helper ""
+----
+
+To fully remove the credentials manager program:
+
+[source,sh]
+----
+git credential-manager uninstall
+----
+
+Verify there is no `credential.helper` entry by running `git config --list`.
+
+For organizations, it is RECOMMENDED to use role-based access control (RBAC) to
+manage who can perform specific actions:
+
+* Read-only access for viewers (documentation, security researchers, etc.).
+* Developer access for those who contribute code.
+* Maintainer access for those who review and merge changes.
+* Owner/administrator access for those who manage repository settings and
+  access.
+
+It is RECOMMENDED to regularly audit access logs and remove access for
+developers who are no longer active.
+
+== Branch protection
+
+It is RECOMMENDED to configure branch protection rules on all protected
+branches, especially the trunks – `dev`, `test`, `ready`, and `release`. The
+goal is to prevent accidental or malicious misuse of the repository, such as
+pushing directly to the `ready` branch or changing the history of the `dev`
+branch.
+
+Branch protection rules are not a feature of Git itself, but rather are a set of
+access controls provided by most code repository hosting services (GitHub,
+GitLab, etc.).
+
+Recommended branch protection configurations:
+
+* Require pull request reviews before merge (with a minimum number of
+  approvers).
+* Require status checks to pass before merge (eg. CI/CD tests, static analysis).
+  Where the hosting provider supports it, scope expensive or specialized
+  checks to the paths they actually validate (eg. an integration-test suite
+  that only concerns one service) rather than requiring every check on every
+  change. This keeps fast-moving trunks fast without weakening coverage where
+  it matters.
+* Require branches to be up-to-date before merge. A strict, unconditional
+  version of this rule forces repeated re-validation on every change queued
+  behind a slow-moving PR. Where the hosting provider supports it, a bounded
+  staleness window (eg. only re-validate if the target branch has moved in the
+  last few hours) is an acceptable middle ground between safety and CI load.
+* Require signed commits.
+* Require all pull request review comments to be marked resolved before merge.
+  A reviewer can raise a blocking concern in a comment without formally
+  rejecting the PR; without this check, that comment can be silently
+  overlooked at merge time.
+* Dismiss stale pull request approvals when new commits are pushed.
+* Restrict who can push to the branch (eg. administrators only).
+* Prevent force pushes and deletions.
+
+These protections help ensure that only reviewed, tested, and verified changes
+reach stable branches.
+
+Typically, the `dev` branch should have relatively permissive write access to
+enable continuous integration and rapid feedback. However, in certain
+contexts—very large teams, open source projects with many contributors, or
+organizations with strict governance requirements—you may choose to restrict
+direct write access to `dev` and require all changes to flow through pull
+requests. This increases oversight but may slow integration velocity. The
+tradeoff should be evaluated based on your team size, risk tolerance, and
+governance requirements.
+
+== Audit and accountability
+
+A well-maintained commit history serves as an audit trail of all changes to the
+codebase, directly supporting the objective of provenance. To support auditing
+and accountability:
+
+* Commit authors SHOULD be verified through signed commits and matched to known
+  individuals.
+* Commit messages SHOULD include cross-references to issues, pull requests, or
+  other tracking systems that document the rationale for changes.
+* Access logs and change logs SHOULD be regularly reviewed and retained for the
+  duration required by organizational policy or regulatory requirements.
+* Sensitive operations (such as force pushes, branch deletions, or access
+  changes) SHOULD trigger alerts and be logged for review.
+
+== Dependency security
+
+When dependencies are managed within a repository (eg. via package managers,
+submodules, or vendor directories), it is RECOMMENDED to:
+
+* Keep dependencies up-to-date and patch known vulnerabilities promptly.
+* Integrate dependency scanning tools into the CI/CD pipeline to detect
+  vulnerable dependencies.
+* Enable hosting-provider security alerts (eg. GitHub Dependabot alerts, GitLab
+  security dashboards) so vulnerabilities are flagged automatically as they are
+  disclosed upstream.
+* Use dependency lock files (eg. `package-lock.json`, `poetry.lock`,
+  `Cargo.lock`) to ensure reproducible builds and to control when dependencies
+  are updated. Lock files MUST be committed to version control.
+* Review and approve dependency updates before merging them to protected
+  branches.
+
+== Repository backups
+
+While Git's distributed nature means every clone contains a full copy of the
+repository history, it is RECOMMENDED to maintain regular backups of the
+reference repository. This protects against:
+
+* Accidental or malicious deletion of the repository.
+* Corruption of the repository on the hosting provider.
+* Loss of access to the hosting provider (eg. account compromise).
+
+Backups SHOULD be stored in a geographically distinct location and SHOULD be
+tested periodically to ensure they can be restored.

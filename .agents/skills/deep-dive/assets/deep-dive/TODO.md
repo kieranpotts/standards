@@ -4,11 +4,12 @@ Findings from a deep review of TS-<N>: <Title>
 
 ~<NNN> lines across <N> files.
 
-Assessed against the repository [style guide](../../docs/style-guide.md),
-[TS-26: Technical Writing Style Guide](../026/README.adoc),
-[TS-27: Markdown](../027/README.adoc),
-[TS-28: AsciiDoc](../028/README.adoc),
-and the [template](../../template/).
+Assessed against the repository
+[style guide](../../../../../docs/style-guide.md),
+[TS-26: Technical Writing Style Guide](../../pages/026-technical-writing-style-guide.adoc),
+[TS-27: Markdown](../../pages/027-markdown.adoc),
+[TS-28: AsciiDoc](../../pages/028-asciidoc.adoc),
+and the [template](../../../../../template/).
 
 **Assessment.** Two or three sentences. Lead with what is sound. Then state
 the shape of the problems: their number, their concentration, and which category

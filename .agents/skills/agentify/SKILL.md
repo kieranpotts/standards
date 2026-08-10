@@ -23,20 +23,21 @@ environment, if possible. If you're uncertain about the required parameters,
 prompt the user for clarification.
 
 - **The target standard — REQUIRED.** One technical standard, identified as
-  `TS-<N>`. Its directory is that number zero-padded to three digits, so TS-31
-  is `src/031/`. If the user does not name one, and the context or the working
-  directory already establishes a `src/<NNN>/` standard, treat that as the
-  target.
+  `TS-<N>`. Its number zero-padded to three digits identifies its files, so
+  TS-31 is the page `src/modules/ROOT/pages/031-<slug>.adoc` plus everything
+  under `src/modules/ROOT/partials/031/`. If the user does not name one, and
+  the context or the working directory already establishes a standard, treat
+  that as the target.
 
 ## Success criteria
 
-- `src/<NNN>/AGENTS.md` MUST exist, and MUST carry every normative rule from
-  the standard's source files, either directly or by inheritance from a linked
-  parent standard.
+- `src/modules/ROOT/partials/<NNN>/AGENTS.md` MUST exist, and MUST carry every
+  normative rule from the standard's source files, either directly or by
+  inheritance from a linked parent standard.
 
 - Every `../NNN/` path in the file MUST resolve to a directory that exists
-  under `src/`, and every TS number and title MUST match the standards index
-  at `src/README.adoc`.
+  under `src/modules/ROOT/partials/`, and every TS number and title MUST match
+  the standards index at `src/modules/ROOT/pages/index.adoc`.
 
 - Every section MUST issue a rule, instruction, or constraint that an agent
   can act on. A standalone glossary, terminology overview, or
@@ -50,17 +51,19 @@ prompt the user for clarification.
 
 ## Instructions
 
-1.  Resolve the target directory from the standards index at
-    `src/README.adoc`. If the target is ambiguous, or the index does not list
-    it, stop and ask the user to clarify.
+1.  Resolve the target from the standards index at
+    `src/modules/ROOT/pages/index.adoc`. If the target is ambiguous, or the
+    index does not list it, stop and ask the user to clarify.
 
-2.  Read the standard in full: `src/<NNN>/README.adoc`, every file it pulls in
-    via `include::`, and any subdirectory carrying its own `README.adoc` and
+2.  Read the standard in full: its page (`src/modules/ROOT/pages/<NNN>-<slug>.adoc`),
+    every file it pulls in via `include::`, and any subdirectory under
+    `src/modules/ROOT/partials/<NNN>/` carrying its own `README.adoc` and
     numbered files. Subdirectory content is part of the standard, not an
     appendix to it. Do not start writing until all of it is read.
 
-3.  Establish whether `src/<NNN>/AGENTS.md` already exists. If it does not,
-    write it from scratch, following the bundled template and the rules below.
+3.  Establish whether `src/modules/ROOT/partials/<NNN>/AGENTS.md` already
+    exists. If it does not, write it from scratch, following the bundled
+    template and the rules below.
 
 4.  If it does exist, read it in full, then reconcile it against the source
     rule by rule:
@@ -77,8 +80,8 @@ prompt the user for clarification.
     the source may simply be behind. Non-actionable content carries no such
     risk, so it is always removable.
 
-5.  Verify every cross-reference against `src/README.adoc`, then review the
-    result against the success criteria above.
+5.  Verify every cross-reference against `src/modules/ROOT/pages/index.adoc`,
+    then review the result against the success criteria above.
 
 ## Rules
 
@@ -124,11 +127,13 @@ prompt the user for clarification.
   There is nothing to compact. Report this and ask the user whether to
   proceed anyway, rather than writing an `AGENTS.md` with no content in it.
 
-- The rule you are writing lives in a subdirectory of the standard.
+- The source rule you are compacting comes from a nested subdirectory of the
+  standard (eg. `partials/008/03-issue-types/`).
 
-  Relative paths out to a sibling standard need one `../` per level of depth.
-  From `src/008/03-issue-types/`, another standard is `../../031/`, not
-  `../031/`. Verify the depth of every path you write.
+  Every `AGENTS.md` still lives flat, at `partials/<NNN>/AGENTS.md`, regardless
+  of how deep the source content it summarizes is nested. A cross-reference
+  to another standard is still exactly one `../` — `../031/AGENTS.md` — never
+  more, no matter how deep the rule's source was.
 
 ## Assets
 
@@ -137,6 +142,6 @@ prompt the user for clarification.
 
 ## References
 
-- [TS-27: Markdown](https://raw.githubusercontent.com/kieranpotts/standards/refs/heads/latest/dev/src/027/AGENTS.md) \
+- [TS-27: Markdown](https://raw.githubusercontent.com/kieranpotts/standards/refs/heads/latest/dev/src/modules/ROOT/partials/027/AGENTS.md) \
   Read before writing, for the Markdown conventions the generated `AGENTS.md`
   MUST follow — ATX headings, no indented paragraphs, 80-character soft wraps.

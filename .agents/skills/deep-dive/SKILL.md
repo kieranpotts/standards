@@ -24,10 +24,11 @@ environment, if possible. If you're uncertain about the required parameters,
 prompt the user for clarification.
 
 - **The target standard — REQUIRED.** One technical standard, identified as
-  `TS-<N>`. Its directory is that number zero-padded to three digits, so TS-1
-  is `src/001/`. If the user does not name one, and the context or the working
-  directory already establishes a `src/<NNN>/` standard, treat that as the
-  target.
+  `TS-<N>`. Its number zero-padded to three digits identifies its files, so
+  TS-1 is the page `src/modules/ROOT/pages/001-<slug>.adoc` plus everything
+  under `src/modules/ROOT/partials/001/`. If the user does not name one, and
+  the context or the working directory already establishes a standard, treat
+  that as the target.
 
 - **The tier to work — OPTIONAL.** Which tier of an existing plan to
   remediate. Absent an instruction to remediate, produce the plan and stop.
@@ -35,10 +36,10 @@ prompt the user for clarification.
 
 ## Success criteria
 
-- `src/<NNN>/TODO.md` MUST exist, MUST name the yardsticks the standard was
-  measured against, and MUST record every finding as a flat checklist bullet
-  under its category heading — no sub-headings, tables, or per-finding
-  subsections.
+- `src/modules/ROOT/partials/<NNN>/TODO.md` MUST exist, MUST name the
+  yardsticks the standard was measured against, and MUST record every finding
+  as a flat checklist bullet under its category heading — no sub-headings,
+  tables, or per-finding subsections.
 
 - Every finding MUST cite a `<file>:<line>` location and MUST say why the
   thing it cites is a defect, so the user can judge it without re-deriving the
@@ -57,28 +58,34 @@ prompt the user for clarification.
   and its results — including anything that could not be verified, and why —
   MUST be in the report back to the user.
 
-- Nothing MUST be staged or committed, and no file outside `src/<NNN>/` MUST
-  have been modified. The user commits, and the user approves any wider sweep.
+- Nothing MUST be staged or committed, and no file outside the standard's page
+  and its `src/modules/ROOT/partials/<NNN>/` directory MUST have been
+  modified. The user commits, and the user approves any wider sweep.
 
 ## Instructions
 
-1.  Resolve the target directory from the standards index at
-    `src/README.adoc`, then check for `src/<NNN>/TODO.md`. If it exists, this
-    is a resumption: read it, find the first unchecked item, and report the
+1.  Resolve the target from the standards index at
+    `src/modules/ROOT/pages/index.adoc`, then check for
+    `src/modules/ROOT/partials/<NNN>/TODO.md`. If it exists, this is a
+    resumption: read it, find the first unchecked item, and report the
     remaining scope to the user before doing any work.
 
 2.  Read everything, in full, before reviewing anything.
 
-    Read `src/<NNN>/README.adoc`, every file it pulls in via `include::`,
-    any subdirectory carrying its own `README.adoc`, and the standard's
+    Read the standard's page (`src/modules/ROOT/pages/<NNN>-<slug>.adoc`),
+    every file it pulls in via `include::`, any subdirectory under
+    `partials/<NNN>/` carrying its own `README.adoc`, and the standard's
     `AGENTS.md` if it has one.
 
     Then read the yardsticks you will measure against:
 
     - `docs/style-guide.md` — normative for everything under `src/`.
-    - `src/026/` (TS-26: Technical Writing Style Guide) — prose conventions.
-    - `src/027/` (TS-27: Markdown) — applies to `TODO.md` and `AGENTS.md`.
-    - `src/028/` (TS-28: AsciiDoc) — syntax, links, line length.
+    - `src/modules/ROOT/partials/026/` (TS-26: Technical Writing Style Guide)
+      — prose conventions.
+    - `src/modules/ROOT/partials/027/` (TS-27: Markdown) — applies to
+      `TODO.md` and `AGENTS.md`.
+    - `src/modules/ROOT/partials/028/` (TS-28: AsciiDoc) — syntax, links,
+      line length.
     - `template/` — the reference structure for a standard.
 
     Name these in the `TODO.md` header, so a reader knows what the findings
@@ -88,8 +95,8 @@ prompt the user for clarification.
     standards for the de-facto convention rather than inventing one.
 
     ```sh
-    grep -ln "^== References" src/*/README.adoc | wc -l
-    ls src/*/[0-9][0-9][a-z]-*.adoc
+    grep -lE '^== References$' src/modules/ROOT/pages/*.adoc | wc -l
+    find src/modules/ROOT/partials -name '[0-9][0-9][a-z]-*.adoc'
     ```
 
 4.  Collect findings into the seven categories below. Take one category at a
@@ -166,9 +173,16 @@ prompt the user for clarification.
           if len(heads.get(t, [])) != 1: print("PROBLEM:", t)
       ```
 
-    - Resolve every `link:` and `include::` target on disk. Before reporting a
-      broken link as your own breakage, check it against a clean tree
-      (`git stash`). The repository has pre-existing broken links, and
+    - Resolve every `xref:`, `include::`, and `link:` target. An `xref:` to
+      another standard's page is `NNN-<slug>.adoc` — confirm that file exists
+      under `pages/`. An `include::` from a page targets `partial$NNN/<file>`
+      — confirm that file exists under `partials/NNN/`; a bare relative
+      `include::` inside a partial targets a sibling in the same
+      subdirectory. A `link:` should only remain for genuinely external URLs
+      — anything pointing at another standard is a style-guide violation, not
+      a broken link, and belongs in the Conventions tier. Before reporting a
+      broken reference as your own breakage, check it against a clean tree
+      (`git stash`). The repository has pre-existing broken references, and
       attributing them to your change wastes the user's time.
 
     - Prove a reorder moved nothing: after relocating a section, assert the
@@ -207,7 +221,7 @@ prompt the user for clarification.
 
 - Renaming or renumbering a file MUST use `git mv`, so history follows the
   file. Rename highest-numbered first, to avoid collisions. Afterwards, you
-  MUST rebuild the README's `include::` list and update `TODO.md`'s own file
+  MUST rebuild the page's `include::` list and update `TODO.md`'s own file
   references.
 
 ## Edge cases

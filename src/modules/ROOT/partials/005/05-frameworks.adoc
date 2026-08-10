@@ -1,0 +1,85 @@
+= Application frameworks
+
+Application frameworks — such as Laravel, Django, Ruby on Rails, and Spring —
+provide a pre-built skeleton for structuring applications. They bundle together
+conventions for routing, data access, configuration, testing, and other common
+concerns, giving teams a shared foundation on which to build.
+
+== Frameworks as platforms
+
+One of the strongest arguments for adopting a framework is *standardization*.
+When multiple applications within an organization are built on the same
+framework, the framework becomes a shared platform. Developers can move between
+projects with minimal ramp-up time. Common patterns for logging, error handling,
+authentication, and deployment are consistent across the organization's
+application portfolio. Shared tooling, training materials, and operational
+knowledge compound over time.
+
+In this sense, a well-chosen framework reduces the total cost of ownership
+across a suite of applications, not just a single one.
+
+== Decoupling from frameworks
+
+A common mistake is to allow framework-specific code to permeate an entire
+codebase. Controllers inherit from framework base classes, services import
+framework utilities directly, and domain logic depends on framework-provided
+abstractions for things like database access, event dispatching, and
+configuration. Over time, the application becomes so tightly coupled to the
+framework that migrating to an alternative — or even upgrading to a new major
+version of the same framework — becomes a prohibitively expensive undertaking.
+
+To mitigate this, application code SHOULD interact with framework components
+through facades — thin wrappers whose interfaces are defined by the application,
+not by the framework. As described in the section on
+*xref:005-application-architecture.adoc[dependencies]*, this practice applies to all
+third-party vendor code, but it is especially important for frameworks because
+of how deeply they tend to integrate into an application's architecture.
+
+For example, rather than importing a framework's HTTP request object directly
+into your application kernel, define your own request interface and write a
+small adapter that translates the framework's request into your application's
+representation. Your kernel and model layers then depend only on interfaces you
+control. If you later swap the framework, you update the adapters — not the core
+of your application.
+
+The same principle applies to framework-provided services such as mailers, queue
+workers, logging, and cache managers. Each should be accessed through an
+application-defined interface, with the framework implementation hidden behind a
+facade in the vendors layer.
+
+In practice, it is not always feasible to fully decouple from a framework. GUI
+frameworks like React, for instance, are inherently invasive — your component
+code is framework-specific code. But for server-side application frameworks, the
+investment in facades pays for itself many times over in reduced migration cost
+and improved testability.
+
+== Frameworks as destinations, not starting points
+
+Application frameworks are too often treated as starting points. A team picks a
+popular framework and then tries to fit the application into whatever structure
+and conventions the framework imposes. This frequently leads to contorted
+designs — business logic forced into framework-prescribed patterns, unnecessary
+abstractions introduced to satisfy the framework's opinions, and tight coupling
+to framework internals that makes future migration away from the framework
+painful.
+
+A better mental model is to think of a framework as a *destination*, not a
+starting point. Consider: if you were building the application from scratch,
+with no framework at all, what design decisions would you make? How would you
+organize your code? What conventions would you establish for routing,
+persistence, configuration, and error handling? Over time, a structure would
+naturally emerge from those decisions and design constraints. That emergent
+structure is your framework.
+
+An off-the-shelf framework SHOULD be chosen because it closely matches the
+design you would arrive at independently. The framework should feel like a
+formalization of decisions you have already made, or would naturally make,
+rather than a set of constraints imposed from outside.
+
+Do not try to fit an application into an ill-fitting framework. If a framework's
+conventions conflict with your application's domain requirements, architectural
+constraints, or performance characteristics, that framework is the wrong choice
+— regardless of its popularity or the size of its community. A simpler, less
+opinionated framework (or no framework at all) may serve you better than a
+feature-rich one that fights your design at every turn.
+

@@ -7,8 +7,9 @@ authoritative reference for contributors and AI agents editing content under
 
 For prose-level writing conventions that apply within any individual document —
 voice, headings, terminology, citations — see
-[TS-26: Technical Writing Style Guide](../src/026/README.adoc). For AsciiDoc
-syntax specifics, see [TS-28: AsciiDoc](../src/028/README.adoc). The repository
+[TS-26: Technical Writing Style Guide](../src/modules/ROOT/pages/026-technical-writing-style-guide.adoc).
+For AsciiDoc syntax specifics, see
+[TS-28: AsciiDoc](../src/modules/ROOT/pages/028-asciidoc.adoc). The repository
 structure and file layout are documented in [AGENTS.md](../AGENTS.md). The
 [`template/`](../template/) directory is a representative entry with lorem-ipsum
 body text that demonstrates the conventions below; use it as the starting point
@@ -31,20 +32,30 @@ for new standards.
 
 ## AsciiDoc formatting
 
-- Every standard's `README.adoc` MUST begin with a level-1 title in the form
-  `= TS-N: Title`, followed by `:toc: macro` and `:toc-title: Contents`
-  attributes, then an introductory paragraph, then `toc::[]`, then the
-  `include::` directives.
+- Every standard's page (`pages/NNN-<slug>.adoc`) MUST begin with a level-1
+  title in the form `= TS-N: Title`, followed by `:toc: macro` and
+  `:toc-title: Contents` attributes, then an introductory paragraph, then
+  `toc::[]`, then the `include::` directives.
 
-- Content files (`01-topic.adoc`, `02-topic.adoc`, etc.) MUST NOT contain a
-  document-level title (level 0, `=`). They start with a level-1 section header
-  (`=`), which becomes a level-2 heading when included with `[leveloffset=+1]`.
+- Content files (`01-topic.adoc`, `02-topic.adoc`, etc., under
+  `partials/NNN/`) MUST NOT contain a document-level title (level 0, `=`).
+  They start with a level-1 section header (`=`), which becomes a level-2
+  heading when included with `[leveloffset=+1]`.
 
-- All `include::` directives in a README MUST use the `[leveloffset=+1]`
-  attribute.
+- All `include::` directives on a page MUST use the `[leveloffset=+1]`
+  attribute, and MUST target their partial with the `partial$` resource ID:
+  `include::partial$NNN/01-topic.adoc[leveloffset=+1]`. A partial including a
+  sibling in its own subdirectory uses a bare relative path instead
+  (`include::./01-item.adoc[leveloffset=+1]`) — Antora resolves that relative
+  to the including file's own directory within the partials family.
 
-- Cross-references to other standards MUST use relative AsciiDoc link syntax,
-  and MUST be bold: `*link:../NNN/README.adoc[TS-N: Title]*`.
+- Cross-references to other standards MUST use an Antora `xref:` targeting the
+  other standard's page, and MUST be bold: `*xref:NNN-slug.adoc[TS-N: Title]*`.
+  Never a relative `link:../NNN/...` path — that only resolved by coincidence
+  of the old flat directory layout, and Antora doesn't validate it. Never a
+  section fragment (`#anchor`) — each standard is one merged page, so land the
+  reader on the page and let them find the section, rather than replicating
+  Asciidoctor's section-ID algorithm for a fragment.
 
 - Internal links MUST be bold; external links MUST NOT be. An internal link is
   one to another technical standard in this repository; everything else —
@@ -90,7 +101,7 @@ for new standards.
   directed to go and read the other section.
 
 For the full AsciiDoc language reference, see
-[TS-28: AsciiDoc](../src/028/README.adoc).
+[TS-28: AsciiDoc](../src/modules/ROOT/pages/028-asciidoc.adoc).
 
 ## Lists
 
@@ -113,32 +124,34 @@ For the full AsciiDoc language reference, see
   that follow it instead. Section files are referenced by title through xrefs
   rather than by filename, so renumbering is cheap.
 
-- Asset directories MUST be named `_/`.
+- Images live under `images/NNN/`, referenced from `partials/NNN/` (or the
+  page itself) with a family-relative `image::NNN/<file>[]` — never a `_/`
+  asset directory sitting alongside the content, which is how images worked
+  before this repository became a native Antora module.
 
-- Subdirectory names MUST be prefixed with a two-digit number matching their
-  position in the parent README's include order.
+- Subdirectory names under `partials/NNN/` MUST be prefixed with a two-digit
+  number matching their position in the page's include order.
 
 - File names MUST use only lowercase ASCII letters, digits, and hyphens.
 
 ## Content structure
 
-- A standard's `README.adoc` MUST include all content files via `include::`
-  directives in the order they should appear. There MUST NOT be content files in
-  a standard's directory that are not included by the README – except examples
-  (which MUST go in an `examples/` subdirectory).
+- A standard's page MUST include all its partials via `include::` directives
+  in the order they should appear. There MUST NOT be content files in a
+  standard's `partials/NNN/` directory that are not included by the page –
+  except examples (which MUST go in an `examples/` subdirectory).
 
-- The introductory section in `README.adoc` SHOULD describe the scope and
-  purpose of the standard, and SHOULD link to related standards where
-  appropriate.
+- The introductory section on the page SHOULD describe the scope and purpose
+  of the standard, and SHOULD link to related standards where appropriate.
 
-- A `== References` section MAY be added at the end of `README.adoc` (after
-  `''''`) to list external sources. References MUST NOT be split into a separate
-  content file — the `README.adoc` is their only home, so that every standard
+- A `== References` section MAY be added at the end of the page (after
+  `''''`) to list external sources. References MUST NOT be split into a
+  separate partial — the page is their only home, so that every standard
   carries its references in the same place.
 
 - Reference entries MUST follow the author-date convention specified in
-  [TS-26 §12: Referencing](../src/026/12-referencing.adoc), which is a mix of
-  the Chicago and Harvard styles:
+  [TS-26 §12: Referencing](../src/modules/ROOT/partials/026/12-referencing.adoc),
+  which is a mix of the Chicago and Harvard styles:
 
   ```
   <author> (<year>). _<title>_. <publication>
@@ -163,17 +176,17 @@ For the full AsciiDoc language reference, see
   has to tell a reader why the source is worth following. It begins with an em
   dash and a capital letter. A blank line MUST separate entries.
 
-- Do not add content to stubs (standards with only a `README.adoc` containing
+- Do not add content to stubs (standards with only a page containing
   placeholder text) unless explicitly asked to. Stubs are intentional
   placeholders for future work.
 
 ## Writing new content
 
-- New section content MUST be placed in a new numbered `.adoc` file, not
-  appended directly to `README.adoc`.
+- New section content MUST be placed in a new numbered `.adoc` file under
+  `partials/NNN/`, not appended directly to the page.
 
 - When adding a new content file, the `include::` directive MUST be inserted
-  into `README.adoc` in the correct position to maintain logical ordering.
+  into the page in the correct position to maintain logical ordering.
 
 - Do not reorder existing include directives unless explicitly asked to.
 
@@ -185,10 +198,11 @@ a URL containing a variable called `account_id` would be shown as
 `api.example.com/v1/accounts/{account_id}`.
 
 Placeholders in code blocks and templates use angle brackets — `<placeholder>` —
-per [TS-26 §11](../src/026/11-code-blocks.adoc). The exception is a URI template,
-which follows RFC 6570 above. Markdown is also an exception: placeholders MUST
-use square brackets (`[placeholder]`) because angle brackets are reserved for
-raw HTML. See [TS-27](../src/027/08-code.adoc).
+per [TS-26 §11](../src/modules/ROOT/partials/026/11-code-blocks.adoc). The
+exception is a URI template, which follows RFC 6570 above. Markdown is also
+an exception: placeholders MUST use square brackets (`[placeholder]`) because
+angle brackets are reserved for raw HTML. See
+[TS-27](../src/modules/ROOT/partials/027/08-code.adoc).
 
 A literal `{...}` — a URI template variable, a shell `${var}` expansion, a
 JSDoc `{type}` annotation, or similar — is safe inside a delimited block

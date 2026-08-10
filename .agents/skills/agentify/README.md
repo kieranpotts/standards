@@ -49,5 +49,5 @@ which is decoration benefits from a stronger model on the larger standards.
 
 - [AGENTS.md specification](https://agents.md) — the format this skill writes.
 
-- [TS-27: Markdown](../../../src/027/README.adoc) — the formatting conventions
-  every generated `AGENTS.md` follows.
+- [TS-27: Markdown](../../../src/modules/ROOT/pages/027-markdown.adoc) — the
+  formatting conventions every generated `AGENTS.md` follows.

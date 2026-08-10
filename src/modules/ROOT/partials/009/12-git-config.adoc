@@ -1,0 +1,390 @@
+= Git configuration
+
+To support the workflow described in this technical standard, you SHOULD
+configure Git for the following settings. You can do this by editing your
+`~/.gitconfig` file, else using Git's `git config` command.
+
+== init.defaultBranch
+
+The branching and merging workflow described in this technical standard
+recommends the use of a default branch named `dev`, or `latest/dev` where
+multiple long-term support (LTS) versions are maintained in parallel. This
+naming supports the objective of simplicity by using semantically clear branch
+names.
+
+The following setting will tell Git to use this name for the initial branch of a
+new repository, replacing `main` or `master` whenever you initialize
+(`git init`) a new repository.
+
+[source,ini]
+----
+[init]
+  defaultBranch = dev
+----
+
+== merge.ff
+
+This technical standard RECOMMENDS that nearly all merges be done with the
+fast-forward-only constraint:
+
+[source,sh]
+----
+git merge --ff-only
+----
+
+You can make this the default merge option, so you won't need to supply the
+`--ff-only` flag every time:
+
+[source,ini]
+----
+[merge]
+  ff = only
+----
+
+An objective of the version control workflow described in this technical
+standard is to maintain clean, linear commit histories, supporting simplicity
+and provenance. Fast-forward merges achieve this. In fast-forward-only mode,
+merge commits (which produce non-linear commit histories) are never applied.
+
+When there is divergent work in the target branch that blocks a fast-forward, a
+`git merge` operation in fast-forward-only mode will fail. In this scenario, you
+must rebase the source branch on the target branch before retrying the merge:
+
+[source,sh]
+----
+git rebase <branch>
+git merge --ff-only
+----
+
+[NOTE]
+======
+Epic branches use a merge-down synchronization strategy that intentionally
+creates merge commits (see *xref:009-version-control.adoc[]* and
+*xref:009-version-control.adoc[]*). The `merge.ff = only` setting will prevent these
+merges. When working with epic branches, override the default per-merge by
+passing `--no-ff` (or simply omitting `--ff-only`). For the epic merge-down
+sync, the explicit form is:
+
+[source,sh]
+----
+git merge --no-ff origin/dev
+----
+======
+
+[TIP]
+======
+Since Git 2.36, you can avoid having to remember the per-merge override by
+configuring a conditional include scoped to epic branches. Add the following to
+your `~/.gitconfig`:
+
+[source,ini]
+----
+[includeIf "onbranch:epic/"]
+  path = ~/.gitconfig-epic
+----
+
+Then create `~/.gitconfig-epic` with:
+
+[source,ini]
+----
+[merge]
+  ff = true
+----
+
+This automatically restores Git's default merge behavior (fast-forward when
+possible, merge commit when not) whenever the checked-out branch starts with
+`epic/`.
+======
+
+== pull.rebase
+
+`git fetch` and `git pull` are frequently confused. `git fetch` downloads new
+commits, branches, and tags from a remote into your local object database and
+updates your remote-tracking refs (eg. `origin/dev`) — it never touches your
+working tree or any local branch. `git pull` is shorthand for `git fetch`
+followed immediately by an integration step (a merge or a rebase) that brings
+those fetched changes into your current local branch. This technical standard
+sometimes recommends `git fetch` on its own — for example, when synchronizing
+epic branches with `dev` — specifically to keep the download step separate
+from the integration step, so the merge can be inspected and conflicts resolved
+deliberately rather than as a side effect of a single combined command.
+
+For `git pull` operations, you have two options:
+
+* Fast-forward-only
+* Rebase
+
+Both are good options and both support the version control workflow described in
+this technical standard.
+
+The advantage of the fast-forward-only strategy on `git pull` operations is
+consistency with the configuration for `git merge` operations. Since this is not
+Git's default behavior, you must opt-in to it:
+
+[source,sh]
+----
+git pull --ff-only [<branch>]
+----
+
+You can make this the default pull strategy by setting the following in your
+`~/.gitconfig`:
+
+[source,ini]
+----
+[pull]
+  ff = only
+----
+
+Now you won't need to use the `--ff-only` flag on every `git pull` operation.
+You can still override the default using other flags such as `--no-ff`.
+
+The fast-forward-only strategy ensures that the local branch is always
+fast-forwarded to the upstream branch, and explicit merge commits are never
+recorded on the local branch. If there is divergent work in the upstream branch,
+the pull operation fails, requiring you to first perform a `git rebase` on the
+upstream branch.
+
+[source,sh]
+----
+git rebase <branch>
+git pull --ff-only
+----
+
+Using the pull-rebase strategy automates the initial rebasing step. On
+`git pull`, Git attempts a fast-forward. If that's not possible, it rebases your
+local commits onto the upstream branch before retrying the pull operation. In
+effect, the following command does `git rebase <branch> && git pull --ff-only`:
+
+[source,sh]
+----
+git pull --rebase [<branch>]
+----
+
+You can make the `--rebase` flag the default behavior by adding the following
+setting to your `~/.gitconfig`. This setting will take precedence over any
+`pull.ff` settings.
+
+[source,ini]
+----
+[pull]
+  rebase = true
+----
+
+The end result is the same linear history, but the workflow differs:
+`pull.rebase = true` automates the rebase step, whereas `pull.ff = only`
+requires you to perform the rebase manually. The choice is between automation
+and explicit control.
+
+[TIP]
+======
+Even with these options set in your `~/.gitconfig`, this may not change the
+default behavior of Git GUIs, such as those built into code editors like
+IntelliJ or VS Code. You may need to adjust equivalent settings in the Git GUIs
+you use.
+======
+
+== Other recommended configurations
+
+The following configurations are RECOMMENDED, though they are not necessary to
+implement the version control workflow described in this technical standard.
+
+=== push.autoSetupRemote
+
+When you create a new local branch and run `git push` for the first time, Git by
+default refuses the operation and asks you to specify the upstream tracking
+branch. Alternatively, you can set up branch tracking, which creates
+associations between local and remote branches, using
+`git push --set-upstream origin <branch>` (or the shorter `-u` flag). Thereafter
+you can `git push` without further arguments.
+
+Since Git 2.37, this manual step can be eliminated by enabling the following
+setting:
+
+[source,ini]
+----
+[push]
+  autoSetupRemote = true
+----
+
+With this enabled, `git push` on a new branch automatically creates a branch of
+the same name on the remote, and sets it as the upstream tracking branch.
+Subsequent pushes and pulls on that branch then work without further
+configuration.
+
+An advantage of this setting is that it forces local and remote branches that
+track one another to have identical names. With the manual setup, upstream
+tracking branches can be named differently — which can happen accidentally — and
+this can be confusing or break automated processes that depend on consistent
+branch naming.
+
+=== commit.gpgSign
+
+By default, Git does not verify the identity of commit authors. The `user.name`
+and `user.email` values recorded against each commit are taken directly from the
+local `git config`, and anyone can set these to any value. This means it is
+trivial to forge authorship. A malicious actor can author commits that appear to
+have been made by someone else.
+
+Signing commits mitigates this by attaching a cryptographic signature that
+verifies the author's identity. Signing allows genuine commits to be
+distinguished from forged ones. Many hosting providers (GitHub, GitLab, etc.)
+will display a "Verified" badge on signed commits, and some organizations
+require signed commits on protected branches.
+
+Commit signing is most valuable for open source projects, where maintainers
+routinely accept contributions from untrusted third parties and have no other
+means of verifying that a commit genuinely originated from its claimed author.
+For closed source projects, the risk is lower, because push access is already
+gated by authentication (SSH keys, personal access tokens, etc.), so the set of
+possible commit authors is already constrained to known, trusted individuals.
+However, signing is still useful in closed source contexts for audit trails,
+regulatory compliance, and defense-in-depth against insider threats or
+compromised developer accounts.
+
+Git supports three signing formats: GPG (the original, via `gpg`), SSH (since
+Git 2.34, reusing your existing SSH key), and X.509 (via `gpgsm`). SSH signing
+is the simplest to set up if you already use an SSH key for Git authentication.
+
+To enable SSH-based commit signing:
+
+[source,ini]
+----
+[commit]
+  gpgSign = true
+[tag]
+  gpgSign = true
+[gpg]
+  format = ssh
+[user]
+  signingKey = ~/.ssh/id_ed25519.pub
+----
+
+Replace the `signingKey` path with the public key you want to sign with. You
+will also need to register the same public key as a signing key with your Git
+hosting provider (this is a separate step from registering it as an
+authentication key).
+
+For GPG-based signing, omit the `gpg.format` line (GPG is the default) and set
+`user.signingKey` to your GPG key ID.
+
+=== core.autocrlf
+
+[source,ini]
+----
+[core]
+  autocrlf = false
+----
+
+This setting tells Git not to transform line endings to CRLF (Windows' native
+line ending format) when files are checked out from a remote repository to a
+local repository on a Windows system. Doing such a transformation is unnecessary
+since all modern code editors can be configured to support Unix line endings
+(LF), and this can be enforced at the repository level using tools like
+https://editorconfig.org/[EditorConfig].
+
+=== core.eol
+
+[source,ini]
+----
+[core]
+  eol = lf
+----
+
+This setting tells Git to normalize line endings to the Unix standard (LF) on
+all files that Git auto-detects as being text-based. This is equivalent to
+adding the following rule to `.gitattributes`.
+
+[source,ini]
+----
+* text=auto eol=lf
+----
+
+=== rerere.enabled
+
+This workflow rebases branches onto `dev` frequently — the RECOMMENDED cadence
+is at least once per day for temporary branches (see
+*xref:009-version-control.adoc[]*), and epic branches merge `dev` into themselves at
+regular intervals. Both patterns can require resolving the same conflict
+repeatedly: a rebase replays every commit on the branch against the new base, so
+a conflict in an early commit may need to be resolved again for each subsequent
+rebase, and a long-lived epic branch can hit the same conflicting hunk on every
+merge-down until the underlying divergence is finally reconciled.
+
+Git's *reuse recorded resolution* feature eliminates this repeated effort. Once
+enabled, Git records how you resolved a conflict and automatically reapplies the
+same resolution if an identical conflict recurs.
+
+[source,ini]
+----
+[rerere]
+  enabled = true
+----
+
+This is a purely local setting with no effect on the recorded history or on
+other contributors — it only changes how conflicts are resolved on the machine
+where it's enabled. There is no reason not to enable it globally.
+
+=== Git aliases
+
+Git aliases can streamline your workflow by creating shortcuts for
+frequently-used commands. The following aliases support the version control
+workflow described in this technical standard:
+
+*Preserve committer dates during rebase:*
+
+When you run `git rebase`, the commit objects have their committer dates reset
+to the current date. To preserve the original author date as the committer date:
+
+[source,ini]
+----
+[alias]
+  rb = rebase --committer-date-is-author-date
+----
+
+Then use `git rb` instead of `git rebase`.
+
+*Safe force push:*
+
+The `--force-with-lease` flag is safer than `--force` when rewriting history on
+pushed branches. Create an alias to make it easier to use:
+
+[source,ini]
+----
+[alias]
+  puff = push --force-with-lease
+----
+
+Then use `git puff` instead of `git push --force-with-lease`.
+
+*Fast-forward merge:*
+
+To make fast-forward-only merges more convenient:
+
+[source,ini]
+----
+[alias]
+  ff = merge --ff-only
+----
+
+Then use `git ff <branch>` instead of `git merge --ff-only <branch>`.
+
+*Synchronize with upstream:*
+
+Create an alias that synchronizes your local branch with the upstream, using
+your preferred strategy (rebase or ff-only):
+
+[source,ini]
+----
+[alias]
+  sync = pull --rebase
+----
+
+Or:
+
+[source,ini]
+----
+[alias]
+  sync = pull --ff-only
+----
+
+Then use `git sync` instead of `git pull --rebase` or `git pull --ff-only`.

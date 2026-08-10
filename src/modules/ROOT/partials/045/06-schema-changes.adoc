@@ -1,0 +1,101 @@
+= Schema changes
+
+Schema changes — changes to the structure of data within a single storage system
+— are the most common form of data migration. They have a well-developed
+discipline of their own, built around the principle that schema changes MUST be
+deployable without downtime and reversibly.
+
+== Expand-and-contract
+
+The fundamental pattern for zero-downtime schema change is
+_expand-and-contract_, sometimes called parallel change. A schema change is
+decomposed into a sequence of smaller changes, each of which is independently
+deployable and reversible:
+
+1. *Expand.* Add the new schema elements (columns, tables, indexes) alongside
+   the old. Both old and new representations coexist. The application is
+   deployed in a version that writes to both and reads from the old.
+
+2. *Migrate.* Backfill the new representation from the old, in the background,
+   idempotently.
+
+3. *Switch.* Deploy a version of the application that reads from the new
+   representation. Both representations are still written to.
+
+4. *Contract.* Stop writing to the old representation. After a soak period,
+   remove the old schema elements.
+
+Each step is independently deployable and independently reversible. A failed
+step is rolled back to the previous step, not to the start of the migration.
+
+[IMPORTANT]
+======
+Never combine expand and contract into a single deploy. A change that adds the
+new column, backfills it, switches reads to it, and drops the old column in one
+release is a big-bang migration in disguise — it has the downtime and rollback
+profile of a big-bang migration, even if it looks like a schema change.
+======
+
+== Compatibility
+
+The application code that runs against the schema MUST be compatible with every
+schema state it can encounter. In practice this means:
+
+* During the expand phase, the application MUST tolerate the new representation
+  being absent (not yet deployed) or present-but-empty (deployed, not yet
+  backfilled).
+
+* During the switch phase, the application MUST tolerate both representations
+  being present.
+
+* During the contract phase, the application MUST tolerate the old
+  representation being absent.
+
+A common heuristic: any application version SHOULD be compatible with the schema
+state produced by _one_ schema change forward or backward from the state it was
+deployed against. This permits independent deployment of schema and application,
+and it is the precondition for safe phased rollout.
+
+== Forward and backward compatibility
+
+A schema change is _backward compatible_ if the new schema can serve old
+application versions, and _forward compatible_ if the old schema can serve new
+application versions. Both SHOULD hold during an expand-and-contract migration,
+so that schema and application can be deployed in either order.
+
+Where forward compatibility is not achievable — for example, when a new column
+is required by new application logic — the migration MUST sequence the
+deployments to preserve correctness: expand first, then application, then
+contract. The plan MUST state this ordering explicitly.
+
+== Online schema change tools
+
+For relational databases, prefer online schema change tooling that performs the
+change without holding long-running exclusive locks. Examples include native
+online DDL where the engine supports it, and tooling that performs
+change-by-shadow-copy (`gh-ost`, `pt-online-schema-change`, Spirit, and
+equivalents). For non-relational stores, the equivalent pattern is a managed
+index rebuild or a re-partition that does not block the live workload.
+
+The use of online tooling does not relax the expand-and-contract discipline.
+Even an online `ALTER` SHOULD be deployed in isolation from the application
+changes that depend on it, so that each can be rolled back independently.
+
+== Versioned migration scripts
+
+Schema changes SHOULD be applied through a versioned migration tool that records
+each change as an ordered, timestamped delta script with a paired reverse
+script. The tooling provides:
+
+* A single source of truth for the current schema state of an environment.
+
+* Reproducible application of the schema to new environments.
+
+* A defined reverse path for each step, when one exists.
+
+A reverse script SHOULD accompany every forward script. Where a change is
+genuinely irreversible (a destructive type coercion, a column drop with no
+backup), the reverse script MUST be a no-op that emits a clear warning, and the
+irreversibility MUST be flagged in the plan.
+
+For versioning practices, see *xref:011-versioning.adoc[TS-11: Versioning]*.

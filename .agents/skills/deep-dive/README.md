@@ -6,7 +6,7 @@ Reviews a single technical standard in depth, records every finding in a
 The review and the remediation are separate steps. The findings are produced
 first, for a human to read and judge before any of them are acted on.
 
-The agent reads the standard in full — `README.adoc`, every `include::`d file,
+The agent reads the standard in full — its page, every `include::`d partial,
 any subdirectories, and its `AGENTS.md` — along with the yardsticks it will be
 measured against: the repository style guide and template, TS-26 (technical
 writing), TS-27 (Markdown), and TS-28 (AsciiDoc).

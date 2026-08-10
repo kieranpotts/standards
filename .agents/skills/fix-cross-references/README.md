@@ -2,17 +2,19 @@
 
 Scans the technical standards for broken internal cross-references and repairs
 them, so that every reference from one standard to another carries the right
-number, the right title, and a path that actually resolves.
+number, the right title, and a target that actually resolves.
 
-The agent builds an index of TS numbers, titles, and directories from
-`src/README.adoc`, then sweeps the `.adoc` and `.md` files in scope — either a
-single standard or the whole of `src/` — for anything that looks like a
-reference to another standard.
+The agent builds an index of TS numbers, titles, and page slugs from
+`src/modules/ROOT/pages/index.adoc`, then sweeps the `.adoc` and `.md` files
+in scope — either a single standard or the whole of `src/modules/ROOT/` —
+for anything that looks like a reference to another standard. `.adoc` files
+use Antora `xref:`/`include::` resource IDs; `AGENTS.md`/`GAPS.md` files keep
+the older relative-Markdown-link convention.
 
-Each candidate is checked on three axes: does the number exist, does the stated
-title match the index, and does the relative path resolve from where the
-referring file actually sits. Only the ones that fail a check are touched; the
-link syntax around them is left alone.
+Each candidate is checked on the axes that apply to its mechanism: does the
+number exist, does the stated title match the index, and does the `xref:`
+slug or the `AGENTS.md` relative path actually resolve. Only the ones that
+fail a check are touched; the link syntax around them is left alone.
 
 Anything ambiguous is deliberately not repaired. A reference with more than one
 plausible target keeps its original text and is reported as unresolved, on the
