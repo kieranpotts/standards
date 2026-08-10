@@ -190,6 +190,16 @@ which follows RFC 6570 above. Markdown is also an exception: placeholders MUST
 use square brackets (`[placeholder]`) because angle brackets are reserved for
 raw HTML. See [TS-27](../src/027/08-code.adoc).
 
+A literal `{...}` — a URI template variable, a shell `${var}` expansion, a
+JSDoc `{type}` annotation, or similar — is safe inside a delimited block
+(` ---- `), where AsciiDoc does not perform attribute substitution. But the
+same text written inline in prose, in a table cell, or in a list item MUST
+have its opening brace escaped as `\{...}`, otherwise Asciidoctor treats it as
+a reference to a document attribute and logs "skipping reference to missing
+attribute". The escape renders identically and keeps the real syntax intact —
+do not switch such text to angle-bracket placeholder notation, which would
+misrepresent it.
+
 Where a standard documents a language that itself uses angle brackets — Gherkin
 scenario outlines, for example — the two uses are indistinguishable on the page.
 Say so explicitly in the surrounding prose rather than switching notation.
