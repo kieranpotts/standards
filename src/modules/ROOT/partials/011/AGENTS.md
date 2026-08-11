@@ -85,7 +85,7 @@ though this standard references both.
   - Commits flagged `INCOMPAT` (internal-only breaking changes) MUST NOT, on
     their own, trigger a major bump — they affect internal callers but not the
     public API contract, so they bump patch like any other internal change.
-  - Commits of type `step`, `release`, `merge`, and `revert` are
+  - Commits of type `step`, `version`, `merge`, and `revert` are
     version-neutral; they do not trigger bumps.
 
   When a release accumulates multiple commits, the highest applicable bump
