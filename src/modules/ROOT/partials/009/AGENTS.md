@@ -116,7 +116,7 @@ to adapt, not a rigid framework.
 - **Each commit MUST be scoped to exactly one of eleven revision types.**
 
   For software repositories: `behavior`, `quality`, `fix`, `step`, `refactor`,
-  `style`, `maintenance`, `chore`, `release`, `merge`, `revert`.
+  `style`, `maintenance`, `chore`, `version`, `merge`, `revert`.
 
   - **behavior** — change in user-facing operation (new, changed, deprecated,
     removed). Maps to functional requirements ("behaviors" in
@@ -140,7 +140,8 @@ to adapt, not a rigid framework.
   - **chore** — small, insignificant housekeeping not worth tracking in the
     issue tracker; typically doesn't touch code/config, may skip review and
     commit directly to trunks.
-  - **release** — prepares a new software release.
+  - **version** — prepares a new software release (eg. tags the version
+    number). Marks that a version was cut, not that it was deployed.
   - **merge** / **revert** — capture the corresponding Git operations.
 
   For non-executable content repositories (docs, specs, handbooks), the
@@ -176,7 +177,7 @@ to adapt, not a rigid framework.
   distinct changes in one commit are comma-separated. SHOULD be imperative
   present tense ("change" not "changed") — completes the sentence "If applied,
   this commit will <description>." Generally start with a verb describing the
-  action; bug fixes need only describe the problem; release commits can give
+  action; bug fixes need only describe the problem; version commits can give
   just the version number.
 
   ```
@@ -184,7 +185,7 @@ to adapt, not a rigid framework.
   step: add openapi specification
   fix: invalid yaml formatting
   behavior: enable route to openapi spec
-  release: v0.0.0-beta
+  version: 0.0.0-beta
   ```
 
 - **Use flags to signpost special commits.**
