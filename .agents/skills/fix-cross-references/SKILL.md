@@ -136,3 +136,32 @@ prompt the user for clarification.
 
   The reference is broken, but you cannot repair it. Report it as a broken
   link rather than repointing it at some other standard.
+
+- An `xref:` in an `.adoc` file carries a `#fragment` or a custom, descriptive
+  link text instead of the standard's exact title (eg.
+  `[TS-32: Bash → Functions]`, `[TS-1: Use cases]`).
+
+  This is not a stylistic variant to leave alone — this repo's style guide
+  (`docs/style-guide.md`) explicitly bans section-fragment links between
+  standards, because a standard is published as one merged page and Antora's
+  section-ID algorithm isn't worth replicating for a deep link. Antora itself
+  supports `#anchor` fragments and free-form link text (that's general
+  platform capability, not this repo's convention), but here the link text
+  MUST always be normalized to the plain `TS-N: Title` form and any `#anchor`
+  dropped, landing the reader on the page rather than a section.
+
+- The link text has malformed nested emphasis, eg.
+  `*xref:011-versioning.adoc[TS-11: *Versioning*]*`.
+
+  The inner `*...*` around the title is never intentional — it collides with
+  the outer bold the style guide already requires around the whole macro.
+  Strip the inner asterisks so the title text is exactly `TS-N: Title`.
+
+- An `AGENTS.md`/`GAPS.md` link targets `../../pages/NNN-slug.adoc` instead of
+  another standard's `AGENTS.md`.
+
+  This is not a broken cross-reference — it's the standard's own "(source)"
+  self-link back to its `.adoc` page, a different and legitimate pattern.
+  Only relative links of the form `../NNN/AGENTS.md` (or `GAPS.md`) pointing
+  at a *different* standard fall under this skill's `../NNN/` check; leave a
+  same-standard `../../pages/` self-link untouched.
