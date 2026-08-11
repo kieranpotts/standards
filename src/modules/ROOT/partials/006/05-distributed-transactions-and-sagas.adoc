@@ -1,0 +1,94 @@
+= Distributed transactions and sagas
+
+A single-database transaction gives atomicity for free: either every change
+commits, or none does. Once a business operation spans more than one service —
+each with its own database, per
+*xref:005-application-architecture.adoc[TS-5: Application Architecture]*'s
+guidance that each service owns its own state — that guarantee disappears, and
+the system MUST decide explicitly how it recovers when one step succeeds and a
+later step fails.
+
+== Why two-phase commit is usually the wrong tool
+
+Two-phase commit (2PC) is the classical mechanism for atomic commits across
+multiple resources: a coordinator asks every participant to prepare, and only
+commits once every participant has confirmed it can. It gives strong
+consistency across services, but at a cost that is rarely acceptable in a
+microservice architecture:
+
+- Every participant MUST hold locks on the affected rows from the prepare
+  phase until the coordinator's final decision, blocking other transactions
+  for the duration.
+- If the coordinator fails after the prepare phase but before broadcasting
+  the decision, participants are left blocked indefinitely, holding locks,
+  unable to unilaterally decide whether to commit or abort.
+- It requires every participant to support the same distributed-transaction
+  protocol, which is rarely true across polyglot-persistence services.
+
+2PC SHOULD NOT be the default mechanism for cross-service consistency in a
+microservice architecture. It is appropriate only for a small, tightly
+controlled set of participants where its availability cost is acceptable and
+alternatives genuinely do not fit.
+
+== The saga pattern
+
+A saga decomposes a cross-service business operation into a sequence of local
+transactions, one per service, each of which commits independently. If a step
+fails, the saga runs *compensating transactions* for every step that already
+committed, undoing their effect in reverse order rather than rolling back a
+single distributed transaction. This trades strong atomicity for availability:
+no step blocks waiting on the others, and the operation always terminates in a
+known state (fully applied, or fully compensated) without indefinite locking.
+
+Compensating transactions MUST be idempotent and retryable — see
+<<Idempotency and delivery semantics>> — because they run under the same
+uncertain-delivery conditions as any other distributed operation, and a saga
+that cannot safely retry a failed compensation is not actually recoverable. A
+compensation is not always a literal reversal: "cancel a shipped order" cannot
+un-ship a package, so its compensation is a new, forward-moving operation
+(issue a return) rather than a rollback.
+
+Two ways to coordinate the steps of a saga:
+
+- *Choreography.* Each service publishes an event when it completes its local
+  transaction; the next service in the sequence reacts to that event and
+  performs its own step. Decentralized — no single point of coordination or
+  failure — but the overall flow is implicit, spread across every
+  participant's event handlers, which makes a multi-step saga hard to observe
+  or reason about as a whole once it grows past three or four steps.
+
+- *Orchestration.* A dedicated orchestrator issues commands to each
+  participant in sequence and tracks the saga's state explicitly, invoking
+  compensations itself if a step fails. The flow is explicit and centrally
+  observable, at the cost of a new component that itself must be made
+  reliable — its state MUST survive a restart mid-saga, so it is typically
+  backed by durable, replayable storage (an event log or a workflow engine).
+
+Choreography SHOULD be preferred for short sagas (two or three steps) where
+the coupling it avoids matters more than centralized visibility.
+Orchestration SHOULD be preferred as saga length or branching complexity
+grows, because an explicit, inspectable state machine becomes more valuable
+than avoiding a coordinator once a human has to debug a stuck saga in
+production.
+
+== The dual-write problem and the transactional outbox
+
+A service that writes to its own database and then separately publishes an
+event describing that write cannot make both operations atomic: if it crashes,
+or the publish call fails, after the database commit but before the event is
+published, the write exists but the rest of the system never hears about it.
+This is the *dual-write problem*, and it applies to every saga step, not only
+to sagas — any service that updates its own state and notifies others of that
+update is exposed to it.
+
+The *transactional outbox* pattern resolves it. The service writes the event
+to an "outbox" table in the same local transaction as the business data it
+describes, so the two either both commit or both roll back — they cannot
+disagree. A separate process (a poller, or change-data-capture reading the
+database's replication log) then reads the outbox table and publishes the
+event to the message broker, retrying until it succeeds, and marks the
+row as published only on confirmed delivery. This gives at-least-once
+delivery of the event (see <<Idempotency and delivery semantics>>) with no
+possibility of a write persisting silently without ever being announced, and
+without requiring a distributed transaction between the database and the
+message broker.

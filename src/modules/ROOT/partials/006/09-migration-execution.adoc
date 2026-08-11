@@ -1,0 +1,88 @@
+= Monolith-to-microservices migration execution
+
+*xref:005-application-architecture.adoc[TS-5: Application Architecture]*
+covers when service extraction is premature. This section covers how to
+execute an extraction once a component's interface has stabilized and the
+prerequisites in <<Microservices at scale>> are in place. It complements
+*xref:045-data-migrations.adoc[TS-45: Data Migrations]*, which covers the
+mechanics of moving the underlying data — extracting a service almost always
+requires migrating the data it owns, and that data migration SHOULD follow
+TS-45's expand-and-contract discipline in full.
+
+== The strangler fig pattern
+
+Replacing a monolith with a big-bang rewrite carries the highest risk of any
+migration strategy: the new system is unproven until the moment it fully
+replaces the old one, by which point the cost of discovering a fundamental
+problem is highest. The strangler fig pattern, named for a vine that
+gradually envelops and eventually replaces its host tree, avoids this by
+routing an increasing share of traffic through new services while the
+monolith continues serving everything not yet migrated:
+
+1. Introduce a routing layer (a proxy, gateway, or feature flag) in front of
+   the monolith, capable of directing individual requests to either the
+   monolith or a new service.
+2. Extract one bounded piece of functionality into a new service.
+3. Redirect the routing layer to send matching requests to the new service
+   instead of the monolith.
+4. Repeat for the next piece, until the monolith serves nothing that has not
+   already been extracted, at which point it can be retired.
+
+Each step is small, independently reversible (route back to the monolith if
+the new service misbehaves), and delivers value as it lands rather than only
+once the whole migration completes. This is the same incremental,
+independently-reversible discipline as TS-45's expand-and-contract pattern,
+applied to service boundaries instead of schema changes.
+
+== Prioritizing what to extract first
+
+A large migration cannot extract everything at once, and the order of
+extraction materially affects the risk and value delivered along the way. Two
+factors SHOULD drive prioritization:
+
+- *Boundary stability.* Extract components whose interface and domain model
+  have already stabilized before components still under active
+  redesign — extracting an unstable boundary just relocates the churn into a
+  more expensive, cross-service form, per the premature-decomposition
+  guidance in *xref:005-application-architecture.adoc[TS-5: Application Architecture]*.
+
+- *Isolation.* Extract components with fewer dependencies on the rest of the
+  monolith before deeply entangled ones. Early extractions validate the
+  migration approach — routing, data ownership, operational tooling — while
+  the cost of getting it wrong is still low.
+
+A migration plan SHOULD sequence extractions explicitly, in writing, rather
+than extracting opportunistically — see
+*xref:003-design-docs.adoc[TS-3: Design Docs]* for how to capture that plan.
+
+== Parallel running
+
+For a piece of functionality where correctness matters enough that a routing
+switch alone is not sufficient evidence of success — a pricing engine, a
+billing calculation — run the new service and the monolith's equivalent code
+path side by side, compare their outputs on real traffic, and only cut over
+once they agree consistently. This is the service-extraction counterpart of
+TS-45's shadow-mode dual-write verification, applied to behavior rather than
+to stored data: the monolith continues to serve the response, while the new
+service's output is logged and diffed against it silently, so that
+disagreements are caught before they can ever reach a user.
+
+== Sequencing over a multi-year timeline
+
+A large monolith-to-microservices migration commonly spans years, not
+sprints, and MUST be planned as a long-running, prioritized program rather
+than a single project with a fixed end date. Concretely, this means:
+
+- The extraction backlog SHOULD be re-prioritized periodically as the
+  system and organization change, rather than fixed once at the start —
+  the reasoning that made a given boundary the right next extraction two
+  years ago may no longer hold.
+- Business and engineering leadership SHOULD agree explicitly on the
+  technical investment a multi-year migration requires, since a migration
+  that competes for every sprint against feature work will stall
+  indefinitely without a standing allocation of capacity.
+- The monolith and the extracted services will coexist for a long period,
+  not briefly — so the monolith SHOULD continue to receive the same
+  operational care (monitoring, dependency updates, incident response) as
+  the services replacing it, for as long as it is still handling live
+  traffic.

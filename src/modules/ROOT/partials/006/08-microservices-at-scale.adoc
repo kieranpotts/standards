@@ -1,0 +1,113 @@
+= Microservices at scale
+
+*xref:005-application-architecture.adoc[TS-5: Application Architecture]*
+covers when and how to extract a service from a monolith. This section covers
+the concerns that only appear once a system has grown to many services: what
+must be in place before microservices pay off at all, how to size individual
+services, and how to keep a large service fleet coherent.
+
+== Prerequisites and total cost of ownership
+
+Microservices are not free relative to a monolith — they trade one kind of
+complexity (a large, tightly coupled codebase) for another (the operational
+"glue" that holds many independent services together: service discovery,
+distributed tracing, a deployment pipeline per service, a service mesh or
+equivalent, cross-service testing). That glue requires sustained investment
+in infrastructure and tooling, not a one-time setup cost, and it is paid
+regardless of how simple any individual service is.
+
+Before adopting microservices, an organization SHOULD have, or be committed to
+building:
+
+- A deployment pipeline that makes shipping one more service a marginal cost,
+  not a bespoke project — see
+  *xref:049-cloud-platform-engineering.adoc[TS-49: Cloud Platform Engineering]*.
+- Observability infrastructure — distributed tracing, centralized logging,
+  per-service dashboards — capable of following a request across service
+  boundaries; see
+  *xref:057-logging-monitoring-observability.adoc[TS-57: Logging, Monitoring, Observability]*.
+  Debugging a multi-service request without this is materially harder than
+  debugging a monolith.
+- A team structure that maps to the intended service boundaries, per Conway's
+  law (see *xref:005-application-architecture.adoc[TS-5: Application Architecture]*),
+  since services owned by no one, or by everyone, degrade at the same rate
+  regardless of how well they were designed.
+
+An organization that has not made these investments SHOULD treat that as a
+signal to stay with, or return to, a modular monolith rather than absorb the
+distributed-systems complexity described throughout this standard without the
+infrastructure to manage it. The total cost of ownership of many services —
+including the cumulative infrastructure overhead of running and monitoring
+each one, even when individually cheap — SHOULD be weighed explicitly against
+the coordination cost of the monolith it would replace, not assumed to be
+lower by default.
+
+== Service sizing
+
+Two failure modes exist at opposite ends of the sizing spectrum, and both are
+common enough to name:
+
+- *Nanoservices.* A service is split too small — often along a technical
+  seam rather than a business-capability seam — so that a single logical
+  operation requires calling several services to complete. The distributed-
+  systems overhead described throughout this standard (network calls,
+  partial failure, delivery semantics) is now paid for a decomposition that
+  bought no real independence in return, since the resulting services still
+  change together. A service SHOULD encapsulate a complete business
+  capability, per the bounded-context guidance in
+  *xref:005-application-architecture.adoc[TS-5: Application Architecture]* —
+  not a single database table, or a single technical operation, split out for
+  its own sake.
+
+- *Overgrown services.* A service that started well-scoped accretes
+  unrelated responsibilities over time until it needs multiple teams to
+  operate it safely, recreating monolith-style coordination costs inside a
+  single service. This is the signal to split it — along the same
+  bounded-context reasoning used to decide the original boundary, not along
+  whatever line is most convenient to extract first.
+
+Neither failure mode is purely a one-time decision — a system's ideal service
+sizing shifts as its domain and organization change, so service boundaries
+SHOULD be revisited periodically rather than treated as permanent once drawn.
+
+A large number of services also carries a cumulative cost independent of any
+one service's size: each one carries its own baseline infrastructure overhead
+(a deployment pipeline, monitoring, minimum resource allocation), and that
+overhead compounds across hundreds or thousands of services even when each
+is individually well-sized. This cumulative cost is part of the total cost of
+ownership described above, and SHOULD factor into the decision to split a
+service, not just the service's own internal coherence.
+
+== SOLID at the service level
+
+The SOLID principles, usually applied to classes and modules, generalize
+directly to service boundaries:
+
+- *Single responsibility.* A service SHOULD own one business capability, not
+  several unrelated ones — the service-level restatement of the nanoservice
+  and overgrown-service guidance above.
+
+- *Open/closed.* A service SHOULD be extensible by its consumers without
+  requiring changes to the service itself — through versioned APIs,
+  feature flags, or explicit extension points — rather than requiring every
+  new consumer need to be accommodated by modifying the service's internals.
+
+- *Liskov substitution.* Where more than one service implements the same
+  contract (multiple regional deployments of the same service, or a new
+  implementation replacing an old one behind a stable interface), any
+  implementation MUST be substitutable for another without breaking callers
+  that depend only on the contract.
+
+- *Interface segregation.* A service's public, external-facing API SHOULD be
+  distinct from its internal, trusted-caller API, so that external consumers
+  are not exposed to — and cannot come to depend on — operations meant only
+  for internal use.
+
+- *Dependency inversion.* Services SHOULD depend on abstractions —
+  message contracts published to a broker, or a versioned API contract —
+  rather than on each other's concrete implementations. Routing
+  service-to-service communication through a message broker (see
+  *xref:023-messages-and-events.adoc[TS-23: Messages and Events]*) is the
+  service-level equivalent of depending on an interface rather than a
+  concrete class: publishers do not know, or need to know, which services
+  will consume what they publish.

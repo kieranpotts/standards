@@ -1,0 +1,125 @@
+= Service topology: discovery, gateways, and service mesh
+
+As the number of services grows, the question of how they find and talk to
+each other stops being an application-code concern and becomes an
+infrastructure concern in its own right. This section covers that
+infrastructure layer. It complements
+*xref:049-cloud-platform-engineering.adoc[TS-49: Cloud Platform Engineering]*,
+which covers the surrounding platform (accounts, environments), and
+*xref:020-network-apis.adoc[TS-20: Network APIs]*, which covers the design of
+an individual API.
+
+== Service discovery
+
+A service instance's network location is not stable — instances are added,
+removed, and rescheduled continuously (see <<Fundamentals>>'s fallacy that
+"topology doesn't change"). Service discovery is the mechanism by which a
+caller finds a current, healthy instance of the service it wants to call,
+rather than a hard-coded address.
+
+- *Client-side discovery.* The caller queries a service registry directly and
+  picks an instance itself, applying its own load-balancing logic. Lower
+  latency (no extra hop) but every client MUST implement discovery and
+  balancing logic, or share a library that does.
+
+- *Server-side discovery.* The caller sends the request to a well-known
+  address (a load balancer or router), which queries the registry and
+  forwards the request. Simpler for clients, at the cost of an extra network
+  hop and a component that MUST itself be highly available.
+
+Most modern container-orchestration platforms (Kubernetes, and equivalents)
+provide server-side discovery as a built-in primitive, which is why teams
+building on such a platform SHOULD default to it rather than implementing
+either mechanism from scratch.
+
+== API gateways
+
+An API gateway is a single entry point that sits between external callers and
+the internal services that fulfill their requests. It centralizes
+cross-cutting concerns that would otherwise be duplicated in every
+externally-facing service: authentication, rate limiting, request routing,
+TLS termination, and response aggregation across multiple backend calls.
+
+A gateway SHOULD be used at the boundary between the outside world and the
+system's internal services — not inserted between every pair of internal
+services, which just adds a hop and a single point of failure to
+service-to-service calls that do not need the gateway's concerns applied to
+them.
+
+== Service mesh
+
+A service mesh extends the same idea — centralizing cross-cutting concerns
+outside application code — to *internal* service-to-service traffic. Instead
+of each service linking a shared library for retries, timeouts, circuit
+breaking, mutual TLS, and observability (see
+*xref:020-network-apis.adoc[TS-20: Network APIs]* and
+*xref:057-logging-monitoring-observability.adoc[TS-57: Logging, Monitoring, Observability]*
+for those concerns individually), a lightweight proxy is deployed alongside
+each service instance (the *sidecar* pattern) and intercepts all traffic to
+and from it. A control plane configures every sidecar's behavior centrally.
+
+The mesh's principal payoff is that cross-cutting behavior can be changed for
+every service at once, from one place, without touching application code or
+coordinating a rollout across every team that owns a service. Mutual TLS
+between every service is the canonical example: enabling it via a shared
+library requires every service to adopt a new library version on its own
+schedule; enabling it via a service mesh is a control-plane configuration
+change that applies mesh-wide.
+
+A service mesh is infrastructure with its own operational cost — an extra
+proxy hop on every call, and a control plane that is itself a critical
+dependency of the whole system. It SHOULD be adopted once the number of
+services and the pain of keeping cross-cutting behavior consistent across
+them (particularly a shared library that many teams struggle to keep
+up to date — see <<Shared libraries at scale>>) outweighs that operational
+cost, not as a default starting point for a system with a handful of
+services.
+
+== Microservice contracts
+
+As the number of services grows, an implicit expectation — "every service
+exposes a health check," "every service emits logs in the standard format" —
+stops being reliably true unless it is written down and enforced. A
+*microservice contract* is an explicit, organization-wide document defining
+the behaviors every service is required to implement, independent of how each
+service chooses to implement them. RECOMMENDED minimum contents:
+
+- *Health and readiness endpoints*, in a standard shape, that the platform's
+  orchestrator uses to route traffic and restart unhealthy instances (see
+  <<Resilience and blast radius>>).
+- *Standard observability output* — structured logs, metrics, and traces in
+  the organization's agreed format, so a new service is observable in the
+  same dashboards as every existing one from day one (see
+  *xref:057-logging-monitoring-observability.adoc[TS-57: Logging, Monitoring, Observability]*).
+- *Authentication and authorization expectations* for both inbound and
+  outbound calls.
+- *Graceful shutdown behavior* — draining in-flight requests before exiting,
+  rather than dropping them, on receipt of a termination signal.
+
+A service MAY satisfy the contract using a shared library, or by implementing
+each requirement independently — the contract specifies required behavior,
+not required implementation, so that polyglot services remain free to choose
+their own stack while still meeting the same operational bar.
+
+== Shared libraries at scale
+
+A shared library that every service links is the natural first way to keep
+cross-cutting behavior consistent, and it works well at small scale. It stops
+working as the number of services grows into the hundreds: a breaking change,
+a security patch, or even a routine version bump now requires coordinating an
+update across every team that owns an affected service, and some services
+will always lag. Two structural responses:
+
+1. *Move the concern into infrastructure.* Where the concern can be
+   externalized to a proxy or the platform (as with a service mesh, above),
+   do so — infrastructure can be upgraded once, centrally, without any
+   application code change.
+
+2. *Automate the upgrade, not just the release.* For behavior that
+   genuinely must live in application code, invest in tooling that opens
+   the update as a change against every consuming repository automatically,
+   rather than relying on every team to notice and act on a new release.
+
+A library-upgrade backlog that grows faster than it is worked down is a
+signal that the concern it addresses belongs in infrastructure, not in a
+library every service must remember to update.

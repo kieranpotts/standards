@@ -1,0 +1,118 @@
+= Fundamentals
+
+A distributed system is a set of independently deployable components — services,
+processes, or machines — that communicate over a network to behave as one
+coherent system. Almost every non-trivial application is distributed in this
+sense: a web application talking to a database is already a distributed system
+of two components. This standard covers the concerns that emerge once a system
+crosses process and network boundaries, wherever those boundaries fall.
+
+This is the connective standard for distributed-systems concerns that cut
+across other standards: *xref:005-application-architecture.adoc[TS-5: Application Architecture]*
+covers the shape of a single application and the point at which services are
+extracted from it; *xref:046-distributed-data-and-caching.adoc[TS-46: Distributed Data and Caching]*
+covers how data specifically is kept consistent once copied or replicated;
+*xref:020-network-apis.adoc[TS-20: Network APIs]* and
+*xref:023-messages-and-events.adoc[TS-23: Messages and Events]* cover the
+mechanics of individual calls and messages. This standard covers the
+system-wide properties and failure modes that emerge only when many such
+components operate together: consistency and availability trade-offs,
+consensus, delivery semantics, distributed transactions, service topology, and
+the organizational mechanics of running and evolving a fleet of services.
+
+== The central problem: partial failure
+
+A single process fails completely or not at all. A distributed system fails
+*partially* — one node, one link, or one dependency can fail while the rest of
+the system keeps running, and the components that did not fail cannot always
+tell the difference between "the other side crashed," "the other side is slow,"
+and "the message was lost in transit." This ambiguity is the single hardest
+problem in distributed systems design, and nearly every pattern described in
+this standard — timeouts, retries, idempotency, consensus, sagas — exists to
+manage it.
+
+Code that has only ever run on one machine tends to assume calls either succeed
+or throw immediately. Code written for a distributed system MUST treat every
+call to another component as a call that can fail slowly, fail silently, fail
+partially, or succeed after the caller has already given up and moved on.
+Designing for this from the outset is cheaper than retrofitting it after an
+incident.
+
+== The fallacies of distributed computing
+
+L. Peter Deutsch and colleagues at Sun Microsystems catalogued eight false
+assumptions that engineers new to distributed systems invariably make. Each
+one is a fallacy precisely because the system will work as assumed in
+development and under light load, then fail once it meets production
+conditions — so the fallacies are dangerous by default, not by exception.
+
+- *The network is reliable.* Packets are dropped, connections reset, and
+  requests silently disappear. Every network call MUST have a defined behavior
+  for the case where no response arrives at all.
+
+- *Latency is zero.* A network round trip is orders of magnitude slower than
+  an in-process call, even on a fast local network. Code that treats a remote
+  call like a local one — calling it in a loop, or synchronously on a hot
+  path — will not scale.
+
+- *Bandwidth is infinite.* Payload size, serialization cost, and the number of
+  calls all have a real, billable, and rate-limited cost.
+
+- *The network is secure.* An internal network is not a trust boundary.
+  Traffic between services is interceptable and MUST be authenticated and, where
+  it carries sensitive data, encrypted.
+
+- *Topology doesn't change.* Instances are added, removed, and rescheduled
+  continuously in any modern deployment platform. Code MUST NOT hard-code
+  addresses or assume a fixed set of peers.
+
+- *There is one administrator.* Large systems cross team, and sometimes
+  organizational, boundaries. Coordinating a breaking change requires
+  negotiation, not a unilateral decision.
+
+- *Transport cost is zero.* Serialization, connection setup, load balancing,
+  and encryption all consume real CPU and money at scale, and MUST be
+  accounted for in capacity planning.
+
+- *The network is homogeneous.* Real networks mix protocols, MTUs, and
+  latency characteristics. Code SHOULD NOT assume the same performance
+  characteristics on every hop.
+
+Treat this list as a design checklist. A component that has not been reviewed
+against every fallacy on this list has not been reviewed for production
+readiness in a distributed system.
+
+== Reasoning about systems that defy understanding
+
+Below a certain scale, a distributed system's behavior can be understood
+deductively: read the code, trace the call graph, reason about what will
+happen. Past that scale — many independently-deployed services, evolving
+independently, under concurrent load — the state space becomes too large to
+hold in one engineer's head, and exhaustive deductive reasoning about *why* a
+given failure occurred stops being a practical strategy.
+
+The practical response is to switch strategy rather than push harder on the
+same one. When a system is too complex to reason about deductively:
+
+1. *Invest in empiricism over deduction.* Treat the running system as the
+   source of truth. Observe its actual behavior — through logs, metrics, and
+   traces — rather than trying to predict it from first principles. See
+   *xref:057-logging-monitoring-observability.adoc[TS-57: Logging, Monitoring, Observability]*.
+
+2. *Treat behavior statistically, not individually.* At scale, some requests
+   will always fail for idiosyncratic reasons. Chasing the root cause of every
+   individual failure does not scale; tracking failure *rates* and their
+   trend does.
+
+3. *Prioritize system-level resilience over root-causing every component
+   failure.* A system designed to tolerate the failure of any single
+   component is more valuable than a system in which every past failure has
+   been individually diagnosed and patched, because it also survives the
+   *next* failure mode, which has not been seen yet. The resilience patterns
+   in this standard — timeouts, retries, circuit breakers, bulkheads,
+   graceful degradation — exist to make this the default outcome rather than
+   the exception.
+
+This does not excuse skipping root-cause analysis where it is tractable — it
+is a statement about where to invest limited engineering effort once a system
+has grown past the point where every failure can be individually understood.

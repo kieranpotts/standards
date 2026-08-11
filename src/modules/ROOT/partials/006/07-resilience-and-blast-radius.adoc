@@ -1,0 +1,101 @@
+= Resilience and blast radius
+
+*xref:020-network-apis.adoc[TS-20: Network APIs]* covers the call-level
+resilience patterns — timeouts, retries, circuit breakers, rate limiting —
+that protect one service from one failing dependency. This section covers the
+system-level counterparts: patterns that limit how far a failure spreads once
+it occurs, and how a system detects that a component needs to be taken out of
+rotation in the first place.
+
+== Bulkheads
+
+A bulkhead partitions a shared resource — a connection pool, a thread pool, a
+compute cluster — so that exhaustion in one partition cannot exhaust the
+resource for every partition. Named for a ship's watertight compartments: a
+hull breach floods one compartment, not the whole ship. The most common
+application is per-dependency resource isolation: a service that calls three
+downstream dependencies from a single shared connection pool can have that
+entire pool consumed by one slow dependency, starving calls to the other two
+that are perfectly healthy. Giving each dependency its own pool, sized to that
+dependency's expected load, MUST be considered wherever one slow dependency
+should not be allowed to degrade calls to unrelated dependencies.
+
+== Backpressure
+
+Backpressure is a signal from a consumer to its producer that it cannot keep
+up with the current rate of work, so the producer SHOULD slow down rather
+than keep sending at full rate and forcing the consumer to buffer
+unboundedly, drop work silently, or fall over. A queue with no bound on its
+depth is not a safety mechanism — it converts an overload problem into a
+memory-exhaustion problem and delays the point at which anyone notices.
+
+Systems SHOULD apply backpressure explicitly: bounded queues that reject or
+shed load once full, rather than growing without limit; consumers that pull
+work at their own sustainable rate rather than having it pushed at them
+irrespective of their current load; and rate limits on producers, informed by
+the consumer's actual observed capacity rather than a value chosen once and
+never revisited.
+
+== Health checks and readiness
+
+A component's continued participation in a system depends on other components
+being able to detect, quickly and reliably, that it has become unhealthy.
+Two distinct checks are RECOMMENDED, because they answer different questions
+and drive different actions:
+
+- *Liveness.* Is the process still running and able to make progress at all?
+  A failed liveness check SHOULD trigger a restart of the instance — the
+  process is assumed to be in a state it cannot recover from on its own.
+
+- *Readiness.* Is the instance currently able to serve traffic correctly? An
+  instance can be alive but not ready — still starting up, warming a cache,
+  or temporarily overloaded. A failed readiness check SHOULD remove the
+  instance from load-balancing rotation without restarting it, since the
+  underlying process may recover on its own once the transient condition
+  passes.
+
+Conflating the two — for example, restarting an instance because it is
+temporarily overloaded — turns a transient, self-recovering condition into an
+unnecessary restart, which discards any in-flight work and adds cold-start
+latency exactly when the system can least afford it.
+
+== Blast radius and failure domains
+
+A *failure domain* is the scope within which a single failure is contained —
+a process, a service, an availability zone, a region. System design SHOULD
+deliberately choose failure-domain boundaries so that the failure of one
+component degrades the smallest reasonable portion of the system, rather than
+cascading across it.
+
+Service boundaries, chosen for the domain-modeling reasons described in
+*xref:005-application-architecture.adoc[TS-5: Application Architecture]*, have
+a second, independent benefit as failure-domain boundaries: because a
+microservice is independently deployable and runs in its own process, it can
+also be given its own runtime stack without that choice affecting any other
+service. This makes service boundaries a practical place to trial a new
+language, framework, or runtime under real production traffic — the blast
+radius of that experiment is contained to the one service, rather than the
+whole system, so a bad outcome is a contained, reversible decision rather
+than a system-wide one.
+
+Multi-region and multi-availability-zone deployment extends the same
+principle to infrastructure failure: distributing instances of a service
+across independent physical failure domains means the loss of one zone or
+region degrades capacity rather than causing a total outage. The trade-off is
+the same latency-versus-consistency cost described in
+<<Consistency and availability>> — keeping state consistent across regions
+adds cross-region coordination latency to every write that needs it.
+
+== Exercising resilience under real conditions
+
+Resilience mechanisms that have never been triggered outside a design
+document are unproven. Chaos engineering — deliberately injecting failure
+into a system (killing an instance, adding latency, partitioning a network
+link) to verify it degrades the way it is designed to — turns an assumption
+into a tested fact. It SHOULD be practiced regularly, not only after an
+incident reveals a gap, and it pairs directly with the game-day practice
+described in
+*xref:057-logging-monitoring-observability.adoc[TS-57: Logging, Monitoring, Observability]*:
+a game day exercises whether operators can *diagnose* an injected failure
+using the available dashboards; chaos engineering exercises whether the
+*system* actually recovers from it without operator intervention at all.
