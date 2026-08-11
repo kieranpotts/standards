@@ -9,7 +9,7 @@ Use this when writing, reviewing, or refactoring PHP code.
 
 Do NOT use this for non-PHP languages. See
 [TS-33: Java](../033/AGENTS.md), [TS-35: Python](../035/AGENTS.md), or
-[TS-36: ECMAScript](../036/AGENTS.md) for other languages. For general code
+[TS-36: ECMAScript (JavaScript/TypeScript)](../036/AGENTS.md) for other languages. For general code
 design principles applicable to any language, see
 [TS-7: Code Design](../007/AGENTS.md). For QA and linting policy, see
 [TS-12: Quality Assurance](../012/AGENTS.md).
@@ -137,6 +137,6 @@ public function getUser($username)
 - [TS-12: Quality Assurance](../012/AGENTS.md)
 - [TS-33: Java](../033/AGENTS.md)
 - [TS-35: Python](../035/AGENTS.md)
-- [TS-36: ECMAScript](../036/AGENTS.md)
+- [TS-36: ECMAScript (JavaScript/TypeScript)](../036/AGENTS.md)
 - [PER Coding Style v2.0](https://www.php-fig.org/per/coding-style/)
 - [phpstan phpdoc types](https://phpstan.org/writing-php-code/phpdoc-types)
