@@ -17,29 +17,15 @@ For general code design, see [TS-7: Code Design](../007/AGENTS.md).
 
 ### YAML syntax
 
-- **Write YAML primarily with readability in mind.** Actions and
-  workflows are defined in YAML files, which SHOULD be written primarily
-  with readability in mind.
+- **General YAML conventions apply in full to workflow and action
+  files.** See [TS-30: YAML](../030/AGENTS.md) for quoting, indentation,
+  block-vs-flow style, and comments — including why block-style sequences
+  are RECOMMENDED over flow style for anything (such as trigger branches)
+  that is expected to change over time.
 
-- **Consider maintenance and diffs.** Because Git is line-based, it is
-  RECOMMENDED to use YAML's multi-line syntax for lists, so that adding
-  or removing items produces clean diffs:
-
-  ```yaml
-  # Prefer:
-  on:
-    push:
-      branches:
-        - main
-
-  # Over:
-  on:
-    push:
-      branches: [ "main" ]
-  ```
-
-- **Use YAML comments to document anything not intuitively understood**
-  from the YAML data structure and the workflow/action schema.
+- **The `if` attribute is a JavaScript expression, not a plain string.**
+  This is workflow-specific: YAML's own reserved characters can collide
+  with expression syntax. See "Expressions" below.
 
 ### Designing workflows and actions
 

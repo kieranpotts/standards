@@ -14,9 +14,7 @@ placeholder(s), and (in most cases) no `include::partial$NNN/...[]` includes.
 
 | TS | Title | Notes |
 | --- | --- | --- |
-| [TS-6](src/modules/ROOT/pages/006-distributed-system-design.adoc) | Distributed System Design | Pure stub (`// TODO` only). GAPS.md notes several relevant gaps live in other standards' GAPS.md files instead. |
 | [TS-24](src/modules/ROOT/pages/024-user-manuals.adoc) | User Manuals | Has a short outline but is flagged to be split into separate Technical Documentation / User Documentation standards. |
-| [TS-30](src/modules/ROOT/pages/030-yaml.adoc) | YAML | Pure stub (`// TODO: Introductory text…`). |
 | [TS-35](src/modules/ROOT/pages/035-python.adoc) | Python | Pure stub (`// Introduction.` placeholder only). |
 | [TS-37](src/modules/ROOT/pages/037-web-platform-apis.adoc) | Web Platform APIs | Pure stub aside from "See also" cross-references; has a GAPS.md with open gaps. |
 | [TS-38](src/modules/ROOT/pages/038-node-js-applications.adoc) | Node.js Applications | Pure stub. GAPS.md explicitly notes this. |
@@ -28,16 +26,17 @@ placeholder(s), and (in most cases) no `include::partial$NNN/...[]` includes.
 
 Every standard below has a `GAPS.md` file recording coverage gaps found by
 comparing it against external reference sources, and at least one of those
-gaps is still unresolved (no `**RESOLVED**` entry). TS-2 is the only standard
-with any gaps closed so far (1 of 5).
+gaps is still unresolved (no `**RESOLVED**` entry). TS-2 (1 of 5) and TS-5
+(6 of 13) are the only standards with any gaps closed so far. TS-6's GAPS.md
+has been fully resolved (2 of 2) and so no longer appears in this table — see
+[partials/006/GAPS.md](src/modules/ROOT/partials/006/GAPS.md).
 
 | TS | Title | GAPS.md |
 | --- | --- | --- |
 | TS-2 | Software Design Qualities | [partials/002/GAPS.md](src/modules/ROOT/partials/002/GAPS.md) — 1 of 5 resolved, 4 open |
 | TS-3 | Design Docs | [partials/003/GAPS.md](src/modules/ROOT/partials/003/GAPS.md) |
 | TS-4 | Modeling | [partials/004/GAPS.md](src/modules/ROOT/partials/004/GAPS.md) |
-| TS-5 | Application Architecture | [partials/005/GAPS.md](src/modules/ROOT/partials/005/GAPS.md) |
-| TS-6 | Distributed System Design | [partials/006/GAPS.md](src/modules/ROOT/partials/006/GAPS.md) — also a stub, see above |
+| TS-5 | Application Architecture | [partials/005/GAPS.md](src/modules/ROOT/partials/005/GAPS.md) — 6 of 13 resolved, 7 open |
 | TS-7 | Code Design | [partials/007/GAPS.md](src/modules/ROOT/partials/007/GAPS.md) |
 | TS-8 | Issue Tracking | [partials/008/GAPS.md](src/modules/ROOT/partials/008/GAPS.md) |
 | TS-9 | Version Control | [partials/009/GAPS.md](src/modules/ROOT/partials/009/GAPS.md) |
@@ -77,7 +76,8 @@ with any gaps closed so far (1 of 5).
 
 ## Standards with neither a stub nor a GAPS.md
 
-Every other standard (TS-1, TS-17, TS-19, TS-22, TS-28, TS-32, TS-34, TS-45,
-TS-47, TS-51, TS-53, TS-56, TS-58, TS-59, TS-60, TS-62, TS-63) has substantive
-content and no recorded gap analysis yet. A gap analysis (`/gap-analysis`)
-could still be run against any of these; none is known to be missing today.
+Every other standard (TS-1, TS-17, TS-19, TS-22, TS-28, TS-30, TS-32, TS-34,
+TS-45, TS-47, TS-51, TS-53, TS-56, TS-58, TS-59, TS-60, TS-62, TS-63) has
+substantive content and no recorded gap analysis yet. A gap analysis
+(`/gap-analysis`) could still be run against any of these; none is known to
+be missing today.

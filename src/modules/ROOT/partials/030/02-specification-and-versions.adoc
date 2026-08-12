@@ -1,0 +1,37 @@
+= Specification and versions
+
+YAML is defined by the
+https://yaml.org/spec/1.2.2/[YAML Ain't Markup Language (YAML) Version 1.2.2]
+specification, maintained by the YAML community. Two major versions are in
+active use:
+
+* *YAML 1.1 (2005).* Defines a looser "core schema" with a wide set of
+  implicit types, including twenty-two different boolean literals (`y`, `n`,
+  `yes`, `no`, `on`, `off`, and their case variants, in addition to `true` and
+  `false`).
+
+* *YAML 1.2 (2009, revised as 1.2.2 in 2021).* Tightens the core schema to
+  align with JSON: the only implicit booleans are `true`/`True`/`TRUE` and
+  `false`/`False`/`FALSE`; `yes`, `no`, `on`, and `off` are plain strings.
+  YAML 1.2 is a strict superset of JSON.
+
+Content authors SHOULD write YAML that is unambiguous under both versions —
+in particular, always quote strings that could be misread as a 1.1 boolean
+(see <<Booleans, nulls, and implicit typing>>) — because the parsing
+library in use is not always under the author's control.
+
+[IMPORTANT]
+======
+Many widely-used YAML libraries still default to YAML 1.1 semantics,
+regardless of what the document itself targets. PyYAML's default loader,
+for example, follows YAML 1.1's core schema. This is the root cause of the
+"Norway problem": a country code written as `NO` is silently parsed as the
+boolean `false` by a 1.1-conformant parser. Do not assume a document is safe
+just because it targets YAML 1.2 in principle — the parser actually reading
+it is what matters.
+======
+
+A document MAY declare its target version with a `%YAML` directive
+immediately before the document start marker (`%YAML 1.2`), but this is
+rarely done in practice, since most consuming tools ignore it or fix their
+version at the library level.

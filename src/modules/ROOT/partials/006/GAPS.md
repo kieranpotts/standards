@@ -1,6 +1,9 @@
 # GAPS — TS-6 Distributed System Design
 
-> **Note**: This standard is currently a stub (`// TODO` only). All points below are gaps because the standard has no written content. Several gaps that also belong here are recorded in the GAPS.md files of their primary standards (see cross-references below).
+**Status: 2 of 2 gaps resolved (2026-08-11).** TS-6 now has substantive
+content. Several gaps that belong here were tracked in other standards'
+GAPS.md files instead — see the cross-references below; those have also been
+resolved as part of this pass (see `src/modules/ROOT/partials/005/GAPS.md`).
 
 ---
 
@@ -11,6 +14,7 @@
 - **Coverage check**: TS-6 is a stub. TS-57 covers observability mechanics but not the meta-principle of when to abandon deductive understanding for empirical methods.
 - **Gap**: No standard frames the decision of when a system is too complex to reason about deductively and must be probed empirically, nor the distributed-systems guidance to prioritize system-level resilience over root-causing individual failures.
 - **Cross-references**: TS-57 (Logging, Monitoring, Observability)
+- **RESOLVED**: Closed by `01-fundamentals.adoc`'s "Reasoning about systems that defy understanding" section. States the switch from deductive to empirical reasoning as a three-part response — invest in empiricism over deduction, treat behavior statistically rather than individually, and prioritize system-level resilience over root-causing every failure — and frames the rest of the standard's resilience patterns (timeouts, retries, circuit breakers, bulkheads, graceful degradation) as what makes that prioritization the default outcome. Cross-references TS-57 for the observability mechanics. Source added to the page's `== References` section.
 
 ---
 
@@ -21,7 +25,8 @@
 - **Coverage check**: TS-6 is a stub. No matches for "service mesh" or "microservice contract" anywhere in `src/`.
 - **Gap**: No standard covers service mesh, microservice contracts, or the common-library-vs-infrastructure tradeoff and library-upgrade-at-scale problem.
 - **Cross-references**: TS-49 (Cloud Platform Engineering)
+- **RESOLVED**: Closed by `06-service-topology.adoc`. Covers service discovery, API gateways, service mesh (sidecar pattern, mTLS as the canonical centralization example), a RECOMMENDED microservice contract (health/readiness, observability output, auth expectations, graceful shutdown), and the shared-library-at-scale problem (move the concern into infrastructure, or automate the upgrade). Cross-references TS-49 for the surrounding platform and TS-20/TS-57 for the individual cross-cutting concerns a mesh centralizes. Source added to the page's `== References` section.
 
 ---
 
-> Additional gaps that belong in TS-6 (when written) are recorded in: `src/modules/ROOT/partials/005/GAPS.md` (microservices prerequisites, service sizing, monolith-to-microservices migration execution, SOLID at service level, continuous technology re-evaluation).
+> The additional gaps that belonged in TS-6 (microservices prerequisites, service sizing, monolith-to-microservices migration execution, SOLID at service level, continuous technology re-evaluation) were tracked in `src/modules/ROOT/partials/005/GAPS.md` and are now resolved there, closed by TS-6's `08-microservices-at-scale.adoc`, `09-migration-execution.adoc`, and `10-continuous-technology-evaluation.adoc`.
