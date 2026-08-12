@@ -11,10 +11,9 @@ license: CC0-1.0
 
 # Agentify
 
-Compact a single technical standard — its `README.adoc` and every file that
-README pulls in — into a token-efficient `AGENTS.md` beside the source. Carry
-the normative rules and the high-signal examples across, and leave the prose,
-the rationale, and the glossaries behind.
+Compact a single technical standard into a token-efficient `AGENTS.md` beside
+the source. Carry over the normative rules and the high-signal examples across,
+and leave the prose, the rationale, and the glossaries behind.
 
 ## Parameters
 
@@ -23,17 +22,19 @@ environment, if possible. If you're uncertain about the required parameters,
 prompt the user for clarification.
 
 - **The target standard — REQUIRED.** One technical standard, identified as
-  `TS-<N>`. Its number zero-padded to three digits identifies its files, so
-  TS-31 is the page `src/modules/ROOT/pages/031-<slug>.adoc` plus everything
-  under `src/modules/ROOT/partials/031/`. If the user does not name one, and
-  the context or the working directory already establishes a standard, treat
-  that as the target.
+  `TS-<N>`. Its number zero-padded to three digits identifies its source files,
+  so the parent page for TS-31 is `src/modules/ROOT/pages/031-<slug>.adoc`, and
+  its child pages are all under `src/modules/ROOT/partials/031/`. If the user
+  does not name one specific technical standard to agentify, try to identify the
+  target from the immediate content (eg. an included file) or the environment
+  (eg. the current working directory). If in doubt, prompt the user.
 
 ## Success criteria
 
-- `src/modules/ROOT/partials/<NNN>/AGENTS.md` MUST exist, and MUST carry every
-  normative rule from the standard's source files, either directly or by
-  inheritance from a linked parent standard.
+- `src/modules/ROOT/partials/<NNN>/AGENTS.md` MUST exist.
+
+- It MUST carry every normative rule from the standard's source files, either
+  directly or by inheritance from a linked parent standard.
 
 - Every `../NNN/` path in the file MUST resolve to a directory that exists
   under `src/modules/ROOT/partials/`, and every TS number and title MUST match
@@ -43,15 +44,14 @@ prompt the user for clarification.
   can act on. A standalone glossary, terminology overview, or
   conceptual-background section MUST NOT survive the compaction.
 
-- The file MUST follow the bundled template's structure: title, intro,
-  `## Rules`, an OPTIONAL `## Examples`, and `## References`.
+- The file MUST follow the bundled template's structure.
 
 - The standard's `.adoc` source files MUST be unchanged, and nothing MUST be
   staged or committed. This skill writes exactly one file.
 
 ## Instructions
 
-1.  Resolve the target from the standards index at
+1.  Resolve the target from the target standard's index at
     `src/modules/ROOT/pages/index.adoc`. If the target is ambiguous, or the
     index does not list it, stop and ask the user to clarify.
 
@@ -66,12 +66,16 @@ prompt the user for clarification.
     template and the rules below.
 
 4.  If it does exist, read it in full, then reconcile it against the source
-    rule by rule:
+    rule by rule.
 
     - Add rules present in the source but absent from `AGENTS.md`.
+
     - Rewrite rules that contradict, or no longer match, the source.
+
     - Correct stale TS numbers, titles, and relative paths.
+
     - Fix any typos and grammar errors you meet along the way.
+
     - Delete non-actionable content — glossaries, prose introductions,
       background rationale, "why this matters" narration.
 
@@ -85,29 +89,26 @@ prompt the user for clarification.
 
 ## Rules
 
-- The file MUST be token-efficient.
+- The `AGENTS.md` file MUST be token-efficient. Every token costs latency and
+  money. Omit anything derivable from context, obvious to a competent engineer,
+  or written to orient a first-time human reader.
 
-  `AGENTS.md` is loaded at the start of every agent task, so every token costs
-  latency and money. Omit anything derivable from context, obvious to a
-  competent engineer, or written to orient a first-time human reader.
-
-- Normative statements MUST be preserved at their original strength.
-
-  RFC 2119 keywords carry the weight of the standard. You MAY drop the
-  elaboration around a requirement, but you MUST NOT paraphrase the
-  requirement itself into something stronger or weaker.
+- Normative statements MUST be preserved at their original strength. IEF RFC 2119
+  keywords carry the weight of the standard. You MAY drop the elaboration around
+  a requirement, but you MUST NOT paraphrase the requirement itself into
+  something stronger or weaker.
 
 - Terms a rule depends on MUST be defined inline at the point of use, in as
   few words as possible, rather than collected into a section of their own.
 
-- Worked ✅/❌ examples SHOULD be kept. They are high signal for agents. You
+- Worked ✅/❌ examples SHOULD be kept. They are high signals for agents. You
   MAY trim a long example down to the smallest version that still illustrates
   the rule, but SHOULD NOT drop it unless the rule is self-evident without it.
 
 - A rule that refers to another technical standard MUST link to that
   standard's `AGENTS.md`, eg. `../031/AGENTS.md`, never its `README.adoc`.
   This keeps agent context chains compact. The `## References` section is the
-  exception: human-readable `README.adoc` links belong there.
+  exception — human-readable `README.adoc` links belong there.
 
 - Where the standard extends another, the top of the file MUST say so — eg.
   "All rules from [TS-31: Unix Shells](../031/AGENTS.md) apply here." — and
@@ -118,14 +119,13 @@ prompt the user for clarification.
   carry a short trigger condition stating when to read it. Include only the
   source `README.adoc` and any canonical external specification a rule relies
   on. Sibling "see also" links, background reading, blog posts, and vendor
-  pages are human-facing and waste agent context.
+  pages are human-facing and waste agent context — keep them out of `AGENTS.md`.
 
 ## Edge cases
 
-- The standard is a stub, holding only a heading and a placeholder.
-
-  There is nothing to compact. Report this and ask the user whether to
-  proceed anyway, rather than writing an `AGENTS.md` with no content in it.
+- The standard is a stub, holding only a heading and a placeholder, so there is
+  nothing to compact. Report this and ask the user whether to proceed anyway,
+  rather than writing an `AGENTS.md` with no content in it.
 
 - The source rule you are compacting comes from a nested subdirectory of the
   standard (eg. `partials/008/03-issue-types/`).

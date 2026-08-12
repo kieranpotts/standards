@@ -1,33 +1,39 @@
-# <Topic - eg. Bash Standards>
+# [Topic - eg. Bash Standards]
 
-This is a compact version of technical standard TS-<N> for AI agents.
+This is a compact version of technical standard TS-[N] for AI agents.
 
-Use this when <usage scenarios>.
+Use this when [usage scenarios].
 
-Do NOT use this when <exceptions>.
+Do NOT use this when [exceptions].
 
 ## Rules
 
-- **<Rule 1.>**
+- You MUST state each rule as a full sentence.
 
-  <Details.>
+  Follow it with an indented paragraph giving the rationale for the rule,
+  if not obvious. Explaining _why_ lets an agent apply judgment at the edges.
 
-- **<Rule 2.>**
+- Rules MUST be independent of one another. One rule MUST NOT depend on another.
 
-  <Details.>
+- Rules are non-sequential but order is important. The most important rules
+  SHOULD be written first.
+
+- Every rule MUST have an RFC 2119 keyword.
+
+- MUST NOT do this.
+
+- SHOULD do this.
+
+- MAY do this.
 
 ## Examples
 
-<Markdown prose with code blocks showing valid examples only.>
+[Markdown prose with code blocks showing valid examples only.]
 
 ## References
 
-<Minimal. Only links an agent would load mid-task, each with a trigger
-condition. Omit sibling-standard "see also" links and human-facing
-background reading.>
-
-- [TS-<N> (source)](../../pages/<NNN>-<slug>.adoc):
+- [TS-[N] (source)](../../pages/[NNN]-[slug].adoc): \
   Read this for the full standard, rationale, and context.
 
-- [<Spec name>](<url>):
-  Read this when <trigger condition>.
+- [Spec name]([url]): \
+  Read this when [trigger condition].
