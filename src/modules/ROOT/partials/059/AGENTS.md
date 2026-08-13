@@ -826,7 +826,7 @@ maintainer can find a specific resource or data source definition.
 
 ## References
 
-- [TS-59: Terraform (source)](../../pages/059-terraform.adoc)
+- [TS-59: Terraform (source)](../../pages/059.adoc)
 - [TS-7: Code Design](../007/AGENTS.md)
 - [TS-9: Version Control](../009/AGENTS.md)
 - [TS-10: Releasing](../010/AGENTS.md)

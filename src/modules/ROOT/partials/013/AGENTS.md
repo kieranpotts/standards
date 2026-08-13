@@ -556,6 +556,6 @@ Common-agreed definitions (the terms are widely misused — when in doubt prefer
 
 ## References
 
-- [TS-13 source](../../pages/013-functional-testing.adoc)
+- [TS-13 source](../../pages/013.adoc)
 - [TS-12: Quality Assurance](../012/AGENTS.md)
 - [TS-14: Performance Testing](../014/AGENTS.md)

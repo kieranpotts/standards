@@ -182,7 +182,7 @@ retention policy as a design artifact, see
 
 ## References
 
-- [TS-53: Privacy and Data Protection (source)](../../pages/053-privacy-and-data-protection.adoc)
+- [TS-53: Privacy and Data Protection (source)](../../pages/053.adoc)
 - [TS-3: Design Docs](../003/AGENTS.md)
 - [TS-25: Technical Documentation](../025/AGENTS.md)
 - [TS-52: Security and Secrets Management](../052/AGENTS.md)

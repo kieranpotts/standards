@@ -117,7 +117,7 @@ For distributed system design concerns, see
 
 ## References
 
-- [TS-57: Logging, Monitoring, Observability (source)](../../pages/057-logging-monitoring-observability.adoc)
+- [TS-57: Logging, Monitoring, Observability (source)](../../pages/057.adoc)
 - [TS-6: Distributed System Design](../006/AGENTS.md)
 - [TS-12: Quality Assurance](../012/AGENTS.md)
 - [TS-14: Performance Testing](../014/AGENTS.md)

@@ -286,7 +286,7 @@ error handling, OOP, concurrency) see
 
 ## References
 
-- [TS-33 source](../../pages/033-java.adoc)
+- [TS-33 source](../../pages/033.adoc)
 - [TS-7: Code Design](../007/AGENTS.md)
 - [TS-26: Technical Writing Style Guide](../026/AGENTS.md)
 - [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html)

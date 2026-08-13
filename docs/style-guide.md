@@ -7,9 +7,9 @@ authoritative reference for contributors and AI agents editing content under
 
 For prose-level writing conventions that apply within any individual document —
 voice, headings, terminology, citations — see
-[TS-26: Technical Writing Style Guide](../src/modules/ROOT/pages/026-technical-writing-style-guide.adoc).
+[TS-26: Technical Writing Style Guide](../src/modules/ROOT/pages/026.adoc).
 For AsciiDoc syntax specifics, see
-[TS-28: AsciiDoc](../src/modules/ROOT/pages/028-asciidoc.adoc). The repository
+[TS-28: AsciiDoc](../src/modules/ROOT/pages/028.adoc). The repository
 structure and file layout are documented in [AGENTS.md](../AGENTS.md). The
 [`template/`](../template/) directory is a representative entry with lorem-ipsum
 body text that demonstrates the conventions below; use it as the starting point
@@ -32,7 +32,7 @@ for new standards.
 
 ## AsciiDoc formatting
 
-- Every standard's page (`pages/NNN-<slug>.adoc`) MUST begin with a level-1
+- Every standard's page (`pages/NNN.adoc`) MUST begin with a level-1
   title in the form `= TS-N: Title`, followed by `:toc: macro` and
   `:toc-title: Contents` attributes, then an introductory paragraph, then
   `toc::[]`, then the `include::` directives.
@@ -50,7 +50,7 @@ for new standards.
   to the including file's own directory within the partials family.
 
 - Cross-references to other standards MUST use an Antora `xref:` targeting the
-  other standard's page, and MUST be bold: `*xref:NNN-slug.adoc[TS-N: Title]*`.
+  other standard's page, and MUST be bold: `*xref:NNN.adoc[TS-N: Title]*`.
   Never a relative `link:../NNN/...` path — that only resolved by coincidence
   of the old flat directory layout, and Antora doesn't validate it. Never a
   section fragment (`#anchor`) — each standard is one merged page, so land the
@@ -101,7 +101,7 @@ for new standards.
   directed to go and read the other section.
 
 For the full AsciiDoc language reference, see
-[TS-28: AsciiDoc](../src/modules/ROOT/pages/028-asciidoc.adoc).
+[TS-28: AsciiDoc](../src/modules/ROOT/pages/028.adoc).
 
 ## Lists
 

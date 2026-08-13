@@ -174,7 +174,7 @@ prompt the user for clarification.
       ```
 
     - Resolve every `xref:`, `include::`, and `link:` target. An `xref:` to
-      another standard's page is `NNN-<slug>.adoc` — confirm that file exists
+      another standard's page is `NNN.adoc` — confirm that file exists
       under `pages/`. An `include::` from a page targets `partial$NNN/<file>`
       — confirm that file exists under `partials/NNN/`. A bare relative
       `include::` inside a partial targets a sibling in the same

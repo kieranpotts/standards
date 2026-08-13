@@ -86,7 +86,7 @@ code design, see [TS-7: Code Design](../007/AGENTS.md).
 
 ## References
 
-- [TS-47: Dates and Times (source)](../../pages/047-dates-and-times.adoc)
+- [TS-47: Dates and Times (source)](../../pages/047.adoc)
 - [TS-7: Code Design](../007/AGENTS.md)
 - [TS-43: Relational Databases and SQL](../043/AGENTS.md)
 - [TS-44: Non-Relational (NoSQL) Databases](../044/AGENTS.md)

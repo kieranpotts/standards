@@ -34,7 +34,7 @@ code design, see [TS-7: Code Design](../007/AGENTS.md).
 
 ## References
 
-- [TS-48: Environment Variables (source)](../../pages/048-environment-variables.adoc)
+- [TS-48: Environment Variables (source)](../../pages/048.adoc)
 - [TS-7: Code Design](../007/AGENTS.md)
 - [TS-10: Releasing](../010/AGENTS.md)
 - [TS-52: Security and Secrets Management](../052/AGENTS.md)

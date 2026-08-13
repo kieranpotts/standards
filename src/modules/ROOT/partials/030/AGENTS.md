@@ -92,7 +92,7 @@ designing a JSON Schema to validate YAML documents, see
 
 ## References
 
-- [TS-30 source](../../pages/030-yaml.adoc): \
+- [TS-30 source](../../pages/030.adoc): \
   Read this for the full standard, rationale, and worked examples.
 
 - [YAML 1.2.2 Specification](https://yaml.org/spec/1.2.2/): \

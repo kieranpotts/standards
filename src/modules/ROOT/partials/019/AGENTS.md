@@ -100,7 +100,7 @@ SEO context only. For URL design, see [TS-63: URL Design](../063/AGENTS.md).
 
 ## References
 
-- [TS-19 source](../../pages/019-search-engine-optimization-seo.adoc)
+- [TS-19 source](../../pages/019.adoc)
 - [TS-18: Web GUIs](../018/AGENTS.md)
 - [TS-63: URL Design](../063/AGENTS.md)
 - [Core Web Vitals](https://support.google.com/webmasters/answer/9205520)

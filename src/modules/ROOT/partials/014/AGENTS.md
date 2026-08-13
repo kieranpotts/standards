@@ -480,7 +480,7 @@ release testing strategies see [TS-10: Releasing](../010/AGENTS.md).
 
 ## References
 
-- [TS-14 source](../../pages/014-performance-testing.adoc)
+- [TS-14 source](../../pages/014.adoc)
 - [TS-10: Releasing](../010/AGENTS.md)
 - [TS-13: Functional Testing](../013/AGENTS.md)
 - [OWASP Testing Guide](https://owasp.org/www-project-testing-guide/)

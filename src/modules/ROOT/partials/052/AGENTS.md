@@ -386,7 +386,7 @@ For methodology and artifacts, see
 
 ## References
 
-- [TS-52: Security and Secrets Management (source)](../../pages/052-security-and-secrets-management.adoc)
+- [TS-52: Security and Secrets Management (source)](../../pages/052.adoc)
 - [TS-10: Releasing](../010/AGENTS.md)
 - [TS-51: Amazon Web Services (AWS)](../051/AGENTS.md)
 - [TS-53: Privacy and Data Protection](../053/AGENTS.md)

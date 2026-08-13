@@ -198,7 +198,7 @@ caching concerns are covered by [TS-46](../046/AGENTS.md).
 
 ## References
 
-- [TS-5 source](../../pages/005-application-architecture.adoc)
+- [TS-5 source](../../pages/005.adoc)
 - [TS-2: Software Design Qualities](../002/AGENTS.md)
 - [TS-7: Code Design](../007/AGENTS.md)
 - [TS-18: Web GUIs](../018/AGENTS.md)

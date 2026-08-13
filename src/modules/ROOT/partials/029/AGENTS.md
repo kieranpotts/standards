@@ -106,7 +106,7 @@ OPTIONAL, and MAY are to be interpreted as described in
 
 ## References
 
-- [TS-29 source](../../pages/029-json-schema.adoc)
+- [TS-29 source](../../pages/029.adoc)
 - [JSON Schema](https://json-schema.org/)
 - [JSON Schema Store](https://www.schemastore.org/json/)
 - [JSON-LD](https://json-ld.org/)

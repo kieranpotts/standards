@@ -70,7 +70,7 @@ prompt the user for clarification.
     every unchecked gap forward for re-verification, and re-check every
     checked gap to confirm the standard still covers it.
 
-2.  Read the standard in full: its page (`src/modules/ROOT/pages/<NNN>-<slug>.adoc`),
+2.  Read the standard in full: its page (`src/modules/ROOT/pages/<NNN>.adoc`),
     every file it pulls in via `include::`, and any subdirectory under
     `partials/<NNN>/` carrying its own `README.adoc`. Read its `AGENTS.md`
     too, if it has one.

@@ -176,7 +176,7 @@ practices (image versioning follows the same principles), see
 
 ## References
 
-- [TS-58: Docker (source)](../../pages/058-docker.adoc)
+- [TS-58: Docker (source)](../../pages/058.adoc)
 - [TS-7: Code Design](../007/AGENTS.md)
 - [TS-11: Versioning](../011/AGENTS.md)
 - [TS-49: Cloud Platform Engineering](../049/AGENTS.md)

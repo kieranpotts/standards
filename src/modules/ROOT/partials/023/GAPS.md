@@ -118,13 +118,13 @@ open.
       for designing and implementing messages and events in message-driven
       architectures — not a treatise on the paradigm's characteristics.
       Flagged for the user to confirm or overrule; if kept, it would fit as a
-      motivating note in `src/modules/ROOT/pages/023-messages-and-events.adoc:5-17`.
+      motivating note in `src/modules/ROOT/pages/023.adoc:5-17`.
 
 - [ ] `__TODO__/023/event-driven.md:5` observes that event-driven
       programming is often unavoidable in web client application interfaces,
       distributed systems, and multi-threaded environments. TS-23's scope is
       explicitly narrowed to asynchronous communication within a single
-      organization's internal network (`src/modules/ROOT/pages/023-messages-and-events.adoc:8-9`); web client
+      organization's internal network (`src/modules/ROOT/pages/023.adoc:8-9`); web client
       UIs and multi-threaded environments are outside that focus, and the
       "distributed systems" mention is too generic to be actionable. Flagged
       for the user to confirm or overrule.

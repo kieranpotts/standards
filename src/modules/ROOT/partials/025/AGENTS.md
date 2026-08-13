@@ -121,7 +121,7 @@ For sentence-level writing rules (voice, headings, formatting, citations) see
 
 ## References
 
-- [TS-25 source](../../pages/025-technical-documentation.adoc)
+- [TS-25 source](../../pages/025.adoc)
 - [TS-7: Code Design](../007/AGENTS.md)
 - [TS-26: Technical Writing Style Guide](../026/AGENTS.md)
 - [Keep a Changelog](https://keepachangelog.com/)

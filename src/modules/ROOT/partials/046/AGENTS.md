@@ -152,7 +152,7 @@ architecture, see [TS-5: Application Architecture](../005/AGENTS.md).
 
 ## References
 
-- [TS-46: Distributed Data and Caching (source)](../../pages/046-distributed-data-and-caching.adoc)
+- [TS-46: Distributed Data and Caching (source)](../../pages/046.adoc)
 - [TS-5: Application Architecture](../005/AGENTS.md)
 - [TS-6: Distributed System Design](../006/AGENTS.md)
 - [TS-43: Relational Databases and SQL](../043/AGENTS.md)

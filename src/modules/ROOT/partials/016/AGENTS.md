@@ -532,7 +532,7 @@ CLI utilities only. CLIs are a type of UI — see
 
 ## References
 
-- [TS-16 source](../../pages/016-command-line-interfaces-clis.adoc)
+- [TS-16 source](../../pages/016.adoc)
 - [TS-15: User Interfaces](../015/AGENTS.md)
 - [Command Line Interface Guidelines](https://clig.dev/)
 - [POSIX utility conventions](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap12.html)

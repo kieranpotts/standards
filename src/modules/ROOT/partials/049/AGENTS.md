@@ -155,7 +155,7 @@ see [TS-57: Logging, Monitoring, Observability](../057/AGENTS.md).
 
 ## References
 
-- [TS-49: Cloud Platform Engineering (source)](../../pages/049-cloud-platform-engineering.adoc)
+- [TS-49: Cloud Platform Engineering (source)](../../pages/049.adoc)
 - [TS-5: Application Architecture](../005/AGENTS.md)
 - [TS-10: Releasing](../010/AGENTS.md)
 - [TS-50: Cloud Economics](../050/AGENTS.md)

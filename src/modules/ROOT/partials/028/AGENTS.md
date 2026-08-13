@@ -198,7 +198,7 @@ OPTIONAL, and MAY are to be interpreted as described in
 
 ## References
 
-- [TS-28 source](../../pages/028-asciidoc.adoc)
+- [TS-28 source](../../pages/028.adoc)
 - [TS-26: Technical Writing Style Guide](../026/AGENTS.md)
 - [Asciidoctor Documentation](https://asciidoctor.org/docs/)
 - [AsciiDoc Syntax Quick Reference](https://docs.asciidoctor.org/asciidoc/latest/syntax-quick-reference/)

@@ -402,7 +402,7 @@ For general code design, see [TS-7: Code Design](../007/AGENTS.md).
 
 ## References
 
-- [TS-60: GitHub Actions (source)](../../pages/060-github-actions.adoc)
+- [TS-60: GitHub Actions (source)](../../pages/060.adoc)
 - [TS-7: Code Design](../007/AGENTS.md)
 - [TS-9: Version Control](../009/AGENTS.md)
 - [TS-30: YAML](../030/AGENTS.md)

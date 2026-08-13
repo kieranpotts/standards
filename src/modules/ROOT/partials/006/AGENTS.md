@@ -252,7 +252,7 @@ half of a service extraction, see [TS-45](../045/AGENTS.md).
 
 ## References
 
-- [TS-6 (source)](../../pages/006-distributed-system-design.adoc): \
+- [TS-6 (source)](../../pages/006.adoc): \
   Read this for the full standard, rationale, and worked examples.
 
 - [Fallacies of Distributed Computing](https://en.wikipedia.org/wiki/Fallacies_of_distributed_computing): \

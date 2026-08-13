@@ -135,7 +135,7 @@ src/
 
 ## References
 
-- [TS-41: React (source)](../../pages/041-react.adoc)
+- [TS-41: React (source)](../../pages/041.adoc)
 - [TS-7: Code Design](../007/AGENTS.md)
 - [TS-18: Web GUIs](../018/AGENTS.md)
 - [TS-36: ECMAScript (JavaScript/TypeScript)](../036/AGENTS.md)

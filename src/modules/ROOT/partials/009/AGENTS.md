@@ -767,7 +767,7 @@ integration:
 
 ## References
 
-- [TS-9 source](../../pages/009-version-control.adoc)
+- [TS-9 source](../../pages/009.adoc)
 - [TS-8: Issue Tracking](../008/AGENTS.md)
 - [TS-10: Releasing](../010/AGENTS.md)
 - [TS-11: Versioning](../011/AGENTS.md)

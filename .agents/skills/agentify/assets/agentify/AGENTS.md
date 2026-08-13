@@ -32,7 +32,7 @@ Do NOT use this when [exceptions].
 
 ## References
 
-- [TS-[N] (source)](../../pages/[NNN]-[slug].adoc): \
+- [TS-[N] (source)](../../pages/[NNN].adoc): \
   Read this for the full standard, rationale, and context.
 
 - [Spec name]([url]): \

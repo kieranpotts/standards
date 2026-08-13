@@ -308,6 +308,6 @@ Does this involve changes to code or configuration?
 
 ## References
 
-- [TS-8 source](../../pages/008-issue-tracking.adoc)
+- [TS-8 source](../../pages/008.adoc)
 - [TS-1: Software Requirements Specification](../001/AGENTS.md)
 - [TS-9: Version Control](../009/AGENTS.md)

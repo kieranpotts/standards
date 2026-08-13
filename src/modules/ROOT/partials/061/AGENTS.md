@@ -176,7 +176,7 @@ agent skills), calling tools, and handling untrusted content.
 
 ## References
 
-- [TS-61: AI Tools (source)](../../pages/061-ai-tools.adoc):
+- [TS-61: AI Tools (source)](../../pages/061.adoc):
   Read this for the full standard, including the operator and governance
   rules this file omits, and the rationale behind the rules above.
 

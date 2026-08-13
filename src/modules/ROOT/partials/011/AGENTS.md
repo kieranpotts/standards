@@ -208,7 +208,7 @@ though this standard references both.
 
 ## References
 
-- [TS-11 source](../../pages/011-versioning.adoc)
+- [TS-11 source](../../pages/011.adoc)
 - [TS-9: Version Control](../009/AGENTS.md)
 - [TS-10: Releasing](../010/AGENTS.md)
 - [Semantic Versioning 2.0.0](https://semver.org/)

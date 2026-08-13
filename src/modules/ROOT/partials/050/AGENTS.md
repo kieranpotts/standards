@@ -130,7 +130,7 @@ distributed data, see [TS-46: Distributed Data and Caching](../046/AGENTS.md).
 
 ## References
 
-- [TS-50: Cloud Economics (source)](../../pages/050-cloud-economics.adoc)
+- [TS-50: Cloud Economics (source)](../../pages/050.adoc)
 - [TS-1: Software Requirements Specification](../001/AGENTS.md)
 - [TS-2: Software Design Qualities](../002/AGENTS.md)
 - [TS-5: Application Architecture](../005/AGENTS.md)
