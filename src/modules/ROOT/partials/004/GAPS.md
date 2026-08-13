@@ -20,13 +20,21 @@ directories `47710241/`, `164352/`, and `47874101/` contain only binary `.png`
 files (skipped silently per the skill) plus one duplicate `.uxf`, so they add
 no extractable claims beyond the `modeling-examples/` tree.
 
-**Status:** Initial run. All gaps open. Last run 2026-08-05.
+**Status:** 4 of 4 actionable gaps closed (2026-08-13). Both Partial items
+extended into one new "Class diagram notation" subsection (relationships,
+multiplicity, member notation) and one new "Use case diagram notation"
+subsection in `03-notations.adoc`. The out-of-scope item was confirmed
+excluded (2026-08-13). 1 unresolved resource re-checked: the reference
+directory no longer exists on disk, so the re-fetch failed again.
 
 ## Missing
 
+(None recorded by the original analysis — all four actionable items were
+classified as Partial.)
+
 ## Partial
 
-- [ ] `__TODO__/004/modeling-examples/uml/associations/` (`composition`,
+- [x] `__TODO__/004/modeling-examples/uml/associations/` (`composition`,
       `aggregation`, `dependency`, `composition-aggregation` `.uxf` examples)
       and `__TODO__/004/modeling-examples/uml/diagrams/class/relationships/`
       (`generalization/`, `association/` with dependency, aggregation,
@@ -40,14 +48,27 @@ no extractable claims beyond the `modeling-examples/` tree.
       subsection under "Unified Modeling Language (UML)" in
       `03-notations.adoc` (after line 30).
 
-- [ ] `__TODO__/004/modeling-examples/uml/diagrams/class/multiplicity/`
+      **Resolved.** Closed by a new "Class diagram notation" section in
+      `03-notations.adoc`, immediately after the UML introduction. Covers all
+      five relationship types — association, aggregation, composition,
+      generalization, and dependency — each with its line notation and, for
+      the diamond-ended pair, the lifecycle question that distinguishes
+      composition from aggregation. Also documents reflexive relationships.
+      No stable, citable source (author/title/URL) exists for a local Umlet
+      example directory, so no entry was added to a `== References` section.
+
+- [x] `__TODO__/004/modeling-examples/uml/diagrams/class/multiplicity/`
       (`association/one-to-one/`, `association/one-to-many/`, `attributes/`
       examples) demonstrates multiplicity notation (`1`, `*`, `0..1`, `1..*`).
       `03-notations.adoc:22-23` names class diagrams as a key notation but does
       not cover multiplicity. Recommend the same new subsection in
       `03-notations.adoc` (after line 30), alongside the relationships guidance.
 
-- [ ] `__TODO__/004/modeling-examples/uml/diagrams/class/entities/person.umlet.uxf`
+      **Resolved.** Closed by the same "Class diagram notation" section,
+      final paragraph: documents `1`, `0..1`, `*`/`0..*`, and `1..*`
+      multiplicity markers with a worked `Person`-to-`Address` example.
+
+- [x] `__TODO__/004/modeling-examples/uml/diagrams/class/entities/person.umlet.uxf`
       (a class with name/attribute/operation compartments and `+`/`-` visibility
       markers), `.../class/members/abstract/` and `.../class/members/static/`
       (abstract and static member notation), and `.../class/interfaces/animal`
@@ -57,7 +78,13 @@ no extractable claims beyond the `modeling-examples/` tree.
       interfaces. Recommend the same new subsection in `03-notations.adoc`
       (after line 30).
 
-- [ ] `__TODO__/004/modeling-examples/uml/diagrams/use-case/basic.umlet.umlet.uxf`
+      **Resolved.** Closed by the same "Class diagram notation" section,
+      opening paragraph: documents the three-compartment rectangle
+      (name/attributes/operations), the `+`/`-`/`#`/`~` visibility markers,
+      the `<<interface>>` stereotype, and the italic/underline conventions for
+      abstract and static members.
+
+- [x] `__TODO__/004/modeling-examples/uml/diagrams/use-case/basic.umlet.umlet.uxf`
       demonstrates use case diagram notation. `03-notations.adoc:27-30` names
       use case diagrams as useful for requirements analysis and cross-references
       TS-1, but neither TS-4 nor TS-1 covers the use case *diagram notation*
@@ -67,15 +94,34 @@ no extractable claims beyond the `modeling-examples/` tree.
       `03-notations.adoc` (after line 30) or an explicit cross-reference stating
       where the diagram notation is covered.
 
+      **Resolved.** Closed by a new "Use case diagram notation" section in
+      `03-notations.adoc`, directly after "Class diagram notation". Documents
+      the actor (stick figure) and use case (labeled oval) symbols, the
+      `<<include>>`/`<<extend>>` dashed-arrow relationships, and
+      generalization between actors or use cases. Distinguishes the notation
+      from TS-1's use case *analysis* technique with an explicit
+      cross-reference.
+
 ## Out-of-scope
 
-- [ ] `__TODO__/004/modeling-examples/README.txt` states "Diagrams are
+- [x] `__TODO__/004/modeling-examples/README.txt` states "Diagrams are
       created with Umlet." Umlet is a graphical UML editor.
       `02-text-to-diagram-modeling-tools.adoc:18-21` deliberately recommends
       text-to-diagram tools (PlantUML, Mermaid, Graphviz) over graphical drawing
       tools, so a graphical editor like Umlet plausibly sits outside this
       standard's recommended approach. Flagged for the user to confirm or
-      overrule.
+      overrule. Recommendation: confirm the exclusion. The standard's stance
+      in `02-text-to-diagram-modeling-tools.adoc` is a deliberate,
+      already-argued preference for text-based tooling; Umlet's role here was
+      only as a convenient source of worked notation examples, not as a
+      tool recommendation, and the new "Class diagram notation" / "Use case
+      diagram notation" sections describe the *notation* independent of any
+      particular drawing tool. Nothing in the reference material argues that
+      graphical editors deserve standard-level coverage.
+
+      **Confirmed out-of-scope (2026-08-13).** Umlet was only the source of
+      worked examples; the standard's existing preference for text-to-diagram
+      tooling over graphical editors stands unchanged.
 
 ## Unresolved
 
@@ -86,3 +132,8 @@ no extractable claims beyond the `modeling-examples/` tree.
       example already counted under `modeling-examples/`. No additional claims
       could be extracted from them; they appear to be ad-hoc downloaded
       screenshots. Not included in the comparison beyond noting their presence.
+      Re-fetch failed again on 2026-08-13: no `__TODO__` directory exists
+      anywhere under the repository root any longer (`find` from the repo
+      root returned nothing under that name). The failure is persistent, not
+      fresh — the whole reference tree behind this analysis, not only these
+      three directories, is currently unavailable.
