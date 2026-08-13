@@ -1,83 +1,184 @@
 # TODO
 
 Outstanding work across the technical standards in this repository: standards
-that are still stubs (no substantive content written), and standards with a
-`GAPS.md` gap analysis that has open, unresolved gaps.
+that are still stubs (no substantive content written), and standards whose
+`GAPS.md` gap analysis still has open items.
 
-This file is a manually-maintained index. Regenerate it by re-checking each
-page and its `GAPS.md` before trusting it fully out of date.
+This file is a manually-maintained index, regenerated from the tree. The
+counts below were last regenerated on **2026-08-13**. Re-derive them with the
+script in [Regenerating this file](#regenerating-this-file) before trusting
+them after any content work.
 
 ## Stub standards
 
 These pages have no substantive content yet — just a heading, `// TODO`
-placeholder(s), and (in most cases) no `include::partial$NNN/...[]` includes.
+placeholder(s), and no `include::partial$NNN/...[]` includes.
 
 | TS | Title | Notes |
 | --- | --- | --- |
-| [TS-24](src/modules/ROOT/pages/024.adoc) | User Manuals | Has a short outline but is flagged to be split into separate Technical Documentation / User Documentation standards. |
+| [TS-24](src/modules/ROOT/pages/024.adoc) | User manuals | Has a short outline but is flagged to be split into separate Technical Documentation / User Documentation standards. |
 | [TS-35](src/modules/ROOT/pages/035.adoc) | Python | Pure stub (`// Introduction.` placeholder only). |
-| [TS-37](src/modules/ROOT/pages/037.adoc) | Web Platform APIs | Pure stub aside from "See also" cross-references; has a GAPS.md with open gaps. |
-| [TS-38](src/modules/ROOT/pages/038.adoc) | Node.js Applications | Pure stub. GAPS.md explicitly notes this. |
+| [TS-37](src/modules/ROOT/pages/037.adoc) | Web platform APIs | Pure stub aside from "See also" cross-references. Has a `GAPS.md` with 18 actionable items. |
+| [TS-38](src/modules/ROOT/pages/038.adoc) | Node.js applications | Pure stub. `GAPS.md` explicitly notes this. |
 | [TS-42](src/modules/ROOT/pages/042.adoc) | Vue | Pure stub (`// TODO: Introductory text…`). |
-| [TS-44](src/modules/ROOT/pages/044.adoc) | Non-Relational (NoSQL) Databases | Pure stub. GAPS.md explicitly notes this. |
-| [TS-55](src/modules/ROOT/pages/055.adoc) | Authentication and Authorization | Pure stub (`// TODO` only). |
+| [TS-44](src/modules/ROOT/pages/044.adoc) | Non-relational (NoSQL) databases | Pure stub. `GAPS.md` explicitly notes this. |
+| [TS-55](src/modules/ROOT/pages/055.adoc) | Authentication and authorization | Pure stub (`// TODO` only). |
 
-## Standards with open GAPS.md analysis
+No open gap in any other standard's `GAPS.md` cross-references a stub, so the
+stubs and the gap-closing work are independent. Writing a stub will not close
+gaps recorded elsewhere — unlike TS-6, whose authoring closed six of TS-5's.
 
-Every standard below has a `GAPS.md` file recording coverage gaps found by
-comparing it against external reference sources, and at least one of those
-gaps is still unresolved (no `**RESOLVED**` entry). TS-2 (1 of 5) and TS-5
-(6 of 13) are the only standards with any gaps closed so far. TS-6's GAPS.md
-has been fully resolved (2 of 2) and so no longer appears in this table — see
-[partials/006/GAPS.md](src/modules/ROOT/partials/006/GAPS.md).
+## Open gap analyses
 
-| TS | Title | GAPS.md |
-| --- | --- | --- |
-| TS-2 | Software Design Qualities | [partials/002/GAPS.md](src/modules/ROOT/partials/002/GAPS.md) — 1 of 5 resolved, 4 open |
-| TS-3 | Design Docs | [partials/003/GAPS.md](src/modules/ROOT/partials/003/GAPS.md) |
-| TS-4 | Modeling | [partials/004/GAPS.md](src/modules/ROOT/partials/004/GAPS.md) |
-| TS-5 | Application Architecture | [partials/005/GAPS.md](src/modules/ROOT/partials/005/GAPS.md) — 6 of 13 resolved, 7 open |
-| TS-7 | Code Design | [partials/007/GAPS.md](src/modules/ROOT/partials/007/GAPS.md) |
-| TS-8 | Issue Tracking | [partials/008/GAPS.md](src/modules/ROOT/partials/008/GAPS.md) |
-| TS-9 | Version Control | [partials/009/GAPS.md](src/modules/ROOT/partials/009/GAPS.md) |
-| TS-10 | Releasing | [partials/010/GAPS.md](src/modules/ROOT/partials/010/GAPS.md) |
-| TS-11 | Versioning | [partials/011/GAPS.md](src/modules/ROOT/partials/011/GAPS.md) |
-| TS-12 | Quality Assurance | [partials/012/GAPS.md](src/modules/ROOT/partials/012/GAPS.md) |
-| TS-13 | Functional Testing | [partials/013/GAPS.md](src/modules/ROOT/partials/013/GAPS.md) |
-| TS-14 | Performance Testing | [partials/014/GAPS.md](src/modules/ROOT/partials/014/GAPS.md) |
-| TS-15 | User Interfaces | [partials/015/GAPS.md](src/modules/ROOT/partials/015/GAPS.md) |
-| TS-16 | Command Line Interfaces (CLIs) | [partials/016/GAPS.md](src/modules/ROOT/partials/016/GAPS.md) |
-| TS-18 | Web GUIs | [partials/018/GAPS.md](src/modules/ROOT/partials/018/GAPS.md) |
-| TS-20 | Network APIs | [partials/020/GAPS.md](src/modules/ROOT/partials/020/GAPS.md) |
-| TS-21 | HTTP APIs | [partials/021/GAPS.md](src/modules/ROOT/partials/021/GAPS.md) |
-| TS-23 | Messages and Events | [partials/023/GAPS.md](src/modules/ROOT/partials/023/GAPS.md) |
-| TS-25 | Technical Documentation | [partials/025/GAPS.md](src/modules/ROOT/partials/025/GAPS.md) |
-| TS-26 | Technical Writing Style Guide | [partials/026/GAPS.md](src/modules/ROOT/partials/026/GAPS.md) |
-| TS-27 | Markdown | [partials/027/GAPS.md](src/modules/ROOT/partials/027/GAPS.md) |
-| TS-29 | JSON Schema | [partials/029/GAPS.md](src/modules/ROOT/partials/029/GAPS.md) |
-| TS-31 | Unix Shells and POSIX Standards | [partials/031/GAPS.md](src/modules/ROOT/partials/031/GAPS.md) |
-| TS-33 | Java | [partials/033/GAPS.md](src/modules/ROOT/partials/033/GAPS.md) |
-| TS-36 | ECMAScript (JavaScript/TypeScript) | [partials/036/GAPS.md](src/modules/ROOT/partials/036/GAPS.md) |
-| TS-37 | Web Platform APIs | [partials/037/GAPS.md](src/modules/ROOT/partials/037/GAPS.md) — also a stub, see above |
-| TS-38 | Node.js Applications | [partials/038/GAPS.md](src/modules/ROOT/partials/038/GAPS.md) — also a stub, see above |
-| TS-39 | HTML | [partials/039/GAPS.md](src/modules/ROOT/partials/039/GAPS.md) |
-| TS-40 | CSS | [partials/040/GAPS.md](src/modules/ROOT/partials/040/GAPS.md) |
-| TS-41 | React | [partials/041/GAPS.md](src/modules/ROOT/partials/041/GAPS.md) |
-| TS-43 | Relational Databases and SQL | [partials/043/GAPS.md](src/modules/ROOT/partials/043/GAPS.md) |
-| TS-44 | Non-Relational (NoSQL) Databases | [partials/044/GAPS.md](src/modules/ROOT/partials/044/GAPS.md) — also a stub, see above |
-| TS-46 | Distributed Data and Caching | [partials/046/GAPS.md](src/modules/ROOT/partials/046/GAPS.md) |
-| TS-48 | Environment Variables | [partials/048/GAPS.md](src/modules/ROOT/partials/048/GAPS.md) |
-| TS-49 | Cloud Platform Engineering | [partials/049/GAPS.md](src/modules/ROOT/partials/049/GAPS.md) |
-| TS-50 | Cloud Economics | [partials/050/GAPS.md](src/modules/ROOT/partials/050/GAPS.md) |
-| TS-52 | Security and Secrets Management | [partials/052/GAPS.md](src/modules/ROOT/partials/052/GAPS.md) |
-| TS-54 | Threat Modeling | [partials/054/GAPS.md](src/modules/ROOT/partials/054/GAPS.md) |
-| TS-57 | Logging, Monitoring, Observability | [partials/057/GAPS.md](src/modules/ROOT/partials/057/GAPS.md) |
-| TS-61 | AI Tools | [partials/061/GAPS.md](src/modules/ROOT/partials/061/GAPS.md) |
+Forty-one standards have a `GAPS.md`. One — TS-6 — is fully resolved and is
+omitted from the table below; see
+[partials/006/GAPS.md](src/modules/ROOT/partials/006/GAPS.md). The other forty
+have open items.
+
+### The two GAPS.md formats
+
+The files are in two formats, and the columns mean different things in each.
+
+- **Template format** (18 files). Follows the `gap-analysis` skill's bundled
+  template: flat `- [ ]` checklists under `## Missing`, `## Partial`,
+  `## Out-of-scope`, and `## Unresolved` headings.
+
+- **Legacy format** (22 files). One `## <gap title>` subsection per gap, with
+  `**Source**` / `**What the source says**` / `**Coverage check**` /
+  `**Gap**` bullets, closed by appending a `**RESOLVED**` bullet. Some also
+  carry a `**Cross-references**` field naming other standards the gap touches;
+  the template format has no equivalent.
+
+Legacy-format files are converted to the template format as they are worked,
+not in a separate sweep.
+
+### What the columns mean
+
+- **Actionable** — `## Missing` plus `## Partial` items. Content that needs
+  writing. This is the number to plan against. For legacy-format files it is
+  every unresolved `## <gap title>` subsection, which mixes both kinds.
+
+- **Scope** — `## Out-of-scope` items. Not authoring work: each is flagged
+  for a human to confirm the exclusion or overrule it. Template format only.
+
+- **Unresolved** — `## Unresolved` items. Reference resources that could not
+  be retrieved when the analysis ran. Each needs re-fetching before it can
+  become a gap or be dismissed. Template format only.
+
+### Standards, ordered by actionable count
+
+| TS | Title | Actionable | Scope | Unresolved | Format |
+| --- | --- | ---: | ---: | ---: | --- |
+| [TS-13](src/modules/ROOT/partials/013/GAPS.md) | Functional testing | 1 | — | — | Legacy |
+| [TS-20](src/modules/ROOT/partials/020/GAPS.md) | Network APIs | 1 | — | — | Legacy |
+| [TS-25](src/modules/ROOT/partials/025/GAPS.md) | Technical documentation | 1 | — | — | Legacy |
+| [TS-36](src/modules/ROOT/partials/036/GAPS.md) | ECMAScript (JavaScript/TypeScript) | 1 | — | — | Legacy |
+| [TS-38](src/modules/ROOT/partials/038/GAPS.md) | Node.js applications | 1 | — | — | Legacy — also a stub |
+| [TS-41](src/modules/ROOT/partials/041/GAPS.md) | React | 1 | — | — | Legacy |
+| [TS-46](src/modules/ROOT/partials/046/GAPS.md) | Distributed data and caching | 1 | 0 | 0 | Template |
+| [TS-50](src/modules/ROOT/partials/050/GAPS.md) | Cloud economics | 1 | — | — | Legacy |
+| [TS-52](src/modules/ROOT/partials/052/GAPS.md) | Security and secrets management | 1 | — | — | Legacy |
+| [TS-54](src/modules/ROOT/partials/054/GAPS.md) | Threat modeling | 1 | — | — | Legacy |
+| [TS-61](src/modules/ROOT/partials/061/GAPS.md) | AI tools | 1 | — | — | Legacy |
+| [TS-3](src/modules/ROOT/partials/003/GAPS.md) | Design docs | 2 | — | — | Legacy |
+| [TS-9](src/modules/ROOT/partials/009/GAPS.md) | Version control | 2 | — | — | Legacy |
+| [TS-10](src/modules/ROOT/partials/010/GAPS.md) | Releasing | 2 | — | — | Legacy |
+| [TS-11](src/modules/ROOT/partials/011/GAPS.md) | Versioning | 2 | 8 | 1 | Template |
+| [TS-14](src/modules/ROOT/partials/014/GAPS.md) | Performance testing | 2 | — | — | Legacy |
+| [TS-44](src/modules/ROOT/partials/044/GAPS.md) | Non-relational (NoSQL) databases | 2 | — | — | Legacy — also a stub |
+| [TS-49](src/modules/ROOT/partials/049/GAPS.md) | Cloud platform engineering | 2 | — | — | Legacy |
+| [TS-8](src/modules/ROOT/partials/008/GAPS.md) | Issue tracking | 3 | — | — | Legacy |
+| [TS-23](src/modules/ROOT/partials/023/GAPS.md) | Messages and events | 3 | 2 | 0 | Template |
+| [TS-2](src/modules/ROOT/partials/002/GAPS.md) | Software design qualities | 4 | — | — | Legacy — 1 of 5 resolved |
+| [TS-4](src/modules/ROOT/partials/004/GAPS.md) | Modeling | 4 | 1 | 1 | Template |
+| [TS-48](src/modules/ROOT/partials/048/GAPS.md) | Environment variables | 4 | 0 | 0 | Template |
+| [TS-57](src/modules/ROOT/partials/057/GAPS.md) | Logging, monitoring, observability | 4 | — | — | Legacy |
+| [TS-12](src/modules/ROOT/partials/012/GAPS.md) | Quality assurance | 6 | — | — | Legacy |
+| [TS-31](src/modules/ROOT/partials/031/GAPS.md) | Unix shells and POSIX standards | 6 | 0 | 0 | Template |
+| [TS-5](src/modules/ROOT/partials/005/GAPS.md) | Application architecture | 7 | — | — | Legacy — 6 of 13 resolved |
+| [TS-7](src/modules/ROOT/partials/007/GAPS.md) | Code design | 13 | — | — | Legacy |
+| [TS-27](src/modules/ROOT/partials/027/GAPS.md) | Markdown | 15 | 6 | 1 | Template |
+| [TS-40](src/modules/ROOT/partials/040/GAPS.md) | CSS | 17 | 12 | 1 | Template |
+| [TS-37](src/modules/ROOT/partials/037/GAPS.md) | Web platform APIs | 18 | 4 | 1 | Template — also a stub |
+| [TS-26](src/modules/ROOT/partials/026/GAPS.md) | Technical writing style guide | 29 | 10 | 2 | Template |
+| [TS-29](src/modules/ROOT/partials/029/GAPS.md) | JSON Schema | 29 | 3 | 2 | Template |
+| [TS-21](src/modules/ROOT/partials/021/GAPS.md) | HTTP APIs | 49 | 13 | 4 | Template |
+| [TS-15](src/modules/ROOT/partials/015/GAPS.md) | User interfaces | 50 | 7 | 12 | Template |
+| [TS-33](src/modules/ROOT/partials/033/GAPS.md) | Java | 55 | 3 | 4 | Template |
+| [TS-18](src/modules/ROOT/partials/018/GAPS.md) | Web GUIs | 56 | 26 | 5 | Template |
+| [TS-16](src/modules/ROOT/partials/016/GAPS.md) | Command line interfaces (CLIs) | 59 | 9 | 1 | Template |
+| [TS-43](src/modules/ROOT/partials/043/GAPS.md) | Relational databases and SQL | 61 | 6 | 4 | Template |
+| [TS-39](src/modules/ROOT/partials/039/GAPS.md) | HTML | 136 | 5 | 4 | Template |
+| | **Total** | **653** | **115** | **43** | |
+
+Twenty-seven of the forty standards hold six or fewer actionable items each.
+Seven standards — TS-39, TS-43, TS-16, TS-18, TS-33, TS-15, TS-21 — hold 466
+of the 653 between them, and each needs several passes rather than one.
 
 ## Standards with neither a stub nor a GAPS.md
 
-Every other standard (TS-1, TS-17, TS-19, TS-22, TS-28, TS-30, TS-32, TS-34,
-TS-45, TS-47, TS-51, TS-53, TS-56, TS-58, TS-59, TS-60, TS-62, TS-63) has
-substantive content and no recorded gap analysis yet. A gap analysis
-(`/gap-analysis`) could still be run against any of these; none is known to
-be missing today.
+TS-1, TS-17, TS-19, TS-22, TS-28, TS-30, TS-32, TS-34, TS-45, TS-47, TS-51,
+TS-53, TS-56, TS-58, TS-59, TS-60, TS-62, and TS-63 all have substantive
+content and no recorded gap analysis. A gap analysis (`/gap-analysis`) could
+be run against any of them; none is known to be missing content today.
+
+## Known inconsistencies
+
+Surfaced on 2026-08-13 while writing the `close-gaps` skill. These are
+repo-level decisions and defects, not gap-closing work, but the first two
+govern how all new content should be written.
+
+- **A dropped `include::` on the TS-27 page.**
+  [pages/027.adoc:39](src/modules/ROOT/pages/027.adoc) carries two
+  `include::` directives on one source line. Asciidoctor only honors the
+  directive at the start of a line, so `08-code.adoc` is not included in the
+  built page and the second directive renders as literal text. This is a live
+  defect in the published site, not a cosmetic one.
+
+- **Cross-reference bold markup: the style guide contradicts the corpus.**
+  `docs/style-guide.md` (lines 60–65) requires `xref:NNN.adoc[*TS-N: Title*]`
+  and explicitly names `*xref:NNN.adoc[TS-N: Title]*` as wrong. All 200
+  cross-references under `src/modules/ROOT/partials/` use the form it calls
+  wrong, and `AGENTS.md` presents that form as the convention. Either the
+  style guide changes, or the corpus and `AGENTS.md` do — the latter being a
+  mechanical sweep of 200 references. Until it is settled, `close-gaps`
+  matches the corpus, so new content stays consistent with the content
+  around it.
+
+- **Reference lists in a trailing partial.** `docs/style-guide.md` (lines
+  150–153) says a reference list MUST NOT be split into a separate partial.
+  Eight standards do exactly that: TS-17, TS-18, TS-21, TS-23, TS-29, TS-31,
+  TS-32, and TS-33. Twenty-three pages carry a `== References` section.
+
+- **A broken sentence in the `deep-dive` skill.**
+  `.agents/skills/deep-dive/SKILL.md:55` reads "The mechanical verification in
+  MUST have run" — a step reference has gone missing.
+
+## Regenerating this file
+
+Run from `src/modules/ROOT/partials/`:
+
+```sh
+for d in $(ls -d [0-9][0-9][0-9]/ | sort); do
+  n="${d%/}"; g="$n/GAPS.md"; [ -f "$g" ] || continue
+  if grep -q '^## Missing' "$g"; then
+    awk -v n="$n" '
+      /^## /   { s = substr($0, 4) }
+      /^- \[ \]/ { c[s]++ }
+      END { printf "%s template actionable=%d scope=%d unresolved=%d\n",
+              n, c["Missing"] + c["Partial"], c["Out-of-scope"],
+              c["Unresolved"] }' "$g"
+  else
+    awk -v n="$n" '
+      /^## /            { total++; resolved_here = 0 }
+      /\*\*RESOLVED\*\*/ { if (!resolved_here) { done++; resolved_here = 1 } }
+      END { printf "%s legacy actionable=%d\n", n, total - done }' "$g"
+  fi
+done
+```
+
+Stub standards are those whose page has no `include::partial$` directive:
+
+```sh
+grep -L 'include::partial\$' src/modules/ROOT/pages/[0-9][0-9][0-9].adoc
+```

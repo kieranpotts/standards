@@ -4,6 +4,7 @@ Agent skills for maintaining these technical standards.
 
 | Skill                                    | Summary                                                                  |
 | ---------------------------------------- | ------------------------------------------------------------------------ |
+| [close-gaps](./close-gaps/README.md)     | Close the gaps a gap analysis recorded, one standard at a time.          |
 | [deep-dive](./deep-dive/README.md)       | Review a standard in depth, then work the resulting plan tier by tier.   |
 | [gap-analysis](./gap-analysis/README.md) | Check a standard for coverage gaps against external reference resources. |
 
