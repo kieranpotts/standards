@@ -40,14 +40,18 @@ positive — verify by reading the page before trusting the grep alone.
 
 ## Open gap analyses
 
-Forty-one standards have a `GAPS.md`. Twenty-three are fully resolved and are
-omitted from the table below — TS-2, TS-3, TS-5, TS-6, TS-8, TS-9, TS-11,
-TS-12, TS-13, TS-14, TS-20, TS-23, TS-25, TS-31, TS-36, TS-46, TS-48, TS-49,
-TS-50, TS-52, TS-54, TS-57, and TS-61. The other eighteen have open items.
+Forty-one standards have a `GAPS.md`. Twenty-five are fully resolved and are
+omitted from the table below — TS-2, TS-3, TS-5, TS-6, TS-7, TS-8, TS-9,
+TS-11, TS-12, TS-13, TS-14, TS-20, TS-23, TS-25, TS-31, TS-36, TS-41, TS-46,
+TS-48, TS-49, TS-50, TS-52, TS-54, TS-57, and TS-61. The other fourteen have
+open items — TS-37 and TS-39 are also stubs, so their open items live in the
+table below but writing the standard is tracked separately, above.
 
-TS-10 was previously omitted from this file entirely — an oversight in an
-earlier regeneration, not a change in its content. It has 2 open actionable
-items (0 scope, 0 unresolved) and now appears in the table below.
+TS-10 and TS-41 were previously omitted from this file entirely — an
+oversight in an earlier regeneration, not a change in their content. TS-10
+has 2 open actionable items (0 scope, 0 unresolved) and now appears in the
+table below; TS-41 is fully resolved (0 unchecked items of any kind) and now
+appears in the fully-resolved list above instead.
 
 TS-38 and TS-44 were previously listed as fully resolved; that was wrong. Both
 carry a genuinely open, unresolved legacy-format gap (1 for TS-38, 2 for
@@ -59,10 +63,10 @@ standard is authored.
 ### The two GAPS.md formats
 
 The files are in two formats, and the columns mean different things in each.
-The counts below are of the sixteen files with open items that are not stubs,
-tallying with the table's rows. Of the twenty-four fully-resolved files, only
-TS-6 is still in the legacy format; the other twenty-three were converted as
-they were worked.
+The counts below are of the fourteen files with open items that are not
+stubs, tallying with the table's rows. Of the twenty-five fully-resolved
+files, only TS-6 is still in the legacy format; the other twenty-four were
+converted as they were worked.
 
 - **Template format** (38 files). Follows the `gap-analysis` skill's bundled
   template: flat `- [ ]` checklists under `## Missing`, `## Partial`,
@@ -122,19 +126,15 @@ longer exists anywhere in the repository and re-fetching it has failed on
 every run so far; TS-27's is a stub reference file (see the file's
 `## Unresolved` entry) not yet re-fetched.
 
-TS-7 (Code design) was closed out on 2026-08-13 — all 13 actionable items
-resolved across two runs — and has left this table for the fully-resolved
-list.
+TS-7 (Code design) and TS-41 were closed out on 2026-08-13 — all of TS-7's 13
+actionable items resolved across two runs, TS-41 found already at zero — and
+have left this table for the fully-resolved list.
 
 TS-27 (Markdown) was closed out on 2026-08-13 — all 15 actionable items
 resolved in one run — but stays in this table (at 0 actionable) because its
 one unresolved item and six out-of-scope items remain open.
 
-TS-10 (Releasing) was not previously tracked in this file — an omission in an
-earlier regeneration — and now appears with its 2 pre-existing open
-actionable items.
-
-Three standards — TS-39, TS-43, TS-16 — hold 256 of the 576 between them, and
+Three standards — TS-39, TS-43, TS-16 — hold 256 of the 563 between them, and
 each needs several passes rather than one.
 
 ## Standards with neither a stub nor a GAPS.md
