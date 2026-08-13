@@ -1,0 +1,54 @@
+= Decommissioning
+
+Every service has a lifecycle that eventually ends. A service that is
+replaced by a newer solution, or whose business capability is no longer
+needed, MUST be deliberately decommissioned — not simply left running
+indefinitely, and not switched off without a plan. An unplanned shutdown
+risks data loss and breaks any client that still depends on the service.
+
+Decommissioning is a distinct phase of a service's lifecycle, separate from
+the day-to-day release cadence, strategies, and rollback mechanics covered in
+xref:010.adoc[*TS-10: Releasing*], which govern how a *live* service ships
+new versions of itself. Decommissioning instead covers how a service's life
+ends, and it requires its own plan.
+
+== Planning a decommissioning
+
+Treat decommissioning a service with the same rigor as launching one. Plan for
+the following before switching anything off:
+
+1. *Replacement.* Identify what, if anything, replaces the service's
+   capability. A decommissioning without a replacement is a deliberate removal
+   of functionality, and should be confirmed as such with stakeholders before
+   proceeding.
+
+2. *Data retention.* Decide what happens to the service's data — archived to
+   cold storage for compliance or auditing purposes, migrated into a
+   replacement service's data model, or deleted outright — and confirm the
+   decision satisfies any regulatory or contractual retention obligations
+   before deletion becomes irreversible.
+
+3. *Client migration.* Identify every consumer of the service — other
+   services, client applications, batch jobs, third parties — and migrate
+   each one to the replacement (or to no longer depending on the capability
+   at all) before the service is switched off. Do not decommission a service
+   that still has active consumers.
+
+4. *Shutdown.* Switch the service off only once the prior three steps are
+   complete: the replacement is live, data is retained or disposed of per the
+   decision above, and no client still depends on the outgoing service.
+
+== Communicating a decommissioning
+
+Announce a planned decommissioning to all known consumers well in advance of
+the shutdown date, with enough lead time for them to complete their
+migration. Where the service exposes a public or semi-public API, treat this
+the same way as a breaking API change: a deprecation notice, a sunset date,
+and — where feasible — a period during which the outgoing service continues
+to run alongside its replacement so consumers can migrate on their own
+schedule rather than being forced to cut over on a single date.
+
+Confirm, rather than assume, that traffic to the outgoing service has dropped
+to zero before the final shutdown. A consumer that missed the deprecation
+notice will surface as a production incident the moment the service actually
+stops responding.
