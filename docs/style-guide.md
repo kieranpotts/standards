@@ -50,7 +50,7 @@ for new standards.
   to the including file's own directory within the partials family.
 
 - Cross-references to other standards MUST use an Antora `xref:` targeting the
-  other standard's page, and MUST be bold: `*xref:NNN.adoc[TS-N: Title]*`.
+  other standard's page, and MUST be bold: `xref:NNN.adoc[*TS-N: Title*]`.
   Never a relative `link:../NNN/...` path — that only resolved by coincidence
   of the old flat directory layout, and Antora doesn't validate it. Never a
   section fragment (`#anchor`) — each standard is one merged page, so land the
@@ -59,7 +59,10 @@ for new standards.
 
 - Internal links MUST be bold; external links MUST NOT be. An internal link is
   one to another technical standard in this repository; everything else —
-  including links to `github.com/kieranpotts` repositories — is external.
+  including links to `github.com/kieranpotts` repositories — is external. The
+  bold markup MUST sit tight around the link text, inside the macro's
+  brackets (`xref:NNN.adoc[*TS-N: Title*]`), not wrapped around the whole
+  link construct (`*xref:NNN.adoc[TS-N: Title]*`).
 
 - A link MUST NOT be broken across lines. The whole macro — target, brackets,
   and link text — MUST sit on one source line, even where that puts the line
