@@ -31,6 +31,56 @@ vulnerability databases include:
   https://cheatsheetseries.owasp.org/cheatsheets/Attack_Surface_Analysis_Cheat_Sheet.html[Attack Surface Cheat Sheet]
   or the https://owasp.org/Top10/[OWASP Top 10] lists
 
+== Systems-level threats
+
+STRIDE and the OWASP categories frame threats at the application layer. Where a
+system includes code written in a memory-unsafe language – C, C++, or any
+component compiled to native code, including runtime extensions and third-party
+binary dependencies – the threat model MUST also reach the layers beneath the
+application: the language's semantics, the compiler, the runtime library, the
+operating system, and the hardware.
+
+The reason is that an attacker is not bound by the abstraction the developers
+reason in. The C standard classifies a buffer overflow only as undefined
+behavior, and says nothing further about it. Whether that undefined behavior
+produces a crash, an information leak, or remote code execution is decided by
+the compiler's code generation, the memory allocator, the C library, and the
+hardware. A threat model that stops at the specification level therefore cannot
+rate the threat. It can establish that the defect exists, but not how
+exploitable it is.
+
+Two rules follow.
+
+1. *Rate exploitability against the implementation, not the specification.*
+   Where the workshop has the expertise to reason about the compiled artifact
+   and its runtime, it SHOULD do so, and record that reasoning against the
+   threat. Where it does not, the threat MUST be rated as exploitable rather
+   than as a mere correctness defect. Undefined behavior of unknown consequence
+   is not evidence of low likelihood.
+
+2. *Record exploit mitigations as countermeasures, not as remediation.*
+   Address space layout randomization (ASLR), data execution prevention
+   (DEP/NX), stack canaries, control-flow integrity (CFI), hardened allocators,
+   and position-independent executables raise the cost of exploitation. None of
+   them removes the underlying defect, and each has a known bypass – ASLR falls
+   to an address leak, DEP to return-oriented programming – so the residual
+   risk after such a mitigation is never zero. In the risk register (see
+   <<Risk register>>) they belong in the countermeasures column, with the
+   memory-safety defect itself left open until it is fixed or the code is
+   replaced.
+
+The only mitigation that removes the threat class is elimination: writing new
+components in a memory-safe language, and isolating native code that cannot be
+replaced behind a process or sandbox boundary, so that a successful exploit
+gains the attacker the least possible authority.
+
+Where a system contains no native code at all, the workshop SHOULD record that
+finding explicitly in its technical scope, rather than passing over the category
+in silence. The finding is rarely absolute: language runtimes, interpreters,
+image and document parsers, and compression libraries are native code that the
+application inherits through its dependencies, and they carry the supply-chain
+concerns covered in xref:052.adoc[*TS-52: Security and secrets management*].
+
 == Prompt questions
 
 It is useful to prepare a list of questions to guide threat modeling workshops.
@@ -265,3 +315,38 @@ Other *secure-by-design* questions
 * Are all blocked network requests logged for suspicious activity?
 
 * Has ownership and lifecycle management for firewall rules been established?
+
+=== Memory safety and exploit mitigations
+
+Where the system includes native code, add the following prompts to those
+above. See <<Systems-level threats>> for how to rate what they turn up.
+
+*Memory safety:*
+
+* Which components are written in a memory-unsafe language, and which of those
+  parse input that originates outside a trust boundary?
+
+* Are the classic defect classes tested for – out-of-bounds reads and writes,
+  use-after-free, double free, integer overflow feeding an allocation size,
+  type confusion, and disclosure of uninitialized memory?
+
+* Are inputs fuzzed? Are sanitizers (address, memory, undefined behavior,
+  thread) enabled in a build that the test suite is run against?
+
+* Are there time-of-check-to-time-of-use races between validating a resource
+  and acting on it?
+
+*Exploit mitigations:*
+
+* Are ASLR, DEP/NX, stack canaries, RELRO, and position-independent executables
+  enabled on every deployed binary? Is that verified in the build pipeline,
+  rather than assumed from the toolchain's defaults?
+
+* Is control-flow integrity or a hardened allocator available on the target
+  platform, and if so, why is it not enabled?
+
+* What does each mitigation actually cost an attacker here, and what single
+  additional primitive – an address leak, an arbitrary write – would defeat it?
+
+* Is native code isolated behind a process, container, or sandbox boundary that
+  limits what a successful exploit can reach?
