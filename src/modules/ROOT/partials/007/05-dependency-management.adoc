@@ -13,6 +13,9 @@
   control.
 * Use dependency injection to make internal dependencies explicit and
   replaceable.
+* Keep a local checkout of dependency source and read it when docs fall short.
+* Beware Not-Invented-Here syndrome – don't default to rebuilding what a good,
+  maintained dependency already solves.
 * Keep configurable values high in the call stack; don't hardcode them into
   implementations.
 ****
@@ -105,9 +108,70 @@ under test. And it makes it straightforward to swap implementations, which
 aligns directly with the principle of wrapping external dependencies in good
 abstractions.
 
-At a higher level, dependency injection is an application of the inversion of
-control principle: high-level modules should not depend on low-level modules
-directly. Both should depend on abstractions.
+At a higher level, dependency injection is an application of the Dependency
+Inversion Principle (DIP) – one of the five SOLID principles, see <<SOLID>>
+for the other four. DIP states that high-level modules should not depend on
+low-level modules directly; both should depend on abstractions, and the
+abstraction should be owned by the high-level, policy-setting module, not by
+the low-level implementation. A payment service defines the `PaymentGateway`
+interface it needs; a specific gateway implementation depends on that
+interface, not the other way around. This ownership direction is what
+allows the high-level module to remain unaware of which concrete
+implementation it is using.
+
+At the service level, the same principle argues for replacing direct
+service-to-service calls with an abstraction such as a message bus or an
+event stream, rather than one service depending directly on another
+service's API. The adapter pattern is the DIP applied at an integration
+boundary: rather than the application depending directly on a specific
+external API or library, define an interface the application owns, and
+implement an adapter that translates between that interface and the
+external dependency's actual API. This is the same shielding function as
+the facade pattern described above, applied specifically to keep the
+dependency's own interface out of the application's high-level code.
+
+== Reading dependency source
+
+Isolating dependencies behind abstractions guards against the risk of
+depending on them too tightly. It should not be mistaken for a reason to
+treat dependencies as opaque black boxes. Where documentation is thin or a
+dependency behaves unexpectedly, keep a local checkout of its source and
+read it. Understanding how a library or framework actually works – not just
+its documented interface, but its internal design and its failure modes –
+is often the fastest way to debug a strange interaction, and it builds
+confidence that carries over to future problems with the same dependency.
+
+This applies as much to languages and runtimes as it does to libraries. Most
+languages and standard libraries are themselves open source. Reading how a
+language's core data structures or a runtime's scheduler are implemented is
+a normal and valuable engineering habit, not a distraction from application
+work.
+
+== Not-Invented-Here syndrome
+
+The trade-offs above argue for being selective about dependencies, and for
+understanding the ones you take on. They are not an argument for defaulting
+to building things yourself. Not-Invented-Here (NIH) syndrome is the
+tendency to reinvent functionality that a well-maintained, widely-used
+dependency already provides, out of an unexamined preference for
+first-party code.
+
+NIH syndrome carries real costs. A hand-rolled replacement for a mature
+library rarely covers the same breadth of edge cases on day one, and the
+team now owns its ongoing maintenance – bug fixes, security patches, and
+feature gaps that the original dependency's maintainers would otherwise have
+absorbed. Where a dependency solves a well-understood problem, is
+actively maintained, and has a stable track record, reusing it is usually
+the better choice, even though building it yourself would deepen the
+team's understanding of the problem.
+
+Weigh this against the dependency risks discussed above, on a case-by-case
+basis. The learning opportunity of building something yourself is a genuine
+benefit, and for problems that are central to a system's competitive
+advantage, or where no dependency fits well, building it yourself remains
+the right call. The caution here is against reaching for that option by
+default, without first asking whether a good, maintained solution already
+exists.
 
 == Configuration and hardcoded values
 

@@ -16,10 +16,85 @@
 * Encapsulate boundary conditions in dedicated abstractions rather than
   scattering them throughout the codebase.
 * Prefer non-static methods to static ones.
+* SOLID names five design principles this standard already largely follows –
+  know the names, and apply the two (LSP, ISP) not otherwise covered here.
 ****
 
 The following guidance extends the general advice on abstraction to the specific
 patterns and pitfalls of object-oriented programming.
+
+== SOLID
+
+SOLID is a mnemonic for five object-oriented design principles: Single
+Responsibility, Open-Closed, Liskov Substitution, Interface Segregation, and
+Dependency Inversion. The principles were formulated for OO languages, but
+each has a natural restatement for multi-paradigm, dynamic, and functional
+code, where the "module" in question may be a function, a exported object, or
+a file rather than a class.
+
+Much of SOLID is already covered elsewhere in this standard, under different
+names. Single Responsibility is the focus of
+<<Keep methods and classes focused>>. Open-Closed is the outcome of
+<<Polymorphism over conditionals>>. Dependency Inversion is the principle
+behind <<Dependency injection>>. This section names those connections
+explicitly, and adds the two principles – Liskov Substitution and Interface
+Segregation – that TS-7 does not otherwise state.
+
+Knowing the SOLID names is useful independent of the guidance itself: they
+give a shared vocabulary for code review discussions, and searching for
+"violates SRP" or "violates OCP" surfaces a much larger body of external
+material than any bespoke terminology this standard could invent.
+
+=== Liskov Substitution Principle
+
+A subtype must be substitutable for its base type without altering the
+correctness of the program. Any code written against the base type's
+interface should continue to behave correctly when a subtype is passed in
+its place.
+
+Concretely, this means a subtype must not strengthen the preconditions its
+base type promises to accept, and must not weaken the postconditions its
+base type promises to deliver. A method override that throws on inputs its
+base class accepted, or that returns a narrower range of results than its
+base class documented, violates the principle – callers written against the
+base type's contract will break when handed the subtype, even though the
+type system raises no error.
+
+In duck-typed and functional code, where there is no formal subtype
+relationship, the same discipline applies to any code that conforms to a
+shared interface or is passed as a substitutable implementation: keep the
+promises the interface declares. A retry-wrapped implementation of a
+function MUST accept everything the unwrapped version accepts and MUST
+deliver everything it promises to deliver – it MAY do more, such as retrying
+internally, but MUST NOT do less.
+
+A common symptom of an LSP violation is calling code that has to check the
+concrete type of an object before it can safely call a method on it – for
+example, testing whether an object is a specific subtype before calling a
+method that is only safe on some subtypes. Where such a check exists, one of
+the implementations is not honoring the shared contract, and the fix is to
+either strengthen that implementation to honor it, or to recognize that the
+two types do not actually belong in the same hierarchy.
+
+=== Interface Segregation Principle
+
+Clients should not be forced to depend on interface members they do not use.
+A large, general-purpose interface that bundles together methods serving
+several unrelated clients forces each client to depend on – and be affected
+by changes to – the whole interface, including the parts it never calls.
+
+Prefer several small, role-specific interfaces over one broad interface.
+Where different callers use a component for genuinely different purposes,
+define a separate interface for each purpose, even if a single concrete
+class implements all of them. A caller that only ever reads from a
+repository should depend on a read-only interface, not the full
+read-write interface, even if the underlying implementation supports both.
+
+The benefit is reduced coupling. A client that depends only on the interface
+it actually uses is unaffected when the broader component changes in ways
+that do not touch that interface, and the interface it depends on is easier
+to understand and to substitute with a test double, because it only exposes
+what that client needs to see.
 
 == Composition over inheritance
 
@@ -53,6 +128,17 @@ answer, define a common interface or abstract base class and let each concrete
 type implement that interface with its own behavior. The calling code then
 invokes the interface method, and the correct behavior is dispatched
 automatically at runtime.
+
+This is the mechanism behind the Open-Closed Principle – "open for
+extension, closed for modification" – one of the five SOLID principles
+introduced in <<SOLID>>. A conditional chain must be edited every time a new
+variant is added; a polymorphic design is extended by adding a new
+implementation of the interface, without touching the existing dispatch
+code. In multi-paradigm and functional code, the equivalent mechanism is a
+hook point or an overridable callback – a function accepted as a parameter
+to vary behavior – rather than a class implementing an interface, but the
+principle is the same: add new behavior by supplying a new implementation,
+not by editing a central dispatch point.
 
 This is not a rule against all conditional logic. Simple conditions for genuine
 business decisions are perfectly appropriate. The heuristic applies specifically
