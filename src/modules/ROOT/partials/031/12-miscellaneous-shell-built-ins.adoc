@@ -35,3 +35,84 @@ variables were.
 # The script itself cannot answer these questions.
 eval $(set_my_variables)
 ----
+
+== read
+
+Use the `read` built-in to capture interactive input from the user into a
+variable. This is appropriate for sysadmin scripts that confirm destructive
+operations or prompt for credentials, but MUST NOT be relied on for
+non-interactive automation, which SHOULD take its input from arguments,
+environment variables, or files instead.
+
+The plain form reads one line of input into the named variable, with no
+prompt:
+
+[source,sh]
+----
+read my_var
+----
+
+Run on its own, this prints a blank line and waits for the user to type a
+value and press Enter. In practice a script SHOULD always prompt the user
+first, so they know what is expected of them.
+
+=== Prompting
+
+The `-p` flag to `read` is a Bashism and is not POSIX. This standard's
+POSIX-compliant equivalent is to `printf` the prompt — with no trailing
+newline, and directed to standard error so it is not captured if the
+script's standard output is redirected — followed by a bare `read`:
+
+[source,sh]
+----
+printf "Enter your name: " >&2
+read my_var
+----
+
+An equally POSIX-compliant alternative is to print the prompt on its own
+line with `echo` or `printf`, followed by `read`:
+
+[source,sh]
+----
+echo "Enter your name:"
+read my_var
+----
+
+This separate-line form is useful where the prompt carries multi-line
+instructions that would not fit comfortably inline. Where the prompt is a
+short, single request, the inline form is RECOMMENDED — it reads as one
+continuous question-and-answer exchange, rather than splitting the question
+from the point where the user types their answer.
+
+=== Hidden input
+
+The `-s` flag to `read`, which suppresses terminal echo for hidden input
+such as passwords, is also a Bashism and is not POSIX. This standard's
+POSIX-compliant equivalent is to disable echo with `stty -echo` before the
+`read`, and to restore it with `stty echo` immediately after:
+
+[source,sh]
+----
+printf "Password: " >&2
+stty -echo
+read my_password
+stty echo
+printf "\n" >&2
+----
+
+Terminal echo MUST be restored from a `trap ... EXIT` handler, not only by
+the code that follows the `read`, so that an interrupted script — for
+example, one killed with Ctrl-C between the `stty -echo` and `stty echo`
+calls — does not leave the user's terminal without echo:
+
+[source,sh]
+----
+stty_orig=$(stty -g)
+trap 'stty "$stty_orig"' EXIT
+
+printf "Password: " >&2
+stty -echo
+read my_password
+stty echo
+printf "\n" >&2
+----
