@@ -140,12 +140,32 @@ govern how all new content should be written.
   was corrected to match, and three cross-references that were split across
   source lines were joined.
 
-- **Self-referencing cross-references.** Twenty-nine `xref:` macros point at
-  the page that contains them — 28 within TS-9, 1 within TS-49. They render
-  as a link to the page the reader is already on. They predate the move to
-  one merged page per standard, when each partial was its own page. The style
-  guide (lines 96–102) requires `<<Section title>>` for a reference to
-  another section of the same standard.
+- **RESOLVED — self-referencing cross-references.** Thirty-one `xref:` macros
+  pointed at the page containing them (30 in TS-9, 1 in TS-49), rendering as
+  a link to the page the reader was already on. They predated the move to one
+  merged page per standard. Changed on 2026-08-13 to use `<<Section title>>`,
+  each verified to resolve to exactly one heading.
+
+- **Cross-references whose section title contains a comma.** Ten `<<...>>`
+  references are parsed wrongly. Asciidoctor reads everything before the first
+  comma as the target and the remainder as link text, so
+  `<<Booleans, nulls, and implicit typing>>` targets a section named
+  "Booleans", which does not exist, and renders as a broken reference. Three
+  distinct titles are affected: `Service topology: discovery, gateways, and
+  service mesh` (TS-6, 2 refs), `Booleans, nulls, and implicit typing`
+  (TS-30, 5 refs), `Role-following, and its shadow` (TS-61, 3 refs). Fixing
+  needs a choice: give each section an explicit anchor and reference it as
+  `<<anchor-id,Full title>>`, or retitle the sections to drop the commas.
+  These are live broken links in the published site.
+
+- **Assorted defects in TS-9**, found while retargeting its cross-references
+  and left alone as out-of-scope: a bold-prose pseudo-link that should be an
+  `<<...>>` reference (`13-pr-config.adoc:104`); "as little divergence as
+  people" for "possible" (`10-workflows.adoc:673`); an em dash without
+  surrounding spaces (`05-branches.adoc:425`); Markdown `**bold**` rather
+  than AsciiDoc `*bold*`
+  in five places; two over-80 lines that are not link macros; and three stale
+  `// TODO:` comments about image consistency.
 
 - **Link text that does not match the target's title.** Some cross-references
   label the target in title case (`TS-43: Relational Databases and SQL`)
