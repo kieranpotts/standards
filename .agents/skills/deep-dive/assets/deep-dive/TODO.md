@@ -6,9 +6,9 @@ Findings from a deep review of TS-<N>: <Title>
 
 Assessed against the repository
 [style guide](../../../../../docs/style-guide.md),
-[TS-26: Technical Writing Style Guide](../../pages/026-technical-writing-style-guide.adoc),
-[TS-27: Markdown](../../pages/027-markdown.adoc),
-[TS-28: AsciiDoc](../../pages/028-asciidoc.adoc),
+[TS-26: Technical Writing Style Guide](../../pages/026.adoc),
+[TS-27: Markdown](../../pages/027.adoc),
+[TS-28: AsciiDoc](../../pages/028.adoc),
 and the [template](../../../../../template/).
 
 **Assessment.** Two or three sentences. Lead with what is sound. Then state

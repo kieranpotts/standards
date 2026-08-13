@@ -31,10 +31,9 @@ and formatting conventions described below.
 - **`src/antora.yml`**: The Antora component descriptor (`name: standards`).
 
 - **`src/modules/ROOT/pages/`**: One page per technical standard,
-  `<NNN>-<slug>.adoc` (eg. `031-unix-shells-and-posix-standards.adoc`), plus
-  `index.adoc`, the master index of all standards. A page is the entry point
-  for its standard — title, intro, `toc::[]`, then `include::` directives
-  pulling in that standard's partials.
+  `<NNN>.adoc` (eg. `031.adoc`), plus `index.adoc`, the master index of all
+  standards. A page is the entry point for its standard — title, intro,
+  `toc::[]`, then `include::` directives pulling in that standard's partials.
 
 - **`src/modules/ROOT/partials/<NNN>/`**: Everything else that belongs to
   standard `TS-<N>` but isn't the page itself: numbered content files
@@ -60,7 +59,7 @@ and formatting conventions described below.
 src/modules/ROOT/
 ├── pages/
 │   ├── index.adoc
-│   └── NNN-<slug>.adoc          ← Entry point for TS-N.
+│   └── NNN.adoc                 ← Entry point for TS-N.
 ├── partials/
 │   └── NNN/
 │       ├── AGENTS.md
@@ -95,7 +94,7 @@ A cross-reference from any `.adoc` file to another standard uses an Antora
 `link:../NNN/...` path, and never a subsection fragment (each standard is one
 merged page, so a fragment would need to replicate Asciidoctor's section-ID
 algorithm for no real benefit over landing on the right page):
-`*xref:NNN-slug.adoc[TS-N: Title]*`.
+`*xref:NNN.adoc[TS-N: Title]*`.
 
 `AGENTS.md`/`GAPS.md` files are Markdown, outside Antora's reach, and keep
 their own convention: a relative link to another standard's `AGENTS.md`, eg.

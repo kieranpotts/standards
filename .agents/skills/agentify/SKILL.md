@@ -55,7 +55,7 @@ prompt the user for clarification.
     `src/modules/ROOT/pages/index.adoc`. If the target is ambiguous, or the
     index does not list it, stop and ask the user to clarify.
 
-2.  Read the standard in full: its page (`src/modules/ROOT/pages/<NNN>-<slug>.adoc`),
+2.  Read the standard in full: its page (`src/modules/ROOT/pages/<NNN>.adoc`),
     every file it pulls in via `include::`, and any subdirectory under
     `src/modules/ROOT/partials/<NNN>/` carrying its own `README.adoc` and
     numbered files. Subdirectory content is part of the standard, not an

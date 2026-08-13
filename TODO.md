@@ -14,13 +14,13 @@ placeholder(s), and (in most cases) no `include::partial$NNN/...[]` includes.
 
 | TS | Title | Notes |
 | --- | --- | --- |
-| [TS-24](src/modules/ROOT/pages/024-user-manuals.adoc) | User Manuals | Has a short outline but is flagged to be split into separate Technical Documentation / User Documentation standards. |
-| [TS-35](src/modules/ROOT/pages/035-python.adoc) | Python | Pure stub (`// Introduction.` placeholder only). |
-| [TS-37](src/modules/ROOT/pages/037-web-platform-apis.adoc) | Web Platform APIs | Pure stub aside from "See also" cross-references; has a GAPS.md with open gaps. |
-| [TS-38](src/modules/ROOT/pages/038-node-js-applications.adoc) | Node.js Applications | Pure stub. GAPS.md explicitly notes this. |
-| [TS-42](src/modules/ROOT/pages/042-vue.adoc) | Vue | Pure stub (`// TODO: Introductory text…`). |
-| [TS-44](src/modules/ROOT/pages/044-non-relational-nosql-databases.adoc) | Non-Relational (NoSQL) Databases | Pure stub. GAPS.md explicitly notes this. |
-| [TS-55](src/modules/ROOT/pages/055-authentication-and-authorization.adoc) | Authentication and Authorization | Pure stub (`// TODO` only). |
+| [TS-24](src/modules/ROOT/pages/024.adoc) | User Manuals | Has a short outline but is flagged to be split into separate Technical Documentation / User Documentation standards. |
+| [TS-35](src/modules/ROOT/pages/035.adoc) | Python | Pure stub (`// Introduction.` placeholder only). |
+| [TS-37](src/modules/ROOT/pages/037.adoc) | Web Platform APIs | Pure stub aside from "See also" cross-references; has a GAPS.md with open gaps. |
+| [TS-38](src/modules/ROOT/pages/038.adoc) | Node.js Applications | Pure stub. GAPS.md explicitly notes this. |
+| [TS-42](src/modules/ROOT/pages/042.adoc) | Vue | Pure stub (`// TODO: Introductory text…`). |
+| [TS-44](src/modules/ROOT/pages/044.adoc) | Non-Relational (NoSQL) Databases | Pure stub. GAPS.md explicitly notes this. |
+| [TS-55](src/modules/ROOT/pages/055.adoc) | Authentication and Authorization | Pure stub (`// TODO` only). |
 
 ## Standards with open GAPS.md analysis
 
