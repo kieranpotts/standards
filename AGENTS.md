@@ -19,8 +19,8 @@ and formatting conventions described below.
   for [kieranpotts.com](https://kieranpotts.com), consumed the same way as the
   `garden`, `thoughts`, and `bookmarks` sibling repositories. Markdown (`.md`)
   for repository meta-documents (README, AGENTS, CONTRIBUTING, etc.) and for
-  each standard's `AGENTS.md`/`GAPS.md`/`TODO.md`, none of which are part of
-  the published site.
+  each standard's `GAPS.md`/`TODO.md`, none of which are part of the
+  published site.
 
 - **No build tooling in this repository**: There is no build script or
   preview server here. The website repository runs the actual Antora build;
@@ -37,8 +37,8 @@ and formatting conventions described below.
 
 - **`src/modules/ROOT/partials/<NNN>/`**: Everything else that belongs to
   standard `TS-<N>` but isn't the page itself: numbered content files
-  included from the page, that standard's `AGENTS.md` and `GAPS.md` (and
-  `TODO.md`, when a deep-dive is in progress), and any subdirectories.
+  included from the page, that standard's `GAPS.md` (and `TODO.md`, when a
+  deep-dive is in progress), and any subdirectories.
 
 - **`src/modules/ROOT/images/<NNN>/`**: That standard's referenced images and
   diagrams.
@@ -62,7 +62,6 @@ src/modules/ROOT/
 │   └── NNN.adoc                 ← Entry point for TS-N.
 ├── partials/
 │   └── NNN/
-│       ├── AGENTS.md
 │       ├── GAPS.md
 │       ├── 01-<topic>.adoc
 │       ├── 02-<topic>.adoc
@@ -96,11 +95,9 @@ merged page, so a fragment would need to replicate Asciidoctor's section-ID
 algorithm for no real benefit over landing on the right page):
 `*xref:NNN.adoc[TS-N: Title]*`.
 
-`AGENTS.md`/`GAPS.md` files are Markdown, outside Antora's reach, and keep
-their own convention: a relative link to another standard's `AGENTS.md`, eg.
-`../031/AGENTS.md`. Every `AGENTS.md`/`GAPS.md` lives at the same depth
-(`partials/<NNN>/`), so this is always exactly one `../` regardless of how
-deeply nested the *source* content being summarized was.
+`GAPS.md`/`TODO.md` files are Markdown, outside Antora's reach, and keep their
+own convention: a link to another standard cites its canonical published URL,
+eg. `https://kieranpotts.com/standards/031`.
 
 ## Rules
 

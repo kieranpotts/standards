@@ -64,13 +64,7 @@ end of every tier — it is the first thing a resuming agent reads.
 
 - [ ] <file>:<line> has diverged from <style guide or convention>.
 
-## 6. `AGENTS.md` drift
-
-- [ ] <file>:<line> has drifted from the main files by ...
-
-- [ ] `AGENTS.md` does not cover ..., see <file>:<line> in the main files.
-
-## 7. Prose defects
+## 6. Prose defects
 
 - [ ] <file>:<line> "<quoted text>" → <correction>
 

@@ -70,8 +70,8 @@ prompt the user for clarification.
 
 2.  Read everything, in full, before reviewing anything. Read the standard's
     page (`src/modules/ROOT/pages/<NNN>-<slug>.adoc`), every file it pulls in
-    via `include::`, any subdirectory under `partials/<NNN>/` carrying its own
-    `README.adoc`, and the standard's `AGENTS.md` if it has one.
+    via `include::`, and any subdirectory under `partials/<NNN>/` carrying its
+    own `README.adoc`.
 
     Then read the yardsticks you will measure against:
 
@@ -81,7 +81,7 @@ prompt the user for clarification.
       Covers prose conventions.
 
     - `src/modules/ROOT/partials/027/` (TS-27: Markdown). Applies to
-      `TODO.md` and `AGENTS.md` files.
+      `TODO.md` and `GAPS.md` files.
 
     - `src/modules/ROOT/partials/028/` (TS-28: AsciiDoc). Syntax, links,
       line length.
@@ -99,7 +99,7 @@ prompt the user for clarification.
     find src/modules/ROOT/partials -name '[0-9][0-9][a-z]-*.adoc'
     ```
 
-4.  Collect findings into the seven categories below. Take one category at a
+4.  Collect findings into the six categories below. Take one category at a
     time and read the whole standard for it. Do not stop at the first defect
     in a file. You MAY choose to delegate these tasks to sub-agents.
 
@@ -124,11 +124,7 @@ prompt the user for clarification.
         2 — file naming, references, quotes, dashes, bold lead-ins, line
         length, link syntax.
 
-    6.  `AGENTS.md` drift. Compare it against the source rule by rule: rules
-        it invents, rules it omits, rules whose strength it has changed. This
-        file is acted on by agents, so its defects propagate.
-
-    7.  Prose defects. Typos, hedging, filler, unfalsifiable normative
+    6.  Prose defects. Typos, hedging, filler, unfalsifiable normative
         statements ("as early as possible"), first-person "we", and examples
         that do not demonstrate the rule they illustrate.
 
@@ -211,9 +207,6 @@ prompt the user for clarification.
 - You MUST re-read a file you drafted earlier before editing it again. The
   user may make further edit between tiers, and if they have trimmed your prose
   you MUST match their wording rather than restoring your own.
-
-- You MUST NOT leave `AGENTS.md` asserting what the user has cut from the
-  standard. Update it to match their latest edits.
 
 - Edits to the standard MUST follow TS-28 and `docs/style-guide.md`, and
   `TODO.md` MUST follow TS-27.

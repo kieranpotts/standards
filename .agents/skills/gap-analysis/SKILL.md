@@ -57,9 +57,8 @@ prompt the user for clarification.
 - Every reference resource that could not be retrieved or read MUST be named
   in the report and in the unresolved section, with the actual error.
 
-- The standard's `.adoc` files and its `AGENTS.md` MUST be unchanged, no file
-  other than `GAPS.md` MUST have been written, and nothing MUST be staged or
-  committed.
+- The standard's `.adoc` files MUST be unchanged, no file other than `GAPS.md`
+  MUST have been written, and nothing MUST be staged or committed.
 
 ## Instructions
 
@@ -72,8 +71,7 @@ prompt the user for clarification.
 
 2.  Read the standard in full: its page (`src/modules/ROOT/pages/<NNN>.adoc`),
     every file it pulls in via `include::`, and any subdirectory under
-    `partials/<NNN>/` carrying its own `README.adoc`. Read its `AGENTS.md`
-    too, if it has one.
+    `partials/<NNN>/` carrying its own `README.adoc`.
 
 3.  Ingest every reference resource in full, noting its own scope and audience
     as you read. A broad external resource, such as a general industry style
@@ -122,8 +120,8 @@ prompt the user for clarification.
 
 ## Rules
 
-- You MUST NOT edit the target standard's `.adoc` files, its `AGENTS.md`, or
-  any file other than `GAPS.md`, and MUST NOT stage or commit that file.
+- You MUST NOT edit the target standard's `.adoc` files, or any file other
+  than `GAPS.md`, and MUST NOT stage or commit that file.
 
 - You MUST NOT fabricate reference content. Where a URL cannot be fetched or a
   file cannot be read, report exactly that. Do not infer the content, and do

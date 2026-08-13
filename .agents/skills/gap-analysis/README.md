@@ -5,7 +5,7 @@ reference resources — web pages, files, or a whole directory of them — and
 records what it finds in a `GAPS.md` beside the standard.
 
 The agent reads the standard in full — its page, every `include::`d partial,
-any subdirectories, and its `AGENTS.md` — then ingests every reference
+and any subdirectories — then ingests every reference
 resource, breaks it down into individual claims, rules, and topics, and checks
 each one against the standard. Every point is classified as one of:
 
