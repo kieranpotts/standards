@@ -153,7 +153,7 @@ rendering. Use [TS-28: AsciiDoc](../028/AGENTS.md) for those cases.
 
 ## References
 
-- [TS-27 source](../../pages/027-markdown.adoc)
+- [TS-27 source](../../pages/027.adoc)
 - [TS-26: Technical Writing Style Guide](../026/AGENTS.md)
 - [TS-28: AsciiDoc](../028/AGENTS.md)
 - [CommonMark Specification](https://spec.commonmark.org/)

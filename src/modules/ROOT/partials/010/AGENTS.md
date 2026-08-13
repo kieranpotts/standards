@@ -318,7 +318,7 @@ produce one, the other, or both.
 
 ## References
 
-- [TS-10 source](../../pages/010-releasing.adoc)
+- [TS-10 source](../../pages/010.adoc)
 - [TS-9: Version Control](../009/AGENTS.md)
 - [TS-11: Versioning](../011/AGENTS.md)
 - [Keep a Changelog](https://keepachangelog.com/)

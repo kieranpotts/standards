@@ -132,7 +132,7 @@ public function getUser($username)
 
 ## References
 
-- [TS-34: PHP (source)](../../pages/034-php.adoc)
+- [TS-34: PHP (source)](../../pages/034.adoc)
 - [TS-7: Code Design](../007/AGENTS.md)
 - [TS-12: Quality Assurance](../012/AGENTS.md)
 - [TS-33: Java](../033/AGENTS.md)

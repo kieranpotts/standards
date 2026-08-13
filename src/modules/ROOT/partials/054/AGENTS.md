@@ -372,7 +372,7 @@ risk register and threat assessment as documentation artifacts, see
 
 ## References
 
-- [TS-54: Threat Modeling (source)](../../pages/054-threat-modeling.adoc)
+- [TS-54: Threat Modeling (source)](../../pages/054.adoc)
 - [TS-3: Design Docs](../003/AGENTS.md)
 - [TS-25: Technical Documentation](../025/AGENTS.md)
 - [TS-52: Security and Secrets Management](../052/AGENTS.md)

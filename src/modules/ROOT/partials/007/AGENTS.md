@@ -382,7 +382,7 @@ rules like line-length caps.
 
 ## References
 
-- [TS-7 source](../../pages/007-code-design.adoc)
+- [TS-7 source](../../pages/007.adoc)
 - [TS-2: Software Design Qualities](../002/AGENTS.md)
 - [TS-5: Application Architecture](../005/AGENTS.md)
 - [Object Calisthenics — William Durand](https://williamdurand.fr/2013/06/03/object-calisthenics/)

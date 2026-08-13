@@ -38,7 +38,7 @@ modeling.
 
 ## References
 
-- Source: [TS-4: Modeling](../../pages/004-modeling.adoc)
+- Source: [TS-4: Modeling](../../pages/004.adoc)
 - [TS-3: Design Docs](../003/AGENTS.md) applies these modeling perspectives
   as the organizing structure for architectural documentation.
 - [TS-54: Threat Modeling](../054/AGENTS.md) covers a related modeling activity

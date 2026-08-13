@@ -725,20 +725,20 @@ against the standard's then-current content.
 
 ## Partial
 
-- [ ] `src/modules/ROOT/pages/039-html.adoc:25` states the *philosophy* of a "working
+- [ ] `src/modules/ROOT/pages/039.adoc:25` states the *philosophy* of a "working
       standard" subset of HTML (useful, non-redundant, reliably
       supported) but provides no concrete rules. Every concrete rule in
       the reference material is therefore only partially foreshadowed,
       not actually specified. Recommend building out the new sections
       listed under **Missing**.
-- [ ] `src/modules/ROOT/pages/039-html.adoc:19` foreshadows the redundancy concern
+- [ ] `src/modules/ROOT/pages/039.adoc:19` foreshadows the redundancy concern
       (`<nav>` vs `role="navigation"` vs RDFa `SiteNavigationElement`)
       but the standard gives no rule for choosing among them. The
       reference resolves this (prefer native HTML; don't double-up —
       `__TODO__/039/html/_250-metadata.md:126` and
       `__TODO__/039/html/_todo/accessibility.md:273`). Recommend new
       section "Redundancy between HTML, ARIA, and metadata".
-- [ ] `src/modules/ROOT/pages/039-html.adoc:17` foreshadows the unreliable-support concern
+- [ ] `src/modules/ROOT/pages/039.adoc:17` foreshadows the unreliable-support concern
       (`<meter>` in Android WebView, `<dialog>` in Firefox/Safari) but
       the standard gives no support policy. The reference encodes a
       policy (`_150-elements.md:5`, `HOUSE STYLE.md:436` forbidden

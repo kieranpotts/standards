@@ -825,7 +825,7 @@ Markdown, including inside docblocks and this file.
 
 ## References
 
-- [TS-36 (source)](../../pages/036-ecmascript-javascript-typescript.adoc):
+- [TS-36 (source)](../../pages/036.adoc):
   Read this for the full standard, rationale, and background context.
 
 - [TS-27: Markdown](../027/AGENTS.md):

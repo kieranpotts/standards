@@ -347,7 +347,7 @@ overlap and some aspects cross over. For HTTP API design see
 
 ## References
 
-- [TS-23 source](../../pages/023-messages-and-events.adoc)
+- [TS-23 source](../../pages/023.adoc)
 - [TS-11: Versioning](../011/AGENTS.md)
 - [TS-21: HTTP APIs](../021/AGENTS.md)
 - [TS-22: Webhooks](../022/AGENTS.md)

@@ -341,7 +341,7 @@ largest source of defects), see
 
 ## References
 
-- [TS-12 source](../../pages/012-quality-assurance.adoc)
+- [TS-12 source](../../pages/012.adoc)
 - [TS-1: Software Requirements Specification](../001/AGENTS.md)
 - [TS-10: Releasing](../010/AGENTS.md)
 - [TS-13: Functional Testing](../013/AGENTS.md)

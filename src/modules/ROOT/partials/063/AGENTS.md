@@ -141,7 +141,7 @@ Engine Optimization (SEO)](../019/AGENTS.md).
 
 ## References
 
-- [TS-63: URL Design (source)](../../pages/063-url-design.adoc)
+- [TS-63: URL Design (source)](../../pages/063.adoc)
 - [TS-15: User Interfaces](../015/AGENTS.md)
 - [TS-18: Web GUIs](../018/AGENTS.md)
 - [TS-19: Search Engine Optimization (SEO)](../019/AGENTS.md)

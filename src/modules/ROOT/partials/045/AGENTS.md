@@ -634,7 +634,7 @@ migration plan as a documentation artifact, see
 
 ## References
 
-- [TS-45: Data Migrations (source)](../../pages/045-data-migrations.adoc)
+- [TS-45: Data Migrations (source)](../../pages/045.adoc)
 - [TS-3: Design Docs](../003/AGENTS.md)
 - [TS-10: Releasing](../010/AGENTS.md)
 - [TS-11: Versioning](../011/AGENTS.md)

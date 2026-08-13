@@ -305,5 +305,5 @@ failures, and security concerns that MUST be explicitly handled.
 
 ## References
 
-- [TS-20 source](../../pages/020-network-apis.adoc)
+- [TS-20 source](../../pages/020.adoc)
 - [TS-21: HTTP APIs](../021/AGENTS.md)

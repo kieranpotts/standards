@@ -493,7 +493,7 @@ notifications are part of the producer's API.
 
 ## References
 
-- [TS-22 source](../../pages/022-webhooks.adoc)
+- [TS-22 source](../../pages/022.adoc)
 - [TS-11: Versioning](../011/AGENTS.md)
 - [TS-21: HTTP APIs](../021/AGENTS.md)
 - [TS-23: Messages and Events](../023/AGENTS.md)

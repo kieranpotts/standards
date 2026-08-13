@@ -295,7 +295,7 @@ For URL design, see [TS-63: URL Design](../063/AGENTS.md).
 
 ## References
 
-- [TS-18 source](../../pages/018-web-guis.adoc)
+- [TS-18 source](../../pages/018.adoc)
 - [TS-5: Application Architecture](../005/AGENTS.md)
 - [TS-14: Performance Testing](../014/AGENTS.md)
 - [TS-63: URL Design](../063/AGENTS.md)

@@ -134,7 +134,7 @@ design (where JWTs are commonly transported), see
 
 ## References
 
-- [TS-56: JSON Web Tokens (JWTs) (source)](../../pages/056-json-web-tokens-jwts.adoc)
+- [TS-56: JSON Web Tokens (JWTs) (source)](../../pages/056.adoc)
 - [TS-7: Code Design](../007/AGENTS.md)
 - [TS-21: HTTP APIs](../021/AGENTS.md)
 - [TS-52: Security and Secrets Management](../052/AGENTS.md)

@@ -572,7 +572,7 @@ Schema type libraries see [TS-29: JSON Schema](../029/AGENTS.md).
 
 ## References
 
-- [TS-21 source](../../pages/021-http-apis.adoc)
+- [TS-21 source](../../pages/021.adoc)
 - [TS-11: Versioning](../011/AGENTS.md)
 - [TS-20: Network APIs](../020/AGENTS.md)
 - [TS-22: Webhooks](../022/AGENTS.md)

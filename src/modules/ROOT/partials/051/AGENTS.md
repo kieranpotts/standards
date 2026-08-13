@@ -344,7 +344,7 @@ mechanics, see [TS-10: Releasing](../010/AGENTS.md).
 
 ## References
 
-- [TS-51: Amazon Web Services (AWS) (source)](../../pages/051-amazon-web-services-aws.adoc)
+- [TS-51: Amazon Web Services (AWS) (source)](../../pages/051.adoc)
 - [TS-10: Releasing](../010/AGENTS.md)
 - [TS-49: Cloud Platform Engineering](../049/AGENTS.md)
 - [TS-50: Cloud Economics](../050/AGENTS.md)
