@@ -6,8 +6,8 @@ that are still stubs (no substantive content written), and standards whose
 
 This file is a manually-maintained index, regenerated from the tree. The
 counts below were last regenerated on **2026-08-13** (same day as the prior
-regeneration — this run closed TS-27's gaps, surfaced a previously-untracked
-TS-10, and resolved several items in
+regeneration — this run closed TS-10's gaps, following TS-27's earlier that
+day, and resolved several items in
 [Known inconsistencies](#known-inconsistencies)). Re-derive them with the
 script in [Regenerating this file](#regenerating-this-file) before trusting
 them after any content work.
@@ -40,18 +40,22 @@ positive — verify by reading the page before trusting the grep alone.
 
 ## Open gap analyses
 
-Forty-one standards have a `GAPS.md`. Twenty-five are fully resolved and are
+Forty-one standards have a `GAPS.md`. Twenty-six are fully resolved and are
 omitted from the table below — TS-2, TS-3, TS-5, TS-6, TS-7, TS-8, TS-9,
-TS-11, TS-12, TS-13, TS-14, TS-20, TS-23, TS-25, TS-31, TS-36, TS-41, TS-46,
-TS-48, TS-49, TS-50, TS-52, TS-54, TS-57, and TS-61. The other fourteen have
-open items — TS-37 and TS-39 are also stubs, so their open items live in the
-table below but writing the standard is tracked separately, above.
+TS-10, TS-11, TS-12, TS-13, TS-14, TS-20, TS-23, TS-25, TS-31, TS-36, TS-41,
+TS-46, TS-48, TS-49, TS-50, TS-52, TS-54, TS-57, and TS-61. The other
+thirteen have open items — TS-37 and TS-39 are also stubs, so their open
+items live in the table below but writing the standard is tracked separately,
+above.
 
 TS-10 and TS-41 were previously omitted from this file entirely — an
-oversight in an earlier regeneration, not a change in their content. TS-10
-has 2 open actionable items (0 scope, 0 unresolved) and now appears in the
-table below; TS-41 is fully resolved (0 unchecked items of any kind) and now
-appears in the fully-resolved list above instead.
+oversight in an earlier regeneration, not a change in their content. TS-41
+was fully resolved (0 unchecked items of any kind) as soon as it was
+restored to tracking, and appears in the fully-resolved list above. TS-10
+had 2 open actionable items when restored; both were closed on 2026-08-13 by
+a `close-gaps` run, which found the content had already been written into
+TS-5 and TS-57's own directories, so TS-10 itself needed no change. It now
+also appears in the fully-resolved list above.
 
 TS-38 and TS-44 were previously listed as fully resolved; that was wrong. Both
 carry a genuinely open, unresolved legacy-format gap (1 for TS-38, 2 for
@@ -63,9 +67,9 @@ standard is authored.
 ### The two GAPS.md formats
 
 The files are in two formats, and the columns mean different things in each.
-The counts below are of the fourteen files with open items that are not
-stubs, tallying with the table's rows. Of the twenty-five fully-resolved
-files, only TS-6 is still in the legacy format; the other twenty-four were
+The counts below are of the thirteen files with open items that are not
+stubs, tallying with the table's rows. Of the twenty-six fully-resolved
+files, only TS-6 is still in the legacy format; the other twenty-five were
 converted as they were worked.
 
 - **Template format** (38 files). Follows the `gap-analysis` skill's bundled
@@ -103,7 +107,6 @@ not in a separate sweep.
 | --- | --- | ---: | ---: | ---: | --- |
 | [TS-4](src/modules/ROOT/partials/004/GAPS.md) | Modeling | 0 | 0 | 1 | Template — 1 unresolved resource, repeatedly unfetchable |
 | [TS-27](src/modules/ROOT/partials/027/GAPS.md) | Markdown | 0 | 6 | 1 | Template — all 15 actionable items closed 2026-08-13 |
-| [TS-10](src/modules/ROOT/partials/010/GAPS.md) | Releasing | 2 | 0 | 0 | Template |
 | [TS-40](src/modules/ROOT/partials/040/GAPS.md) | CSS | 17 | 12 | 1 | Template |
 | [TS-37](src/modules/ROOT/partials/037/GAPS.md) | Web platform APIs | 18 | 4 | 1 | Template — also a stub |
 | [TS-26](src/modules/ROOT/partials/026/GAPS.md) | Technical writing style guide | 29 | 10 | 2 | Template |
@@ -115,7 +118,7 @@ not in a separate sweep.
 | [TS-16](src/modules/ROOT/partials/016/GAPS.md) | Command line interfaces (CLIs) | 59 | 9 | 1 | Template |
 | [TS-43](src/modules/ROOT/partials/043/GAPS.md) | Relational databases and SQL | 61 | 6 | 4 | Template |
 | [TS-39](src/modules/ROOT/partials/039/GAPS.md) | HTML | 136 | 5 | 4 | Template — also a stub |
-| | **Total** | **563** | **104** | **41** | |
+| | **Total** | **559** | **104** | **41** | |
 
 TS-39 sits at the top by actionable count but is a stub — see
 [Stub standards](#stub-standards) — so `close-gaps` cannot work it until the
@@ -134,7 +137,12 @@ TS-27 (Markdown) was closed out on 2026-08-13 — all 15 actionable items
 resolved in one run — but stays in this table (at 0 actionable) because its
 one unresolved item and six out-of-scope items remain open.
 
-Three standards — TS-39, TS-43, TS-16 — hold 256 of the 563 between them, and
+TS-10 (Releasing) was closed out on 2026-08-13 — both actionable items
+turned out to already be resolved in TS-5 and TS-57's own directories, so
+TS-10 needed no content of its own — and has left this table for the
+fully-resolved list.
+
+Three standards — TS-39, TS-43, TS-16 — hold 256 of the 559 between them, and
 each needs several passes rather than one.
 
 ## Standards with neither a stub nor a GAPS.md

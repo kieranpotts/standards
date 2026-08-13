@@ -12,16 +12,16 @@ lifecycle concern of TS-5 (Application architecture), and oncall health is a
 developer-wellbeing concern of TS-57 (Logging, monitoring, observability).
 Converted from the legacy format on 2026-08-13.
 
-**Status:** 0 of 2 actionable gaps closed (2026-08-13). Both items were
-re-verified against the standard and found to plainly belong to other
-standards' directories (TS-5 and TS-57 respectively, which each already
-record the same gap in their own `GAPS.md`), so neither was written into
-TS-10 without the user's decision. 2 missing, 0 partial, 0 out-of-scope,
-0 unresolved.
+**Status:** 2 of 2 actionable gaps closed (2026-08-13). Both items belonged to
+other standards' directories (TS-5 and TS-57 respectively) and have since
+been written there — confirmed on re-verification this run, which found both
+already ticked `[x]` with `**Resolved.**` notes in the other standards' own
+`GAPS.md` files. Neither required any change to TS-10 itself. 0 missing,
+0 partial, 0 out-of-scope, 0 unresolved.
 
 ## Missing
 
-- [ ] https://blog.allegro.tech/2024/04/ten-years-microservices.html says the
+- [x] https://blog.allegro.tech/2024/04/ten-years-microservices.html says the
       author witnessed the full lifecycle of a service, including its 2022
       shutdown when replaced by a newer solution. The gap: no standard
       covers the decommissioning/sunset phase of a service's lifecycle
@@ -35,7 +35,17 @@ TS-10 without the user's decision. 2 missing, 0 partial, 0 out-of-scope,
       gap, sourced from the same article, still open. Cross-references:
       TS-5 (Application architecture).
 
-- [ ] https://blog.pragmaticengineer.com/pragmatic-engineer-test/ says that
+      **Resolved.** Closed by TS-5's own `GAPS.md` — a new partial,
+      `07-decommissioning.adoc`, "Decommissioning" section, wired into the
+      TS-5 page after `06-services.adoc`. Requires a deliberate
+      decommissioning plan covering replacement, data retention, client
+      migration, and shutdown, in that order, and requires confirming zero
+      consumer traffic before the final shutdown. That section cross-references
+      TS-10 for the distinction between a live service's release cycle (this
+      standard's scope) and the end of a service's life (TS-5's scope). No
+      change was needed in TS-10 itself.
+
+- [x] https://blog.pragmaticengineer.com/pragmatic-engineer-test/ says that
       for oncall teams, oncall health and its impact on developers should be
       measured, and fixing an unhealthy oncall should take priority over
       product work. The gap: neither TS-10 nor TS-57 covers oncall health
@@ -49,6 +59,15 @@ TS-10 without the user's decision. 2 missing, 0 partial, 0 out-of-scope,
       concern, not a release mechanic. TS-57's own `GAPS.md` already records
       this same gap, sourced from the same article, still open.
       Cross-references: TS-57 (Logging, monitoring, observability).
+
+      **Resolved.** Closed by TS-57's own `GAPS.md` — a new "Oncall health"
+      section in `03-alerting.adoc`. Requires oncall health to be measured
+      (page volume per rotation/engineer, actionable-vs-non-actionable
+      split, time-of-day distribution, time to resolution) and requires
+      prioritizing remediation of an unhealthy rotation over product work,
+      naming threshold tuning, fixing recurring-page causes, and adjusting
+      rotation size as remediation options. No change was needed in TS-10
+      itself.
 
 ## Partial
 
