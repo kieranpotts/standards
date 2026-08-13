@@ -137,3 +137,20 @@ classified as Partial.)
       root returned nothing under that name). The failure is persistent, not
       fresh — the whole reference tree behind this analysis, not only these
       three directories, is currently unavailable.
+
+      Re-fetch attempted again on 2026-08-13: searched the entire local
+      workspace (`~/dev/personal`, all sibling repositories) and the full
+      filesystem for `__TODO__` and for the three directory names
+      (`47710241`, `164352`, `47874101`) by name — no match anywhere.
+      Checked this repository's Git history (`git log --all --diff-filter=A`
+      and full-history search for the three directory names) — the
+      `__TODO__` tree was never committed, confirming it was always local,
+      ephemeral scratch input to the gap-analysis skill and not a versioned
+      or remotely-hosted resource. No URL, README, or other provenance note
+      accompanies these three directories anywhere in this file (unlike
+      `modeling-examples/`, which has its own `README.txt`), so there is no
+      remote resource to fetch — re-fetching would require either the
+      original local source restoring these files or a citable URL that
+      does not currently exist in any recoverable record. Remains
+      unresolved; no further automated re-fetch is possible without new
+      information about the original source.

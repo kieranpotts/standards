@@ -5,7 +5,10 @@ that are still stubs (no substantive content written), and standards whose
 `GAPS.md` gap analysis still has open items.
 
 This file is a manually-maintained index, regenerated from the tree. The
-counts below were last regenerated on **2026-08-13**. Re-derive them with the
+counts below were last regenerated on **2026-08-13** (same day as the prior
+regeneration — this run closed TS-27's gaps, surfaced a previously-untracked
+TS-10, and resolved several items in
+[Known inconsistencies](#known-inconsistencies)). Re-derive them with the
 script in [Regenerating this file](#regenerating-this-file) before trusting
 them after any content work.
 
@@ -37,11 +40,14 @@ positive — verify by reading the page before trusting the grep alone.
 
 ## Open gap analyses
 
-Forty-one standards have a `GAPS.md`. Twenty-four are fully resolved and are
+Forty-one standards have a `GAPS.md`. Twenty-three are fully resolved and are
 omitted from the table below — TS-2, TS-3, TS-5, TS-6, TS-8, TS-9, TS-11,
 TS-12, TS-13, TS-14, TS-20, TS-23, TS-25, TS-31, TS-36, TS-46, TS-48, TS-49,
-TS-50, TS-52, TS-54, TS-57, TS-61, and, as of this run, TS-7. The other
-seventeen have open items.
+TS-50, TS-52, TS-54, TS-57, and TS-61. The other eighteen have open items.
+
+TS-10 was previously omitted from this file entirely — an oversight in an
+earlier regeneration, not a change in its content. It has 2 open actionable
+items (0 scope, 0 unresolved) and now appears in the table below.
 
 TS-38 and TS-44 were previously listed as fully resolved; that was wrong. Both
 carry a genuinely open, unresolved legacy-format gap (1 for TS-38, 2 for
@@ -92,7 +98,8 @@ not in a separate sweep.
 | TS | Title | Actionable | Scope | Unresolved | Format |
 | --- | --- | ---: | ---: | ---: | --- |
 | [TS-4](src/modules/ROOT/partials/004/GAPS.md) | Modeling | 0 | 0 | 1 | Template — 1 unresolved resource, repeatedly unfetchable |
-| [TS-27](src/modules/ROOT/partials/027/GAPS.md) | Markdown | 15 | 6 | 1 | Template |
+| [TS-27](src/modules/ROOT/partials/027/GAPS.md) | Markdown | 0 | 6 | 1 | Template — all 15 actionable items closed 2026-08-13 |
+| [TS-10](src/modules/ROOT/partials/010/GAPS.md) | Releasing | 2 | 0 | 0 | Template |
 | [TS-40](src/modules/ROOT/partials/040/GAPS.md) | CSS | 17 | 12 | 1 | Template |
 | [TS-37](src/modules/ROOT/partials/037/GAPS.md) | Web platform APIs | 18 | 4 | 1 | Template — also a stub |
 | [TS-26](src/modules/ROOT/partials/026/GAPS.md) | Technical writing style guide | 29 | 10 | 2 | Template |
@@ -104,19 +111,28 @@ not in a separate sweep.
 | [TS-16](src/modules/ROOT/partials/016/GAPS.md) | Command line interfaces (CLIs) | 59 | 9 | 1 | Template |
 | [TS-43](src/modules/ROOT/partials/043/GAPS.md) | Relational databases and SQL | 61 | 6 | 4 | Template |
 | [TS-39](src/modules/ROOT/partials/039/GAPS.md) | HTML | 136 | 5 | 4 | Template — also a stub |
-| | **Total** | **576** | **104** | **41** | |
+| | **Total** | **563** | **104** | **41** | |
 
 TS-39 sits at the top by actionable count but is a stub — see
 [Stub standards](#stub-standards) — so `close-gaps` cannot work it until the
-standard has been authored. TS-4 has zero actionable items but stays in this
-table rather than joining the fully-resolved list, because its one
-unresolved resource remains open: the reference directory it depended on no
-longer exists anywhere in the repository, and re-fetching it has failed on
-every run so far.
+standard has been authored. TS-4 and TS-27 both have zero actionable items
+but stay in this table rather than joining the fully-resolved list, because
+each has an unresolved resource still open — TS-4's reference directory no
+longer exists anywhere in the repository and re-fetching it has failed on
+every run so far; TS-27's is a stub reference file (see the file's
+`## Unresolved` entry) not yet re-fetched.
 
 TS-7 (Code design) was closed out on 2026-08-13 — all 13 actionable items
 resolved across two runs — and has left this table for the fully-resolved
 list.
+
+TS-27 (Markdown) was closed out on 2026-08-13 — all 15 actionable items
+resolved in one run — but stays in this table (at 0 actionable) because its
+one unresolved item and six out-of-scope items remain open.
+
+TS-10 (Releasing) was not previously tracked in this file — an omission in an
+earlier regeneration — and now appears with its 2 pre-existing open
+actionable items.
 
 Three standards — TS-39, TS-43, TS-16 — hold 256 of the 576 between them, and
 each needs several passes rather than one.
@@ -199,28 +215,56 @@ govern how all new content should be written.
   the sections to drop the commas was the alternative, and was rejected for
   that reason.
 
-- **Assorted defects in TS-9**, found while retargeting its cross-references
-  and left alone as out-of-scope: a bold-prose pseudo-link that should be an
-  `<<...>>` reference (`13-pr-config.adoc:104`); "as little divergence as
-  people" for "possible" (`10-workflows.adoc:673`); an em dash without
-  surrounding spaces (`05-branches.adoc:425`); Markdown `**bold**` rather
-  than AsciiDoc `*bold*`
-  in five places; two over-80 lines that are not link macros; and three stale
-  `// TODO:` comments about image consistency.
+- **PARTIALLY RESOLVED — assorted defects in TS-9**, found while retargeting
+  its cross-references and originally left alone as out-of-scope. Fixed on
+  2026-08-13:
 
-- **Link text that does not match the target's title.** Some cross-references
-  label the target in title case (`TS-43: Relational Databases and SQL`)
-  where the page's own title is sentence case (`TS-43: Relational databases
-  and SQL`). Not audited in full.
+  - The bold-prose pseudo-link converted to an `<<...>>` reference
+    (`13-pr-config.adoc:104`).
+  - The typo "as little divergence as people" corrected to "possible"
+    (`10-workflows.adoc:673`).
+  - The unspaced em dash fixed to match the style guide's spaced convention
+    (`05-branches.adoc:425`, with lines 424–426 reflowed).
+  - Markdown `**bold**` converted to AsciiDoc `*bold*` — this turned out to
+    be **17 instances**, not the five originally estimated, across
+    `04-commits.adoc`, `05-branches.adoc`, `06-releases.adoc`,
+    `08-integrations.adoc`, `10-workflows.adoc`, and `13-pr-config.adoc`.
+  - One stale image-consistency placeholder resolved: the literal
+    `<desc>TODO</desc>` in `images/009/branch-lines.svg` replaced with a real
+    description.
+
+  Two items remain open, both larger than originally scoped:
+
+  - **Over-80-character lines.** The original note said "two... that are not
+    link macros"; there are actually **75+ pre-existing lines** over the
+    80-character soft limit spread across nearly every file in
+    `partials/009/`. This is a standard-wide rewrap pass, not a two-line fix
+    — tracked here as its own follow-up, not yet started.
+  - **Stale `// TODO:` image-consistency comments.** Only two literal
+    `// TODO:` comments exist (`03-repositories.adoc:19` and `:32`, both
+    about `fork-and-clone.svg` and `repositories.svg`), and both are still
+    valid: the two images are drawio-exported and visually inconsistent with
+    TS-9's other hand-coded SVGs. Fixing this means redrawing the diagrams —
+    a design task, not a text edit — and is not yet started.
+
+- **RESOLVED — link text that did not match the target's title.** A full
+  audit of all 384 `xref:NNN.adoc[...]` macros across `src/` against each
+  target page's real title found exactly two title-casing mismatches, fixed
+  on 2026-08-13: `pages/047.adoc:104` (TS-43 link text) and
+  `partials/009/04-commits.adoc:168` (TS-1 link text). `index.adoc` and
+  `nav.adoc` use their own distinct, already-correct title conventions and
+  were left untouched.
 
 - **Reference lists in a trailing partial.** `docs/style-guide.md` (lines
   150–153) says a reference list MUST NOT be split into a separate partial.
   Eight standards do exactly that: TS-17, TS-18, TS-21, TS-23, TS-29, TS-31,
   TS-32, and TS-33. Twenty-three pages carry a `== References` section.
 
-- **A broken sentence in the `deep-dive` skill.**
-  `.agents/skills/deep-dive/SKILL.md:55` reads "The mechanical verification in
-  MUST have run" — a step reference has gone missing.
+- **RESOLVED — a broken sentence in the `deep-dive` skill.**
+  `.agents/skills/deep-dive/SKILL.md:55` read "The mechanical verification in
+  MUST have run" — the step reference had gone missing. Fixed on 2026-08-13
+  to "The mechanical verification in step 8 MUST have run", matching how the
+  rest of the document refers to its own numbered instructions.
 
 - **The stub-detection script has a false positive.** `grep -L
   'include::partial\$'` also matches TS-47 (Dates and times), whose page
