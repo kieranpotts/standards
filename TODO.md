@@ -9,6 +9,57 @@ counts below were last regenerated on **2026-08-13**. Re-derive them with the
 script in [Regenerating this file](#regenerating-this-file) before trusting
 them after any content work.
 
+## Next batch
+
+Agreed on 2026-08-13, not yet started: close the gaps in every remaining
+standard holding **six or fewer** actionable items — sixteen standards, 48
+gaps, one `close-gaps` run each. That clears the whole cheap tier and takes
+the actionable total from 645 to 597.
+
+| TS | Title | Actionable | Format | Notes |
+| --- | --- | ---: | --- | --- |
+| TS-46 | Distributed data and caching | 1 | Template | |
+| TS-61 | AI tools | 1 | Legacy | |
+| TS-3 | Design docs | 2 | Legacy | |
+| TS-9 | Version control | 2 | Legacy | |
+| TS-10 | Releasing | 2 | Legacy | |
+| TS-11 | Versioning | 2 | Template | 8 out-of-scope, 1 unresolved |
+| TS-14 | Performance testing | 2 | Legacy | |
+| TS-49 | Cloud platform engineering | 2 | Legacy | |
+| TS-8 | Issue tracking | 3 | Legacy | |
+| TS-23 | Messages and events | 3 | Template | 2 out-of-scope |
+| TS-2 | Software design qualities | 4 | Legacy | Legacy `**Status:**` syntax |
+| TS-4 | Modeling | 4 | Template | 1 out-of-scope, 1 unresolved |
+| TS-48 | Environment variables | 4 | Template | |
+| TS-57 | Logging, monitoring, observability | 4 | Legacy | |
+| TS-12 | Quality assurance | 6 | Legacy | |
+| TS-31 | Unix shells and POSIX standards | 6 | Template | |
+
+TS-38 and TS-44 also hold six or fewer, and are deliberately excluded: both
+are stubs, and `close-gaps` stops on a stub because there is no structure to
+extend. They are unblocked only by authoring those standards.
+
+### What this batch will exercise for the first time
+
+The nine runs completed so far all hit one narrow path — a single-gap,
+legacy-format file with no status line. Four paths remain untested, and this
+batch covers all of them. Expect the first round of reports to find defects
+in `close-gaps` the way the earlier rounds did.
+
+- **Template-format files** (TS-46, TS-11, TS-23, TS-4, TS-48, TS-31) skip
+  the legacy conversion entirely.
+- **A legacy file that already carries a status line** — only TS-2 and TS-5
+  have one, in the older `**Status: … **` syntax, and the instruction to
+  rewrite it has never run.
+- **Multi-gap batching.** Every run so far closed exactly one gap.
+- **Steps 8 and 9** — confirming out-of-scope items and re-fetching resources
+  that failed. Eleven out-of-scope items and two unresolved resources sit in
+  this batch, mostly in TS-11.
+
+Out-of-scope items are decisions, not authoring work, so TS-11 and TS-4 will
+come back partly as questions rather than finished content. That is the
+design working, not a run failing.
+
 ## Stub standards
 
 These pages have no substantive content yet — just a heading, `// TODO`
