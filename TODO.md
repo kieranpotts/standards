@@ -30,24 +30,22 @@ gaps recorded elsewhere — unlike TS-6, whose authoring closed six of TS-5's.
 
 ## Open gap analyses
 
-Forty-one standards have a `GAPS.md`. Two are fully resolved and are omitted
-from the table below — see
-[partials/006/GAPS.md](src/modules/ROOT/partials/006/GAPS.md) and
-[partials/013/GAPS.md](src/modules/ROOT/partials/013/GAPS.md). The other
-thirty-nine have open items.
+Forty-one standards have a `GAPS.md`. Nine are fully resolved and are omitted
+from the table below — TS-6, TS-13, TS-20, TS-25, TS-36, TS-41, TS-50, TS-52,
+and TS-54. The other thirty-two have open items.
 
 ### The two GAPS.md formats
 
 The files are in two formats, and the columns mean different things in each.
-The counts below are of the thirty-nine files with open items, tallying with
-the table's rows; the two fully-resolved files are TS-6 (legacy) and TS-13
-(template).
+The counts below are of the thirty-two files with open items, tallying with
+the table's rows. Of the nine fully-resolved files, only TS-6 is still in the
+legacy format; the other eight were converted as they were worked.
 
 - **Template format** (18 files). Follows the `gap-analysis` skill's bundled
   template: flat `- [ ]` checklists under `## Missing`, `## Partial`,
   `## Out-of-scope`, and `## Unresolved` headings.
 
-- **Legacy format** (21 files). One `## <gap title>` subsection per gap, with
+- **Legacy format** (14 files). One `## <gap title>` subsection per gap, with
   `**Source**` / `**What the source says**` / `**Coverage check**` /
   `**Gap**` bullets, closed by appending a `**RESOLVED**` bullet. Some also
   carry a `**Cross-references**` field naming other standards the gap touches;
@@ -73,15 +71,8 @@ not in a separate sweep.
 
 | TS | Title | Actionable | Scope | Unresolved | Format |
 | --- | --- | ---: | ---: | ---: | --- |
-| [TS-20](src/modules/ROOT/partials/020/GAPS.md) | Network APIs | 1 | — | — | Legacy |
-| [TS-25](src/modules/ROOT/partials/025/GAPS.md) | Technical documentation | 1 | — | — | Legacy |
-| [TS-36](src/modules/ROOT/partials/036/GAPS.md) | ECMAScript (JavaScript/TypeScript) | 1 | — | — | Legacy |
 | [TS-38](src/modules/ROOT/partials/038/GAPS.md) | Node.js applications | 1 | — | — | Legacy — also a stub |
-| [TS-41](src/modules/ROOT/partials/041/GAPS.md) | React | 1 | — | — | Legacy |
 | [TS-46](src/modules/ROOT/partials/046/GAPS.md) | Distributed data and caching | 1 | 0 | 0 | Template |
-| [TS-50](src/modules/ROOT/partials/050/GAPS.md) | Cloud economics | 1 | — | — | Legacy |
-| [TS-52](src/modules/ROOT/partials/052/GAPS.md) | Security and secrets management | 1 | — | — | Legacy |
-| [TS-54](src/modules/ROOT/partials/054/GAPS.md) | Threat modeling | 1 | — | — | Legacy |
 | [TS-61](src/modules/ROOT/partials/061/GAPS.md) | AI tools | 1 | — | — | Legacy |
 | [TS-3](src/modules/ROOT/partials/003/GAPS.md) | Design docs | 2 | — | — | Legacy |
 | [TS-9](src/modules/ROOT/partials/009/GAPS.md) | Version control | 2 | — | — | Legacy |
@@ -112,12 +103,11 @@ not in a separate sweep.
 | [TS-16](src/modules/ROOT/partials/016/GAPS.md) | Command line interfaces (CLIs) | 59 | 9 | 1 | Template |
 | [TS-43](src/modules/ROOT/partials/043/GAPS.md) | Relational databases and SQL | 61 | 6 | 4 | Template |
 | [TS-39](src/modules/ROOT/partials/039/GAPS.md) | HTML | 136 | 5 | 4 | Template |
-| | **Total** | **652** | **115** | **43** | |
+| | **Total** | **645** | **115** | **43** | |
 
-Twenty-six of the thirty-nine standards hold six or fewer actionable items
-each. Seven standards — TS-39, TS-43, TS-16, TS-18, TS-33, TS-15, TS-21 —
-hold 466 of the 652 between them, and each needs several passes rather than
-one.
+Eighteen of the thirty-two standards hold six or fewer actionable items each.
+Seven standards — TS-39, TS-43, TS-16, TS-18, TS-33, TS-15, TS-21 — hold 466
+of the 645 between them, and each needs several passes rather than one.
 
 ## Standards with neither a stub nor a GAPS.md
 
@@ -227,7 +217,7 @@ Run from `src/modules/ROOT/partials/`:
 ```sh
 for d in $(ls -d [0-9][0-9][0-9]/ | sort); do
   n="${d%/}"; g="$n/GAPS.md"; [ -f "$g" ] || continue
-  if grep -q '^## Missing' "$g"; then
+  if grep -q '^## Missing$' "$g"; then
     awk -v n="$n" '
       /^## /   { s = substr($0, 4) }
       /^- \[ \]/ { c[s]++ }
