@@ -1,4 +1,4 @@
-# GAPS — TS-13 Functional Testing
+# GAPS — TS-13 Functional testing
 
 Coverage gaps identified by comparing external sources against this standard.
 

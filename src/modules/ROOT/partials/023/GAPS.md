@@ -1,6 +1,6 @@
 # TS-23 gap analysis
 
-Gaps found comparing TS-23: Messages and Events against the following reference
+Gaps found comparing TS-23: Messages and events against the following reference
 resources:
 
 - `__TODO__/023/event-driven.md`

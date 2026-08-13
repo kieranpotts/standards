@@ -1,6 +1,6 @@
 # TS-43 gap analysis
 
-Gaps found comparing TS-43: Relational Databases and SQL against the following
+Gaps found comparing TS-43: Relational databases and SQL against the following
 reference resources:
 
 - `__TODO__/columns.adoc`

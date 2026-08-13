@@ -1,4 +1,4 @@
-# GAPS — TS-25 Technical Documentation
+# GAPS — TS-25 Technical documentation
 
 Coverage gaps identified by comparing external sources against this standard.
 

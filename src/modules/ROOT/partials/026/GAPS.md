@@ -1,6 +1,6 @@
 # TS-26 gap analysis
 
-Gaps found comparing TS-26: Technical Writing Style Guide against the following
+Gaps found comparing TS-26: Technical writing style guide against the following
 reference resources in `__TODO__/026/`:
 
 - `__TODO__/O'Reilly Style Guide.url` → http://oreillymedia.github.io/production-resources/styleguide/ (O'Reilly Style Guide and Word List)

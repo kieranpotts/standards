@@ -1,6 +1,6 @@
 # TS-46 gap analysis
 
-Gaps found comparing TS-46: *Distributed Data and Caching* against the
+Gaps found comparing TS-46: *Distributed data and caching* against the
 following reference resource:
 
 - https://www.somethingsimilar.com/2013/01/14/notes-on-distributed-systems-for-young-bloods/

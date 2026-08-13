@@ -1,6 +1,6 @@
 # TS-16 gap analysis
 
-Gaps found comparing TS-16: Command Line Interfaces (CLIs) against the following reference
+Gaps found comparing TS-16: Command line interfaces (CLIs) against the following reference
 resources:
 
 - `__TODO__/` directory (the original source draft material TS-16 was derived from):

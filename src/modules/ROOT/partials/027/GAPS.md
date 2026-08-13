@@ -17,7 +17,7 @@ overlaps the standard on syntax but adds substantive guidance the standard
 omits — chiefly around heading naming, link path conventions, line-length
 exceptions, list numbering nuance, and code-in-lists. Several Google
 sections are documentation process/philosophy or capitalization guidance
-that plausibly belong to TS-26 (Technical Writing Style Guide) rather than
+that plausibly belong to TS-26 (Technical writing style guide) rather than
 this syntax-focused standard; those are flagged out-of-scope.
 
 **Status:** First run (2026-08-05). All gaps below are newly identified and
@@ -124,7 +124,7 @@ open.
       wrapping the most descriptive phrase as the link, and warns against
       "here", "link", or bare-URL-as-link-text. The standard describes the
       title attribute as a tooltip but says nothing about link text quality.
-      (This overlaps TS-26: Technical Writing Style Guide, which the
+      (This overlaps TS-26: Technical writing style guide, which the
       standard already defers to for prose style — flagged for the user to
       decide whether it belongs here or there.)
 
@@ -159,13 +159,13 @@ open.
       review etiquette, the "better/best rule"). This sits outside this
       standard's stated purpose — TS-27 is a Markdown syntax/authoring
       standard, and documentation process guidance belongs to TS-26
-      (Technical Writing Style Guide). Flagged for the user to confirm or
+      (Technical writing style guide). Flagged for the user to confirm or
       overrule.
 
 - [ ] https://google.github.io/styleguide/docguide/style.html#capitalization
       covers preserving the original capitalization of product, tool, and
       binary names (e.g. `Markdown` not `markdown`). This is a prose writing
-      convention that belongs to TS-26 (Technical Writing Style Guide), which
+      convention that belongs to TS-26 (Technical writing style guide), which
       TS-27 already defers to. Flagged for the user to confirm or overrule.
 
 - [ ] https://google.github.io/styleguide/docguide/style.html#capitalization-of-titles-and-headers

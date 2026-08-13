@@ -484,7 +484,7 @@ not been modified). Run 2 gaps added below.
       (entire article) — design-level thread-safety guidance (synchronizing
       critical sections, immutable objects, thread-safe wrappers, when to
       make classes thread-safe, performance trade-offs). TS-33's
-      `AGENTS.md` explicitly defers concurrency to TS-7 (Code Design), and
+      `AGENTS.md` explicitly defers concurrency to TS-7 (Code design), and
       TS-33 itself is a formatting/naming/style standard. The only
       thread-safety-adjacent point kept in-scope is the Javadoc
       _documentation_ obligation (see Missing, Oracle javadoc-tool
@@ -515,7 +515,7 @@ not been modified). Run 2 gaps added below.
 
 - [ ] Scope call: the Javadoc-content rules derived from the Oracle
   javadoc-tool article (documenting thread-safety, spec completeness,
-  implementation-specific behavior) overlap with TS-7 (Code Design) and
+  implementation-specific behavior) overlap with TS-7 (Code design) and
   TS-26 (Technical Writing). They are classified here as missing because
   they concern what Javadoc _should contain_, which is TS-33's comments
   section — but the user may prefer to defer some to TS-7 or TS-26.

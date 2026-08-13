@@ -1,4 +1,4 @@
-# GAPS — TS-7 Code Design
+# GAPS — TS-7 Code design
 
 Coverage gaps identified by comparing external sources against this standard.
 
@@ -10,7 +10,7 @@ Coverage gaps identified by comparing external sources against this standard.
 - **What the source says**: Rather than memorizing rules and edge cases, build a smaller model of a system's core primitives and the principles that generate its behavior (e.g. learning bash's expansion phases rather than memorizing quoting rules).
 - **Coverage check**: "Mental model" appears in TS-2 (architectural mental model), TS-5 (framework mental model), and TS-14 (users' mental models), but none address the practice of modeling the underlying implementation layers of a language/library/OS to understand and debug it.
 - **Gap**: No standard addresses the engineer-facing practice of constructing mental models of underlying systems as a way to understand behavior and debug.
-- **Cross-references**: TS-5 (Application Architecture)
+- **Cross-references**: TS-5 (Application architecture)
 
 ---
 
@@ -47,7 +47,7 @@ Coverage gaps identified by comparing external sources against this standard.
 - **What the source says**: Clients should not be forced to depend on more than they use; split fat interfaces into role-specific ones. Modern restatement: "don't show your clients more than they need to see."
 - **Coverage check**: TS-7 has no mention of ISP. The abstraction and OO-design sections discuss encapsulation and minimal interfaces in spirit but never frame role-interface segregation.
 - **Gap**: TS-7 lacks ISP entirely (no role-interface guidance, no "minimize the surface clients must depend on" as a named principle).
-- **Cross-references**: TS-5 (Application Architecture) — service variant (separate external/internal interfaces) also missing
+- **Cross-references**: TS-5 (Application architecture) — service variant (separate external/internal interfaces) also missing
 
 ---
 
@@ -93,7 +93,7 @@ Coverage gaps identified by comparing external sources against this standard.
 - **What the source says**: Kent Beck's maxim — for each desired change, first make the change easy (which may be hard), then make the easy change. The author aims for at least half of all commits to be refactorings.
 - **Coverage check**: TS-7's "boy scout rule" covers small, incremental, in-flight refactoring and warns against big refactors. However, it does not state Beck's explicit two-step sequencing as a deliberate technique, nor the heuristic of targeting a high proportion of refactor commits.
 - **Gap**: The specific "make the change easy, then make the easy change" discipline and the practice of tracking a high refactor-to-feature commit ratio are not captured.
-- **Cross-references**: TS-8 (Issue Tracking), TS-9 (Version Control)
+- **Cross-references**: TS-8 (Issue tracking), TS-9 (Version control)
 
 ---
 
@@ -121,4 +121,4 @@ Coverage gaps identified by comparing external sources against this standard.
 - **What the source says**: Over-engineering often occurs during optimization; optimization introduces complexity and tighter coupling between components, layers, and business processes. Stop engineering when it works, but keep simplifying.
 - **Coverage check**: TS-7's decomposition warns against over-decomposition and premature abstraction, but the specific warning that optimization itself tends to introduce complexity and tighter coupling is not addressed.
 - **Gap**: The caution that optimization is a common source of over-engineering is not covered.
-- **Cross-references**: TS-2 (Software Design Qualities)
+- **Cross-references**: TS-2 (Software design qualities)

@@ -1,6 +1,6 @@
 # TS-15 gap analysis
 
-Gaps found comparing TS-15: *User Interfaces* against the following reference
+Gaps found comparing TS-15: *User interfaces* against the following reference
 resources:
 
 - `__TODO__/015/API Design.md` (local file)
@@ -475,7 +475,7 @@ open.
       agreements) cover user-research methodology. Flagged out-of-scope because
       TS-15 is about designing and implementing interfaces, not research
       methods — though the standard could usefully cross-reference TS-12
-      (Quality Assurance) or a future research standard.
+      (Quality assurance) or a future research standard.
 
 ## Unresolved
 

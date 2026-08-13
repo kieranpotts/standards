@@ -1,6 +1,6 @@
 # TS-37 gap analysis
 
-Gaps found comparing TS-37: Web Platform APIs against the following reference
+Gaps found comparing TS-37: Web platform APIs against the following reference
 resources:
 
 - https://www.trysmudford.com/blog/hyper-responsive-web-components/
@@ -11,7 +11,7 @@ resources:
 only a TODO introductory placeholder and "See also" links to TS-18 and TS-63,
 and `src/modules/ROOT/partials/037/AGENTS.md` is an empty `<!-- TODO -->`. The standard therefore
 covers none of the substantive material in the three references. Because the
-standard's stated scope ("Web Platform APIs") plainly encompasses the web
+standard's stated scope ("Web platform APIs") plainly encompasses the web
 component family of platform APIs (Custom Elements, Shadow DOM, slots,
 Declarative Shadow DOM), almost every web-component claim in the references is
 a genuine **missing** gap. Pure CSS layout/typography techniques raised by the
@@ -184,7 +184,7 @@ out-of-scope.)_
       ("Responsive typography & space") covers this, but it plausibly sits
       outside this standard's stated purpose because fluid typography via
       `clamp()` with viewport units (Utopia) is a CSS/layout concern more
-      characteristic of TS-18 (Web GUIs) than TS-37's Web Platform APIs scope.
+      characteristic of TS-18 (Web GUIs) than TS-37's Web platform APIs scope.
       Flagged for the user to confirm or overrule.
 
 - [ ] https://www.trysmudford.com/blog/hyper-responsive-web-components/
@@ -216,7 +216,7 @@ out-of-scope.)_
 - [ ] TS-37 is a stub (`src/modules/ROOT/pages/037.adoc` holds only a TODO intro and
       "See also" links; `src/modules/ROOT/partials/037/AGENTS.md` is `<!-- TODO -->`). With no body
       text, the standard's precise scope boundary is unverifiable — in
-      particular the line between TS-37 "Web Platform APIs" and TS-18 "Web
+      particular the line between TS-37 "Web platform APIs" and TS-18 "Web
       GUIs" for CSS features (container queries, fluid typography) cannot be
       confirmed from the standard itself. The out-of-scope items above are
       best-effort calls; re-run this analysis once TS-37 has substantive

@@ -1,4 +1,4 @@
-# GAPS — TS-38 Node.js Applications
+# GAPS — TS-38 Node.js applications
 
 > **Note**: This standard is currently a stub (`// TODO` only). All points are gaps because the standard has no written content.
 

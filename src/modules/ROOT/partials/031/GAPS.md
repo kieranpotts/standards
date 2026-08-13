@@ -1,6 +1,6 @@
 # TS-31 gap analysis
 
-Gaps found comparing TS-31: Unix Shells and POSIX Standards against the following
+Gaps found comparing TS-31: Unix shells and POSIX standards against the following
 reference resources:
 
 - `__TODO__/031/shell/unix/input.md` (and its parent navigation files

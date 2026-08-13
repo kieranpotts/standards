@@ -1,4 +1,4 @@
-# GAPS — TS-9 Version Control
+# GAPS — TS-9 Version control
 
 Coverage gaps identified by comparing external sources against this standard.
 
@@ -19,4 +19,4 @@ Coverage gaps identified by comparing external sources against this standard.
 - **What the source says**: Kent Beck's maxim — first make the change easy, then make the easy change. Target a high proportion of refactor commits.
 - **Coverage check**: TS-9 defines a `Refactor` revision type but does not state the two-step sequencing or the commit-ratio heuristic.
 - **Gap**: The "make the change easy, then make the easy change" discipline is not captured.
-- **Cross-references**: TS-7 (Code Design), TS-8 (Issue Tracking)
+- **Cross-references**: TS-7 (Code design), TS-8 (Issue tracking)

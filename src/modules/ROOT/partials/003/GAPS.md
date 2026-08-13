@@ -1,4 +1,4 @@
-# GAPS — TS-3 Design Docs
+# GAPS — TS-3 Design docs
 
 Coverage gaps identified by comparing external sources against this standard.
 
@@ -10,7 +10,7 @@ Coverage gaps identified by comparing external sources against this standard.
 - **What the source says**: Teams evaluate technologies "as close to reality as possible" — building proof-of-concepts tested with real slow queries, mirroring live traffic to project costs/performance, and treating POCs as quarterly goals.
 - **Coverage check**: TS-3's RFC section acknowledges that a prototype MAY be conducted as part of writing the RFC, but gives no methodology for how to evaluate a candidate technology against real workloads.
 - **Gap**: No guidance on running proof-of-concept evaluations of candidate technologies against realistic production workloads.
-- **Cross-references**: TS-14 (Performance Testing)
+- **Cross-references**: TS-14 (Performance testing)
 
 ---
 

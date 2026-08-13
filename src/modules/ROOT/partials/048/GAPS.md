@@ -1,6 +1,6 @@
 # TS-48 gap analysis
 
-Gaps found comparing TS-48: *Environment Variables* against the following
+Gaps found comparing TS-48: *Environment variables* against the following
 reference resource:
 
 - https://12factor.net/config (Factor III: Config, "The Twelve-Factor App",

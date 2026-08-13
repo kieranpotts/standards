@@ -1,4 +1,4 @@
-# GAPS — TS-49 Cloud Platform Engineering
+# GAPS — TS-49 Cloud platform engineering
 
 Coverage gaps identified by comparing external sources against this standard.
 
@@ -20,4 +20,4 @@ Coverage gaps identified by comparing external sources against this standard.
 - **What the source says**: Management capacity must be able to manage the systems that must be controlled. As the number of objects one person must manage grows, automation becomes the only solution; management/CI-CD software must be scalable, error-free, and able to work in parallel.
 - **Coverage check**: TS-49 covers self-service platforms and aligned autonomy at the organizational level, but does not frame the core principle that management capacity must scale with the number of managed objects and that automation is the scaling mechanism.
 - **Gap**: The "management capacity must scale with the system; automation is the only answer at scale" principle is not treated as a design principle.
-- **Cross-references**: TS-2 (Software Design Qualities)
+- **Cross-references**: TS-2 (Software design qualities)

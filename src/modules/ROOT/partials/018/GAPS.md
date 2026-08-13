@@ -295,7 +295,7 @@ The following Partial items are from the resources listed in GitHub issue #61.
 
 - [ ] `__TODO__/018/web-clients/_todo/audits.md` — website audit / technical due-diligence checklists. Out of scope: process/auditing (TS-14 / TS-15).
 
-- [ ] `__TODO__/018/web-clients/_todo/0300-accessibility.md:60` (Testing) — the assistive-technology test matrix (JAWS, VoiceOver, NVDA, ZoomText, Dragon) and the manual/automated accessibility audit process. Out of scope: TS-18's `AGENTS.md` states that "Accessibility testing process is covered by TS-14: Performance Testing."
+- [ ] `__TODO__/018/web-clients/_todo/0300-accessibility.md:60` (Testing) — the assistive-technology test matrix (JAWS, VoiceOver, NVDA, ZoomText, Dragon) and the manual/automated accessibility audit process. Out of scope: TS-18's `AGENTS.md` states that "Accessibility testing process is covered by TS-14: Performance testing."
 
 - [ ] `__TODO__/018/web-clients/_todo/0300-accessibility.md:484` (7:1 contrast), `:508` (sign-language tracks), and the lower-secondary reading-level guidance (`:159`) — these target WCAG Level AAA. Out of scope: TS-18 explicitly targets Level AA.
 

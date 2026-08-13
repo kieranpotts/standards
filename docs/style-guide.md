@@ -7,7 +7,7 @@ authoritative reference for contributors and AI agents editing content under
 
 For prose-level writing conventions that apply within any individual document —
 voice, headings, terminology, citations — see
-[TS-26: Technical Writing Style Guide](../src/modules/ROOT/pages/026.adoc).
+[TS-26: Technical writing style guide](../src/modules/ROOT/pages/026.adoc).
 For AsciiDoc syntax specifics, see
 [TS-28: AsciiDoc](../src/modules/ROOT/pages/028.adoc). The repository
 structure and file layout are documented in [AGENTS.md](../AGENTS.md). The
