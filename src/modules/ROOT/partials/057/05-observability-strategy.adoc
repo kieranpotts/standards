@@ -25,6 +25,17 @@ user-facing product:
   the specialty of a few infrastructure engineers. Every team that owns a
   service owns its dashboards, logs, and alerts.
 
+Ownership requires self-service tooling to be meaningful. Where changing a
+dashboard, adding a metric, or configuring an alert requires a ticket to a
+centralized observability or platform team, ownership sits with that team in
+practice, whatever the stated policy says — and a request routed through a
+queue turns a same-day investigation into a week-long wait. Development teams
+MUST be able to configure their own dashboards, alerts, and metrics directly,
+without going through a centralized team. A centralized team MAY still own
+the underlying platform — provisioning, retention policy, cost control — but
+MUST NOT be the sole route through which a development team's own
+observability configuration changes.
+
 == Structure dashboards as a hierarchy
 
 Dashboards SHOULD be organized as a drill-down hierarchy that lets an engineer
@@ -112,6 +123,63 @@ resort for investigating slow requests. To make traces useful:
   and an example of it. Time spent waiting for a connection SHOULD be tracked
   separately from time spent executing the query, to distinguish contention
   from inefficiency.
+
+== Debugging as a discipline
+
+Observability supplies the raw material — logs, traces, metrics, dumps — but
+turning that material into a root cause is a separate skill: forming a
+hypothesis, finding the observation that would confirm or refute it, and
+repeating until the cause is isolated. Treat debugging as a discipline to
+practice, not an ability engineers either have or lack:
+
+* *Reason across layers.* The hardest bugs span multiple abstraction layers —
+  application code, runtime, kernel, network, hardware — and root-causing them
+  requires moving between layers rather than staying at the one where the
+  symptom appeared. An engineer with a strong mental model of the full stack
+  can sometimes single-shot a bug from one observation, by reasoning through
+  what system state would produce it; an engineer without that model has to
+  fall back to trial and error.
+
+* *Form a hypothesis before gathering more data.* Undirected log-scrolling is
+  slow. State what you expect to be true if the hypothesis holds, find the
+  cheapest observation that would confirm or refute it, and only then look.
+
+* *Prefer the observation that eliminates the most hypotheses.* Where several
+  observations would each move the investigation forward, the one that splits
+  the remaining hypothesis space roughly in half is worth more than one that
+  only confirms the leading theory.
+
+== When to stop deducing and start observing
+
+Deductive root-causing does not scale to every system. For a distributed
+system, a codebase with years of undocumented accretion (a "big ball of
+mud"), or heterogeneous client-side code running on devices you do not
+control, building a mental model precise enough to reason from is often
+impractical — there are too many interacting components, too much
+unobserved state, or too little control over the runtime environment.
+
+Where deductive understanding is impractical, switch to an empirical
+strategy instead:
+
+* *Treat behavior statistically.* Instead of explaining any one failure,
+  characterize the failure rate, its distribution across inputs or instances,
+  and how it moves in response to changes. A statistical answer ("errors
+  correlate with payload size above 1&nbsp;MB") is often actionable even where
+  a full causal explanation is not.
+
+* *Invest in fault tolerance over root-causing every failure.* In a
+  distributed system, some component failures are not worth explaining
+  individually — retries, circuit breakers, and graceful degradation absorb
+  them more cheaply than root-causing each one. Root-cause the failures that
+  recur or that the fault-tolerance layer does not absorb; let the
+  fault-tolerance layer handle the rest. See
+  xref:006.adoc[*TS-6: Distributed system design*] for the resilience
+  patterns this relies on.
+
+This is a judgment call, not a rule with a fixed threshold: attempt deductive
+root-causing first, and switch to empirical methods once the cost of building
+an accurate mental model clearly exceeds the cost of living with a
+statistical answer.
 
 == Exercise the setup
 
