@@ -14,7 +14,7 @@ and formatting conventions described below.
 
 ## Tech stack
 
-- **Format**: AsciiDoc (`.adoc`) for all standard content, in a native
+- **Format.** AsciiDoc (`.adoc`) for all standard content, in a native
   [Antora](https://antora.org) module — this repository is a content source
   for [kieranpotts.com](https://kieranpotts.com), consumed the same way as the
   `garden`, `thoughts`, and `bookmarks` sibling repositories. Markdown (`.md`)
@@ -22,34 +22,34 @@ and formatting conventions described below.
   each standard's `GAPS.md`/`TODO.md`, none of which are part of the
   published site.
 
-- **No build tooling in this repository**: There is no build script or
-  preview server here. The website repository runs the actual Antora build;
-  this repository only has to be a valid Antora content source.
+- **No build tooling in this repository.** There is no build script or
+  preview server here. The website repository runs the actual Antora build.
+  This repository only has to be a valid Antora content source.
 
 ## Project structure
 
-- **`src/antora.yml`**: The Antora component descriptor (`name: standards`).
+- `src/antora.yml`. The Antora component descriptor (`name: standards`).
 
-- **`src/modules/ROOT/pages/`**: One page per technical standard,
+- `src/modules/ROOT/pages/`. One page per technical standard,
   `<NNN>.adoc` (eg. `031.adoc`), plus `index.adoc`, the master index of all
   standards. A page is the entry point for its standard — title, intro,
   `toc::[]`, then `include::` directives pulling in that standard's partials.
 
-- **`src/modules/ROOT/partials/<NNN>/`**: Everything else that belongs to
+- `src/modules/ROOT/partials/<NNN>/`. Everything else that belongs to
   standard `TS-<N>` but isn't the page itself: numbered content files
   included from the page, that standard's `GAPS.md` (and `TODO.md`, when a
   deep-dive is in progress), and any subdirectories.
 
-- **`src/modules/ROOT/images/<NNN>/`**: That standard's referenced images and
+- `src/modules/ROOT/images/<NNN>/`. That standard's referenced images and
   diagrams.
 
-- **`src/modules/ROOT/nav.adoc`**: The component's navigation menu — every
+- `src/modules/ROOT/nav.adoc`. The component's navigation menu — every
   standard, in numeric order.
 
-- **`docs/`**: Repository meta-documentation, including the style guide
+- `docs/`. Repository meta-documentation, including the style guide
   (`docs/style-guide.md`).
 
-- **`template/`**: A representative entry for new standards, with lorem-ipsum
+- `template/`. A representative entry for new standards, with lorem-ipsum
   body text that demonstrates the established document structure, formatting,
   and conventions. Copy this directory as the starting point for a new standard.
 
@@ -96,9 +96,9 @@ algorithm for no real benefit over landing on the right page):
 `xref:NNN.adoc[*TS-N: Title*]`. The bold markup sits inside the macro's
 brackets, tight around the link text — not wrapped around the whole macro.
 
-`GAPS.md`/`TODO.md` files are Markdown, outside Antora's reach, and keep their
-own convention: a link to another standard cites its canonical published URL,
-eg. `https://kieranpotts.com/standards/031`.
+`GAPS.md`/`TODO.md` files are Markdown, outside Antora's reach, and keep
+their own convention. A link to another standard cites its canonical
+published URL, eg. `https://kieranpotts.com/standards/031`.
 
 ## Rules
 
