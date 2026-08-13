@@ -19,10 +19,10 @@ placeholder(s), and no `include::partial$NNN/...[]` includes.
 | [TS-24](src/modules/ROOT/pages/024.adoc) | User manuals | Has a short outline but is flagged to be split into separate Technical Documentation / User Documentation standards. |
 | [TS-35](src/modules/ROOT/pages/035.adoc) | Python | Pure stub (`// Introduction.` placeholder only). |
 | [TS-37](src/modules/ROOT/pages/037.adoc) | Web platform APIs | Pure stub aside from "See also" cross-references. Has a `GAPS.md` with 18 actionable items. |
-| [TS-38](src/modules/ROOT/pages/038.adoc) | Node.js applications | Pure stub. `GAPS.md` explicitly notes this. |
+| [TS-38](src/modules/ROOT/pages/038.adoc) | Node.js applications | Pure stub. `GAPS.md` has 1 open gap (legacy format), not yet resolved. |
 | [TS-39](src/modules/ROOT/pages/039.adoc) | HTML | Has substantive intro prose and `toc::[]`, but no `include::partial$` directives — the `partials/039/` directory holds only `GAPS.md`. Its `GAPS.md` carries 136 actionable items, the largest in the repository. |
 | [TS-42](src/modules/ROOT/pages/042.adoc) | Vue | Pure stub (`// TODO: Introductory text…`). |
-| [TS-44](src/modules/ROOT/pages/044.adoc) | Non-relational (NoSQL) databases | Pure stub. `GAPS.md` explicitly notes this. |
+| [TS-44](src/modules/ROOT/pages/044.adoc) | Non-relational (NoSQL) databases | Pure stub. `GAPS.md` has 2 open gaps (legacy format), not yet resolved. |
 | [TS-55](src/modules/ROOT/pages/055.adoc) | Authentication and authorization | Pure stub (`// TODO` only). |
 
 No open gap in any other standard's `GAPS.md` cross-references a stub, so the
@@ -37,18 +37,26 @@ positive — verify by reading the page before trusting the grep alone.
 
 ## Open gap analyses
 
-Forty-one standards have a `GAPS.md`. Twenty-five are fully resolved and are
+Forty-one standards have a `GAPS.md`. Twenty-four are fully resolved and are
 omitted from the table below — TS-2, TS-3, TS-5, TS-6, TS-8, TS-9, TS-11,
-TS-12, TS-13, TS-14, TS-20, TS-23, TS-25, TS-31, TS-36, TS-38, TS-44, TS-46,
-TS-48, TS-49, TS-50, TS-52, TS-54, TS-57, and TS-61. The other sixteen have
-open items.
+TS-12, TS-13, TS-14, TS-20, TS-23, TS-25, TS-31, TS-36, TS-46, TS-48, TS-49,
+TS-50, TS-52, TS-54, TS-57, TS-61, and, as of this run, TS-7. The other
+seventeen have open items.
+
+TS-38 and TS-44 were previously listed as fully resolved; that was wrong. Both
+carry a genuinely open, unresolved legacy-format gap (1 for TS-38, 2 for
+TS-44) — neither has ever been closed. They are not in the actionable-count
+table below because both standards are stubs, and `close-gaps` stops on a
+stub. They are tracked here instead, alongside the other stubs, until the
+standard is authored.
 
 ### The two GAPS.md formats
 
 The files are in two formats, and the columns mean different things in each.
-The counts below are of the sixteen files with open items, tallying with the
-table's rows. Of the twenty-five fully-resolved files, only TS-6 is still in
-the legacy format; the other twenty-four were converted as they were worked.
+The counts below are of the sixteen files with open items that are not stubs,
+tallying with the table's rows. Of the twenty-four fully-resolved files, only
+TS-6 is still in the legacy format; the other twenty-three were converted as
+they were worked.
 
 - **Template format** (38 files). Follows the `gap-analysis` skill's bundled
   template: flat `- [ ]` checklists under `## Missing`, `## Partial`,
@@ -84,8 +92,6 @@ not in a separate sweep.
 | TS | Title | Actionable | Scope | Unresolved | Format |
 | --- | --- | ---: | ---: | ---: | --- |
 | [TS-4](src/modules/ROOT/partials/004/GAPS.md) | Modeling | 0 | 0 | 1 | Template — 1 unresolved resource, repeatedly unfetchable |
-| [TS-10](src/modules/ROOT/partials/010/GAPS.md) | Releasing | 2 | — | — | Template |
-| [TS-7](src/modules/ROOT/partials/007/GAPS.md) | Code design | 5 | 0 | 0 | Template — 8 of 13 resolved |
 | [TS-27](src/modules/ROOT/partials/027/GAPS.md) | Markdown | 15 | 6 | 1 | Template |
 | [TS-40](src/modules/ROOT/partials/040/GAPS.md) | CSS | 17 | 12 | 1 | Template |
 | [TS-37](src/modules/ROOT/partials/037/GAPS.md) | Web platform APIs | 18 | 4 | 1 | Template — also a stub |
@@ -98,7 +104,7 @@ not in a separate sweep.
 | [TS-16](src/modules/ROOT/partials/016/GAPS.md) | Command line interfaces (CLIs) | 59 | 9 | 1 | Template |
 | [TS-43](src/modules/ROOT/partials/043/GAPS.md) | Relational databases and SQL | 61 | 6 | 4 | Template |
 | [TS-39](src/modules/ROOT/partials/039/GAPS.md) | HTML | 136 | 5 | 4 | Template — also a stub |
-| | **Total** | **584** | **104** | **42** | |
+| | **Total** | **576** | **104** | **41** | |
 
 TS-39 sits at the top by actionable count but is a stub — see
 [Stub standards](#stub-standards) — so `close-gaps` cannot work it until the
@@ -108,7 +114,11 @@ unresolved resource remains open: the reference directory it depended on no
 longer exists anywhere in the repository, and re-fetching it has failed on
 every run so far.
 
-Three standards — TS-39, TS-43, TS-16 — hold 256 of the 584 between them, and
+TS-7 (Code design) was closed out on 2026-08-13 — all 13 actionable items
+resolved across two runs — and has left this table for the fully-resolved
+list.
+
+Three standards — TS-39, TS-43, TS-16 — hold 256 of the 576 between them, and
 each needs several passes rather than one.
 
 ## Standards with neither a stub nor a GAPS.md
@@ -221,6 +231,15 @@ govern how all new content should be written.
   hand on 2026-08-13; re-verify by reading the page, not just the grep
   result, whenever this script's stub list changes.
 
+- **RESOLVED — TS-38 and TS-44 wrongly listed as fully resolved.** A prior
+  regeneration of this file's "Open gap analyses" section listed TS-38 and
+  TS-44 among the twenty-five fully-resolved standards. Neither is: TS-38's
+  `GAPS.md` has one open legacy-format gap and TS-44's has two, and neither
+  file has ever carried a `**RESOLVED**` marker. Both are stubs, so
+  `close-gaps` cannot action them until the standard is authored; corrected
+  on 2026-08-13 to note the open gaps against each in the stub table instead
+  of silently dropping them from tracking.
+
 ## Regenerating this file
 
 Run from `src/modules/ROOT/partials/`:
@@ -259,4 +278,8 @@ A standard is "fully resolved" when its `GAPS.md` has zero unchecked items of
 *any* kind — `grep -c '^- \[ \]'` returns 0 — not merely zero actionable
 items. TS-4 is the example that makes this distinction matter: it has 0
 actionable items but 1 unresolved resource still unchecked, so it stays in
-the open-items table.
+the open-items table. A legacy-format file must be checked the same way —
+count `## <gap title>` subsections against `**RESOLVED**` markers, per the
+script above — rather than assumed resolved because it is short or old:
+TS-38 and TS-44 were wrongly marked fully resolved in a prior pass for
+exactly this reason.
