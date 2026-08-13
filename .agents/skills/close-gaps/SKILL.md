@@ -110,7 +110,19 @@ prompt the user for clarification.
 
 4.  Convert a legacy-format file to the template format now, as the first edit
     of the run. Do not defer it to a later sweep, and do not work a legacy
-    file in place. The conversion is lossless:
+    file in place.
+
+    Before writing a word of it: **`GAPS.md` is Markdown, outside Antora's
+    reach.** It MUST NOT contain `xref:` macros, `<<Section title>>`
+    references, or any other AsciiDoc syntax — including in the closure notes
+    of step 7, which is where the mistake is easiest to make, because you
+    will have just finished reading the AsciiDoc cross-reference rules. Name
+    another standard in prose as `TS-6 (Distributed system design)`, and
+    where a link is genuinely wanted, use the canonical published URL, eg.
+    `https://kieranpotts.com/standards/031`, per the repository's `AGENTS.md`.
+    Refer to a section of a standard by quoting its title, not by `<<…>>`.
+
+    The conversion is lossless:
 
     - **The header.** The document title becomes `# TS-<N> gap analysis`,
       followed by the "Gaps found comparing TS-<N>: <Title> against the
@@ -134,6 +146,11 @@ prompt the user for clarification.
         Preserve what it says; change only the syntax and any count the run
         has moved.
 
+        Write it as of the state *before* this run's content work — the
+        conversion is a faithful restatement of the file, not a prediction of
+        what the run will close. Step 10 updates it once the content lands.
+        Writing this line twice in one run is expected, not a defect.
+
       A legacy preamble sentence such as "Coverage gaps identified by
       comparing external sources against this standard." is boilerplate that
       the new preamble subsumes, and MAY be dropped. Nothing else may be.
@@ -146,24 +163,45 @@ prompt the user for clarification.
       2.  What that source says, from `**What the source says**`.
       3.  The gap it leaves, from `**Gap**`.
       4.  Where the standard currently stands, from `**Coverage check**`.
-      5.  A placement recommendation — `Recommend placing at <file>:<line>`,
-          or "new section". Legacy items rarely name one; derive it from the
-          coverage check, since an item that cannot be tied to a destination
-          is not actionable.
+      5.  A placement recommendation, in whichever of these three forms the
+          evidence supports: `Recommend placing at <file>:<line>` where the
+          coverage check cites a line; `Recommend a new section in <file>`
+          where it names a file or an area of the standard but no line; or
+          "new section" where it names neither. Legacy items rarely state a
+          destination, so derive it from the coverage check. A Missing item
+          will usually land on one of the last two forms by construction —
+          a coverage check that says the standard is silent has no line to
+          point at. That is expected, not a failure to be specific.
 
       Condense, but do not summarize away. The `## <gap title>` heading text
       itself is not preserved — the item's own prose replaces it.
 
     - **The headings.** Classify each converted item as Missing or Partial
       from its `**Coverage check**`: "the standard says nothing about X" is
-      Missing; "the standard covers X but not Y" is Partial. All four
-      headings MUST be present even when empty, and any heading the legacy
-      analysis recorded nothing under gets a parenthetical note saying the
-      file was converted from the legacy format and that the original
-      analysis recorded no such items. This routinely applies to
-      `## Out-of-scope` and `## Unresolved`, which the legacy format has no
-      concept of, and applies equally to `## Partial` when every converted
-      item is Missing — as it is in any single-gap file.
+      Missing; "the standard covers X but not Y" is Partial. Classify on the
+      coverage check alone, and do not assume a single-gap file's one item is
+      Missing — it may equally be Partial.
+
+      Where a legacy item raises a scope question about itself ("this may be
+      intentionally out of scope if the standard is only about X"), that is
+      an `## Out-of-scope` item, not a Missing one, however its coverage
+      check reads. Classify it there and put the question to the user under
+      step 8 rather than closing it. Deciding the standard's scope is not a
+      call this skill gets to make silently.
+
+      All four headings MUST be present even when empty, and any heading with
+      nothing under it gets a parenthetical saying so. Word it for the case:
+
+      - `## Out-of-scope` and `## Unresolved` — the legacy format has no
+        concept of either, so say that the file was converted and that the
+        format recorded no such items.
+
+      - `## Partial` — the legacy format *does* express partial coverage, so
+        do not claim otherwise. Say only that the original analysis recorded
+        no partial-coverage items.
+
+      One statement of the conversion date, in `**Assessment.**`, is enough
+      for the whole file. The parentheticals need not repeat it.
 
     - A subsection carrying a `**RESOLVED**` bullet becomes a `- [x]` item
       whose resolution note is carried over word for word, in the step 7 form.
@@ -203,6 +241,21 @@ prompt the user for clarification.
     cannot be fetched, leave the item open and record why; do not write the
     content from memory.
 
+    **Where the item's claim is repository-wide — "no standard addresses X",
+    "this is not covered anywhere" — one standard's directory cannot confirm
+    it.** Grep all of `src/`, and grep the other `GAPS.md` files for the same
+    source URL: a gap sourced from one article is often recorded against
+    several standards, and another run may already have closed part of it.
+    This is not hypothetical. Six of TS-5's gaps were closed by content in
+    TS-6, and TS-50's premise was invalidated the same way.
+
+    Where you find the claim half-closed, write only the part that belongs to
+    your standard and cross-reference the rest. Record it with `**Resolved.**`
+    followed by a second paragraph naming the file that closed the other
+    half — the form `src/modules/ROOT/partials/005/GAPS.md` uses for the six
+    gaps TS-6 closed. Do not use `**Withdrawn.**`: the item was real, and part
+    of it was yours to write.
+
 7.  Write the content, then record the closure against the item.
 
     Where the content goes is the highest-leverage decision in the run, and
@@ -229,6 +282,11 @@ prompt the user for clarification.
       include list. Where the standard keeps its references in a trailing
       partial (`NN-references.adoc` — eight standards do), new sections go
       before it, so it is renumbered too.
+
+    - Where the page opens with a `.TL;DR` block enumerating its sections, a
+      new section MUST get a bullet in it. A page whose summary does not
+      mention a section it contains is internally inconsistent, and the block
+      is easy to miss because it sits above the include list you are editing.
 
     - Prose follows `docs/style-guide.md`, TS-26, and TS-28: American English,
       RFC 2119 keywords for normative statements, bold lead-ins terminated
@@ -263,10 +321,21 @@ prompt the user for clarification.
 
       The list lives in a `== References` section on the page, after a `''''`
       rule, per the style guide. Create it there if the standard has none —
-      most standards do not. Where the standard already keeps its references
-      in a trailing partial, add the entry to that list where it is; relocating
-      it is a style-guide divergence for `deep-dive`'s conventions tier to
-      settle, not a side effect of closing a gap. Report it.
+      most standards do not.
+
+      Where the standard already keeps its references in a trailing partial,
+      add the entry to that list where it is; relocating it is a style-guide
+      divergence for `deep-dive`'s conventions tier to settle, not a side
+      effect of closing a gap. Report it.
+
+      Judge that by what the list *is*, not by where it sits. A provenance
+      trail — sources that fed the standard's own claims, annotated with the
+      sections they fed — is a reference list, whatever the file is called.
+      A curated reading list of books, tools, and further material, such as
+      TS-54's `09-useful-links.adoc`, is not: it serves the reader rather
+      than recording where the content came from. Do not file a source there.
+      Create the page-level `== References` instead, and report the
+      near-miss.
 
     Then tick the item and append the resolution note as an indented paragraph
     inside the same bullet, leaving the original text untouched:
@@ -342,12 +411,28 @@ prompt the user for clarification.
 
     - Check `<<Section title>>` xrefs resolve to exactly one heading. A new
       section can collide with an existing title, and an ambiguous xref
-      resolves unpredictably:
+      resolves unpredictably.
+
+      The heading index MUST span the whole merged document — the page plus
+      every partial it includes, matching every `^=+ ` line, since a partial's
+      own `= Title` becomes a `==` section once `leveloffset=+1` is applied.
+      Build it from one file and the check verifies nothing: a reference to a
+      heading in a sibling partial will pass whether or not it exists, which
+      is the case most references are in.
 
       ```python
-      for t in re.findall(r'<<([^>,]+?)(?:,[^>]*)?>>', text):
-          if len(heads.get(t, [])) != 1: print("PROBLEM:", t)
+      heads = {}          # title -> [file, ...], across page + partials
+      for f in [page] + included_partials:
+          for line in open(f):
+              m = re.match(r'^=+\s+(.*?)\s*$', line)
+              if m: heads.setdefault(m.group(1), []).append(f)
+
+      for f in [page] + included_partials:
+          for t in re.findall(r'<<([^>,]+?)(?:,[^>]*)?>>', open(f).read()):
+              if len(heads.get(t, [])) != 1: print("PROBLEM:", t)
       ```
+
+      A target matching two headings is as broken as one matching none.
 
     - **Only if the previous two checks found a broken reference**, confirm
       whether it predates the run before reporting it as your own breakage.
@@ -413,6 +498,11 @@ prompt the user for clarification.
 - You MUST NOT delete an item, rewrite its original text, or drop a prior
   resolution note. `GAPS.md` is an append-only record of what was found and
   what was done about it.
+
+- `GAPS.md` is Markdown and MUST NOT contain AsciiDoc syntax — no `xref:`
+  macros, no `<<Section title>>` references. Name a standard in prose, link
+  it by its published URL, and quote a section title rather than referencing
+  it. This applies to closure notes as much as to converted items.
 
 - You MUST NOT fabricate source content. Where the item's summary is too thin
   to write from and the source cannot be re-fetched, leave the item open and
