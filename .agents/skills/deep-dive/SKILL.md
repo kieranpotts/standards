@@ -52,7 +52,7 @@ prompt the user for clarification.
   differently from how they were written, and fixes that failed. A finding
   that was wrong is itself worth recording.
 
-- The mechanical verification in MUST have run over every tier worked,
+- The mechanical verification in step 8 MUST have run over every tier worked,
   and its results — including anything that could not be verified, and why —
   MUST be in the report back to the user.
 
