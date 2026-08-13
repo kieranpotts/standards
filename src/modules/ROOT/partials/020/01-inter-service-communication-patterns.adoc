@@ -138,3 +138,68 @@ allows systems to grow incrementally, sometimes in unplanned ways.
 
 Event-driven architecture, done well, can significantly reduce the complexity of
 otherwise very complex systems.
+
+== Schema-driven contracts
+
+Whichever of the three patterns is used, the contract between the two sides –
+the operations exposed, the message types exchanged, and the shape of every
+payload – MUST be defined in a machine-readable schema, and that schema MUST be
+the single source of truth for both producer and consumer.
+
+Within a single deployable, the compiler or the runtime enforces the interface
+between one module and another. Across a network boundary that enforcement
+disappears, and nothing but convention stops a producer and a consumer from
+disagreeing about the data passing between them. An interface definition
+language (IDL), and the tooling built on it, is what replaces the compiler.
+This is why schema-first design matters far more in a distributed system than
+in a monolith, and why it becomes essential as the number of independently
+deployed – and, in a decentralized network, independently operated – services
+grows.
+
+Choose an IDL appropriate to the transport:
+
+* *RPC-style communication.* Protocol Buffers for gRPC, and OpenAPI for HTTP
+  request-response APIs.
+
+* *Message- and event-driven communication.* JSON Schema, Avro, or Protocol
+  Buffers for the payloads themselves, with AsyncAPI describing the channels
+  and operations that carry them.
+
+A bespoke schema language is legitimate where no standard one fits the domain.
+The AT Protocol's Lexicon, which describes both the HTTP endpoints and every
+record type in the Bluesky network, is an example. What matters is not which
+language is chosen, but that exactly one definition of each contract exists,
+published where every party can read it.
+
+Schemas SHOULD be authored before the implementation, and both the server stubs
+and the client libraries SHOULD be generated from them. Where the two sides of
+a contract are hand-written from a prose description, they will drift, and the
+divergence will not be detected until a request fails in production.
+
+Schemas MUST be versioned and published to a location that consumers can
+resolve at build time – a schema registry, or a versioned package. A schema
+that lives only in the producer's repository is not a contract; it is an
+implementation detail that consumers have copied.
+
+A change to a published schema is a change to the API, and is governed by the
+compatibility rules in <<Version management>>. Additive changes – new optional
+fields, new message types – are backward compatible. Removing a field,
+narrowing a type, or promoting an optional field to a required one is a
+breaking change, and requires a new major version. Compatibility SHOULD be
+checked automatically in the CI pipeline, by comparing the proposed schema
+against the last published version, so that a breaking change is caught before
+release rather than by a consumer after it.
+
+Consumers SHOULD validate inbound payloads against the schema at the service
+boundary, and SHOULD ignore fields they do not recognize rather than rejecting
+the message. This tolerant reader behavior is what allows a producer to make
+additive changes without coordinating a simultaneous release of every consumer.
+
+Validation in the other direction is comparatively expensive, since it adds
+latency to every outbound call. Producers SHOULD validate their own output in
+development, test, and staging environments, and MAY disable that validation in
+production where generated code already guarantees the shape.
+
+See xref:029.adoc[*TS-29: JSON Schema*] for the schema language itself, and
+xref:023.adoc[*TS-23: Messages and events*] for the design of the message and
+event payloads that a schema describes.
