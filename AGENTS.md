@@ -93,7 +93,8 @@ A cross-reference from any `.adoc` file to another standard uses an Antora
 `link:../NNN/...` path, and never a subsection fragment (each standard is one
 merged page, so a fragment would need to replicate Asciidoctor's section-ID
 algorithm for no real benefit over landing on the right page):
-`*xref:NNN.adoc[TS-N: Title]*`.
+`xref:NNN.adoc[*TS-N: Title*]`. The bold markup sits inside the macro's
+brackets, tight around the link text — not wrapped around the whole macro.
 
 `GAPS.md`/`TODO.md` files are Markdown, outside Antora's reach, and keep their
 own convention: a link to another standard cites its canonical published URL,

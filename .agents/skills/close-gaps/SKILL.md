@@ -183,18 +183,16 @@ prompt the user for clarification.
       on every code block, long-form admonition blocks, plain double quotes.
 
     - A cross-reference to another standard is
-      `*xref:NNN.adoc[TS-N: Title]*`, with the bold wrapping the whole macro
-      — never a relative path, never a section fragment. A cross-reference to
-      another section of the same standard is `<<Section title>>`.
+      `xref:NNN.adoc[*TS-N: Title*]`, with the bold tight around the link
+      text inside the macro's brackets — never wrapped around the whole
+      macro, never a relative path, never a section fragment. The whole macro
+      MUST sit on one source line, even where that puts the line over 80
+      characters.
 
-      Be aware that `docs/style-guide.md` requires the opposite form,
-      `xref:NNN.adoc[*TS-N: Title*]`, and explicitly names the form above as
-      wrong. The corpus contradicts it: all 200 cross-references under
-      `partials/` use the bold-outside form, none uses bold-inside, and
-      `AGENTS.md` shows the bold-outside form too. Until the user settles
-      which is correct, match the corpus, so that new content is consistent
-      with the content around it and a later fix is one mechanical sweep
-      rather than a mixed tree. Report the divergence in your run report.
+    - A cross-reference to another section of the *same* standard is
+      `<<Section title>>`, never an `xref:` to the standard's own page. Each
+      standard is one merged page, so an `xref:` to its own page links the
+      reader to the page they are already reading.
 
     - Where the gap cites a source, add that source to the standard's
       reference list. This is what TS-6 and TS-2 did for every source that fed

@@ -128,22 +128,29 @@ Surfaced on 2026-08-13 while writing the `close-gaps` skill. These are
 repo-level decisions and defects, not gap-closing work, but the first two
 govern how all new content should be written.
 
-- **A dropped `include::` on the TS-27 page.**
-  [pages/027.adoc:39](src/modules/ROOT/pages/027.adoc) carries two
-  `include::` directives on one source line. Asciidoctor only honors the
-  directive at the start of a line, so `08-code.adoc` is not included in the
-  built page and the second directive renders as literal text. This is a live
-  defect in the published site, not a cosmetic one.
+- **RESOLVED — a dropped `include::` on the TS-27 page.**
+  `pages/027.adoc` carried two `include::` directives on one source line, so
+  `08-code.adoc` was absent from the built page and the second directive
+  rendered as literal text. Split onto separate lines on 2026-08-13.
 
-- **Cross-reference bold markup: the style guide contradicts the corpus.**
-  `docs/style-guide.md` (lines 60–65) requires `xref:NNN.adoc[*TS-N: Title*]`
-  and explicitly names `*xref:NNN.adoc[TS-N: Title]*` as wrong. All 200
-  cross-references under `src/modules/ROOT/partials/` use the form it calls
-  wrong, and `AGENTS.md` presents that form as the convention. Either the
-  style guide changes, or the corpus and `AGENTS.md` do — the latter being a
-  mechanical sweep of 200 references. Until it is settled, `close-gaps`
-  matches the corpus, so new content stays consistent with the content
-  around it.
+- **RESOLVED — cross-reference bold markup.** The style guide required
+  `xref:NNN.adoc[*TS-N: Title*]` while all 237 cross-references in the corpus
+  used `*xref:NNN.adoc[TS-N: Title]*`, the form it names as wrong. Settled on
+  2026-08-13 in favor of the style guide: all 237 were converted, `AGENTS.md`
+  was corrected to match, and three cross-references that were split across
+  source lines were joined.
+
+- **Self-referencing cross-references.** Twenty-nine `xref:` macros point at
+  the page that contains them — 28 within TS-9, 1 within TS-49. They render
+  as a link to the page the reader is already on. They predate the move to
+  one merged page per standard, when each partial was its own page. The style
+  guide (lines 96–102) requires `<<Section title>>` for a reference to
+  another section of the same standard.
+
+- **Link text that does not match the target's title.** Some cross-references
+  label the target in title case (`TS-43: Relational Databases and SQL`)
+  where the page's own title is sentence case (`TS-43: Relational databases
+  and SQL`). Not audited in full.
 
 - **Reference lists in a trailing partial.** `docs/style-guide.md` (lines
   150–153) says a reference list MUST NOT be split into a separate partial.
