@@ -76,7 +76,8 @@ prompt the user for clarification.
 
 - Nothing MUST be staged or committed, and no file outside the target
   standard's page and its `src/modules/ROOT/partials/<NNN>/` directory MUST
-  have been modified.
+  have been modified. The root `TODO.md` is outside that scope: the run
+  MUST report its corrected row rather than editing it.
 
 ## Instructions
 
@@ -87,8 +88,10 @@ prompt the user for clarification.
     instead. Read the root `TODO.md` for the recorded item counts, but trust
     the file over the index.
 
-2.  Identify which of the two formats the file is in. `grep -q '^## Missing'`
-    is the discriminator the root `TODO.md` uses.
+2.  Identify which of the two formats the file is in. Use
+    `grep -q '^## Missing$'` — anchored at both ends, so that a legacy file
+    with a gap titled, say, "Missing retry guidance" is not misread as
+    template format.
 
     - **Template format.** Flat `- [ ]` checklists under `## Missing`,
       `## Partial`, `## Out-of-scope`, and `## Unresolved`.
@@ -109,23 +112,58 @@ prompt the user for clarification.
     of the run. Do not defer it to a later sweep, and do not work a legacy
     file in place. The conversion is lossless:
 
-    - The document title becomes `# TS-<N> gap analysis`, followed by the
-      "Gaps found comparing TS-<N>: <Title> against the following reference
-      resources:" preamble and a bulleted list of the distinct `**Source**`
-      values found across the file.
+    - **The header.** The document title becomes `# TS-<N> gap analysis`,
+      followed by the "Gaps found comparing TS-<N>: <Title> against the
+      following reference resources:" preamble and a bulleted list of the
+      distinct `**Source**` values found across the file.
 
-    - Each `## <gap title>` subsection becomes one checklist bullet. Its text
-      opens with the source citation, then states the gap, then the coverage
-      check — the substance of `**What the source says**`, `**Gap**`, and
-      `**Coverage check**` in that order, condensed but not summarized away.
-      Any `<file>:<line>` citation is carried across verbatim.
+      The template header carries two more parts that a legacy file usually
+      lacks, and both MUST be written rather than skipped:
 
-    - Classify each converted item as Missing or Partial from its
-      `**Coverage check**`: "the standard says nothing about X" is Missing;
-      "the standard covers X but not Y" is Partial. Legacy files have no
-      out-of-scope or unresolved items, so those two headings are added empty,
-      with a parenthetical note saying the file was converted from the legacy
-      format and that the original analysis recorded neither.
+      - `**Assessment.**` One or two sentences naming the sources and the
+        shape of what they found — mostly missing coverage, mostly partial
+        treatment, or mostly already covered — and saying that the file was
+        converted from the legacy format and on what date. Where the legacy
+        file has no assessment, derive it from the converted items.
+
+      - `**Status:**` Which gaps remain open, which have been closed, and the
+        date. Where the legacy file already carries a status line, it will be
+        in the older `**Status: 1 of 5 gaps resolved (2026-08-06).**` syntax,
+        with the bold wrapping the whole sentence. Rewrite it into the
+        template's `**Status:** …` form, where the bold covers only the label.
+        Preserve what it says; change only the syntax and any count the run
+        has moved.
+
+      A legacy preamble sentence such as "Coverage gaps identified by
+      comparing external sources against this standard." is boilerplate that
+      the new preamble subsumes, and MAY be dropped. Nothing else may be.
+
+    - **The items.** Each `## <gap title>` subsection becomes one checklist
+      bullet, written in this order, which the bundled asset demonstrates:
+
+      1.  The source citation — a URL with a section anchor where possible,
+          or `<file>:<line>`, carried across verbatim.
+      2.  What that source says, from `**What the source says**`.
+      3.  The gap it leaves, from `**Gap**`.
+      4.  Where the standard currently stands, from `**Coverage check**`.
+      5.  A placement recommendation — `Recommend placing at <file>:<line>`,
+          or "new section". Legacy items rarely name one; derive it from the
+          coverage check, since an item that cannot be tied to a destination
+          is not actionable.
+
+      Condense, but do not summarize away. The `## <gap title>` heading text
+      itself is not preserved — the item's own prose replaces it.
+
+    - **The headings.** Classify each converted item as Missing or Partial
+      from its `**Coverage check**`: "the standard says nothing about X" is
+      Missing; "the standard covers X but not Y" is Partial. All four
+      headings MUST be present even when empty, and any heading the legacy
+      analysis recorded nothing under gets a parenthetical note saying the
+      file was converted from the legacy format and that the original
+      analysis recorded no such items. This routinely applies to
+      `## Out-of-scope` and `## Unresolved`, which the legacy format has no
+      concept of, and applies equally to `## Partial` when every converted
+      item is Missing — as it is in any single-gap file.
 
     - A subsection carrying a `**RESOLVED**` bullet becomes a `- [x]` item
       whose resolution note is carried over word for word, in the step 7 form.
@@ -139,10 +177,14 @@ prompt the user for clarification.
       specific gap, and that association is what tells a later agent the gap
       may belong to another standard.
 
-    Make the conversion its own edit, so the user can review it separately
-    from the content work that follows. A legacy file with no open gaps left
-    is not converted at all — there is nothing to work, so churning it gains
-    nothing.
+    Finish the conversion completely before writing any content. Not for the
+    user's benefit — the run ends as one dirty tree and `git diff` will show
+    the conversion and the content work together regardless — but for yours:
+    the classification, the item order, and the placement recommendations all
+    have to be settled before you start ticking items against them, and a run
+    that interleaves the two risks leaving the file half-converted if it stops
+    early. A legacy file with no open gaps left is not converted at all —
+    there is nothing to work, so churning it gains nothing.
 
 5.  Select the batch. Count only `## Missing` and `## Partial` items. Prefer
     items that share a destination, so a section gets written once and whole,
@@ -163,12 +205,23 @@ prompt the user for clarification.
 
 7.  Write the content, then record the closure against the item.
 
-    New material goes into `src/modules/ROOT/partials/<NNN>/` as a numbered
-    partial, wired into the page with
-    `include::partial$<NNN>/<file>.adoc[leveloffset=+1]` in its correct
-    position in the include order. Extend an existing partial instead where
-    the gap's destination is a section that already exists — a new `== `
-    section inside that file, or a paragraph within an existing one.
+    Where the content goes is the highest-leverage decision in the run, and
+    the two answers produce very different diffs for the same prose. Default
+    to **extending an existing partial** — adding a new `== ` section inside
+    it, or a paragraph within a section it already has — and reach for a new
+    numbered partial only when the gap introduces a topic that no existing
+    partial is about. Ask which partial a reader would expect to find the
+    material in; if that question has an answer, that partial is the
+    destination.
+
+    The default is not neutral. Extending is a pure addition to one file.
+    Inserting a new partial anywhere but the end renumbers every file after
+    it, and a 67-line section can turn into a diff touching five files for
+    no gain in the published page, which reads identically either way.
+
+    A new partial goes into `src/modules/ROOT/partials/<NNN>/` numbered for
+    its position, wired into the page with
+    `include::partial$<NNN>/<file>.adoc[leveloffset=+1]`.
 
     - The page's include list is the section order. Appending a new partial is
       the cheap case. Inserting one in the middle means renumbering every file
@@ -281,6 +334,12 @@ prompt the user for clarification.
       same subdirectory. A `link:` to another standard is a style-guide
       violation, not a broken link.
 
+      Editing a page fires one IDE diagnostic per include, of the form
+      `include file not found: .../pages/partial$NNN/01-….adoc`. Ignore
+      them. They are a plain-Asciidoctor resolver failing on Antora's
+      `partial$` resource ID, they appear for every page in the repository,
+      and no run has ever caused one.
+
     - Check `<<Section title>>` xrefs resolve to exactly one heading. A new
       section can collide with an existing title, and an ambiguous xref
       resolves unpredictably:
@@ -290,19 +349,24 @@ prompt the user for clarification.
           if len(heads.get(t, [])) != 1: print("PROBLEM:", t)
       ```
 
-    - Before reporting a broken reference as your own breakage, check it
-      against a clean tree (`git stash`). The repository has pre-existing
-      broken references, and attributing them to this run wastes the user's
-      time.
+    - **Only if the previous two checks found a broken reference**, confirm
+      whether it predates the run before reporting it as your own breakage.
+      Prefer reading the committed version — `git show HEAD:<path>` — over
+      `git stash`. The run's entire product is an uncommitted working tree,
+      and stashing it to satisfy a check is a risk taken for nothing. Where
+      every reference resolved, skip this check; there is nothing to
+      attribute.
 
     - Assert every partial under `partials/<NNN>/` is included exactly once by
       the page, that the include order matches the files' numeric order, and
       that no `.adoc` file is orphaned. The style guide forbids an included
       file that is not on the page, and a page entry with no file.
 
-    - Check the diff size against expectation. Three new sections that report
-      2,000 changed lines mean something else happened — a renumbering that
-      rewrote more than intended, most likely. Investigate before proceeding.
+    - **Only if you renumbered a file**, check the diff size against
+      expectation. Three new sections that report 2,000 changed lines mean a
+      renumbering rewrote more than intended. Investigate before proceeding.
+      A run that only extended existing partials cannot hit this, and its
+      diff needs no such scrutiny.
 
     - Bound every script with `timeout 60`, and prefer `while IFS= read -r`
       over `for x in $(...)`, which word-splits on spaces and silently
@@ -311,8 +375,17 @@ prompt the user for clarification.
 11. Report: which items were closed and what was written for each, which were
     withdrawn or needed no change, what remains open in the file, the
     out-of-scope items awaiting the user's decision, and any unresolved
-    resource that failed to fetch again. Then stop. The user reviews the
-    working tree and commits.
+    resource that failed to fetch again.
+
+    Every run also invalidates the target's row in the root `TODO.md`, which
+    is outside the scope you may edit. Close the report with the corrected
+    row — the new actionable, scope, and unresolved counts, and `Template`
+    where the run converted the format — so the user can apply it, or
+    regenerate the index with the script `TODO.md` carries for the purpose.
+    A standard whose file is now fully worked leaves the table entirely and
+    joins the fully-resolved list above it. Say so where it applies.
+
+    Then stop. The user reviews the working tree and commits.
 
 ## Rules
 

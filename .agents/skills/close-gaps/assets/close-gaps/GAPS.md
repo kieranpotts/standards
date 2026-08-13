@@ -18,9 +18,12 @@ it is the first thing a resuming agent reads.
 
 ## Missing
 
-- [x] [reference source, eg. URL#section or file:line] is not addressed
-      anywhere in the standard. Recommend placing at [file]:[line] or "new
-      section". Cross-references: TS-[N] ([Title]).
+- [x] [reference source, eg. URL#section or file:line] says [what the source
+      says, from the legacy `**What the source says**` bullet]. The gap:
+      [what the standard does not state, from `**Gap**`]. Coverage check:
+      [where the standard currently stands, from `**Coverage check**`].
+      Recommend placing at [file]:[line] or "new section".
+      Cross-references: TS-[N] ([Title]).
 
       **Resolved.** Closed by `[NN-file].adoc`, "[Section title]" section.
       [What the section now says — the rule it states, the failure mode it
@@ -96,7 +99,18 @@ This section is guidance about the template, and does not belong in a real
 - The four headings above — `## Missing`, `## Partial`, `## Out-of-scope`,
   `## Unresolved` — are the only ones a real file carries. The counting
   script in the root `TODO.md` keys on them, so any extra heading or
-  sub-label between an item and its heading breaks the counts.
+  sub-label between an item and its heading breaks the counts. All four
+  appear even when empty; a heading with nothing under it carries a
+  parenthetical saying so.
+
+- Items come in two lengths, and both are correct. An item written directly
+  by `gap-analysis` is short — source, what is missing, and a placement
+  recommendation — because that is all its template captures. An item
+  **converted from the legacy format** is longer, as the first one above is,
+  because the legacy file recorded `**What the source says**`, `**Gap**`,
+  and `**Coverage check**` separately and the conversion is required to be
+  lossless. Do not pad a short item to match the long form, and do not
+  compress a converted one to match the short form.
 
 - The three closure forms — `**Resolved.**`, `**No change needed.**`, and
   `**Withdrawn.**` — all keep the item's original text above them, untouched.
