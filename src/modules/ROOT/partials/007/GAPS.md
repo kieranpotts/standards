@@ -19,20 +19,22 @@ over-engineering, orphan modules, and Kent Beck's two-step refactor
 discipline) are absent or only partially covered. This file was converted
 from the legacy format on 2026-08-13.
 
-**Status:** 8 of 13 actionable gaps closed (2026-08-13). Converted from the
-legacy format in this run. Closed: the refactor-discipline gap (new "Make the
-change easy, then make the easy change" section in `01-bike-shedding.adoc`),
-LSP, ISP, and the SOLID-as-a-framework restatement (new "SOLID" section in
+**Status:** 13 of 13 actionable gaps closed (2026-08-13). All items resolved
+across two runs. First run: the refactor-discipline gap (new "Make the change
+easy, then make the easy change" section in `01-bike-shedding.adoc`), LSP,
+ISP, and the SOLID-as-a-framework restatement (new "SOLID" section in
 `09-object-oriented-design.adoc`, plus OCP and DIP named at their existing
 coverage), and reading dependency source plus Not-Invented-Here syndrome (two
-new sections in `05-dependency-management.adoc`). 5 remain open: mental
-models (Missing), exception aggregation, orphan modules, the Rule of Three,
-and optimization as a source of over-engineering (all Partial). 0
-out-of-scope, 0 unresolved.
+new sections in `05-dependency-management.adoc`). Second run: mental models
+(new `11-mental-models.adoc` partial), exception aggregation (new "Aggregate
+exception handling" section in `07-error-handling.adoc`), and orphan modules,
+the Rule of Three, and optimization as a source of over-engineering (three
+new sections in `03-decomposition.adoc`). 0 out-of-scope, 0 unresolved. This
+file is now fully resolved.
 
 ## Missing
 
-- [ ] https://blog.nelhage.com/post/computers-can-be-understood/ says: rather
+- [x] https://blog.nelhage.com/post/computers-can-be-understood/ says: rather
       than memorizing rules and edge cases, build a smaller model of a
       system's core primitives and the principles that generate its behavior
       (e.g. learning bash's expansion phases rather than memorizing quoting
@@ -43,6 +45,15 @@ out-of-scope, 0 unresolved.
       and TS-14 (users' mental models), but none address modeling the
       underlying implementation layers of a language/library/OS. Recommend a
       new section in TS-7. Cross-references: TS-5 (Application architecture).
+
+      **Resolved.** Closed by a new `11-mental-models.adoc` partial,
+      appended after "Concurrency." States the case for building a small,
+      generative mental model of a system's core primitives over memorizing
+      rules and edge cases (using the bash-expansion-phases example from the
+      source), covers what a useful model captures, cross-references
+      "Reading dependency source" as one of the most effective ways to build
+      an accurate model, and notes where investing in a model pays off and
+      how it changes debugging. Source added to the page's `== References`.
 
 - [x] https://stackoverflow.blog/2021/11/01/why-solid-principles-are-still-the-foundation-for-modern-software-architecture/
       says: subtypes must be substitutable for their base types without
@@ -132,7 +143,7 @@ out-of-scope, 0 unresolved.
       strange, and extends the habit to languages and runtimes, not just
       libraries. Source added to the page's `== References`.
 
-- [ ] https://web.archive.org/web/20250315132607/https://www.16elt.com/2024/09/25/first-book-of-byte-sized-tech/
+- [x] https://web.archive.org/web/20250315132607/https://www.16elt.com/2024/09/25/first-book-of-byte-sized-tech/
       says: Ousterhout recommends exception aggregation — handling many
       exceptions with a single piece of code rather than writing distinct
       handlers for each — as one of three ways to reduce exception-handling
@@ -144,6 +155,14 @@ out-of-scope, 0 unresolved.
       exceptions are handled. The gap: TS-7 does not address exception
       aggregation as a technique for reducing handling complexity. Recommend
       placing at `07-error-handling.adoc`.
+
+      **Resolved.** Closed by a new "Aggregate exception handling" section
+      in `07-error-handling.adoc`, directly before "Minimize exception
+      types." Distinguishes aggregating handling (fewer places that contain
+      recovery logic) from minimizing exception types (a smaller caller-facing
+      surface), and recommends consolidating handling at a shared boundary
+      when several call sites respond to failure the same way. Source added
+      to the page's `== References`.
 
 - [x] https://stackoverflow.blog/2021/11/01/why-solid-principles-are-still-the-foundation-for-modern-software-architecture/
       says: software entities should be open for extension but closed for
@@ -240,7 +259,7 @@ out-of-scope, 0 unresolved.
       cross-reference being completed on its side. Source added to the
       page's `== References`.
 
-- [ ] https://zarar.dev/good-software-development-habits/ says: when a
+- [x] https://zarar.dev/good-software-development-habits/ says: when a
       function has no natural home, create a new independent construct
       (module/class/component) rather than jamming it into an existing
       module where it doesn't belong; an orphan module is an acceptable
@@ -252,7 +271,14 @@ out-of-scope, 0 unresolved.
       new module for an orphan function rather than shoehorning it in"
       heuristic is absent. Recommend placing at `03-decomposition.adoc`.
 
-- [ ] https://zarar.dev/good-software-development-habits/ says: copy-paste is
+      **Resolved.** Closed by a new "Orphan modules" section in
+      `03-decomposition.adoc`, directly after "The Rule of Three." States
+      that a small standalone module with no obvious existing home is an
+      acceptable outcome, and is preferable to forcing unrelated logic into
+      an existing module and eroding its cohesion. Source added to the
+      page's `== References`.
+
+- [x] https://zarar.dev/good-software-development-habits/ says: copy-paste is
       acceptable once; the second time (three copies) is duplication that
       should be consolidated, because by then you have enough data points to
       form a good abstraction. Coverage check: TS-7's decomposition section
@@ -264,7 +290,15 @@ out-of-scope, 0 unresolved.
       implementations of near-identical logic) are not stated. Recommend
       placing at `03-decomposition.adoc`.
 
-- [ ] https://nocomplexity.com/documents/0complexity/0cxdesignprinciples.html
+      **Resolved.** Closed by a new "The Rule of Three" section in
+      `03-decomposition.adoc`, directly after "Don't repeat yourself."
+      States the third-occurrence trigger explicitly, and the risk-based
+      rationale that consolidating too early risks building an abstraction
+      around an accidental resemblance before enough data points exist to
+      distinguish it from a genuine shared pattern. Source added to the
+      page's `== References`.
+
+- [x] https://nocomplexity.com/documents/0complexity/0cxdesignprinciples.html
       says: over-engineering often occurs during optimization; optimization
       introduces complexity and tighter coupling between components, layers,
       and business processes; stop engineering when it works, but keep
@@ -275,6 +309,15 @@ out-of-scope, 0 unresolved.
       common source of over-engineering is not covered. Recommend placing at
       `03-decomposition.adoc`. Cross-references: TS-2 (Software design
       qualities).
+
+      **Resolved.** Closed by a new "Optimization as a source of
+      over-engineering" section in `03-decomposition.adoc`, closing the
+      file. States that optimization introduces complexity and tighter
+      coupling, recommends optimizing only with profiling/load-testing/
+      production-metrics evidence, cross-references TS-2 (Software design
+      qualities) for the broader performance trade-off, and restates the
+      "stop when it works, keep simplifying" guidance. Source added to the
+      page's `== References`.
 
 ## Out-of-scope
 

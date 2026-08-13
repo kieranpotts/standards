@@ -9,6 +9,8 @@
   conservative in what you produce.
 * Never throw exceptions in UI/presentation layers. But do catch and gracefully
   handle any that bubble up to the surface.
+* Aggregate exception handling – handle many exceptions with one piece of
+  code at a shared boundary, rather than a distinct handler per call site.
 * Minimize the number of exception types you expose – each one adds interface
   complexity.
 * Applications should fail gracefully without leaking error internals.
@@ -102,6 +104,29 @@ When operations fail, applications should respond with grace. This means:
 
 The goal is that users experience failures as understandable, recoverable
 situations, not as cryptic error dumps or application crashes.
+
+== Aggregate exception handling
+
+Beyond minimizing the number of exception types you throw, minimize the
+number of places that handle them. Rather than writing a distinct handler for
+each exception a piece of code might raise, handle many exceptions with a
+single piece of code, positioned at a boundary where the response to failure
+is the same regardless of which specific exception occurred.
+
+This is distinct from minimizing exception types. Minimizing types reduces
+the surface a caller must be aware of; aggregating handling reduces the
+number of places in the codebase that contain recovery logic. A module can
+throw a small number of well-chosen exception types and still scatter
+handling for them across dozens of `catch` blocks, each with slightly
+different recovery logic that has to be kept consistent by hand.
+
+Look for opportunities to consolidate. If several call sites all respond to
+failure the same way – log, return a default, surface a generic error to the
+user – move that handling to one place, such as a shared boundary or
+middleware layer, rather than repeating it at every call site. This mirrors
+"define errors out of existence" and the UI-layer boundary already described
+above: the fewer distinct places that contain error-handling logic, the
+easier that logic is to keep correct and consistent as the system evolves.
 
 == Minimize exception types
 

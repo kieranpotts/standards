@@ -6,6 +6,12 @@
 * "Don't repeat yourself" (DRY) does not mean "avoid all code duplication".
 * Extract duplication to shared abstractions only when components are
   semantically related.
+* Wait for the third occurrence of duplicated logic before consolidating it
+  (the Rule of Three).
+* An orphan module – a small, standalone module with no obvious existing
+  home – is an acceptable outcome. Don't force it into an unrelated module.
+* Optimization is a common source of over-engineering. Optimize only with
+  evidence, and stop once requirements are met.
 ****
 
 Decomposition is the process of breaking complex code into smaller and smaller
@@ -95,3 +101,72 @@ abstractions later, once we have high confidence the abstractions will be
 worthwhile. In other words, we should write everything twice (WET) before
 abstracting, to gain confidence that the planned abstraction will be stable and
 valuable.
+
+== The Rule of Three
+
+Waiting for high confidence before abstracting is one thing; knowing when
+that confidence has actually arrived is another. A useful trigger is the Rule
+of Three: writing the same logic once is fine, writing it a second time is
+acceptable, but writing it a third time is the signal to consolidate.
+
+The reasoning is about data points, not aesthetics. A single instance of some
+logic tells you nothing about how it might vary. A second instance gives you
+one comparison, which is rarely enough to distinguish an incidental
+similarity from a genuine shared pattern. By the third instance, you have
+enough examples to see which parts are truly common and which parts vary –
+and a good abstraction can only be designed once you know that.
+
+Consolidating too early, from a single instance or a hasty second one, risks
+building an abstraction around an accidental resemblance. As the copies
+continue to diverge with each new use, the interface you guessed at either
+grows special cases to accommodate variations it didn't anticipate, or forces
+callers to bend their needs to fit an abstraction that was never quite
+right for them. Waiting for the third occurrence costs nothing but a little
+duplication, and buys the information needed to abstract well.
+
+== Orphan modules
+
+Decomposition sometimes produces a unit of logic – a function, a small
+class, a handful of related utilities – that doesn't obviously belong to any
+existing module. The natural temptation is to find the closest existing
+module and add the new logic there, even when the fit is poor, rather than
+create a new module for something that, on its own, looks too small to
+justify one.
+
+Resist that temptation. An orphan module – a small, standalone module that
+exists because nothing else was the right home for it – is a perfectly
+acceptable outcome. It is a better outcome than forcing unrelated logic into
+a module where it doesn't belong, which erodes that module's cohesion and
+makes both the original logic and the newly added logic harder to find and
+reason about later.
+
+Creating a new module for orphan logic keeps the codebase's structure
+honest: each module contains what actually belongs together, and a module's
+size or its coupling to a specific location in the codebase are not treated
+as a proxy for whether a new module is warranted.
+
+== Optimization as a source of over-engineering
+
+Over-decomposition is not the only route to over-engineering. Performance
+optimization is another common one, and it deserves specific caution because
+it tends to arrive with its own justification already attached – "this needs
+to be fast" is rarely questioned the way "this needs another layer of
+abstraction" is.
+
+Optimization introduces complexity. Optimized code is frequently harder to
+read than its straightforward equivalent, because it trades a direct
+expression of intent for a more convoluted implementation chosen for its
+runtime characteristics. It also tends to introduce tighter coupling –
+between components, between layers, and sometimes across business processes
+– as code is reshaped around data flows and access patterns that favor
+performance over clean separation of concerns.
+
+Optimize only once you have evidence – profiling data, load-testing results,
+or production metrics – that a specific piece of code is actually a
+bottleneck. xref:002.adoc[*TS-2: Software design qualities*] covers the
+broader trade-off between performance and other design qualities in more
+detail. Once code works and meets its performance requirements, stop
+engineering it further. Continue simplifying where you can, but resist the
+urge to keep optimizing past the point where it's justified by evidence – the
+complexity and coupling it introduces are a lasting cost, paid whether or not
+the optimization was ever necessary.
