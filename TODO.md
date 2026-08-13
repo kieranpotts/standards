@@ -146,17 +146,49 @@ govern how all new content should be written.
   merged page per standard. Changed on 2026-08-13 to use `<<Section title>>`,
   each verified to resolve to exactly one heading.
 
-- **Cross-references whose section title contains a comma.** Ten `<<...>>`
-  references are parsed wrongly. Asciidoctor reads everything before the first
-  comma as the target and the remainder as link text, so
-  `<<Booleans, nulls, and implicit typing>>` targets a section named
-  "Booleans", which does not exist, and renders as a broken reference. Three
-  distinct titles are affected: `Service topology: discovery, gateways, and
+- **Eighteen other broken or ambiguous `<<...>>` references.** Found by
+  resolving every one of the 278 in-prose `<<...>>` references in the
+  repository against the headings and anchors of its own standard, modeling
+  Antora's ID generation (`idprefix=''`, `idseparator='-'`, so `= Layout`
+  becomes `layout`). Fourteen resolve to nothing and four are ambiguous:
+
+  - **Leading-underscore IDs** (8 refs) — `<<_review>>` ×2 (TS-3),
+    `<<_modeling-levels,…>>` (TS-4), `<<_behavior-driven-development,…>>`
+    (TS-13), `<<_references,References>>` (TS-40),
+    `<<_the_agents_md_standard,…>>` ×3 (TS-61),
+    `<<_reasoning_thinking_and_effort,…>>` (TS-61). These use plain
+    Asciidoctor's default ID scheme, which Antora overrides. Drop the
+    underscore and use the hyphenated slug.
+
+  - **Anchors that were never defined** (4 refs) —
+    `<<principles,Principles of good CSS>>` (TS-40),
+    `<<context-rot,…>>` ×2 and `<<deterministic-sensor,…>>` (TS-61).
+
+  - **A natural reference to a title that does not exist** (1 ref) —
+    `<<The nature of the technology>>` (TS-61).
+
+  - **Ambiguous** (4 refs) — `<<hallucination>>` ×3 and
+    `<<hallucination,hallucinations>>` in TS-61 match more than one target,
+    so they resolve unpredictably. Needs an explicit anchor on the intended
+    section.
+
+  TS-61 holds 11 of the 18. Note that `<<FK>>` inside TS-4's PlantUML blocks
+  is diagram syntax, not a cross-reference, and is correctly ignored.
+
+- **RESOLVED — cross-references whose section title contains a comma.** Ten
+  `<<...>>` references were parsed wrongly: Asciidoctor reads everything
+  before the first comma as the target and the remainder as link text, so
+  `<<Booleans, nulls, and implicit typing>>` targeted a section named
+  "Booleans", which does not exist, and rendered as a broken reference.
+  Three titles were affected — `Service topology: discovery, gateways, and
   service mesh` (TS-6, 2 refs), `Booleans, nulls, and implicit typing`
-  (TS-30, 5 refs), `Role-following, and its shadow` (TS-61, 3 refs). Fixing
-  needs a choice: give each section an explicit anchor and reference it as
-  `<<anchor-id,Full title>>`, or retitle the sections to drop the commas.
-  These are live broken links in the published site.
+  (TS-30, 5 refs), and `Role-following, and its shadow` (TS-61, 3 refs).
+  Fixed on 2026-08-13 by giving each section an explicit anchor
+  (`[#service-topology]`, `[#implicit-typing]`, `[#role-following]`) and
+  referencing it as `<<anchor-id,Full title>>`, which keeps the headings,
+  the table of contents, and any external deep links unchanged. Retitling
+  the sections to drop the commas was the alternative, and was rejected for
+  that reason.
 
 - **Assorted defects in TS-9**, found while retargeting its cross-references
   and left alone as out-of-scope: a bold-prose pseudo-link that should be an
