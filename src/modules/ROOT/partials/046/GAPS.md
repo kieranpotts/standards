@@ -16,11 +16,11 @@ the distinct anti-pattern the reference names: a system where the cached
 copy is itself written back to persistent storage, so a stale cache value
 silently overwrites a newer authoritative value. It is missing.
 
-**Status:** First run, 2026-08-06. One Missing gap open.
+**Status:** 1 of 1 gap resolved (2026-08-13).
 
 ## Missing
 
-- [ ] https://www.somethingsimilar.com/2013/01/14/notes-on-distributed-systems-for-young-bloods/
+- [x] https://www.somethingsimilar.com/2013/01/14/notes-on-distributed-systems-for-young-bloods/
       ("Writing cached data back to persistent storage is bad") is not
       addressed anywhere in the standard. The reference identifies writing
       cached data back to persistent storage as a flaw (especially in systems
@@ -38,6 +38,18 @@ silently overwrites a newer authoritative value. It is missing.
       in `04-cache-freshness.adoc` (or `05-distributed-writes.adoc`) stating
       that caches MUST NOT be a source of writes to the persistent store, and
       warning against nested/multi-layer caching that feeds writes back.
+
+      **Resolved.** Closed by a new "Cache write-back anti-pattern" section
+      appended to `04-cache-freshness.adoc`. States that a cache MUST NOT be
+      a source of writes to the persistent store, explains the mechanism by
+      which a stale cached value silently overwrites newer authoritative
+      data (the reference's screenname/email/password-reverting symptom),
+      names the "Russian-doll" multi-layer caching hazard, and gives three
+      normative practices: treat the cache as read-only from the
+      application's point of view, never read-modify-write through a cache,
+      and keep the write path separate from every read-side cache layer.
+      Cross-references the existing "Distributed writes" section for how
+      writes to the authoritative store should propagate to the cache.
 
 ## Partial
 
