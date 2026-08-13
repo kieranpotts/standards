@@ -1,0 +1,96 @@
+= Cloud service models and platform evolution
+
+Platforms typically mature along a progression from raw infrastructure
+control toward increasingly abstracted, self-service operation. Understanding
+where an organization sits on this progression — and where it is heading — is
+useful context for the platform decisions covered elsewhere in this standard.
+
+== IaaS, PaaS, and container orchestration
+
+The progression usually runs through three broad stages:
+
+1. *Infrastructure-as-a-Service (IaaS).* Teams provision and manage virtual
+   machines directly, with configuration management tooling (eg. Puppet,
+   Ansible, Chef) applied on top. Engineers retain shell access to running
+   instances, and operational patterns resemble those of physical servers:
+   changes are made directly on the machine, or by re-running configuration
+   management against it.
+2. *Platform-as-a-Service (PaaS).* An orchestration layer (eg. Mesos/Marathon,
+   Nomad, or a managed PaaS offering) takes over scheduling and lifecycle
+   management. This stage is where the no-SSH operating model (see below)
+   is typically introduced, and it is commonly the most disruptive
+   transition in the sequence, because it removes a capability engineers
+   have relied on since the IaaS stage.
+3. *Container orchestration.* A general-purpose orchestrator (most commonly
+   Kubernetes) replaces the PaaS layer, offering a richer and more portable
+   scheduling model. This stage does not, by itself, change the operating
+   model established at the PaaS stage — it inherits the no-SSH,
+   immutable-infrastructure expectations already in place.
+
+The transition between these stages is rarely instantaneous. It is common
+for an organization to run stages side by side for an extended migration
+period, with a growing share of services moved onto the newer stage over
+time.
+
+== The no-SSH, immutable-infrastructure operating model
+
+From the PaaS stage onward, engineers SHOULD NOT have interactive shell
+access to running production instances. Instead, all changes are made by
+replacing running instances with new ones built from an updated image or
+deployment artifact — the *immutable infrastructure* model.
+
+This is a deliberate constraint, not an incidental side effect of the
+tooling. It removes an entire class of configuration drift: a running
+instance can no longer diverge from its declared definition through a manual
+`ssh` session, because there is no session to have. Every change is
+reproducible from source, auditable, and identical across every environment
+it is applied to.
+
+The transition away from shell access is typically the most culturally
+disruptive step in the whole progression, more so than any subsequent move
+to a different orchestrator. Teams accustomed to diagnosing problems by
+logging into a box and inspecting it directly must adopt observability
+tooling — logs, metrics, and traces shipped off-instance — as a replacement
+diagnostic path before the transition, not after. Introducing the no-SSH
+constraint without first establishing that tooling leaves teams unable to
+debug production incidents.
+
+== Internal developer platforms
+
+An *internal developer platform* (IDP) is a self-service layer, built and
+maintained by a platform team, that lets application teams deploy and
+operate their services without needing to understand the underlying
+orchestration layer directly. It typically exposes a curated set of golden
+paths — deploy a service, view its logs, check its health, roll back a
+release — through a single interface, whether a web console, a CLI, or both.
+
+An IDP serves two purposes at once. It is the practical expression of the
+paved-road principle described in <<Paved roads>>: teams get a well-aligned
+default path without having to discover it themselves. And it is also an
+abstraction boundary — it decouples the interface application teams use from
+the orchestration technology underneath, which makes it possible to migrate
+between orchestrators (eg. from a PaaS to Kubernetes) with limited disruption
+to the teams building on top of the platform, because their day-to-day
+interface does not change even where the underlying implementation does.
+
+Building an IDP is a significant investment, and it SHOULD be scoped to the
+golden paths that matter most, rather than attempting to expose every
+capability of the underlying platform. A platform that surfaces too much of
+the underlying orchestrator's complexity through its self-service layer has
+not actually abstracted it.
+
+== Autoscaling
+
+Autoscaling — automatically adjusting the number of running instances of a
+service in response to load — is an OPTIONAL but RECOMMENDED capability of a
+mature platform. Its purpose is to remove capacity management from the set of
+concerns a development team has to think about day to day: instances are
+added and removed automatically as demand rises and falls, without a
+developer needing to be involved in, or even aware of, the individual
+scaling events.
+
+Autoscaling depends on the same operating model described above. It is only
+practical once workloads are stateless and instances are disposable — a
+consequence of the immutable-infrastructure model — since an autoscaler
+adding or removing instances must be free to do so without risking the loss
+of state that lives only on one particular instance.
