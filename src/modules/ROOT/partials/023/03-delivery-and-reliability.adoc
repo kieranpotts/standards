@@ -119,6 +119,96 @@ specific use case.
 Retries, timeouts, rate limiting, and other such policies for message delivery
 MUST be clearly defined in service level agreements (SLAs).
 
+== Observability
+
+Message-driven systems MUST be observable. The lack of a synchronous
+request/response cycle makes it harder to see the flow of control at a
+glance, so logging, monitoring, and alerting are what stand in for that
+visibility, letting producers and consumers confirm that message flows are
+working as expected rather than discovering a silent failure days later.
+
+Producers and consumers MUST log, at minimum, the `message_id` and `type`+
+`name` of every message sent or received, together with the outcome (success,
+failure, retry, dead-lettered). Logging the `message_id` on both sides is what
+makes it possible to trace a single message's journey across a distributed
+system, correlating producer and consumer log entries for the same event,
+command, or query.
+
+It is RECOMMENDED to monitor, at minimum: delivery latency (time from message
+creation to successful delivery); the retry rate (proportion of messages
+requiring at least one retry); and the dead-letter rate (proportion of
+messages exhausting all retries). A sustained rise in any of these metrics is
+usually the earliest signal of a failing consumer or a degrading network path,
+well before the failure is otherwise noticed.
+
+Alerts SHOULD be configured for: a consumer's circuit breaker opening (see
+<<Retries and circuit breakers>>); the dead-letter rate exceeding the
+threshold defined in the relevant SLA (see <<Service level agreements>>); and
+a sustained backlog in the delivery pipeline, which typically indicates that a
+consumer cannot keep pace with the rate of incoming messages.
+
+== Transactional outbox
+
+Producers frequently need to update their own data and notify other services
+of that update in a single unit of work — for example, saving an order to the
+database and publishing an `order.placed` event. Enqueuing the message
+directly within the same request or transaction as the database write creates
+a *dual-write problem*: the database transaction and the message enqueue
+cannot be made atomic, so a rollback after the message has already been
+enqueued produces a message describing data that was never committed, and
+a crash between commit and enqueue silently loses the message altogether. A
+related but distinct failure mode arises even without a crash or rollback: a
+fast message transport can deliver the message to a consumer before the
+producer's transaction has committed, so the consumer's attempt to read the
+data the message refers to finds nothing there yet. See
+xref:006.adoc[*TS-6: Distributed system design*] for a full treatment of the
+dual-write problem and how the transactional outbox pattern resolves it by
+writing the message to a staging table within the same local transaction as
+the business data, so the two either both commit or both roll back.
+
+This standard adds the following message-specific guidance on top of that
+pattern:
+
+* *Single enqueuer.* The separate process that drains the staging table and
+  publishes messages to the real transport SHOULD run as a single instance,
+  held under a lock, rather than as multiple competing workers reading the
+  same table. A single enqueuer avoids the coordination overhead and race
+  conditions of multiple workers selecting and deleting from the same rows.
+
+* *Consistent read-then-delete.* The enqueuer's `SELECT` of pending rows and
+  the subsequent `DELETE` of the rows it has published MUST use a database
+  isolation level strong enough to guarantee the `DELETE` removes exactly the
+  rows the `SELECT` read, and no others. Without this, a row inserted between
+  the `SELECT` and the `DELETE` can be deleted before it is ever published.
+
+* *Batching and backoff.* The enqueuer SHOULD drain the staging table in
+  batches, rather than one row at a time, and SHOULD sleep for an
+  exponentially increasing interval when it finds the table empty, to avoid
+  polling the database unnecessarily during quiet periods.
+
+* *At-least-once, not exactly-once.* The staged-drain enqueuer guarantees
+  at-least-once delivery: a crash between publishing a message and deleting
+  its staging row causes the same message to be drained and published again
+  on restart. Messages published via the outbox pattern MUST therefore be
+  idempotent, per <<Idempotency>>, above.
+
+* *Avoid `after_commit`-style hooks.* Enqueuing the message from an
+  application-framework hook that fires after the database transaction
+  commits (rather than from a separate draining process) reintroduces the
+  dual-write problem: a crash between the commit and the hook firing produces
+  silent, unmonitored message loss, since there is no staging row recording
+  that the message was ever due to be sent.
+
+* *Prefer a dedicated transport for high volume.* Where an in-database
+  staging table is used directly as the queue that consumers read from,
+  rather than only as a temporary staging area drained into a dedicated
+  message transport, it typically does not scale under sustained load:
+  workers locking and unlocking job rows directly in the database causes
+  contention that worsens as the table grows. For high-throughput systems,
+  the staging table SHOULD be drained into a transport purpose-built for
+  distributing messages to competing consumers (see *Message systems*,
+  above), rather than read from directly by consumers.
+
 == Response codes
 
 When messages are delivered over HTTP, the consumer MUST return an HTTP status

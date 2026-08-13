@@ -13,8 +13,8 @@ logging, monitoring, and alerting for event-driven systems — is a genuine
 operational gap not addressed anywhere in the standard, despite TS-23 already
 covering delivery reliability, retries, and dead letters.
 
-**Status:** First run (2026-08-05). No prior `GAPS.md` existed. One missing gap
-(observability) and two out-of-scope items flagged for the user.
+**Status:** Fourth run (2026-08-13). All 3 actionable items (2 Missing, 1
+Partial) closed. Both out-of-scope items confirmed excluded (2026-08-13).
 
 **Second run, 2026-08-06.** Re-run against Brandur Leppka's "Using Atomic
 Transactions to Power an Idempotent API" (https://brandur.org/http-transactions).
@@ -36,9 +36,26 @@ repeatable read for DELETE/SELECT consistency, batch + exponential backoff),
 and the in-database-queue scaling/locking critique. All prior gaps remain
 open.
 
+**Fourth run, 2026-08-13.** Worked all three actionable items
+(`close-gaps`). Before writing, re-verified the outbox premise
+repository-wide: TS-6 (Distributed system design) already covers the
+dual-write problem and the transactional outbox pattern in general terms
+(`src/modules/ROOT/partials/006/05-distributed-transactions-and-sagas.adoc:74-95`),
+and TS-21's own `GAPS.md` independently notes that its enqueuer-pattern item
+routes here. TS-23's two outbox items were still open, but specific to the
+message/event-delivery details (enqueuer implementation, at-least-once
+requirement, in-database-queue scaling) rather than the dual-write concept
+itself, so both items were written here with a cross-reference to TS-6 for
+the core pattern rather than restating it. TS-43 (Data storage) does not yet
+cover the database-isolation-level rationale either item's text flagged as
+its scope, and its own `GAPS.md` records no such item, so no TS-43
+cross-reference was added for that detail — it remains unwritten anywhere in
+the repository. The observability item was written as a standalone new
+section since no existing section covered it.
+
 ## Missing
 
-- [ ] `__TODO__/023/event-driven.md:7` states that logging, monitoring, and
+- [x] `__TODO__/023/event-driven.md:7` states that logging, monitoring, and
       alerting become necessary to stay on top of event-driven systems and
       ensure they are working as expected. TS-23 addresses delivery
       reliability, retries, circuit breakers, dead letters, and SLAs
@@ -51,7 +68,15 @@ open.
       observability standard, but since TS-23 already covers operational
       reliability concerns, observability is a natural fit here.)
 
-- [ ] https://brandur.org/http-transactions ("Transaction-staged jobs")
+      **Resolved.** Closed by a new "Observability" section in
+      `03-delivery-and-reliability.adoc`, placed immediately after "Service
+      level agreements" as recommended. Requires logging the `message_id`
+      and `type`+`name` plus outcome for every message sent or received;
+      recommends monitoring delivery latency, retry rate, and dead-letter
+      rate; and recommends alerting on circuit breakers opening, dead-letter
+      rate exceeding the SLA threshold, and sustained pipeline backlog.
+
+- [x] https://brandur.org/http-transactions ("Transaction-staged jobs")
       covers the transactional outbox pattern, which is not addressed
       anywhere in the standard. The reference describes the
       "transactionally-staged job drain": enqueueing a background job
@@ -79,9 +104,21 @@ open.
       Note: the database-transaction mechanism this relies on is TS-43's
       scope.
 
+      **Resolved.** Closed by a new "Transactional outbox" section in
+      `03-delivery-and-reliability.adoc`, folded together with the
+      `job-drain` Partial item below since both target the same
+      destination. The section cross-references TS-6 (Distributed system
+      design), which already covers the dual-write problem and the outbox
+      pattern's core mechanics, and adds message-specific guidance:
+      at-least-once/idempotent-consumer requirement (cross-referencing this
+      standard's existing "Idempotency" section) and avoiding
+      `after_commit`-style enqueue hooks. TS-43 (Data storage) does not yet
+      cover the database-isolation-level mechanism this pattern depends on
+      — it remains unwritten there; see the fourth-run note above.
+
 ## Partial
 
-- [ ] https://brandur.org/job-drain ("Transactionally Staged Job Drains in
+- [x] https://brandur.org/job-drain ("Transactionally Staged Job Drains in
       Postgres") is a deeper treatment of the outbox pattern recorded as
       Missing above (the http-transactions "Transaction-staged jobs" entry)
       and adds specifics that entry doesn't capture — specifically: (a) the
@@ -108,9 +145,23 @@ open.
       proposed by the existing Missing entry. Note: the `REPEATABLE READ`
       isolation rationale is TS-43's scope.
 
+      **Resolved.** Folded into the same "Transactional outbox" section as
+      the http-transactions Missing item above (both target the same
+      destination). Added: single-enqueuer-under-lock, a consistency
+      requirement on the read-then-delete isolation level (worded generally
+      rather than naming `REPEATABLE READ`, since that specific mechanism
+      is TS-43's scope and TS-43 does not yet cover it), batching with
+      exponential backoff, the `after_commit` silent-loss anti-pattern, and
+      the in-database-queue scaling critique recommending a dedicated
+      transport for high-volume systems. The before-commit race failure
+      mode (distinct from rollback: a fast transport delivers the message
+      before the producer's transaction commits) is called out explicitly
+      in the section as the motivation for staging the message in the same
+      transaction as the data it describes.
+
 ## Out-of-scope
 
-- [ ] `__TODO__/023/event-driven.md:5` observes that event-driven
+- [x] `__TODO__/023/event-driven.md:5` observes that event-driven
       programming is more complex due to the lack of a clear flow of control.
       This is general commentary on the event-driven programming paradigm
       rather than a design/implementation rule for messages and events. It
@@ -120,7 +171,10 @@ open.
       Flagged for the user to confirm or overrule; if kept, it would fit as a
       motivating note in `src/modules/ROOT/pages/023.adoc:5-17`.
 
-- [ ] `__TODO__/023/event-driven.md:5` observes that event-driven
+      **Confirmed out-of-scope (2026-08-13).** General paradigm commentary,
+      not a messages/events design or implementation rule.
+
+- [x] `__TODO__/023/event-driven.md:5` observes that event-driven
       programming is often unavoidable in web client application interfaces,
       distributed systems, and multi-threaded environments. TS-23's scope is
       explicitly narrowed to asynchronous communication within a single
@@ -128,6 +182,10 @@ open.
       UIs and multi-threaded environments are outside that focus, and the
       "distributed systems" mention is too generic to be actionable. Flagged
       for the user to confirm or overrule.
+
+      **Confirmed out-of-scope (2026-08-13).** Web client UIs and
+      multi-threaded environments fall outside TS-23's stated
+      intra-organization-network scope.
 
 ## Unresolved
 
