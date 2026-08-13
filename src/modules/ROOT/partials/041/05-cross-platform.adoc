@@ -1,0 +1,93 @@
+= Cross-platform React
+
+React is not tied to the DOM. The component model, the hooks API, and the
+state conventions described elsewhere in this standard hold equally under
+React Native, which renders the same components to the native view
+hierarchies of iOS and Android, and under React Native for Web, which renders
+those components back to the DOM.
+
+== Sharing one codebase across platforms
+
+Where one product ships as a web application and as native mobile
+applications, a single React codebase covering all three targets SHOULD be
+preferred over a separate codebase per platform.
+
+Two codebases for one product are two products. Every feature is implemented
+twice, every defect is debugged twice, and the two implementations drift into
+behaviors that no specification records. Bluesky's website, iOS app, and
+Android app were built from one React Native and Expo codebase by a single
+engineer over roughly a year, before the client team grew to six people. That
+is a rate of delivery a per-platform split forecloses.
+
+React Native with Expo is the RECOMMENDED basis for a shared codebase. Expo
+supplies the build, distribution, and over-the-air update toolchain, and
+wires up React Native for Web as its web target, so the browser client is
+another output of the same component tree rather than a parallel
+implementation of it.
+
+[NOTE]
+======
+Sharing a codebase does not make the extra platforms free. Targeting iOS,
+Android, and the web at once carries the same class of cost as targeting
+several browsers, and the platform layers diverge further than browsers do.
+Budget for per-platform defects, per-platform release processes, and app
+store review, even where the component tree is shared.
+======
+
+== Isolating platform-specific code
+
+Platform differences that a shared component cannot absorb MUST be isolated
+at a module boundary, rather than spread through shared code as `Platform.OS`
+branches. Bundlers resolve a platform-suffixed file extension ahead of the
+bare one, so a single import picks up a different implementation per target.
+
+----
+elements/
+└── share-sheet/
+    ├── ShareSheet.tsx
+    ├── ShareSheet.ios.tsx
+    ├── ShareSheet.android.tsx
+    └── ShareSheet.web.tsx
+----
+
+Here `ShareSheet.tsx` holds the shared types and the fallback implementation,
+and each suffixed file replaces it on the platform it names. Every variant
+MUST export the same API, so that code consuming the module never has to test
+which platform it is running on.
+
+`Platform.select` is appropriate for a single value that differs by platform
+— a shadow style, a hit-slop constant, a default font family. It is NOT
+RECOMMENDED for branching a whole render tree, which is what a
+platform-suffixed module is for.
+
+[source,jsx]
+----
+import { Platform, StyleSheet } from "react-native"
+
+const styles = StyleSheet.create({
+  card: {
+    ...Platform.select({
+      ios: { shadowOpacity: 0.2, shadowRadius: 4 },
+      android: { elevation: 4 },
+      web: { boxShadow: "0 1px 4px rgba(0, 0, 0, 0.2)" },
+    }),
+  },
+})
+----
+
+== Web-only products
+
+A product with no native mobile target MUST NOT adopt React Native
+speculatively, on the expectation that mobile apps might be wanted later.
+
+React Native's primitives are not semantic HTML. `View` and `Text` render to
+`div` and `span`, so headings, landmarks, lists, and form semantics all have
+to be rebuilt deliberately on top of primitives that carry none of them. Each
+one missed costs accessibility, per xref:039.adoc[*TS-39: HTML*], and search
+engine visibility, per xref:019.adoc[*TS-19: Search engine optimization (SEO)*].
+
+For a web-only product, use React against the DOM directly, and follow
+xref:018.adoc[*TS-18: Web GUIs*]. Adding a native mobile target later is a
+real cost, but it is paid once, against a codebase whose component boundaries
+are already established. Paying it up front, on a product that never ships a
+mobile app, buys nothing.
