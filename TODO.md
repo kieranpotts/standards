@@ -146,34 +146,37 @@ govern how all new content should be written.
   merged page per standard. Changed on 2026-08-13 to use `<<Section title>>`,
   each verified to resolve to exactly one heading.
 
-- **Eighteen other broken or ambiguous `<<...>>` references.** Found by
-  resolving every one of the 278 in-prose `<<...>>` references in the
-  repository against the headings and anchors of its own standard, modeling
-  Antora's ID generation (`idprefix=''`, `idseparator='-'`, so `= Layout`
-  becomes `layout`). Fourteen resolve to nothing and four are ambiguous:
+- **RESOLVED — eleven broken `<<...>>` references.** Found by resolving every
+  in-prose `<<...>>` reference in the repository against the headings and
+  anchors of its own standard. Fixed on 2026-08-13 by retargeting each to the
+  section it meant:
 
-  - **Leading-underscore IDs** (8 refs) — `<<_review>>` ×2 (TS-3),
+  - **Stale leading-underscore IDs** (8 refs) — `<<_review>>` ×2 (TS-3),
     `<<_modeling-levels,…>>` (TS-4), `<<_behavior-driven-development,…>>`
-    (TS-13), `<<_references,References>>` (TS-40),
-    `<<_the_agents_md_standard,…>>` ×3 (TS-61),
-    `<<_reasoning_thinking_and_effort,…>>` (TS-61). These use plain
-    Asciidoctor's default ID scheme, which Antora overrides. Drop the
-    underscore and use the hyphenated slug.
+    (TS-13), `<<_references,…>>` (TS-40), `<<_the_agents_md_standard,…>>` ×3
+    (TS-61), and `<<_reasoning_thinking_and_effort,…>>` (TS-61). These used
+    plain Asciidoctor's default ID scheme, which Antora overrides, so they
+    resolved to nothing.
 
-  - **Anchors that were never defined** (4 refs) —
-    `<<principles,Principles of good CSS>>` (TS-40),
-    `<<context-rot,…>>` ×2 and `<<deterministic-sensor,…>>` (TS-61).
+  - **An anchor that was never defined** (1 ref) —
+    `<<principles,Principles of good CSS>>` (TS-40); the section's slug is
+    `principles-of-good-css`.
 
-  - **A natural reference to a title that does not exist** (1 ref) —
-    `<<The nature of the technology>>` (TS-61).
+  - **Natural references to titles that do not exist** (2 refs) —
+    `<<The nature of the technology>>` (TS-61), whose section is actually
+    titled "The inherent nature of the technology".
 
-  - **Ambiguous** (4 refs) — `<<hallucination>>` ×3 and
-    `<<hallucination,hallucinations>>` in TS-61 match more than one target,
-    so they resolve unpredictably. Needs an explicit anchor on the intended
-    section.
-
-  TS-61 holds 11 of the 18. Note that `<<FK>>` inside TS-4's PlantUML blocks
-  is diagram syntax, not a cross-reference, and is correctly ignored.
+  Checking this needs care, and three classes of false positive cost real
+  time before the number settled at eleven. A checker MUST model Antora's ID
+  generation (`idprefix=''`, `idseparator='-'`, so `= Layout` becomes
+  `layout`, not `_layout`); MUST recognize inline `[[id]]` anchors inside
+  list items as well as `[#id]` on its own line; MUST treat an anchor
+  immediately above a heading as replacing that heading's generated ID
+  rather than competing with it; and MUST skip delimited blocks, since
+  `<<FK>>` in TS-4's PlantUML is diagram syntax, not a cross-reference.
+  Note also that TS-3 deliberately carries underscore-prefixed *explicit*
+  anchors (`[#_context_and_scope]` and four siblings), which are valid and
+  MUST NOT be "corrected".
 
 - **RESOLVED — cross-references whose section title contains a comma.** Ten
   `<<...>>` references were parsed wrongly: Asciidoctor reads everything
