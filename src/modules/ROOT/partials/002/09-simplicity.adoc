@@ -120,6 +120,40 @@ responsiveness – a fast, responsive interface provides immediate, consistent
 feedback for user actions, building confidence and making the software feel more
 capable.
 
+== Symptoms of complexity
+
+Complexity is not a single sensation. It is useful to name the specific ways it
+manifests, because each has its own diagnostic question and its own remedy.
+Ousterhout identifies three:
+
+* *Change amplification*: A simple-sounding change requires edits in many
+  places. The diagnostic question is: how many files, or how many components,
+  does this one requirement touch? A high answer means the responsibility for
+  that behavior is scattered rather than concentrated.
+
+* *Cognitive load*: A developer must hold a large amount of context in mind
+  before they can safely make a change. The diagnostic question is: how much
+  of the system does someone need to understand before they can touch this
+  part of it with confidence? A high answer means the component's boundary
+  does not match a unit of understanding.
+
+* *Unknown unknowns*: It is not obvious which other code a given change
+  affects, or even that there is other code it affects. The diagnostic
+  question is: could someone make this change, believe it complete, and be
+  wrong? This is the most dangerous of the three, because the other two are at
+  least visible to the person experiencing them; this one is invisible until
+  it fails in production.
+
+Ousterhout advocates a zero-tolerance stance toward all three: react to a
+symptom the first time it appears, in whatever small form, rather than waiting
+for it to accumulate into something that clearly demands attention. A single
+instance of change amplification is a data point, not yet a problem; a pattern
+of it recurring in the same area is a design defect that compounds with every
+change made before it is addressed. See
+xref:007.adoc[*TS-7: Code design*] for the code-level tactics — reducing
+duplication, narrowing interfaces, making dependencies explicit — that address
+change amplification specifically.
+
 == Coupling
 
 Implementation simplicity turns on a single critical factor: coupling – how
@@ -194,6 +228,18 @@ matters. Where they diverge – where a routine change requires edits scattered
 across components that have no conceptual relationship to one another – the
 design is complex, whatever the raw dependency counts happen to say.
 
+That simplicity resists direct measurement does not mean a team should track
+nothing. A small set of context-specific, tangible proxies is worth choosing
+deliberately and watching over time: the number of components, the number of
+interfaces between them, the lead time for a routine change, and mean time to
+repair (MTTR) are common candidates. None of these measures simplicity itself
+– a system can score well on all of them and still be conceptually confused –
+but a worsening trend in any of them is an early warning that complexity is
+accumulating faster than it is being managed, well before the effect shows up
+as missed deadlines or production incidents. Treat the trend as the signal,
+not the absolute value, since what counts as a reasonable number of
+components or interfaces is entirely context-specific.
+
 The goal, then, is *well-managed coupling* rather than minimal coupling. This
 distinction matters because the pursuit of low coupling as an end in itself
 produces its own kind of complexity. A system decomposed into too many
@@ -221,6 +267,20 @@ injection is a common example: valuable where object construction is genuinely
 complicated or genuinely needs to vary, but frequently applied with a
 granularity that adds ceremony without separating anything worth separating.
 Design patterns should be _adequate_ to the problem – no more.
+
+Optimization is a third common source of over-engineering, and it is worth
+naming separately from excessive modularity and unwarranted abstraction
+because it is easy to mistake for virtue rather than risk. Speeding up a
+system almost always means adding state: a cache duplicates a value that
+already exists elsewhere, denormalization duplicates data across boundaries
+that were previously independent, batching couples requests that were
+previously handled in isolation. Each of these buys performance by tightening
+coupling somewhere in the system. That cost is often worth paying, but it is
+a cost, not a free improvement, and it should be paid deliberately and only
+once a real performance problem is in evidence – not applied speculatively
+alongside the rest of the design. Stop optimizing once the system meets its
+performance requirements; the temptation to keep tuning past that point adds
+coupling for no requirement that asked for it.
 
 === Coupling and the other qualities
 
@@ -253,6 +313,18 @@ Because coupling cuts across the qualities in this way, it is worth measuring
 and monitoring continuously, and worth treating a rising trend as an early
 signal of design decay – long before the effects become visible as missed
 deadlines or production incidents.
+
+Coupling is not only a technical property; it is shaped by how the people
+building the system are organized. See
+xref:005.adoc[*TS-5: Application architecture*] for how team boundaries
+tend to become service boundaries, whether or not that was the intended
+design. A related but distinct effect operates at the level of process rather
+than team topology: the more people who must be involved in a single design
+decision, the harder it becomes to arrive at a simple result, independent of
+how those people's teams map onto the system's components. Keeping the
+design process itself lean – few enough participants that a decision can
+still be made coherently – is therefore a lever on complexity in its own
+right, alongside keeping the resulting team and service boundaries aligned.
 
 == Aligning interface and implementation
 
