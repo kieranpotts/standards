@@ -1,0 +1,128 @@
+= Memory safety and exploit mitigation
+
+The rest of this standard addresses security at the level of the application:
+the code it trusts, the credentials it holds, the requests it accepts. Memory
+safety sits below that level. In a memory-unsafe language, a defect in the
+handling of a byte buffer can hand an attacker control of the process itself,
+and no amount of application-level authorization or input validation prevents
+it.
+
+*Components that parse or otherwise process untrusted input SHOULD be written
+in a memory-safe language* – one whose compiler or runtime prevents
+out-of-bounds access, use-after-free, and type confusion by construction.
+Selecting a memory-unsafe language for such a component – C, C++, or the
+unsafe and foreign-function subset of an otherwise safe language – MUST be a
+justified decision rather than a default one. An existing codebase, a kernel
+or embedded target, or a measured performance requirement are all adequate
+justifications, and the reasoning SHOULD be recorded in the design docs. Where
+a memory-unsafe language is used, the remainder of this section applies.
+
+== Undefined behavior
+
+The C and C++ specifications classify most memory errors – reading or writing
+outside the bounds of an allocation, using memory after it has been freed,
+freeing it twice, overflowing a signed integer – as *undefined behavior*. The
+specification places no constraint whatsoever on what the program does once it
+executes one. Two consequences follow, and both are security-relevant.
+
+1.  *A compiler MAY optimize on the assumption that undefined behavior never
+    occurs.* A bounds or overflow check written _after_ the operation it is
+    meant to guard is, by the specification's own reasoning, unreachable, and
+    the compiler is free to delete it – silently removing a check the author
+    believed was protecting the program. Checks MUST therefore be written so
+    that they are well-defined in their own right: test the operands before
+    the operation, never the result after it.
+
+2.  *What actually happens is decided below the specification*, by the
+    compiler, the standard library, the allocator, and the hardware. That is
+    also where an attacker works.
+
+[quote, Elhage N, Computers Can Be Understood (2020)]
+____
+Understanding security issues very often requires working at multiple levels
+of abstraction. An attacker attacking a system isn't bound by the documented
+or intended behavior of any layer. [...] The C specification says only that a
+buffer overflow is "undefined behavior"; understanding how to turn one into
+remote-code-execution, or reasoning about countermeasures like ASLR or DEP
+requires a deep understanding of the actual implementation of the abstract C
+specification by the compiler, libc, underlying hardware, and more.
+____
+
+The practical requirement this imposes is on triage. "The standard says this
+is undefined" is where the analysis of a memory-safety defect begins, not
+where it ends: it establishes that the program has no defined behavior, and
+says nothing about what an attacker can make it do. Determining that MUST be
+done against the implementation – the compiler, its optimization settings,
+the allocator, and the target architecture – and by engineers who are willing
+to work at those layers.
+
+== Exploit mitigations
+
+Compilers, linkers, and operating systems provide mitigations that make a
+memory-safety defect harder to weaponize:
+
+* *Address space layout randomization (ASLR).* Randomizes the base addresses
+  of the stack, the heap, the executable, and shared libraries at load time,
+  so an attacker cannot predict the address of the code or data they need to
+  reach. The executable itself must be built as position-independent (PIE),
+  otherwise only the libraries move.
+
+* *Data execution prevention (DEP), also called NX or W^X.* Marks writable
+  pages non-executable, so a payload written into a buffer cannot simply be
+  jumped to.
+
+* *Stack canaries.* Place a guard value between local buffers and the saved
+  return address and check it before returning, so a linear stack overflow is
+  detected rather than followed.
+
+* *Read-only relocations (RELRO) and control-flow integrity (CFI).* Harden
+  the indirect branch targets – relocation tables and indirect call sites –
+  that exploitation of the defects above typically pivots through.
+
+These mitigations MUST be enabled on all released artifacts. They cost close
+to nothing, and a build that turns one off – for a debugging session, for a
+benchmark, or by inheriting a flag from a vendored makefile – MUST NOT be
+released. Their presence SHOULD be verified against the built binary rather
+than inferred from the build configuration, because a statically linked
+dependency compiled without them silently weakens the whole artifact.
+
+[IMPORTANT]
+======
+A mitigation raises the cost of exploitation. It does not remove the defect.
+A memory-safety bug that is unexploitable under today's mitigations, toolchain,
+and allocator MUST NOT be recorded as fixed, because none of those three are
+invariants: they change with the next compiler release, the next platform, or
+the next technique. Fix the defect.
+======
+
+== Detecting memory-safety defects
+
+The SAST, DAST, and SCA tooling required by <<Vulnerability scanning>> MUST
+NOT be relied on as the primary control for memory safety. Static analysis of
+memory errors is undecidable in the general case, and these tools are tuned
+for a different class of finding. Two additional controls apply to
+memory-unsafe code:
+
+* *Sanitizers.* Instrumented builds – AddressSanitizer,
+  UndefinedBehaviorSanitizer, MemorySanitizer, ThreadSanitizer – detect the
+  errors described above at the moment
+  they occur, rather than at the arbitrary later point where the corruption
+  becomes visible. At least one CI run of the test suite MUST execute against
+  a sanitized build. Sanitizers only find what the tests actually exercise,
+  which is what makes the next control necessary.
+
+* *Fuzzing.* Any component that parses untrusted input – file formats,
+  network protocols, compressed or serialized data – SHOULD be fuzzed
+  continuously against a sanitized build, with the corpus retained between
+  runs so that coverage accumulates. Every crash found MUST be retained as a
+  regression test.
+
+A memory-safety defect reachable from untrusted input MUST be triaged as a
+security vulnerability, not as an ordinary defect, and MUST be handled under
+the same disclosure and release terms as any other vulnerability. Until the
+implementation-level analysis described above has been done, the conservative
+assumption is that the defect is exploitable.
+
+Where a system includes a memory-unsafe component, the boundary at which that
+component receives untrusted input is a trust boundary, and SHOULD be modeled
+explicitly. See xref:054.adoc[*TS-54: Threat modeling*].
