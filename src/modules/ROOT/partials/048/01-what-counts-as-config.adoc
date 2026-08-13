@@ -1,0 +1,22 @@
+= What counts as config
+
+Not every value that varies is config, and not every setting belongs in an
+environment variable. Config, in the sense this standard uses the term, is
+anything that is *likely to vary between deploys* — development, staging,
+production, and any per-developer or per-instance deployment. This includes
+database URLs, credentials for backing services, hostnames for external
+services, and per-deploy values such as the canonical domain name.
+
+It does NOT include internal application settings that never vary between
+deploys — routing rules, the choice of templating engine, internal module
+wiring, or similar decisions that are part of the application's design rather
+than its deployment. Config that does not vary between deploys does not need
+to be, and SHOULD NOT be, externalized into an environment variable: doing so
+adds indirection without adding flexibility, and expands the set of variables
+an operator has to understand and manage at deploy time.
+
+A simple test for whether a value is config: if the codebase could be made
+open source at any moment without compromising any credentials, it is
+correctly factored. Values that would leak a secret, an internal hostname, or
+any other deploy-specific detail if the repository went public MUST be
+externalized as environment variables; everything else stays in code.
