@@ -1,0 +1,107 @@
+= Documentation and comments
+
+.Summary
+****
+* Every public module, class, and function MUST have a docstring
+* Docstrings use triple double-quotes and follow Google-style sections
+* Comments explain *why*, not *what*
+****
+
+== Docstrings
+
+Every public module, class, function, and method MUST have a docstring, per
+https://peps.python.org/pep-0257/[PEP 257]. A private (single-underscore)
+function SHOULD have one if its behavior is not obvious from its name and
+signature alone.
+
+Docstrings MUST use triple double-quotes (`"""`), even for a one-line
+docstring, for consistency and because triple-quoting is required as soon as
+the docstring spans multiple lines.
+
+A one-line docstring MUST fit on a single line, phrased as a command
+("Return the total.", not "Returns the total." or "This function returns the
+total."), and the closing `"""` MUST sit on the same line as the opening one.
+
+[source,python]
+----
+def is_valid(value: str) -> bool:
+    """Return True if value is a syntactically valid account ID."""
+    ...
+----
+
+A multi-line docstring MUST have a one-line summary on the first line,
+followed by a blank line, followed by further detail. The closing `"""` MUST
+sit on its own line.
+
+This standard adopts
+https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings[Google-style]
+docstring sections — `Args:`, `Returns:`, `Raises:` — over the alternative
+reStructuredText (`:param:`, Sphinx-native) or NumPy styles, because they
+read cleanly as plain text even before any documentation generator processes
+them.
+
+[source,python]
+----
+def charge(account_id: str, amount: Decimal) -> Receipt:
+    """Charge the given account and return a receipt.
+
+    Args:
+        account_id: The account to charge, in "acct_<id>" form.
+        amount: The amount to charge, in the account's home currency.
+
+    Returns:
+        A Receipt recording the transaction ID and settled amount.
+
+    Raises:
+        InsufficientFundsError: If the account balance is too low.
+        AccountNotFoundError: If account_id does not exist.
+    """
+    ...
+----
+
+A class's docstring MUST describe the class's purpose and, where it carries
+public attributes not already documented via dataclass field types or
+property docstrings, MUST document them under an `Attributes:` section
+following the same style as `Args:`.
+
+A module's docstring — the first statement in the file, before any import —
+MUST summarize what the module contains, in enough detail that a reader can
+decide whether to open it without doing so.
+
+== Comments
+
+Comments MUST explain *why* the code does something non-obvious, not *what*
+the code does when that is already clear from reading it. A comment that
+merely restates the following line in English adds noise, not information.
+
+[source,python]
+----
+# ✓ — explains a non-obvious constraint
+retries = 3  # the upstream gateway rate-limits after 3 attempts/second
+
+# ✗ — restates the code
+retries = 3  # set retries to 3
+----
+
+Inline comments (on the same line as code) SHOULD be used sparingly, separated
+from the code by at least two spaces, and SHOULD be reserved for a short
+clarification that doesn't warrant its own line.
+
+Block comments SHOULD be complete sentences, with the first word capitalized
+(unless it is an identifier that begins with a lowercase letter), and SHOULD
+be kept up to date — a comment that describes behavior the code no longer has
+is worse than no comment, since it actively misleads the next reader.
+
+`# TODO(username): description` SHOULD be used to mark unfinished work,
+following the convention recommended by
+https://google.github.io/styleguide/pyguide.html#312-todo-comments[Google's
+Python Style Guide], with the username identifying who to ask for context —
+not necessarily who will do the work.
+
+[source,python]
+----
+# TODO(kieran): remove once the legacy v1 endpoint is retired.
+----
+
+Commented-out code MUST NOT be committed. Version control already preserves
+history; a block of dead code left in a comment only accumulates and rots.

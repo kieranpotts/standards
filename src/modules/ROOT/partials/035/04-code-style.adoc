@@ -1,0 +1,138 @@
+= Code style
+
+.Summary
+****
+* Formatting MUST be delegated to an autoformatter (Black or Ruff's
+  formatter), not hand-maintained
+* Two blank lines between top-level definitions, one between methods
+* Trailing commas in multi-line collections
+****
+
+== Automated formatting
+
+Code formatting — indentation, blank lines, line wrapping, quote-character
+choice, trailing commas — MUST be delegated to an autoformatter, run in CI and
+as a pre-commit hook, rather than maintained by hand or enforced through code
+review. https://black.readthedocs.io/[Black] or
+https://docs.astral.sh/ruff/formatter/[Ruff's formatter] (which is
+Black-compatible) are RECOMMENDED. This standard's line-length and blank-line
+rules describe what such a formatter already does by default; they are stated
+here so the standard is self-contained, not as an instruction to apply them
+manually.
+
+A project MUST pick one formatter and apply it uniformly. Reformatting the
+entire codebase in one commit when adopting a formatter, isolated from any
+functional change, is RECOMMENDED, so that `git blame` is not muddied by
+mixing the reformat with unrelated diffs.
+
+== Blank lines
+
+Two blank lines MUST separate top-level function and class definitions. One
+blank line MUST separate method definitions within a class. A single blank
+line MAY be used sparingly within a function body to group related
+statements.
+
+[source,python]
+----
+import os
+
+
+class PaymentGateway:
+    def __init__(self, api_key: str) -> None:
+        self.api_key = api_key
+
+    def charge(self, amount: int) -> None:
+        ...
+
+
+def main() -> None:
+    ...
+----
+
+== Whitespace
+
+A single space MUST surround binary operators (`x = a + b`, not `x=a+b`), with
+the exception of keyword arguments and default parameter values in a function
+signature, which MUST NOT be surrounded by spaces when unannotated
+(`def f(x=1):`), but MUST be surrounded by spaces when the parameter carries a
+type annotation (`def f(x: int = 1):`) — following PEP 8's rule that the `=`
+here is read as part of the annotated declaration, not a bare assignment.
+
+No space MUST appear immediately inside parentheses, brackets, or braces
+(`spam(ham[1], {eggs: 2})`, not `spam( ham[ 1 ], { eggs: 2 } )`), and no space
+MUST appear before a comma, semicolon, or colon, but a space MUST follow one
+(except at the end of a line).
+
+== Trailing commas
+
+A trailing comma SHOULD be included after the last element of a multi-line
+list, tuple, dict, set, or function call/signature. This keeps the diff to a
+single line when a further element is added later, and is what Black inserts
+automatically in "magic trailing comma" mode.
+
+[source,python]
+----
+SUPPORTED_REGIONS = [
+    "us-east-1",
+    "eu-west-1",
+    "ap-southeast-2",
+]
+----
+
+A single-line collection or call MUST NOT carry a trailing comma before the
+closing bracket, except the one-element tuple, where the trailing comma is
+mandatory syntax (`(value,)`), not a style choice.
+
+== String quotes
+
+Single and double quotes are equally acceptable for string literals; PEP 8
+takes no position, and this standard does not either — a project SHOULD adopt
+whichever its autoformatter enforces (Black defaults to double quotes) and
+apply it consistently, rather than mixing both by hand. Whichever is chosen,
+use the other quote character to avoid backslash-escaping a quote that
+appears inside the string, per PEP 8.
+
+Triple double-quotes (`"""`) MUST be used for docstrings, regardless of which
+quote style is chosen for ordinary string literals — see <<Docstrings>>.
+
+f-strings (`f"{value}"`) SHOULD be preferred over `%`-formatting or
+`.format()` for constructing strings that interpolate values, for readability
+and because they are evaluated at the point of use rather than requiring
+positional or keyword argument matching.
+
+== Comparisons
+
+Singletons (`None`, `True`, `False`) MUST be compared with `is` / `is not`,
+never `==` / `!=`.
+
+[source,python]
+----
+# ✓
+if value is None:
+    ...
+
+# ✗
+if value == None:
+    ...
+----
+
+Emptiness of a sequence, string, or collection SHOULD be tested with an
+implicit boolean check (`if not items:`), not an explicit length comparison
+(`if len(items) == 0:`), unless the distinction between "empty" and "falsy for
+another reason" genuinely matters for the value in question — for example, a
+value that could be either `None` or `0`, where collapsing both to "falsy"
+would be a bug.
+
+Type checks SHOULD use `isinstance()`, not a direct comparison of `type()`,
+because `isinstance()` respects subclassing.
+
+[source,python]
+----
+# ✓
+if isinstance(value, int):
+    ...
+
+# ✗
+if type(value) == int:
+    ...
+----

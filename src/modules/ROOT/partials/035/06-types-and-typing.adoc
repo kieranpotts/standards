@@ -1,0 +1,107 @@
+= Types and typing
+
+.Summary
+****
+* Public functions and methods MUST carry type hints
+* `Optional[X]` / `X | None` MUST be used explicitly — no implicit `None`
+  default
+* Static type checking (mypy or pyright) SHOULD run in CI
+* Dataclasses/`NamedTuple` preferred over ad-hoc dict/tuple records
+****
+
+== Type hints
+
+Every public function, method, and module-level variable MUST carry type
+hints for its parameters and return value, per
+https://peps.python.org/pep-0484/[PEP 484] and
+https://peps.python.org/pep-0526/[PEP 526]. Private (single-underscore)
+helpers SHOULD also be annotated, but the requirement is stricter for public
+interfaces because they are the contract other code depends on.
+
+[source,python]
+----
+def calculate_total(items: list[Item], tax_rate: float) -> Decimal:
+    ...
+----
+
+The builtin generic syntax (`list[Item]`, `dict[str, int]`) MUST be used
+instead of the deprecated `typing.List`, `typing.Dict`, etc., which are
+retained only for backward compatibility with Python versions predating
+https://peps.python.org/pep-0585/[PEP 585] (3.9). A project supporting an
+older Python version MUST use the `typing` equivalents, or
+`from __future__ import annotations` to defer evaluation and use the
+builtin syntax anyway — see <<Deferred evaluation of annotations>>.
+
+A value that may be absent MUST be annotated as `X | None` (Python 3.10+, per
+https://peps.python.org/pep-0604/[PEP 604]) or the equivalent
+`Optional[X]` on earlier versions — never left as a bare `X` with an implicit
+`None` default silently tolerated by the caller. A function returning `X |
+None` signals to every caller that the `None` case MUST be handled.
+
+`Any` SHOULD be avoided. It disables type checking for the value it is
+applied to and for everything derived from it, so its use SHOULD be
+confined to genuine boundary cases — deserializing untrusted external data
+before it has been validated into a concrete shape, or interoperating with an
+untyped third-party library — and MUST NOT be used merely to silence a type
+checker error that reflects a real type mismatch.
+
+== Static type checking
+
+A static type checker — https://mypy-lang.org/[mypy] or
+https://microsoft.github.io/pyright/[pyright] — SHOULD run in CI against the
+whole codebase, not merely on a subset of files, and its failures SHOULD
+block the build. Where a codebase is being migrated to typed code
+incrementally, the checker MAY be configured to only enforce strict checking
+on already-annotated modules, with a plan to widen that scope over time,
+rather than left permanently partial.
+
+Type-checking suppressions (`# type: ignore`) MUST carry the specific error
+code being suppressed (`# type: ignore[assignment]`) and a brief comment
+explaining why, so the suppression doesn't silently swallow an unrelated
+future error in the same line.
+
+== Deferred evaluation of annotations
+
+`from __future__ import annotations` (per
+https://peps.python.org/pep-0563/[PEP 563]) SHOULD be added at the top of a
+module that uses type hints, so that annotations are stored as strings and
+evaluated lazily rather than at function-definition time. This allows the
+newer `X | None` union syntax and builtin generic syntax to be used even on
+Python versions that would otherwise require `typing.Optional` and
+`typing.List`, and avoids a class needing to forward-reference its own name
+in a method signature.
+
+== Structured data
+
+A dataclass (`@dataclasses.dataclass`) SHOULD be used, rather than a bare
+dict, tuple, or hand-written class with a manual `__init__`, whenever a piece
+of code needs a record type with named fields.
+
+[source,python]
+----
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class Money:
+    amount: int
+    currency: str
+----
+
+`frozen=True` SHOULD be set unless the dataclass genuinely needs to be
+mutated after construction — an immutable record is easier to reason about
+and safe to share across threads.
+
+`typing.NamedTuple` MAY be preferred over a dataclass where tuple semantics
+(unpacking, positional access, hashability by default) are actually wanted;
+a plain, untyped `tuple` or `collections.namedtuple` SHOULD NOT be used for a
+new record type where either of the typed alternatives is available.
+
+A `TypedDict` SHOULD be used, rather than an untyped `dict[str, Any]`, to
+describe the shape of dictionary data with a fixed, known set of string keys
+— most commonly, JSON payloads deserialized from an external API.
+
+Protocols (`typing.Protocol`) SHOULD be used to define a structural interface
+— "anything with this method signature" — in preference to an abstract base
+class, when the point is to accept any object with the right shape rather
+than to share implementation via inheritance.

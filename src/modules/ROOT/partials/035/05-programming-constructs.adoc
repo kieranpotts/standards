@@ -1,0 +1,185 @@
+= Programming constructs
+
+.Summary
+****
+* Prefer EAFP (`try`/`except`) over LBYL for control flow where failure is
+  routine
+* Use comprehensions for simple transforms; a loop once logic branches
+* Context managers for anything acquiring a resource
+* Mutable default arguments MUST NOT be used
+****
+
+== EAFP over LBYL
+
+Python idiom generally prefers "Easier to Ask Forgiveness than Permission"
+(EAFP) — attempt the operation and handle the exception — over "Look Before
+You Leap" (LBYL) — check preconditions before attempting the operation. EAFP
+SHOULD be preferred where the failure case is a routine, expected outcome
+(a missing dictionary key, a file that may not exist, a type that may not
+support an operation), because it avoids a race condition between the check
+and the use, and because the CPython interpreter is optimized for the
+successful path.
+
+[source,python]
+----
+# ✓ EAFP
+try:
+    value = mapping[key]
+except KeyError:
+    value = default
+
+# ✗ LBYL — has a race, and reads worse
+if key in mapping:
+    value = mapping[key]
+else:
+    value = default
+----
+
+LBYL MAY still be preferred where the check is cheap, the failure path would
+be expensive or side-effecting to trigger deliberately, or where an explicit
+guard clause reads more clearly than a broad exception handler.
+
+== Comprehensions and generator expressions
+
+A list, dict, or set comprehension SHOULD be preferred over an equivalent
+`for` loop with `.append()` when the body is a single, simple expression.
+
+[source,python]
+----
+# ✓
+squares = [n * n for n in range(10)]
+
+# ✗ — same result, more ceremony
+squares = []
+for n in range(10):
+    squares.append(n * n)
+----
+
+A comprehension SHOULD be abandoned in favor of an explicit `for` loop once
+it needs a second `for` clause beyond simple flattening, a non-trivial
+`if` condition, or any side effect — a comprehension with a side effect
+(calling a function for its effect rather than its return value) is a code
+smell, since the construct exists to build a collection, not to execute
+statements.
+
+A generator expression (`(x for x in iterable)`, no brackets) SHOULD be
+preferred over a list comprehension when the result will only be iterated
+once and does not need to be indexed, reused, or measured with `len()` — it
+avoids materializing the whole collection in memory.
+
+== Context managers
+
+Anything that acquires a resource requiring explicit release — a file handle,
+a network connection, a lock, a database transaction — MUST be managed with a
+`with` statement, not a manual `acquire()`/`release()` or `open()`/`close()`
+pair. The `with` statement guarantees the resource is released even if the
+body raises.
+
+[source,python]
+----
+# ✓
+with open(path, encoding="utf-8") as f:
+    contents = f.read()
+
+# ✗ — leaks the handle if read() raises
+f = open(path, encoding="utf-8")
+contents = f.read()
+f.close()
+----
+
+A class that manages its own resource SHOULD implement the context manager
+protocol (`__enter__`/`__exit__`) rather than exposing separate
+open/close-style methods, so its callers get the same `with`-statement
+guarantee. `contextlib.contextmanager` SHOULD be used to implement a simple
+context manager as a generator function, in preference to hand-writing a
+class with `__enter__`/`__exit__` when no other state needs to live on the
+object.
+
+== Mutable default arguments
+
+A mutable object (a list, dict, or set) MUST NOT be used as a default
+argument value. Default argument values are evaluated once, at function
+definition time, not on each call — so a mutable default is silently shared
+and mutated across every call that relies on it, which is very rarely the
+intended behavior.
+
+[source,python]
+----
+# ✗ — the same list is reused and grows across calls
+def add_item(item, items=[]):
+    items.append(item)
+    return items
+
+# ✓
+def add_item(item, items=None):
+    if items is None:
+        items = []
+    items.append(item)
+    return items
+----
+
+== Unpacking
+
+Tuple/iterable unpacking SHOULD be used in preference to indexed access when
+assigning several related values at once, including the starred form for
+"the rest of the values".
+
+[source,python]
+----
+first, *middle, last = values
+----
+
+Swapping two variables SHOULD use tuple unpacking (`a, b = b, a`), not a
+temporary variable.
+
+== Loops
+
+`enumerate()` SHOULD be used instead of manually tracking an index with
+`range(len(...))`.
+
+[source,python]
+----
+# ✓
+for index, item in enumerate(items):
+    ...
+
+# ✗
+for index in range(len(items)):
+    item = items[index]
+    ...
+----
+
+`zip()` SHOULD be used to iterate over two or more sequences in lockstep,
+instead of indexing each by a shared counter.
+
+A `for`/`else` or `while`/`else` construct MAY be used where its semantics
+(the `else` block runs only if the loop completed without `break`) genuinely
+fit the logic, but authors SHOULD add a short comment noting that the `else`
+is loop-`else`, not the more commonly expected `if`-`else` — this construct
+is unfamiliar enough that an unmarked use is a readability tax on the reader.
+
+== Error handling
+
+Exception handlers MUST catch the narrowest exception type that is actually
+expected, never a bare `except:` and, except at a genuine top-level boundary
+(a request handler, a task runner) that must not crash regardless of cause,
+not a bare `except Exception:` either.
+
+Custom exceptions SHOULD be defined for a library or module's own error
+conditions, subclassing the most specific applicable built-in exception (or
+`Exception` directly if none fits), so callers can distinguish this code's
+failures from unrelated ones.
+
+Where an exception is re-raised after partial handling — logging it, adding
+context, or translating it to a different type — `raise ... from err` SHOULD
+be used to preserve the original traceback as the new exception's
+`__cause__`, rather than losing it or, worse, swallowing it with a bare
+`raise NewError()` that discards where the failure actually originated.
+
+[source,python]
+----
+try:
+    parse(payload)
+except ValueError as err:
+    raise ValidationError("invalid payload") from err
+----
