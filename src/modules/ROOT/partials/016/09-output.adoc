@@ -11,6 +11,19 @@ flags that allow the user to toggle the output into alternative machine-readable
 formats. For example, use `--plain` to support piping into tools such as `grep`
 or `awk`, and `--json` for use with `jq`.
 
+Human-readable output is not a stable interface, and it is fine to iterate on
+its wording and layout between releases. Machine-readable output
+(`--plain`/`--json`) is different: once a script depends on it, changing its
+shape is a breaking change (see <<Future proofing>>). Encourage users to build
+scripts against `--plain`/`--json` rather than parsing the human-readable
+default, and treat the human-readable format as free to evolve.
+
+Keep human-readable output grep-parseable: aim for one record per line, so a
+user can filter it with `grep` and count matches with `wc` without your output
+format getting in the way. Avoid multi-section, grouped-header formats – a
+single tabular row per item, as described in <<Tables>>, is easier to filter
+than output broken up under several headings.
+
 If your program or command is expected to be used mostly in automation
 scenarios, it may make more sense for the default output format to be
 machine-readable. If so, you can still have your program automatically switch to
@@ -46,6 +59,22 @@ clumsy redirection to `/dev/null`, provide a `--quiet`/`-q` flag to run your
 program in "quiet mode", which will suppress all non-essential output and help
 declutter log files.
 
+== Tables
+
+When output is naturally tabular – a list of resources, for example – emit one
+record per row, so the output stays grep-parseable (see <<Standard output>>).
+Never emit table borders or box-drawing characters in the default output;
+they add visual noise and break `grep`/`awk` filtering.
+
+It is RECOMMENDED to support conventional flags for tabular output:
+
+* `--columns` – choose which columns to display.
+* `--no-truncate` – don't truncate column values to fit the terminal width.
+* `--no-headers` – omit the header row, useful for scripting.
+* `--filter` – filter rows by a field value.
+* `--sort` – sort rows by a field.
+* `--csv` – emit CSV instead of the default aligned-column format.
+
 == Pagers
 
 If you are outputting a lot of text, use a pager like `less`. `git diff` does
@@ -74,6 +103,13 @@ following circumstances:
 * When an environment variable named `NO_COLOR` exists.
 * When an environment variable named `[APP]_NO_COLOR` exists, where `[APP]` is a
   prefix identifying your program.
+* When the `TERM` environment variable is set to `dumb`, which signals a
+  terminal with no color or escape-sequence support.
+
+Conversely, it is RECOMMENDED to support `FORCE_COLOR` as the counterpart to
+`NO_COLOR`: when set, it forces color output on even where TTY detection would
+otherwise disable it – for example, when output is being piped into another
+program that itself renders color, such as a pager.
 
 Restrained use of symbols and emoji can be beneficial. Characters such as ✅ and
 ❌ can be useful to draw the user's attention to successes and failures
@@ -102,3 +138,31 @@ drwxr-xr-x 2 root root   4.0K Jul 20 14:57 skel
 
 If stdout is not an interactive terminal, do not display any animations. This
 will stop progress bars turning into Christmas trees in log files.
+
+Progress bars, spinners, and other "action" output are out-of-band information
+about what the program is doing, not the program's actual result. Send this
+output to stderr, not stdout, so that stdout can still be redirected or piped
+while the user continues to see progress. `curl` follows this convention –
+its progress meter goes to stderr, leaving stdout free for the downloaded
+content.
+
+If a progress bar gets stuck in the same place for a long time, the user
+cannot tell whether work is still happening or the program has crashed or
+hung. Show an estimated time remaining, or keep some part of the display
+animated (a spinner character, a pulsing bar), so the user has continuous
+evidence that the program is still alive.
+
+Reporting progress for work done in parallel is harder than for sequential
+work: naively interleaved output from multiple concurrent tasks is
+confusing and hard to read. Use a library designed for parallel progress
+reporting where one is available, rather than writing raw progress lines from
+multiple workers directly to the terminal.
+
+Hiding detailed logs behind a progress bar or spinner, while things are going
+well, keeps output easy to follow. But if an error occurs, print the hidden
+logs – otherwise the failure is very hard to debug, because the information
+the user needs was suppressed exactly when they needed it most.
+
+For a task that runs long enough that the user is likely to switch away to
+another window, consider triggering an OS-level desktop notification when it
+completes, in addition to the terminal output.

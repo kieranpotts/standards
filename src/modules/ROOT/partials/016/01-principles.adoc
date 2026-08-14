@@ -9,6 +9,20 @@ sensible defaults, reasonable timeouts, and so on.
 This section sets out some design principles that will help you to think through
 all the little details of your CLI programs.
 
+== Simplicity
+
+Above all, robustness is achieved by keeping the program simple. Complex code
+and special-case handling make a program fragile and unpredictable: every
+branch is a place where an assumption can turn out to be wrong, and every
+edge case handled is an edge case that must be maintained. A CLI with fewer
+moving parts is easier to reason about, easier to test exhaustively, and less
+likely to surprise its users.
+
+Favor a small number of well-understood behaviors over a large number of
+special-cased ones. Where a feature would only handle a rare combination of
+inputs, consider whether the CLI is better off rejecting that combination
+outright, with a clear error, than trying to handle it correctly.
+
 == Composability
 
 Design CLI programs to be composable. This means that each program and
@@ -72,6 +86,35 @@ when a failure mode puts the system into an invalid state.
 Make it easy for the user to inspect the current state of CLI programs. The Git
 operation `git status` is a good model for this.
 
+== Prefer explicit actions
+
+Reading or writing files that the user did not explicitly pass as arguments,
+and talking to a remote server – for example, to check for updates or
+download a file – SHOULD usually be an explicit, visible action. Don't
+surprise the user with side effects they didn't ask for.
+
+The exception is storing internal program state, such as a cache or a
+telemetry queue (see <<Analytics>>). Users don't need to be told every time a
+program reads its own cache directory.
+
+== Analytics
+
+CLI programs MUST NOT phone home usage or crash data without the user's
+consent. Where a program does collect telemetry, be explicit with users about
+what is collected, why it is collected, how it is anonymized, and how long it
+is retained.
+
+Prefer an opt-in model. Where telemetry is opt-out instead, tell users clearly
+that data is being collected and make it easy to disable – for example, via a
+`--no-analytics` flag or a `[APP]_NO_ANALYTICS` environment variable,
+mirroring the `NO_COLOR` convention (see <<Formatting>>).
+
+Consider alternatives to in-program telemetry before reaching for it: download
+counts from your package registry or website analytics on your documentation
+site often answer the same questions without instrumenting the CLI itself. And
+talking to users directly – support channels, issue trackers, user
+interviews – surfaces the "why", which telemetry cannot.
+
 == Control output
 
 An essential design choice for CLI programs is the amount of output they produce
@@ -96,6 +139,15 @@ out. Set sensible defaults for network timeouts, and allow the user to override
 the default configuration.
 
 A responsive program _feels_ robust and dependable.
+
+Responsiveness also covers cold-start time – how long it takes the program to
+begin doing useful work after invocation, before any of its own feedback can
+be shown. As a rough guide: under 100ms feels instant; 100–500ms is a
+reasonable target for most CLIs; 500ms–2s is usable but noticeable; beyond 2s,
+users start to avoid the tool, scripting around it or reaching for
+alternatives. Startup time matters most for CLIs invoked frequently in tight
+loops – shell prompts, git hooks, editor integrations – where even a few
+hundred milliseconds compounds quickly.
 
 == Parallelism
 
@@ -144,6 +196,12 @@ committing to keeping them stable.
 Major versions SHOULD endure with non-breaking changes for as long as possible –
 preferably indefinitely, for the whole lifespan of the program.
 
+Use https://semver.org/[Semantic Versioning] for CLI programs. Reserve major
+version bumps for breaking changes to the interface – removed or renamed
+subcommands, flags, or environment variables; changed defaults; changed exit
+codes – so that users and downstream scripts can tell from the version number
+alone whether upgrading is safe.
+
 [quote, Linus Torvalds]
 ____
 We do not break userspace.
@@ -156,8 +214,17 @@ deprecated – but not removed until the next major version bump.
 
 Warn your users about deprecated operations. This gives them a chance to update
 their clients before they are broken by the next major release of your program.
+A good deprecation warning does three things: tells the user, at the moment
+they use the deprecated flag or subcommand, that it is going to change or be
+removed; shows them the future-proof alternative to switch to; and, where
+possible, detects when they have already updated their usage elsewhere and
+stops showing the warning, so it doesn't nag users who have nothing left to
+fix.
 
 Avoid creating time-bombs. Think about the future – how might your program work
 5, 10, 20 years from now? Can you guarantee it will still work in the same way?
 If you cannot guarantee this – due to dependencies on external components or
-services, for example – be sure to clearly document the reasons why.
+services, for example – be sure to clearly document the reasons why. Don't
+build in a blocking call to a third-party analytics service, for example –
+if that service is ever discontinued or blocks the request, your program
+should not hang or fail because of it.

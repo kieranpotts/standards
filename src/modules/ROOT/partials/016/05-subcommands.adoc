@@ -23,6 +23,22 @@ subcommands, where one is a noun (referring to the object) and one is a verb
 pattern. The first seems to be the more common pattern — eg
 .`docker container create` — but either is fine as long as you are consistent.
 
+The choice has a maintenance dimension worth considering as your command set
+grows. If every noun will always support the same set of verbs, `verb noun`
+scales easily – you add a new verb once, and it applies uniformly. If
+different nouns support very different verbs, `noun verb` (grouping every
+verb under its noun) tends to be lower-maintenance, since each noun's verb
+set can evolve independently without the top-level verb list becoming a
+grab-bag of noun-specific operations.
+
+Where subcommands are given a second level using a namespace-like delimiter
+rather than a space – eg. `heroku domains:add` instead of `heroku domains
+add` – the colon form lets the topic command (`domains`) itself accept
+arguments while still having subcommands, something a purely space-delimited
+parser cannot disambiguate. Whichever delimiter you choose, never create a
+`*:list`-style command purely to list the nouns under a topic – the topic
+root itself (`heroku domains`, with no subcommand) should list them.
+
 Where subcommands are used in combination with flags, the positioning of flags
 within the subcommand structure SHOULD NOT be significant. By way of example,
 the following two commands SHOULD be equivalent. However, it is acknowledged
@@ -63,3 +79,10 @@ some typing, so you allowed them to type any non-ambiguous prefix, like
 `mycmd ins`, or even just `mycmd i`. Now you're stuck. You can't add any more
 commands beginning with `i`. There's nothing in principle wrong with aliases —
 saving on typing is good — but they should be explicit and remain stable.
+
+When a subcommand rename or restructuring is unavoidable, consider going
+beyond a <<Future proofing,deprecation warning>> and shipping an automated
+migration command that rewrites a user's own shell scripts to use the new
+subcommand names. This is more work than a warning, but for a widely-scripted
+CLI it removes the manual-update burden from every downstream user at once,
+rather than leaving each of them to find and fix their own scripts.
