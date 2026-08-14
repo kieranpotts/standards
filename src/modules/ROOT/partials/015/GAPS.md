@@ -361,6 +361,21 @@ open.
       how performance enables new interaction patterns (interactive
       iteration, new task types).
 
+**Fourth run, 2026-08-14.** One item routed in from TS-26 (Technical writing
+style guide)'s gap analysis, whose `copywriting.adoc` source item was
+confirmed out-of-scope for TS-26 on the grounds that UI microcopy is a
+different register from documentation prose — the user asked that it be
+captured here instead. One new Missing gap added; all prior gaps remain
+open.
+
+- [ ] `copywriting.adoc` ("Copywriting guidelines") — UI/short-message text
+      conventions: titles and short messages take no full stop; short
+      messages should use hyphens for readability; longer, multi-sentence
+      descriptions are written as full prose with terminal full stops.
+      TS-15 `01-design-principles.adoc` has no microcopy or UI-text
+      conventions of any kind. Recommend a new section, or a new partial if
+      the topic grows beyond a section's worth of content.
+
 ## Partial
 
 - [ ] https://www.nngroup.com/articles/ten-usability-heuristics/ (Heuristic 4:

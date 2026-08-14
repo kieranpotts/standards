@@ -1,20 +1,25 @@
 # TODO
 
-> **Next up:** TS-26 gaps, then TS-21 gaps.
+> **Next up:** TS-21 gaps.
 
 Outstanding work across the technical standards in this repository: standards
 that are still stubs (no substantive content written), and standards whose
 `GAPS.md` gap analysis still has open items.
 
 This file is a manually-maintained index, regenerated from the tree. The
-counts below were last regenerated on **2026-08-14** — this run closed
+counts below were last regenerated on **2026-08-14** — this run closed all 29
+of TS-26's actionable items across three `close-gaps` batches, the last of
+which also reversed and closed 4 of TS-26's original 9 out-of-scope items at
+the user's explicit direction, importing a roughly 1,373-entry A-Z glossary
+as a new partial (see the table note below); a fifth out-of-scope item was
+confirmed out-of-scope and its gap routed instead to TS-15, adding 1 new
+actionable item there (50 → 51). This is on top of the same-day closure of
 TS-29's gaps in full (29 actionable items and all 3 out-of-scope items
 resolved, across four `close-gaps` batches plus a follow-up decision pass on
-the out-of-scope items and the one remaining Partial item), on top of the
-same-day closure of TS-43's gaps in full, TS-16's actionable items in full (1
-out-of-scope batch and 1 unresolved resource remain), 16 of TS-40's 17 (the
-last declined, see [Known inconsistencies](#known-inconsistencies)), and
-TS-29's earlier partial progress (9 of 29) which this run completed.
+the out-of-scope items and the one remaining Partial item), TS-43's gaps in
+full, TS-16's actionable items in full (1 out-of-scope batch and 1 unresolved
+resource remain), and 16 of TS-40's 17 (the last declined, see
+[Known inconsistencies](#known-inconsistencies)).
 Re-derive the counts with the script in
 [Regenerating this file](#regenerating-this-file) before trusting them after
 any content work.
@@ -121,17 +126,17 @@ not in a separate sweep.
 | --- | --- | ---: | ---: | ---: | --- |
 | [TS-4](src/modules/ROOT/partials/004/GAPS.md) | Modeling | 0 | 0 | 1 | Template — 1 unresolved resource, repeatedly unfetchable |
 | [TS-16](src/modules/ROOT/partials/016/GAPS.md) | Command line interfaces (CLIs) | 0 | 9 | 1 | Template — all 59 actionable items closed 2026-08-14 |
+| [TS-26](src/modules/ROOT/partials/026/GAPS.md) | Technical writing style guide | 0 | 6 | 2 | Template — all 29 actionable items closed 2026-08-14, across three batches; 4 of 9 out-of-scope items also reversed and closed |
 | [TS-27](src/modules/ROOT/partials/027/GAPS.md) | Markdown | 0 | 6 | 1 | Template — all 15 actionable items closed 2026-08-13 |
 | [TS-29](src/modules/ROOT/partials/029/GAPS.md) | JSON Schema | 0 | 0 | 2 | Template — all 29 actionable and all 3 out-of-scope items closed 2026-08-14 |
 | [TS-40](src/modules/ROOT/partials/040/GAPS.md) | CSS | 1 | 12 | 0 | Template — 16 of 17 actionable items closed 2026-08-14; 1 declined and left open |
 | [TS-37](src/modules/ROOT/partials/037/GAPS.md) | Web platform APIs | 18 | 4 | 1 | Template — also a stub |
-| [TS-26](src/modules/ROOT/partials/026/GAPS.md) | Technical writing style guide | 29 | 10 | 2 | Template |
 | [TS-21](src/modules/ROOT/partials/021/GAPS.md) | HTTP APIs | 49 | 13 | 4 | Template |
-| [TS-15](src/modules/ROOT/partials/015/GAPS.md) | User interfaces | 50 | 7 | 12 | Template |
+| [TS-15](src/modules/ROOT/partials/015/GAPS.md) | User interfaces | 51 | 7 | 12 | Template — gained 1 item 2026-08-14, routed in from TS-26 |
 | [TS-33](src/modules/ROOT/partials/033/GAPS.md) | Java | 55 | 3 | 4 | Template |
 | [TS-18](src/modules/ROOT/partials/018/GAPS.md) | Web GUIs | 56 | 26 | 5 | Template |
 | [TS-39](src/modules/ROOT/partials/039/GAPS.md) | HTML | 136 | 5 | 4 | Template — also a stub |
-| | **Total** | **394** | **93** | **38** | |
+| | **Total** | **366** | **91** | **37** | |
 
 TS-29 (JSON Schema) was closed out on 2026-08-14 across four `close-gaps`
 batches plus a same-day follow-up: the first batch closed the eight
@@ -158,6 +163,33 @@ references remain unfetchable. TS-29's partials were renumbered four times
 over the course of this work — see the page's `include::` list for the
 current mapping, not any historical numbering cited in old commit messages.
 
+TS-26 (Technical writing style guide) was closed out on 2026-08-14 — all 29
+actionable items resolved — across three `close-gaps` batches. The first
+closed the comma/quotation-mark/apostrophe/dash/hyphenation/
+exclamation-question-mark/colon-capitalization cluster (all in
+`13-punctuation.adoc`), plus abbreviation mechanics, dates/numbers,
+code-block formatting, emphasis/typography, and referencing mechanics. The
+second closed that/which, collective-noun agreement, overused words, and
+sentence fragments (all in `14-sentences-and-paragraphs.adoc`), contractions
+and a passive-voice detection heuristic (`01-voice-and-tense.adoc`), heading
+formatting and acronym expansion (`02-headings.adoc`), and nested/variable
+lists (`08-lists.adoc`) — one item in that batch, the list-period rule,
+needed no change since `08-lists.adoc` already covered it. The third closed
+the two remaining Partial items — commonly-confused words and
+person-first/gender-neutral language — and, at the user's explicit
+direction, reversed 4 of the file's 9 Out-of-scope items (honorifics/
+titles, place/country names, sports/currencies/measures, and the A-Z
+spelling list itself) by importing the full ~1,373-entry A-Z word list from
+`9999-reference.md` as a new `16-glossary.adoc` partial, merged with
+overlapping content from `OLD-NOTES.md`/`OLD-NOTES-2.md`. A fifth
+Out-of-scope item — `copywriting.adoc`'s UI/short-message conventions — was
+confirmed out-of-scope for TS-26 (its content is UI microcopy register, not
+documentation prose) and instead routed to TS-15 (User interfaces) as a new
+Missing item there, at the user's request. TS-26 stays in this table, not
+the fully-resolved list, because its remaining 6 Out-of-scope items and 2
+Unresolved YouTube-adjacent references keep it short of zero unchecked
+items of any kind — the same shape as TS-4, TS-16, TS-27, and TS-29.
+
 TS-39 sits at the top by actionable count but is a stub — see
 [Stub standards](#stub-standards) — so `close-gaps` cannot work it until the
 standard has been authored. TS-4, TS-16, and TS-27 all have zero actionable
@@ -167,8 +199,11 @@ directory no longer exists anywhere in the repository and re-fetching it has
 failed on every run so far; TS-16's is `Program-Behavior.html`, still
 unfetchable as of the 2026-08-14 run (not re-attempted, since its content was
 already captured via a sub-agent in a prior run); TS-27's is a stub reference
-file (see the file's `## Unresolved` entry) not yet re-fetched. TS-29 now
-joins this group for the same reason — two YouTube references, unfetchable.
+file (see the file's `## Unresolved` entry) not yet re-fetched. TS-29 and
+TS-26 now join this group for the same reason — two unfetched references
+each: YouTube for TS-29; for TS-26, a binary PDF with no text-extraction
+tool available, and a set of link-collection files whose ~40 linked URLs
+were never individually fetched.
 
 TS-40 (CSS) had 16 of 17 actionable items closed on 2026-08-14. The one
 remaining item — a comparative summary of OOCSS/BEM/SMACSS/SUIT CSS
@@ -198,9 +233,9 @@ turned out to already be resolved in TS-5 and TS-57's own directories, so
 TS-10 needed no content of its own — and has left this table for the
 fully-resolved list.
 
-One standard — TS-39 — now holds 136 of the 394 actionable items on its own,
+One standard — TS-39 — now holds 136 of the 366 actionable items on its own,
 over a third of the total, and will need several passes once it is authored.
-TS-18 (56) and TS-15 (50) are next largest.
+TS-18 (56) and TS-15 (51) are next largest.
 
 ## Standards with neither a stub nor a GAPS.md
 
