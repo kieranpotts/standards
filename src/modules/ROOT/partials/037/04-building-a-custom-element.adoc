@@ -1,0 +1,63 @@
+= Building a custom element
+
+A custom element requires no build system. At minimum, it is a class
+extending `HTMLElement`, registered with `customElements.define`:
+
+[source,javascript]
+----
+class MyWidget extends HTMLElement {
+  connectedCallback() {
+    const shadow = this.attachShadow({ mode: "open" });
+    shadow.innerHTML = `
+      <style>/* scoped styles */</style>
+      <p>Widget content</p>
+    `;
+  }
+}
+
+customElements.define("my-widget", MyWidget);
+----
+
+* `attachShadow({ mode: "open" })` creates the shadow root. Use `mode: "open"`
+  unless there is a specific reason to hide the shadow tree from the page's
+  own JavaScript (`mode: "closed"`), which mainly complicates debugging and
+  testing for little real security benefit — a "closed" shadow root does not
+  stop determined inspection, it only removes the element's `.shadowRoot`
+  property from ordinary script access.
+
+* Do the attachment and initial render in `connectedCallback`, which fires
+  each time the element is inserted into the document, rather than in the
+  constructor. This keeps the component correct if it is disconnected and
+  reconnected, and avoids doing DOM work before the element is guaranteed to
+  be in a document.
+
+* `customElements.define` registers the tag name globally. Custom element
+  names MUST contain a hyphen, per the platform's own requirement — this both
+  disambiguates them from any future native element name and is what tells
+  the browser to treat the tag as a custom element rather than an unknown
+  one.
+
+== HTML's fault tolerance is progressive enhancement
+
+HTML is fault-tolerant by design: a browser renders any recognized markup it
+finds, and silently ignores tags it does not understand. This has a useful
+consequence for HTML web components (see <<HTML web components vs.
+JavaScript web components>>): any HTML placed between a custom element's
+opening and closing tags renders automatically, exactly as written, if the
+component's script never loads.
+
+[source,html]
+----
+<user-avatar>
+  <img src="<url>" alt="<name>" />
+</user-avatar>
+----
+
+If `user-avatar`'s script fails to load — a CDN outage, a slow network, an
+ad-blocker false positive — the browser still renders the `<img>`, because it
+was always valid HTML the browser understood, independent of any custom
+element definition. This is progressive enhancement for free: it costs
+nothing beyond choosing to wrap real content rather than an empty shell.
+Custom elements that follow the JavaScript web component pattern do not get
+this benefit, because there is no fallback content for the browser to fall
+back to.

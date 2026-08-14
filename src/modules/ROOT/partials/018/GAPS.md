@@ -59,6 +59,13 @@ form-submission-integrity guidance (only a WCAG confirm-before-consequential-
 action rule and pointer-release activation, which address different problems).
 One new Missing gap added; all prior gaps remain open.
 
+**Fifth run, 2026-08-14.** Four CSS layout/typography items (fluid `clamp()`
+typography, container queries, intrinsic flex/grid layouts, `text-wrap:
+balance`/`ch`) relocated here from TS-37's gap analysis (`../037/GAPS.md`) on
+the maintainer's scope confirmation that this material belongs in TS-18
+rather than TS-37. All four added as new Missing items; no gaps checked off
+in this run. All prior gaps remain open.
+
 ## Missing
 
 - [ ] https://csswizardry.com/2019/08/time-to-first-byte-what-it-is-and-why-it-matters/#what-is-ttfb — Time to First Byte (TTFB) as a performance metric and its contributors (latency, routing, application runtime, DB queries, SSR cost). TS-18 mentions LCP but never TTFB. Recommend a new subsection in `01-performance-optimization.adoc` after the LCP note (~L53). Reinforced by https://web.dev/articles/top-cwv#3-use-a-cdn-to-optimize-ttfb, which frames TTFB as CDN-optimizable and additionally recommends caching static HTML at the edge (even briefly) and moving dynamic logic to edge compute — TS-18's CDN/Squid bullets (L31-34) cover CDN and proxy caching but not edge-cached HTML or edge compute.
@@ -204,6 +211,51 @@ section (see the rsjs items above); the performance items sit in
 - [ ] https://frontendmasters.com/blog/patterns-for-memory-efficient-dom-manipulation/#cleaning-up-event-listeners — event-listener cleanup: `removeEventListener`, the `addEventListener` `once` option, and `AbortController` to unbind groups of listeners at once. TS-18 has no event-listener lifecycle guidance. Missing. Recommend a new section (proposed `05-javascript-behaviors.adoc`).
 
 - [ ] https://neurodiversity.design/ — neurodiversity / cognitive-accessibility design guidance: the Neurodiversity Design System covers Font, Typography, Colour, Buttons/Links/Inputs, Interface, Communications, Numbers, and Animations for neurodivergent learners (e.g. font shapes that help dyslexic readers; typography that supports reading on screens). TS-18's opening states it covers "cognitive disabilities" and targets WCAG 2.2 Level AA, but its body provides no neurodiversity-specific guidance beyond `prefers-reduced-motion` (animations) and general colour contrast. Missing (with a scope nuance: TS-18 explicitly claims cognitive disabilities, so this is in scope; much of the NDS goes beyond WCAG AA, but TS-18's own framing invites it). Recommend a new subsection in `02-web-accessibility.adoc`. NOTE: only the NDS landing page was retrieved — see Unresolved.
+
+- [ ] https://www.trysmudford.com/blog/hyper-responsive-web-components/
+      ("Responsive typography & space") — fluid typography via `clamp()` with
+      viewport units (the Utopia approach) for type that scales smoothly
+      between a minimum and maximum size across the viewport range, without
+      the stepped jumps of fixed breakpoints. TS-18 has no fluid-typography
+      guidance; its fonts section covers loading, fallbacks, and CLS, not
+      sizing strategy. Missing. Relocated from TS-37's gap analysis
+      (`../037/GAPS.md`) — the maintainer confirmed on 2026-08-14 that this
+      is CSS/layout material belonging in TS-18 rather than TS-37 (Web
+      platform APIs). Recommend a new subsection in `03-fonts.adoc`, or a new
+      CSS-layout section if one is added to cover the sibling items below.
+
+- [ ] https://www.trysmudford.com/blog/hyper-responsive-web-components/
+      ("Applying container-driven typography") — CSS container queries
+      (`container-type: inline-size`, the `cqi` unit, `@container`) for
+      sizing type and layout against a component's own container rather than
+      the viewport, plus `@supports`-based progressive enhancement for
+      browsers without container-query support. Not addressed anywhere in
+      TS-18. Missing. Relocated from TS-37's gap analysis (`../037/GAPS.md`)
+      — the maintainer confirmed on 2026-08-14 that this is CSS/layout
+      material belonging in TS-18. Recommend a new CSS-layout section (see
+      the sibling items below).
+
+- [ ] https://www.trysmudford.com/blog/hyper-responsive-web-components/
+      ("Intrinsic layouts" and "Limitations of intrinsic design") — the Every
+      Layout "Sidebar" intrinsic flex/grid pattern (content-driven wrapping
+      without explicit breakpoints) and `@container`-driven content hiding
+      for when intrinsic layout alone is not enough. Not addressed anywhere
+      in TS-18. Missing. Relocated from TS-37's gap analysis
+      (`../037/GAPS.md`) — the maintainer confirmed on 2026-08-14 that this
+      is CSS/layout material belonging in TS-18. Recommend a new CSS-layout
+      section (see the sibling items above and below).
+
+- [ ] https://www.trysmudford.com/blog/hyper-responsive-web-components/
+      ("The finer details") — `text-wrap: balance` for balancing heading line
+      lengths, and the `ch` unit for constraining body-text line length to a
+      readable measure. Not addressed anywhere in TS-18. Missing. Relocated
+      from TS-37's gap analysis (`../037/GAPS.md`) — the maintainer confirmed
+      on 2026-08-14 that this is CSS/layout material belonging in TS-18.
+      Recommend a new CSS-layout section (see the sibling items above); the
+      four relocated items together could form one new
+      `05-css-layout-and-typography.adoc` section, since TS-18 currently has
+      no CSS-layout content distinct from its performance/accessibility/font
+      pillars.
 
 - [ ] https://brandur.org/idempotency-keys ("Beyond APIs") covers double
       form submission prevention, which is not addressed anywhere in the

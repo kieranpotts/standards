@@ -21,18 +21,27 @@ more like TS-18 (Web GUIs) material than TS-37 API guidance, but they are
 flagged for the user to confirm or overrule. No "partial" gaps exist because
 there is no existing body text to be shallower than the references.
 
-**Status:** Initial run. All gaps open. Last run 2026-08-05.
+**Status:** Second run (2026-08-14). All 18 Missing items closed by new
+content in `src/modules/ROOT/pages/037.adoc` (introductory text) and five new
+partials under `src/modules/ROOT/partials/037/`. All 4 Out-of-scope items
+confirmed out-of-scope for TS-37 by the maintainer and relocated as new
+Missing items in TS-18's `../018/GAPS.md`. No gaps remain open in this file.
 
 ## Missing
 
-- [ ] https://www.trysmudford.com/blog/hyper-responsive-web-components/
+- [x] https://www.trysmudford.com/blog/hyper-responsive-web-components/
       ("Hyper-responsive web components") is not addressed anywhere in the
       standard. It frames web components as the solution for portable,
       embeddable widgets that must render on any third-party site, in any
       position, at any viewport, with any content. Recommend a new section in
       `src/modules/ROOT/pages/037.adoc`.
 
-- [ ] https://www.trysmudford.com/blog/hyper-responsive-web-components/
+      **Resolved.** Closed by `01-when-to-use-web-components.adoc`, "When to
+      use web components" section. Opens with the portability framing and
+      lists "Portable, embeddable widgets" as the strongest use case. Source
+      added to the page's `== References`.
+
+- [x] https://www.trysmudford.com/blog/hyper-responsive-web-components/
       ("Three immediate approaches") is not addressed anywhere in the
       standard. It compares three portable-component strategies — a script
       that injects HTML (suffers CSS leakage both ways), an `<iframe>` (style
@@ -41,14 +50,30 @@ there is no existing body text to be shallower than the references.
       DOM — and their tradeoffs. Recommend a new section in
       `src/modules/ROOT/pages/037.adoc`.
 
-- [ ] https://www.trysmudford.com/blog/hyper-responsive-web-components/
+      **Resolved.** Closed by `03-shadow-dom.adoc`, "Choosing an
+      encapsulation strategy" section. Includes a comparison table of the
+      three strategies (script-injected HTML, iframe, web component with
+      Shadow DOM) with their isolation level and key limitation, and
+      concludes with the web-component recommendation for this specific
+      problem. Source added to the page's `== References`.
+
+- [x] https://www.trysmudford.com/blog/hyper-responsive-web-components/
       ("Writing an encapsulated web component") is not addressed anywhere in
       the standard. It shows building an encapsulated web component with
       `attachShadow({ mode: 'open' })`, `connectedCallback`, and
       `customElements.define`, with no build system required. Recommend a new
       section in `src/modules/ROOT/pages/037.adoc`.
 
-- [ ] https://www.trysmudford.com/blog/hyper-responsive-web-components/
+      **Resolved.** Closed by `04-building-a-custom-element.adoc`, "Building
+      a custom element" section. Shows the minimal class-extending-
+      `HTMLElement` pattern with `attachShadow({ mode: "open" })` in
+      `connectedCallback` and `customElements.define`, with explanatory
+      bullets on `mode: "open"` vs `"closed"`, why the work belongs in
+      `connectedCallback` rather than the constructor, and the mandatory
+      hyphen in custom element names. Source added to the page's
+      `== References`.
+
+- [x] https://www.trysmudford.com/blog/hyper-responsive-web-components/
       ("Writing an encapsulated web component", paragraph on HTML
       fault-tolerance) is not addressed anywhere in the standard. It notes
       that because HTML is intrinsically fault-tolerant, any HTML placed
@@ -57,7 +82,14 @@ there is no existing body text to be shallower than the references.
       property of custom elements. Recommend a new section in
       `src/modules/ROOT/pages/037.adoc`.
 
-- [ ] https://www.trysmudford.com/blog/hyper-responsive-web-components/
+      **Resolved.** Closed by `04-building-a-custom-element.adoc`, "HTML's
+      fault tolerance is progressive enhancement" section. Explains that a
+      browser renders any recognized HTML between a custom element's tags
+      even if the component's script never loads, with a `user-avatar`
+      example, and contrasts this with the JavaScript web component pattern,
+      which gets no such fallback.
+
+- [x] https://www.trysmudford.com/blog/hyper-responsive-web-components/
       (Note after "Applying container-driven typography") is not addressed
       anywhere in the standard. It documents a leak in Shadow DOM
       encapsulation: a web component has no `:root`, so internal `rem` values
@@ -65,7 +97,14 @@ there is no existing body text to be shallower than the references.
       alters that size scales the component. Recommend a new section in
       `src/modules/ROOT/pages/037.adoc`.
 
-- [ ] https://daverupert.com/2024/10/super-web-components-sunshine/ ("The
+      **Resolved.** Closed by `03-shadow-dom.adoc`, "The `:root` leak"
+      section. Documents that `:root` inside a shadow root still refers to
+      the host document's root, that internal `rem` values resolve against
+      the host page's root font-size, and recommends a local `font-size`
+      baseline plus `em` (or absolute units) where independence from the
+      host page is required.
+
+- [x] https://daverupert.com/2024/10/super-web-components-sunshine/ ("The
       good parts") is not addressed anywhere in the standard. It catalogs
       situations where web components are a good fit: leaf nodes;
       presentational wrappers around other components via `<slot>` (with the
@@ -81,7 +120,17 @@ there is no existing body text to be shallower than the references.
       designers-who-can-code. Recommend a new section in
       `src/modules/ROOT/pages/037.adoc`.
 
-- [ ] https://daverupert.com/2024/10/super-web-components-sunshine/ ("The
+      **Resolved.** Closed by `01-when-to-use-web-components.adoc`, "When to
+      use web components" section. Condensed the catalog into the standard's
+      own register as a bulleted list of fit criteria (portable widgets,
+      leaf nodes/presentational wrappers, design systems, progressive
+      enhancement, buildless/low-maintenance projects, framework-agnostic
+      demo distribution) plus a closing TIP echoing "not everything needs to
+      be a web component" and cross-referencing the Shadow DOM cost and the
+      HTML-augmentation section, rather than reproducing the source's full
+      itemized list verbatim.
+
+- [x] https://daverupert.com/2024/10/super-web-components-sunshine/ ("The
       not-so great parts") is not addressed anywhere in the standard. It
       catalogs the rough edges of web components: Shadow DOM's steep initial
       learning curve and "gotcha moments"; SSR via Declarative Shadow DOM is
@@ -94,61 +143,117 @@ there is no existing body text to be shallower than the references.
       fix; and friction around building a compiler for JS-framework-based web
       components. Recommend a new section in `src/modules/ROOT/pages/037.adoc`.
 
-- [ ] https://daverupert.com/2024/10/super-web-components-sunshine/ ("The
+      **Resolved.** Closed by `05-limitations.adoc` ("Limitations" section,
+      covering SSR, page-level routing, and framework-compiler friction) and
+      `03-shadow-dom.adoc` ("Shadow DOM as a last resort" and "Cross-root
+      accessibility" sections, covering the learning curve and the ARIA
+      problem). Split across the two files because the rough edges fall into
+      two natural groups: general platform limitations, and Shadow-DOM-
+      specific ones already covered in depth in the Shadow DOM section.
+
+- [x] https://daverupert.com/2024/10/super-web-components-sunshine/ ("The
       not-so great parts" — SSR bullet) is not addressed anywhere in the
       standard. It calls out that web components can be server-rendered using
       Declarative Shadow DOM, but the sparse literature suggests the practice
       is kludgy or library-specific, and names Enhance as a framework doing
       it out of the box. Recommend a new section in `src/modules/ROOT/pages/037.adoc`.
 
-- [ ] https://daverupert.com/2024/10/super-web-components-sunshine/ ("The
+      **Resolved.** Closed by `05-limitations.adoc`, "Limitations" section,
+      "Server-side rendering" bullet. Names Declarative Shadow DOM
+      (`<template shadowrootmode="open">`), describes the sparse/kludgy
+      state of published guidance, and names Enhance as the notable
+      out-of-the-box exception.
+
+- [x] https://daverupert.com/2024/10/super-web-components-sunshine/ ("The
       not-so great parts" — Accessibility bullet) is not addressed anywhere in
       the standard. It describes the Cross-Root ARIA problem (associating a
       label in the document with an input inside a shadow root), existing
       workarounds, and the `referencetarget` attribute rolling out in Chromium
       to resolve it. Recommend a new section in `src/modules/ROOT/pages/037.adoc`.
 
-- [ ] https://adactio.com/journal/20618 ("HTML web components", opening
+      **Resolved.** Closed by `03-shadow-dom.adoc`, "Cross-root
+      accessibility" section. Describes the ARIA cross-shadow-root
+      association problem, the `referencetarget` attribute rolling out in
+      Chromium, and recommends keeping labeling self-contained within one
+      shadow root as an interim mitigation.
+
+- [x] https://adactio.com/journal/20618 ("HTML web components", opening
       paragraphs) is not addressed anywhere in the standard. It argues web
       components are portable web standards that will outlive any framework
       (citing Jake Lazaroff: "web components will outlive your JavaScript
       framework"), in contrast to React as legacy/lock-in technology.
       Recommend a new section in `src/modules/ROOT/pages/037.adoc`.
 
-- [ ] https://adactio.com/journal/20618 ("HTML web components", "I have a
+      **Resolved.** Closed by the page's introductory paragraph and
+      `01-when-to-use-web-components.adoc`. The framework-outlasting /
+      portability argument is folded into the standard's framing of web
+      components as native, portable browser APIs rather than restated as a
+      separate polemical section — this standard states requirements and
+      recommendations directly rather than reproducing the source's
+      persuasive argument or its named-individual citation.
+
+- [x] https://adactio.com/journal/20618 ("HTML web components", "I have a
       suggestion for you") is not addressed anywhere in the standard. It
       warns against bringing React's mindset to web components — the React
       pattern of empty shell components with props doing the heavy lifting —
       and instead asks "what would HTML do?", using HTML up to its limit and
       then enhancing. Recommend a new section in `src/modules/ROOT/pages/037.adoc`.
 
-- [ ] https://adactio.com/journal/20618 (Robin / Dave quotations) is not
+      **Resolved.** Closed by `02-html-vs-javascript-web-components.adoc`,
+      "HTML web components vs. JavaScript web components" section. States
+      the React-mindset critique directly as the rationale for RECOMMENDing
+      HTML web components as the default, without the "what would HTML do?"
+      framing device, which reads as a rhetorical question rather than
+      normative guidance.
+
+- [x] https://adactio.com/journal/20618 (Robin / Dave quotations) is not
       addressed anywhere in the standard. It positions web components as
       "small, reusable chunks of code that extend the language of HTML" and
       "HTML with superpowers" — augmenting existing markup with just enough
       behaviour — rather than monolithic React-style Button/Table/Input
       components. Recommend a new section in `src/modules/ROOT/pages/037.adoc`.
 
-- [ ] https://adactio.com/journal/20618 ("Where does the shadow DOM come
+      **Resolved.** Closed by `02-html-vs-javascript-web-components.adoc`.
+      The "extend HTML rather than replace it" framing is stated directly as
+      the standard's own recommendation rather than attributed as quotations
+      — this standard does not use named-individual quotes as a citation
+      style (see the style guide's author-date `== References` convention
+      instead).
+
+- [x] https://adactio.com/journal/20618 ("Where does the shadow DOM come
       into all of this?") is not addressed anywhere in the standard. It
       recommends treating Shadow DOM as a last resort and seeing how far
       regular-HTML composibility goes first. Recommend a new section in
       `src/modules/ROOT/pages/037.adoc`.
 
-- [ ] https://adactio.com/journal/20618 (Eric Meyer `super-slider` example)
+      **Resolved.** Closed by `03-shadow-dom.adoc`, "Shadow DOM as a last
+      resort" section. States the recommendation directly: prefer Light DOM
+      until encapsulation is solving a real problem, and attach a shadow
+      root deliberately rather than by default.
+
+- [x] https://adactio.com/journal/20618 (Eric Meyer `super-slider` example)
       is not addressed anywhere in the standard. It demonstrates wrapping
       existing `label` + `input type="range"` markup in a custom element and
       adding JS capabilities styled with regular CSS — "the Light Side of
       the Web", no Shadow DOM. Recommend a new section in
       `src/modules/ROOT/pages/037.adoc`.
 
-- [ ] https://adactio.com/journal/20618 (Jim Nielsen `icon-list` example) is
+      **Resolved.** Closed by `02-html-vs-javascript-web-components.adoc` as
+      the first of two worked examples: a `<super-slider>` wrapping
+      `<label>` + `<input type="range">`, styled with regular CSS and no
+      Shadow DOM.
+
+- [x] https://adactio.com/journal/20618 (Jim Nielsen `icon-list` example) is
       not addressed anywhere in the standard. It shows using custom elements
       solely to attach functionality (no Shadow DOM, no templates, no slots)
       — wrapping a `ul` of `li`s. Recommend a new section in
       `src/modules/ROOT/pages/037.adoc`.
 
-- [ ] https://adactio.com/journal/20618 ("HTML web components" definition)
+      **Resolved.** Closed by `02-html-vs-javascript-web-components.adoc` as
+      the second worked example: an `<icon-list>` wrapping a plain `<ul>` of
+      `<li>` elements, with no Shadow DOM, `<template>`, or `<slot>`.
+
+- [x] https://adactio.com/journal/20618 ("HTML web components" definition)
       is not addressed anywhere in the standard. It defines "HTML web
       components" (a custom element extending existing markup) vs "JavaScript
       web components" (an empty shell relying exclusively on JS), and
@@ -156,7 +261,12 @@ there is no existing body text to be shallower than the references.
       mindset of augmentation. Recommend a new section in
       `src/modules/ROOT/pages/037.adoc`.
 
-- [ ] https://adactio.com/journal/20618 (Jim Nielsen response, "Web
+      **Resolved.** Closed by `02-html-vs-javascript-web-components.adoc`,
+      the section's title and opening definition, with a code example for
+      each of the two forms and the resulting behavior when the component's
+      script fails to load.
+
+- [x] https://adactio.com/journal/20618 (Jim Nielsen response, "Web
       components have their own grain") is not addressed anywhere in the
       standard. It notes web components' unique power of rendering before
       JavaScript (impossible for React components), which encourages
@@ -164,13 +274,28 @@ there is no existing body text to be shallower than the references.
       that enhances — augmentation over replacement. Recommend a new section
       in `src/modules/ROOT/pages/037.adoc`.
 
-- [ ] https://adactio.com/journal/20618 (Jim Nielsen response, "On The Web,
+      **Resolved.** Closed by `02-html-vs-javascript-web-components.adoc`,
+      final paragraph before the examples, and by
+      `04-building-a-custom-element.adoc`'s fault-tolerance section, which
+      together state that the ability to render before/without JavaScript is
+      web components' main advantage over framework components, and is the
+      reason to prefer augmentation.
+
+- [x] https://adactio.com/journal/20618 (Jim Nielsen response, "On The Web,
       Augmentation Wins in the Long Run") is not addressed anywhere in the
       standard. It argues augmentative approaches win on the web because the
       platform's grain favours enhancement for resilience, and that the best
       framework ideas are subsumed into the platform (XHTML→HTML5, XHR→fetch,
       Sass/jQuery→browser, TypeScript→browser, React component model→browser
       via web components). Recommend a new section in `src/modules/ROOT/pages/037.adoc`.
+
+      **Resolved.** Closed by `02-html-vs-javascript-web-components.adoc`, a
+      NOTE block citing the XHTML→HTML5, XMLHttpRequest→fetch, and
+      Sass/jQuery-absorption examples, and framing web components as the
+      platform's own absorption of the framework component model. The
+      TypeScript→browser example was omitted as a less direct parallel (no
+      native TypeScript runtime exists); the other three examples carry the
+      argument.
 
 ## Partial
 
@@ -180,14 +305,18 @@ out-of-scope.)_
 
 ## Out-of-scope
 
-- [ ] https://www.trysmudford.com/blog/hyper-responsive-web-components/
+- [x] https://www.trysmudford.com/blog/hyper-responsive-web-components/
       ("Responsive typography & space") covers this, but it plausibly sits
       outside this standard's stated purpose because fluid typography via
       `clamp()` with viewport units (Utopia) is a CSS/layout concern more
       characteristic of TS-18 (Web GUIs) than TS-37's Web platform APIs scope.
       Flagged for the user to confirm or overrule.
 
-- [ ] https://www.trysmudford.com/blog/hyper-responsive-web-components/
+      **Confirmed out-of-scope (2026-08-14).** The maintainer confirmed this
+      is CSS/layout material outside TS-37's platform-API scope. Relocated as
+      a new Missing item in TS-18's `../018/GAPS.md`.
+
+- [x] https://www.trysmudford.com/blog/hyper-responsive-web-components/
       ("Applying container-driven typography") covers this, but it
       plausibly sits outside this standard's stated purpose because CSS
       container queries (`container-type: inline-size`, the `cqi` unit,
@@ -196,7 +325,11 @@ out-of-scope.)_
       GUI technique); flagged for the user to confirm or overrule — note it
       may better belong in TS-18.
 
-- [ ] https://www.trysmudford.com/blog/hyper-responsive-web-components/
+      **Confirmed out-of-scope (2026-08-14).** The maintainer confirmed this
+      is CSS/layout material outside TS-37's platform-API scope. Relocated as
+      a new Missing item in TS-18's `../018/GAPS.md`.
+
+- [x] https://www.trysmudford.com/blog/hyper-responsive-web-components/
       ("Intrinsic layouts" and "Limitations of intrinsic design") covers
       this, but it plausibly sits outside this standard's stated purpose
       because the Every Layout "Sidebar" intrinsic flex/grid pattern and
@@ -204,16 +337,24 @@ out-of-scope.)_
       characteristic of TS-18 (Web GUIs). Flagged for the user to confirm or
       overrule.
 
-- [ ] https://www.trysmudford.com/blog/hyper-responsive-web-components/
+      **Confirmed out-of-scope (2026-08-14).** The maintainer confirmed this
+      is CSS/layout material outside TS-37's platform-API scope. Relocated as
+      a new Missing item in TS-18's `../018/GAPS.md`.
+
+- [x] https://www.trysmudford.com/blog/hyper-responsive-web-components/
       ("The finer details") covers this, but it plausibly sits outside this
       standard's stated purpose because `text-wrap: balance` and the `ch`
       unit for line-length control are CSS typography features more
       characteristic of TS-18 (Web GUIs). Flagged for the user to confirm or
       overrule.
 
+      **Confirmed out-of-scope (2026-08-14).** The maintainer confirmed this
+      is CSS/layout material outside TS-37's platform-API scope. Relocated as
+      a new Missing item in TS-18's `../018/GAPS.md`.
+
 ## Unresolved
 
-- [ ] TS-37 is a stub (`src/modules/ROOT/pages/037.adoc` holds only a TODO intro and
+- [x] TS-37 is a stub (`src/modules/ROOT/pages/037.adoc` holds only a TODO intro and
       "See also" links; `src/modules/ROOT/partials/037/AGENTS.md` is `<!-- TODO -->`). With no body
       text, the standard's precise scope boundary is unverifiable — in
       particular the line between TS-37 "Web platform APIs" and TS-18 "Web
@@ -221,3 +362,11 @@ out-of-scope.)_
       confirmed from the standard itself. The out-of-scope items above are
       best-effort calls; re-run this analysis once TS-37 has substantive
       content.
+
+      **Dismissed (2026-08-14).** TS-37 is no longer a stub: it now has an
+      introduction and five content sections (see the Missing items above).
+      The scope boundary this item asked about was independently settled by
+      the maintainer's out-of-scope confirmations above, rather than by a
+      fresh gap-analysis re-run. A future `gap-analysis` re-run against the
+      now-substantive standard remains open to catch anything this batch
+      missed.
