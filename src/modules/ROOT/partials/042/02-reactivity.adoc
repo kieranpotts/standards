@@ -1,0 +1,132 @@
+= Reactivity
+
+== `ref` versus `reactive`
+
+`ref()` SHOULD be the default choice for reactive state, including objects and
+arrays. `reactive()` MAY be used for a fixed-shape object that is never
+reassigned as a whole, but it has three sharp edges that `ref()` avoids:
+
+* *No reassignment.* A `reactive()` object loses reactivity if it is
+  destructured or reassigned wholesale (`state = { ...newState }` breaks the
+  binding). `ref()` is reassigned by replacing `.value`, which always keeps
+  reactivity intact.
+* *No primitives.* `reactive()` only works on objects, arrays, and collection
+  types (`Map`, `Set`). `ref()` works uniformly for primitives and objects,
+  so a codebase that standardizes on `ref()` does not need two mental models.
+* *Destructuring loses reactivity.* Pulling a property off a `reactive()`
+  object into a local variable (`const { count } = state`) yields a plain,
+  non-reactive value. `toRefs()` works around this, but is an extra step that
+  `ref()`-based state does not need.
+
+[source,js]
+----
+import { ref, reactive } from "vue"
+
+/* RECOMMENDED: uniform, safe to reassign or destructure via toRef/toRefs. */
+const user = ref({ name: "Ada", roles: ["admin"] })
+user.value.name = "Ada Lovelace"
+
+/* Acceptable, but only if `settings` is never reassigned as a whole and its
+   properties are always accessed through the object, never destructured. */
+const settings = reactive({ theme: "dark", locale: "en-US" })
+----
+
+== Computed properties over methods
+
+A derived value that depends only on reactive state MUST be a `computed()`,
+not a method called from the template. `computed()` caches its result and
+only re-evaluates when a dependency changes; a method re-runs on every render.
+
+[source,js]
+----
+import { computed, ref } from "vue"
+
+const items = ref([])
+
+/* No: re-runs on every re-render, regardless of whether `items` changed. */
+function total() {
+  return items.value.reduce((sum, item) => sum + item.price, 0)
+}
+
+/* Yes: cached, and only recomputed when `items` changes. */
+const total = computed(() =>
+  items.value.reduce((sum, item) => sum + item.price, 0),
+)
+----
+
+A `computed()` getter MUST be a pure function of its reactive dependencies —
+it MUST NOT mutate state or perform side effects. Use a `watch()` or
+`watchEffect()` for side effects instead.
+
+== `watch` versus `watchEffect`
+
+`watch()` SHOULD be used when the source being observed needs to be explicit
+and the callback needs the previous value, the old and new values, or lazy
+(non-immediate) evaluation. `watchEffect()` SHOULD be used when the callback's
+own body already reads every reactive dependency it needs — it tracks its
+dependencies automatically and runs immediately.
+
+[source,js]
+----
+import { ref, watch, watchEffect } from "vue"
+
+const searchQuery = ref("")
+
+/* Explicit source, needs the previous value: use watch(). */
+watch(searchQuery, (newQuery, oldQuery) => {
+  console.log(`Query changed from "${oldQuery}" to "${newQuery}"`)
+})
+
+/* Dependencies are inferred from what the callback reads: use watchEffect(). */
+watchEffect(() => {
+  document.title = `Results for "${searchQuery.value}"`
+})
+----
+
+Prefer a `computed()` over either `watch()` or `watchEffect()` where the goal
+is a derived value rather than a side effect. A `watch`/`watchEffect` callback
+that only assigns its result to another `ref` SHOULD be replaced with a
+`computed()`.
+
+== Composables over mixins
+
+Shared, stateful logic MUST be extracted into a composable — a function
+prefixed `use` that encapsulates `ref`/`computed`/`watch` state and returns
+what the consuming component needs — not a Vue 2-style mixin. Mixins have two
+problems composables do not: unclear property origin (a property used in a
+component's template could come from the component itself or from any of its
+mixins, with no way to tell without reading every mixin) and implicit
+namespace collision (two mixins that happen to define the same property name
+silently overwrite one another). A composable's return value is destructured
+explicitly at the call site, so its origin is always visible.
+
+[source,js]
+----
+// composables/useMousePosition.js
+import { ref, onMounted, onUnmounted } from "vue"
+
+export function useMousePosition() {
+  const x = ref(0)
+  const y = ref(0)
+
+  function update(event) {
+    x.value = event.pageX
+    y.value = event.pageY
+  }
+
+  onMounted(() => window.addEventListener("mousemove", update))
+  onUnmounted(() => window.removeEventListener("mousemove", update))
+
+  return { x, y }
+}
+----
+
+[source,vue]
+----
+<script setup>
+import { useMousePosition } from "@/composables/useMousePosition"
+
+/* The origin of `x` and `y` is explicit at the call site. */
+const { x, y } = useMousePosition()
+</script>
+----

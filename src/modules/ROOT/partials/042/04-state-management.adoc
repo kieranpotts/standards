@@ -1,0 +1,77 @@
+= State management
+
+== Local versus shared state
+
+State that is used by a single component and its direct children SHOULD stay
+local, held in that component with `ref()`/`reactive()` and passed down via
+props, with changes communicated back up via emitted events. Reach for a
+shared store only once state needs to be read or written from parts of the
+component tree that do not have a direct ancestor/descendant relationship —
+introducing a store for state that is really local adds an indirection layer
+with no benefit, and makes the data flow harder to trace, not easier.
+
+== Pinia
+
+Pinia is RECOMMENDED for shared application state. It is the official Vue
+state-management library, superseding Vuex, and integrates directly with the
+Composition API — a store's `ref`s and `computed`s are its state and getters,
+with no separate mutation-commit ceremony.
+
+[source,js]
+----
+// stores/cart.js
+import { defineStore } from "pinia"
+import { ref, computed } from "vue"
+
+export const useCartStore = defineStore("cart", () => {
+  const items = ref([])
+
+  const total = computed(() =>
+    items.value.reduce((sum, item) => sum + item.price, 0),
+  )
+
+  function addItem(item) {
+    items.value.push(item)
+  }
+
+  return { items, total, addItem }
+})
+----
+
+A store's state MUST NOT be mutated directly from outside the store except
+through an assignment to a whole `ref`; a component that needs to change
+store state SHOULD do so by calling an action the store exposes (`addItem()`
+above), keeping the mutation logic in one place rather than scattered across
+every consumer.
+
+Store files SHOULD be named `use<Name>Store.js` (`useCartStore.js`), matching
+the exported composable's name, and grouped under a top-level `stores/`
+directory. See <<Filesystem>> for where `stores/` sits alongside a project's
+other top-level directories.
+
+== Provide/inject
+
+`provide()`/`inject()` MAY be used to pass data down a component subtree
+without prop-drilling it through every intermediate level, but is best suited
+to values a subtree needs implicitly — a theme, a locale, a form's shared
+validation context — not as a general substitute for a store. Data passed via
+`provide()`/`inject()` is not reactive by default; provide a `ref` or
+`reactive()` object, not a plain value, if the injected data needs to update
+reactively.
+
+[source,js]
+----
+// Providing component
+import { provide, ref } from "vue"
+
+const theme = ref("dark")
+provide("theme", theme)
+----
+
+[source,js]
+----
+// Any descendant
+import { inject } from "vue"
+
+const theme = inject("theme")
+----

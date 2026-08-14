@@ -1,0 +1,89 @@
+= Single-file components
+
+Vue components SHOULD be authored as single-file components (`.vue` files),
+each combining a `<template>`, a `<script>`, and an optional `<style>` block in
+one file. This keeps a component's markup, behavior, and styling colocated and
+reviewable as a single unit, rather than split across parallel directory
+structures.
+
+[source,vue]
+----
+<script setup>
+import { ref } from "vue"
+
+const count = ref(0)
+</script>
+
+<template>
+  <button @click="count++">Count: {{ count }}</button>
+</template>
+
+<style scoped>
+button {
+  padding: 0.5rem 1rem;
+}
+</style>
+----
+
+Block order within a single-file component MUST be `<template>`, then
+`<script>`, then `<style>`. This is the order Vue's own tooling (`create-vue`,
+the official VS Code extension) generates and expects, and keeps the file's
+structure predictable across a codebase.
+
+== Composition API and `<script setup>`
+
+New components MUST use the Composition API with `<script setup>`, not the
+Options API. `<script setup>` is more concise, gives better TypeScript
+inference, and avoids the `this`-binding ambiguity that the Options API
+carries over from Vue 2. The Options API MAY still appear in a codebase
+migrated from Vue 2, but MUST NOT be used for new components.
+
+[source,vue]
+----
+<!-- No: Options API -->
+<script>
+export default {
+  data() {
+    return { count: 0 }
+  },
+  methods: {
+    increment() {
+      this.count++
+    },
+  },
+}
+</script>
+
+<!-- Yes: Composition API with <script setup> -->
+<script setup>
+import { ref } from "vue"
+
+const count = ref(0)
+function increment() {
+  count.value++
+}
+</script>
+----
+
+== TypeScript
+
+Single-file components SHOULD use `<script setup lang="ts">`. Props and emits
+SHOULD be declared with the type-only `defineProps<T>()` and
+`defineEmits<T>()` macros rather than the runtime declaration form, since the
+type-only form is checked at compile time and produces no runtime overhead.
+
+[source,vue]
+----
+<script setup lang="ts">
+interface Props {
+  label: string
+  disabled?: boolean
+}
+
+const props = defineProps<Props>()
+
+const emit = defineEmits<{
+  submit: [value: string]
+}>()
+</script>
+----

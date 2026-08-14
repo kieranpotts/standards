@@ -6,22 +6,34 @@ that are still stubs (no substantive content written), and standards whose
 
 This file is a manually-maintained index, regenerated from the tree. The
 counts below were last regenerated on **2026-08-14** — this run authored
-TS-35 (Python) from scratch, which had been a pure stub with no `GAPS.md` at
-all: eight new content partials (terminology, source files, naming
-conventions, code style, programming constructs, types and typing,
-documentation and comments, and project structure and tooling) plus an
-introductory paragraph and a `== References` section on the page itself,
-replacing the `// Introduction.` placeholder. TS-35 is grounded in PEP 8, PEP
-257, and Google's Python Style Guide, mirroring how TS-33 (Java) leans on
-Google's Java Style Guide. Following the style guide's rule that a reference
-list MUST NOT be split into a separate partial, TS-35's references live
-directly on `pages/035.adoc`, not in a `09-references.adoc` partial — unlike
-TS-33's older layout, which the "Known inconsistencies" section already flags
-as one of eight standards violating this rule. TS-35 had no `GAPS.md`, so
-like TS-24 before it, it leaves the stub table below and does not enter the
+TS-42 (Vue) from scratch, which had been a pure stub with no `GAPS.md` at
+all: five new content partials (single-file components, reactivity,
+components, state management, and filesystem) plus an introductory paragraph
+and a `== References` section on the page itself, replacing the
+`// TODO: Introductory text…` placeholder. TS-42 mirrors TS-41 (React) in
+scope and depth — the closest structural sibling, both being JS UI-framework
+standards — and is grounded in the official Vue.js Guide, the official Vue
+Style Guide, and Pinia's documentation. TS-42 had no `GAPS.md`, so like TS-24
+and TS-35 before it, it leaves the stub table below and does not enter the
 open-gap-analyses table either — it drops out of tracking in this file
 entirely, the same as any other standard without a `GAPS.md` (TS-1, TS-19,
 TS-22, etc.).
+
+This is on top of the prior same-day authoring of TS-35 (Python) from
+scratch, which had been a pure stub with no `GAPS.md` at all: eight new
+content partials (terminology, source files, naming conventions, code style,
+programming constructs, types and typing, documentation and comments, and
+project structure and tooling) plus an introductory paragraph and a
+`== References` section on the page itself, replacing the
+`// Introduction.` placeholder. TS-35 is grounded in PEP 8, PEP 257, and
+Google's Python Style Guide, mirroring how TS-33 (Java) leans on Google's
+Java Style Guide. Following the style guide's rule that a reference list
+MUST NOT be split into a separate partial, TS-35's references live directly
+on `pages/035.adoc`, not in a `09-references.adoc` partial — unlike TS-33's
+older layout, which the "Known inconsistencies" section already flags as one
+of eight standards violating this rule. TS-35 had no `GAPS.md`, so like
+TS-24 before it, it leaves the stub table below and does not enter the
+open-gap-analyses table either.
 
 This is on top of the prior same-day authoring of TS-24 (User manuals) from
 scratch, which had been a pure stub: ten new content partials plus an
@@ -61,7 +73,6 @@ placeholder(s), and no `include::partial$NNN/...[]` includes.
 | --- | --- | --- |
 | [TS-38](src/modules/ROOT/pages/038.adoc) | Node.js applications | Pure stub. `GAPS.md` has 1 open gap (legacy format), not yet resolved. |
 | [TS-39](src/modules/ROOT/pages/039.adoc) | HTML | Has substantive intro prose and `toc::[]`, but no `include::partial$` directives — the `partials/039/` directory holds only `GAPS.md`. Its `GAPS.md` carries 136 actionable items, the largest in the repository. |
-| [TS-42](src/modules/ROOT/pages/042.adoc) | Vue | Pure stub (`// TODO: Introductory text…`). |
 | [TS-44](src/modules/ROOT/pages/044.adoc) | Non-relational (NoSQL) databases | Pure stub. `GAPS.md` has 2 open gaps (legacy format), not yet resolved. |
 | [TS-55](src/modules/ROOT/pages/055.adoc) | Authentication and authorization | Pure stub (`// TODO` only). |
 
