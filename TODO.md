@@ -5,12 +5,12 @@ that are still stubs (no substantive content written), and standards whose
 `GAPS.md` gap analysis still has open items.
 
 This file is a manually-maintained index, regenerated from the tree. The
-counts below were last regenerated on **2026-08-13** (same day as the prior
-regeneration — this run closed TS-10's gaps, following TS-27's earlier that
-day, and resolved several items in
-[Known inconsistencies](#known-inconsistencies)). Re-derive them with the
-script in [Regenerating this file](#regenerating-this-file) before trusting
-them after any content work.
+counts below were last regenerated on **2026-08-14** — this run closed
+TS-43's gaps in full, TS-16's actionable items in full (1 out-of-scope batch
+and 1 unresolved resource remain), and 16 of TS-40's 17 (the last declined,
+see [Known inconsistencies](#known-inconsistencies)). Re-derive the counts
+with the script in [Regenerating this file](#regenerating-this-file) before
+trusting them after any content work.
 
 ## Stub standards
 
@@ -40,12 +40,12 @@ positive — verify by reading the page before trusting the grep alone.
 
 ## Open gap analyses
 
-Forty-one standards have a `GAPS.md`. Twenty-six are fully resolved and are
+Forty-one standards have a `GAPS.md`. Twenty-seven are fully resolved and are
 omitted from the table below — TS-2, TS-3, TS-5, TS-6, TS-7, TS-8, TS-9,
 TS-10, TS-11, TS-12, TS-13, TS-14, TS-20, TS-23, TS-25, TS-31, TS-36, TS-41,
-TS-46, TS-48, TS-49, TS-50, TS-52, TS-54, TS-57, and TS-61. The other
-thirteen have open items — TS-37 and TS-39 are also stubs, so their open
-items live in the table below but writing the standard is tracked separately,
+TS-43, TS-46, TS-48, TS-49, TS-50, TS-52, TS-54, TS-57, and TS-61. The other
+twelve have open items — TS-37 and TS-39 are also stubs, so their open items
+live in the table below but writing the standard is tracked separately,
 above.
 
 TS-10 and TS-41 were previously omitted from this file entirely — an
@@ -67,10 +67,10 @@ standard is authored.
 ### The two GAPS.md formats
 
 The files are in two formats, and the columns mean different things in each.
-The counts below are of the thirteen files with open items that are not
-stubs, tallying with the table's rows. Of the twenty-six fully-resolved
-files, only TS-6 is still in the legacy format; the other twenty-five were
-converted as they were worked.
+The counts below are of the ten non-stub files with open items, tallying
+with the table's rows (TS-37 and TS-39 are also stubs, so twelve rows total).
+Of the twenty-seven fully-resolved files, only TS-6 is still in the legacy
+format; the other twenty-six were converted as they were worked.
 
 - **Template format** (38 files). Follows the `gap-analysis` skill's bundled
   template: flat `- [ ]` checklists under `## Missing`, `## Partial`,
@@ -106,8 +106,9 @@ not in a separate sweep.
 | TS | Title | Actionable | Scope | Unresolved | Format |
 | --- | --- | ---: | ---: | ---: | --- |
 | [TS-4](src/modules/ROOT/partials/004/GAPS.md) | Modeling | 0 | 0 | 1 | Template — 1 unresolved resource, repeatedly unfetchable |
+| [TS-16](src/modules/ROOT/partials/016/GAPS.md) | Command line interfaces (CLIs) | 0 | 9 | 1 | Template — all 59 actionable items closed 2026-08-14 |
 | [TS-27](src/modules/ROOT/partials/027/GAPS.md) | Markdown | 0 | 6 | 1 | Template — all 15 actionable items closed 2026-08-13 |
-| [TS-40](src/modules/ROOT/partials/040/GAPS.md) | CSS | 17 | 12 | 1 | Template |
+| [TS-40](src/modules/ROOT/partials/040/GAPS.md) | CSS | 1 | 12 | 0 | Template — 16 of 17 actionable items closed 2026-08-14; 1 declined and left open |
 | [TS-37](src/modules/ROOT/partials/037/GAPS.md) | Web platform APIs | 18 | 4 | 1 | Template — also a stub |
 | [TS-26](src/modules/ROOT/partials/026/GAPS.md) | Technical writing style guide | 29 | 10 | 2 | Template |
 | [TS-29](src/modules/ROOT/partials/029/GAPS.md) | JSON Schema | 29 | 3 | 2 | Template |
@@ -115,19 +116,40 @@ not in a separate sweep.
 | [TS-15](src/modules/ROOT/partials/015/GAPS.md) | User interfaces | 50 | 7 | 12 | Template |
 | [TS-33](src/modules/ROOT/partials/033/GAPS.md) | Java | 55 | 3 | 4 | Template |
 | [TS-18](src/modules/ROOT/partials/018/GAPS.md) | Web GUIs | 56 | 26 | 5 | Template |
-| [TS-16](src/modules/ROOT/partials/016/GAPS.md) | Command line interfaces (CLIs) | 59 | 9 | 1 | Template |
-| [TS-43](src/modules/ROOT/partials/043/GAPS.md) | Relational databases and SQL | 61 | 6 | 4 | Template |
 | [TS-39](src/modules/ROOT/partials/039/GAPS.md) | HTML | 136 | 5 | 4 | Template — also a stub |
-| | **Total** | **559** | **104** | **41** | |
+| | **Total** | **423** | **98** | **37** | |
+
+TS-43 (Relational databases and SQL) was closed out on 2026-08-14 — all 61
+actionable items (59 Missing, 2 Partial) resolved in one run — and has left
+this table for the fully-resolved list (6 out-of-scope and 4 persistently
+unresolved items remain open against it, tracked in its own `GAPS.md`, not
+here since it has zero actionable items).
 
 TS-39 sits at the top by actionable count but is a stub — see
 [Stub standards](#stub-standards) — so `close-gaps` cannot work it until the
-standard has been authored. TS-4 and TS-27 both have zero actionable items
-but stay in this table rather than joining the fully-resolved list, because
-each has an unresolved resource still open — TS-4's reference directory no
-longer exists anywhere in the repository and re-fetching it has failed on
-every run so far; TS-27's is a stub reference file (see the file's
-`## Unresolved` entry) not yet re-fetched.
+standard has been authored. TS-4, TS-16, and TS-27 all have zero actionable
+items but stay in this table rather than joining the fully-resolved list,
+because each has an unresolved resource still open — TS-4's reference
+directory no longer exists anywhere in the repository and re-fetching it has
+failed on every run so far; TS-16's is `Program-Behavior.html`, still
+unfetchable as of the 2026-08-14 run (not re-attempted, since its content was
+already captured via a sub-agent in a prior run); TS-27's is a stub reference
+file (see the file's `## Unresolved` entry) not yet re-fetched.
+
+TS-40 (CSS) had 16 of 17 actionable items closed on 2026-08-14. The one
+remaining item — a comparative summary of OOCSS/BEM/SMACSS/SUIT CSS
+methodologies — was explicitly declined as scope creep (the standard
+prescribes its own methodology, not a survey of others; see
+[Known inconsistencies](#known-inconsistencies)) and left unticked in
+`GAPS.md`, so it stays in this table at Actionable=1 rather than joining the
+fully-resolved list. All 12 out-of-scope items and its one placeholder
+"Unresolved" entry (no reference resources were actually left unfetched) are
+otherwise settled.
+
+TS-16 (Command line interfaces) was closed out on 2026-08-14 — all 59
+actionable items (9 Missing, 50 Partial) resolved in one run across 8 of its
+11 partials — but stays in this table (at 0 actionable) because its 9
+out-of-scope items and 1 unresolved reference remain open.
 
 TS-7 (Code design) and TS-41 were closed out on 2026-08-13 — all of TS-7's 13
 actionable items resolved across two runs, TS-41 found already at zero — and
@@ -142,8 +164,9 @@ turned out to already be resolved in TS-5 and TS-57's own directories, so
 TS-10 needed no content of its own — and has left this table for the
 fully-resolved list.
 
-Three standards — TS-39, TS-43, TS-16 — hold 256 of the 559 between them, and
-each needs several passes rather than one.
+One standard — TS-39 — now holds 136 of the 423 actionable items on its own,
+almost a third of the total, and will need several passes once it is
+authored. TS-18 (56) and TS-15 (50) are next largest.
 
 ## Standards with neither a stub nor a GAPS.md
 
@@ -291,6 +314,41 @@ govern how all new content should be written.
   `close-gaps` cannot action them until the standard is authored; corrected
   on 2026-08-13 to note the open gaps against each in the stub table instead
   of silently dropping them from tracking.
+
+- **DECLINED — TS-40's methodology-comparison gap.** A `close-gaps` run on
+  2026-08-14 closed 16 of TS-40's 17 actionable items. The remaining one
+  proposed expanding `01-overview.adoc` into a comparative summary of
+  OOCSS/BEM/SMACSS/SUIT CSS. The item's own text flagged it as borderline
+  (the standard's purpose is to prescribe its own methodology, not survey
+  others); on review, declined for that reason and left open — `- [ ]`,
+  unticked — in TS-40's `GAPS.md` with a dated rationale note, rather than
+  resolved or deleted. TS-40 stays in the actionable-count table at 1
+  pending any future reversal of this decision.
+
+- **RESOLVED — TS-43 closed out in one run.** All 61 of TS-43's actionable
+  items (59 Missing, 2 Partial) were closed by a `close-gaps` run on
+  2026-08-14, across six new content partials
+  (`02-sql-style.adoc` through `07-transactions-and-consistency.adoc`). One
+  genuine naming conflict surfaced mid-run — general column-naming guidance
+  says avoid a bare `id`, while primary-key guidance mandates it — resolved
+  by scope: `id` is reserved for the primary key, every other identifier
+  column follows the descriptive-naming rule. TS-43 moved to the
+  fully-resolved list; its 6 out-of-scope and 4 persistently-unfetchable
+  reference items remain open in its own `GAPS.md`, since neither is an
+  actionable count.
+
+- **RESOLVED — TS-16 closed out in one run.** All 59 of TS-16's actionable
+  items (9 Missing, 50 Partial) were closed by a `close-gaps` run on
+  2026-08-14, extending 8 of its 11 existing partials (no new partial or
+  page edit was needed). GNU Coding Standards is cited generically as an
+  index-page reference in `016.adoc`'s `== References`, while several newly
+  closed sections cite specific GNU sub-pages (`--version`,
+  `Command-Line-Interfaces`); the existing index-page citation was judged
+  sufficient provenance rather than adding near-duplicate entries — worth a
+  second look if a future `deep-dive` pass audits the reference list. TS-16
+  stays in the actionable-count table at 0 because its 9 out-of-scope items
+  and 1 unresolved reference (`Program-Behavior.html`, persistently
+  unfetchable) remain open.
 
 ## Regenerating this file
 
