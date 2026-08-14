@@ -1,0 +1,156 @@
+= Naming conventions
+
+This section sets out conventions for naming database objects — tables,
+columns, aliases, and stored procedures — so that a schema is predictable
+and self-documenting to read.
+
+== Case and character rules
+
+Use `snake_case` as the default casing convention for all identifiers —
+tables, columns, aliases, and stored procedures — unless the system you are
+working with already has an established, different prevailing convention, in
+which case follow that convention consistently. Avoid CamelCase; it is harder
+to scan in SQL, where keywords are conventionally upper case and identifiers
+are conventionally lower case, so a mixed-case identifier loses that visual
+distinction.
+
+Identifier names MUST:
+
+* Begin with a letter, never a digit or an underscore.
+* Never end with a trailing underscore.
+* Use only letters, numbers, and underscores — no spaces or punctuation.
+* Delimit words with a single underscore, and avoid consecutive underscores.
+
+== Choosing identifiers
+
+* Choose identifiers that are consistent and descriptive, so that a reader
+  unfamiliar with the schema can infer an object's purpose from its name
+  alone.
+* Keep identifiers under 30 characters where practical, for compatibility
+  with database engines that impose shorter identifier length limits.
+* Avoid abbreviations, except where the abbreviation is commonly understood
+  within the domain (`id`, `url`, `html`).
+* Avoid reserved keywords as identifiers — see "Reserved keywords" in
+  <<SQL style and formatting>>.
+* Avoid quoting identifiers. Where quoting cannot be avoided (for example, an
+  identifier that collides with a reserved keyword in a legacy schema), use
+  the SQL92 double-quote form rather than a vendor-specific quoting
+  character.
+* Avoid prefixes and Hungarian notation, such as `sp_` for stored procedures
+  or `tbl` for tables. The object's context in the schema already conveys its
+  kind; a type prefix is redundant. Valid, narrow exceptions may apply — for
+  example, a naming scheme mandated by a specific framework or ORM.
+
+== Table names
+
+* Name a table with a collective noun (`staff`, `people`) in preference to a
+  plural (`employees`, `individuals`) where a natural collective term exists.
+  Where no natural collective term exists, a plural form is an acceptable,
+  less ideal fallback.
+* Never give a table the same name as one of its own columns.
+* For a joining table that models a many-to-many relationship, avoid
+  concatenating the two related table names (`cars_mechanics`). Prefer a
+  name that describes the relationship itself (`services`), where one
+  exists.
+
+== Column names
+
+* Name a column in the singular, even where its table is named in the
+  plural or as a collective noun (a row in `staff` has a `role`, not
+  `roles`, unless the column genuinely holds multiple values).
+* Never name a column the same as its own table.
+* Use lower case for all column names, except where a value is a proper
+  noun.
+* Avoid using `id` alone to name a non-primary-key identifier column where a
+  more descriptive name is available. This standard's own primary-key
+  naming convention — including its treatment of the `id` column name — is
+  set out in <<Primary keys>>, which this section defers to, rather than
+  duplicating or contradicting it here.
+
+=== Column-suffix conventions
+
+Adopt a controlled vocabulary of column-name suffixes with a consistent,
+universal meaning across the schema. A reader who understands the
+vocabulary can infer a column's shape and semantics from its name alone,
+without checking the schema definition. Recommended suffixes:
+
+[cols="1,3"]
+|===
+| Suffix | Meaning
+
+| `_id` | A foreign key referencing another table's primary key.
+| `_status` | An enumerated state value.
+| `_total` | A summed or aggregated numeric value.
+| `_num` | A sequence or ordinal number.
+| `_name` | A human-readable label.
+| `_seq` | An explicit sequence or ordering value.
+| `_date` | A calendar date, with no time component.
+| `_tally` | A running or cumulative count.
+| `_size` | A magnitude or quantity.
+| `_addr` | A network or physical address.
+|===
+
+=== Column-name type prefixes
+
+Where a table has many columns and a suffix-only vocabulary is not granular
+enough, a column-name schema of `<type>_<subject>(_<modifier>)` gives a
+stronger contract. The type prefix declares the column's data shape; the
+subject is a noun from the business domain; the optional modifier is an
+adjective describing a variant of the same subject.
+
+Global type prefixes, consistent across the whole schema:
+
+[cols="1,3"]
+|===
+| Prefix | Meaning
+
+| `id` | A surrogate identifier, either the table's own primary key or a
+foreign key.
+| `uuid` | A universally unique identifier value.
+| `is` | A boolean flag.
+| `n` | A count or cardinal number.
+| `dt` | A date-time value (date and time together).
+| `tm` | A time-of-day value with no date component.
+| `cat` | A categorical or enumerated value.
+|===
+
+Domain-specific prefixes MAY be added where a project's domain calls for
+them — for example, `loc` for a location value, or `addr` for an address.
+Whatever prefixes a project adopts, every column sharing a given prefix
+MUST store data in the same underlying format, so the prefix's meaning
+never varies by table.
+
+The modifier suffix describes a variant of the subject — for example,
+`_raw` for an unprocessed value and `_clean` for its validated or
+normalized counterpart (`dt_signup_raw` vs. `dt_signup_clean`).
+
+Adopting a controlled vocabulary for column names carries benefits beyond
+readability: it makes it easier to generate realistic fake data for
+testing, to write automated validation that keys off the prefix, to build
+safer data pipelines that treat same-prefixed columns identically, and to
+discover related columns across otherwise unrelated datasets.
+
+== Aliases
+
+* An alias MUST relate clearly to the object it proxies.
+* As a rule of thumb, derive a table alias from the first letter of each
+  word in the table name (`orders` becomes `o`, `order_items` becomes
+  `oi`).
+* Where two aliases in the same query would collide, append a number to
+  disambiguate (`o1`, `o2`).
+* Always include the `AS` keyword when introducing an alias, for both
+  tables and computed columns. This makes the alias visually distinct from
+  the object it names.
+* Name computed data — the result of `SUM()`, `AVG()`, and similar
+  aggregate or expression columns — as if it were a real schema column, using
+  the same naming conventions set out above (`SUM(total) AS order_total`,
+  not `SUM(total) AS sum_total`).
+
+== Stored-procedure names
+
+A stored procedure's name MUST contain a verb, since a procedure performs
+an action (`calculate_monthly_total`, not `monthly_total`). Do not prefix a
+stored procedure's name with `sp_` or any other descriptive or Hungarian
+prefix — this is a legacy convention from systems where `sp_` was reserved
+for system-defined procedures, and it adds no information in a modern
+schema.

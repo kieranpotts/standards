@@ -1,0 +1,186 @@
+= Columns, keys, and schema definition
+
+This section covers the design of table schemas: column ordering, primary
+keys, constraints, and the formatting of `CREATE`/`ALTER` statements.
+
+== Column ordering
+
+Order a table's columns consistently, so that any table in the schema reads
+the same way:
+
+1. The primary key (`id`), first.
+2. A `uuid` column, where the table has one.
+3. A `logged_at` column, for tables that record log or event data.
+4. Foreign-key columns, in alphabetical order.
+5. All other columns, grouped logically by what they represent; alphabetical
+   order within a group where there is no other natural grouping.
+6. `created_at`, `updated_at`, and `deleted_at`, last, in that order.
+
+== Primary keys
+
+Not every table needs a primary key. Do not add one by default — every
+column and constraint on a table must serve a purpose, and a primary key
+that nothing depends on is unjustified schema weight.
+
+=== UUID vs auto-incrementing integer
+
+Where a table does need a primary key, choose between a UUID and an
+auto-incrementing integer based on the table's access pattern, not by
+default:
+
+* *UUIDs* are 16 bytes, larger than an integer key, but they can be
+  generated anywhere — including client-side, before a row is persisted —
+  are globally unique across tables and databases, and are well suited to
+  offline-first clients, data merging, horizontal distribution, and
+  replication, none of which cope well with a centrally-issued sequential
+  integer.
+* *Auto-incrementing integers* are smaller and more convenient at small
+  scale, and they are generally the better choice for foreign-key columns
+  that reference the primary key, since a smaller key keeps indexes on the
+  referencing table more compact.
+
+Default to UUID primary keys, and mix in auto-incrementing integer keys
+where a specific table's access pattern favors them — most often for
+foreign-key targets, per the trade-off above.
+
+=== Naming the primary key column
+
+Two conventions compete for a primary key's column name: a bare `id`, or a
+table-qualified `<table>_id` (for example, `user_id` on the `users` table).
+Arguments exist for both — `<table>_id` is unambiguous in a joined query
+without aliasing, and searches more predictably across a codebase; a bare
+`id` is shorter, matches the default column ORMs such as ActiveRecord
+expect, and reads naturally as "the identifier of this row" from within the
+table's own context.
+
+This standard's house style is the bare `id`, for consistency with the
+common ORM convention. `<table>_id` is a valid exception for a composite or
+aggregate key, where the plain `id` no longer identifies which part of the
+key a given column represents.
+
+This is the definitive rule for the primary-key column specifically. It
+takes precedence over the general column-naming guidance in
+<<Naming conventions>>, which advises avoiding a bare `id` for
+non-primary-key identifier columns — the two are not in tension: `id` is
+reserved for the primary key alone, and every other identifier column
+should be more specific (`author_id`, `parent_category_id`).
+
+== Defining schemas
+
+=== Readability
+
+Order and group column definitions within a `CREATE TABLE` statement so the
+grouping makes sense to a reader — following the column-ordering convention
+above is a reasonable default. Indent column definitions by four spaces
+within the `CREATE TABLE` block.
+
+=== Default values
+
+A column's default value MUST be the same type as the column itself — a
+`DECIMAL` column must not take an `INTEGER` literal as its default, for
+example. Within a column definition, the default value follows the data-type
+declaration and comes before any `NOT NULL` constraint.
+
+[source,sql]
+----
+CREATE TABLE orders (
+    total DECIMAL(10, 2) DEFAULT 0.00 NOT NULL
+);
+----
+
+=== Choosing keys
+
+Whether a primary key or a unique key on some other column, a key's
+underlying value should be:
+
+* Unique, by definition.
+* Consistent in data type across the schema, and unlikely to change over
+  the life of the system — a key that changes type or format forces a
+  migration of every table that references it.
+* Validatable against a standard, well-known format where one exists (an
+  ISO country code, for example), rather than an ad hoc format specific to
+  this schema.
+
+Keep keys as simple as possible, but use a compound key where the data
+genuinely requires one — for example, a joining table's composite key of
+its two foreign-key columns (see <<Many-to-many relationships>>).
+
+=== Defining constraints
+
+* Every table MUST have at least one key.
+* Give constraints custom, descriptive names, except `UNIQUE`, `PRIMARY
+  KEY`, and `FOREIGN KEY` constraints, where the database engine's default
+  generated name is usually intelligible enough on its own.
+* Specify the primary key constraint first, immediately after
+  `CREATE TABLE`.
+* Place a single-column constraint directly beneath its corresponding
+  column definition, indented to the right of the column name, so the
+  constraint reads as an attribute of that column.
+* Place a multi-column constraint near the columns it covers, or at the end
+  of the table definition if it does not naturally belong near any one of
+  them.
+* Place table-level constraints at the end of the `CREATE TABLE` block,
+  after all column definitions.
+* Where both are specified on a foreign key, order `ON DELETE` before
+  `ON UPDATE` — this also happens to be alphabetical order, which makes it
+  easy to remember.
+* Use `LIKE` or `SIMILAR TO` constraints to enforce string format
+  integrity, where the format is simple enough to express as a pattern.
+* Use `CHECK()` constraints to bound numeric values to a valid range — at
+  minimum, `CHECK (value > 0)` for a value that must never be zero or
+  negative.
+* Keep each `CHECK()` constraint in its own clause, rather than combining
+  multiple conditions into one, so a constraint violation is easy to
+  attribute to a specific rule when debugging.
+
+.Example
+[source,sql]
+----
+CREATE TABLE orders (
+    id            INTEGER      PRIMARY KEY,
+    customer_id   INTEGER      NOT NULL REFERENCES customers (id)
+                                ON DELETE CASCADE
+                                ON UPDATE CASCADE,
+    total         DECIMAL(10,2) DEFAULT 0.00 NOT NULL
+                                CHECK (total >= 0),
+    status        VARCHAR(20)  NOT NULL
+                                CHECK (status IN
+                                    ('pending', 'paid', 'shipped')),
+
+    CONSTRAINT uq_orders_reference UNIQUE (customer_id, reference)
+);
+----
+
+=== Adding and removing constraints on existing tables
+
+Add a constraint to an existing table with `ALTER TABLE`, following the
+same naming guidance as a constraint defined at table-creation time:
+
+[source,sql]
+----
+ALTER TABLE orders
+    ADD CONSTRAINT uq_orders_reference UNIQUE (customer_id, reference);
+----
+
+Column-level and multi-column `UNIQUE` constraints follow the same rule —
+name them explicitly when the constraint spans more than one column, or
+when a descriptive name aids debugging:
+
+[source,sql]
+----
+CREATE TABLE users (
+    email VARCHAR(255) UNIQUE NOT NULL
+);
+
+ALTER TABLE users
+    ADD CONSTRAINT uq_users_email_username UNIQUE (email, username);
+----
+
+To remove a `UNIQUE` constraint, drop the index that backs it (most
+database engines implement a `UNIQUE` constraint as a unique index under
+the hood):
+
+[source,sql]
+----
+DROP INDEX uq_orders_reference;
+----

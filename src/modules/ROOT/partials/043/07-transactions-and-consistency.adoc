@@ -1,0 +1,247 @@
+= Transactions and consistency
+
+A database transaction groups one or more statements into a single unit of
+work. This section sets out the guarantees a transaction should provide, the
+isolation levels available to trade correctness against concurrency, and
+practical patterns for using transactions to protect data integrity.
+
+== ACID
+
+ACID — atomicity, consistency, isolation, durability — is the set of
+properties a transaction is expected to guarantee, so that data remains
+valid despite errors, concurrent access, and system failures. The ACID
+paradigm has shaped the design of relational database systems since their
+earliest implementations, and remains the baseline expectation for a
+transactional relational database today.
+
+=== Atomicity
+
+A transaction is an all-or-nothing unit of work. If any statement within the
+transaction fails, the whole transaction fails and the database is left
+unchanged, as though none of its statements had run. A transaction in
+progress cannot be observed by another client — its intermediate state is
+never visible outside the transaction itself.
+
+Atomicity is not automatic in every kind of database. Document-oriented
+databases such as MongoDB, RethinkDB, and CouchBase are typically atomic
+only at the level of a single document or row, not across multiple
+documents written together. Where an operation must update several related
+records as one unit, and the underlying store's atomicity does not extend
+that far, the application is left to invent its own consistency guarantees.
+In practice this looks like: invalid intermediate state becoming visible to
+other readers; ad hoc retry logic; one-off "fixer scripts" written after the
+fact to repair rows left in a bad state; engineers spending their time as
+"data janitors" cleaning up after failures that a real transaction would
+have prevented; and application code that mutates over time to defensively
+handle an ever-growing set of bad-state combinations nobody fully
+enumerated. A relational database's built-in multi-statement atomicity
+avoids this whole class of problem, which is one of the strongest arguments
+for reaching for a relational store, or at minimum a document store's
+native multi-document transaction support, for state where this class of
+integrity actually matters.
+
+=== Consistency
+
+A transaction can only move the database from one consistent state to
+another — it preserves whatever invariants the schema defines. Data written
+by a committed transaction must satisfy all defined rules: constraints,
+cascades, and triggers. Referential integrity is a common example of such an
+invariant — a foreign key must reference a row that exists, and the
+database enforces that on every write, not just at the point the
+application believes it is inserting valid data.
+
+A `UNIQUE` constraint is a particularly effective, low-ceremony way to
+enforce a consistency invariant. Consider a user-registration flow that must
+prevent two accounts from sharing the same email address: rather than
+relying entirely on an application-level check for an existing row before
+inserting a new one — which is vulnerable to a race between two concurrent
+registration requests, see <<Concurrency protection with SERIALIZABLE>> —
+a `UNIQUE` constraint on the `email` column guarantees the invariant at the
+database level, regardless of what the application code does or fails to
+do.
+
+=== Isolation
+
+Isolation is the property that concurrent execution of transactions leaves
+the database in the same state as if those transactions had executed one
+after another, sequentially. Isolation is the primary goal of concurrency
+control in a database engine. Depending on the isolation level in effect,
+the effects of another, still-incomplete transaction may or may not be
+visible to a concurrently running transaction.
+
+SQL defines four standard isolation levels, each permitting a
+progressively narrower set of concurrency anomalies:
+
+[cols="1,3"]
+|===
+| Isolation level | Phenomena permitted
+
+| Read uncommitted
+| Dirty reads — a transaction can see uncommitted changes made by another,
+  still-in-progress transaction.
+
+| Read committed
+| Nonrepeatable reads — a transaction reads the same row twice and gets
+  different results, because another transaction committed a change to
+  that row in between. Dirty reads are prevented.
+
+| Repeatable read
+| Phantom reads — a transaction re-runs the same query and sees rows that
+  did not exist on the first run, because another transaction inserted
+  matching rows in between. Dirty reads and nonrepeatable reads are
+  prevented.
+
+| Serializable
+| None of the above. Serialization anomalies are also prevented — the
+  strongest isolation level, giving the same guarantee as if every
+  transaction ran one at a time.
+|===
+
+A weaker isolation level generally allows greater concurrency — more
+transactions can run in parallel without blocking each other — at the cost
+of tolerating more of the anomalies in the table above. Choose the weakest
+isolation level that your application's correctness requirements can
+tolerate, and reach for `SERIALIZABLE` where a specific operation's
+correctness genuinely depends on it (see
+<<Concurrency protection with SERIALIZABLE>>).
+
+Do not implement your own pessimistic locking scheme — application-level
+locks, advisory locks used as a substitute for proper isolation, or
+polling-based mutual exclusion — as a substitute for using the database's
+own isolation levels. Custom locking is typically slower than the database
+engine's built-in concurrency control, harder to reason about correctly,
+labor-intensive to implement and maintain, and more likely to contain bugs
+than the battle-tested locking or multi-version concurrency control (MVCC)
+built into the database engine.
+
+=== Durability
+
+Once a transaction commits, its effects persist despite a subsequent system
+failure — a crash, a power loss, or an operating-system fault must not lose
+a committed transaction. Durability is usually achieved by recording
+completed transactions to non-volatile storage (disk) before acknowledging
+the commit to the client, rather than relying solely on data held in
+volatile memory.
+
+== ACID vs BASE
+
+BASE — basically available, soft state, eventually consistent — describes
+the opposite end of the consistency spectrum from ACID. Where ACID
+prioritizes strict consistency, potentially at the cost of availability
+during a partition, BASE prioritizes availability and accepts that the
+system will only become consistent eventually, after any conflicting writes
+have propagated and settled.
+
+This trade-off is the same one described by the CAP theorem: a distributed
+data store leans toward strong consistency (the "C" in ACID) or toward
+availability (the "A" in BASE) when the network partitions. Relational, SQL
+databases have traditionally leaned toward the ACID end of this spectrum;
+many NoSQL databases lean toward BASE, trading strict consistency for
+availability and horizontal scalability. Neither is universally correct —
+the right choice depends on which failure mode your application can
+tolerate. See also
+<<Designing a sharding strategy>>, which touches the same trade-off in the
+narrower context of eventual consistency across shards.
+
+== Transaction implementation techniques
+
+A database engine typically implements atomicity and durability through a
+combination of write-ahead logging and, in some implementations, shadow
+paging. Write-ahead logging records a transaction's intended changes to a
+durable log before applying them to the database's main data structures, so
+that a crash mid-transaction can be recovered from — either by replaying a
+committed transaction's logged changes, or by rolling back an
+uncommitted one.
+
+To provide isolation, a database engine must acquire locks on the data it
+is about to update — and, depending on the isolation level in effect,
+possibly also on data it merely reads, so that a concurrent transaction
+cannot modify data this transaction depends on before it commits.
+
+=== Locking vs multiversion concurrency control
+
+There are two broad strategies for implementing isolation:
+
+* *Two-phase locking* acquires all the locks a transaction needs before it
+  can release any of them, providing full isolation at the cost of reduced
+  concurrency — a transaction waiting on a lock blocks until the lock is
+  released.
+* *Multiversion concurrency control (MVCC)* instead gives a reader an
+  unmodified, previously committed version of the data, rather than making
+  it wait on a writer's lock. This means readers do not block writers, and
+  writers do not block readers. Snapshot isolation is one common MVCC
+  implementation, giving each transaction a consistent snapshot of the
+  database as it existed when the transaction began — a form of isolation
+  that is strong in practice, though not identical to full `SERIALIZABLE`
+  isolation in every edge case.
+
+Most mainstream relational database engines use MVCC as their default
+concurrency-control mechanism precisely because of the advantage described
+in <<Isolation>> above: it outperforms and out-scales a hand-rolled locking
+scheme in the overwhelming majority of cases.
+
+== Distributed transactions
+
+A transaction that spans more than one node — where no single database
+instance holds all the data being modified — introduces complications
+beyond those of a single-node transaction. The two-phase commit protocol
+(distinct from two-phase locking, described above) is a common technique
+for providing atomicity across a distributed transaction: a coordinator
+first asks every participating node to prepare to commit, and only
+instructs the participants to formalize the commit once every participant
+has confirmed it is ready. If any participant fails to prepare, the
+coordinator instructs every participant to abort instead, so the
+transaction remains all-or-nothing across every node involved.
+
+== Concurrency protection with SERIALIZABLE
+
+`SERIALIZABLE` isolation is a practical tool for closing a specific,
+common class of race condition: two concurrent requests that each check
+whether some condition holds, and then act on the assumption that it still
+holds by the time they write. A user-registration endpoint is a canonical
+example — two concurrent "create user" requests for the same email address
+might each run:
+
+[source,sql]
+----
+SELECT id FROM users WHERE email = 'alice@example.com';
+-- Both requests see no matching row, so both proceed to:
+INSERT INTO users (email) VALUES ('alice@example.com');
+----
+
+Under a weaker isolation level, both requests can see no existing row and
+both can proceed to insert, producing two rows for the same email. Running
+the check-then-insert sequence inside a `SERIALIZABLE` transaction gives
+the database license to detect this conflict and abort one of the two
+transactions with a serialization failure, exactly as if the two requests
+had been forced to run one after the other rather than concurrently.
+
+=== Retrying an abort
+
+A transaction aborted for a serialization failure is not an application
+error — it is the isolation level doing its job. The correct response is to
+retry the aborted transaction, either manually within the same request
+handling loop, or automatically through an ORM facility that supports it —
+for example, Sequel's `retry_on: [Sequel::SerializationFailure]` option.
+Design any code path that runs inside a `SERIALIZABLE` transaction to be
+safely retryable, since a retry re-executes the whole transaction body from
+the start.
+
+This request-level retry loop is closely related to the idempotency
+concerns covered for HTTP APIs in
+xref:021.adoc[*TS-21: HTTP APIs*] — specifically, that standard's treatment
+of idempotent request handling assumes a simpler one-request-to-one-
+transaction model than the retry-within-a-request pattern described here,
+which is worth bearing in mind when the two standards are applied to the
+same endpoint.
+
+=== Data protection in layers
+
+Even when using `SERIALIZABLE` isolation to protect a check-then-insert
+sequence, add a `UNIQUE` constraint on the column that must be unique as
+well. The constraint is defense-in-depth: it protects the invariant even
+if a transaction is invoked without the intended isolation level — for
+example, because of a configuration mistake, a connection pool default, or
+buggy code that opens a transaction at the wrong isolation level. Treat the
+isolation level and the constraint as two independent layers protecting
+the same invariant, not as alternatives to each other.

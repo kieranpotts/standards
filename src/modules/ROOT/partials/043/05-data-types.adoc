@@ -1,0 +1,58 @@
+= Data types
+
+This section gives guidance on choosing column data types for portability,
+correctness, and clarity.
+
+== General principles
+
+Avoid vendor-specific data types where a portable, standard alternative
+exists. A vendor-specific type is not portable across database engines, and
+is not guaranteed to exist in older or future versions of the same vendor's
+software — a schema tied to a specific engine's proprietary types is harder
+to migrate and harder to upgrade.
+
+Avoid splitting a single value across two columns, such as storing a
+numeric value in one column and its unit of measurement in another. Instead,
+choose a column name and a storage convention that make the unit
+self-evident — for example, `duration_seconds` rather than a `duration`
+column paired with a separate `duration_unit` column. See also the
+column-suffix and type-prefix conventions in <<Naming conventions>>.
+
+== String types
+
+Prefer `CHAR`, `CLOB`, and `VARCHAR` for string data. These three types have
+the widest cross-engine support and the most predictable behavior across
+database vendors, which makes them the safest default even where a vendor
+offers a more specialized string type.
+
+== Numeric types
+
+* Use `REAL` or `FLOAT` only for genuine floating-point math, where an
+  approximate result is acceptable.
+* Prefer `NUMERIC` and `DECIMAL` for values where precision matters —
+  currency amounts, for example — since floating-point types are subject to
+  rounding errors that compound across calculations.
+* *Exact* numeric types, which store values with no rounding error:
+  `BIGINT`, `DECIMAL`, `DECFLOAT`, `INTEGER`, `NUMERIC`, `SMALLINT`.
+* *Approximate* numeric types, which trade precision for a wider range and
+  faster computation: `DOUBLE PRECISION`, `FLOAT`, `REAL`.
+
+== Date and time types
+
+Prefer ISO 8601-compliant values for date and time data
+(`YYYY-MM-DD HH:MM:SS.SSSSS`). The `DATE`, `TIME`, and `TIMESTAMP` types are
+well supported across mainstream database engines and should be used for
+their corresponding ISO 8601 components.
+
+Do not use a `TIMESTAMP` column to represent an inherently past or future
+date that has no meaningful time-of-day component — a birth date or a
+contract expiry date, for example. Prefer plain ISO 8601 date storage
+(`DATE`) for that case, and reserve `TIMESTAMP` for values that genuinely
+represent a specific instant in time.
+
+== Binary types
+
+Use a dedicated binary type (`BINARY`, `VARBINARY`, `BLOB`, or your engine's
+equivalent) for binary data, rather than encoding it into a string column.
+As with other types, prefer your engine's most standard/portable binary
+type where more than one option exists.
