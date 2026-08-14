@@ -1,0 +1,68 @@
+= Single sign-on and federation
+
+Single sign-on (SSO) lets a user authenticate once with an identity provider
+(IdP) and gain access to multiple, independently-operated applications
+without re-entering credentials for each. Federation is the underlying
+mechanism: a trust relationship between an IdP and a service provider (SP),
+established so that the SP accepts assertions from the IdP instead of
+authenticating users itself.
+
+== When to support SSO
+
+Business and enterprise software SHOULD support SSO against the customer's
+own identity provider (eg. Okta, Azure AD, Google Workspace). Enterprise
+buyers commonly require it, both for user convenience and because it lets
+their own IT department control onboarding, offboarding, and MFA policy
+centrally, rather than per application.
+
+Consumer-facing applications SHOULD offer "social login" against a small
+number of major providers (eg. Google, Apple) as a convenience, in addition
+to — not instead of — a first-party or delegated identity system. A user
+MUST always retain a way to recover access to their account that does not
+depend on a third party's continued cooperation.
+
+== Protocols
+
+Two protocols account for the great majority of SSO deployments:
+
+* *SAML 2.0.* XML-based. Still the dominant protocol in large enterprises and
+  legacy identity infrastructure. An IdP issues a signed XML assertion,
+  typically delivered via an HTTP POST binding through the user's browser.
+
+* *OpenID Connect.* JSON/JWT-based, built on OAuth 2.0 — see
+  <<OAuth 2.0 and OpenID Connect>>. The RECOMMENDED default for new
+  integrations: simpler to implement correctly, smaller payloads, and native
+  fit for mobile and single-page applications, which SAML was not designed
+  for.
+
+A system SHOULD support OIDC as its primary federation protocol and add SAML
+support only when a specific enterprise customer requires it. Supporting both
+means the application's identity layer MUST treat "which protocol" as a
+per-connection configuration detail, not a fork in the codebase.
+
+== Just-in-time provisioning
+
+An application integrating SSO SHOULD provision user accounts just-in-time,
+on a user's first successful federated login, rather than requiring accounts
+to be pre-created out of band. The federated assertion (SAML) or ID token
+(OIDC) carries enough identity information — typically an email address and
+display name — to create the local account record automatically.
+
+Role and permission assignment on first login SHOULD be driven by group or
+role claims asserted by the IdP where available, falling back to a
+configurable default role otherwise. See
+<<Authorization models>>.
+
+== Deprovisioning
+
+Removing a user's access at the IdP MUST take effect promptly for every
+downstream application, either by:
+
+* validating the federated session or token against the IdP frequently enough
+  that a revoked account is locked out within an acceptable window, or
+* the IdP actively pushing deprovisioning events to downstream applications,
+  eg. via SCIM (System for Cross-domain Identity Management).
+
+An application MUST NOT rely solely on a long-lived local session that
+outlives the user's standing with the IdP — that defeats the point of
+centralizing access control.

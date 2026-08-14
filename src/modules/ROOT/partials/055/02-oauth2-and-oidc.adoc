@@ -1,0 +1,99 @@
+= OAuth 2.0 and OpenID Connect
+
+OAuth 2.0 is an *authorization* framework: it lets a client obtain limited
+access to a resource on a user's behalf, without the user sharing their
+credentials with the client. OpenID Connect (OIDC) is an *authentication*
+layer built on top of OAuth 2.0: it adds a standardized identity token (the
+`id_token`, a JWT) so a client can also learn who the user is.
+
+The two solve different problems and are commonly deployed together. A system
+that only needs to know "is this user who they say they are" needs OIDC. A
+system that needs to act on a user's behalf against a third-party API — read
+their calendar, post to their account — needs OAuth 2.0's authorization
+grant, whether or not OIDC is also in play.
+
+== Roles
+
+* *Resource owner.* The user who owns the data or account being accessed.
+* *Client.* The application requesting access, eg. a web or mobile app.
+* *Authorization server.* Issues tokens after authenticating the resource
+  owner and obtaining their consent.
+* *Resource server.* The API that holds the protected data and validates
+  tokens presented to it.
+
+A system MAY combine the authorization server and resource server roles, but
+SHOULD keep them logically separate, so that token issuance and validation
+can evolve independently of the APIs that rely on them.
+
+== Grant types
+
+[cols="1,2,2"]
+|===
+| Grant | Use when | Notes
+
+| Authorization code (+ PKCE)
+| A user is present in a browser or mobile app
+| The RECOMMENDED default for any client that can redirect a user through a
+  login screen. PKCE (Proof Key for Code Exchange) MUST be used for public
+  clients (SPAs, mobile apps, CLIs) that cannot hold a client secret, and
+  SHOULD be used even for confidential clients as defense in depth.
+
+| Client credentials
+| Service-to-service, no user involved
+| The client authenticates as itself, using its own credentials, and receives
+  a token scoped to its own identity. See <<Service-to-service
+  authentication>>.
+
+| Refresh token
+| Extending a session without re-prompting the user
+| Exchanges a previously-issued refresh token for a new access token. See
+  <<Token lifetime and revocation>> in <<Authentication models>>.
+|===
+
+The *implicit grant* and the *resource owner password credentials* grant are
+both deprecated by the OAuth 2.0 Security Best Current Practice (BCP) and
+MUST NOT be used in new systems. The implicit grant returns tokens directly
+in a URL fragment, exposing them to referrer leakage and browser history; the
+password grant requires the client to handle the user's raw credentials
+directly, defeating the purpose of delegated authorization. Authorization
+code with PKCE covers every use case either was intended for.
+
+== Scopes
+
+A scope is a named unit of access a client can request, eg. `read:profile` or
+`write:orders`. An authorization server MUST issue a token scoped only to
+what the client requested and the user consented to — never a superset "just
+in case".
+
+A client SHOULD request the narrowest set of scopes that its current
+operation requires, and request additional scopes incrementally as needed,
+rather than requesting broad access up front. This follows the same
+least-privilege principle set out in
+xref:052.adoc[*TS-52: Security and secrets management*].
+
+== OpenID Connect
+
+OIDC adds three things on top of an OAuth 2.0 authorization code flow:
+
+* An `id_token` — a signed JWT asserting the authenticated user's identity,
+  with standard claims (`sub`, `iss`, `aud`, `exp` — see
+  xref:056.adoc[*TS-56: JSON Web Tokens (JWTs)*]).
+* A `/userinfo` endpoint, for retrieving additional profile claims about the
+  authenticated user.
+* Standardized discovery (`/.well-known/openid-configuration`), so a client
+  can locate an identity provider's endpoints and public keys without
+  out-of-band configuration.
+
+A system that needs to authenticate a user — establish who they are, as
+opposed to what they can access — SHOULD use OIDC rather than inventing a
+bespoke identity layer on raw OAuth 2.0.
+
+== Third-party identity providers
+
+Delegating authentication to a managed identity provider (eg. Auth0, Okta,
+AWS Cognito, or a social provider such as Google or GitHub) is RECOMMENDED
+over operating a first-party identity system, unless identity is core to the
+product's value proposition. A managed provider removes the burden of
+securely storing credentials, keeping up with evolving MFA and passkey
+support, and maintaining OIDC/SAML conformance — see
+<<Single sign-on and federation>>.

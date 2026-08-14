@@ -1,0 +1,56 @@
+= Service-to-service authentication
+
+Authenticating a machine client — a backend service, a scheduled job, a CI
+pipeline — differs from authenticating a human: there is no user to redirect
+through a login screen, and the credential's lifecycle needs to be managed
+without a human present to type a password or approve an MFA prompt.
+
+== API keys
+
+A static, long-lived API key is the simplest mechanism, and MAY be used for
+low-sensitivity integrations or where the calling system cannot support
+anything more sophisticated (eg. a legacy third-party integration). See
+xref:021.adoc[*TS-21: HTTP APIs*] for how an API key is transmitted on an
+HTTP request, and xref:052.adoc[*TS-52: Security and secrets management*]
+for the storage, scoping, and rotation requirements that apply to any secret,
+including an API key.
+
+API keys' weakness is exactly their simplicity: a static credential that
+does not expire is a standing liability if it leaks, and there is no
+cryptographic proof that the caller is who it claims to be beyond possession
+of the string.
+
+== OAuth 2.0 client credentials grant
+
+Where the calling system supports it, the OAuth 2.0 client credentials grant
+(see <<OAuth 2.0 and OpenID Connect>>) is RECOMMENDED over a static API key.
+The client authenticates with its own credential to obtain a short-lived
+access token, which is what is actually presented on each call. This bounds
+the exposure of a leaked token to its expiry window, and centralizes
+issuance and revocation in the authorization server rather than requiring
+each integration point to check a key against its own store.
+
+== Mutual TLS (mTLS)
+
+Mutual TLS has each side of a connection present a certificate, so that both
+the client and the server authenticate each other as part of the TLS
+handshake itself, before any application-layer credential is exchanged.
+
+mTLS is RECOMMENDED for service-to-service traffic within a trusted network
+boundary — for example, between microservices in the same cluster — where a
+service mesh (eg. Istio, Linkerd) can issue and rotate short-lived
+certificates automatically. It is a poor fit for public-facing APIs, where
+managing client certificate distribution for external, unmanaged callers is
+impractical.
+
+== Workload identity
+
+Where services run on a cloud platform, workload identity (eg. AWS IAM roles
+for service accounts, GCP Workload Identity, Azure Managed Identity) SHOULD
+be preferred over any manually-distributed credential. The platform itself
+attests to a workload's identity — based on what is running, not a secret it
+holds — and issues short-lived, automatically-rotated credentials scoped to
+that identity's permissions. This removes an entire class of risk: there is
+no long-lived secret to leak, because none is ever created. See
+xref:052.adoc[*TS-52: Security and secrets management*] for the general
+secrets-management requirements this satisfies by construction.

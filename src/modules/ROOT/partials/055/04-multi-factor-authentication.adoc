@@ -1,0 +1,73 @@
+= Multi-factor authentication
+
+Multi-factor authentication (MFA) requires a user to prove their identity
+with two or more independent factors, drawn from separate categories:
+
+* *Something you know* — a password or PIN.
+* *Something you have* — a phone, hardware security key, or authenticator app.
+* *Something you are* — a biometric, eg. fingerprint or face recognition.
+
+Two factors from the *same* category (eg. a password and a security
+question, both "something you know") do not constitute MFA — they are both
+vulnerable to the same class of attack (guessing, phishing, data breach).
+
+== When MFA is required
+
+MFA MUST be available for every user account, and MUST be required — not
+merely offered — for accounts with elevated privileges, such as
+administrators and anyone with production access.
+
+MFA SHOULD be required for all user accounts, opt-out rather than opt-in,
+except where a specific product context makes that friction unacceptable at
+signup. Where MFA is optional at signup, the application SHOULD prompt users
+to enable it, and MAY require it retroactively for accounts that hold
+sensitive data or elevated permissions.
+
+== Factor methods, in order of preference
+
+1. *Passkeys (WebAuthn/FIDO2).* Public-key credentials bound to a device or
+   platform authenticator (eg. a phone's biometric sensor, a hardware
+   security key). The RECOMMENDED default: phishing-resistant, because the
+   credential is cryptographically bound to the origin it was registered
+   against, and requires no shared secret that can be intercepted or
+   database that can be breached for its value.
+
+2. *TOTP (Time-based One-Time Password).* A six-to-eight digit code generated
+   by an authenticator app from a shared secret, refreshed every 30 seconds
+   (RFC 6238). Widely supported and does not depend on network connectivity
+   at verification time. RECOMMENDED as the default second factor where
+   passkeys are not yet supported by a client.
+
+3. *SMS or voice one-time codes.* MAY be offered for accessibility or as a
+   fallback recovery method, but MUST NOT be the only MFA method available,
+   and SHOULD NOT be the default. SMS is vulnerable to SIM-swapping and
+   number-porting attacks, and the OAuth 2.0 Security BCP explicitly
+   discourages relying on it as a sole factor.
+
+Push notifications to a trusted device (approve/deny prompts) MAY be offered
+as a convenience layer on top of TOTP or passkeys, but MUST require the user
+to confirm a matching code or context (a technique known as "number
+matching"), to resist MFA-fatigue attacks where an attacker spams approval
+requests hoping for an accidental tap.
+
+== Recovery
+
+An account MUST have a documented recovery path for a user who loses access
+to their primary MFA factor — eg. single-use backup codes, generated at
+enrollment and shown to the user exactly once, or a manual identity
+verification process for support-assisted recovery.
+
+Recovery codes MUST be treated as a credential: stored hashed, not in plain
+text, and each code MUST be invalidated after a single use. A recovery
+process MUST NOT weaken the security the primary factor was providing — for
+example, a "call support" fallback that only verifies information available
+in a data breach re-opens the exact attack MFA was added to close.
+
+== Re-authentication for sensitive operations
+
+Consistent with xref:052.adoc[*TS-52: Security and secrets management*]'s
+requirement that destructive or sensitive operations require
+re-authentication, an application SHOULD prompt for a fresh MFA challenge —
+not merely a valid session — before allowing changes to account security
+settings, such as disabling MFA itself or changing the registered recovery
+methods.

@@ -1,0 +1,87 @@
+= Authorization models
+
+Authorization answers "what is this identity allowed to do?" — a distinct
+question from authentication, and one that MUST be addressed with its own
+explicit model rather than left implicit in application code.
+
+== Role-based access control (RBAC)
+
+RBAC grants permissions to *roles* (eg. `admin`, `editor`, `viewer`), and
+assigns roles to identities. It is the RECOMMENDED default model: it maps
+naturally onto how most organizations already think about access ("she's an
+admin"), and keeps the permission set small and auditable, since permissions
+are defined once per role rather than once per user.
+
+RBAC's weakness is granularity: it answers "can a `viewer` read *any*
+document" more naturally than "can *this* user read *this specific*
+document". Systems that need per-resource or contextual decisions SHOULD
+layer a finer-grained model on top of RBAC, rather than abandoning RBAC
+entirely — most authorization decisions in most systems really are role-level,
+and only a minority need finer control.
+
+== Attribute-based access control (ABAC)
+
+ABAC evaluates a policy against attributes of the subject (who), the
+resource (what), the action (verb), and the environment (eg. time of day,
+network location) to reach an allow/deny decision. It is the RECOMMENDED
+model where an access decision genuinely depends on more than role — for
+example, "a user MAY approve an expense report only if they are not its
+submitter and the amount is within their approval limit."
+
+ABAC's expressiveness comes at a cost: policies are harder to audit at a
+glance than a role list, and a poorly-organized policy set can become as
+opaque as the ad-hoc `if` statements it was meant to replace. Policies SHOULD
+be centralized in a dedicated policy engine (eg. Open Policy Agent) rather
+than scattered across application code, so they remain a single reviewable
+artifact.
+
+== Relationship-based access control (ReBAC)
+
+ReBAC derives access from relationships in a graph — eg. "a user can edit a
+document if they are a member of the team that owns the folder containing
+it." It is the natural fit for systems with nested ownership, sharing, or
+collaboration structures (project management tools, file storage,
+social graphs), where RBAC's flat role list and ABAC's attribute rules both
+struggle to express "access flows through this chain of relationships."
+
+Google's Zanzibar system, and its open-source descendants (eg. OpenFGA,
+SpiceDB), are the reference implementations of this model at scale.
+
+== Choosing a model
+
+[cols="1,3"]
+|===
+| Model | Fits when
+
+| RBAC
+| Permissions map cleanly to a small set of organizational roles; the default
+  starting point for most systems.
+
+| ABAC
+| A decision depends on contextual attributes beyond role — ownership,
+  amount, time, location.
+
+| ReBAC
+| Access is inherited through a graph of relationships — team membership,
+  folder hierarchy, sharing.
+|===
+
+These models are not mutually exclusive. A system commonly uses RBAC for
+coarse-grained, application-wide permissions (who can access the admin
+panel) and ABAC or ReBAC for fine-grained, per-resource decisions (who can
+edit this specific record) within it.
+
+== Enforcement
+
+Whichever model is used, the requirements set out in
+xref:052.adoc[*TS-52: Security and secrets management*] apply without
+exception: authorization decisions MUST be enforced server-side, MUST be
+checked before every operation, and MUST NOT be inferred from the absence of
+a client-side affordance.
+
+An authorization check SHOULD be implemented as a single, centralized
+decision point — a middleware, policy engine, or shared library — that every
+code path invokes, rather than re-implemented ad hoc at each call site. This
+is what makes the permission model auditable, and prevents the common defect
+class where one forgotten check leaves a single endpoint unprotected while
+the rest of the system enforces the rule correctly.

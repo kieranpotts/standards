@@ -1,0 +1,86 @@
+= Authentication models
+
+Authentication answers "who is this?". Two models dominate, and the choice
+between them shapes the rest of a system's security architecture.
+
+== Session-based authentication
+
+In a session-based model, a server verifies credentials once, then creates a
+session record — stored server-side, in memory or a shared store such as
+Redis — and hands the client an opaque session identifier, typically in a
+cookie. Every subsequent request carries the identifier; the server looks up
+the session to establish identity.
+
+Session-based authentication SHOULD be preferred for traditional server-rendered
+web applications, where the browser and server share an origin and cookies are
+the natural transport.
+
+Its defining trade-off is statefulness. Revocation is immediate — deleting the
+session record ends the session everywhere — but the server MUST maintain
+session state, which complicates horizontal scaling: every server instance
+needs access to the shared session store, or requests from a given client MUST
+be routed consistently to the instance holding their session.
+
+== Token-based authentication
+
+In a token-based model, a server verifies credentials once, then issues a
+signed token — typically a JWT (see xref:056.adoc[*TS-56: JSON Web Tokens
+(JWTs)*] for token design) — that itself carries the claims needed to
+establish identity and permissions. The server does not need to persist
+anything: validation is a signature check, not a lookup.
+
+Token-based authentication SHOULD be preferred for HTTP APIs, single-page
+applications, mobile clients, and service-to-service calls, where clients are
+decoupled from the server and may not share an origin or support cookies.
+
+Its defining trade-off is the inverse of the session model. Statelessness
+removes the shared-store bottleneck and simplifies horizontal scaling, but
+revocation is hard: a signed token remains valid until it expires, whatever
+happens server-side, unless the system also maintains a denylist or a
+short-enough expiry that compromise has a bounded blast radius. See
+<<Token lifetime and revocation>>.
+
+== Choosing between them
+
+[cols="1,2,2"]
+|===
+| | Session-based | Token-based
+
+| State
+| Server-side (session store)
+| Client-side (self-contained token)
+
+| Revocation
+| Immediate
+| Delayed, bounded by expiry (or denylist)
+
+| Scaling
+| Requires a shared session store
+| Stateless; scales horizontally without coordination
+
+| Cross-origin clients
+| Awkward (cookie scoping, CORS credentials)
+| Natural fit
+
+| Typical clients
+| Server-rendered web apps
+| HTTP APIs, SPAs, mobile apps, services
+|===
+
+A system MAY combine both: a session cookie for the primary web application,
+and issued tokens for its API. Do not mix the two for the same client and
+purpose — pick one model per client-server relationship, and be deliberate
+about the trade-off.
+
+== Token lifetime and revocation
+
+Where a token-based model is used, access tokens SHOULD be short-lived —
+typically minutes, not hours — to bound the damage of a leaked token. A
+longer-lived refresh token, exchanged for new access tokens without requiring
+re-authentication, offsets the resulting UX cost. See
+xref:056.adoc[*TS-56: JSON Web Tokens (JWTs)*] for refresh-token design.
+
+Where immediate revocation is a hard requirement — for example, disabling a
+compromised account — a token-based system MUST maintain a denylist (or an
+equivalent short-lived allowlist check) for the affected token or subject,
+rather than relying on expiry alone.

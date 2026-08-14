@@ -6,18 +6,37 @@ that are still stubs (no substantive content written), and standards whose
 
 This file is a manually-maintained index, regenerated from the tree. The
 counts below were last regenerated on **2026-08-14** — this run authored
-TS-42 (Vue) from scratch, which had been a pure stub with no `GAPS.md` at
-all: five new content partials (single-file components, reactivity,
-components, state management, and filesystem) plus an introductory paragraph
-and a `== References` section on the page itself, replacing the
-`// TODO: Introductory text…` placeholder. TS-42 mirrors TS-41 (React) in
-scope and depth — the closest structural sibling, both being JS UI-framework
-standards — and is grounded in the official Vue.js Guide, the official Vue
-Style Guide, and Pinia's documentation. TS-42 had no `GAPS.md`, so like TS-24
-and TS-35 before it, it leaves the stub table below and does not enter the
-open-gap-analyses table either — it drops out of tracking in this file
+TS-55 (Authentication and authorization) from scratch, which had been a pure
+stub (`// TODO` only) with no `GAPS.md` at all: six new content partials
+(authentication models, OAuth 2.0/OIDC, SSO and federation, multi-factor
+authentication, authorization models, and service-to-service authentication)
+plus an introductory paragraph and a `== References` section on the page
+itself. TS-55 was scoped deliberately narrow to avoid duplicating adjacent
+standards: TS-52 already owns the credential/secrets *rules* (password
+strength, hashing, re-authentication, least-privilege enforcement), TS-56
+already owns JWT *schema* design, and TS-21 already owns how an HTTP API
+transmits credentials on the wire — TS-55 covers the *architecture* layer
+these assume: session-vs-token models, OAuth 2.0/OIDC flows, SSO/federation,
+MFA, RBAC/ABAC/ReBAC authorization models, and machine-to-machine auth
+(API keys, client-credentials grant, mTLS, workload identity), grounded in
+RFC 6749, RFC 9700, the OIDC Core spec, RFC 6238, the WebAuthn Level 2 spec,
+and Google's Zanzibar paper. TS-55 had no `GAPS.md`, so like TS-42, TS-35,
+TS-24, and TS-37 before it, it leaves the stub table below and does not enter
+the open-gap-analyses table either — it drops out of tracking in this file
 entirely, the same as any other standard without a `GAPS.md` (TS-1, TS-19,
 TS-22, etc.).
+
+This is on top of the prior same-day authoring of TS-42 (Vue) from scratch,
+which had been a pure stub with no `GAPS.md` at all: five new content
+partials (single-file components, reactivity, components, state management,
+and filesystem) plus an introductory paragraph and a `== References` section
+on the page itself, replacing the `// TODO: Introductory text…` placeholder.
+TS-42 mirrors TS-41 (React) in scope and depth — the closest structural
+sibling, both being JS UI-framework standards — and is grounded in the
+official Vue.js Guide, the official Vue Style Guide, and Pinia's
+documentation. TS-42 had no `GAPS.md`, so like TS-24 and TS-35 before it, it
+leaves the stub table below and does not enter the open-gap-analyses table
+either.
 
 This is on top of the prior same-day authoring of TS-35 (Python) from
 scratch, which had been a pure stub with no `GAPS.md` at all: eight new
@@ -74,7 +93,6 @@ placeholder(s), and no `include::partial$NNN/...[]` includes.
 | [TS-38](src/modules/ROOT/pages/038.adoc) | Node.js applications | Pure stub. `GAPS.md` has 1 open gap (legacy format), not yet resolved. |
 | [TS-39](src/modules/ROOT/pages/039.adoc) | HTML | Has substantive intro prose and `toc::[]`, but no `include::partial$` directives — the `partials/039/` directory holds only `GAPS.md`. Its `GAPS.md` carries 136 actionable items, the largest in the repository. |
 | [TS-44](src/modules/ROOT/pages/044.adoc) | Non-relational (NoSQL) databases | Pure stub. `GAPS.md` has 2 open gaps (legacy format), not yet resolved. |
-| [TS-55](src/modules/ROOT/pages/055.adoc) | Authentication and authorization | Pure stub (`// TODO` only). |
 
 No open gap in any other standard's `GAPS.md` cross-references a stub, so the
 stubs and the gap-closing work are independent. Writing a stub will not close
@@ -328,9 +346,11 @@ authored. TS-18 (60) and TS-15 (51) are next largest.
 ## Standards with neither a stub nor a GAPS.md
 
 TS-1, TS-17, TS-19, TS-22, TS-28, TS-30, TS-32, TS-34, TS-45, TS-47, TS-51,
-TS-53, TS-56, TS-58, TS-59, TS-60, TS-62, and TS-63 all have substantive
-content and no recorded gap analysis. A gap analysis (`/gap-analysis`) could
-be run against any of them; none is known to be missing content today.
+TS-53, TS-55, TS-56, TS-58, TS-59, TS-60, TS-62, and TS-63 all have
+substantive content and no recorded gap analysis. TS-55 is new to this list —
+authored from a pure stub on 2026-08-14, see the note above. A gap analysis
+(`/gap-analysis`) could be run against any of them; none is known to be
+missing content today.
 
 ## Known inconsistencies
 
