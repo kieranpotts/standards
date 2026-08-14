@@ -1,0 +1,70 @@
+= Validation keywords
+
+The Validation vocabulary is the core of JSON Schema: the keywords that make
+an assertion about an instance and either pass or fail it. It is RECOMMENDED
+to prefer these keywords over ad-hoc `pattern` regular expressions wherever a
+dedicated keyword exists, since a dedicated keyword is easier for both humans
+and tooling to interpret correctly.
+
+== Type and value keywords
+
+`type` restricts an instance to one JSON type, or an array of types:
+
+[source,json]
+----
+{ "type": "string" }
+{ "type": ["string", "null"] }
+----
+
+`enum` restricts an instance to one of a fixed set of values, of any type.
+`const` restricts an instance to exactly one value, and is equivalent to an
+`enum` with a single member. It is RECOMMENDED to use `const` rather than a
+single-value `enum`, since it states the intent — a fixed, non-negotiable
+value — more directly:
+
+[source,json]
+----
+{ "enum": ["draft", "published", "archived"] }
+{ "const": "2020-12" }
+----
+
+== String keywords
+
+`maxLength` and `minLength` bound the length of a string instance, counted in
+Unicode code points, not bytes. `pattern` requires the string to match an
+https://www.regular-expressions.info/ecma.html[ECMA-262 regular expression]
+(unanchored — wrap in `^` and `$` to match the whole string).
+
+== Numeric keywords
+
+`maximum` and `minimum` bound a numeric instance inclusively;
+`exclusiveMaximum` and `exclusiveMinimum` bound it exclusively.
+`multipleOf` requires the instance to be an integer multiple of the given
+value.
+
+== Object keywords
+
+`required` lists property names that MUST be present. `dependentRequired`
+extends this conditionally — see <<Conditional validation>>.
+`maxProperties` and `minProperties` bound the number of properties on an
+object instance.
+
+== Array keywords
+
+`maxItems` and `minItems` bound the length of an array instance. `uniqueItems`
+requires every element to be distinct when set `true`. `maxContains` and
+`minContains` bound how many elements the `contains` applicator (see
+<<Applicator keywords>>) is permitted to match; used without `contains`, both
+are ignored.
+
+.Example: a bounded, unique tag list
+[source,json]
+----
+{
+  "type": "array",
+  "items": { "type": "string" },
+  "minItems": 1,
+  "maxItems": 10,
+  "uniqueItems": true
+}
+----

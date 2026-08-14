@@ -1,0 +1,72 @@
+= Conditional validation
+
+JSON Schema supports two distinct mechanisms for applying validation
+conditionally, based on the value or presence of another part of the
+instance.
+
+== if/then/else
+
+`if`, `then`, and `else` behave like a programming conditional: if the
+instance validates against the `if` subschema, it MUST also validate against
+`then` (and `else` is ignored); otherwise, it MUST validate against `else`
+(and `then` is ignored). Either `then` or `else` MAY be omitted.
+
+.Example: a postal code format that depends on country
+[source,json]
+----
+{
+  "if": {
+    "properties": { "country": { "const": "US" } }
+  },
+  "then": {
+    "properties": { "postalCode": { "pattern": "^[0-9]{5}$" } }
+  },
+  "else": {
+    "properties": {
+      "postalCode": { "pattern": "^[A-Z][0-9][A-Z] [0-9][A-Z][0-9]$" }
+    }
+  }
+}
+----
+
+Where more than two branches are needed, wrap multiple `if`/`then` pairs in
+an `allOf` (see <<Applicator keywords>>), one pair per case.
+
+== dependentRequired and dependentSchemas
+
+`dependentRequired` and `dependentSchemas` both trigger on the *presence* of
+a property, rather than on a value comparison, and are RECOMMENDED over
+`if`/`then` for that narrower case, since they express the intent more
+directly.
+
+`dependentRequired` requires additional properties to be present when a given
+property is present. It is one-way: requiring `billing_address` when
+`credit_card` is present does not also require `credit_card` when
+`billing_address` is present.
+
+[source,json]
+----
+{
+  "dependentRequired": {
+    "credit_card": ["billing_address"]
+  }
+}
+----
+
+`dependentSchemas` applies a whole subschema, not just a list of required
+properties, when a given property is present — useful where the dependent
+constraint is more than "these properties must exist":
+
+[source,json]
+----
+{
+  "dependentSchemas": {
+    "credit_card": {
+      "properties": {
+        "billing_address": { "$ref": "address.schema.json" }
+      },
+      "required": ["billing_address"]
+    }
+  }
+}
+----

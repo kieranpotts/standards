@@ -25,12 +25,29 @@ and design best practices are not addressed at all. A few areas
 (`$ref`/cross-references, JTD) are treated **partially**. CloudEvents and
 storage-platform concerns are **out-of-scope**.
 
-**Status:** Initial run, 2026-08-05. All gaps below are open. Two YouTube
-reference resources could not be retrieved (see Unresolved).
+**Status:** 8 of 25 Missing items and 0 of 4 Partial items resolved
+(2026-08-14) — the eight core-vocabulary items (Validation, Applicator,
+Boolean composition, if/then/else, dependentRequired/dependentSchemas,
+Meta-Data/Annotations, both `format` items, and Content) closed in one batch
+via new `03`–`08` partials. 17 Missing, 4 Partial, 3 Out-of-scope, and 2
+Unresolved items remain open. Two YouTube reference resources could not be
+retrieved (see Unresolved).
+
+This run's `03`–`08` insertions renumbered the standard's pre-existing
+partials: old `03-cross-references.adoc` is now `09-cross-references.adoc`,
+old `04-json-hyper-schema.adoc` is now `10-json-hyper-schema.adoc`, old
+`07-json-pointer.adoc` is now `13-json-pointer.adoc`, and old
+`09-useful-links.adoc` is now `16-useful-links.adoc` (see the page's
+`include::` list for the full mapping). The still-open items below that cite
+`03-cross-references.adoc:44`, `03-cross-references.adoc:24-30`, and
+`07-json-pointer.adoc:26` were left with their original text per the
+append-only rule, but those line references now point at the file's old
+name — re-verify against the renumbered files (`09-` and `13-`
+respectively) before acting on them. `02-versions.adoc:9` is unaffected.
 
 ## Missing
 
-- [ ] [https://www.learnjsonschema.com/2020-12/#validation] The Validation
+- [x] [https://www.learnjsonschema.com/2020-12/#validation] The Validation
       vocabulary keywords (`type`, `enum`, `const`, `maxLength`, `minLength`,
       `pattern`, `maximum`, `minimum`, `exclusiveMaximum`, `exclusiveMinimum`,
       `multipleOf`, `required`, `dependentRequired`, `maxProperties`,
@@ -39,7 +56,17 @@ reference resources could not be retrieved (see Unresolved).
       placing in a new "Validation keywords" section between
       `02-versions.adoc` and `03-cross-references.adoc`.
 
-- [ ] [https://www.learnjsonschema.com/2020-12/#applicator] The Applicator
+      **Resolved.** Closed by a new `03-validation-keywords.adoc`,
+      "Validation keywords" section, grouped into Type and value, String,
+      Numeric, Object, and Array keyword subsections covering all listed
+      keywords (`dependentRequired` is covered in the "Conditional
+      validation" section instead and cross-referenced from here). Old
+      `03-cross-references.adoc` renumbered to `09-` to make room; the
+      page's include list and this file's other line-number citations were
+      updated accordingly. Source added to the page's new `== References`
+      section.
+
+- [x] [https://www.learnjsonschema.com/2020-12/#applicator] The Applicator
       vocabulary keywords (`allOf`, `anyOf`, `oneOf`, `if`, `then`, `else`,
       `not`, `properties`, `additionalProperties`, `patternProperties`,
       `dependentSchemas`, `propertyNames`, `contains`, `items`,
@@ -47,7 +74,15 @@ reference resources could not be retrieved (see Unresolved).
       placing in a new "Applicator keywords" / "Schema composition" section
       between `02-versions.adoc` and `03-cross-references.adoc`.
 
-- [ ] [https://json-schema.org/understanding-json-schema/reference/combining]
+      **Resolved.** Closed by a new `04-applicator-keywords.adoc`,
+      "Applicator keywords" section, with "Boolean composition" and "Object
+      and array applicators" subsections. `if`/`then`/`else` and
+      `dependentSchemas` are covered in the new "Conditional validation"
+      section instead and cross-referenced from here, since they are
+      conditional-application keywords rather than plain composition. Source
+      added to the page's new `== References` section.
+
+- [x] [https://json-schema.org/understanding-json-schema/reference/combining]
       Boolean composition keywords `allOf` (AND), `anyOf` (OR), `oneOf` (XOR),
       and `not` (NOT) are not explained. The standard says "prefer schema
       composition over inheritance" (`03-cross-references.adoc:7`) but never
@@ -55,18 +90,36 @@ reference resources could not be retrieved (see Unresolved).
       in a new "Schema composition" section, or expanding
       `03-cross-references.adoc`.
 
-- [ ] [https://json-schema.org/understanding-json-schema/reference/conditionals#if-then-else]
+      **Resolved.** Closed by the "Boolean composition" subsection of
+      `04-applicator-keywords.adoc` (see above), which defines `allOf`,
+      `anyOf`, `oneOf`, and `not` and gives guidance on choosing between
+      `oneOf` and `anyOf`. The cross-references section (renumbered to
+      `09-cross-references.adoc`) now links to it in place of its former
+      unexplained mention of composition.
+
+- [x] [https://json-schema.org/understanding-json-schema/reference/conditionals#if-then-else]
       Conditional validation via `if`/`then`/`else` is not addressed anywhere
       in the standard. Recommend placing in a new "Conditional validation"
       section.
 
-- [ ] [https://json-schema.org/understanding-json-schema/reference/conditionals#dependentRequired]
+      **Resolved.** Closed by a new `05-conditional-validation.adoc`,
+      "Conditional validation" section, "if/then/else" subsection, with a
+      worked postal-code-by-country example and guidance on using `allOf` to
+      chain more than two branches. Source added to the page's new
+      `== References` section.
+
+- [x] [https://json-schema.org/understanding-json-schema/reference/conditionals#dependentRequired]
       Conditional validation via `dependentRequired` (conditionally required
       properties) and `dependentSchemas` (conditionally applied subschemas) is
       not addressed anywhere in the standard. Recommend placing in a new
       "Conditional validation" section.
 
-- [ ] [https://www.learnjsonschema.com/2020-12/#meta-data] The Meta Data
+      **Resolved.** Closed by the "dependentRequired and dependentSchemas"
+      subsection of `05-conditional-validation.adoc` (see above), with a
+      credit-card/billing-address example for each keyword and guidance to
+      prefer them over `if`/`then` where the condition is presence-only.
+
+- [x] [https://www.learnjsonschema.com/2020-12/#meta-data] The Meta Data
       (annotation) vocabulary (`title`, `description`, `default`,
       `deprecated`, `examples`, `readOnly`, `writeOnly`) is not addressed as
       a general concept. `readOnly` appears only incidentally in a Hyper-Schema
@@ -74,21 +127,39 @@ reference resources could not be retrieved (see Unresolved).
       descriptions (`04-json-hyper-schema.adoc:78`). Recommend placing in a
       new "Annotations" section.
 
-- [ ] [https://www.learnjsonschema.com/2020-12/#format-annotation] The
+      **Resolved.** Closed by a new `06-annotations.adoc`, "Annotations"
+      section, covering `title`, `description`, `default`, `examples`,
+      `deprecated`, `readOnly`, and `writeOnly`. Source added to the page's
+      new `== References` section.
+
+- [x] [https://www.learnjsonschema.com/2020-12/#format-annotation] The
       `format` keyword (Format Annotation) for semantic string validation
       (e.g. `email`, `date-time`) is not addressed anywhere in the standard.
       Recommend placing in a new "Format" section.
 
-- [ ] [https://www.learnjsonschema.com/2020-12/#format-assertion] The
+- [x] [https://www.learnjsonschema.com/2020-12/#format-assertion] The
       distinction between Format Annotation (annotation only, default) and
       Format Assertion (asserting, an official vocabulary not included by
       default) is not addressed anywhere in the standard. Recommend placing
       in a new "Format" section.
 
-- [ ] [https://www.learnjsonschema.com/2020-12/#content] The Content vocabulary
+      **Resolved.** Both format items closed together by a new
+      `07-format.adoc`, "Format" section, which introduces the `format`
+      keyword, states plainly that it is annotation-only by default under
+      Draft 2020-12, and explains the separate, not-included-by-default
+      Format Assertion vocabulary as the way to make it enforce. Source
+      added to the page's new `== References` section.
+
+- [x] [https://www.learnjsonschema.com/2020-12/#content] The Content vocabulary
       (`contentEncoding`, `contentMediaType`, `contentSchema`) for annotating
       non-JSON data encoded in JSON strings is not addressed anywhere in the
       standard. Recommend placing in a new "Content keywords" section.
+
+      **Resolved.** Closed by a new `08-content-keywords.adoc`, "Content
+      keywords" section, covering `contentEncoding`, `contentMediaType`, and
+      `contentSchema` with a base64-encoded-JSON worked example, and noting
+      they are annotations rather than assertions like `format`. Source
+      added to the page's new `== References` section.
 
 - [ ] [https://www.learnjsonschema.com/2020-12/#unevaluated] The Unevaluated
       vocabulary (`unevaluatedItems`, `unevaluatedProperties`) is not addressed

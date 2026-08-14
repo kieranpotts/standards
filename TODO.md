@@ -7,10 +7,11 @@ that are still stubs (no substantive content written), and standards whose
 This file is a manually-maintained index, regenerated from the tree. The
 counts below were last regenerated on **2026-08-14** — this run closed
 TS-43's gaps in full, TS-16's actionable items in full (1 out-of-scope batch
-and 1 unresolved resource remain), and 16 of TS-40's 17 (the last declined,
-see [Known inconsistencies](#known-inconsistencies)). Re-derive the counts
-with the script in [Regenerating this file](#regenerating-this-file) before
-trusting them after any content work.
+and 1 unresolved resource remain), 16 of TS-40's 17 (the last declined, see
+[Known inconsistencies](#known-inconsistencies)), and 9 of TS-29's 29 (20
+remain: 16 Missing, 4 Partial). Re-derive the counts with the script in
+[Regenerating this file](#regenerating-this-file) before trusting them after
+any content work.
 
 ## Stub standards
 
@@ -110,14 +111,14 @@ not in a separate sweep.
 | [TS-27](src/modules/ROOT/partials/027/GAPS.md) | Markdown | 0 | 6 | 1 | Template — all 15 actionable items closed 2026-08-13 |
 | [TS-40](src/modules/ROOT/partials/040/GAPS.md) | CSS | 1 | 12 | 0 | Template — 16 of 17 actionable items closed 2026-08-14; 1 declined and left open |
 | [TS-37](src/modules/ROOT/partials/037/GAPS.md) | Web platform APIs | 18 | 4 | 1 | Template — also a stub |
+| [TS-29](src/modules/ROOT/partials/029/GAPS.md) | JSON Schema | 20 | 3 | 2 | Template — 9 of 29 actionable items closed 2026-08-14 |
 | [TS-26](src/modules/ROOT/partials/026/GAPS.md) | Technical writing style guide | 29 | 10 | 2 | Template |
-| [TS-29](src/modules/ROOT/partials/029/GAPS.md) | JSON Schema | 29 | 3 | 2 | Template |
 | [TS-21](src/modules/ROOT/partials/021/GAPS.md) | HTTP APIs | 49 | 13 | 4 | Template |
 | [TS-15](src/modules/ROOT/partials/015/GAPS.md) | User interfaces | 50 | 7 | 12 | Template |
 | [TS-33](src/modules/ROOT/partials/033/GAPS.md) | Java | 55 | 3 | 4 | Template |
 | [TS-18](src/modules/ROOT/partials/018/GAPS.md) | Web GUIs | 56 | 26 | 5 | Template |
 | [TS-39](src/modules/ROOT/partials/039/GAPS.md) | HTML | 136 | 5 | 4 | Template — also a stub |
-| | **Total** | **423** | **98** | **37** | |
+| | **Total** | **414** | **98** | **37** | |
 
 TS-43 (Relational databases and SQL) was closed out on 2026-08-14 — all 61
 actionable items (59 Missing, 2 Partial) resolved in one run — and has left
@@ -164,7 +165,18 @@ turned out to already be resolved in TS-5 and TS-57's own directories, so
 TS-10 needed no content of its own — and has left this table for the
 fully-resolved list.
 
-One standard — TS-39 — now holds 136 of the 423 actionable items on its own,
+TS-29 (JSON Schema) had 9 of its 29 actionable items (all Missing) closed on
+2026-08-14, in one batch of new keyword-vocabulary sections: Validation
+keywords, Applicator keywords (including boolean composition), Conditional
+validation (`if`/`then`/`else` and `dependentRequired`/`dependentSchemas`),
+Annotations, and Format and Content keywords. This renumbered six
+pre-existing partials to make room; the standard's other open items citing
+the old `03-cross-references.adoc` and `07-json-pointer.adoc` filenames
+should be re-verified against their new numbers (`09-` and `13-`
+respectively) before being worked. 16 Missing and 4 Partial items (20
+actionable) remain.
+
+One standard — TS-39 — now holds 136 of the 414 actionable items on its own,
 almost a third of the total, and will need several passes once it is
 authored. TS-18 (56) and TS-15 (50) are next largest.
 
