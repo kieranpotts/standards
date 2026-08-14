@@ -5,148 +5,61 @@ that are still stubs (no substantive content written), and standards whose
 `GAPS.md` gap analysis still has open items.
 
 This file is a manually-maintained index, regenerated from the tree. The
-counts below were last regenerated on **2026-08-14** — this run authored
-TS-39 (HTML) from scratch, the last remaining stub in the repository. TS-39
-had substantive introductory prose (the "working standard" philosophy) but
-no `include::partial$` directives and a template-format `GAPS.md` carrying
-136 actionable items — the largest gap analysis in the repository. Thirteen
-new content partials were written (`01-fundamentals.adoc` through
-`13-accessibility.adoc`), covering document fundamentals and the
-allowed-element subset, the document head, text content, tables,
-hyperlinks, forms and buttons, images, SVG, audio/video and embedded
-content, scripting conventions and templates, metadata schemas and
-semantics, internationalization, and accessibility (including a WCAG
-2.2-based checklist) — closing all 136 Missing/Partial items in one run.
-The reference material contained five internal contradictions between its
-own source files, each resolved as an explicit editorial decision recorded
-in the standard's own prose: `<dl>` and `<caption>` are permitted (not
-blanket-forbidden); `<b>`/`<i>`/`<small>` are permitted for their specific
-semantic meanings (not blanket-forbidden); RDFa Lite is preferred over
-Microdata for Schema.org; and `<base href>` carries no trailing slash. Its
-5 Out-of-scope items and 4 Unresolved references were carried forward
-unchanged, so the `GAPS.md` did not reach zero unchecked items of any
-kind — TS-39 therefore leaves the stub table but joins the open-items
-table below, at Actionable=0, rather than the fully-resolved list, the
-same shape as TS-16/TS-21/TS-43.
+counts below were last regenerated on **2026-08-14** — this run applied a
+joint `close-gaps` pass against TS-15 (User interfaces) and TS-18 (Web GUIs),
+run together at the user's explicit request specifically to catch gaps that
+would be better routed between the two standards. None were found in either
+direction: every item TS-18 closed is web-implementation-specific (HTTP
+headers, CSS properties, DOM APIs, WCAG markup) and every item TS-15 closed
+is a platform-agnostic HCI/UX principle that applies equally to a CLI or a
+native app, so no item moved between the two files.
 
-This is on top of the prior same-day authoring of TS-44 (Non-relational
-(NoSQL) databases) from scratch, which had been a pure stub with a
-legacy-format `GAPS.md` carrying two open gaps: five new content partials
-(data models, schema and modeling, consistency and replication,
-selecting a database, and operational considerations) plus an introductory
-paragraph and a `== References` section on the page itself. TS-44 was scoped
-to non-relational database concepts and selection — data models (key-value,
-document, wide-column, graph, search), query-first schema design, NoSQL-
-specific consistency and replication trade-offs, and choosing between
-engines — while deliberately not repeating the ACID/BASE/CAP-theorem
-treatment already owned by TS-43 or the general distributed-data/caching
-guidance owned by TS-46, referencing both instead. Its two recorded gaps —
-no coverage of polyglot persistence (sourced from an Allegro Tech
-engineering-culture post) and no NoSQL selection-criteria guidance (sourced
-from the same Pragmatic Engineer Bluesky piece already cited by TS-38 and
-TS-41) — were both closed by the new "Selecting a database" partial's
-"Polyglot persistence" and "NoSQL database selection criteria" sections.
-The `GAPS.md` reached zero unchecked items (2 of 2 gaps resolved), so TS-44
-moved directly from the stub table to the fully-resolved list — the third
-standard, after TS-37 and TS-38, to make that move in one run.
+TS-15 was closed out in full: all 51 actionable items (47 Missing, 4 Partial)
+resolved in one run, across ten new content partials
+(`02-feedback-and-communication.adoc` through `10-visual-rhythm-and-text.adoc`)
+plus expansions to the existing "Keep it tidy" and "Embrace affordances"
+sections and a new usability-definition paragraph on the page itself. TS-15
+stays in the open-items table below, not the fully-resolved list, because 7
+Out-of-scope items and 12 Unresolved references remain open in its own
+`GAPS.md` — neither was actioned in this run, since neither counts as
+actionable work.
 
-This is on top of the prior same-day authoring of TS-38 (Node.js
-applications) from scratch, which had been a pure stub
-(`// TODO` only) with a legacy-format `GAPS.md` carrying one open gap: six
-new content partials (module system, package management, configuration and
-environment, process lifecycle and signals, error handling and logging, and
-stateless scaling) plus an introductory paragraph and a `== References`
-section on the page itself. TS-38 was scoped to Node.js *application and
-runtime* concerns — module system (CJS/ESM), package/dependency management,
-config and env, process lifecycle and signals, error handling and
-logging — explicitly excluding what adjacent standards already own: TS-36
-covers the JavaScript/TypeScript language itself, TS-21 covers HTTP API
-design, TS-52 covers secrets management, and TS-49 covers containerized
-deployment and orchestration. Its one recorded gap — no guidance on the
-stateless-service / horizontal-scaling pattern, sourced from the Pragmatic
-Engineer's Bluesky engineering-culture piece (the same source TS-41 already
-cited) — was closed by a new "Stateless scaling" section explaining why
-Node's single-threaded event loop rules out in-process multi-threading and
-setting out the horizontal, stateless-process scaling pattern instead. The
-`GAPS.md` reached zero unchecked items (1 of 1 gap resolved), so TS-38 moves
-directly from the stub table to the fully-resolved list — the second
-standard, after TS-37, to make that move in one run rather than losing its
-stub status first and being worked by a separate `close-gaps` pass later.
+TS-18 had 59 of its 60 actionable items (44 of 45 Missing, all 15 Partial)
+closed the same run, across expansions to its three existing partials
+(performance, accessibility, fonts) plus two new partials —
+`04-javascript-behaviors.adoc` (component-behavior conventions, memory-
+efficient DOM manipulation, form-submission integrity) and
+`05-css-layout-and-typography.adoc` (fluid typography, container queries,
+intrinsic layouts, readable measure) — inserted before the standard's
+references partial, renumbered from `04-references.adoc` to
+`06-references.adoc` to make room. One Missing item (neurodiversity.design)
+was deliberately left open: the source was only ever thinly retrieved (a
+landing page, not its per-principle pages), so writing a section from it
+would have meant fabricating detail the source does not provide — re-fetching
+those pages is a precondition for closing it, not optional polish. TS-18
+stays in the open-items table at Actionable=1, Scope=26, Unresolved=5.
+Several items closed this run carry a scope flag inherited from earlier
+runs — the rsjs component-behavior conventions and the form-submission-
+integrity section note they border TS-5 (application architecture) or
+expand TS-18 beyond its original three pillars (performance, accessibility,
+fonts). The content was written into TS-18 per the maintainer's prior scope
+calls already recorded in its `GAPS.md`, and the flags are restated there
+for the user to confirm or overrule; they were not resolved silently.
 
-This is on top of the prior same-day authoring of TS-55 (Authentication and
-authorization) from scratch, which had been a pure stub (`// TODO` only) with
-no `GAPS.md` at all: six new content partials
-(authentication models, OAuth 2.0/OIDC, SSO and federation, multi-factor
-authentication, authorization models, and service-to-service authentication)
-plus an introductory paragraph and a `== References` section on the page
-itself. TS-55 was scoped deliberately narrow to avoid duplicating adjacent
-standards: TS-52 already owns the credential/secrets *rules* (password
-strength, hashing, re-authentication, least-privilege enforcement), TS-56
-already owns JWT *schema* design, and TS-21 already owns how an HTTP API
-transmits credentials on the wire — TS-55 covers the *architecture* layer
-these assume: session-vs-token models, OAuth 2.0/OIDC flows, SSO/federation,
-MFA, RBAC/ABAC/ReBAC authorization models, and machine-to-machine auth
-(API keys, client-credentials grant, mTLS, workload identity), grounded in
-RFC 6749, RFC 9700, the OIDC Core spec, RFC 6238, the WebAuthn Level 2 spec,
-and Google's Zanzibar paper. TS-55 had no `GAPS.md`, so like TS-42, TS-35,
-TS-24, and TS-37 before it, it leaves the stub table below and does not enter
-the open-gap-analyses table either — it drops out of tracking in this file
-entirely, the same as any other standard without a `GAPS.md` (TS-1, TS-19,
-TS-22, etc.).
+This is on top of the prior same-day authoring of TS-39 (HTML) from scratch,
+the last remaining stub in the repository at the time. Thirteen new content
+partials were written, closing all 136 of its Missing/Partial items in one
+run; its 5 Out-of-scope items and 4 Unresolved references were carried
+forward, so it left the stub table but stayed out of the fully-resolved
+list. This was on top of the same-day authoring of TS-44 (Non-relational
+(NoSQL) databases), TS-38 (Node.js applications), TS-55 (Authentication and
+authorization), TS-42 (Vue), TS-35 (Python), TS-24 (User manuals), and TS-37
+(Web platform APIs) from scratch, and the same-day closure of TS-21's,
+TS-26's, TS-29's, TS-43's, TS-16's, and TS-40's actionable items. See the
+table notes below, and the standard-by-standard history preserved in
+[Known inconsistencies](#known-inconsistencies), for the detail behind each
+of those.
 
-This is on top of the prior same-day authoring of TS-42 (Vue) from scratch,
-which had been a pure stub with no `GAPS.md` at all: five new content
-partials (single-file components, reactivity, components, state management,
-and filesystem) plus an introductory paragraph and a `== References` section
-on the page itself, replacing the `// TODO: Introductory text…` placeholder.
-TS-42 mirrors TS-41 (React) in scope and depth — the closest structural
-sibling, both being JS UI-framework standards — and is grounded in the
-official Vue.js Guide, the official Vue Style Guide, and Pinia's
-documentation. TS-42 had no `GAPS.md`, so like TS-24 and TS-35 before it, it
-leaves the stub table below and does not enter the open-gap-analyses table
-either.
-
-This is on top of the prior same-day authoring of TS-35 (Python) from
-scratch, which had been a pure stub with no `GAPS.md` at all: eight new
-content partials (terminology, source files, naming conventions, code style,
-programming constructs, types and typing, documentation and comments, and
-project structure and tooling) plus an introductory paragraph and a
-`== References` section on the page itself, replacing the
-`// Introduction.` placeholder. TS-35 is grounded in PEP 8, PEP 257, and
-Google's Python Style Guide, mirroring how TS-33 (Java) leans on Google's
-Java Style Guide. Following the style guide's rule that a reference list
-MUST NOT be split into a separate partial, TS-35's references live directly
-on `pages/035.adoc`, not in a `09-references.adoc` partial — unlike TS-33's
-older layout, which the "Known inconsistencies" section already flags as one
-of eight standards violating this rule. TS-35 had no `GAPS.md`, so like
-TS-24 before it, it leaves the stub table below and does not enter the
-open-gap-analyses table either.
-
-This is on top of the prior same-day authoring of TS-24 (User manuals) from
-scratch, which had been a pure stub: ten new content partials plus an
-introductory paragraph on the page, replacing the `// TODO` placeholder.
-TS-24's old note about being split into separate Technical Documentation /
-User Documentation standards is resolved by this authoring, not carried
-forward — TS-25 already covers technical/developer documentation as its own
-standard, so TS-24 was scoped to what was left: documentation for the end
-user of the finished product, cross-referencing TS-25 and TS-26 rather than
-duplicating them. TS-24 has no `GAPS.md`, so it leaves the stub table below
-and does not enter the open-gap-analyses table either.
-
-This is on top of the prior same-day authoring of TS-37 (Web platform APIs)
-from scratch — five new content partials plus an introductory paragraph,
-closing all 18 of its Missing items and all 4 of its Out-of-scope items. The
-4 out-of-scope items (CSS fluid typography, container queries, intrinsic
-layouts, `text-wrap`/`ch`) were confirmed out-of-scope for TS-37 and routed
-to TS-18's `GAPS.md` as 4 new Missing items instead of being dropped (TS-18
-actionable 56 → 60). TS-37's own `GAPS.md` reached zero unchecked items of
-any kind, so it left the stub table below and joined the fully-resolved
-list — the first standard to move directly from "stub" to "fully resolved"
-in one run, prior to TS-24 repeating the same move without ever having had a
-`GAPS.md` to resolve. This is on top of the prior same-day closure of TS-21's
-actionable items and out-of-scope items, TS-26's 29 actionable items, TS-29's
-and TS-43's gaps in full, and TS-16's and TS-40's actionable items (see the
-table notes below for the detailed breakdown of each).
 Re-derive the counts with the script in
 [Regenerating this file](#regenerating-this-file) before trusting them after
 any content work.
@@ -156,15 +69,9 @@ any content work.
 These pages have no substantive content yet — just a heading, `// TODO`
 placeholder(s), and no `include::partial$NNN/...[]` includes.
 
-No standard is currently in this state. TS-39 (HTML) was the last
-remaining stub, authored from scratch on 2026-08-14 — see the note above.
-This table is empty for the first time in this file's history.
-
-TS-44 (Non-relational (NoSQL) databases) was authored from scratch on the
-same day and left this table earlier the same run — see the note above.
-Writing a stub will not close gaps recorded elsewhere — TS-39's authoring
-did not touch any other standard's `GAPS.md`, unlike TS-6, whose authoring
-closed six of TS-5's, or TS-37's, which routed 4 items into TS-18's.
+No standard is currently in this state. TS-39 (HTML) was the last remaining
+stub, authored from scratch on 2026-08-14. This table has been empty since
+that run.
 
 TS-47 (Dates and times) also has no `include::partial$` directive, but is not
 a stub: its page carries the standard's content directly, monolithically,
@@ -178,59 +85,16 @@ Forty-one standards have a `GAPS.md`. Twenty-eight are fully resolved (zero
 unchecked items of any kind) and are omitted from the table below — TS-2,
 TS-3, TS-5, TS-6, TS-7, TS-8, TS-9, TS-10, TS-11, TS-12, TS-13, TS-14, TS-23,
 TS-25, TS-31, TS-36, TS-37, TS-38, TS-41, TS-44, TS-46, TS-48, TS-49, TS-50,
-TS-52, TS-54, TS-57, and TS-61. TS-37 was a stub as of the prior regeneration
-and is new to this list — see the note above. TS-38 and TS-44 were authored
-from a pure stub with their gaps resolved in the same run — TS-38 in an
-earlier run, TS-44 earlier the same day as this run, see the notes above.
-Thirteen have open items and appear in the table below. TS-39 is new to
-this list this run: it was authored from a pure stub with its 136
-actionable items closed, but 5 Out-of-scope items and 4 Unresolved
-references were carried forward unresolved, so it stays out of the
-fully-resolved list — unlike TS-37/TS-38/TS-44, which each reached zero
-unchecked items of any kind in their authoring run.
+TS-52, TS-54, TS-57, and TS-61.
 
-TS-20 was fully resolved as of 2026-08-13, but gained a new Missing item on
-2026-08-14, routed in from TS-21 while confirming TS-21's own out-of-scope
-items (rate-limit response headers) — it now has 1 open actionable item and
-has left the fully-resolved list for the table below.
-
-TS-21, TS-29, and TS-43 are now fully worked on actionable items — all
-Missing and Partial items resolved, and (for TS-21 and TS-43) all Out-of-scope
-items also confirmed or routed — but each stays in the open-items table
-below, not the fully-resolved list, because at least one Unresolved reference
-(TS-21, TS-29) or Out-of-scope item still awaiting confirmation (TS-43) keeps
-it short of zero unchecked items of *any* kind. See
-[What the columns mean](#what-the-columns-mean) for why that distinction
-matters, and TS-4/TS-16/TS-26/TS-27 for the same shape.
-
-TS-43 was previously omitted from this table's rows entirely, despite having
-6 open Out-of-scope items and 4 Unresolved references recorded in its own
-`GAPS.md` — an oversight in an earlier regeneration (it actually was, and
-remains, not fully resolved), not new work. Corrected in this regeneration.
-
-TS-10 and TS-41 were previously omitted from this file entirely — an
-oversight in an earlier regeneration, not a change in their content. TS-41
-was fully resolved (0 unchecked items of any kind) as soon as it was
-restored to tracking, and appears in the fully-resolved list above. TS-10
-had 2 open actionable items when restored; both were closed on 2026-08-13 by
-a `close-gaps` run, which found the content had already been written into
-TS-5 and TS-57's own directories, so TS-10 itself needed no change. It now
-also appears in the fully-resolved list above.
-
-TS-38 and TS-44 were previously listed as fully resolved; that was wrong at
-the time (see the "Known inconsistencies" section for the full history).
-Both have since been authored from scratch and had their gaps genuinely
-resolved — TS-38 in the prior same-day run, TS-44 in this run — and both
-have left the stub table and joined the fully-resolved list above.
+Thirteen have open items and appear in the table below: TS-4, TS-39, TS-16,
+TS-21, TS-29, TS-43, TS-20, TS-26, TS-27, TS-40, TS-15, TS-33, and TS-18.
+TS-15 and TS-18 are both new to this run's zero/near-zero actionable state —
+see the note above.
 
 ### The two GAPS.md formats
 
 The files are in two formats, and the columns mean different things in each.
-The counts below are of the thirteen files with open items, tallying with
-the table's rows — TS-39 is included in this count now that it has been
-authored and is no longer a stub. Of the twenty-eight fully-resolved files,
-TS-6, TS-38, and TS-44 are still in the legacy format; the rest were
-converted as they were worked.
 
 - **Template format** (38 files). Follows the `gap-analysis` skill's bundled
   template: flat `- [ ]` checklists under `## Missing`, `## Partial`,
@@ -239,12 +103,11 @@ converted as they were worked.
 - **Legacy format** (3 files: TS-6, TS-38, TS-44, all fully resolved). One
   `## <gap title>` subsection per gap, with `**Source**` /
   `**What the source says**` / `**Coverage check**` / `**Gap**` bullets,
-  closed by appending a `**RESOLVED**` bullet. Some also carry a
-  `**Cross-references**` field naming other standards the gap touches; the
-  template format has no equivalent. TS-38 and TS-44 were each authored and
-  their gaps resolved in the same run without converting the format, since
-  each file's own small, single- or two-gap shape needed no restructuring to
-  record the closure.
+  closed by appending a `**RESOLVED**` (or, in TS-38's case,
+  `**RESOLVED.**` — the mechanical script only matches the bare form; see
+  [Regenerating this file](#regenerating-this-file)) bullet. Some also carry
+  a `**Cross-references**` field naming other standards the gap touches; the
+  template format has no equivalent.
 
 Legacy-format files are converted to the template format as they are worked,
 not in a separate sweep.
@@ -276,10 +139,43 @@ not in a separate sweep.
 | [TS-26](src/modules/ROOT/partials/026/GAPS.md) | Technical writing style guide | 1 | 6 | 2 | Template — all original 29 actionable items closed 2026-08-14, across three batches; 4 of 9 out-of-scope items also reversed and closed; gained 1 new item 2026-08-14, routed in from TS-21 |
 | [TS-27](src/modules/ROOT/partials/027/GAPS.md) | Markdown | 0 | 6 | 1 | Template — all 15 actionable items closed 2026-08-13 |
 | [TS-40](src/modules/ROOT/partials/040/GAPS.md) | CSS | 1 | 12 | 0 | Template — 16 of 17 actionable items closed 2026-08-14; 1 declined and left open |
-| [TS-15](src/modules/ROOT/partials/015/GAPS.md) | User interfaces | 51 | 7 | 12 | Template — gained 1 item 2026-08-14, routed in from TS-26 |
+| [TS-15](src/modules/ROOT/partials/015/GAPS.md) | User interfaces | 0 | 7 | 12 | Template — all 51 actionable items closed 2026-08-14, jointly with TS-18 |
 | [TS-33](src/modules/ROOT/partials/033/GAPS.md) | Java | 55 | 3 | 4 | Template |
-| [TS-18](src/modules/ROOT/partials/018/GAPS.md) | Web GUIs | 60 | 26 | 5 | Template — gained 4 items 2026-08-14, routed in from TS-37 |
-| | **Total** | **169** | **85** | **41** | |
+| [TS-18](src/modules/ROOT/partials/018/GAPS.md) | Web GUIs | 1 | 26 | 5 | Template — 59 of 60 actionable items closed 2026-08-14, jointly with TS-15; 1 (neurodiversity.design) left open pending a proper re-fetch |
+| | **Total** | **59** | **80** | **37** | |
+
+TS-15 (User interfaces) was closed out in full on 2026-08-14, jointly with
+TS-18 — see the note at the top of this file. All 51 actionable items (47
+Missing, 4 Partial) were resolved: ten new content partials
+(`02-feedback-and-communication.adoc` through `10-visual-rhythm-and-text.adoc`)
+covering feedback and response-time thresholds, error prevention and
+messages, memory/cognitive load, flexibility, help, respecting conventions
+and mental models, managing choice and complexity, targeting, visual
+perception (aesthetics, ordering, Gestalt grouping), motivation and pacing,
+inputs/context/bias, API design principles, and spacing/microcopy/voice-and-
+tone; plus expansions to the existing "Keep it tidy" and "Embrace
+affordances" sections, and a new usability-definition paragraph on the page
+itself. TS-15 stays in this table at Actionable=0 because its 7 Out-of-scope
+items and 12 Unresolved references remain open — the same shape as TS-4,
+TS-16, TS-21, TS-27, TS-29, and TS-43 above.
+
+TS-18 (Web GUIs) had 59 of its 60 actionable items closed the same run,
+jointly with TS-15. The three existing partials (performance optimization,
+accessibility, fonts) were substantially expanded — TTFB, HTTP/2, script
+loading, layout thrashing, INP, bfcache, Speculation Rules, accessibility
+implementation detail (skip links, `<track>`/VTT, ARIA landmarks, native
+form validation, tooltip patterns), and font-loading patterns (FOIT/FOUT,
+sessionStorage caching, prioritised loading) — and two new partials were
+added: `04-javascript-behaviors.adoc` (component-behavior conventions from
+rsjs, memory-efficient DOM manipulation, form-submission integrity) and
+`05-css-layout-and-typography.adoc` (the four items relocated from TS-37's
+gap analysis: fluid typography, container queries, intrinsic layouts,
+readable measure). The references partial was renumbered
+`04-references.adoc` → `06-references.adoc` to make room, and gained roughly
+13 new source entries. One Missing item (neurodiversity.design) was
+deliberately left open, since only a thin landing page was ever fetched for
+it — not enough to write from without fabricating detail. TS-18 stays in
+this table at Actionable=1, Scope=26, Unresolved=5.
 
 TS-29 (JSON Schema) was closed out on 2026-08-14 across four `close-gaps`
 batches plus a same-day follow-up: the first batch closed the eight
@@ -328,27 +224,31 @@ overlapping content from `OLD-NOTES.md`/`OLD-NOTES-2.md`. A fifth
 Out-of-scope item — `copywriting.adoc`'s UI/short-message conventions — was
 confirmed out-of-scope for TS-26 (its content is UI microcopy register, not
 documentation prose) and instead routed to TS-15 (User interfaces) as a new
-Missing item there, at the user's request. TS-26 stays in this table, not
-the fully-resolved list, because its remaining 6 Out-of-scope items and 2
-Unresolved YouTube-adjacent references keep it short of zero unchecked
-items of any kind — the same shape as TS-4, TS-16, TS-27, and TS-29.
+Missing item there, which TS-15's 2026-08-14 `close-gaps` run subsequently
+closed (see the "Microcopy and UI text" section noted above). TS-26 stays in
+this table, not the fully-resolved list, because its remaining 6
+Out-of-scope items and 2 Unresolved YouTube-adjacent references keep it
+short of zero unchecked items of any kind — the same shape as TS-4, TS-16,
+TS-27, and TS-29.
 
 TS-39 was authored from a pure stub on 2026-08-14 and now has zero
-actionable items — see the note above — but stays in this table rather
-than joining the fully-resolved list, because 5 Out-of-scope items and 4
-Unresolved references remain open. TS-4, TS-16, and TS-27 all have zero
-actionable items but stay in this table rather than joining the
-fully-resolved list, because each has an unresolved resource still open —
-TS-4's reference directory no longer exists anywhere in the repository and
-re-fetching it has
+actionable items but stays in this table rather than joining the
+fully-resolved list, because 5 Out-of-scope items and 4 Unresolved
+references remain open. TS-4, TS-16, and TS-27 all have zero actionable
+items but stay in this table rather than joining the fully-resolved list,
+because each has an unresolved resource still open — TS-4's reference
+directory no longer exists anywhere in the repository and re-fetching it has
 failed on every run so far; TS-16's is `Program-Behavior.html`, still
-unfetchable as of the 2026-08-14 run (not re-attempted, since its content was
-already captured via a sub-agent in a prior run); TS-27's is a stub reference
-file (see the file's `## Unresolved` entry) not yet re-fetched. TS-29 and
-TS-26 now join this group for the same reason — two unfetched references
-each: YouTube for TS-29; for TS-26, a binary PDF with no text-extraction
-tool available, and a set of link-collection files whose ~40 linked URLs
-were never individually fetched.
+unfetchable (not re-attempted, since its content was already captured via a
+sub-agent in a prior run); TS-27's is a stub reference file (see the file's
+`## Unresolved` entry) not yet re-fetched. TS-29 and TS-26 join this group
+for the same reason — two unfetched references each: YouTube for TS-29; for
+TS-26, a binary PDF with no text-extraction tool available, and a set of
+link-collection files whose ~40 linked URLs were never individually fetched.
+TS-15 joins this group too, with 12 Unresolved references — the largest
+Unresolved count in the repository — mostly JavaScript-rendered design-system
+sites (Apple HIG, Salesforce Lightning, Material Design) and dead links that
+returned 404 or connection errors when fetched.
 
 TS-40 (CSS) had 16 of 17 actionable items closed on 2026-08-14. The one
 remaining item — a comparative summary of OOCSS/BEM/SMACSS/SUIT CSS
@@ -364,19 +264,6 @@ TS-16 (Command line interfaces) was closed out on 2026-08-14 — all 59
 actionable items (9 Missing, 50 Partial) resolved in one run across 8 of its
 11 partials — but stays in this table (at 0 actionable) because its 9
 out-of-scope items and 1 unresolved reference remain open.
-
-TS-7 (Code design) and TS-41 were closed out on 2026-08-13 — all of TS-7's 13
-actionable items resolved across two runs, TS-41 found already at zero — and
-have left this table for the fully-resolved list.
-
-TS-27 (Markdown) was closed out on 2026-08-13 — all 15 actionable items
-resolved in one run — but stays in this table (at 0 actionable) because its
-one unresolved item and six out-of-scope items remain open.
-
-TS-10 (Releasing) was closed out on 2026-08-13 — both actionable items
-turned out to already be resolved in TS-5 and TS-57's own directories, so
-TS-10 needed no content of its own — and has left this table for the
-fully-resolved list.
 
 TS-21 (HTTP APIs) was closed out on 2026-08-14, in two sessions across six
 `close-gaps` batches: all 8 Missing items in the first three batches (an
@@ -406,7 +293,7 @@ TS-43 (Relational databases and SQL) was restored to this table's rows on
 2026-08-14 — it was previously omitted, despite genuinely having 6 open
 Out-of-scope items and 4 Unresolved references in its own `GAPS.md`, an
 oversight in an earlier regeneration rather than new work. Its actionable
-count has been 0 since the 2026-08-14 `close-gaps` run described below.
+count has been 0 since the 2026-08-14 `close-gaps` run described above.
 
 TS-20 (Network APIs) left the fully-resolved list on 2026-08-14, gaining 1
 new Missing item routed in from TS-21 while confirming TS-21's own
@@ -414,32 +301,31 @@ out-of-scope items (general rate-limit response headers,
 `X-RateLimit-Limit`/`Remaining`/`Reset`). Not yet reviewed against TS-20's
 current content.
 
-TS-39 (HTML) was authored from a pure stub on 2026-08-14, closing all 136
-of its actionable items — over two fifths of the repository's prior total —
-in one run, rather than needing the several passes a batch-oriented
+TS-39 (HTML) was authored from a pure stub on 2026-08-14, closing all 136 of
+its actionable items — over two fifths of the repository's prior total — in
+one run, rather than needing the several passes a batch-oriented
 `close-gaps` run would ordinarily take. Thirteen new content partials were
 written (`01-fundamentals.adoc` through `13-accessibility.adoc`), covering
 document fundamentals, the document head, text content, tables, hyperlinks,
 forms and buttons, images, SVG, audio/video and embedded content, scripting
 conventions and templates, metadata schemas and semantics,
-internationalization, and accessibility. Five internal contradictions in
-the source reference material were each resolved as an explicit editorial
-decision recorded in the standard's own prose rather than left
-unreconciled: `<dl>` and `<caption>` are permitted, not blanket-forbidden;
-`<b>`/`<i>`/`<small>` are permitted for their specific semantic meanings,
-not blanket-forbidden; RDFa Lite is preferred over Microdata for
-Schema.org; and `<base href>` carries no trailing slash. TS-39's 5
-Out-of-scope items and 4 Unresolved references were carried forward
-unresolved, so it stays in the open-items table above (at Actionable=0)
-rather than joining the fully-resolved list. TS-18 (60) and TS-15 (51) are
-now the largest actionable counts remaining.
+internationalization, and accessibility. Five internal contradictions in the
+source reference material were each resolved as an explicit editorial
+decision recorded in the standard's own prose rather than left unreconciled:
+`<dl>` and `<caption>` are permitted, not blanket-forbidden; `<b>`/`<i>`/
+`<small>` are permitted for their specific semantic meanings, not
+blanket-forbidden; RDFa Lite is preferred over Microdata for Schema.org; and
+`<base href>` carries no trailing slash. TS-39's 5 Out-of-scope items and 4
+Unresolved references were carried forward unresolved, so it stays in the
+open-items table above (at Actionable=0) rather than joining the
+fully-resolved list. TS-33 (Java, 55) is now the largest actionable count
+remaining.
 
 ## Standards with neither a stub nor a GAPS.md
 
 TS-1, TS-17, TS-19, TS-22, TS-28, TS-30, TS-32, TS-34, TS-45, TS-47, TS-51,
 TS-53, TS-55, TS-56, TS-58, TS-59, TS-60, TS-62, and TS-63 all have
-substantive content and no recorded gap analysis. TS-55 is new to this list —
-authored from a pure stub on 2026-08-14, see the note above. A gap analysis
+substantive content and no recorded gap analysis. A gap analysis
 (`/gap-analysis`) could be run against any of them; none is known to be
 missing content today.
 
@@ -512,7 +398,10 @@ govern how all new content should be written.
   referencing it as `<<anchor-id,Full title>>`, which keeps the headings,
   the table of contents, and any external deep links unchanged. Retitling
   the sections to drop the commas was the alternative, and was rejected for
-  that reason.
+  that reason. A twelfth instance of this pitfall recurred on 2026-08-14 in
+  TS-18's `06-references.adoc`, referencing the newly-added "Reflows,
+  repaints, and layout thrashing" section — fixed the same way, with an
+  explicit `[#reflows-repaints-and-layout-thrashing]` anchor.
 
 - **PARTIALLY RESOLVED — assorted defects in TS-9**, found while retargeting
   its cross-references and originally left alone as out-of-scope. Fixed on
@@ -561,8 +450,10 @@ govern how all new content should be written.
   of the 2026-08-14 gap-closing work, having been renumbered four times;
   TS-21's now live in `21-references.adoc`, renumbered from
   `20-references.adoc` the same day to make room for a new
-  "Alternative HTTP API styles" partial). Twenty-three pages carry a
-  `== References` section.
+  "Alternative HTTP API styles" partial; TS-18's now live in
+  `06-references.adoc`, renumbered from `04-references.adoc` the same day to
+  make room for its two new JavaScript-behaviors and CSS-layout partials).
+  Twenty-three pages carry a `== References` section.
 
 - **RESOLVED — a broken sentence in the `deep-dive` skill.**
   `.agents/skills/deep-dive/SKILL.md:55` read "The mechanical verification in
@@ -655,11 +546,13 @@ govern how all new content should be written.
   typography via `clamp()`, container queries, intrinsic flex/grid layouts,
   `text-wrap: balance`/`ch`) were confirmed out-of-scope for TS-37 by the
   user and relocated as 4 new Missing items in TS-18's `GAPS.md` (actionable
-  56 → 60) rather than dropped. TS-37's `GAPS.md` reached zero unchecked
-  items of any kind, so it moves directly from the stub table to the
-  fully-resolved list — the first standard in this file's history to do so
-  in a single run, rather than first losing its stub status and later being
-  worked by a separate `close-gaps` pass.
+  56 → 60) rather than dropped — subsequently closed by TS-18's 2026-08-14
+  `close-gaps` run as the new `05-css-layout-and-typography.adoc` partial.
+  TS-37's `GAPS.md` reached zero unchecked items of any kind, so it moved
+  directly from the stub table to the fully-resolved list — the first
+  standard in this file's history to do so in a single run, rather than
+  first losing its stub status and later being worked by a separate
+  `close-gaps` pass.
 
 - **RESOLVED — TS-38 authored from a pure stub and fully resolved in one
   run.** TS-38 (Node.js applications) previously held only a `// TODO`
@@ -684,7 +577,10 @@ govern how all new content should be written.
   did have a `GAPS.md`, so the resolution note lives in that pre-existing
   legacy-format file rather than requiring a new one — the file's own
   single-gap shape needed no conversion to the template format to record
-  the closure.
+  the closure. Its `**RESOLVED.**` marker (period inside the bold, unlike
+  every other legacy file's `**RESOLVED**`) is a known trap for the
+  mechanical regeneration script — see
+  [Regenerating this file](#regenerating-this-file).
 
 - **RESOLVED — TS-44 authored from a pure stub and fully resolved in one
   run.** TS-44 (Non-relational (NoSQL) databases) previously held only a
@@ -713,6 +609,21 @@ govern how all new content should be written.
   so the resolution notes live in that pre-existing legacy-format file rather
   than requiring a new one — its own two-gap shape needed no conversion to
   the template format to record the closure.
+
+- **RESOLVED — TS-15 and TS-18 closed out jointly in one run.** A
+  `close-gaps` run on 2026-08-14 was applied to both TS-15 (User interfaces)
+  and TS-18 (Web GUIs) together, at the user's explicit request, specifically
+  to catch gaps recorded against the wrong one of the two standards. Both
+  files' items were re-read against each other's scope before any content was
+  written; none needed to move. TS-15 closed all 51 of its actionable items
+  and stays in the open-items table only for its Out-of-scope/Unresolved
+  counts (see the table note above). TS-18 closed 59 of 60, leaving one
+  (neurodiversity.design) open pending a proper source re-fetch, and gained
+  two new partials plus a renumbered references partial (see the table note
+  above). Several TS-18 items closed in this run carry an inherited scope
+  flag (bordering TS-5, application architecture) that was restated for the
+  user rather than resolved silently, consistent with how this file has
+  always treated a scope call as the user's decision.
 
 ## Regenerating this file
 
@@ -752,10 +663,19 @@ A standard is "fully resolved" when its `GAPS.md` has zero unchecked items of
 *any* kind — `grep -c '^- \[ \]'` returns 0 — not merely zero actionable
 items. TS-4 is the example that makes this distinction matter: it has 0
 actionable items but 1 unresolved resource still unchecked, so it stays in
-the open-items table. TS-29 is the same shape after its 2026-08-14
-gap-closing work: 0 actionable, 0 out-of-scope, but 2 Unresolved references
-still unchecked. A legacy-format file must be checked the same way — count
-`## <gap title>` subsections against `**RESOLVED**` markers, per the script
-above — rather than assumed resolved because it is short or old: TS-38 and
-TS-44 were wrongly marked fully resolved in a prior pass for exactly this
-reason.
+the open-items table. TS-29 and TS-15 are the same shape: TS-29 has 0
+actionable / 0 out-of-scope but 2 Unresolved references still unchecked;
+TS-15 has 0 actionable but 7 Out-of-scope and 12 Unresolved still unchecked.
+A legacy-format file must be checked the same way — count `## <gap title>`
+subsections against `**RESOLVED**` markers, per the script above — rather
+than assumed resolved because it is short or old: TS-38 and TS-44 were
+wrongly marked fully resolved in a prior pass for exactly this reason.
+
+The legacy-format script also has one known false negative: it matches the
+literal string `**RESOLVED**`, but TS-38's `GAPS.md` closes its one gap with
+`**RESOLVED.**` (the period sits inside the bold markup, not after it) — the
+only file in the repository written that way. The script reports TS-38 as
+`actionable=1` even though the gap is genuinely closed; verify any legacy
+file the script reports as non-zero by reading it before trusting the count,
+the same caution the script's template branch already needs for its
+Out-of-scope/Unresolved blind spots.
