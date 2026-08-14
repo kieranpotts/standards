@@ -68,7 +68,40 @@ performance-critical asset.
   It renders fallback text immediately and swaps to the custom font when it
   arrives, preventing invisible text. Consider `font-display: optional` for
   decorative or non-critical fonts. It permits the browser to skip the custom
-  font entirely on slow connections.
+  font entirely on slow connections. Without `font-display`, a browser's
+  default behavior is either *FOIT* (Flash of Invisible Text — the browser
+  hides text until the custom font arrives or a timeout expires) or *FOUT*
+  (Flash of Unstyled Text — it renders the fallback immediately and swaps in
+  the custom font later). `font-display: swap` is, in effect, a
+  browser-native way to guarantee FOUT behavior and avoid FOIT. Before
+  `font-display` existed, the same FOUT behavior was achieved manually with
+  the Font Face Observer library and a JavaScript class toggled on the
+  document root once the font's `load()` promise resolved; this pattern
+  predates `font-display` and is a legacy fallback for the rare case of
+  needing finer control than the CSS descriptor gives.
+
+* When loading a whole font family (multiple weights or styles), load the
+  group together — for example, with `Promise.all()` over each face's
+  `FontFace.load()` — rather than letting each weight resolve independently.
+  Loading the family as a unit avoids showing faux-bold or faux-italic
+  fallback styles for weights that have not yet arrived, and collapses what
+  would otherwise be several separate reflows (one per weight swap) into a
+  single reflow when the whole group is ready.
+
+* Where a page loads more than one custom font, consider *prioritised
+  (sequential) loading*: load a small, critical font first — for example, a
+  body-text face — and gate the load of a larger, secondary font (eg. a
+  decorative display face) on the first one succeeding. This gets critical
+  text rendering with its intended font sooner, without making the whole
+  page wait on the largest font file.
+
+* Cache font-loaded state in `sessionStorage` once a font has successfully
+  loaded, and check it before applying `font-display: swap`'s fallback
+  behavior on subsequent page views within the same session. This lets
+  repeat views within a session render directly in the custom font — since
+  the browser's own HTTP cache already guarantees the font file itself does
+  not need re-fetching — avoiding a visible FOUT flash on every navigation
+  within one visit.
 
 * Consider using *HTTP 103 Early Hints* to push critical font preload hints
   before the main HTML response is delivered, reducing time-to-text on the first

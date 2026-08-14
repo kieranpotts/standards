@@ -2,11 +2,160 @@
 
 Web GUIs SHOULD be designed to be as fast and responsive as possible.
 
-For the fastest possible web GUIs, the following optimizations are RECOMMENDED:
+Performance is not only a satisfaction metric. Response time changes how
+users use an interface: a sub-100ms response invites interactive, iterative
+use, and a slow tool is used differently — and less often — than a fast one
+that solves the same problem. See
+xref:015.adoc[*TS-15: User interfaces*], "Feedback and system status", for
+the general response-time thresholds (100ms/400ms/1s/10s) and this effect,
+which applies to any interface and is not repeated here.
 
-* *Server-render* as much HTML as possible, preferably all of it. The browser's
-  native HTML engine will always be able to render HTML faster than any custom
-  client-side JavaScript can.
+For the fastest possible web GUIs, the following optimizations are RECOMMENDED.
+This standard follows a *progressive enhancement* model: serve a static
+baseline that works without JavaScript or CSS, then layer enhancements on top
+of it. Anything that requires JavaScript to function MUST be injected by
+JavaScript, not present in the initial markup and then broken without it.
+
+== Time to First Byte
+
+*Time to First Byte* (TTFB) is the time between a browser requesting a page
+and receiving the first byte of the response. It is a foundational
+performance metric — every other rendering metric (LCP, FCP) is delayed by
+however long TTFB takes, so optimizing rendering without addressing TTFB has
+a ceiling.
+
+* TTFB has four main contributors: network latency, request routing, the
+  time the application takes to run and query its data sources, and (for
+  server-rendered pages) the cost of generating the HTML response itself.
+  Each SHOULD be measured separately to find where time is actually spent.
+
+* Use a CDN to reduce network latency and, where practical, cache rendered
+  HTML at the edge — even briefly — or move dynamic logic to edge compute, so
+  fewer requests travel all the way back to an origin server.
+
+* Surface a server-side timing breakdown to the front end using the
+  `Server-Timing` HTTP response header. This lets performance tooling (and
+  browser DevTools) show *where* server time was spent — routing, database
+  queries, rendering — directly alongside client-side metrics, rather than
+  treating TTFB as an opaque number.
+
+== HTTP/2 and asset delivery
+
+* Serve web GUI assets over *HTTP/2* (or later). HTTP/2 multiplexes many
+  requests over a single connection, removing the head-of-line blocking and
+  per-connection overhead that made HTTP/1.x asset-bundling workarounds
+  necessary.
+
+* Under HTTP/1.x, bundling many small files into fewer, larger ones reduces
+  the number of round trips, at the cost of coarser cache invalidation — a
+  one-line change busts the cache for the whole bundle. Under HTTP/2,
+  serving many small, natively-cacheable modules avoids that trade-off, since
+  multiplexing removes the per-request penalty that made bundling necessary
+  in the first place. Choose the strategy that matches the actual transport
+  in use, and reassess it if the transport changes.
+
+== Script loading
+
+* Place `<script>` elements before the closing `</body>` tag, or use the
+  `defer` attribute, so script downloading and execution does not block HTML
+  parsing and rendering.
+
+* Use `defer` for scripts that must run in document order after the DOM is
+  parsed; use `async` for independent scripts (such as analytics) that do not
+  depend on DOM state and can execute as soon as they are downloaded,
+  regardless of order.
+
+* Load scripts after stylesheets in the document, so style information is
+  available before any script that might read computed styles runs.
+
+* Minimize the JavaScript actually shipped. Prefer a Baseline
+  widely-available platform feature over a JavaScript reimplementation of the
+  same capability; use a coverage tool (eg. Chrome DevTools' Coverage panel)
+  to find and remove unused code; and periodically prune tag-manager tags
+  that have accumulated without being removed.
+
+[#reflows-repaints-and-layout-thrashing]
+== Reflows, repaints, and layout thrashing
+
+* Prefer CSS animations and transitions over JavaScript-driven animation.
+  Where JavaScript-driven animation is unavoidable, animate an unstyled
+  wrapper element rather than an element carrying layout-affecting styles
+  directly, to reduce the layout work triggered by each frame.
+
+* Never animate or transition a CSS property that requires a layout update —
+  `margin`, `border`, `top`, `left`, and similar. Prefer `transform` (eg.
+  `translateX`) and `opacity`, which the browser can animate on the
+  compositor without triggering layout, and which therefore cannot cause a
+  cumulative layout shift.
+
+* Avoid *layout thrashing*: interleaving DOM reads (eg. `offsetHeight`) with
+  DOM writes (eg. setting `style`) inside a loop forces the browser to
+  recalculate layout on every iteration. Batch all reads together, then all
+  writes, so layout is recalculated once.
+
+* Use the CSS `contain` property to scope layout, style, or paint
+  calculations to a subtree, so the browser can skip recalculating the rest
+  of the page when that subtree changes — particularly valuable for
+  off-screen or independently-updating regions of a large page.
+
+* Keep the overall DOM size small. A large DOM makes every layout
+  recalculation more expensive, independent of how carefully reads and
+  writes are batched.
+
+* Use event delegation: attach one listener to a common ancestor rather than
+  a separate listener to each of many child elements. This reduces the total
+  number of bound listeners, which reduces both memory use and the setup cost
+  of initializing many individual handlers. See
+  <<JavaScript behaviors>> for how this applies to component-scoped behavior
+  code specifically.
+
+== Interaction responsiveness
+
+* Track *Interaction to Next Paint* (INP) — the time from a user interaction
+  to the next frame the browser paints in response — as a Core Web Vital
+  alongside LCP and CLS.
+
+* Break up long-running JavaScript tasks so they yield control back to the
+  main thread periodically, rather than blocking it for the whole task
+  duration. Use the Scheduler API's `scheduler.yield()` where available, or
+  chunk the work manually, so user input is not delayed behind an in-flight
+  task.
+
+== Instant navigations
+
+* Design pages to be eligible for the browser's *back/forward cache*
+  (bfcache): avoid setting `Cache-Control: no-store` on pages that should be
+  bfcache-eligible, and avoid `unload` event listeners, which disqualify a
+  page from bfcache in most browsers. A bfcache hit restores the page
+  instantly from memory on back/forward navigation and eliminates the layout
+  shifts a fresh navigation would otherwise cause.
+
+* Use the *Speculation Rules API*
+  (`<script type="speculationrules">`) to pay forward the cost of a likely
+  next navigation. `prefetch` pays the next page's TTFB up front; `prerender`
+  additionally pays FCP and LCP up front, so the navigation itself is
+  effectively instant. Configure an eagerness level (`immediate`,
+  `moderate`, `eager`) appropriate to the confidence of the prediction, and
+  use `href_matches` or `selector_matches` predicates to scope which links
+  qualify. This extends the hover-based HTML pre-fetch technique above with
+  a declarative, browser-native mechanism, and SHOULD be layered with an
+  opt-in/opt-out hook (eg. a `data-prefetch` attribute) so individual links
+  can be excluded where speculative loading would be wasteful or unsafe.
+
+* Where a Speculation Rules cache holds stale or sensitive data — for
+  example, after a user signs out — purge it explicitly with the
+  `Clear-Site-Data` HTTP response header's `prefetchCache` and
+  `prerenderCache` directives.
+
+== Rendering and asset delivery
+
+* *Server-render* as much HTML as possible, preferably all of it. The
+  browser's native HTML engine will always be able to render HTML faster than
+  any custom client-side JavaScript can. Where the LCP resource is an image,
+  use a plain `<img src>`/`srcset`, not a `data-src` attribute that requires
+  JavaScript to resolve, and prefer server-side rendering over client-side
+  rendering so the image markup is present in the HTML source the browser
+  first receives, discoverable before any JavaScript executes.
 
 * *Pre-fetch* as much HTML as possible. For example, when the user hovers over a
   link, the browser can pre-fetch the HTML for the linked page. Further
@@ -19,7 +168,13 @@ For the fastest possible web GUIs, the following optimizations are RECOMMENDED:
 * Also use `<link rel="preload">` in the HTML `<head>` section to suggest the
   browser preload assets such as CSS, JavaScript, and web fonts. This will
   reduce the number of blocking requests the browser has to make before it can
-  do an initial render of server-side HTML.
+  do an initial render of server-side HTML. Where the LCP resource must be
+  referenced from CSS or JavaScript rather than plain HTML markup, preload it
+  explicitly this way so the browser does not have to wait to discover it.
+
+* Set `fetchpriority="high"` on the `<img>` element identified as the page's
+  LCP resource, to raise its fetch priority above other images competing for
+  bandwidth early in the page load.
 
 * Use `<link rel="dns-prefetch">` to suggest the browser pre-fetch DNS records
   for third-party domains that are used by the application. This can reduce the
@@ -58,7 +213,11 @@ For the fastest possible web GUIs, the following optimizations are RECOMMENDED:
   required to enable dynamic functionality on the current page. This is known as
   *code splitting* and tools are available to do this automatically (at compile
   time or dynamically on the server-side). Avoid loading _all_ your JavaScript
-  on _all_ your pages.
+  on _all_ your pages. Which strategy code splitting should target depends on
+  the HTTP protocol in service — see <<HTTP/2 and asset delivery>>. Code
+  splitting decides *what* to serve; a build's module bundler decides *how*
+  it is packaged for delivery, and the two decisions are related but
+  distinct.
 
 * Consider *lazy loading* additional JavaScript that enhances the user
   experience but is not required to enable the core functionality.
@@ -67,7 +226,17 @@ For the fastest possible web GUIs, the following optimizations are RECOMMENDED:
   attribute to set the `width` and `height` CSS properties of the images'
   containers. This allows the browser to allocate space for an image before it
   is downloaded, which prevents the page from jumping around as images are
-  loaded – which counts as another re-render.
+  loaded – which counts as another re-render. For elements whose width is
+  responsive but whose aspect ratio is fixed, use the CSS `aspect-ratio`
+  property to reserve the correct space without hardcoding pixel dimensions.
+  Where the final size cannot be known in advance (eg. user-generated content
+  of variable length), set a `min-height` as a fallback to at least bound how
+  severe the layout shift can be.
+
+* Use the native `loading="lazy"` attribute on below-the-fold `<img>`
+  elements to defer their download until they approach the viewport. MUST NOT
+  be applied to the page's LCP image — lazy-loading the LCP resource delays
+  the very metric this section is optimizing for.
 
 * Don't be afraid to use age-old techniques such as *image sprites* to reduce
   the number of requests required to fetch things like product thumbnails,

@@ -36,6 +36,22 @@ All content MUST be presentable to users in ways they can perceive.
 
 * Live video with audio MUST include real-time captions.
 
+* Implement captions, transcripts, and audio descriptions using the HTML
+  `<track>` element with WebVTT (`.vtt`) files, rather than burning captions
+  into the video itself. A `<track kind="captions">` element lets users
+  toggle captions and lets assistive technology navigate them as text; a
+  `<track kind="descriptions">` element carries a machine-readable audio
+  description.
+
+[source,html]
+----
+<video controls>
+  <source src="video.mp4" type="video/mp4">
+  <track kind="captions" src="captions-en.vtt" srclang="en" label="English">
+  <track kind="descriptions" src="descriptions-en.vtt" srclang="en">
+</video>
+----
+
 *Adaptable*:
 
 * Visual information and relationships — such as headings, labels, and groupings
@@ -55,13 +71,21 @@ All content MUST be presentable to users in ways they can perceive.
 * Common form fields (such as name, email, and address) SHOULD use the
   `autocomplete` attribute to enable browser autofill.
 
+* HTML markup MUST be valid, validated with the
+  https://validator.w3.org/[W3C Markup Validation Service] or equivalent
+  tooling. Valid markup is a baseline for reliable assistive-technology
+  interpretation — see <<4. Robust>> — not merely a code-quality nicety.
+
 *Distinguishable*:
 
 * Color MUST NOT be the only means of conveying information. Always pair color
   with a supplementary cue such as a text label, icon, underline, or pattern.
 
 * Audio that plays automatically for more than 3 seconds MUST be pausable or
-  stoppable without relying on system-wide volume controls.
+  stoppable without relying on system-wide volume controls. Auto-playing
+  video and interactive content — including games — SHOULD be paused by
+  default rather than merely pausable, so the burden is not on the user to
+  notice and stop it.
 
 * Normal-sized text MUST have a contrast ratio of at least 4.5:1 against its
   background. Large text (over 24px regular, or over 19px bold) requires a ratio
@@ -83,7 +107,17 @@ All content MUST be presentable to users in ways they can perceive.
 
 * Tooltip-style content that appears on hover or keyboard focus MUST be
   dismissible (eg. via the Escape key), hoverable, and persistent until the user
-  dismisses it.
+  dismisses it. A tooltip is text-only and non-interactive; use a `dialog`
+  instead for any popup containing interactive content. Label an icon
+  trigger with `aria-labelledby`, provide the tooltip's content with
+  `aria-describedby`, and mark the tooltip itself with `role="tooltip"` — do
+  not combine `role="tooltip"` with `aria-haspopup`, and do not use the
+  `title` attribute, which is inconsistently exposed to assistive technology
+  and inaccessible on touch devices. Because tooltips have no reliable touch
+  equivalent, prefer a visible label over a tooltip wherever the interface
+  will be used on touch devices. For an informational popup that must work
+  on touch, use a *toggletip* instead — a `<button>` that reveals content in
+  a `role="status"` live region on tap — rather than relying on hover.
 
 == 2. Operable
 
@@ -105,7 +139,10 @@ All UI components and navigation MUST be operable by all users.
 * Time limits SHOULD be avoided unless essential to the task.
 
 * Where a time limit is used, users MUST be able to turn it off, adjust it to at
-  least 10x the default, or extend it on request.
+  least 10x the default, or extend it on request. Users MUST be warned at
+  least 20 seconds before expiry, with a simple, one-action way to extend
+  (eg. a single "Continue session" button), so the warning itself does not
+  become another obstacle to clear.
 
 * Moving, scrolling, blinking, or auto-updating content that persists for more
   than 5 seconds MUST be pausable, stoppable, or hideable.
@@ -122,6 +159,27 @@ All UI components and navigation MUST be operable by all users.
 bypass repeated header and navigation blocks and jump directly to the main
 content.
 
+* Implement the skip link as the first focusable element on the page, hidden
+  visually until it receives keyboard focus, at which point it MUST become
+  visible. Pair it with a "back to top" link at the end of the main content
+  region so keyboard users can return without re-traversing the whole page.
+
+[source,html]
+----
+<a class="skip-link" href="#main-content">Skip to main content</a>
+<!-- ... header, navigation ... -->
+<main id="main-content">
+  <!-- ... page content ... -->
+  <a href="#top">Back to top</a>
+</main>
+----
+
+* Use the `<link rel="index|next|prev|contents">` elements in the document
+  `<head>` to expose document-level navigation metadata — the site index, and
+  the previous/next page in a sequence such as a paginated article or a
+  documentation series — for user agents and assistive technology that
+  surface this metadata as navigation shortcuts.
+
 * Every page MUST have a unique and descriptive `<title>`.
 
 * Keyboard focus order MUST follow a logical and meaningful sequence that
@@ -131,7 +189,10 @@ content.
   combination with its surrounding context.
 
 * At least two methods MUST be available to locate pages or content within the
-  site (eg. a navigation menu and a site search).
+  site (eg. a navigation menu and a site search). Breadcrumbs and a sitemap
+  are two further, complementary ways to satisfy this: breadcrumbs give the
+  user their current location within the site hierarchy on every page they
+  visit, and a sitemap gives an overview of the whole hierarchy at once.
 
 * Headings and form labels MUST be descriptive.
 
@@ -186,15 +247,38 @@ Content and UI behavior MUST be understandable by all users.
 * Help options — such as a contact link or support widget — MUST appear in the
   same location across pages.
 
+* Use `<noscript>` only to surface a message explaining that content
+  genuinely cannot work without JavaScript — it MUST NOT be used to fork the
+  experience into separate JS and no-JS versions. This follows directly from
+  the progressive-enhancement model stated in <<Performance optimization>>:
+  the baseline already works without JavaScript, so `<noscript>` is only
+  ever needed for the rare feature that has no non-JS equivalent at all.
+
 *Input assistance*:
 
-* All form fields MUST have clear, descriptive labels or instructions.
+* All form fields MUST have clear, descriptive labels or instructions. Group
+  related fields in a long form with `<fieldset>` and `<legend>`, so
+  assistive technology can navigate the form by group rather than as one
+  undifferentiated sequence of fields.
 
 * Errors and validation failures MUST be identified and described in text, not
   just by color or visual styling alone.
 
 * Error messages MUST include a suggestion for how to fix the problem where
   possible.
+
+* Use the native HTML constraint validation API as the first line of
+  validation: the `required` attribute, typed inputs (`type="email"`,
+  `type="number"`, `type="url"`), the `pattern` attribute, and `maxlength`.
+  These give the browser's own accessible, keyboard- and screen-reader-
+  compatible validation UI for free. Use the `setCustomValidity()` method to
+  surface custom or asynchronous validation results (eg. a username
+  availability check) through that same native UI, rather than building a
+  parallel one. See xref:015.adoc[*TS-15: User interfaces*], "Error
+  messages", for how the resulting messages should be worded. General HTTP
+  API request validation is covered by
+  xref:021.adoc[*TS-21: HTTP APIs*]; this item is about the client-side
+  input experience specifically.
 
 * Before submitting forms that trigger consequential actions (such as payments
   or legal submissions), users MUST be able to review, correct, or confirm their
@@ -220,7 +304,13 @@ assistive technologies.
   interact with them.
 
 * Use semantic HTML elements wherever possible — supplemented by ARIA roles and
-  properties only where native semantics are insufficient.
+  properties only where native semantics are insufficient. Identify the
+  page's major regions with ARIA landmark roles — `banner` for the site
+  header, `navigation` for each navigation block, `main` for the primary
+  content — and give each `navigation` landmark a distinguishing
+  `aria-label` where a page has more than one, so assistive-technology users
+  can jump directly between regions rather than reading through all of them
+  in sequence.
 
 * Status messages — such as form confirmation notices, error summaries, or live
   content updates — MUST be coded using appropriate ARIA live-region roles (such

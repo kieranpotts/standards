@@ -1,0 +1,137 @@
+= JavaScript behaviors
+
+Client-side JavaScript that adds interactive behavior to a server-rendered
+page SHOULD be organized around the same *component behaviors* the GUI
+itself is built from, rather than as a monolithic script that reaches across
+the whole page.
+
+== Component behaviors
+
+* *Think in component behaviors.* A piece of client-side JavaScript SHOULD
+  affect exactly one DOM subtree — a component — and SHOULD be kept in its
+  own file, dedicated to that component's behavior. This mirrors how the GUI
+  is already decomposed visually into components; the JavaScript that
+  animates a component follows the same boundary.
+
+* *One behavior file per component.* Keep each self-contained behavior file
+  in a dedicated `behaviors/` directory, named after the CSS selector or
+  data attribute it targets, so a reader can find a component's behavior
+  file from its markup alone.
+
+* *Mark hooks with a `data-js-*` attribute*, not a class or ID, to
+  disambiguate a JavaScript hook from a CSS styling hook. Where a class must
+  be used for a JavaScript hook instead, prefix it `js-` and MUST NOT also
+  carry styling — restyling a component then cannot silently break its
+  behavior, and the origin of any given behavior stays unambiguous from the
+  class name alone.
+
+* *Load all behaviors on every page.* Because each behavior is scoped to its
+  own selector, it is safe to concatenate all of them into one bundle loaded
+  site-wide; a behavior with no matching element on the current page simply
+  does nothing. This avoids maintaining a per-page manifest of which scripts
+  to include. Where the resulting bundle grows large enough to affect load
+  performance, apply the code-splitting guidance in
+  <<Performance optimization>> instead — the two approaches address
+  different scales of the same problem.
+
+* *Bind on document-ready, and guard against absence.* Initialize a behavior
+  inside the `DOMContentLoaded` handler, so its target element is guaranteed
+  to exist in the DOM before the behavior runs. Bail out immediately if the
+  target is absent (eg. `if (!el) return;`), so the behavior has no effect,
+  and throws no error, on pages that do not use it.
+
+* *Re-initialize behaviors bound to dynamic content.* Where new DOM is
+  injected after the initial page load (eg. by an AJAX-loaded modal), the
+  behaviors relevant to that new content MUST be re-run against it. Use an
+  idempotent include-guard — for example, marking an element with a
+  `data-js-initialized` attribute once its behavior has run — so
+  re-initialization skips elements that are already set up rather than
+  double-binding them.
+
+* *Organize shared helpers separately.* A function reused by more than one
+  behavior belongs in a dedicated `helpers/` directory and a shared
+  namespace, not duplicated into each behavior file that needs it.
+
+* *Integrate third-party scripts as behaviors too.* A third-party widget
+  (eg. a calendar picker or a payments SDK) SHOULD be initialized through
+  the same component-behavior convention as first-party code — bound to a
+  dedicated hook, scoped to its own subtree — rather than initialized ad hoc
+  wherever it happens to be needed. This keeps every piece of interactive
+  behavior discoverable the same way, first-party or not.
+
+== Memory-efficient DOM manipulation
+
+* *Prefer showing and hiding existing elements over recreating them.* Where
+  a piece of server-rendered markup can be toggled visible or hidden, do
+  that instead of destroying and rebuilding the equivalent DOM with
+  JavaScript. This keeps the DOM mostly static, which avoids both repeated
+  garbage-collection churn and the layout cost of rebuilding subtrees.
+
+* *Read with `textContent`, not `innerText`.* `innerText` is layout-aware —
+  reading it forces the browser to compute the element's current rendered
+  styles, triggering a reflow. `textContent` returns the raw text content
+  without touching layout.
+
+* *Insert with `insertAdjacentHTML`, not `innerHTML`.* Assigning to
+  `innerHTML` destroys and recreates the *entire* existing subtree before
+  inserting the new content; `insertAdjacentHTML` only affects the position
+  it targets, leaving surrounding DOM (and any state or listeners attached
+  to it) intact.
+
+* *Use `<template>` for creating and inserting new nodes.* Where new DOM
+  genuinely must be created, clone a `<template>` element's content and
+  insert it with `appendChild` or `insertAdjacentElement`. This is the
+  fastest browser-native pattern for producing fully-formed DOM nodes from a
+  string, faster than building elements individually with `createElement`
+  calls.
+
+* *Batch multiple insertions with `createDocumentFragment`.* Where several
+  nodes must be inserted at once, assemble them into a
+  `DocumentFragment` first, then insert the fragment in a single operation.
+  This triggers one reflow instead of one per node.
+
+* *Use `WeakMap`/`WeakRef` to associate data with DOM nodes.* Storing
+  per-element data in a plain object or `Map` keyed by the element keeps
+  that element (and its associated data) alive even after it is removed from
+  the DOM, because the map still holds a strong reference to it. A `WeakMap`
+  or `WeakRef` lets the node and its associated data be garbage-collected
+  together once the node is removed and no other reference to it remains.
+
+* *Clean up event listeners.* Remove a listener with `removeEventListener`
+  when it is no longer needed; use the `addEventListener` `once` option for
+  a listener that should fire only once and then detach itself; and use an
+  `AbortController`, passed as the `signal` option to multiple
+  `addEventListener` calls, to unbind a whole group of listeners in one
+  `abort()` call — useful when tearing down a component behavior bound to
+  content that has since been removed.
+
+== Form submission integrity
+
+A user who double-clicks a submit button, or resubmits a form after a slow
+response, can trigger the same consequential action — a payment, an
+order — twice. Prevent this with a client-side idempotency key:
+
+* When a form is first rendered, include a hidden
+  `<input type="hidden" name="idempotency_key">` populated with a unique
+  value generated at render time. This value MUST stay the same across
+  repeated submissions of the same form instance, even if the user submits
+  it more than once.
+
+* The server uses this key to deduplicate the request, so a second
+  submission carrying the same key does not repeat the side effect. See
+  the idempotency-key guidance in
+  xref:021.adoc[*TS-21: HTTP APIs*], "Safeness and idempotency", for the
+  server-side half of this pattern.
+
+* This technique complements, but does not replace, disabling the submit
+  button immediately after the first click (to prevent the double-click
+  itself) and following the POST-redirect-GET pattern (so a page reload does
+  not resubmit the form). Use the idempotency key as the authoritative
+  safeguard, since the client-side disable can be bypassed (eg. by a slow
+  network causing a user to resubmit from a second tab) in a way the
+  server-side key cannot.
+
+This is distinct from the WCAG requirement that a consequential submission
+be reviewable and confirmable before it commits — see
+<<3. Understandable>>, "Input assistance" — which addresses informed
+consent, not duplicate submission.

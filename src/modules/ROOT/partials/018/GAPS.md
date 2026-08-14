@@ -66,31 +66,125 @@ the maintainer's scope confirmation that this material belongs in TS-18
 rather than TS-37. All four added as new Missing items; no gaps checked off
 in this run. All prior gaps remain open.
 
+**Sixth run (`close-gaps`), 2026-08-14.** 59 of 60 actionable items (44 of 45
+Missing, all 15 Partial) closed in one run, across expansions to the three
+existing partials (`01-performance-optimization.adoc`,
+`02-web-accessibility.adoc`, `03-fonts.adoc`) plus two new partials —
+`04-javascript-behaviors.adoc` (component-behavior conventions, memory-
+efficient DOM manipulation, and form-submission integrity) and
+`05-css-layout-and-typography.adoc` (fluid typography, container queries,
+intrinsic layouts, readable measure) — inserted before the existing
+references partial, which was renumbered from `04-references.adoc` to
+`06-references.adoc` to make room. One Missing item
+(neurodiversity.design) was deliberately left open: its own note already
+flagged that only a thin landing page was ever retrieved, and that remains
+true — re-fetching the per-principle pages is a precondition for writing
+real content, not something this run could responsibly fabricate around.
+
+This run was conducted jointly with a `close-gaps` run against TS-15 (User
+interfaces), on the user's request, specifically to catch gaps that would be
+better routed between the two standards. None were found in either
+direction: every TS-18 gap closed here is web-implementation-specific
+(HTTP/CSS/DOM/WCAG mechanics with concrete markup, headers, or CSS
+properties), and every TS-15 gap closed in that companion run is a
+platform-agnostic HCI/UX principle (Nielsen heuristics, Laws of UX) that
+applies equally to a CLI or a native app. The two standards' new content
+does cross-reference each other in several places — TS-18's response-time
+material points to TS-15's thresholds rather than repeating them, and
+TS-18's error-message-attribute guidance points to TS-15's error-message
+wording conventions — but no gap item itself needed to move.
+
+Several closed items carry a scope flag inherited from earlier runs (the
+rsjs component-behavior items and the form-submission-integrity item note
+they border TS-5 (application architecture) or expand TS-18 beyond its
+original three pillars). None of those flags were resolved in this run;
+they are restated in the run summary reported to the user, for the user to
+confirm or overrule, consistent with how this file has always treated a
+scope call as the user's decision rather than the gap-closing agent's.
+
 ## Missing
 
-- [ ] https://csswizardry.com/2019/08/time-to-first-byte-what-it-is-and-why-it-matters/#what-is-ttfb — Time to First Byte (TTFB) as a performance metric and its contributors (latency, routing, application runtime, DB queries, SSR cost). TS-18 mentions LCP but never TTFB. Recommend a new subsection in `01-performance-optimization.adoc` after the LCP note (~L53). Reinforced by https://web.dev/articles/top-cwv#3-use-a-cdn-to-optimize-ttfb, which frames TTFB as CDN-optimizable and additionally recommends caching static HTML at the edge (even briefly) and moving dynamic logic to edge compute — TS-18's CDN/Squid bullets (L31-34) cover CDN and proxy caching but not edge-cached HTML or edge compute.
+- [x] https://csswizardry.com/2019/08/time-to-first-byte-what-it-is-and-why-it-matters/#what-is-ttfb — Time to First Byte (TTFB) as a performance metric and its contributors (latency, routing, application runtime, DB queries, SSR cost). TS-18 mentions LCP but never TTFB. Recommend a new subsection in `01-performance-optimization.adoc` after the LCP note (~L53). Reinforced by https://web.dev/articles/top-cwv#3-use-a-cdn-to-optimize-ttfb, which frames TTFB as CDN-optimizable and additionally recommends caching static HTML at the edge (even briefly) and moving dynamic logic to edge compute — TS-18's CDN/Squid bullets (L31-34) cover CDN and proxy caching but not edge-cached HTML or edge compute.
 
-- [ ] https://csswizardry.com/2019/08/time-to-first-byte-what-it-is-and-why-it-matters/#demystifying-ttfb — the `Server-Timing` HTTP response header as a way to surface server-side timing breakdowns to the front end. Not addressed anywhere in the standard. Recommend a new subsection in `01-performance-optimization.adoc`.
+      **Resolved.** Closed by `01-performance-optimization.adoc`, new "Time
+      to First Byte" section: the four contributors, plus edge-cached HTML
+      and edge compute added to the CDN bullet. Source added to
+      `06-references.adoc`.
 
-- [ ] `__TODO__/018/web-clients/_todo/loading-and-bundling.md:29` — HTTP/2 multiplexing and HTTP/2 Server Push as asset-delivery strategies that reduce round trips and enable per-browser polyfill pushing. TS-18 does not mention HTTP/2 or Server Push. Recommend a new subsection in `01-performance-optimization.adoc`.
+- [x] https://csswizardry.com/2019/08/time-to-first-byte-what-it-is-and-why-it-matters/#demystifying-ttfb — the `Server-Timing` HTTP response header as a way to surface server-side timing breakdowns to the front end. Not addressed anywhere in the standard. Recommend a new subsection in `01-performance-optimization.adoc`.
 
-- [ ] `__TODO__/018/web-clients/_todo/0200-progressive-enhancement.md:102` — `<script>` loading strategy: placing scripts before `</body>`, the `defer` and `async` attributes, and ordering scripts after stylesheets. TS-18 covers code splitting/lazy loading but not script-element loading attributes. Recommend a new subsection in `01-performance-optimization.adoc`.
+      **Resolved.** Closed by the same "Time to First Byte" section's
+      `Server-Timing` bullet.
 
-- [ ] `__TODO__/018/web-clients/_todo/principles.md:19` and `__TODO__/018/web-clients/_todo/dom.md:5` — the cost of DOM reflows and repaints, and the guidance to prefer CSS animations over JavaScript-driven animations (and to animate unstyled containers when JS is unavoidable). Not addressed. Recommend a new subsection in `01-performance-optimization.adoc`.
+- [x] `__TODO__/018/web-clients/_todo/loading-and-bundling.md:29` — HTTP/2 multiplexing and HTTP/2 Server Push as asset-delivery strategies that reduce round trips and enable per-browser polyfill pushing. TS-18 does not mention HTTP/2 or Server Push. Recommend a new subsection in `01-performance-optimization.adoc`.
 
-- [ ] `__TODO__/018/web-clients/_todo/dom.md:65` (Best practices) — event delegation (attaching one listener to a parent rather than many to children) to reduce total listener count and improve performance. Not addressed. Recommend a new subsection in `01-performance-optimization.adoc`. Reinforced by https://frontendmasters.com/blog/patterns-for-memory-efficient-dom-manipulation/#use-event-delegation-to-bind-fewer-events.
+      **Resolved.** Closed by `01-performance-optimization.adoc`, new
+      "HTTP/2 and asset delivery" section, covering multiplexing and the
+      bundling-vs-native-modules trade-off. Server Push itself is not
+      recommended — it has been removed from Chrome and deprecated across
+      major browsers since this gap was recorded — so the section
+      recommends native HTTP/2 multiplexing instead; this is a deliberate
+      correction of the original source's advice to reflect current browser
+      support, not an oversight.
 
-- [ ] `__TODO__/018/web-clients/_todo/0300-accessibility.md:199` (Valid, Semantic Markup) — the requirement that HTML markup be valid, validated with the W3C Markup Validation Service. TS-18's "Robust" principle says to use semantic HTML and ARIA but never requires valid markup as a baseline. Recommend placing at `02-web-accessibility.adoc` under "4. Robust" (~L210).
+- [x] `__TODO__/018/web-clients/_todo/0200-progressive-enhancement.md:102` — `<script>` loading strategy: placing scripts before `</body>`, the `defer` and `async` attributes, and ordering scripts after stylesheets. TS-18 covers code splitting/lazy loading but not script-element loading attributes. Recommend a new subsection in `01-performance-optimization.adoc`.
 
-- [ ] `__TODO__/018/web-clients/_todo/0200-progressive-enhancement.md:38` and `:96` — `<noscript>` guidance: use it only to surface messages when content genuinely cannot work without JS; do not use it to fork the experience. TS-18 does not mention `<noscript>` at all. Recommend a new subsection in `02-web-accessibility.adoc` (or a progressive-enhancement section in `01-performance-optimization.adoc`).
+      **Resolved.** Closed by `01-performance-optimization.adoc`, new
+      "Script loading" section: end-of-body/`defer` placement, `defer` vs.
+      `async`, and script-after-stylesheet ordering.
 
-- [ ] `__TODO__/018/web-clients/_todo/0300-accessibility.md:240` (Navigation) — the `<link rel="index|next|prev|contents">` head elements for document-level navigation metadata. Not addressed in TS-18's "Navigable" guidance. Recommend placing at `02-web-accessibility.adoc` under "2. Operable" (~L121).
+- [x] `__TODO__/018/web-clients/_todo/principles.md:19` and `__TODO__/018/web-clients/_todo/dom.md:5` — the cost of DOM reflows and repaints, and the guidance to prefer CSS animations over JavaScript-driven animations (and to animate unstyled containers when JS is unavoidable). Not addressed. Recommend a new subsection in `01-performance-optimization.adoc`.
 
-- [ ] https://www.bramstein.com/writing/web-font-loading-patterns.html#prioritised-loading — prioritised/sequential font loading (load a small primary font first, then a larger secondary font, with the secondary gated on the primary succeeding). TS-18 mentions preloading only above-the-fold subsets, not staged/dependent loading. Recommend a new subsection in `03-fonts.adoc` under "Loading strategy" (~L46).
+      **Resolved.** Closed by `01-performance-optimization.adoc`, new
+      "Reflows, repaints, and layout thrashing" section: preferring CSS
+      animation, and animating an unstyled wrapper when JS-driven animation
+      is unavoidable.
 
-- [ ] https://www.bramstein.com/writing/web-font-loading-patterns.html#optimise-for-caching — the sessionStorage cache-state pattern: record that fonts have loaded so repeat page views render the custom font immediately (avoiding FOUT on navigation). Not addressed. Recommend a new subsection in `03-fonts.adoc` under "Loading strategy".
+- [x] `__TODO__/018/web-clients/_todo/dom.md:65` (Best practices) — event delegation (attaching one listener to a parent rather than many to children) to reduce total listener count and improve performance. Not addressed. Recommend a new subsection in `01-performance-optimization.adoc`. Reinforced by https://frontendmasters.com/blog/patterns-for-memory-efficient-dom-manipulation/#use-event-delegation-to-bind-fewer-events.
 
-- [ ] https://www.bramstein.com/writing/web-font-loading-patterns.html#basic-font-loading — JavaScript-based font loaders (e.g. Font Face Observer) and the patterns built on them (basic, grouped, timeout-raced loading). TS-18 relies entirely on native `font-display`/preload and does not cover JS loader patterns. Note these predate `font-display` and are largely superseded, but the reference presents them. Recommend a new subsection in `03-fonts.adoc` (flag as a legacy alternative).
+      **Resolved.** Closed by the same section's event-delegation bullet,
+      cross-linked to "JavaScript behaviors" for the component-scoped
+      application of the same technique.
+
+- [x] `__TODO__/018/web-clients/_todo/0300-accessibility.md:199` (Valid, Semantic Markup) — the requirement that HTML markup be valid, validated with the W3C Markup Validation Service. TS-18's "Robust" principle says to use semantic HTML and ARIA but never requires valid markup as a baseline. Recommend placing at `02-web-accessibility.adoc` under "4. Robust" (~L210).
+
+      **Resolved.** Closed by a new bullet in `02-web-accessibility.adoc`,
+      "1. Perceivable" > *Adaptable*, requiring valid markup per the W3C
+      Markup Validation Service and cross-linking to "4. Robust". (Placed
+      under *Adaptable* rather than *Robust* itself, since that is where the
+      standard's other structural-markup requirements already live; the
+      bullet cross-links "4. Robust" for the assistive-technology
+      consequence the original item's rationale describes.)
+
+- [x] `__TODO__/018/web-clients/_todo/0200-progressive-enhancement.md:38` and `:96` — `<noscript>` guidance: use it only to surface messages when content genuinely cannot work without JS; do not use it to fork the experience. TS-18 does not mention `<noscript>` at all. Recommend a new subsection in `02-web-accessibility.adoc` (or a progressive-enhancement section in `01-performance-optimization.adoc`).
+
+      **Resolved.** Closed by a new bullet in `02-web-accessibility.adoc`,
+      "3. Understandable" > *Predictable*, cross-linked to the
+      progressive-enhancement framing in "Performance optimization" (see
+      the Partial item below for that framing itself).
+
+- [x] `__TODO__/018/web-clients/_todo/0300-accessibility.md:240` (Navigation) — the `<link rel="index|next|prev|contents">` head elements for document-level navigation metadata. Not addressed in TS-18's "Navigable" guidance. Recommend placing at `02-web-accessibility.adoc` under "2. Operable" (~L121).
+
+      **Resolved.** Closed by a new bullet under "2. Operable" > *Navigable*
+      in `02-web-accessibility.adoc`.
+
+- [x] https://www.bramstein.com/writing/web-font-loading-patterns.html#prioritised-loading — prioritised/sequential font loading (load a small primary font first, then a larger secondary font, with the secondary gated on the primary succeeding). TS-18 mentions preloading only above-the-fold subsets, not staged/dependent loading. Recommend a new subsection in `03-fonts.adoc` under "Loading strategy" (~L46).
+
+      **Resolved.** Closed by a new bullet in `03-fonts.adoc`, "Loading
+      strategy" section, stating the prioritised/sequential pattern. Source
+      added to `06-references.adoc`.
+
+- [x] https://www.bramstein.com/writing/web-font-loading-patterns.html#optimise-for-caching — the sessionStorage cache-state pattern: record that fonts have loaded so repeat page views render the custom font immediately (avoiding FOUT on navigation). Not addressed. Recommend a new subsection in `03-fonts.adoc` under "Loading strategy".
+
+      **Resolved.** Closed by the same section's `sessionStorage` bullet.
+
+- [x] https://www.bramstein.com/writing/web-font-loading-patterns.html#basic-font-loading — JavaScript-based font loaders (e.g. Font Face Observer) and the patterns built on them (basic, grouped, timeout-raced loading). TS-18 relies entirely on native `font-display`/preload and does not cover JS loader patterns. Note these predate `font-display` and are largely superseded, but the reference presents them. Recommend a new subsection in `03-fonts.adoc` (flag as a legacy alternative).
+
+      **Resolved.** Closed by expanding the `font-display` bullet in
+      `03-fonts.adoc` (see the FOIT/FOUT Partial item below), which folds in
+      the Font Face Observer / class-toggling pattern as an explicitly
+      flagged legacy alternative, rather than a separate subsection — the
+      two are one continuous explanation of the same FOIT/FOUT problem.
 
 The following items were relocated from TS-36's gap analysis (rsjs). They are
 recorded as missing on the maintainer's scope call that web-client JS structure
@@ -103,7 +197,7 @@ Note: rsjs's event-delegation point (`#use-event-delegation`) is not
 re-listed here — it is already tracked as missing above (from the
 `web-clients` reference, performance angle).
 
-- [ ] https://ricostacruz.com/rsjs/#think-in-component-behaviors — the
+- [x] https://ricostacruz.com/rsjs/#think-in-component-behaviors — the
       "component behavior" pattern: a piece of JavaScript affects exactly one
       DOM subtree (a component), kept in its own behavior file. TS-18 has no
       guidance on how client-side JavaScript is organized around GUI
@@ -111,13 +205,24 @@ re-listed here — it is already tracked as missing above (from the
       `05-javascript-behaviors.adoc`). Borders on TS-5 (application
       architecture) — flagged.
 
-- [ ] https://ricostacruz.com/rsjs/#one-component-per-file — one self-contained
+      **Resolved.** Closed by a new `04-javascript-behaviors.adoc` partial
+      (numbered 04, not the originally-proposed 05, to keep the standard's
+      partials contiguous — see the run summary), "Component behaviors"
+      section, "Think in component behaviors" bullet. The TS-5 border flag
+      is noted for the user in this run's summary rather than resolved
+      silently; the content stayed in TS-18 per the maintainer's prior scope
+      call recorded in this file's run history above.
+
+- [x] https://ricostacruz.com/rsjs/#one-component-per-file — one self-contained
       behavior file per component, kept in a `behaviors/` directory and named
       after its selector. TS-18 does not address front-end behavior file
       organization. Recommend a new section (proposed
       `05-javascript-behaviors.adoc`). Borders on TS-5 — flagged.
 
-- [ ] https://ricostacruz.com/rsjs/#load-components-in-all-pages — the strategy
+      **Resolved.** Closed by the same section's "One behavior file per
+      component" bullet.
+
+- [x] https://ricostacruz.com/rsjs/#load-components-in-all-pages — the strategy
       of concatenating all behaviors into one main bundle that is safe to load
       on every page (because each behavior is localized to its selector), so
       behaviors are reusable across pages without per-page script includes.
@@ -125,49 +230,75 @@ re-listed here — it is already tracked as missing above (from the
       (proposed `05-javascript-behaviors.adoc`); the performance angle also
       touches `01-performance-optimization.adoc`. Borders on TS-5 — flagged.
 
-- [ ] https://ricostacruz.com/rsjs/#use-a-data-attribute — the convention of
+      **Resolved.** Closed by the same section's "Load all behaviors on
+      every page" bullet, cross-linked to the code-splitting guidance in
+      "Performance optimization" for when the bundle grows large enough to
+      need it instead.
+
+- [x] https://ricostacruz.com/rsjs/#use-a-data-attribute — the convention of
       marking components and their inner hooks with `data-js-___` attributes
       (rather than classes or IDs) to disambiguate JavaScript hooks from CSS
       styling hooks. TS-18 has no selector/hook convention guidance. Recommend
       a new section (proposed `05-javascript-behaviors.adoc`).
 
-- [ ] https://ricostacruz.com/rsjs/#dont-overload-class-names — where classes
+      **Resolved.** Closed by the same section's `data-js-*` bullet.
+
+- [x] https://ricostacruz.com/rsjs/#dont-overload-class-names — where classes
       are used for JS hooks, prefix them with `js-` and do not attach JS
       behaviors to classes that carry styles, so restyling does not break
       behavior and the source of a behavior is obvious. TS-18 does not address
       the JS/CSS hook separation. Recommend a new section (proposed
       `05-javascript-behaviors.adoc`).
 
-- [ ] https://ricostacruz.com/rsjs/#use-document-ready — binding behaviors
+      **Resolved.** Closed by the same bullet as the `data-js-*` item above
+      (they were written together as one bullet on the hook convention).
+
+- [x] https://ricostacruz.com/rsjs/#use-document-ready — binding behaviors
       inside the `DOMContentLoaded` (document-ready) handler so the target
       element is guaranteed to exist. TS-18 has no DOM-lifecycle guidance for
       behavior initialization. Recommend a new section (proposed
       `05-javascript-behaviors.adoc`).
 
-- [ ] https://ricostacruz.com/rsjs/#avoid-side-effects — bailing out early
+      **Resolved.** Closed by the "Bind on document-ready, and guard against
+      absence" bullet in "Component behaviors".
+
+- [x] https://ricostacruz.com/rsjs/#avoid-side-effects — bailing out early
       (e.g. `if (!$nav.length) return;`) when a behavior's target element is
       absent from the page, so the behavior has no effect and throws no error
       on pages that do not use it. TS-18 has no guidance on this DOM-presence
       guard. Recommend a new section (proposed `05-javascript-behaviors.adoc`).
 
-- [ ] https://ricostacruz.com/rsjs/#dynamic-content — re-running behavior
+      **Resolved.** Closed by the same bullet as the document-ready item
+      above (the guard is part of the same bullet).
+
+- [x] https://ricostacruz.com/rsjs/#dynamic-content — re-running behavior
       initialization on dynamically-injected DOM (AJAX modals, etc.) with an
       idempotent include-guard pattern so already-initialized elements are
       skipped. TS-18 has no guidance on binding behaviors to dynamic content.
       Recommend a new section (proposed `05-javascript-behaviors.adoc`).
 
-- [ ] https://ricostacruz.com/rsjs/#organize-your-helpers — placing
+      **Resolved.** Closed by the "Re-initialize behaviors bound to dynamic
+      content" bullet in "Component behaviors".
+
+- [x] https://ricostacruz.com/rsjs/#organize-your-helpers — placing
       cross-behavior reusable functions in a `helpers/` directory and a shared
       namespace. TS-18 does not address front-end utility organization.
       Recommend a new section (proposed `05-javascript-behaviors.adoc`).
       Borders on TS-5 — flagged.
 
-- [ ] https://ricostacruz.com/rsjs/#third-party-libraries — integrating
+      **Resolved.** Closed by the "Organize shared helpers separately"
+      bullet in "Component behaviors".
+
+- [x] https://ricostacruz.com/rsjs/#third-party-libraries — integrating
       third-party scripts (select2, WOW.js, etc.) as component behaviors bound
       to dedicated hooks, so they follow the same localization rules as
       first-party behaviors. TS-18 has no guidance on third-party script
       integration into the GUI. Recommend a new section (proposed
       `05-javascript-behaviors.adoc`). Borders on TS-5 — flagged.
+
+      **Resolved.** Closed by the "Integrate third-party scripts as
+      behaviors too" bullet in "Component behaviors". Source (rsjs) added to
+      `06-references.adoc`.
 
 The following items are from the resources listed in GitHub issue #61
 (https://github.com/kieranpotts/standards/issues/61). The DOM-manipulation and
@@ -176,43 +307,110 @@ section (see the rsjs items above); the performance items sit in
 `01-performance-optimization.adoc`; the form-validation item sits in
 `02-web-accessibility.adoc`.
 
-- [ ] https://expressionstatement.com/html-form-validation-is-heavily-underused — native HTML form validation (the constraint validation API): the `required` attribute, `type="email"`/`"number"`/`"url"`, `pattern`, `maxlength`, and the `setCustomValidity` DOM method for custom/async validation. TS-18's "Input assistance" requires labels, error identification in text, and error suggestions, but never names the native validation attributes/methods that deliver them. Missing. Recommend placing at `02-web-accessibility.adoc` under "3. Understandable" > Input assistance (~L191).
+- [x] https://expressionstatement.com/html-form-validation-is-heavily-underused — native HTML form validation (the constraint validation API): the `required` attribute, `type="email"`/`"number"`/`"url"`, `pattern`, `maxlength`, and the `setCustomValidity` DOM method for custom/async validation. TS-18's "Input assistance" requires labels, error identification in text, and error suggestions, but never names the native validation attributes/methods that deliver them. Missing. Recommend placing at `02-web-accessibility.adoc` under "3. Understandable" > Input assistance (~L191).
 
-- [ ] https://web.dev/articles/top-cwv#inp — Interaction to Next Paint (INP) as a Core Web Vital and the technique of yielding to the main thread to break up long tasks (the Scheduler API and `scheduler.yield()`). TS-18 never mentions INP or long-task breaking. Missing. Recommend a new subsection in `01-performance-optimization.adoc`.
+      **Resolved.** Closed by a new bullet in `02-web-accessibility.adoc`,
+      "3. Understandable" > *Input assistance*, naming the constraint
+      validation API and `setCustomValidity()`, cross-linked to TS-15's
+      "Error messages" and TS-21 for HTTP-level validation. Source added to
+      `06-references.adoc`.
 
-- [ ] https://web.dev/articles/top-cwv#3-avoid-large-rendering-updates — forced layout and layout thrashing: reorganize DOM reads and writes in JavaScript to avoid interleaving layout reads with mutating writes, and keep DOM size small (large DOMs make layout recalculation expensive). TS-18 does not address layout thrashing. Missing. Recommend a new subsection in `01-performance-optimization.adoc`. (Related to the general reflow/repaint gap above, but this is the specific read/write-ordering technique.)
+- [x] https://web.dev/articles/top-cwv#inp — Interaction to Next Paint (INP) as a Core Web Vital and the technique of yielding to the main thread to break up long tasks (the Scheduler API and `scheduler.yield()`). TS-18 never mentions INP or long-task breaking. Missing. Recommend a new subsection in `01-performance-optimization.adoc`.
 
-- [ ] https://web.dev/articles/top-cwv#3-avoid-large-rendering-updates — CSS containment (`contain`) to lazily render off-screen DOM and avoid unnecessary layout/render work. Not addressed. Missing. Recommend a new subsection in `01-performance-optimization.adoc`.
+      **Resolved.** Closed by `01-performance-optimization.adoc`, new
+      "Interaction responsiveness" section: INP as a Core Web Vital and
+      `scheduler.yield()` task-breaking.
 
-- [ ] https://web.dev/articles/top-cwv#1-ensure-the-lcp-resource-is-discoverable-from-the-html-source-and-prioritized — the `fetchpriority="high"` HTML attribute to raise the priority of the LCP image resource so it loads sooner. Not addressed. Missing. Recommend placing at `01-performance-optimization.adoc` near the preload bullet (~L19).
+- [x] https://web.dev/articles/top-cwv#3-avoid-large-rendering-updates — forced layout and layout thrashing: reorganize DOM reads and writes in JavaScript to avoid interleaving layout reads with mutating writes, and keep DOM size small (large DOMs make layout recalculation expensive). TS-18 does not address layout thrashing. Missing. Recommend a new subsection in `01-performance-optimization.adoc`. (Related to the general reflow/repaint gap above, but this is the specific read/write-ordering technique.)
 
-- [ ] https://web.dev/articles/top-cwv#1-ensure-the-lcp-resource-is-discoverable-from-the-html-source-and-prioritized — the `loading="lazy"` image attribute, and the specific guidance to remove it from the LCP image to avoid load delay. TS-18 covers lazy-loading JavaScript but not the native `loading="lazy"` image attribute. Missing. Recommend placing at `01-performance-optimization.adoc` near the image-size bullet (~L66).
+      **Resolved.** Closed by the same "Reflows, repaints, and layout
+      thrashing" section as the general reflow/repaint gap above: the
+      "Avoid layout thrashing" and "Keep the overall DOM size small"
+      bullets.
 
-- [ ] https://web.dev/articles/top-cwv#2-aim-for-instant-navigations and https://web.dev/articles/top-cwv#2-ensure-pages-are-eligible-for-bfcache — the back/forward cache (bfcache): pages must meet eligibility criteria (avoid `Cache-Control: no-store`, avoid `unload` event listeners) to be restored instantly from memory on back/forward navigation, which also eliminates layout shifts. Not addressed. Missing. Recommend a new subsection in `01-performance-optimization.adoc`.
+- [x] https://web.dev/articles/top-cwv#3-avoid-large-rendering-updates — CSS containment (`contain`) to lazily render off-screen DOM and avoid unnecessary layout/render work. Not addressed. Missing. Recommend a new subsection in `01-performance-optimization.adoc`.
 
-- [ ] https://csswizardry.com/2024/12/a-layered-approach-to-speculation-rules/ and https://web.dev/articles/top-cwv#2-aim-for-instant-navigations — the Speculation Rules API (`<script type="speculationrules">`): `prefetch` (pays the next page's TTFB up-front) and `prerender` (pays TTFB, FCP, and LCP up-front), with eagerness levels (`immediate`, `moderate`, `eager`), `href_matches`/`selector_matches` predicates, and an opt-in/opt-out hook pattern (e.g. `data-prefetch`, `data-prefetch=prerender`, `data-prefetch=false`) for a layered approach. TS-18 covers hover-based HTML pre-fetch (L11-17) but not the Speculation Rules API. Missing. Recommend a new subsection in `01-performance-optimization.adoc`.
+      **Resolved.** Closed by the same section's `contain` bullet.
 
-- [ ] https://csswizardry.com/2024/12/a-layered-approach-to-speculation-rules/#clearing-speculation-rules-cache-with-clear-site-data — the `Clear-Site-Data` HTTP response header extended with `prefetchCache` and `prerenderCache` directives (Chrome 138+) to forcibly purge speculative-loading caches. Not addressed. Missing. Recommend placing at `01-performance-optimization.adoc` alongside the Speculation Rules item above.
+- [x] https://web.dev/articles/top-cwv#1-ensure-the-lcp-resource-is-discoverable-from-the-html-source-and-prioritized — the `fetchpriority="high"` HTML attribute to raise the priority of the LCP image resource so it loads sooner. Not addressed. Missing. Recommend placing at `01-performance-optimization.adoc` near the preload bullet (~L19).
 
-- [ ] https://web.dev/articles/top-cwv#3-avoid-animations-and-transitions-that-use-layout-inducing-css-properties — never animate or transition CSS properties that require layout updates (`margin`, `border`, `top`, `left`); prefer `transform`/`translateX` so work happens on the compositor/GPU and does not cause layout shifts. TS-18 covers `prefers-reduced-motion` but not the layout-inducing-animation guidance. Missing. Recommend a new subsection in `01-performance-optimization.adoc` (the CLS angle) and/or a cross-link from `02-web-accessibility.adoc` (animations).
+      **Resolved.** Closed by a new `fetchpriority="high"` bullet in
+      "Rendering and asset delivery", next to the preload bullet.
 
-- [ ] https://frontendmasters.com/blog/patterns-for-memory-efficient-dom-manipulation/#prefer-hidingshowing-over-creating-new-elements — prefer hiding/showing existing (server-rendered) elements over destroying and recreating them with JavaScript, to keep the DOM mostly static and avoid garbage-collection churn. Not addressed. Missing. Recommend a new section (proposed `05-javascript-behaviors.adoc`).
+- [x] https://web.dev/articles/top-cwv#1-ensure-the-lcp-resource-is-discoverable-from-the-html-source-and-prioritized — the `loading="lazy"` image attribute, and the specific guidance to remove it from the LCP image to avoid load delay. TS-18 covers lazy-loading JavaScript but not the native `loading="lazy"` image attribute. Missing. Recommend placing at `01-performance-optimization.adoc` near the image-size bullet (~L66).
 
-- [ ] https://frontendmasters.com/blog/patterns-for-memory-efficient-dom-manipulation/#prefer-textcontent-over-innertext — prefer `textContent` over `innerText` for reading element content, because `innerText` forces a reflow to account for current styles. Not addressed. Missing. Recommend a new section (proposed `05-javascript-behaviors.adoc`).
+      **Resolved.** Closed by a new `loading="lazy"` bullet in "Rendering
+      and asset delivery", next to the image-size bullet, including the
+      explicit MUST NOT on the LCP image.
 
-- [ ] https://frontendmasters.com/blog/patterns-for-memory-efficient-dom-manipulation/#use-insertadjacenthtml-over-innerhtml — prefer `insertAdjacentHTML` over `innerHTML` for inserting HTML, because `innerHTML` destroys the existing DOM first. Not addressed. Missing. Recommend a new section (proposed `05-javascript-behaviors.adoc`).
+- [x] https://web.dev/articles/top-cwv#2-aim-for-instant-navigations and https://web.dev/articles/top-cwv#2-ensure-pages-are-eligible-for-bfcache — the back/forward cache (bfcache): pages must meet eligibility criteria (avoid `Cache-Control: no-store`, avoid `unload` event listeners) to be restored instantly from memory on back/forward navigation, which also eliminates layout shifts. Not addressed. Missing. Recommend a new subsection in `01-performance-optimization.adoc`.
 
-- [ ] https://frontendmasters.com/blog/patterns-for-memory-efficient-dom-manipulation/#approach-1-use-the-template-tag — the `<template>` element plus `appendChild`/`insertAdjacentElement` as the fastest pattern for creating and inserting fully-formed DOM nodes. Not addressed. Missing. Recommend a new section (proposed `05-javascript-behaviors.adoc`).
+      **Resolved.** Closed by `01-performance-optimization.adoc`, new
+      "Instant navigations" section, bfcache eligibility bullet.
 
-- [ ] https://frontendmasters.com/blog/patterns-for-memory-efficient-dom-manipulation/#approach-2-use-createdocumentfragment — `createDocumentFragment` to prepare multiple nodes and insert them in a single operation, minimizing reflows. Not addressed. Missing. Recommend a new section (proposed `05-javascript-behaviors.adoc`).
+- [x] https://csswizardry.com/2024/12/a-layered-approach-to-speculation-rules/ and https://web.dev/articles/top-cwv#2-aim-for-instant-navigations — the Speculation Rules API (`<script type="speculationrules">`): `prefetch` (pays the next page's TTFB up-front) and `prerender` (pays TTFB, FCP, and LCP up-front), with eagerness levels (`immediate`, `moderate`, `eager`), `href_matches`/`selector_matches` predicates, and an opt-in/opt-out hook pattern (e.g. `data-prefetch`, `data-prefetch=prerender`, `data-prefetch=false`) for a layered approach. TS-18 covers hover-based HTML pre-fetch (L11-17) but not the Speculation Rules API. Missing. Recommend a new subsection in `01-performance-optimization.adoc`.
 
-- [ ] https://frontendmasters.com/blog/patterns-for-memory-efficient-dom-manipulation/#manage-references-when-nodes-are-removed — `WeakMap` and `WeakRef` to associate data with DOM nodes so that removing a node allows the associated data to be garbage-collected rather than leaked. Not addressed. Missing. Recommend a new section (proposed `05-javascript-behaviors.adoc`).
+      **Resolved.** Closed by the same "Instant navigations" section's
+      Speculation Rules bullet: `prefetch`/`prerender`, eagerness levels,
+      predicates, and the opt-in/opt-out hook pattern. Sources added to
+      `06-references.adoc`.
 
-- [ ] https://frontendmasters.com/blog/patterns-for-memory-efficient-dom-manipulation/#cleaning-up-event-listeners — event-listener cleanup: `removeEventListener`, the `addEventListener` `once` option, and `AbortController` to unbind groups of listeners at once. TS-18 has no event-listener lifecycle guidance. Missing. Recommend a new section (proposed `05-javascript-behaviors.adoc`).
+- [x] https://csswizardry.com/2024/12/a-layered-approach-to-speculation-rules/#clearing-speculation-rules-cache-with-clear-site-data — the `Clear-Site-Data` HTTP response header extended with `prefetchCache` and `prerenderCache` directives (Chrome 138+) to forcibly purge speculative-loading caches. Not addressed. Missing. Recommend placing at `01-performance-optimization.adoc` alongside the Speculation Rules item above.
+
+      **Resolved.** Closed by the same section's `Clear-Site-Data` bullet.
+
+- [x] https://web.dev/articles/top-cwv#3-avoid-animations-and-transitions-that-use-layout-inducing-css-properties — never animate or transition CSS properties that require layout updates (`margin`, `border`, `top`, `left`); prefer `transform`/`translateX` so work happens on the compositor/GPU and does not cause layout shifts. TS-18 covers `prefers-reduced-motion` but not the layout-inducing-animation guidance. Missing. Recommend a new subsection in `01-performance-optimization.adoc` (the CLS angle) and/or a cross-link from `02-web-accessibility.adoc` (animations).
+
+      **Resolved.** Closed by the "Never animate or transition a CSS
+      property that requires a layout update" bullet in "Reflows, repaints,
+      and layout thrashing".
+
+- [x] https://frontendmasters.com/blog/patterns-for-memory-efficient-dom-manipulation/#prefer-hidingshowing-over-creating-new-elements — prefer hiding/showing existing (server-rendered) elements over destroying and recreating them with JavaScript, to keep the DOM mostly static and avoid garbage-collection churn. Not addressed. Missing. Recommend a new section (proposed `05-javascript-behaviors.adoc`).
+
+      **Resolved.** Closed by `04-javascript-behaviors.adoc`,
+      "Memory-efficient DOM manipulation" section, "Prefer showing and
+      hiding existing elements" bullet.
+
+- [x] https://frontendmasters.com/blog/patterns-for-memory-efficient-dom-manipulation/#prefer-textcontent-over-innertext — prefer `textContent` over `innerText` for reading element content, because `innerText` forces a reflow to account for current styles. Not addressed. Missing. Recommend a new section (proposed `05-javascript-behaviors.adoc`).
+
+      **Resolved.** Closed by the same section's `textContent` bullet.
+
+- [x] https://frontendmasters.com/blog/patterns-for-memory-efficient-dom-manipulation/#use-insertadjacenthtml-over-innerhtml — prefer `insertAdjacentHTML` over `innerHTML` for inserting HTML, because `innerHTML` destroys the existing DOM first. Not addressed. Missing. Recommend a new section (proposed `05-javascript-behaviors.adoc`).
+
+      **Resolved.** Closed by the same section's `insertAdjacentHTML`
+      bullet.
+
+- [x] https://frontendmasters.com/blog/patterns-for-memory-efficient-dom-manipulation/#approach-1-use-the-template-tag — the `<template>` element plus `appendChild`/`insertAdjacentElement` as the fastest pattern for creating and inserting fully-formed DOM nodes. Not addressed. Missing. Recommend a new section (proposed `05-javascript-behaviors.adoc`).
+
+      **Resolved.** Closed by the same section's `<template>` bullet.
+
+- [x] https://frontendmasters.com/blog/patterns-for-memory-efficient-dom-manipulation/#approach-2-use-createdocumentfragment — `createDocumentFragment` to prepare multiple nodes and insert them in a single operation, minimizing reflows. Not addressed. Missing. Recommend a new section (proposed `05-javascript-behaviors.adoc`).
+
+      **Resolved.** Closed by the same section's `createDocumentFragment`
+      bullet.
+
+- [x] https://frontendmasters.com/blog/patterns-for-memory-efficient-dom-manipulation/#manage-references-when-nodes-are-removed — `WeakMap` and `WeakRef` to associate data with DOM nodes so that removing a node allows the associated data to be garbage-collected rather than leaked. Not addressed. Missing. Recommend a new section (proposed `05-javascript-behaviors.adoc`).
+
+      **Resolved.** Closed by the same section's `WeakMap`/`WeakRef` bullet.
+
+- [x] https://frontendmasters.com/blog/patterns-for-memory-efficient-dom-manipulation/#cleaning-up-event-listeners — event-listener cleanup: `removeEventListener`, the `addEventListener` `once` option, and `AbortController` to unbind groups of listeners at once. TS-18 has no event-listener lifecycle guidance. Missing. Recommend a new section (proposed `05-javascript-behaviors.adoc`).
+
+      **Resolved.** Closed by the same section's event-listener-cleanup
+      bullet, covering `removeEventListener`, the `once` option, and
+      `AbortController`. Source (frontendmasters.com) added to
+      `06-references.adoc`.
 
 - [ ] https://neurodiversity.design/ — neurodiversity / cognitive-accessibility design guidance: the Neurodiversity Design System covers Font, Typography, Colour, Buttons/Links/Inputs, Interface, Communications, Numbers, and Animations for neurodivergent learners (e.g. font shapes that help dyslexic readers; typography that supports reading on screens). TS-18's opening states it covers "cognitive disabilities" and targets WCAG 2.2 Level AA, but its body provides no neurodiversity-specific guidance beyond `prefers-reduced-motion` (animations) and general colour contrast. Missing (with a scope nuance: TS-18 explicitly claims cognitive disabilities, so this is in scope; much of the NDS goes beyond WCAG AA, but TS-18's own framing invites it). Recommend a new subsection in `02-web-accessibility.adoc`. NOTE: only the NDS landing page was retrieved — see Unresolved.
 
-- [ ] https://www.trysmudford.com/blog/hyper-responsive-web-components/
+      **Left open, 2026-08-14.** Not actioned in this run. As the item's
+      own note flags, only the NDS landing page was ever retrieved — two
+      inline snippets and a category list, not enough substantive content
+      to write a section from without fabricating detail the source does
+      not actually provide. Re-fetching the per-principle pages (see the
+      paired Unresolved item below) is a precondition for closing this, not
+      optional polish.
+
+- [x] https://www.trysmudford.com/blog/hyper-responsive-web-components/
       ("Responsive typography & space") — fluid typography via `clamp()` with
       viewport units (the Utopia approach) for type that scales smoothly
       between a minimum and maximum size across the viewport range, without
@@ -224,7 +422,15 @@ section (see the rsjs items above); the performance items sit in
       platform APIs). Recommend a new subsection in `03-fonts.adoc`, or a new
       CSS-layout section if one is added to cover the sibling items below.
 
-- [ ] https://www.trysmudford.com/blog/hyper-responsive-web-components/
+      **Resolved.** Closed by a new `05-css-layout-and-typography.adoc`
+      partial (numbered 05 — see the run summary for the final partial
+      numbering), "Fluid typography" section, with a `clamp()` code example.
+      Placed in its own new CSS-layout partial, as the item itself
+      anticipated, rather than folded into `03-fonts.adoc` — the four
+      relocated items are cohesive enough as a group to warrant the
+      dedicated section. Source added to `06-references.adoc`.
+
+- [x] https://www.trysmudford.com/blog/hyper-responsive-web-components/
       ("Applying container-driven typography") — CSS container queries
       (`container-type: inline-size`, the `cqi` unit, `@container`) for
       sizing type and layout against a component's own container rather than
@@ -235,7 +441,11 @@ section (see the rsjs items above); the performance items sit in
       material belonging in TS-18. Recommend a new CSS-layout section (see
       the sibling items below).
 
-- [ ] https://www.trysmudford.com/blog/hyper-responsive-web-components/
+      **Resolved.** Closed by the same partial's "Container queries"
+      section, with a `container-type`/`@container` code example and the
+      `@supports` progressive-enhancement note.
+
+- [x] https://www.trysmudford.com/blog/hyper-responsive-web-components/
       ("Intrinsic layouts" and "Limitations of intrinsic design") — the Every
       Layout "Sidebar" intrinsic flex/grid pattern (content-driven wrapping
       without explicit breakpoints) and `@container`-driven content hiding
@@ -245,7 +455,12 @@ section (see the rsjs items above); the performance items sit in
       is CSS/layout material belonging in TS-18. Recommend a new CSS-layout
       section (see the sibling items above and below).
 
-- [ ] https://www.trysmudford.com/blog/hyper-responsive-web-components/
+      **Resolved.** Closed by the same partial's "Intrinsic layouts"
+      section, with the Sidebar flex pattern as a code example and a note
+      on combining it with container queries when wrapping alone is
+      insufficient.
+
+- [x] https://www.trysmudford.com/blog/hyper-responsive-web-components/
       ("The finer details") — `text-wrap: balance` for balancing heading line
       lengths, and the `ch` unit for constraining body-text line length to a
       readable measure. Not addressed anywhere in TS-18. Missing. Relocated
@@ -257,7 +472,14 @@ section (see the rsjs items above); the performance items sit in
       no CSS-layout content distinct from its performance/accessibility/font
       pillars.
 
-- [ ] https://brandur.org/idempotency-keys ("Beyond APIs") covers double
+      **Resolved.** Closed by the same partial's "Readable measure and
+      heading balance" section, covering both `ch` and `text-wrap: balance`,
+      confirming the exact new-partial numbering this item anticipated (the
+      partial ended up numbered 05, not 05 exactly as originally guessed but
+      matching the same slot in the final page order — see the run
+      summary).
+
+- [x] https://brandur.org/idempotency-keys ("Beyond APIs") covers double
       form submission prevention, which is not addressed anywhere in the
       standard. The reference describes the technique: when rendering a
       form initially, add a hidden `<input type="hidden">` containing an
@@ -281,39 +503,115 @@ section (see the rsjs items above); the performance items sit in
       accessibility, and fonts, so form-integrity is a scope expansion (but
       form handling is a core web-GUI concern).
 
+      **Resolved.** Closed by `04-javascript-behaviors.adoc`, "Form
+      submission integrity" section: the hidden-input idempotency-key
+      pattern, cross-linked to TS-21's "Safeness and idempotency" for the
+      server-side half, plus the submit-button-disable and
+      POST-redirect-GET complements. Source added to `06-references.adoc`.
+      The scope-expansion flag is noted for the user in this run's summary;
+      the content stayed in TS-18 since form handling is squarely a web-GUI
+      concern on the client side, consistent with how the rsjs items above
+      were resolved.
+
 ## Partial
 
-- [ ] `__TODO__/018/web-clients/_todo/0200-progressive-enhancement.md:7` and `:86` — progressive enhancement as the framing for performance: serve a static baseline that works without JS/CSS, then layer enhancements. TS-18 says "server-render as much HTML as possible" but does not require the no-JS baseline or the progressive-enhancement model, and never states that anything requiring JS must be injected by JS. Recommend strengthening `01-performance-optimization.adoc` L7-9 (server-render bullet) and cross-linking to accessibility.
+- [x] `__TODO__/018/web-clients/_todo/0200-progressive-enhancement.md:7` and `:86` — progressive enhancement as the framing for performance: serve a static baseline that works without JS/CSS, then layer enhancements. TS-18 says "server-render as much HTML as possible" but does not require the no-JS baseline or the progressive-enhancement model, and never states that anything requiring JS must be injected by JS. Recommend strengthening `01-performance-optimization.adoc` L7-9 (server-render bullet) and cross-linking to accessibility.
 
-- [ ] `__TODO__/018/web-clients/_todo/loading-and-bundling.md:4` — module bundling vs. module loading as a strategy (bundling for HTTP/1.x, native modules for HTTP/2; trade-offs of cache invalidation granularity and mobile bandwidth). TS-18 mentions "code splitting" but not the broader bundling-vs-loading decision or its HTTP/2 interaction. Recommend expanding `01-performance-optimization.adoc` L57-61 (code splitting bullet).
+      **Resolved.** Closed by a new paragraph in `01-performance-optimization.adoc`'s
+      introduction, naming the progressive-enhancement model explicitly and
+      stating anything requiring JavaScript MUST be injected by JavaScript.
+      Cross-linked from the new `<noscript>` bullet in
+      `02-web-accessibility.adoc`.
 
-- [ ] `__TODO__/018/web-clients/_todo/0300-accessibility.md:240` (Enable "skip to content") — full implementation pattern for the skip link (visibly-on-focus, first tabbable link, paired "jump back to top" link, code sample). TS-18 requires a skip-navigation mechanism but gives no implementation guidance. Recommend expanding `02-web-accessibility.adoc` L121-123 (Navigable intro).
+- [x] `__TODO__/018/web-clients/_todo/loading-and-bundling.md:4` — module bundling vs. module loading as a strategy (bundling for HTTP/1.x, native modules for HTTP/2; trade-offs of cache invalidation granularity and mobile bandwidth). TS-18 mentions "code splitting" but not the broader bundling-vs-loading decision or its HTTP/2 interaction. Recommend expanding `01-performance-optimization.adoc` L57-61 (code splitting bullet).
 
-- [ ] `__TODO__/018/web-clients/_todo/0300-accessibility.md:240` (Provide context) — breadcrumbs, sitemaps, and current-location indication within navigation. TS-18 requires consistent navigation and two ways to locate pages but does not mention breadcrumbs or current-location indicators. Recommend placing at `02-web-accessibility.adoc` under "2. Operable" (~L133).
+      **Resolved.** Closed by the new "HTTP/2 and asset delivery" section
+      (the bundling-vs-native-modules trade-off) plus a cross-link from the
+      code-splitting bullet, distinguishing code splitting (what to serve)
+      from module bundling (how it is packaged).
 
-- [ ] `__TODO__/018/web-clients/_todo/0300-accessibility.md:360` and `:408` — grouping long forms with `<fieldset>`/`<legend>` for assistive-tech navigation. TS-18 requires descriptive labels but does not mention fieldset grouping. Recommend expanding `02-web-accessibility.adoc` L191 (Input assistance / form labels).
+- [x] `__TODO__/018/web-clients/_todo/0300-accessibility.md:240` (Enable "skip to content") — full implementation pattern for the skip link (visibly-on-focus, first tabbable link, paired "jump back to top" link, code sample). TS-18 requires a skip-navigation mechanism but gives no implementation guidance. Recommend expanding `02-web-accessibility.adoc` L121-123 (Navigable intro).
 
-- [ ] `__TODO__/018/web-clients/_todo/0300-accessibility.md:414` — time-limit adjustment detail: warn users at least 20 seconds before expiry and offer a simple one-action extension. TS-18 says users must be able to turn off / adjust to 10x / extend on request, but does not specify the 20-second warning. Recommend expanding `02-web-accessibility.adoc` L105-108 (Enough time).
+      **Resolved.** Closed by a new bullet and HTML code example in
+      `02-web-accessibility.adoc`, "2. Operable" > *Navigable*: first
+      focusable, visible-on-focus, paired "back to top" link.
 
-- [ ] `__TODO__/018/web-clients/_todo/0300-accessibility.md:427` (Multimedia) — the `<track>` element and VTT format for captions, transcripts, and audio descriptions, with code samples. TS-18 requires captions/transcripts/audio-descriptions as outcomes but does not name the `<track>` element or VTT. Recommend expanding `02-web-accessibility.adoc` L29-35 (Time-based media).
+- [x] `__TODO__/018/web-clients/_todo/0300-accessibility.md:240` (Provide context) — breadcrumbs, sitemaps, and current-location indication within navigation. TS-18 requires consistent navigation and two ways to locate pages but does not mention breadcrumbs or current-location indicators. Recommend placing at `02-web-accessibility.adoc` under "2. Operable" (~L133).
 
-- [ ] `__TODO__/018/web-clients/_todo/0300-accessibility.md:460` — media and interactive content (including games) should be paused by default. TS-18 covers pausable auto-playing audio but not pause-by-default for video/games. Recommend expanding `02-web-accessibility.adoc` L63-64 (Distinguishable / audio).
+      **Resolved.** Closed by expanding the "two methods to locate content"
+      bullet with breadcrumbs and sitemap examples.
 
-- [ ] `__TODO__/018/web-clients/_todo/0300-accessibility.md:51` (ARIA) — specific ARIA landmark roles (`banner`, `navigation`, `main`) and `aria-label` for naming navigation regions. TS-18 mentions ARIA generally but does not name landmarks. Recommend expanding `02-web-accessibility.adoc` L222-223 (Robust / semantic HTML + ARIA).
+- [x] `__TODO__/018/web-clients/_todo/0300-accessibility.md:360` and `:408` — grouping long forms with `<fieldset>`/`<legend>` for assistive-tech navigation. TS-18 requires descriptive labels but does not mention fieldset grouping. Recommend expanding `02-web-accessibility.adoc` L191 (Input assistance / form labels).
 
-- [ ] https://www.bramstein.com/writing/web-font-loading-patterns.html#custom-font-display — the FOIT (Flash of Invisible Text) vs. FOUT (Flash of Unstyled Text) mechanism, and the JS-based class-toggling FOUT pattern. TS-18 says `font-display: swap` "prevents invisible text" but does not explain the FOIT/FOUT behaviour it is preventing. Recommend expanding `03-fonts.adoc` L66-71 (font-display bullet).
+      **Resolved.** Closed by expanding the form-labels bullet in "3.
+      Understandable" > *Input assistance* with the `<fieldset>`/`<legend>`
+      grouping requirement.
 
-- [ ] https://www.bramstein.com/writing/web-font-loading-patterns.html#loading-groups-of-fonts — grouped font loading (load a whole family together via `Promise.all`) to avoid faux styles and collapse multiple reflows into one. TS-18 discusses CLS/fallback tuning but not grouped loading to reduce reflows. Recommend expanding `03-fonts.adoc` L83-87 (Fallbacks).
+- [x] `__TODO__/018/web-clients/_todo/0300-accessibility.md:414` — time-limit adjustment detail: warn users at least 20 seconds before expiry and offer a simple one-action extension. TS-18 says users must be able to turn off / adjust to 10x / extend on request, but does not specify the 20-second warning. Recommend expanding `02-web-accessibility.adoc` L105-108 (Enough time).
+
+      **Resolved.** Closed by expanding the time-limit bullet in "2.
+      Operable" > *Enough time* with the 20-second warning and one-action
+      extension requirement.
+
+- [x] `__TODO__/018/web-clients/_todo/0300-accessibility.md:427` (Multimedia) — the `<track>` element and VTT format for captions, transcripts, and audio descriptions, with code samples. TS-18 requires captions/transcripts/audio-descriptions as outcomes but does not name the `<track>` element or VTT. Recommend expanding `02-web-accessibility.adoc` L29-35 (Time-based media).
+
+      **Resolved.** Closed by a new bullet and HTML `<video>`/`<track>` code
+      example in "1. Perceivable" > *Time-based media*.
+
+- [x] `__TODO__/018/web-clients/_todo/0300-accessibility.md:460` — media and interactive content (including games) should be paused by default. TS-18 covers pausable auto-playing audio but not pause-by-default for video/games. Recommend expanding `02-web-accessibility.adoc` L63-64 (Distinguishable / audio).
+
+      **Resolved.** Closed by expanding the auto-playing-audio bullet in "1.
+      Perceivable" > *Distinguishable* with the pause-by-default requirement
+      for video and interactive content/games.
+
+- [x] `__TODO__/018/web-clients/_todo/0300-accessibility.md:51` (ARIA) — specific ARIA landmark roles (`banner`, `navigation`, `main`) and `aria-label` for naming navigation regions. TS-18 mentions ARIA generally but does not name landmarks. Recommend expanding `02-web-accessibility.adoc` L222-223 (Robust / semantic HTML + ARIA).
+
+      **Resolved.** Closed by expanding the semantic-HTML/ARIA bullet in "4.
+      Robust" > *Compatible* with the `banner`/`navigation`/`main` landmark
+      roles and the multi-nav `aria-label` requirement.
+
+- [x] https://www.bramstein.com/writing/web-font-loading-patterns.html#custom-font-display — the FOIT (Flash of Invisible Text) vs. FOUT (Flash of Unstyled Text) mechanism, and the JS-based class-toggling FOUT pattern. TS-18 says `font-display: swap` "prevents invisible text" but does not explain the FOIT/FOUT behaviour it is preventing. Recommend expanding `03-fonts.adoc` L66-71 (font-display bullet).
+
+      **Resolved.** Closed by expanding the `font-display` bullet in
+      `03-fonts.adoc` with the FOIT/FOUT explanation and the legacy Font
+      Face Observer class-toggling pattern.
+
+- [x] https://www.bramstein.com/writing/web-font-loading-patterns.html#loading-groups-of-fonts — grouped font loading (load a whole family together via `Promise.all`) to avoid faux styles and collapse multiple reflows into one. TS-18 discusses CLS/fallback tuning but not grouped loading to reduce reflows. Recommend expanding `03-fonts.adoc` L83-87 (Fallbacks).
+
+      **Resolved.** Closed by a new bullet in `03-fonts.adoc`'s "Loading
+      strategy" section (placed alongside the other loading-strategy
+      content rather than under "Fallbacks", since grouped loading is a
+      loading-order decision, not a fallback-metrics one).
 
 The following Partial items are from the resources listed in GitHub issue #61.
 
-- [ ] https://css-tricks.com/tooltip-best-practices/ — tooltip implementation patterns: tooltips are text-only non-interactive popovers (use a `dialog` for interactive content); label an icon tooltip with `aria-labelledby` and provide a contextual description with `aria-describedby`; use `role="tooltip"`; do not use the `title` attribute; do not combine `aria-haspopup` with `role="tooltip"`; open on hover/focus and close on mouseout/blur; tooltips are inaccessible on touch devices (prefer visible labels); use a toggletip (`<button>` + `role="status"` live region) for informational popups. TS-18 asserts the WCAG 1.4.13 outcome (dismissible via Escape, hoverable, persistent) at `02-web-accessibility.adoc` L84-86 but gives none of this implementation guidance. Partial. Recommend expanding `02-web-accessibility.adoc` L84-86.
+- [x] https://css-tricks.com/tooltip-best-practices/ — tooltip implementation patterns: tooltips are text-only non-interactive popovers (use a `dialog` for interactive content); label an icon tooltip with `aria-labelledby` and provide a contextual description with `aria-describedby`; use `role="tooltip"`; do not use the `title` attribute; do not combine `aria-haspopup` with `role="tooltip"`; open on hover/focus and close on mouseout/blur; tooltips are inaccessible on touch devices (prefer visible labels); use a toggletip (`<button>` + `role="status"` live region) for informational popups. TS-18 asserts the WCAG 1.4.13 outcome (dismissible via Escape, hoverable, persistent) at `02-web-accessibility.adoc` L84-86 but gives none of this implementation guidance. Partial. Recommend expanding `02-web-accessibility.adoc` L84-86.
 
-- [ ] https://web.dev/articles/top-cwv#2-avoid-unnecessary-javascript — the broader guidance to minimize JavaScript shipped: prefer Baseline widely-available platform features over JS reimplementations, use the Chrome DevTools coverage tool to find unused code, and periodically prune tag-manager tags. TS-18 covers code splitting and lazy loading (L57-64) but frames JS only as "serve only the subset required" rather than the broader minimize-JS / remove-unused-code message. Partial. Recommend expanding `01-performance-optimization.adoc` L57-61.
+      **Resolved.** Closed by expanding the tooltip bullet in "1.
+      Perceivable" > *Distinguishable* with the full implementation
+      guidance: `dialog` vs. tooltip, `aria-labelledby`/`aria-describedby`,
+      `role="tooltip"`, the `title`-attribute and `aria-haspopup`
+      prohibitions, touch inaccessibility, and the toggletip pattern.
+      Source added to `06-references.adoc`.
 
-- [ ] https://web.dev/articles/top-cwv#1-ensure-the-lcp-resource-is-discoverable-from-the-html-source-and-prioritized — LCP image discoverability: use `<img src>`/`srcset` (not `data-src` which requires JS); prefer SSR over CSR so the image markup is in the HTML source; preload the LCP image with `<link rel="preload">` if it must be referenced from CSS/JS. TS-18 recommends server-rendering (L7-9) and preloading (L19-22) but does not address the `data-src` anti-pattern or the image-specific discoverability guidance. Partial. Recommend expanding `01-performance-optimization.adoc` L19-22 and L7-9.
+- [x] https://web.dev/articles/top-cwv#2-avoid-unnecessary-javascript — the broader guidance to minimize JavaScript shipped: prefer Baseline widely-available platform features over JS reimplementations, use the Chrome DevTools coverage tool to find unused code, and periodically prune tag-manager tags. TS-18 covers code splitting and lazy loading (L57-64) but frames JS only as "serve only the subset required" rather than the broader minimize-JS / remove-unused-code message. Partial. Recommend expanding `01-performance-optimization.adoc` L57-61.
 
-- [ ] https://web.dev/articles/top-cwv#1-set-explicit-sizes-on-any-content-loaded-from-the-page — the `aspect-ratio` CSS property (Baseline widely available) to reserve space for images and non-image elements with a dynamic width, and `min-height` as a fallback to reduce layout-shift severity for dynamic content of unknown size. TS-18 covers fixed `width`/`height` on images (L66-70) but not `aspect-ratio` or `min-height`. Partial. Recommend expanding `01-performance-optimization.adoc` L66-70.
+      **Resolved.** Closed by the "Minimize the JavaScript actually shipped"
+      bullet in the new "Script loading" section: Baseline platform
+      features, the DevTools coverage tool, and tag-manager pruning.
+
+- [x] https://web.dev/articles/top-cwv#1-ensure-the-lcp-resource-is-discoverable-from-the-html-source-and-prioritized — LCP image discoverability: use `<img src>`/`srcset` (not `data-src` which requires JS); prefer SSR over CSR so the image markup is in the HTML source; preload the LCP image with `<link rel="preload">` if it must be referenced from CSS/JS. TS-18 recommends server-rendering (L7-9) and preloading (L19-22) but does not address the `data-src` anti-pattern or the image-specific discoverability guidance. Partial. Recommend expanding `01-performance-optimization.adoc` L19-22 and L7-9.
+
+      **Resolved.** Closed by expanding the server-render bullet
+      (`data-src` anti-pattern, SSR-over-CSR for LCP images) and the
+      preload bullet (preloading the LCP resource when it must be
+      referenced from CSS/JS) in "Rendering and asset delivery".
+
+- [x] https://web.dev/articles/top-cwv#1-set-explicit-sizes-on-any-content-loaded-from-the-page — the `aspect-ratio` CSS property (Baseline widely available) to reserve space for images and non-image elements with a dynamic width, and `min-height` as a fallback to reduce layout-shift severity for dynamic content of unknown size. TS-18 covers fixed `width`/`height` on images (L66-70) but not `aspect-ratio` or `min-height`. Partial. Recommend expanding `01-performance-optimization.adoc` L66-70.
+
+      **Resolved.** Closed by expanding the image-sizing bullet in
+      "Rendering and asset delivery" with `aspect-ratio` and the
+      `min-height` fallback.
 
 ## Out-of-scope
 
