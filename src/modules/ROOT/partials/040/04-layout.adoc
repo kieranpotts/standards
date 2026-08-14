@@ -69,6 +69,16 @@ SHOULD be written immediately after the selector they modify:
 }
 ----
 
+Breakpoints MUST be written as `min-width`/`max-width` conditions on the
+viewport, as above, never as `device-width`. `device-width` reports the
+physical screen size, not the browser window's rendered width, so it does not
+reflect a resized window, a split-screen or foldable layout, or browser zoom
+— it stopped being a reliable signal once devices with widely varying pixel
+densities and multi-window use became common. A breakpoint SHOULD also be
+chosen where the content itself starts to look wrong — text lines becoming
+too long, awkward whitespace, cramped controls — rather than at round numbers
+matched to specific, ever-changing device dimensions.
+
 Layout sections are later populated with content. That content marked up as
 elements (see <<elements,Elements>>) or components (see
 <<components,Components>>).
@@ -184,6 +194,54 @@ This further locks down the modifier's scope, and limits the impact if it is
 accidentally applied in the wrong place. See <<modifiers,Modifiers>> for the
 full modifier conventions.
 
+== Modern layout primitives
+
+Flexbox, CSS Grid, and container queries did not exist when class-based grid
+frameworks (Bootstrap-style row/column classes) were the only way to build
+responsive layout, and this standard predates them too. They do not change
+the conventions above — layout sections are still named, `UPPER_CASE`
+classes, and grid systems still MUST NOT be used to create layout (see
+<<Grid systems>>) — but they do change how a layout section's own internal
+positioning is implemented, and they replace `float`, `display: table-cell`,
+and absolute positioning as the default technique:
+
+[source,css]
+----
+.NAVIGATION {
+  display: flex;
+  justify-content: space-between;
+}
+.MAIN {
+  display: grid;
+  grid-template-columns: 1fr min(75rem, 100%) 1fr;
+}
+.MAIN > * { grid-column: 2; }
+----
+
+Flexbox SHOULD be used for one-dimensional arrangements — a row or a column of
+items, such as `.NAVIGATION`'s links above. CSS Grid SHOULD be used for
+two-dimensional arrangements, where content needs to align on both axes at
+once, such as `.MAIN`'s centered content column. A layout section MAY combine
+both: a grid establishing the overall structure, with flex containers for the
+one-dimensional arrangements nested inside it.
+
+Container queries (`@container`) extend the progressive-enhancement approach
+in <<Progressive enhancement>> from the viewport to an individual layout
+section or component's own size, which matters once Flexbox and Grid make a
+section's width independent of the viewport width:
+
+[source,css]
+----
+.SIDEBAR { container-type: inline-size; }
+@container (min-width: 20rem) {
+  .Card { grid-template-columns: 1fr 2fr; }
+}
+----
+
+A component queried this way MUST still work without its container query
+matching — the unenhanced layout is the baseline, exactly as with a `@media`
+breakpoint that fails to match.
+
 == Grid systems
 
 Grid systems MUST NOT be used to create layout. A traditional, uniquely named
@@ -192,7 +250,9 @@ sections can collapse to mobile-friendly layout at different breakpoints, which
 is difficult to achieve with a generic grid system.
 
 Grid systems ARE useful as components, for arranging content within an existing
-layout section:
+layout section — a role in which they MAY be implemented with CSS Grid rather
+than float- or class-based columns, without changing anything about how they
+are used here:
 
 [source,html]
 ----

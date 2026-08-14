@@ -64,6 +64,34 @@ is an acceptable cost. If resets become too frequent, iterate in a restrained
 way toward fewer default properties on type selectors and greater reliance on
 classes.
 
+Resetting is done with one of CSS's own inheritance keywords, valid as the
+value of any property:
+
+* `inherit` — takes the computed value from the parent element, even for a
+  property that does not normally inherit.
+* `initial` — resets to the property's specification-defined default,
+  ignoring both inheritance and any style sheet rule.
+* `unset` — acts as `inherit` for a property that naturally inherits (eg.
+  `color`), or as `initial` for one that does not (eg. `border`) — the usual
+  choice, since it does not require knowing which behavior a given property
+  has.
+* `revert` — resets to the browser's built-in style for the element, rather
+  than to the property's specification default; rarely needed in this
+  standard's default-cascade-first approach, since there is normally no
+  competing style sheet rule to revert past.
+* `all` — a pseudo-property applying any of the above to every property at
+  once, useful for fully isolating a component from unwanted inherited or
+  cascaded styles (`all: unset;` followed by the component's own declarations).
+
+[source,css]
+----
+.Widget {
+  all: unset;
+  display: block;
+  font: inherit;
+}
+----
+
 Embracing the cascade also keeps visual design in check. It encourages style
 guides built around the limited set of native HTML elements, rather than the
 infinite possibilities afforded by classes.
@@ -191,6 +219,27 @@ elements, `<div>` and `<span>`, and to the semantic sectioning elements —
 `<main>`, `<header>`, `<footer>`, `<article>`, `<aside>`, `<address>`, `<nav>`,
 `<section>` — since it is often useful to swap one for another (for example,
 replacing an `<aside>` with a `<div>`) without also refactoring the CSS.
+
+Type-qualifying a component or layout class also raises that selector's
+specificity above an unqualified class selector's. This matters beyond the
+freely-interchangeable-elements case above: a modifier or utility class MUST
+be able to override a component's default presentation, and it can only do so
+where both selectors carry the same specificity. Given a type-qualified
+component selector and an unqualified modifier:
+
+[source,css]
+----
+button.Button { background: hsl(210, 80%, 45%); }
+.background-midgrey { background: hsl(0, 0%, 60%); }
+----
+
+`.background-midgrey` cannot override `button.Button` on a `<button
+class="Button background-midgrey">`, regardless of source order, because
+`button.Button` carries higher specificity (see
+<<Specificity and !important>>). Leaving the component selector unqualified
+(`.Button {}`) keeps its specificity equal to the modifier's, so source order
+alone determines which wins — which is what makes composing modifiers onto a
+component predictable in the first place (see <<Composition>>).
 
 == Predictability
 
@@ -412,6 +461,37 @@ browsers without support fall back to the baseline:
   padding: 0.5rem 1rem;
 }
 ----
+
+A vendor-prefixed property, such as `-webkit-border-image` above, SHOULD NOT
+be used in production CSS unless the target browser support data shows it is
+still required. Where one is used, it MUST be written immediately before the
+standard property it prefixes, in the order shown, so the unprefixed
+declaration always wins in browsers that support both — and the surrounding
+code or a comment SHOULD note which browsers still need the prefix, so it can
+be removed once they no longer do.
+
+The native `@supports` at-rule complements class-based feature detection (see
+<<Dynamic classes>>) for enhancements that only need to apply within a single
+style sheet, without a JavaScript-injected `supports-*` class:
+
+[source,css]
+----
+.Gallery {
+  display: block;
+}
+@supports (display: grid) {
+  .Gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+  }
+}
+----
+
+Prefer `@supports` where the enhancement is pure CSS and does not need to be
+known to JavaScript or reflected in the markup. Prefer a `supports-*` class
+(see <<Dynamic classes>>) where the same feature test also has to gate
+JavaScript behavior, since duplicating the test in both `@supports` and a
+script risks the two falling out of sync.
 
 Progressive enhancement avoids CSS hacks, browser-detection scripts, and
 conditional comments for legacy browsers — just standard CSS. It also has

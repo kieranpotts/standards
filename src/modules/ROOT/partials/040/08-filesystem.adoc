@@ -5,6 +5,22 @@ source, but a project SHOULD maintain separate style sheets for browser resets,
 layout, base elements, and one style sheet per component, then aggregate and
 minify everything before publication. A preprocessor SHOULD automate this step.
 
+Where a reset style sheet is used, it SHOULD set `box-sizing: border-box` on
+every element, via the universal selector, so that an element's declared
+`width` and `height` include its padding and border rather than being
+inflated by them:
+
+[source,css]
+----
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+----
+
+This one rule removes a whole class of layout arithmetic that would otherwise
+have to be repeated across every component and layout section, so it belongs
+in the reset rather than being redeclared per component.
+
 [source,css]
 ----
 @charset "UTF-8";
@@ -17,6 +33,38 @@ minify everything before publication. A preprocessor SHOULD automate this step.
 @import "components/Overlay";
 @import "components/Popup";
 ----
+
+The `@charset` rule, where used, MUST be the first line of the compiled style
+sheet — nothing, not even a comment, MUST precede it — and MUST give the
+encoding as a double-quoted string, `@charset "UTF-8";`. Any other position or
+quoting is invalid and the browser silently ignores the rule.
+
+Every `@import` MUST precede all other rules in the style sheet besides
+`@charset`; an `@import` that follows a ruleset is invalid and is ignored by
+the browser. An `@import` MAY be scoped to a media condition, avoiding the
+need to wrap the imported file's own rules in a media query:
+
+[source,css]
+----
+@import "wide-screen" screen and (min-width: 90rem);
+----
+
+Print styles SHOULD be maintained in their own style sheet, imported with a
+`print` media condition, rather than scattered as `@media print` blocks
+throughout the layout and element style sheets:
+
+[source,css]
+----
+@import "print" print;
+----
+
+A dedicated print style sheet keeps print-specific overrides — hiding
+navigation and interactive controls, expanding hyperlink URLs, switching to
+point-based font sizes — in one place, instead of interleaved with the
+screen-oriented rules for every layout section and element. Occasional,
+narrowly scoped `@media print` overrides alongside the screen rules they
+adjust, as used elsewhere in this standard's examples, remain acceptable in
+smaller projects where a dedicated style sheet would be overkill.
 
 The following typically belong in the elements style sheet:
 

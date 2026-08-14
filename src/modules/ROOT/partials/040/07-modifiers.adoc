@@ -75,6 +75,38 @@ Classes added for feature detection MUST be prefixed `supports-` (eg.
 
 == Specificity and !important
 
+A selector's specificity is computed as a four-part value, most significant
+part first:
+
+1. *Inline styles.* A `style` attribute on the element itself. Always wins
+   over any selector in a style sheet.
+
+2. *ID selectors.* One point per `#id` in the selector.
+
+3. *Classes, attributes, and pseudo-classes.* One point per `.class`,
+   `[attribute]`, or `:pseudo-class` (eg. `:hover`, `:first-child`).
+
+4. *Types and pseudo-elements.* One point per type selector (`div`, `a`) or
+   `::pseudo-element` (eg. `::before`).
+
+The universal selector (`*`) and combinators (` `, `>`, `+`, `~`) contribute
+nothing. Two selectors are compared part by part, most significant first:
+`.NavBar li.navbar-selected` (0-2-1) beats `.NavBar.navbar-minor` (0-2-0),
+because the two tie on classes but the first also carries a type selector. A
+single ID selector (1-0-0) beats any number of classes, attributes, or type
+selectors combined — one reason this standard does not permit ID selectors in
+CSS. Where two selectors tie on specificity, the one that comes later in
+source order wins.
+
+This standard's conventions keep specificity predictable without requiring
+the calculation above to be done by hand: layout, component, and unqualified
+modifier selectors normally carry a single class (0-1-0), so which ruleset
+wins is usually decided by source order (see <<Filesystem>>) rather than by
+specificity arithmetic. Qualifying a selector with a type or a second class —
+as the type-qualification and modifier-qualification rules elsewhere in this
+standard do — is a deliberate, visible increase in specificity, not an
+accident.
+
 Global modifiers are inherently leaky. They may get added to things they were
 not designed for, producing unexpected effects. And element or component
 rulesets often carry higher specificity, which silently overrides a global
@@ -107,6 +139,41 @@ across otherwise unrelated components:
 ----
 <div class="PullQuote clearfix box-shadow rounded-corners">
 ----
+
+A narrow exception to the "reserved" guidance above is a small set of
+single-purpose utility classes — `.hidden { display: none !important; }`, a
+fixed-width helper — that MUST always win regardless of what else is applied
+alongside them. Here `!important` is used proactively, before any specificity
+conflict has actually arisen, as a deliberate guarantee rather than a
+workaround: a class named `.hidden` is unambiguous about what it does, so
+there is no risk of it masking a design that should have been an
+appropriately-qualified modifier instead. This exception does not extend to
+ordinary modifiers, where `!important` remains a sign that the modifier
+should be qualified against its target instead.
+
+Where an offending high-specificity ruleset cannot itself be refactored — most
+often third-party or legacy CSS outside this standard's control — two
+remediation techniques exist without resorting to `!important`. Self-chaining
+a class doubles its specificity without adding a location dependency:
+
+[source,css]
+----
+.NavBar.NavBar {}
+----
+
+And selecting an ID-bearing element by attribute, rather than by ID selector,
+matches the same element at class-level specificity:
+
+[source,css]
+----
+[id="legacy-widget"] {}
+----
+
+Both are remediation techniques for CSS this standard does not govern, not
+patterns to reach for within a codebase that follows it. A codebase written to
+this standard avoids the specificity trouble that makes them necessary in the
+first place — shallow selectors, no ID selectors, and `!important` reserved as
+above.
 
 == Naming
 

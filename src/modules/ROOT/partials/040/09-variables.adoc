@@ -1,0 +1,78 @@
+= Custom properties
+
+CSS custom properties ("CSS variables") store a value once and reference it
+throughout a style sheet with `var()`:
+
+[source,css]
+----
+:root {
+  --color-brand: hsl(210, 80%, 45%);
+  --spacing-unit: 1rem;
+}
+.NavBar a {
+  color: var(--color-brand);
+  padding: var(--spacing-unit) calc(var(--spacing-unit) * 2);
+}
+----
+
+Unlike a preprocessor variable, which is resolved once at compile time, a
+custom property is a real CSS value, resolved by the browser at render time.
+It therefore participates in the cascade and inheritance exactly like any
+other property: it can be set globally, overridden for a specific layout
+section or component, and changed dynamically (by a media query, a
+`:hover`/`:focus` state, or client-side JavaScript) without recompiling any
+style sheet.
+
+Global custom properties — design tokens such as brand colors, spacing units,
+and type scale — SHOULD be declared on `:root`, so they are available
+everywhere:
+
+[source,css]
+----
+:root {
+  --color-brand: hsl(210, 80%, 45%);
+  --color-error: hsl(0, 70%, 45%);
+  --spacing-unit: 1rem;
+}
+----
+
+A component or layout section MAY declare its own custom properties, scoped to
+its own selector, for values that only make sense in that context:
+
+[source,css]
+----
+.Popup {
+  --popup-border-color: hsl(0, 0%, 80%);
+  border: 1px solid var(--popup-border-color);
+}
+.Popup.popup-alert {
+  --popup-border-color: hsl(0, 70%, 45%);
+}
+----
+
+Here, `popup-alert` overrides `--popup-border-color` rather than redeclaring
+`border` outright — the same modifier convention as elsewhere in this
+standard (see <<Naming>>), applied to a custom property instead of a
+standard one. This keeps the override narrow: anything else `.Popup` sets
+from `--popup-border-color` (a box shadow, an icon fill) also picks up the
+modified value, without the modifier having to restate it.
+
+`var()` accepts a fallback value, used when the custom property is unset:
+
+[source,css]
+----
+.Card {
+  padding: var(--spacing-unit, 1rem);
+}
+----
+
+A fallback is useful for a component that may be dropped into a project which
+has not defined the standard's token set, but SHOULD NOT be relied on as a
+substitute for declaring the token on `:root` in a project that does use this
+standard's conventions throughout.
+
+Custom properties MUST NOT be used as a replacement for this standard's class
+naming conventions. A custom property changes a *value*; a class changes which
+*rules apply*. Theming and one-off value substitution belong to custom
+properties; adding or removing presentation belongs to modifier classes (see
+<<Modifiers>>).
