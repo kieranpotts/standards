@@ -1,0 +1,192 @@
+= Semantics and metadata
+
+== Semantic markup
+
+HTML's job is to describe what content *is*, not how it looks. Semantic
+markup — choosing the element whose meaning actually matches the
+content, `<nav>` over a `<div>` styled to look like navigation — matters
+because the same markup then delivers that meaning correctly to every
+consumer, regardless of how they access the page: a sighted user with
+CSS, a screen reader, a search engine crawler, a browser extension, or a
+future tool that does not exist yet. A `<div>` styled to look exactly like
+a button conveys nothing to any of those beyond the sighted-with-CSS case.
+
+Two disciplines follow from this:
+
+* Use elements only within the scope their specification defines them
+  for — do not repurpose an element because its default styling happens
+  to be convenient (a `<blockquote>` used purely to get an indent, with
+  no actual quotation).
+* Do not reinvent markup the platform already provides. A custom
+  dropdown built entirely from `<div>`s duplicates work `<select>` already
+  does, and starts from zero on every accessibility behavior `<select>`
+  gets for free.
+
+[#presentational-tags]
+== Presentational tags
+
+The following elements describe presentation directly rather than
+meaning, and MUST NOT be used: `big`, `blink`, `center`, `font`,
+`marquee`, `strike`, `tt`, `nobr`. Each is either formally deprecated or
+was never standardized, and each has a semantic or CSS-based replacement.
+
+`<b>`, `<i>`, `<u>`, and `<small>` warrant a specific note, because
+whether they are presentational depends on how they are used. `<u>` is
+presentational in essentially all modern usage (it is easily confused with
+a hyperlink) and is excluded from this standard's <<Allowed elements>>
+list entirely. `<b>`, `<i>`, and `<small>` are *not* excluded — each has a
+genuine semantic meaning distinct from `<strong>`/`<em>` and is permitted
+under that meaning; see <<Inline text elements>> for exactly what that
+meaning is in each case. Using any of the three purely to make text bold,
+italic, or smaller, with no semantic justification, remains presentational
+misuse regardless of the element being technically permitted — reach for
+CSS instead.
+
+[#presentational-attributes]
+== Presentational attributes
+
+`border`, `align`, `valign`, and `clear` are presentational HTML
+attributes with direct CSS equivalents, and MUST NOT be used — a
+`border` attribute on `<table>` is CSS `border`; `align`/`valign` are CSS
+`text-align`/`vertical-align`; `clear` is CSS `clear`. The `style`
+attribute itself follows the same rule set out in
+<<Classes and data attributes>>: reserved for genuinely runtime-computed
+values, not static presentation.
+
+[#redundancy-between-html-aria-and-metadata]
+== Redundancy between HTML, ARIA, and metadata
+
+More than one mechanism sometimes expresses the same semantic — `<nav>`,
+`role="navigation"`, and an RDFa `typeof="SiteNavigationElement"` (see
+<<Schema.org>>) all mark navigation, and a document that used all three
+for the same element would be marking it up three times over for the same
+one fact.
+
+The rule this standard applies is: prefer native HTML semantics first;
+add an ARIA role only where HTML has no native element or attribute that
+already expresses the same meaning; add a metadata vocabulary (Schema.org,
+Microformats) only for the machine-readable, structured-data facts that
+neither HTML nor ARIA express at all (a product's price, a recipe's cook
+time). Do not stack a redundant ARIA role onto an element whose tag name
+already implies that role — see <<Redundant ARIA>> for the specific
+mappings this produces.
+
+[#browser-support-policy]
+== Browser support policy
+
+This standard's <<Allowed elements>> list, and the individual exclusions
+called out throughout (`<dialog>`, `<meter>`/`<progress>` as noted in
+<<Built-in widgets>>, SMIL animation, image maps as the recommended
+default), follow one consistent policy: an element or feature is
+excluded, or only conditionally permitted, where its rendering or
+behavior is not consistent enough across this project's target browsers
+to be relied upon without a fallback. This is a moving target — a feature
+excluded here today may earn broad enough support to be added later, and
+a project extending this standard for its own target-browser matrix
+SHOULD revisit each exclusion against that matrix rather than assume the
+list is permanent.
+
+== Schema.org
+
+Public pages MAY be extended with Schema.org structured data, expressed
+via RDFa Lite, which this standard prefers over the Microdata
+serialization — RDFa Lite is more actively maintained as Schema.org's own
+recommended syntax and avoids Microdata's need to repeat `itemscope`
+on every nested object. Do not mix the two syntaxes on the same page.
+
+RDFa Lite uses five attributes:
+
+`vocab`::
+Declares the vocabulary in use, set once on `<body>` —
+`vocab="https://schema.org/"`.
+
+`typeof`::
+Declares an element's Schema.org type — `typeof="Product"`,
+`typeof="Article"`.
+
+`property`::
+Declares which Schema.org property an element's content maps to —
+`property="name"`, `property="price"`.
+
+`resource`::
+Points a property at another resource by URI, where the value is a
+reference rather than inline content.
+
+`prefix`::
+Declares an additional vocabulary prefix beyond the default, where more
+than one vocabulary is in use.
+
+Markup SHOULD be validated against Google's or Schema.org's own
+structured-data validator before shipping, since a subtly malformed RDFa
+attribute fails silently — the page still renders normally, but the
+structured data is not picked up. Do not duplicate a Schema.org
+`typeof`/`property` pair for information already conveyed by a native
+HTML sectioning element — `<main>`, `<nav>`, `<header>`, `<aside>` — where
+an equivalent Schema.org type exists
+(see
+<<redundancy-between-html-aria-and-metadata,Redundancy between HTML, ARIA,
+and metadata>>).
+
+== Microformats
+
+Microformats are a small set of `rel` values conveying link-relationship
+semantics, distinct from Schema.org's structured-object semantics. The
+ones in regular production use:
+
+`rel="nofollow"`::
+Signals a link the page does not want to vouch for or pass ranking
+signal to — a link in user-submitted comments, a paid or sponsored link
+(paired with `rel="sponsored"`), or any link the page does not editorially
+endorse.
+
+`rel="license"`::
+Points to the license governing the linked-to content.
+
+`rel="tag"`::
+Marks a link as a tag/category label for the current page.
+
+Prefer Schema.org for structural, object-shaped information (a product,
+an article, a recipe) and Microformats only for these link-relationship
+semantics — the two are not interchangeable, and Schema.org has no
+equivalent for "this specific link is unendorsed."
+
+== Social graphs
+
+The Open Graph protocol (`<meta property="og:*">`) controls how a page
+renders when shared on Facebook and several other platforms that adopted
+the same tags — title, description, and preview image, independent of
+the page's own `<title>`/`description` meta values. Adopt it where social
+sharing is a meaningful traffic channel for the product; it is not
+REQUIRED for every page, only for those a team expects to be shared.
+
+[#internationalization]
+== Internationalization
+
+The root `<html>` element MUST declare both `lang` and `dir`, always
+paired: `<html lang="en" dir="ltr">`. `lang` values SHOULD follow
+RFC 4646 — an ISO 639-1 language code, optionally combined with an
+ISO 3166-1 alpha-2 region (`en-GB`, `en-US`) where the distinction is
+meaningful to the content (regional spelling, date formats, currency).
+Prefer the culture-specific locale form (`en-GB`) over the bare language
+code where the distinction genuinely matters to the content's audience.
+
+`dir` sets the base text direction (`ltr` or `rtl`) for the whole
+document, and is not purely presentational — several CSS layout
+properties (`margin-inline-start`, and similar logical properties) key off
+it, so `dir` functions as a real layout toggle, not just a text-rendering
+hint.
+
+Two elements handle direction at a finer grain than the document root:
+
+`<bdo>`::
+Explicitly overrides the bidirectional text algorithm's default direction
+for its content — for a short run of text that must render in the
+opposite direction from its surrounding context regardless of what the
+algorithm would otherwise infer.
+
+`<bdi>`::
+Isolates a run of text whose direction is not known in advance (typically
+user-generated content — a name, a username) so its direction does not
+leak into and disrupt the surrounding text's layout. `dir="auto"` on the
+element itself is the fallback where the content's own direction should
+be detected automatically rather than isolated.

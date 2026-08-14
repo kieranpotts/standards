@@ -1,0 +1,151 @@
+= Scripting and templates
+
+== Classes and data attributes
+
+`class` and `data-*` MUST be used for strictly separate purposes:
+
+* `class` is exclusively a CSS styling hook, per <<Coding style>>. It MUST
+  NOT be queried by JavaScript to select or identify elements — a class
+  renamed during a CSS refactor should never silently break application
+  behavior.
+* `data-*` is exclusively the mechanism JavaScript uses to read parameters
+  and select elements from the DOM. A script-added class (used, for
+  example, to trigger a CSS transition from JavaScript) SHOULD be
+  prefixed `is-` or `has-` (`is-open`, `has-error`) to visually distinguish
+  a script-controlled state class from an ordinary styling class in the
+  stylesheet.
+
+The `type` attribute on `<script>` MAY be omitted for a standard
+JavaScript module or classic script — the default is correct in either
+case for a current browser; set it explicitly only for a non-executable
+use such as `type="text/template"` (see <<Templates>>) or `type="module"`
+where module semantics (deferred execution, `import`/`export`) are
+specifically needed.
+
+Inline `style` attributes MUST NOT be used for static presentation — that
+is what a stylesheet is for. The one accepted exception is a value that
+is genuinely computed at runtime by JavaScript, such as the live position
+of an element during a drag-and-drop interaction, where the value has no
+meaningful static CSS representation.
+
+[#progressive-enhancement]
+== Progressive enhancement
+
+A meaningful share of real-world traffic — historically estimated around
+5% — either has JavaScript disabled, fails to load it, or runs a browser
+whose JavaScript engine cannot execute a modern bundle at all. A page's
+core content MUST render as static HTML that does not depend on
+JavaScript having run, and interactive enhancements MUST be layered on
+top of that baseline, not required for it.
+
+* A component that genuinely cannot function without JavaScript (a rich
+  interactive widget with no static equivalent) SHOULD be rendered by
+  JavaScript at runtime, rather than emitted as broken or non-functional
+  markup by the server and then "fixed" once a script runs — a user
+  without JavaScript then sees nothing, rather than seeing something that
+  looks interactive but does not work.
+* Prefer a CSS animation or transition over a JavaScript-driven one
+  wherever the effect is achievable in CSS — see <<SVG animation>> for the
+  same preference applied to SVG specifically.
+* Bundled and minified JavaScript SHOULD be served with a long cache
+  lifetime, the same as static images — see <<Serving images>> — since a
+  content-hashed filename invalidates the cache automatically on change.
+* `defer` (for scripts that can run after parsing completes, in source
+  order) and `async` (for independent scripts that may run as soon as
+  they are fetched, in arbitrary order) SHOULD be used in preference to
+  the legacy pattern of placing an unattributed `<script>` at the very
+  bottom of `<body>` to avoid blocking rendering — `defer`/`async` express
+  the actual execution requirement directly, rather than relying on
+  source position as a proxy for it.
+* Where the difference between "no JavaScript at all" and "JavaScript ran
+  but failed, or the browser's API surface is incomplete" matters,
+  `<noscript>` alone only covers the first case. A short, feature-tested
+  script placed early and run synchronously — checking for the specific
+  APIs the page depends on (`addEventListener`, `querySelector`, and
+  similar; this is the "cut the mustard" pattern) — is what should gate
+  enhancement for the second case, showing an in-place message or falling
+  back to the static baseline where the test fails.
+* No inline `<script>` block containing application logic SHOULD appear
+  in the page body — application JavaScript belongs in an external,
+  cached, minified file. A short, synchronous script used purely to apply
+  an early class or feature-test result before first paint is the
+  accepted exception.
+* Event handlers MUST be attached with `addEventListener`, never with an
+  inline HTML event attribute (`onclick`, `onload`, and similar) — see
+  <<JavaScript-driven links>> for the same rule applied to links
+  specifically.
+
+[#data-attributes]
+== Data attributes
+
+`data-*` attributes are the *exclusive* channel through which
+server-rendered HTML passes parameters to client-side JavaScript.
+
+* JavaScript MUST NOT select elements by `class` or `id` as its primary
+  query mechanism for behavior — `data-*` attributes (commonly paired
+  with `[data-component="..."]`-style selectors) decouple styling hooks
+  from behavior hooks, so a designer changing a class name does not
+  silently break a script.
+* No parameter needed by a script MUST be passed via an inline `<script>`
+  block embedding values directly in the page — encode it as a `data-*`
+  attribute on the relevant element instead, which keeps the parameter
+  next to the markup it describes and inspectable in the DOM.
+* Server-rendered content is what kicks off client-side behavior — a
+  script reads the already-rendered markup and its `data-*` attributes to
+  initialize, rather than the server rendering an empty placeholder for
+  JavaScript to fill entirely. This is the same principle as
+  <<Progressive enhancement>> applied at the level of a single component.
+* Every enhancement MUST fail silently into the working static baseline
+  if it errors — an uncaught JavaScript error in one component's
+  enhancement script MUST NOT break the page's core content or any other
+  component's behavior.
+
+[#templates]
+== Templates
+
+`<template>` declares inert, non-rendered markup that can be cloned and
+injected into the document at runtime via JavaScript — the standard
+mechanism for a client-side reusable markup fragment. Its content is
+parsed but not rendered, not executed (scripts inside it do not run until
+cloned in), and not reachable by DOM queries against the live document
+until explicitly cloned.
+
+`<template>` is now widely supported and SHOULD be used for this purpose
+in new work. The older interim pattern of storing a template inside a
+`<script type="text/template">` block (relying on the browser not
+executing an unrecognized script type, and reading its `textContent`)
+predates broad `<template>` support and SHOULD NOT be used in new code —
+it is mentioned here only because it may still be encountered in
+legacy code.
+
+[#built-in-widgets]
+== Built-in widgets
+
+The web platform provides a small number of built-in interactive elements
+beyond form controls. `<meter>` (a scalar value within a known range —
+disk usage, a rating) and `<progress>` (the completion progress of a task)
+are both excluded from this standard's <<Allowed elements>> list, on the
+grounds of inconsistent visual rendering across browsers for a
+working-standard subset that favors elements a team can style predictably;
+a custom component built from `<div>`s with the equivalent ARIA role (see
+<<Other live-region components>>) gives more consistent control. A
+project MAY choose to permit `<meter>`/`<progress>` as an extension to
+this standard where their native semantics and lower implementation cost
+outweigh that inconsistency for its own use case.
+
+`<menu>` and its associated context-menu behavior are similarly excluded —
+see <<Allowed elements>> — as unsupported/inconsistent enough across
+current browsers to not be relied upon.
+
+[#content-security-policy]
+== Content Security Policy
+
+A Content Security Policy (CSP) restricts which sources a document may
+load scripts, styles, images, and other resources from, and is a primary
+defense against cross-site scripting. A policy SHOULD be set via the
+`Content-Security-Policy` HTTP response header where the server controls
+it, with the `<meta http-equiv="Content-Security-Policy">` tag (see
+<<Meta tags>>) as the fallback where it does not. See
+xref:052.adoc[*TS-52: Security and secrets management*] for the security
+requirements a CSP forms part of; this standard covers only where and how
+its HTML-level declaration is placed.
