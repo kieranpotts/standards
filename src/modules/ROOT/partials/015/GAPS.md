@@ -45,76 +45,137 @@ changing interaction patterns; the existing Doherty Threshold (400ms) entry
 is adjacent but distinct. One new Missing gap added; all prior gaps remain
 open.
 
+**Fifth run (`close-gaps`), 2026-08-14.** All 51 actionable items (47
+Missing, 4 Partial) closed in one run, across ten new content partials
+(`02-feedback-and-communication.adoc` through
+`10-visual-rhythm-and-text.adoc`) plus expansions to the existing "Keep it
+tidy" and "Embrace affordances" content in `01-design-principles.adoc` and
+a new usability-definition paragraph on the page itself. This run was
+conducted jointly with a `close-gaps` run against TS-18 (Web GUIs), on the
+user's request, specifically to catch gaps that would be better routed
+between the two standards; none were found — TS-18's remaining gaps are all
+web-implementation-specific (HTTP/CSS/DOM mechanics) and TS-15's are all
+platform-agnostic HCI/UX principles, so no items moved in either direction.
+TS-15's 7 Out-of-scope items and 12 Unresolved references remain open; none
+were actioned in this run. All checked items below carry a **Resolved.**
+note stating what was written and where.
+
 ## Missing
 
-- [ ] https://www.nngroup.com/articles/ten-usability-heuristics/ (Heuristic 1:
+- [x] https://www.nngroup.com/articles/ten-usability-heuristics/ (Heuristic 1:
       Visibility of System Status) is not addressed anywhere in the standard.
       The standard never states that interfaces should keep users informed about
       what is going on through timely feedback. Recommend a new section
       "Feedback and system status" in `01-design-principles.adoc`.
 
-- [ ] https://lawsofux.com/#doherty-threshold is not addressed anywhere in the
+      **Resolved.** Closed by `02-feedback-and-communication.adoc`, "Feedback
+      and system status" section. Covers immediate response to input,
+      progress indicators for long operations, and not showing false
+      completion. Source added to the page's `== References`.
+
+- [x] https://lawsofux.com/#doherty-threshold is not addressed anywhere in the
       standard. The Doherty Threshold states that productivity soars when
       computer and user interact at a pace under 400 ms, and that perceived
       performance and progress bars help when waits are unavoidable. Recommend
       the new "Feedback and system status" section.
 
-- [ ] https://lawsofux.com/#flow is not addressed anywhere in the standard.
+      **Resolved.** Closed by the same section's response-time-thresholds
+      table (100ms/400ms/1s/10s), documenting the 400ms Doherty Threshold and
+      perceived-performance techniques. Source added to the page's
+      `== References`.
+
+- [x] https://lawsofux.com/#flow is not addressed anywhere in the standard.
       Flow (immersed, energized focus) is sustained by removing friction,
       giving feedback on what was done and accomplished, and making content
       discoverable. Recommend the new "Feedback and system status" section.
 
-- [ ] https://www.nngroup.com/articles/ten-usability-heuristics/ (Heuristic 2:
+      **Resolved.** Closed by the same section's closing paragraph on Flow —
+      friction removal, feedback on progress, and discoverable content.
+      Source added to the page's `== References`.
+
+- [x] https://www.nngroup.com/articles/ten-usability-heuristics/ (Heuristic 2:
       Match Between System and Real World) is not addressed anywhere in the
       standard. Interfaces should speak the users' language, use familiar
       words/phrases, follow real-world conventions, and present information in a
       natural and logical order. Recommend a new section "Speak the user's
       language" in `01-design-principles.adoc`.
 
-- [ ] https://www.nngroup.com/articles/ten-usability-heuristics/ (Heuristic 3:
+      **Resolved.** Closed by `02-feedback-and-communication.adoc`, "Speak
+      the user's language" section. Covers familiar vocabulary, real-world
+      conventions, and natural information ordering.
+
+- [x] https://www.nngroup.com/articles/ten-usability-heuristics/ (Heuristic 3:
       User Control and Freedom) is not addressed anywhere in the standard.
       Users need a clearly marked "emergency exit", and support for Undo and
       Redo, to back out of unwanted actions. Recommend a new section "User
       control and freedom" in `01-design-principles.adoc`.
 
-- [ ] https://www.nngroup.com/articles/ten-usability-heuristics/ (Heuristic 5:
+      **Resolved.** Closed by `02-feedback-and-communication.adoc`, "User
+      control and freedom" section. Covers emergency exits from flows, Undo,
+      and Redo, cross-linked to the existing "Embrace affordances" section.
+
+- [x] https://www.nngroup.com/articles/ten-usability-heuristics/ (Heuristic 5:
       Error Prevention) is not addressed anywhere in the standard. Good designs
       either eliminate error-prone conditions or check for them and present a
       confirmation before committing; slips vs. mistakes are distinguished, and
       helpful constraints, good defaults, and warnings are recommended.
       Recommend a new section "Error prevention" in `01-design-principles.adoc`.
 
-- [ ] https://www.nngroup.com/articles/ten-usability-heuristics/ (Heuristic 6:
+      **Resolved.** Closed by `03-errors.adoc`, "Error prevention" section.
+      Covers eliminating error-prone conditions, the slip/mistake
+      distinction, constraints and good defaults, and confirmation before
+      consequential actions.
+
+- [x] https://www.nngroup.com/articles/ten-usability-heuristics/ (Heuristic 6:
       Recognition Rather than Recall) is not addressed anywhere in the standard.
       Minimize memory load by keeping elements, actions, and options visible
       and easily retrievable; users should not have to remember information from
       one part of the interface to another. Recommend a new section "Recognition
       over recall" in `01-design-principles.adoc`.
 
-- [ ] https://lawsofux.com/#working-memory is not addressed anywhere in the
+      **Resolved.** Closed by `04-memory-and-cognitive-load.adoc`,
+      "Recognition over recall" section. Covers keeping information visible,
+      differentiating visited links, and carrying critical information across
+      screens.
+
+- [x] https://lawsofux.com/#working-memory is not addressed anywhere in the
       standard. Working memory holds only 4–7 chunks that fade in 20–30 seconds,
       so designers should keep displayed information necessary and relevant,
       differentiate visited links, and carry critical information across
       screens (e.g. comparison tables). Recommend the new "Recognition over
       recall" section.
 
-- [ ] https://lawsofux.com/#millers-law is not addressed anywhere in the
+      **Resolved.** Closed by the same section's opening paragraph, stating
+      the 4-7 chunk / 20-30 second working-memory limit. Source added to the
+      page's `== References`.
+
+- [x] https://lawsofux.com/#millers-law is not addressed anywhere in the
       standard. Miller's Law (7±2 items in working memory) implies content
       should be organized into chunks; the site warns against using the
       "magical number seven" to justify arbitrary limitations. Recommend the
       new "Recognition over recall" section.
 
-- [ ] https://lawsofux.com/#chunking is not addressed anywhere in the standard.
+      **Resolved.** Closed by the same section's "Organize content into
+      chunks" bullet, including the explicit warning against using Miller's
+      Law to justify an arbitrary item-count limit.
+
+- [x] https://lawsofux.com/#chunking is not addressed anywhere in the standard.
       Chunking (grouping information into meaningful wholes with clear
       hierarchy) lets users scan, identify, and process content faster.
       Recommend the new "Recognition over recall" section.
 
-- [ ] https://lawsofux.com/#cognitive-load is not addressed anywhere in the
+      **Resolved.** Closed by the same "Organize content into chunks" bullet.
+
+- [x] https://lawsofux.com/#cognitive-load is not addressed anywhere in the
       standard. The standard does not distinguish intrinsic vs. extraneous
       cognitive load, nor warn that distracting/unnecessary elements add
       extraneous load. Recommend the new "Recognition over recall" section.
 
-- [ ] https://www.nngroup.com/articles/ten-usability-heuristics/ (Heuristic 7:
+      **Resolved.** Closed by the same section's closing paragraph,
+      distinguishing intrinsic from extraneous cognitive load and
+      cross-linking to "Keep it tidy".
+
+- [x] https://www.nngroup.com/articles/ten-usability-heuristics/ (Heuristic 7:
       Flexibility and Efficiency of Use) is not addressed anywhere in the
       standard. Accelerators (keyboard shortcuts, gestures) hidden from
       novices can speed expert interaction; processes can be carried out in
@@ -122,14 +183,22 @@ open.
       inexperienced and experienced users. Recommend a new section
       "Flexibility and efficiency" in `01-design-principles.adoc`.
 
-- [ ] https://www.nngroup.com/articles/ten-usability-heuristics/ (Heuristic 9:
+      **Resolved.** Closed by `04-memory-and-cognitive-load.adoc`,
+      "Flexibility and efficiency of use" section. Covers accelerators,
+      multiple paths to the same outcome, and personalization/customization.
+
+- [x] https://www.nngroup.com/articles/ten-usability-heuristics/ (Heuristic 9:
       Help Users Recognize, Diagnose, and Recover from Errors) is not addressed
       anywhere in the standard. Error messages should use plain language (no
       error codes), precisely indicate the problem, constructively suggest a
       solution, and use recognizable visual treatments. Recommend a new
       section "Error messages" in `01-design-principles.adoc`.
 
-- [ ] https://www.bbc.co.uk/gel/guidelines/how-to-write-useful-error-messages
+      **Resolved.** Closed by `03-errors.adoc`, "Error messages" section.
+      Covers plain language, precision, solution suggestions, and consistent
+      visual treatment.
+
+- [x] https://www.bbc.co.uk/gel/guidelines/how-to-write-useful-error-messages
       is not addressed anywhere in the standard. It adds systematic guidance for
       error messages: enumerate and group errors by cause, rank by severity,
       give messages a consistent structure (e.g. [Explain][Instruct] or
@@ -137,34 +206,57 @@ open.
       blaming the user, and vary tone by severity (casual for minor, sincere
       for severe). Recommend the new "Error messages" section.
 
-- [ ] https://www.nngroup.com/articles/ten-usability-heuristics/ (Heuristic 10:
+      **Resolved.** Closed by the same section's remaining bullets: message
+      structure (Explain/Instruct or Apologize/Explain/Resolve), active
+      voice, trimming "please", not blaming the user, tone-by-severity, and
+      grouping/ranking by cause. Tone-by-severity cross-links to the new
+      "Voice and tone" section. Source added to the page's `== References`.
+
+- [x] https://www.nngroup.com/articles/ten-usability-heuristics/ (Heuristic 10:
       Help and Documentation) is not addressed anywhere in the standard. Even
       ideal designs may need help; documentation should be easy to search,
       focused on the user's task, concise, list concrete steps, and be
       presented in context when needed. Recommend a new section "Help and
       documentation" in `01-design-principles.adoc`.
 
-- [ ] https://lawsofux.com/#paradox-of-the-active-user is not addressed anywhere
+      **Resolved.** Closed by `04-memory-and-cognitive-load.adoc`, "Help and
+      documentation" section. Covers searchability, task focus, concision,
+      and cross-references TS-25 (Technical documentation) and TS-26
+      (Technical writing style guide) for documentation content itself.
+
+- [x] https://lawsofux.com/#paradox-of-the-active-user is not addressed anywhere
       in the standard. Users skip manuals and start using software immediately,
       so guidance should be accessible in context (e.g. tooltips) along
       whatever path they take. Recommend the new "Help and documentation"
       section.
 
-- [ ] https://lawsofux.com/#jakobs-law is not addressed directly in the
+      **Resolved.** Closed by the same section's "Present help in context"
+      bullet.
+
+- [x] https://lawsofux.com/#jakobs-law is not addressed directly in the
       standard. Jakob's Law says users prefer your interface to work like others
       they already know; they transfer expectations between similar products,
       and breaking conventions should be minimized (with a familiar-version
       transition when changes are made). Recommend a new section "Respect
       conventions and mental models" in `01-design-principles.adoc`.
 
-- [ ] https://lawsofux.com/#mental-model is not addressed anywhere in the
+      **Resolved.** Closed by `04-memory-and-cognitive-load.adoc`, "Respect
+      conventions and mental models" section, and cross-linked from the
+      expanded consistency bullet in "Keep it tidy". Source added to the
+      page's `== References`.
+
+- [x] https://lawsofux.com/#mental-model is not addressed anywhere in the
       standard. Designs should match users' mental models so users can transfer
       knowledge from one product to another; user research (interviews,
       personas, journey maps, empathy maps) shrinks the gap between designer
       and user mental models. Recommend the new "Respect conventions and
       mental models" section.
 
-- [ ] https://lawsofux.com/#hicks-law is not addressed anywhere in the
+      **Resolved.** Closed by the same section's "Design to match users'
+      mental models" bullet, naming interviews, personas, journey maps, and
+      empathy maps as the research tools that narrow the gap.
+
+- [x] https://lawsofux.com/#hicks-law is not addressed anywhere in the
       standard. Hick's Law (decision time grows with the number and complexity
       of choices) implies minimizing choices when response time is critical,
       breaking complex tasks into smaller steps, highlighting recommended
@@ -172,46 +264,78 @@ open.
       over-abstraction. Recommend a new section "Manage choice and complexity"
       in `01-design-principles.adoc`.
 
-- [ ] https://lawsofux.com/#choice-overload is not addressed anywhere in the
+      **Resolved.** Closed by `05-choice-and-complexity.adoc`, "Manage choice
+      and complexity" section. Covers minimizing choices under time pressure,
+      breaking tasks into steps, highlighting recommended options, and
+      progressive onboarding without over-abstraction. Source added to the
+      page's `== References`.
+
+- [x] https://lawsofux.com/#choice-overload is not addressed anywhere in the
       standard. Too many options overwhelms users and degrades decision-making;
       mitigate with side-by-side comparison, prioritized/featured content,
       and up-front search and filtering. Recommend the new "Manage choice and
       complexity" section.
 
-- [ ] https://lawsofux.com/#teslers-law is not addressed anywhere in the
+      **Resolved.** Closed by the same section's "Prevent choice overload"
+      bullet: side-by-side comparison, prioritized/featured content, and
+      up-front search and filtering.
+
+- [x] https://lawsofux.com/#teslers-law is not addressed anywhere in the
       standard. Tesler's Law (conservation of complexity) states every process
       has irreducible core complexity that must be borne by either the system
       or the user — designers should absorb as much of that burden as possible,
       and not design for an idealized rational user. Recommend the new "Manage
       choice and complexity" section.
 
-- [ ] https://lawsofux.com/#occams-razor is not addressed anywhere in the
+      **Resolved.** Closed by the same section's "Absorb complexity" bullet,
+      stating the system-should-absorb-it principle and the caution against
+      designing for an idealized rational user.
+
+- [x] https://lawsofux.com/#occams-razor is not addressed anywhere in the
       standard. Occam's Razor says the simplest competing hypothesis should be
       selected; reduce complexity by removing as many elements as possible
       without compromising function. Recommend the new "Manage choice and
       complexity" section.
 
-- [ ] https://lawsofux.com/#fittss-law is not addressed anywhere in the
+      **Resolved.** Closed by the same section's "Prefer the simplest
+      solution that works" bullet, cross-linked to the expanded Occam's
+      Razor mention in "Keep it tidy".
+
+- [x] https://lawsofux.com/#fittss-law is not addressed anywhere in the
       standard. Fitts's Law (time to acquire a target is a function of distance
       and size) implies touch targets should be large, well-spaced, placed near
       the user's attention area, and that fast movements + small targets cause
       errors. Recommend a new section "Targeting and reachability" in
       `01-design-principles.adoc`.
 
-- [ ] https://lawsofux.com/#aesthetic-usability-effect is not addressed
+      **Resolved.** Closed by `05-choice-and-complexity.adoc`, "Targeting and
+      reachability" section. Covers target size, spacing, placement near the
+      user's attention area, and the fast-movement/small-target error
+      trade-off.
+
+- [x] https://lawsofux.com/#aesthetic-usability-effect is not addressed
       anywhere in the standard. Users perceive aesthetically pleasing designs
       as more usable, are more tolerant of minor usability issues when designs
       are attractive, and visually pleasing design can mask usability problems
       during testing. Recommend a new section "Aesthetics and perceived
       usability" in `01-design-principles.adoc`.
 
-- [ ] https://lawsofux.com/#serial-position-effect is not addressed anywhere in
+      **Resolved.** Closed by `06-visual-perception.adoc`, "Aesthetics and
+      perceived usability" section. Covers both the tolerance effect and the
+      usability-testing risk of masked problems, with a requirement that
+      testing not rely on subjective ratings alone.
+
+- [x] https://lawsofux.com/#serial-position-effect is not addressed anywhere in
       the standard. Users best remember the first and last items in a series
       (primacy and recency effects), so place key actions at the far left and
       right of navigation and least important items in the middle. Recommend a
       new section "Ordering and emphasis" in `01-design-principles.adoc`.
 
-- [ ] https://lawsofux.com/#von-restorff-effect is not addressed anywhere in the
+      **Resolved.** Closed by `06-visual-perception.adoc`, "Ordering and
+      emphasis" section, "Place key actions at the ends of a sequence"
+      bullet.
+
+- [x] https://lawsofux.com/#von-restorff-effect is not addressed anywhere in the
       standard. The Von Restorff (Isolation) Effect predicts the visually
       distinctive item in a group is most remembered; make important info or
       key actions visually distinctive, use restraint so emphasized items
@@ -219,14 +343,21 @@ open.
       (color-vision deficiency, motion sensitivity). Recommend the new
       "Ordering and emphasis" section.
 
-- [ ] https://lawsofux.com/#selective-attention is not addressed anywhere in
+      **Resolved.** Closed by the same section's "Make the important item
+      visually distinctive — with restraint" bullet, cross-linked from the
+      expanded color-accessibility paragraph in "Keep it tidy".
+
+- [x] https://lawsofux.com/#selective-attention is not addressed anywhere in
       the standard. Selective attention means people filter out irrelevant
       stimuli; banner blindness (users ignore ad-like content) and change
       blindness (significant changes go unnoticed without strong cues) are
       consequences designers must counter. Recommend the new "Ordering and
       emphasis" section.
 
-- [ ] https://lawsofux.com/#law-of-common-region,
+      **Resolved.** Closed by the same section's "Counter banner blindness"
+      and "Counter change blindness" bullets.
+
+- [x] https://lawsofux.com/#law-of-common-region,
       https://lawsofux.com/#law-of-proximity,
       https://lawsofux.com/#law-of-pragnanz,
       https://lawsofux.com/#law-of-similarity, and
@@ -240,7 +371,12 @@ open.
       Recommend a new section "Grouping and structure" in
       `01-design-principles.adoc`.
 
-- [ ] https://lawsofux.com/#goal-gradient-effect and
+      **Resolved.** Closed by `06-visual-perception.adoc`, "Grouping and
+      structure" section, covering all five Gestalt principles named:
+      common region, proximity, Prägnanz, similarity (including the
+      link-vs-body-text distinction), and uniform connectedness.
+
+- [x] https://lawsofux.com/#goal-gradient-effect and
       https://lawsofux.com/#zeigarnik-effect are not addressed anywhere in the
       standard. Both note that visible progress toward a goal (even artificial
       progress) motivates users to complete tasks; the Zeigarnik Effect adds
@@ -248,39 +384,65 @@ open.
       additional content invite discovery. Recommend a new section "Progress
       and completion" in `01-design-principles.adoc`.
 
-- [ ] https://lawsofux.com/#peak-end-rule is not addressed anywhere in the
+      **Resolved.** Closed by `07-motivation-and-pacing.adoc`, "Progress and
+      completion" section, covering both effects and the caveat that
+      artificial progress must not be misleading about genuine remaining
+      effort.
+
+- [x] https://lawsofux.com/#peak-end-rule is not addressed anywhere in the
       standard. People judge an experience by its most intense point and its
       end rather than the average of every moment, and recall negative
       experiences more vividly than positive ones — design the peaks, ends, and
       recovery from low points deliberately. Recommend a new section
       "Experience peaks and endings" in `01-design-principles.adoc`.
 
-- [ ] https://lawsofux.com/#parkinsons-law is not addressed anywhere in the
+      **Resolved.** Closed by `07-motivation-and-pacing.adoc`, "Experience
+      peaks and endings" section, covering deliberate design of peaks,
+      endings, and recovery from low points.
+
+- [x] https://lawsofux.com/#parkinsons-law is not addressed anywhere in the
       standard. Parkinson's Law (work expands to fill available time) implies
       limiting task duration to user expectations and using autofill to prevent
       task inflation in forms, purchases, and bookings. Recommend a new
       section "Task duration and pacing" in `01-design-principles.adoc`.
 
-- [ ] https://lawsofux.com/#pareto-principle is not addressed anywhere in the
+      **Resolved.** Closed by `07-motivation-and-pacing.adoc`, "Task duration
+      and pacing" section, covering both bullets: setting duration
+      expectations and using autofill against task inflation.
+
+- [x] https://lawsofux.com/#pareto-principle is not addressed anywhere in the
       standard. Roughly 80% of effects come from 20% of causes, so focus
       design effort on the areas that bring the largest benefits to the most
       users. Recommend a new section "Prioritization" in
       `01-design-principles.adoc`.
 
-- [ ] https://lawsofux.com/#postels-law is not addressed anywhere in the
+      **Resolved.** Closed by `07-motivation-and-pacing.adoc`,
+      "Prioritization" section.
+
+- [x] https://lawsofux.com/#postels-law is not addressed anywhere in the
       standard. Postel's Law ("be liberal in what you accept, conservative in
       what you send") counsels tolerance and flexibility for user input,
       anticipating variable input, defining boundaries, and providing clear
       feedback — equally relevant to UIs and APIs. Recommend a new section
       "Tolerance of input" in `01-design-principles.adoc`.
 
-- [ ] https://lawsofux.com/#cognitive-bias is not addressed anywhere in the
+      **Resolved.** Closed by `08-inputs-context-and-bias.adoc`, "Tolerance
+      of input" section, including the explicit note that the principle
+      applies equally to GUIs and APIs, cross-linking to the new
+      "API design principles" section. Source added to the page's
+      `== References`.
+
+- [x] https://lawsofux.com/#cognitive-bias is not addressed anywhere in the
       standard. Cognitive biases (incl. confirmation bias) systematically skew
       user judgment; awareness helps designers avoid fallacious reasoning and
       unintentional discrimination. Recommend a new section "Bias awareness" in
       `01-design-principles.adoc`.
 
-- [ ] `__TODO__/015/API Design.md` (lines 1–13) frames API design as
+      **Resolved.** Closed by `08-inputs-context-and-bias.adoc`, "Bias
+      awareness" section, covering confirmation bias and the link to
+      unintentional discrimination via unexamined designer assumptions.
+
+- [x] `__TODO__/015/API Design.md` (lines 1–13) frames API design as
       developer UX — "an application's API is developer UX" — and asserts APIs
       should be evaluated for utility, simplicity, and elegance. The standard
       declares APIs are user interfaces (`README.adoc:18-19`) but gives no
@@ -288,7 +450,15 @@ open.
       in `01-design-principles.adoc`, or a dedicated file
       `02-api-design-principles.adoc`.
 
-- [ ] `__TODO__/015/API Design.md` (lines 21–44, "Simplicity") is not
+      **Resolved.** Closed by a new `09-api-design-principles.adoc` partial,
+      "API design principles" section — a dedicated file, since the topic
+      warranted more than a subsection. States the developer-as-user framing
+      and cross-references TS-21 (HTTP APIs) for transport-specific guidance.
+      (Note: `README.adoc` in the original item text refers to what is now
+      the page `pages/015.adoc`, following this repository's move to a
+      native Antora module.)
+
+- [x] `__TODO__/015/API Design.md` (lines 21–44, "Simplicity") is not
       addressed anywhere in the standard. APIs should be simple and have a low
       barrier to entry for new users, but simplicity must not violate the
       single-responsibility principle (the jQuery `$` overload is given as a
@@ -296,20 +466,31 @@ open.
       cyclomatic complexity and harming testability/maintainability).
       Recommend the new "API-specific principles" section.
 
-- [ ] `__TODO__/015/API Design.md` (lines 46–67) is not addressed anywhere
+      **Resolved.** Closed by the same section's "barrier to entry" and
+      "single-responsibility" bullets, including the jQuery `$` example.
+
+- [x] `__TODO__/015/API Design.md` (lines 46–67) is not addressed anywhere
       in the standard. Repurposing one method as both getter and setter (e.g.
       `.height(50)` vs `.height()`) is a common anti-pattern because reading
       and mutating are fundamentally different actions and should have
       distinct names; property-assignment syntax with getters/setters makes
       mutation explicit. Recommend the new "API-specific principles" section.
 
-- [ ] https://www.usability.gov/ (Usability — definition) is not addressed
+      **Resolved.** Closed by the same section's getter/setter bullet.
+
+- [x] https://www.usability.gov/ (Usability — definition) is not addressed
       anywhere in the standard. The standard never defines usability nor how it
       relates to the broader UX umbrella, nor that it is measurable through
       success rates and customer satisfaction. Recommend adding a short
       "What is usability?" subsection to `README.adoc`.
 
-- [ ] https://www.bbc.co.uk/gel/guidelines/spacing-units is not addressed
+      **Resolved.** Closed by a new paragraph on the page (`pages/015.adoc`)
+      immediately after the standard's scope paragraph, defining usability,
+      relating it to the UX umbrella, and stating it is measurable through
+      success rates, time on task, error rates, and satisfaction. Source
+      added to the page's `== References`.
+
+- [x] https://www.bbc.co.uk/gel/guidelines/spacing-units is not addressed
       anywhere in the standard. Predefined spacing scales create consistency
       and let designers and developers share a vocabulary; spacing units
       define only space between elements (not sizes), should be flexed at
@@ -317,14 +498,23 @@ open.
       Recommend a new section "Spacing and rhythm" in
       `01-design-principles.adoc`.
 
-- [ ] https://www.bbc.co.uk/gel/guidelines/how-to-write-useful-error-messages
+      **Resolved.** Closed by `10-visual-rhythm-and-text.adoc`, "Spacing and
+      rhythm" section, covering the scale concept, the space-not-size
+      distinction, breakpoint flexing, and component-scoped exceptions.
+
+- [x] https://www.bbc.co.uk/gel/guidelines/how-to-write-useful-error-messages
       ("Using your voice" / "Striking the right tone") is not addressed anywhere
       in the standard. A product should have a consistent Voice (personality)
       while Tone adapts to the situation; minor errors can be casual and warm,
       severe errors should be sincere and direct. Recommend the new "Error
       messages" section, or a new section "Voice and tone".
 
-- [ ] https://www.gov.uk/guidance/government-design-principles (Principle 7,
+      **Resolved.** Closed by a new "Voice and tone" section in
+      `10-visual-rhythm-and-text.adoc`, cross-linked from "Error messages"
+      rather than merged into it, since voice/tone applies to all interface
+      text, not only errors.
+
+- [x] https://www.gov.uk/guidance/government-design-principles (Principle 7,
       "Understand context") is not addressed anywhere in the standard. The
       principle holds that we design for people, not screens, and must
       consider the context of use — where the user is (a library, a public
@@ -339,7 +529,14 @@ open.
       of use" section in `01-design-principles.adoc`, possibly alongside a
       user-research/personas treatment.
 
-- [ ] https://blog.nelhage.com/post/reflections-on-performance/ ("Performance
+      **Resolved.** Closed by `08-inputs-context-and-bias.adoc`, "Understand
+      context" section — where the user is, what device they have, and their
+      prior familiarity — plus the research-methods paragraph (interviews,
+      personas, journey maps, empathy maps) and the accessibility-first
+      posture, cross-linked from the expanded "Keep it tidy" accessibility
+      paragraph. Source added to the page's `== References`.
+
+- [x] https://blog.nelhage.com/post/reflections-on-performance/ ("Performance
       changes how users use software") is not addressed anywhere in the
       standard. The reference argues that fast tools don't just let users
       accomplish tasks faster — they enable entirely new types of tasks and
@@ -361,6 +558,15 @@ open.
       how performance enables new interaction patterns (interactive
       iteration, new task types).
 
+      **Resolved.** Closed by `02-feedback-and-communication.adoc`,
+      "Feedback and system status" section: the response-time-thresholds
+      table states the 100ms instantaneous / 400ms Doherty / 1s / 10s
+      thresholds together (rather than as a separate section, since they
+      share one table with the existing Doherty Threshold gap above), and a
+      following paragraph states the "performance changes how users use
+      software" thesis, citing the interactive-iteration pattern and users
+      routing around latency. Source added to the page's `== References`.
+
 **Fourth run, 2026-08-14.** One item routed in from TS-26 (Technical writing
 style guide)'s gap analysis, whose `copywriting.adoc` source item was
 confirmed out-of-scope for TS-26 on the grounds that UI microcopy is a
@@ -368,7 +574,7 @@ different register from documentation prose — the user asked that it be
 captured here instead. One new Missing gap added; all prior gaps remain
 open.
 
-- [ ] `copywriting.adoc` ("Copywriting guidelines") — UI/short-message text
+- [x] `copywriting.adoc` ("Copywriting guidelines") — UI/short-message text
       conventions: titles and short messages take no full stop; short
       messages should use hyphens for readability; longer, multi-sentence
       descriptions are written as full prose with terminal full stops.
@@ -376,9 +582,14 @@ open.
       conventions of any kind. Recommend a new section, or a new partial if
       the topic grows beyond a section's worth of content.
 
+      **Resolved.** Closed by `10-visual-rhythm-and-text.adoc`, "Microcopy
+      and UI text" section, covering all three conventions and
+      cross-referencing TS-26 (Technical writing style guide) for the
+      longer-form prose register.
+
 ## Partial
 
-- [ ] https://www.nngroup.com/articles/ten-usability-heuristics/ (Heuristic 4:
+- [x] https://www.nngroup.com/articles/ten-usability-heuristics/ (Heuristic 4:
       Consistency and Standards) covers consistency more thoroughly than
       `01-design-principles.adoc:14` ("Use a consistent layout and design
       language throughout the application") — specifically, the reference
@@ -387,7 +598,13 @@ open.
       Jakob's Law to explain why, and warns that inconsistency raises
       cognitive load.
 
-- [ ] https://www.nngroup.com/articles/ten-usability-heuristics/ (Heuristic 8:
+      **Resolved.** Closed by expanding the "Use a consistent layout" bullet
+      in `01-design-principles.adoc`, "Keep it tidy" section: internal vs.
+      external consistency, Jakob's Law (cross-linked to
+      "Respect conventions and mental models"), and the cognitive-load cost
+      of inconsistency.
+
+- [x] https://www.nngroup.com/articles/ten-usability-heuristics/ (Heuristic 8:
       Aesthetic and Minimalist Design) covers minimalism more thoroughly than
       `01-design-principles.adoc:5-26` ("Keep it tidy") — specifically, the
       reference states that every extra unit of information competes with
@@ -395,32 +612,56 @@ open.
       prioritize content and features that support primary goals (not merely
       "avoid clutter").
 
-- [ ] https://lawsofux.com/#occams-razor partially overlaps with
+      **Resolved.** Closed by expanding the whitespace bullet in "Keep it
+      tidy": every extra element competes with relevant ones, and the goal is
+      prioritizing content/features that support primary goals, not merely
+      avoiding clutter.
+
+- [x] https://lawsofux.com/#occams-razor partially overlaps with
       `01-design-principles.adoc:5-9` (eliminate unnecessary animations) but
       adds the explicit principle that the best way to reduce complexity is to
       avoid it in the first place, and that completion is reached only when no
       more items can be removed without compromising function.
 
-- [ ] https://lawsofux.com/#von-restorff-effect partially overlaps with
+      **Resolved.** Closed by expanding the animations bullet in "Keep it
+      tidy" with the Occam's Razor principle, cross-linked to the fuller
+      treatment in "Manage choice and complexity".
+
+- [x] https://lawsofux.com/#von-restorff-effect partially overlaps with
       `01-design-principles.adoc:33-36` (colors as accents for emphasis) but
       adds that emphasized items should not compete with one another or be
       mistaken for ads, and that emphasis must not rely on color alone (color
       vision deficiency) or motion alone (motion sensitivity).
 
-- [ ] https://cfpb.github.io/design-system/ ("About the CFPB Design System")
+      **Resolved.** Closed by expanding the color-accents paragraph in "Keep
+      it tidy" with a cross-link to "Ordering and emphasis", where the full
+      Von Restorff Effect treatment (including the not-competing and
+      not-color/motion-alone caveats) lives.
+
+- [x] https://cfpb.github.io/design-system/ ("About the CFPB Design System")
       partially overlaps with `01-design-principles.adoc:25-26` (responsive
       design) but adds an explicit mobile-first responsive approach and a
       general accessibility-best-practices commitment, which the standard
       mentions only for color (`01-design-principles.adoc:33-36`).
 
-- [ ] https://www.usability.gov/ (News: Designing for people with disabilities)
+      **Resolved.** Closed by the new accessibility paragraph in "Keep it
+      tidy", stating the mobile-first responsive approach and broadening
+      accessibility beyond the color caveat. Source added to the page's
+      `== References`.
+
+- [x] https://www.usability.gov/ (News: Designing for people with disabilities)
       partially overlaps with `01-design-principles.adoc:33-36` (information
       conveyed by color must be accessible without color) but adds broader
       accessibility guidance: clear headings and action-oriented descriptions
       aid assistive-technology users, carousels can be difficult for them, and
       accessibility testing is required to ensure equal access.
 
-- [ ] https://www.gov.uk/guidance/government-design-principles (Principle 6,
+      **Resolved.** Closed by the same new accessibility paragraph: clear
+      headings and action-oriented descriptions, carousel caution, and the
+      requirement for accessibility testing with real assistive technology.
+      Source added to the page's `== References`.
+
+- [x] https://www.gov.uk/guidance/government-design-principles (Principle 6,
       "This is for everyone") covers inclusive-design posture more directly
       than `01-design-principles.adoc:33-36` (color must not be the sole
       carrier of information) — specifically, the principle states that
@@ -438,7 +679,16 @@ open.
       "Accessibility and inclusivity" section that states these as
       objectives, not a color caveat.
 
-- [ ] https://www.gov.uk/guidance/government-design-principles (Principle 9,
+      **Resolved.** Closed by a third new paragraph in "Keep it tidy":
+      accessible design as good design, the willingness to sacrifice
+      elegance, and prioritizing the hardest-to-reach users from the start,
+      cross-linked to "Understand context". Written as an expansion of the
+      existing color-caveat paragraph rather than a new top-level section,
+      since "Keep it tidy" was judged the right home for it alongside the
+      related consistency and minimalism expansions above. Source added to
+      the page's `== References`.
+
+- [x] https://www.gov.uk/guidance/government-design-principles (Principle 9,
       "Be consistent, not uniform") covers the consistency-vs-uniformity
       distinction more directly than `01-design-principles.adoc:14` ("Use a
       consistent layout and design language throughout the application") —
@@ -452,6 +702,11 @@ open.
       teams and explaining why, or the evolution of patterns over time.
       Recommend expanding `01-design-principles.adoc:14` to address when
       to diverge and how shared patterns evolve.
+
+      **Resolved.** Closed by the same consistency-bullet expansion as the
+      Nielsen Heuristic 4 item above: consistency is not a straitjacket,
+      patterns that work should be shared with reasons, and patterns should
+      evolve as better ways are found or needs change.
 
 ## Out-of-scope
 
