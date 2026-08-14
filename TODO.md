@@ -1,5 +1,7 @@
 # TODO
 
+> **Next up:** TS-26 gaps, then TS-21 gaps.
+
 Outstanding work across the technical standards in this repository: standards
 that are still stubs (no substantive content written), and standards whose
 `GAPS.md` gap analysis still has open items.
