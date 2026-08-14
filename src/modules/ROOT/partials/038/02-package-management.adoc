@@ -1,0 +1,56 @@
+= Package management
+
+An application MUST commit its lockfile (`package-lock.json`,
+`yarn.lock`, or `pnpm-lock.yaml`, depending on the chosen package manager) to
+version control. The lockfile is what makes a build reproducible across
+machines and over time; a `package.json` alone only pins version *ranges*,
+which resolve to different concrete versions as the registry gains new
+releases.
+
+Dependency versions in `package.json` SHOULD use the caret range (`^1.2.3`)
+for libraries the application does not need to pin exactly, reserving an
+exact pin (`1.2.3`) for a dependency with a history of breaking changes in
+minor or patch releases, or one the application patches locally. A caret
+range still resolves deterministically for any given install because the
+lockfile records the exact version actually installed.
+
+CI MUST install dependencies with the package manager's frozen-lockfile mode
+(`npm ci`, `yarn install --immutable`, `pnpm install --frozen-lockfile`), not
+the mutating install command (`npm install`). The frozen mode fails the build
+if `package.json` and the lockfile have drifted apart, rather than silently
+re-resolving and writing a new lockfile inside the CI job.
+
+An application MUST distinguish `dependencies` from `devDependencies`.
+Anything required at runtime — including a framework, an ORM, or a logging
+library — belongs in `dependencies`; anything used only to build, test, or
+lint the codebase — a bundler, a test runner, a linter — belongs in
+`devDependencies`. This distinction determines what a production install
+(`npm ci --omit=dev`) actually ships, and an application that gets it wrong
+either ships an oversized production image or is missing a runtime
+dependency that only manifests once `devDependencies` is dropped.
+
+[NOTE]
+======
+Where an application is containerized, the effect of a
+`devDependencies`/`dependencies` split is better achieved with a multi-stage
+`Dockerfile` — installing the full dependency tree in a build stage and
+copying only the production `node_modules` and build output into the final
+image — than by relying on `--omit=dev` alone. See
+xref:049.adoc[*TS-49: Cloud platform engineering*] for containerization and
+deployment concerns.
+======
+
+Dependencies MUST be scanned for known vulnerabilities as part of CI (`npm
+audit`, or an equivalent tool), per
+xref:052.adoc[*TS-52: Security and secrets management*]. A vulnerability
+scan MUST NOT be treated as equivalent to reviewing a new dependency before
+it is added — an audit only catches vulnerabilities disclosed *after* the
+dependency was already trusted, not the malicious or low-quality packages
+that a scan-only policy would otherwise let in unreviewed.
+
+Engine constraints (the Node.js version an application targets) MUST be
+declared in the `engines` field of `package.json`. This is advisory — `npm
+install` warns rather than fails, by default — but documents the supported
+runtime explicitly and lets tooling (`nvm`, `fnm`, CI matrix
+configuration) key off a single source of truth rather than a version
+number duplicated across a `Dockerfile`, a CI config file, and a README.

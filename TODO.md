@@ -6,8 +6,31 @@ that are still stubs (no substantive content written), and standards whose
 
 This file is a manually-maintained index, regenerated from the tree. The
 counts below were last regenerated on **2026-08-14** — this run authored
-TS-55 (Authentication and authorization) from scratch, which had been a pure
-stub (`// TODO` only) with no `GAPS.md` at all: six new content partials
+TS-38 (Node.js applications) from scratch, which had been a pure stub
+(`// TODO` only) with a legacy-format `GAPS.md` carrying one open gap: six
+new content partials (module system, package management, configuration and
+environment, process lifecycle and signals, error handling and logging, and
+stateless scaling) plus an introductory paragraph and a `== References`
+section on the page itself. TS-38 was scoped to Node.js *application and
+runtime* concerns — module system (CJS/ESM), package/dependency management,
+config and env, process lifecycle and signals, error handling and
+logging — explicitly excluding what adjacent standards already own: TS-36
+covers the JavaScript/TypeScript language itself, TS-21 covers HTTP API
+design, TS-52 covers secrets management, and TS-49 covers containerized
+deployment and orchestration. Its one recorded gap — no guidance on the
+stateless-service / horizontal-scaling pattern, sourced from the Pragmatic
+Engineer's Bluesky engineering-culture piece (the same source TS-41 already
+cited) — was closed by a new "Stateless scaling" section explaining why
+Node's single-threaded event loop rules out in-process multi-threading and
+setting out the horizontal, stateless-process scaling pattern instead. The
+`GAPS.md` reached zero unchecked items (1 of 1 gap resolved), so TS-38 moves
+directly from the stub table to the fully-resolved list — the second
+standard, after TS-37, to make that move in one run rather than losing its
+stub status first and being worked by a separate `close-gaps` pass later.
+
+This is on top of the prior same-day authoring of TS-55 (Authentication and
+authorization) from scratch, which had been a pure stub (`// TODO` only) with
+no `GAPS.md` at all: six new content partials
 (authentication models, OAuth 2.0/OIDC, SSO and federation, multi-factor
 authentication, authorization models, and service-to-service authentication)
 plus an introductory paragraph and a `== References` section on the page
@@ -90,7 +113,6 @@ placeholder(s), and no `include::partial$NNN/...[]` includes.
 
 | TS | Title | Notes |
 | --- | --- | --- |
-| [TS-38](src/modules/ROOT/pages/038.adoc) | Node.js applications | Pure stub. `GAPS.md` has 1 open gap (legacy format), not yet resolved. |
 | [TS-39](src/modules/ROOT/pages/039.adoc) | HTML | Has substantive intro prose and `toc::[]`, but no `include::partial$` directives — the `partials/039/` directory holds only `GAPS.md`. Its `GAPS.md` carries 136 actionable items, the largest in the repository. |
 | [TS-44](src/modules/ROOT/pages/044.adoc) | Non-relational (NoSQL) databases | Pure stub. `GAPS.md` has 2 open gaps (legacy format), not yet resolved. |
 
@@ -106,16 +128,18 @@ positive — verify by reading the page before trusting the grep alone.
 
 ## Open gap analyses
 
-Forty-one standards have a `GAPS.md`. Twenty-six are fully resolved (zero
+Forty-one standards have a `GAPS.md`. Twenty-seven are fully resolved (zero
 unchecked items of any kind) and are omitted from the table below — TS-2,
 TS-3, TS-5, TS-6, TS-7, TS-8, TS-9, TS-10, TS-11, TS-12, TS-13, TS-14, TS-23,
-TS-25, TS-31, TS-36, TS-37, TS-41, TS-46, TS-48, TS-49, TS-50, TS-52, TS-54,
-TS-57, and TS-61. TS-37 was a stub as of the prior regeneration and is new to
-this list — see the note above. Thirteen have open items and appear in the
+TS-25, TS-31, TS-36, TS-37, TS-38, TS-41, TS-46, TS-48, TS-49, TS-50, TS-52,
+TS-54, TS-57, and TS-61. TS-37 was a stub as of the prior regeneration and is
+new to this list — see the note above. TS-38 is new to this list in this
+run — authored from a pure stub with its one legacy-format gap resolved in
+the same run, see the note above. Thirteen have open items and appear in the
 table below — TS-39 is also a stub, so its open items live in the table below
-but writing the standard is tracked separately, above. The remaining two —
-TS-38 and TS-44 — are stubs with a genuinely open legacy-format gap each; they
-are tracked in the stub table above instead, per the note below.
+but writing the standard is tracked separately, above. The remaining one —
+TS-44 — is a stub with a genuinely open legacy-format gap; it is tracked in
+the stub table above instead, per the note below.
 
 TS-20 was fully resolved as of 2026-08-13, but gained a new Missing item on
 2026-08-14, routed in from TS-21 while confirming TS-21's own out-of-scope
@@ -145,33 +169,37 @@ a `close-gaps` run, which found the content had already been written into
 TS-5 and TS-57's own directories, so TS-10 itself needed no change. It now
 also appears in the fully-resolved list above.
 
-TS-38 and TS-44 were previously listed as fully resolved; that was wrong. Both
-carry a genuinely open, unresolved legacy-format gap (1 for TS-38, 2 for
-TS-44) — neither has ever been closed. They are not in the actionable-count
-table below because both standards are stubs, and `close-gaps` stops on a
-stub. They are tracked here instead, alongside the other stubs, until the
-standard is authored.
+TS-38 and TS-44 were previously listed as fully resolved; that was wrong at
+the time (see the "Known inconsistencies" section for the full history).
+TS-44 still carries a genuinely open, unresolved legacy-format gap (2 items)
+that has never been closed; it is not in the actionable-count table below
+because it is a stub, and `close-gaps` stops on a stub — it is tracked in the
+stub table above instead, until the standard is authored. TS-38 was authored
+from scratch in this run and its one legacy-format gap resolved in the same
+run — it has left the stub table and joined the fully-resolved list above.
 
 ### The two GAPS.md formats
 
 The files are in two formats, and the columns mean different things in each.
 The counts below are of the twelve non-stub files with open items, tallying
 with the table's rows (TS-39 is also a stub, so thirteen rows total). Of the
-twenty-six fully-resolved files, only TS-6 is still in the legacy format; the
-other twenty-five were converted as they were worked.
+twenty-seven fully-resolved files, TS-6 and TS-38 are still in the legacy
+format; the rest were converted as they were worked.
 
 - **Template format** (38 files). Follows the `gap-analysis` skill's bundled
   template: flat `- [ ]` checklists under `## Missing`, `## Partial`,
   `## Out-of-scope`, and `## Unresolved` headings.
 
-- **Legacy format** (3 files: TS-6, TS-38, TS-44). One `## <gap title>`
-  subsection per gap, with `**Source**` / `**What the source says**` /
-  `**Coverage check**` / `**Gap**` bullets, closed by appending a
-  `**RESOLVED**` bullet. Some also carry a `**Cross-references**` field
-  naming other standards the gap touches; the template format has no
-  equivalent. TS-38 and TS-44 remain legacy because they are stubs —
-  `close-gaps` stops on a stub, so there is no work that would trigger their
-  conversion.
+- **Legacy format** (2 files: TS-6, TS-38, both fully resolved; plus TS-44,
+  still open). One `## <gap title>` subsection per gap, with `**Source**` /
+  `**What the source says**` / `**Coverage check**` / `**Gap**` bullets,
+  closed by appending a `**RESOLVED**` bullet. Some also carry a
+  `**Cross-references**` field naming other standards the gap touches; the
+  template format has no equivalent. TS-38 was authored and its gap resolved
+  in this run without converting the format, since the file's own single-gap
+  shape needed no restructuring to record the closure. TS-44 remains legacy
+  because it is a stub — `close-gaps` stops on a stub, so there is no work
+  that would trigger its conversion.
 
 Legacy-format files are converted to the template format as they are worked,
 not in a separate sweep.
@@ -569,6 +597,31 @@ govern how all new content should be written.
   fully-resolved list — the first standard in this file's history to do so
   in a single run, rather than first losing its stub status and later being
   worked by a separate `close-gaps` pass.
+
+- **RESOLVED — TS-38 authored from a pure stub and fully resolved in one
+  run.** TS-38 (Node.js applications) previously held only a `// TODO`
+  placeholder and a legacy-format `GAPS.md` with one open gap (no guidance on
+  the stateless-service / horizontal-scaling pattern, sourced from the
+  Pragmatic Engineer's Bluesky piece — the same source TS-41 already cited
+  for a different purpose). On 2026-08-14 it was authored from scratch — an
+  introductory paragraph on the page plus six new content partials
+  (`01-module-system.adoc` through `06-stateless-scaling.adoc`) covering the
+  CJS/ESM module system, package and dependency management, configuration
+  and environment, process lifecycle and signals, error handling and
+  logging, and stateless horizontal scaling. Scope was deliberately kept to
+  Node.js application/runtime concerns, cross-referencing rather than
+  duplicating TS-36 (the JavaScript/TypeScript language itself), TS-21 (HTTP
+  API design), TS-52 (secrets management), TS-49 (containerized deployment),
+  and TS-6 (the underlying statelessness/idempotency principles). The one
+  recorded gap was closed against the new "Stateless scaling" section, and
+  the source added to the page's `== References`. TS-38's `GAPS.md` reached
+  zero unchecked items of any kind, so it moves directly from the stub table
+  to the fully-resolved list, joining TS-37 as the second standard to make
+  that move in a single run. Unlike every other stub authored so far, TS-38
+  did have a `GAPS.md`, so the resolution note lives in that pre-existing
+  legacy-format file rather than requiring a new one — the file's own
+  single-gap shape needed no conversion to the template format to record
+  the closure.
 
 ## Regenerating this file
 

@@ -1,0 +1,55 @@
+= Configuration and environment
+
+An application's runtime configuration — the values that differ between
+environments (development, staging, production) — MUST be read from
+environment variables, not hardcoded or branched on an environment name
+inside application code. `if (env === "production")` scattered through a
+codebase is a sign that an environment-specific *value* should have been
+injected instead.
+
+`process.env` values MUST be validated and parsed once, at startup, into a
+typed configuration object — not read ad hoc from `process.env` at the point
+of use throughout the codebase. Every value read from the environment is a
+string; an application that treats `process.env.PORT` as a number without
+parsing it, or reads a required variable that happens to be unset without
+noticing, defers a configuration error from startup (where it is loud and
+immediate) to first use (where it is not):
+
+[source,javascript]
+----
+// config.js
+import { z } from "zod"
+
+const schema = z.object({
+  PORT: z.coerce.number().int().positive().default(3000),
+  DATABASE_URL: z.string().url(),
+  LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
+})
+
+// Throws, and exits the process, if a required variable is missing or a
+// value fails validation — at startup, not on the first request that
+// touches the malformed value.
+export const config = schema.parse(process.env)
+----
+
+An application MUST fail fast on invalid or missing required configuration.
+It MUST exit with a non-zero status code and a clear error message identifying
+the missing or invalid variable, rather than starting in a partially
+configured state and failing later, unpredictably, on whichever code path
+first needs the missing value.
+
+A `.env` file MAY be used to populate `process.env` in local development
+(via a loader such as `dotenv`), but MUST NOT be relied on in any deployed
+environment — the deployment platform's own environment-variable injection
+(container orchestrator, PaaS, or secrets manager) is the source of truth
+there. A `.env` file MUST be listed in `.gitignore`; a `.env.example`
+listing every variable name (with placeholder or non-sensitive default
+values) SHOULD be committed instead, so a new contributor can see what
+configuration the application expects without reading the source.
+
+Secret values — credentials, API keys, signing keys — MUST NOT be passed
+through plain environment variables in production, even though they are
+commonly read via `process.env`. See
+xref:052.adoc[*TS-52: Security and secrets management*] for how a secret is
+provisioned to a running process; this section covers non-secret
+configuration only.

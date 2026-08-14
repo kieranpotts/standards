@@ -1,0 +1,55 @@
+= Module system
+
+A Node.js application MUST declare its module system explicitly via the
+`"type"` field in `package.json` — `"module"` for ECMAScript modules (ESM) or
+`"commonjs"` for CommonJS (CJS) — rather than relying on the runtime's
+default. Leaving `"type"` unset defaults to CommonJS and forces every `.mjs`
+or `.cjs` file in the project to carry an extension that overrides it, which
+is a worse outcome than stating the choice once.
+
+New applications SHOULD use ESM (`"type": "module"`). It is the module
+format defined by the ECMAScript specification, it is what
+xref:036.adoc[*TS-36: ECMAScript (JavaScript/TypeScript)*] assumes for
+`import`/`export` syntax, and it is the format the wider JavaScript ecosystem
+has converged on for new packages. CommonJS MAY be kept for an existing
+application where migration cost outweighs the benefit, but MUST NOT be
+chosen for a new one without a specific reason (eg. a required dependency
+that only ships a CJS build).
+
+An application MUST NOT mix `require()` and `import` syntax within the same
+file. Interop between the two module systems is unavoidable at the package
+boundary — a CJS package consumed from an ESM application, or vice versa —
+but MUST be confined to the smallest possible surface:
+
+[source,javascript]
+----
+// interop/legacy-logger.js — the only file that imports a CJS-only package
+// from an ESM application.
+import { createRequire } from "node:module"
+const require = createRequire(import.meta.url)
+const legacyLogger = require("legacy-logger-package")
+
+export default legacyLogger
+----
+
+[IMPORTANT]
+======
+`import()` (the dynamic form) MUST be used instead of `require()` for
+conditional or lazy loading in ESM code. Dynamic `require()` calls (a path
+computed at runtime rather than a static string literal) defeat static
+analysis tooling — bundlers, tree-shaking, and dependency-graph
+linters — and SHOULD be treated as a code smell in CommonJS too.
+======
+
+File extensions MUST match the module system in use: `.mjs` for ESM code
+inside a project whose `package.json` still declares
+`"type": "commonjs"`, and `.cjs` for CommonJS code inside a project declaring
+`"type": "module"`. Where `package.json` already declares the project's
+module type, source files SHOULD use the plain `.js` extension — the explicit
+`.mjs`/`.cjs` forms exist for the mixed case, not as a default style.
+
+Import specifiers MUST use the `node:` protocol prefix for Node.js built-in
+modules (`import fs from "node:fs"`, not `import fs from "fs"`). This
+disambiguates a built-in from a same-named third-party package at a glance
+and lets bundlers and loaders resolve the built-in without a filesystem
+lookup.

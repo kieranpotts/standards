@@ -1,0 +1,61 @@
+= Error handling and logging
+
+An application MUST distinguish operational errors — expected failure
+conditions such as a network timeout, a validation failure, or a database
+connection drop — from programmer errors — bugs, such as calling a function
+with the wrong argument type or dereferencing `undefined`. An operational
+error is something the application SHOULD anticipate and handle (retry the
+request, return a 4xx response, log and continue); a programmer error
+indicates the process is in an unknown state and SHOULD be handled per
+<<Process lifecycle and signals>> — logged and the process restarted — not
+caught and papered over.
+
+A custom error class hierarchy SHOULD distinguish these categories
+explicitly, rather than relying on every call site to reason about which
+category a given `Error` falls into:
+
+[source,javascript]
+----
+class OperationalError extends Error {
+  constructor(message, { cause, statusCode = 500 } = {}) {
+    super(message, { cause })
+    this.name = this.constructor.name
+    this.isOperational = true
+    this.statusCode = statusCode
+  }
+}
+
+class ValidationError extends OperationalError {
+  constructor(message, cause) {
+    super(message, { cause, statusCode: 400 })
+  }
+}
+
+class NotFoundError extends OperationalError {
+  constructor(message, cause) {
+    super(message, { cause, statusCode: 404 })
+  }
+}
+----
+
+A centralized error-handling middleware (or an equivalent top-level catch in
+a non-HTTP application) MUST inspect `isOperational` to decide the response:
+an operational error's `statusCode` and `message` are safe to return to the
+caller; anything else MUST be logged in full and returned to the caller as a
+generic 500 response, without leaking the original message or stack trace.
+Leaking an unexpected error's message to a client risks exposing internal
+implementation details — a file path, a SQL fragment, a dependency's error
+format — that were never meant to be public.
+
+Logging MUST be structured (JSON, or a logging library's structured format,
+eg. `pino` or `winston`) rather than plain `console.log` strings, so that
+log lines are machine-parseable by the platform's log aggregator. Every log
+line at `warn` severity or above SHOULD carry a correlation identifier (a
+request ID, or a trace ID where distributed tracing is in use — see
+xref:006.adoc[*TS-6: Distributed system design*]) so that related log lines
+across an asynchronous call chain, or across multiple service instances, can
+be reconstructed.
+
+`console.log` MAY still be used for local, throwaway debugging output, but
+MUST NOT appear in code that reaches a shared branch — it bypasses log-level
+filtering and structured output, and its removal is easy to forget.
