@@ -6,19 +6,32 @@ that are still stubs (no substantive content written), and standards whose
 
 This file is a manually-maintained index, regenerated from the tree. The
 counts below were last regenerated on **2026-08-14** — this run authored
-TS-37 (Web platform APIs) from scratch, which had been a pure stub: five new
-content partials plus an introductory paragraph on the page, closing all 18
-of its Missing items and all 4 of its Out-of-scope items. The 4 out-of-scope
-items (CSS fluid typography, container queries, intrinsic layouts,
-`text-wrap`/`ch`) were confirmed out-of-scope for TS-37 and routed to TS-18's
-`GAPS.md` as 4 new Missing items instead of being dropped (TS-18 actionable
-56 → 60). TS-37's own `GAPS.md` reached zero unchecked items of any kind, so
-it leaves the stub table below and joins the fully-resolved list — the first
-standard to move directly from "stub" to "fully resolved" in one run. This is
-on top of the prior same-day closure of TS-21's actionable items and
-out-of-scope items, TS-26's 29 actionable items, TS-29's and TS-43's gaps in
-full, and TS-16's and TS-40's actionable items (see the table notes below for
-the detailed breakdown of each).
+TS-24 (User manuals) from scratch, which had been a pure stub: ten new
+content partials plus an introductory paragraph on the page, replacing the
+`// TODO` placeholder. TS-24's old note about being split into separate
+Technical Documentation / User Documentation standards is resolved by this
+authoring, not carried forward — TS-25 already covers technical/developer
+documentation as its own standard, so TS-24 was scoped to what was left:
+documentation for the end user of the finished product, cross-referencing
+TS-25 and TS-26 rather than duplicating them. TS-24 has no `GAPS.md`, so it
+leaves the stub table below and does not enter the open-gap-analyses table
+either — it drops out of tracking in this file entirely, the same as any
+other standard without a `GAPS.md` (TS-1, TS-19, TS-22, etc.).
+
+This is on top of the prior same-day authoring of TS-37 (Web platform APIs)
+from scratch — five new content partials plus an introductory paragraph,
+closing all 18 of its Missing items and all 4 of its Out-of-scope items. The
+4 out-of-scope items (CSS fluid typography, container queries, intrinsic
+layouts, `text-wrap`/`ch`) were confirmed out-of-scope for TS-37 and routed
+to TS-18's `GAPS.md` as 4 new Missing items instead of being dropped (TS-18
+actionable 56 → 60). TS-37's own `GAPS.md` reached zero unchecked items of
+any kind, so it left the stub table below and joined the fully-resolved
+list — the first standard to move directly from "stub" to "fully resolved"
+in one run, prior to TS-24 repeating the same move without ever having had a
+`GAPS.md` to resolve. This is on top of the prior same-day closure of TS-21's
+actionable items and out-of-scope items, TS-26's 29 actionable items, TS-29's
+and TS-43's gaps in full, and TS-16's and TS-40's actionable items (see the
+table notes below for the detailed breakdown of each).
 Re-derive the counts with the script in
 [Regenerating this file](#regenerating-this-file) before trusting them after
 any content work.
@@ -30,7 +43,6 @@ placeholder(s), and no `include::partial$NNN/...[]` includes.
 
 | TS | Title | Notes |
 | --- | --- | --- |
-| [TS-24](src/modules/ROOT/pages/024.adoc) | User manuals | Has a short outline but is flagged to be split into separate Technical Documentation / User Documentation standards. |
 | [TS-35](src/modules/ROOT/pages/035.adoc) | Python | Pure stub (`// Introduction.` placeholder only). |
 | [TS-38](src/modules/ROOT/pages/038.adoc) | Node.js applications | Pure stub. `GAPS.md` has 1 open gap (legacy format), not yet resolved. |
 | [TS-39](src/modules/ROOT/pages/039.adoc) | HTML | Has substantive intro prose and `toc::[]`, but no `include::partial$` directives — the `partials/039/` directory holds only `GAPS.md`. Its `GAPS.md` carries 136 actionable items, the largest in the repository. |
