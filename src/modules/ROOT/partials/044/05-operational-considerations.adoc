@@ -1,0 +1,56 @@
+= Operational considerations
+
+== Indexing
+
+A NoSQL database's query engine is typically far less capable than SQL's at
+answering a query for which no index exists — a missing index commonly
+means a query is unanswerable within the engine's normal operating
+constraints, not merely slow. An index MUST be created for every field or
+combination of fields identified during <<Query-first design>>, before that
+query pattern goes into production, not added reactively once a query is
+already found to be slow.
+
+Composite and sort-key indexes SHOULD be modeled around the specific
+combination of filter and sort a query needs, mirroring the access-pattern-
+first approach in <<Access patterns over normalization>>, rather than
+indexing every field independently and hoping the engine composes them
+usefully at query time.
+
+== Backup and disaster recovery
+
+A NoSQL database's replication (see <<Replication topology>>) protects
+against a single node failing; it does not protect against an application
+bug or an operator error that corrupts or deletes data correctly and
+consistently across every replica. A NoSQL database MUST have its own
+backup and point-in-time-recovery strategy, independent of and in addition
+to replication, on the same footing as a relational database's.
+
+== Monitoring
+
+At minimum, a production NoSQL deployment SHOULD monitor:
+
+* *Replication lag.* A stale replica directly determines how stale a
+  read-your-writes or eventually-consistent read can be — see
+  <<Consistency and replication>>.
+
+* *Hot partitions or hot keys.* A shard or key receiving disproportionate
+  traffic degrades that portion of the dataset's latency while the rest of
+  the cluster stays healthy, and is often invisible in an aggregate
+  cluster-wide metric.
+
+* *Storage and compaction.* Particularly for engines that use
+  log-structured storage, where deleted or overwritten data is not
+  reclaimed until a background compaction process runs.
+
+== Schema evolution
+
+Even a database with no enforced schema has an implicit schema: the shape
+the application code expects when it reads a record back. Because the
+engine does not enforce that shape, a schema change is a change to the
+application's read and write code, not to a database migration script, and
+old-shaped records already written MUST continue to be read correctly by
+the new code — typically by having read paths tolerate both the old and
+new shape until every existing record has been migrated or naturally aged
+out. Changing what the application writes going forward is instantaneous;
+changing what already exists in the database is a data migration in its
+own right — see xref:045.adoc[*TS-45: Data migrations*].

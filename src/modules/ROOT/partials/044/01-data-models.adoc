@@ -1,0 +1,80 @@
+= Data models
+
+"NoSQL" is not one technology; it is a label for databases that do not use
+the relational model. The unifying trait is that they trade the relational
+model's fixed, joinable schema for one of a few alternative data models,
+each optimized for a different access pattern. Choosing a NoSQL database is
+choosing a data model, not just a vendor.
+
+== Key-value stores
+
+A key-value store maps opaque keys to opaque values. The database has no
+knowledge of the value's internal structure — it is a blob to be stored and
+retrieved by key. Reads and writes by key are typically O(1) and extremely
+fast, because the engine does no parsing, indexing, or joining of the
+value's contents.
+
+This makes key-value stores well suited to caching, session storage, and
+any workload where every access is a lookup by a single known identifier.
+It makes them poorly suited to querying by any attribute other than the
+key — there is usually no equivalent of a `WHERE` clause over the value's
+fields without either scanning every key or maintaining a separate index by
+hand. Redis and Amazon DynamoDB (in its simplest usage) are representative
+engines.
+
+== Document databases
+
+A document database stores self-contained, semi-structured records —
+typically JSON or BSON — under a key. Unlike a key-value store, the engine
+understands the document's internal structure well enough to index and
+query on specific fields within it, not just the top-level key.
+
+A document typically represents one aggregate: an order together with its
+line items, a user profile together with its addresses. Related data that
+would be normalized into separate tables in a relational schema is instead
+embedded directly in the document, so that a single read retrieves the
+whole aggregate without a join. See <<Embedding vs referencing>> for the
+trade-off this introduces. MongoDB and Couchbase are representative
+engines.
+
+== Wide-column stores
+
+A wide-column store organizes data into rows identified by a key, where
+each row can have a different, sparse set of columns grouped into column
+families. It resembles a relational table stretched to allow millions of
+rows and a variable, per-row column set, optimized for very high write
+throughput and horizontal scale across many nodes.
+
+Wide-column stores are typically chosen for time-series data, event
+logging, and other write-heavy workloads with a well-known query pattern —
+the schema (or its absence) is usually designed around exactly the queries
+the application will run, not around a normalized model of the domain.
+Apache Cassandra, Apache HBase, and ScyllaDB are representative engines.
+
+== Graph databases
+
+A graph database stores nodes and the relationships (edges) between them as
+first-class entities, and is optimized for traversing those relationships —
+answering questions like "what is connected to this node, and how" —
+rather than for aggregating or filtering large sets of records. A
+relational database can model a graph with a join table, but traversing
+more than one or two hops deep requires a chain of joins that gets
+expensive quickly; a graph database is built to make that traversal cheap
+regardless of depth.
+
+Graph databases suit domains that are fundamentally about relationships —
+social networks, recommendation engines, fraud detection, permission and
+access-control graphs. Neo4j and Amazon Neptune are representative
+engines.
+
+== Search engines
+
+A search engine indexes documents for full-text search, relevance ranking,
+and faceted filtering, rather than for transactional reads and writes. It
+is included here because it is commonly deployed alongside a primary
+datastore as a specialized secondary index, not because it is normally
+used as a system of record. Elasticsearch and OpenSearch are representative
+engines.
+
+Do not use a search engine as the sole store for data the application
+cannot afford to lose or reconstruct — see <<Selecting a database>>.

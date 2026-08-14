@@ -1,0 +1,112 @@
+= Selecting a database
+
+[#polyglot-persistence]
+== Polyglot persistence
+
+A system of any real size is not obligated to use one database technology
+throughout. *Polyglot persistence* is the practice of choosing a different
+database, per service or per component, based on that component's actual
+access patterns, rather than standardizing on a single engine everywhere
+for consistency's own sake. A service that does high-throughput key lookups
+is a poor fit for a database chosen because another, unrelated service in
+the same system needed complex relational joins, and vice versa.
+
+Allegro, migrating a service's storage from Cassandra to MongoDB, completed
+the switch in a two-week sprint with no client-visible change, because the
+service's external API was already decoupled from its storage
+implementation (Allegro Tech 2024 — see the "References" section at the
+end of this document, and
+xref:005.adoc[*TS-5: Application architecture*] for the architectural
+decoupling that makes this kind of switch cheap). The lesson generalizes:
+the choice of database is a per-service implementation detail, not a
+system-wide architectural commitment, provided the service's persistence
+layer is not leaked through its API.
+
+Polyglot persistence has a real cost, which MUST be weighed against the
+per-service fit it buys: each additional database technology in production
+is another engine to operate, monitor, back up, secure, and staff for.
+A system SHOULD NOT introduce a new database technology for a marginal
+fit improvement in one service if an existing, already-operated database
+in the system is an adequate fit. Reach for a new engine when the access
+pattern is a poor fit for what is already running, not merely a different
+one.
+
+== When NoSQL fits, and when it doesn't
+
+NoSQL is a good fit when at least one of the following holds:
+
+* *No natural fixed schema.* Different records genuinely have different
+  shapes — for example, a product catalog spanning categories with
+  unrelated sets of attributes.
+
+* *A known access pattern.* The dominant access pattern is a lookup by a
+  known key (key-value, document) or a known, well-understood query
+  (wide-column), and that pattern is known in advance rather than ad hoc.
+
+* *A real horizontal write-scale requirement.* Scale beyond what a single
+  relational primary can sustain is a real, current requirement — not a
+  hypothetical future one. See <<NoSQL database selection criteria>>
+  below.
+
+* *A relationship-shaped domain.* A graph database's fit for social,
+  recommendation, or permission-graph data, as described in
+  <<Data models>>.
+
+A relational database remains the better default when the data has a
+stable, well-understood shape; when the application needs ad hoc queries
+across arbitrary combinations of fields, which most NoSQL engines answer
+poorly without an index built in advance for that exact query; or when
+multi-record transactional consistency across different entities is a hard
+requirement, which xref:043.adoc[*TS-43: Relational databases and SQL*]'s
+ACID guarantees provide natively and most NoSQL engines do not, or only
+partially. Do not choose NoSQL by default, or because it is perceived as
+more modern or more scalable in the abstract — choose it because a
+specific access pattern or scale requirement genuinely does not fit the
+relational model. See
+xref:005.adoc[*TS-5: Application architecture*] for the broader principle
+that a technology choice SHOULD be driven by the requirement it serves,
+not adopted speculatively.
+
+[#nosql-selection-criteria]
+== NoSQL database selection criteria
+
+Having decided that a NoSQL data model fits, the choice of specific engine
+within that data model SHOULD be driven by the following criteria, roughly
+in order of how hard each is to change later:
+
+1. *Consistency model.* Does the engine offer the read-your-writes or
+   quorum guarantees the application needs (see
+   <<Consistency and replication>>), and can that be tuned per operation, or
+   is it fixed cluster-wide?
+
+2. *Scalability and sharding model.* How does the engine distribute data
+   and load across nodes as the dataset grows — automatically, or does it
+   require the application or an operator to manage shard placement?
+   A mismatch here is the most expensive to fix retroactively, since it
+   usually means a full data migration to a different engine.
+
+3. *Driver and ecosystem maturity for the application's language and
+   platform.* Bluesky selected ScyllaDB for its AppViews specifically for
+   its shard-aware Go driver — a driver that understood the cluster's
+   sharding topology directly, rather than treating the cluster as an
+   opaque single endpoint — alongside its general scalability
+   characteristics (The Pragmatic Engineer 2024). A technically capable
+   engine with an immature or poorly maintained driver for the team's
+   stack is a worse operational bet than a marginally less capable engine
+   with first-class support.
+
+4. *Operational maturity within the organization.* An engine the team
+   already operates successfully elsewhere carries less risk than a new
+   one, all else being close to equal — see the cost side of
+   <<Polyglot persistence>> above.
+
+5. *Query capability required.* Confirm the engine's query language and
+   indexing model actually answer the access patterns identified in
+   <<Query-first design>>, not just the primary key lookup — a document
+   database's secondary-index support, or a wide-column store's support
+   for the specific sort and filter combinations the application needs.
+
+A database-engine migration undertaken because these criteria were not
+weighed correctly up front follows the mechanics in
+xref:045.adoc[*TS-45: Data migrations*]; this section is about avoiding
+that cost, not paying it.

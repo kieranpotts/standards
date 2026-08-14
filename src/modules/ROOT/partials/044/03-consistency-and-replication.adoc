@@ -1,0 +1,84 @@
+= Consistency and replication
+
+The ACID-vs-BASE trade-off and the CAP theorem that underlies it are
+covered in depth in
+xref:043.adoc[*TS-43: Relational databases and SQL*] — see its "ACID vs
+BASE" section — and apply unchanged to NoSQL databases. This section covers
+what that trade-off means in NoSQL practice, where it is usually a
+first-class, per-query configuration choice rather than a fixed property
+of the engine.
+
+== Consistency is usually tunable, not fixed
+
+Where a relational database offers a small set of named isolation levels
+that apply uniformly to transactions, many NoSQL databases expose
+consistency as a tunable, per-operation setting. A wide-column store
+commonly lets each read or write specify how many replicas must
+acknowledge before the operation returns — a lower number is faster and
+more available under a partition; a higher number is more consistent, at
+the cost of latency and availability. Strong consistency and eventual
+consistency are therefore not a single up-front choice about the database,
+but a choice the application can make differently per query, based on what
+that specific read or write actually requires.
+
+== Read-your-writes and session guarantees
+
+A common practical requirement is not full strong consistency, but a
+session guarantee: a client that just wrote a value SHOULD see that value
+on its own subsequent read, even if a concurrent client elsewhere might
+briefly see the old value. Most NoSQL databases can provide this — reading
+from the same replica a write went to, or from a quorum large enough to
+guarantee overlap — without paying for cluster-wide strong consistency on
+every read. Reach for this before reaching for full strong consistency:
+it solves the case users actually notice (their own write appearing to
+vanish) at a fraction of the cost.
+
+== Conflict resolution
+
+Where writes can happen concurrently on different replicas — common in a
+multi-region, eventually-consistent deployment — the database needs a way
+to resolve two writes to the same key that arrive out of order or at the
+same time. Common strategies, in increasing order of application
+involvement:
+
+* *Last-write-wins.* The write with the latest timestamp wins; the other is
+  discarded. Simple and requires no application logic, but silently loses
+  data — acceptable only where losing a losing write is genuinely
+  harmless.
+
+* *Vector clocks.* The database tracks enough causal-ordering metadata to
+  detect when two writes are genuinely concurrent (neither is a descendant
+  of the other) rather than just out of order, and surfaces the conflict
+  to the application to resolve instead of guessing.
+
+* *Application-level merge.* The application supplies a merge function —
+  for example, union the two versions of a set, or sum two counters —
+  so concurrent writes combine deterministically instead of one
+  overwriting the other.
+
+A schema SHOULD be designed so that conflicts are structurally rare or
+mergeable — for example, using an append-only or counter-like field where
+a concurrent update is a well-defined merge — rather than relying on
+last-write-wins for data that would be genuinely lost.
+
+== Replication topology
+
+NoSQL databases built for horizontal scale typically replicate data across
+multiple nodes for both availability and read throughput, using one of two
+broad topologies:
+
+* *Leader-follower.* One replica accepts writes and propagates them to
+  followers, which serve reads. Simple to reason about, but the leader is
+  a bottleneck for write throughput and a single point of failure until a
+  new leader is elected.
+
+* *Multi-leader / leaderless.* Any replica can accept a write, which is
+  then propagated to the others. Removes the single-leader bottleneck and
+  tolerates a partition better, at the cost of needing the conflict
+  resolution described above, since two replicas can now legitimately
+  accept conflicting concurrent writes.
+
+For the broader distributed-systems treatment of replication, caching, and
+staleness — which applies regardless of whether the underlying store is
+relational or NoSQL — see
+xref:046.adoc[*TS-46: Distributed data and caching*].

@@ -6,7 +6,28 @@ that are still stubs (no substantive content written), and standards whose
 
 This file is a manually-maintained index, regenerated from the tree. The
 counts below were last regenerated on **2026-08-14** — this run authored
-TS-38 (Node.js applications) from scratch, which had been a pure stub
+TS-44 (Non-relational (NoSQL) databases) from scratch, which had been a pure
+stub with a legacy-format `GAPS.md` carrying two open gaps: five new content
+partials (data models, schema and modeling, consistency and replication,
+selecting a database, and operational considerations) plus an introductory
+paragraph and a `== References` section on the page itself. TS-44 was scoped
+to non-relational database concepts and selection — data models (key-value,
+document, wide-column, graph, search), query-first schema design, NoSQL-
+specific consistency and replication trade-offs, and choosing between
+engines — while deliberately not repeating the ACID/BASE/CAP-theorem
+treatment already owned by TS-43 or the general distributed-data/caching
+guidance owned by TS-46, referencing both instead. Its two recorded gaps —
+no coverage of polyglot persistence (sourced from an Allegro Tech
+engineering-culture post) and no NoSQL selection-criteria guidance (sourced
+from the same Pragmatic Engineer Bluesky piece already cited by TS-38 and
+TS-41) — were both closed by the new "Selecting a database" partial's
+"Polyglot persistence" and "NoSQL database selection criteria" sections.
+The `GAPS.md` reached zero unchecked items (2 of 2 gaps resolved), so TS-44
+moves directly from the stub table to the fully-resolved list — the third
+standard, after TS-37 and TS-38, to make that move in one run.
+
+This is on top of the prior same-day authoring of TS-38 (Node.js
+applications) from scratch, which had been a pure stub
 (`// TODO` only) with a legacy-format `GAPS.md` carrying one open gap: six
 new content partials (module system, package management, configuration and
 environment, process lifecycle and signals, error handling and logging, and
@@ -114,10 +135,12 @@ placeholder(s), and no `include::partial$NNN/...[]` includes.
 | TS | Title | Notes |
 | --- | --- | --- |
 | [TS-39](src/modules/ROOT/pages/039.adoc) | HTML | Has substantive intro prose and `toc::[]`, but no `include::partial$` directives — the `partials/039/` directory holds only `GAPS.md`. Its `GAPS.md` carries 136 actionable items, the largest in the repository. |
-| [TS-44](src/modules/ROOT/pages/044.adoc) | Non-relational (NoSQL) databases | Pure stub. `GAPS.md` has 2 open gaps (legacy format), not yet resolved. |
 
-No open gap in any other standard's `GAPS.md` cross-references a stub, so the
-stubs and the gap-closing work are independent. Writing a stub will not close
+TS-44 (Non-relational (NoSQL) databases) was authored from scratch on
+2026-08-14 and has left this table — see the note above. It is the sole
+remaining stub with a `GAPS.md` cross-referenced from elsewhere; no open gap
+in any other standard's `GAPS.md` cross-references TS-39, so TS-39 and the
+gap-closing work elsewhere remain independent. Writing a stub will not close
 gaps recorded elsewhere — unlike TS-6, whose authoring closed six of TS-5's.
 
 TS-47 (Dates and times) also has no `include::partial$` directive, but is not
@@ -128,18 +151,16 @@ positive — verify by reading the page before trusting the grep alone.
 
 ## Open gap analyses
 
-Forty-one standards have a `GAPS.md`. Twenty-seven are fully resolved (zero
+Forty-one standards have a `GAPS.md`. Twenty-eight are fully resolved (zero
 unchecked items of any kind) and are omitted from the table below — TS-2,
 TS-3, TS-5, TS-6, TS-7, TS-8, TS-9, TS-10, TS-11, TS-12, TS-13, TS-14, TS-23,
-TS-25, TS-31, TS-36, TS-37, TS-38, TS-41, TS-46, TS-48, TS-49, TS-50, TS-52,
-TS-54, TS-57, and TS-61. TS-37 was a stub as of the prior regeneration and is
-new to this list — see the note above. TS-38 is new to this list in this
-run — authored from a pure stub with its one legacy-format gap resolved in
-the same run, see the note above. Thirteen have open items and appear in the
-table below — TS-39 is also a stub, so its open items live in the table below
-but writing the standard is tracked separately, above. The remaining one —
-TS-44 — is a stub with a genuinely open legacy-format gap; it is tracked in
-the stub table above instead, per the note below.
+TS-25, TS-31, TS-36, TS-37, TS-38, TS-41, TS-44, TS-46, TS-48, TS-49, TS-50,
+TS-52, TS-54, TS-57, and TS-61. TS-37 was a stub as of the prior regeneration
+and is new to this list — see the note above. TS-38 and TS-44 were authored
+from a pure stub with their gaps resolved in the same run — TS-38 in the
+prior run, TS-44 in this run, see the notes above. Twelve have open items and
+appear in the table below — TS-39 is also a stub, so its open items live in
+the table below but writing the standard is tracked separately, above.
 
 TS-20 was fully resolved as of 2026-08-13, but gained a new Missing item on
 2026-08-14, routed in from TS-21 while confirming TS-21's own out-of-scope
@@ -171,35 +192,31 @@ also appears in the fully-resolved list above.
 
 TS-38 and TS-44 were previously listed as fully resolved; that was wrong at
 the time (see the "Known inconsistencies" section for the full history).
-TS-44 still carries a genuinely open, unresolved legacy-format gap (2 items)
-that has never been closed; it is not in the actionable-count table below
-because it is a stub, and `close-gaps` stops on a stub — it is tracked in the
-stub table above instead, until the standard is authored. TS-38 was authored
-from scratch in this run and its one legacy-format gap resolved in the same
-run — it has left the stub table and joined the fully-resolved list above.
+Both have since been authored from scratch and had their gaps genuinely
+resolved — TS-38 in the prior same-day run, TS-44 in this run — and both
+have left the stub table and joined the fully-resolved list above.
 
 ### The two GAPS.md formats
 
 The files are in two formats, and the columns mean different things in each.
 The counts below are of the twelve non-stub files with open items, tallying
 with the table's rows (TS-39 is also a stub, so thirteen rows total). Of the
-twenty-seven fully-resolved files, TS-6 and TS-38 are still in the legacy
-format; the rest were converted as they were worked.
+twenty-eight fully-resolved files, TS-6, TS-38, and TS-44 are still in the
+legacy format; the rest were converted as they were worked.
 
 - **Template format** (38 files). Follows the `gap-analysis` skill's bundled
   template: flat `- [ ]` checklists under `## Missing`, `## Partial`,
   `## Out-of-scope`, and `## Unresolved` headings.
 
-- **Legacy format** (2 files: TS-6, TS-38, both fully resolved; plus TS-44,
-  still open). One `## <gap title>` subsection per gap, with `**Source**` /
+- **Legacy format** (3 files: TS-6, TS-38, TS-44, all fully resolved). One
+  `## <gap title>` subsection per gap, with `**Source**` /
   `**What the source says**` / `**Coverage check**` / `**Gap**` bullets,
   closed by appending a `**RESOLVED**` bullet. Some also carry a
   `**Cross-references**` field naming other standards the gap touches; the
-  template format has no equivalent. TS-38 was authored and its gap resolved
-  in this run without converting the format, since the file's own single-gap
-  shape needed no restructuring to record the closure. TS-44 remains legacy
-  because it is a stub — `close-gaps` stops on a stub, so there is no work
-  that would trigger its conversion.
+  template format has no equivalent. TS-38 and TS-44 were each authored and
+  their gaps resolved in the same run without converting the format, since
+  each file's own small, single- or two-gap shape needed no restructuring to
+  record the closure.
 
 Legacy-format files are converted to the template format as they are worked,
 not in a separate sweep.
@@ -622,6 +639,34 @@ govern how all new content should be written.
   legacy-format file rather than requiring a new one — the file's own
   single-gap shape needed no conversion to the template format to record
   the closure.
+
+- **RESOLVED — TS-44 authored from a pure stub and fully resolved in one
+  run.** TS-44 (Non-relational (NoSQL) databases) previously held only a
+  `// TODO` placeholder and a legacy-format `GAPS.md` with two open gaps: no
+  guidance on polyglot persistence (sourced from an Allegro Tech engineering-
+  culture post) and no NoSQL database selection criteria (sourced from the
+  same Pragmatic Engineer Bluesky piece already cited by TS-38 and TS-41). On
+  2026-08-14 it was authored from scratch — an introductory paragraph on the
+  page plus five new content partials (`01-data-models.adoc` through
+  `05-operational-considerations.adoc`) covering key-value/document/wide-
+  column/graph/search data models, query-first schema and modeling patterns
+  (embedding vs referencing, denormalization, aggregate boundaries), NoSQL-
+  specific consistency and replication trade-offs, database selection
+  (polyglot persistence and selection criteria), and operational concerns
+  (indexing, backup, monitoring, schema evolution). Scope was deliberately
+  kept to NoSQL-specific concerns, cross-referencing rather than duplicating
+  TS-43 (which already owns the ACID/BASE/CAP-theorem treatment in depth),
+  TS-46 (general distributed-data and caching guidance), TS-5 (per-service
+  architecture and persistence decoupling), and TS-45 (data migration
+  mechanics). Both recorded gaps were closed against the new "Polyglot
+  persistence" and "NoSQL database selection criteria" sections, and both
+  sources added to the page's `== References`. TS-44's `GAPS.md` reached zero
+  unchecked items of any kind, so it moves directly from the stub table to
+  the fully-resolved list, joining TS-37 and TS-38 as the third standard to
+  make that move in a single run. Like TS-38, TS-44 already had a `GAPS.md`,
+  so the resolution notes live in that pre-existing legacy-format file rather
+  than requiring a new one — its own two-gap shape needed no conversion to
+  the template format to record the closure.
 
 ## Regenerating this file
 

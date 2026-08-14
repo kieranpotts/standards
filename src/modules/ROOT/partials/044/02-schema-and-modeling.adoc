@@ -1,0 +1,80 @@
+= Schema and modeling
+
+A relational schema is designed around the data's structure, and queries
+are written afterward to fit it. A NoSQL schema SHOULD be designed the
+other way around: start from the application's known query patterns, and
+shape the data to answer them directly. This inversion is the single
+biggest mental shift required to model data well in a NoSQL database, and
+the most common source of a poor fit when a team applies relational habits
+unchanged.
+
+== Query-first design
+
+Before modeling any entity, enumerate the queries the application actually
+needs to run against it, and how often each runs. A schema optimized for a
+read that happens once a day at the expense of one that happens a thousand
+times a second is a bad trade even if it is more "normalized". Most NoSQL
+engines do not offer arbitrary ad-hoc querying with the flexibility of SQL
+— what an index or a document layout does not anticipate, it typically
+cannot answer efficiently at all, rather than merely slowly.
+
+== Embedding vs referencing
+
+The central schema-design decision in a document database is whether
+related data is embedded inside a parent document or referenced by ID in a
+separate document, mirroring a foreign key.
+
+* *Embed* when the related data is always read together with its parent,
+  has a bounded size, and does not need to be queried independently. An
+  order's line items are a good candidate: they are meaningless without the
+  order, always displayed with it, and bounded in count.
+
+* *Reference* when the related data is large, unbounded, shared across
+  many parents, or needs to be queried, updated, or read independently of
+  its parent. A product catalog entry referenced by many orders is a good
+  candidate: embedding a full copy into every order that references it
+  would duplicate the data and require updating every copy when the
+  product changes.
+
+Embedding trades write complexity and duplication for read performance;
+referencing trades read performance (an extra lookup, or an
+application-level join the database will not perform for you) for a single
+source of truth. Most real schemas mix both within the same document.
+
+== Denormalization and duplication
+
+Deliberate duplication of data across documents or rows is a normal,
+expected pattern in NoSQL modeling, not a mistake to be normalized away. A
+user's display name copied onto every comment they have posted avoids a
+lookup on every comment read, at the cost of a multi-record update if the
+user later changes their name.
+
+Duplication MUST be a deliberate trade-off, made because the read pattern
+that benefits from it is known to matter, not a default. Every duplicated
+field is a place that update logic can silently drift out of sync if it is
+not kept consistent by the application itself.
+
+== Aggregate boundaries
+
+An aggregate is the unit of data that is read and written atomically — the
+document in a document database, the row (and its column family) in a
+wide-column store. Most NoSQL engines guarantee atomicity only within a
+single aggregate, not across multiple aggregates in the same write. Modeling
+the aggregate boundary correctly is therefore also a consistency decision,
+not only a performance one: data that must be updated together atomically
+belongs in the same aggregate. See <<Consistency and replication>> for what
+happens when it cannot be.
+
+== Access patterns over normalization
+
+Where a relational schema aims to represent each fact exactly once and
+derive every view from joins, a NoSQL schema commonly maintains multiple,
+differently-shaped copies of the same underlying data — one per access
+pattern. A wide-column store used for both "get all orders for a customer"
+and "get all orders on a given day" may maintain two tables, each keyed and
+sorted for one of those two queries, both populated from the same writes.
+This is normal design in this data model, not duplication to be eliminated.
+
+For the equivalent relational schema-design guidance — normalization,
+naming conventions, and data typing for a joinable, normalized model — see
+xref:043.adoc[*TS-43: Relational databases and SQL*].
