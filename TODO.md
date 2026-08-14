@@ -5,29 +5,20 @@ that are still stubs (no substantive content written), and standards whose
 `GAPS.md` gap analysis still has open items.
 
 This file is a manually-maintained index, regenerated from the tree. The
-counts below were last regenerated on **2026-08-14** — this run closed all of
-TS-21's actionable items (0 Missing, 39 Partial, all resolved across six
-`close-gaps` batches over two sessions) and then walked all 13 of its
-out-of-scope items and 4 unresolved resources with the user: 9 out-of-scope
-items confirmed outright; 2 confirmed out-of-scope for TS-21 but routed to
-another standard's `GAPS.md` as a new Missing item instead of being dropped
-(document-level conventions → TS-26, actionable 0 → 1; rate-limit headers →
-TS-20, actionable 0 → 1, moving TS-20 out of the fully-resolved list); 1
-closed with a small cross-reference added to TS-21 itself (PII in URLs →
-TS-52/TS-53); and 1 closed by a new "Alternative HTTP API styles" section in
-TS-21 briefly surveying HAL/JSON:API/Siren/Ion/OData/JSON-LD/JSON-RPC, which
-also folded in the JSON-RPC item. 3 of TS-21's 4 unresolved Stack Overflow-
-adjacent items were re-attempted (still Cloudflare-blocked) and dismissed;
-the fourth (a YouTube transcript) was left open. TS-21 now joins the
-TS-4/TS-16/TS-27/TS-29/TS-43 group: 0 actionable, 0 out-of-scope, but 1
-unresolved reference keeps it out of the fully-resolved list. This is on top
-of the prior same-day closure of TS-26's 29 actionable items (now 30, minus
-the newly-routed item — see above) and TS-29's and TS-43's gaps in full, and
-TS-16's and TS-40's actionable items (see the table notes below for the
-detailed breakdown of each). This regeneration also added TS-43 to the table
-below for the first time — it was omitted from prior versions of this file
-despite having 6 open out-of-scope items and 4 unresolved references; that
-was an oversight in an earlier regeneration, not new work.
+counts below were last regenerated on **2026-08-14** — this run authored
+TS-37 (Web platform APIs) from scratch, which had been a pure stub: five new
+content partials plus an introductory paragraph on the page, closing all 18
+of its Missing items and all 4 of its Out-of-scope items. The 4 out-of-scope
+items (CSS fluid typography, container queries, intrinsic layouts,
+`text-wrap`/`ch`) were confirmed out-of-scope for TS-37 and routed to TS-18's
+`GAPS.md` as 4 new Missing items instead of being dropped (TS-18 actionable
+56 → 60). TS-37's own `GAPS.md` reached zero unchecked items of any kind, so
+it leaves the stub table below and joins the fully-resolved list — the first
+standard to move directly from "stub" to "fully resolved" in one run. This is
+on top of the prior same-day closure of TS-21's actionable items and
+out-of-scope items, TS-26's 29 actionable items, TS-29's and TS-43's gaps in
+full, and TS-16's and TS-40's actionable items (see the table notes below for
+the detailed breakdown of each).
 Re-derive the counts with the script in
 [Regenerating this file](#regenerating-this-file) before trusting them after
 any content work.
@@ -41,7 +32,6 @@ placeholder(s), and no `include::partial$NNN/...[]` includes.
 | --- | --- | --- |
 | [TS-24](src/modules/ROOT/pages/024.adoc) | User manuals | Has a short outline but is flagged to be split into separate Technical Documentation / User Documentation standards. |
 | [TS-35](src/modules/ROOT/pages/035.adoc) | Python | Pure stub (`// Introduction.` placeholder only). |
-| [TS-37](src/modules/ROOT/pages/037.adoc) | Web platform APIs | Pure stub aside from "See also" cross-references. Has a `GAPS.md` with 18 actionable items. |
 | [TS-38](src/modules/ROOT/pages/038.adoc) | Node.js applications | Pure stub. `GAPS.md` has 1 open gap (legacy format), not yet resolved. |
 | [TS-39](src/modules/ROOT/pages/039.adoc) | HTML | Has substantive intro prose and `toc::[]`, but no `include::partial$` directives — the `partials/039/` directory holds only `GAPS.md`. Its `GAPS.md` carries 136 actionable items, the largest in the repository. |
 | [TS-42](src/modules/ROOT/pages/042.adoc) | Vue | Pure stub (`// TODO: Introductory text…`). |
@@ -60,15 +50,16 @@ positive — verify by reading the page before trusting the grep alone.
 
 ## Open gap analyses
 
-Forty-one standards have a `GAPS.md`. Twenty-five are fully resolved (zero
+Forty-one standards have a `GAPS.md`. Twenty-six are fully resolved (zero
 unchecked items of any kind) and are omitted from the table below — TS-2,
 TS-3, TS-5, TS-6, TS-7, TS-8, TS-9, TS-10, TS-11, TS-12, TS-13, TS-14, TS-23,
-TS-25, TS-31, TS-36, TS-41, TS-46, TS-48, TS-49, TS-50, TS-52, TS-54, TS-57,
-and TS-61. Fourteen have open items and appear in the table below — TS-37 and
-TS-39 are also stubs, so their open items live in the table below but writing
-the standard is tracked separately, above. The remaining two — TS-38 and
-TS-44 — are stubs with a genuinely open legacy-format gap each; they are
-tracked in the stub table above instead, per the note below.
+TS-25, TS-31, TS-36, TS-37, TS-41, TS-46, TS-48, TS-49, TS-50, TS-52, TS-54,
+TS-57, and TS-61. TS-37 was a stub as of the prior regeneration and is new to
+this list — see the note above. Thirteen have open items and appear in the
+table below — TS-39 is also a stub, so its open items live in the table below
+but writing the standard is tracked separately, above. The remaining two —
+TS-38 and TS-44 — are stubs with a genuinely open legacy-format gap each; they
+are tracked in the stub table above instead, per the note below.
 
 TS-20 was fully resolved as of 2026-08-13, but gained a new Missing item on
 2026-08-14, routed in from TS-21 while confirming TS-21's own out-of-scope
@@ -109,9 +100,9 @@ standard is authored.
 
 The files are in two formats, and the columns mean different things in each.
 The counts below are of the twelve non-stub files with open items, tallying
-with the table's rows (TS-37 and TS-39 are also stubs, so fourteen rows
-total). Of the twenty-five fully-resolved files, only TS-6 is still in the
-legacy format; the other twenty-four were converted as they were worked.
+with the table's rows (TS-39 is also a stub, so thirteen rows total). Of the
+twenty-six fully-resolved files, only TS-6 is still in the legacy format; the
+other twenty-five were converted as they were worked.
 
 - **Template format** (38 files). Follows the `gap-analysis` skill's bundled
   template: flat `- [ ]` checklists under `## Missing`, `## Partial`,
@@ -155,12 +146,11 @@ not in a separate sweep.
 | [TS-26](src/modules/ROOT/partials/026/GAPS.md) | Technical writing style guide | 1 | 6 | 2 | Template — all original 29 actionable items closed 2026-08-14, across three batches; 4 of 9 out-of-scope items also reversed and closed; gained 1 new item 2026-08-14, routed in from TS-21 |
 | [TS-27](src/modules/ROOT/partials/027/GAPS.md) | Markdown | 0 | 6 | 1 | Template — all 15 actionable items closed 2026-08-13 |
 | [TS-40](src/modules/ROOT/partials/040/GAPS.md) | CSS | 1 | 12 | 0 | Template — 16 of 17 actionable items closed 2026-08-14; 1 declined and left open |
-| [TS-37](src/modules/ROOT/partials/037/GAPS.md) | Web platform APIs | 18 | 4 | 1 | Template — also a stub |
 | [TS-15](src/modules/ROOT/partials/015/GAPS.md) | User interfaces | 51 | 7 | 12 | Template — gained 1 item 2026-08-14, routed in from TS-26 |
 | [TS-33](src/modules/ROOT/partials/033/GAPS.md) | Java | 55 | 3 | 4 | Template |
-| [TS-18](src/modules/ROOT/partials/018/GAPS.md) | Web GUIs | 56 | 26 | 5 | Template |
+| [TS-18](src/modules/ROOT/partials/018/GAPS.md) | Web GUIs | 60 | 26 | 5 | Template — gained 4 items 2026-08-14, routed in from TS-37 |
 | [TS-39](src/modules/ROOT/partials/039/GAPS.md) | HTML | 136 | 5 | 4 | Template — also a stub |
-| | **Total** | **319** | **84** | **38** | |
+| | **Total** | **305** | **80** | **37** | |
 
 TS-29 (JSON Schema) was closed out on 2026-08-14 across four `close-gaps`
 batches plus a same-day follow-up: the first batch closed the eight
@@ -293,9 +283,9 @@ out-of-scope items (general rate-limit response headers,
 `X-RateLimit-Limit`/`Remaining`/`Reset`). Not yet reviewed against TS-20's
 current content.
 
-One standard — TS-39 — now holds 136 of the 319 actionable items on its own,
+One standard — TS-39 — now holds 136 of the 305 actionable items on its own,
 over two fifths of the total, and will need several passes once it is
-authored. TS-18 (56) and TS-15 (51) are next largest.
+authored. TS-18 (60) and TS-15 (51) are next largest.
 
 ## Standards with neither a stub nor a GAPS.md
 
@@ -501,6 +491,26 @@ govern how all new content should be written.
   older resolution note. TS-29 stays out of the fully-resolved list only
   because its 2 Unresolved YouTube references remain unfetchable — an
   identical situation to TS-4, TS-16, and TS-27.
+
+- **RESOLVED — TS-37 authored from a pure stub and fully resolved in one
+  run.** TS-37 (Web platform APIs) previously held only a `// TODO`
+  introductory placeholder and "See also" cross-references, with 18 Missing
+  and 4 Out-of-scope items open in its `GAPS.md`. On 2026-08-14 it was
+  authored from scratch — an introductory paragraph on the page plus five new
+  content partials (`01-when-to-use-web-components.adoc` through
+  `05-limitations.adoc`, with `06-references.adoc`) covering when to use web
+  components, the HTML-vs-JavaScript web component distinction, Shadow DOM
+  (including the `:root`/`rem` leak and cross-root ARIA accessibility gap),
+  building a custom element, and platform limitations. All 18 Missing items
+  were closed against this new content. The 4 Out-of-scope items (CSS fluid
+  typography via `clamp()`, container queries, intrinsic flex/grid layouts,
+  `text-wrap: balance`/`ch`) were confirmed out-of-scope for TS-37 by the
+  user and relocated as 4 new Missing items in TS-18's `GAPS.md` (actionable
+  56 → 60) rather than dropped. TS-37's `GAPS.md` reached zero unchecked
+  items of any kind, so it moves directly from the stub table to the
+  fully-resolved list — the first standard in this file's history to do so
+  in a single run, rather than first losing its stub status and later being
+  worked by a separate `close-gaps` pass.
 
 ## Regenerating this file
 
