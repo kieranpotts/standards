@@ -1,0 +1,118 @@
+= Modeling patterns
+
+The following patterns recur across schemas for common data shapes.
+
+== Monetary values
+
+It is RECOMMENDED to model a monetary amount as a string, not a `number`:
+
+[source,json]
+----
+{
+  "type": "object",
+  "properties": {
+    "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+    "value": { "type": "string", "pattern": "^-?[0-9]+\\.[0-9]{2,}$" }
+  },
+  "required": ["currency", "value"]
+}
+----
+
+JSON's `number` type is a floating-point value in every mainstream
+implementation, and floating-point arithmetic cannot represent every decimal
+fraction exactly — `0.1 + 0.2` does not equal `0.3` in IEEE 754 binary
+floating point. A monetary value that has passed through even one arithmetic
+operation as a JSON `number` risks losing precision at the subdivision (for
+example, cent) level. A string, decoded by the consumer into a
+language-native decimal or fixed-point type rather than a native float,
+avoids this entirely. Pair `value` with a `currency` property (an ISO 4217
+code) rather than assuming a fixed currency, since a subdivision's size
+varies by currency.
+
+== Phone numbers
+
+It is RECOMMENDED to model a phone number as a structured object, not a
+single free-form string, wherever the number must be validated or acted on
+(for example, redialed) rather than merely stored and displayed:
+
+[source,json]
+----
+{
+  "type": "object",
+  "properties": {
+    "countryCode": { "type": "string", "pattern": "^[1-9][0-9]{0,2}$" },
+    "nationalNumber": { "type": "string", "pattern": "^[0-9]{4,14}$" },
+    "extension": { "type": "string", "pattern": "^[0-9]{1,7}$" }
+  },
+  "required": ["countryCode", "nationalNumber"]
+}
+----
+
+This follows the structure of
+https://www.itu.int/rec/T-REC-E.164/en[ITU-T E.164], the international
+public telecommunication numbering plan. A single free-form string is
+RECOMMENDED only where the number is opaque to the schema's consumers — for
+example, a contact field that is only ever displayed, never dialed or
+validated — since round-tripping a structured number back to a single
+string for display is a one-line concern, but recovering the structure from
+an unconstrained string is not.
+
+== Vendor-prefixed `format` values
+
+`format` (see <<Format>>) is not limited to its predefined values — `email`,
+`date-time`, and the rest. It is RECOMMENDED to define a custom,
+vendor-prefixed `format` string, such as `acme_currency_code_v1`, to signal
+that a `string` property carries a semantic validation rule beyond what
+base JSON Schema's `pattern` and `enum` keywords can express concisely, or
+that is enforced by a shared internal library rather than the schema itself.
+The prefix and version suffix distinguish it from any future
+officially-registered `format` value, and let the semantic rule itself
+evolve (a `_v2`) without changing the property's declared `type`. Since
+`format` is annotation-only by default (see <<Format>>), a vendor-prefixed
+value has no effect on validation unless the consuming validator is
+explicitly configured to enforce it — document that expectation alongside
+the schema.
+
+== Error and envelope schemas
+
+It is RECOMMENDED to define one shared error schema, referenced by `$ref`
+(see <<Cross-references>>) from every endpoint or message type that can
+fail, rather than letting each one define its own error shape:
+
+[source,json]
+----
+{
+  "type": "object",
+  "properties": {
+    "code": { "type": "string" },
+    "message": { "type": "string" },
+    "details": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "field": { "type": "string" },
+          "issue": { "type": "string" }
+        },
+        "required": ["field", "issue"]
+      }
+    },
+    "links": {
+      "type": "object",
+      "additionalProperties": { "type": "string", "format": "uri" }
+    }
+  },
+  "required": ["code", "message"]
+}
+----
+
+`code` and `message` are RECOMMENDED at minimum — a stable, machine-readable
+identifier and a human-readable summary. `details` is RECOMMENDED wherever
+the error can originate from more than one field, such as a validation
+failure, so a consumer can report each failing field individually rather
+than parsing a combined message string. `links` follows the HATEOAS
+convention of naming next-step URIs (for example, a `documentation` link
+explaining the error code) directly in the payload, and is OPTIONAL —
+appropriate where consumers benefit from discovering related resources at
+runtime, and skippable where the API's error codes are already documented
+out-of-band.

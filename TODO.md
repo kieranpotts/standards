@@ -6,10 +6,14 @@ that are still stubs (no substantive content written), and standards whose
 
 This file is a manually-maintained index, regenerated from the tree. The
 counts below were last regenerated on **2026-08-14** — this run closed
-TS-43's gaps in full, TS-16's actionable items in full (1 out-of-scope batch
-and 1 unresolved resource remain), 16 of TS-40's 17 (the last declined, see
-[Known inconsistencies](#known-inconsistencies)), and 9 of TS-29's 29 (20
-remain: 16 Missing, 4 Partial). Re-derive the counts with the script in
+TS-29's gaps in full (29 actionable items and all 3 out-of-scope items
+resolved, across four `close-gaps` batches plus a follow-up decision pass on
+the out-of-scope items and the one remaining Partial item), on top of the
+same-day closure of TS-43's gaps in full, TS-16's actionable items in full (1
+out-of-scope batch and 1 unresolved resource remain), 16 of TS-40's 17 (the
+last declined, see [Known inconsistencies](#known-inconsistencies)), and
+TS-29's earlier partial progress (9 of 29) which this run completed.
+Re-derive the counts with the script in
 [Regenerating this file](#regenerating-this-file) before trusting them after
 any content work.
 
@@ -48,6 +52,13 @@ TS-43, TS-46, TS-48, TS-49, TS-50, TS-52, TS-54, TS-57, and TS-61. The other
 twelve have open items — TS-37 and TS-39 are also stubs, so their open items
 live in the table below but writing the standard is tracked separately,
 above.
+
+TS-29 is now fully worked — all 29 actionable items and all 3 out-of-scope
+items are resolved — but it stays in the open-items table below, not the
+fully-resolved list, because its 2 unresolved YouTube references keep it
+short of zero unchecked items of *any* kind. See
+[What the columns mean](#what-the-columns-mean) for why that distinction
+matters, and TS-4/TS-16/TS-27 for the same shape.
 
 TS-10 and TS-41 were previously omitted from this file entirely — an
 oversight in an earlier regeneration, not a change in their content. TS-41
@@ -109,22 +120,41 @@ not in a separate sweep.
 | [TS-4](src/modules/ROOT/partials/004/GAPS.md) | Modeling | 0 | 0 | 1 | Template — 1 unresolved resource, repeatedly unfetchable |
 | [TS-16](src/modules/ROOT/partials/016/GAPS.md) | Command line interfaces (CLIs) | 0 | 9 | 1 | Template — all 59 actionable items closed 2026-08-14 |
 | [TS-27](src/modules/ROOT/partials/027/GAPS.md) | Markdown | 0 | 6 | 1 | Template — all 15 actionable items closed 2026-08-13 |
+| [TS-29](src/modules/ROOT/partials/029/GAPS.md) | JSON Schema | 0 | 0 | 2 | Template — all 29 actionable and all 3 out-of-scope items closed 2026-08-14 |
 | [TS-40](src/modules/ROOT/partials/040/GAPS.md) | CSS | 1 | 12 | 0 | Template — 16 of 17 actionable items closed 2026-08-14; 1 declined and left open |
 | [TS-37](src/modules/ROOT/partials/037/GAPS.md) | Web platform APIs | 18 | 4 | 1 | Template — also a stub |
-| [TS-29](src/modules/ROOT/partials/029/GAPS.md) | JSON Schema | 20 | 3 | 2 | Template — 9 of 29 actionable items closed 2026-08-14 |
 | [TS-26](src/modules/ROOT/partials/026/GAPS.md) | Technical writing style guide | 29 | 10 | 2 | Template |
 | [TS-21](src/modules/ROOT/partials/021/GAPS.md) | HTTP APIs | 49 | 13 | 4 | Template |
 | [TS-15](src/modules/ROOT/partials/015/GAPS.md) | User interfaces | 50 | 7 | 12 | Template |
 | [TS-33](src/modules/ROOT/partials/033/GAPS.md) | Java | 55 | 3 | 4 | Template |
 | [TS-18](src/modules/ROOT/partials/018/GAPS.md) | Web GUIs | 56 | 26 | 5 | Template |
 | [TS-39](src/modules/ROOT/partials/039/GAPS.md) | HTML | 136 | 5 | 4 | Template — also a stub |
-| | **Total** | **414** | **98** | **37** | |
+| | **Total** | **394** | **93** | **38** | |
 
-TS-43 (Relational databases and SQL) was closed out on 2026-08-14 — all 61
-actionable items (59 Missing, 2 Partial) resolved in one run — and has left
-this table for the fully-resolved list (6 out-of-scope and 4 persistently
-unresolved items remain open against it, tracked in its own `GAPS.md`, not
-here since it has zero actionable items).
+TS-29 (JSON Schema) was closed out on 2026-08-14 across four `close-gaps`
+batches plus a same-day follow-up: the first batch closed the eight
+core-vocabulary items (Validation, Applicator, Boolean composition,
+if/then/else, dependentRequired/dependentSchemas, Meta-Data/Annotations,
+`format`, and Content); the second closed Unevaluated keywords, Core
+keywords (`$id`/`$comment`/`$defs`/`$anchor`/`$dynamicAnchor`/`$dynamicRef`/
+`$vocabulary`), validator tooling, and JSON Patch, plus the composition and
+schema-boilerplate Partial items; the third closed Schema versioning, six
+LinkedIn best-practices items, and the JTD Partial item; the fourth closed
+four PayPal-sourced modeling-pattern items (monetary values, phone numbers,
+vendor-prefixed `format`, error/envelope schemas) and a file-organization
+item, with the user choosing a new prose "Modeling patterns" section over an
+`examples/` subdirectory. All three Out-of-scope items were then confirmed
+by the user: CloudEvents and storage-platform concerns excluded outright
+(storage platforms flagged as a candidate for a future gap analysis of the
+relational-databases standard, not actioned there), and validation-code APIs
+excluded from normative coverage but given a one-sentence mention in
+`21-useful-links.adoc` at the user's request. The last open Partial item
+(`tour.json-schema.org`) was dismissed once the user identified the source
+as an interactive playground rather than fetchable reference material. TS-29
+stays out of the fully-resolved list only because 2 Unresolved YouTube
+references remain unfetchable. TS-29's partials were renumbered four times
+over the course of this work — see the page's `include::` list for the
+current mapping, not any historical numbering cited in old commit messages.
 
 TS-39 sits at the top by actionable count but is a stub — see
 [Stub standards](#stub-standards) — so `close-gaps` cannot work it until the
@@ -135,7 +165,8 @@ directory no longer exists anywhere in the repository and re-fetching it has
 failed on every run so far; TS-16's is `Program-Behavior.html`, still
 unfetchable as of the 2026-08-14 run (not re-attempted, since its content was
 already captured via a sub-agent in a prior run); TS-27's is a stub reference
-file (see the file's `## Unresolved` entry) not yet re-fetched.
+file (see the file's `## Unresolved` entry) not yet re-fetched. TS-29 now
+joins this group for the same reason — two YouTube references, unfetchable.
 
 TS-40 (CSS) had 16 of 17 actionable items closed on 2026-08-14. The one
 remaining item — a comparative summary of OOCSS/BEM/SMACSS/SUIT CSS
@@ -165,20 +196,9 @@ turned out to already be resolved in TS-5 and TS-57's own directories, so
 TS-10 needed no content of its own — and has left this table for the
 fully-resolved list.
 
-TS-29 (JSON Schema) had 9 of its 29 actionable items (all Missing) closed on
-2026-08-14, in one batch of new keyword-vocabulary sections: Validation
-keywords, Applicator keywords (including boolean composition), Conditional
-validation (`if`/`then`/`else` and `dependentRequired`/`dependentSchemas`),
-Annotations, and Format and Content keywords. This renumbered six
-pre-existing partials to make room; the standard's other open items citing
-the old `03-cross-references.adoc` and `07-json-pointer.adoc` filenames
-should be re-verified against their new numbers (`09-` and `13-`
-respectively) before being worked. 16 Missing and 4 Partial items (20
-actionable) remain.
-
-One standard — TS-39 — now holds 136 of the 414 actionable items on its own,
-almost a third of the total, and will need several passes once it is
-authored. TS-18 (56) and TS-15 (50) are next largest.
+One standard — TS-39 — now holds 136 of the 394 actionable items on its own,
+over a third of the total, and will need several passes once it is authored.
+TS-18 (56) and TS-15 (50) are next largest.
 
 ## Standards with neither a stub nor a GAPS.md
 
@@ -301,7 +321,9 @@ govern how all new content should be written.
 - **Reference lists in a trailing partial.** `docs/style-guide.md` (lines
   150–153) says a reference list MUST NOT be split into a separate partial.
   Eight standards do exactly that: TS-17, TS-18, TS-21, TS-23, TS-29, TS-31,
-  TS-32, and TS-33. Twenty-three pages carry a `== References` section.
+  TS-32, and TS-33 (TS-29's own references live in `20-references.adoc` as
+  of the 2026-08-14 gap-closing work, having been renumbered four times).
+  Twenty-three pages carry a `== References` section.
 
 - **RESOLVED — a broken sentence in the `deep-dive` skill.**
   `.agents/skills/deep-dive/SKILL.md:55` read "The mechanical verification in
@@ -362,6 +384,19 @@ govern how all new content should be written.
   and 1 unresolved reference (`Program-Behavior.html`, persistently
   unfetchable) remain open.
 
+- **RESOLVED — TS-29 closed out across four runs plus a decision pass.**
+  All 29 of TS-29's actionable items were closed by four `close-gaps`
+  batches on 2026-08-14 (8, 6, 8, and 5 items respectively — see the table
+  note above for the breakdown), followed by the same-day resolution of all
+  3 Out-of-scope items and the 1 remaining Partial item on the user's
+  explicit direction. TS-29's partials were renumbered four times over the
+  course of this work (`03`–`08` inserted first, then `05`–`06`, then
+  `17`–`18`, then `19`); always verify against the page's current
+  `include::` list rather than any historical `NN-` prefix cited in an
+  older resolution note. TS-29 stays out of the fully-resolved list only
+  because its 2 Unresolved YouTube references remain unfetchable — an
+  identical situation to TS-4, TS-16, and TS-27.
+
 ## Regenerating this file
 
 Run from `src/modules/ROOT/partials/`:
@@ -400,8 +435,10 @@ A standard is "fully resolved" when its `GAPS.md` has zero unchecked items of
 *any* kind — `grep -c '^- \[ \]'` returns 0 — not merely zero actionable
 items. TS-4 is the example that makes this distinction matter: it has 0
 actionable items but 1 unresolved resource still unchecked, so it stays in
-the open-items table. A legacy-format file must be checked the same way —
-count `## <gap title>` subsections against `**RESOLVED**` markers, per the
-script above — rather than assumed resolved because it is short or old:
-TS-38 and TS-44 were wrongly marked fully resolved in a prior pass for
-exactly this reason.
+the open-items table. TS-29 is the same shape after its 2026-08-14
+gap-closing work: 0 actionable, 0 out-of-scope, but 2 Unresolved references
+still unchecked. A legacy-format file must be checked the same way — count
+`## <gap title>` subsections against `**RESOLVED**` markers, per the script
+above — rather than assumed resolved because it is short or old: TS-38 and
+TS-44 were wrongly marked fully resolved in a prior pass for exactly this
+reason.

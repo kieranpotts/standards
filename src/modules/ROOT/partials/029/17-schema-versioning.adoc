@@ -1,0 +1,46 @@
+= Schema versioning
+
+The versioning discussed in <<Versions>> is the JSON Schema *draft* a
+document is written against. This section is about versioning a schema
+*of your own design* as the data model it describes changes over time — a
+concern of every long-lived API or data store, independent of which draft is
+in use.
+
+It is RECOMMENDED to version a schema explicitly, rather than editing it in
+place, wherever the schema describes data that outlives a single deployment
+— a network API payload, a persisted document, or a message on a queue.
+Editing a published schema in place is a breaking change for every consumer
+that validated against the old shape, even where the edit looks additive.
+
+== Backward-compatible changes
+
+A change is backward-compatible, and MAY be made in place without a new
+schema version, only where every instance that validated against the old
+schema still validates against the new one. This includes:
+
+* Adding a new OPTIONAL property (not listed in `required`).
+* Widening a constraint — for example, raising `maxLength`, or adding a
+  value to an `enum`.
+* Adding a new, non-exclusive branch to `anyOf` (but not `oneOf`, where
+  adding a branch can turn a previously-unique match into an ambiguous one).
+
+== Breaking changes
+
+A change is breaking wherever an instance that validated against the old
+schema could fail the new one — removing a property, adding it to
+`required`, narrowing a constraint, or changing a `type`. It is RECOMMENDED
+to publish a breaking change as a new schema at a new `$id`
+(see <<Schema identification>>), for example
+`https://example.com/schemas/order/v2/order.schema.json`, rather than
+mutating the existing document at its existing `$id`. This lets a consumer
+pin to the schema version it was built against, and migrate deliberately
+rather than being broken by an unannounced change at a stable URL.
+
+It is RECOMMENDED to encode the schema's own version as a top-level
+property of the data it describes (for example, a `schemaVersion` or
+`version` field), independent of the `$id` version, wherever the data is
+persisted or transmitted without the schema alongside it — a stored
+document, or a message on a queue read long after it was written. The `$id`
+version identifies which schema document validates the data; the data's own
+version field lets code that reads the data later determine which shape to
+expect without first locating and fetching that schema document.
