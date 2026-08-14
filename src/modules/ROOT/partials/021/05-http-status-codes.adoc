@@ -35,6 +35,10 @@ status codes include:
    content to return in the response message. This status code MUST be returned
    with an empty HTTP message body.
 
+** `206 Partial Content`: Indicates that the response carries only a byte
+   range of the requested resource, in response to a `Range` request header.
+   See *Partial content* in *Resources*.
+
 * *3xx*: Redirection response codes.
 
 ** `301 Moved Permanently`: Indicates that the requested URL has been changed
@@ -67,9 +71,18 @@ status codes include:
    This status code MUST be used, rather than falling back silently to a
    different media type, when the requested media type cannot be honored.
 
+** `409 Conflict`: Indicates that the request could not be completed due to a
+   conflict with the current state of a resource. Used for an idempotency key
+   that is already locked by an in-progress request; see *Idempotency-key
+   locking* in *Safeness and idempotency*.
+
 ** `412 Precondition Failed`: Indicates that a condition specified in a
    conditional request header, eg. `If-Match`, was not satisfied. This is used
    to implement optimistic concurrency control.
+
+** `414 URI Too Long`: Indicates that the request's target URL exceeds a
+   length the server is willing or able to parse. See the *URL length*
+   section of *URLs*.
 
 ** `415 Unsupported Media Type`: Indicates that the media type of the request
    payload, as declared in its `Content-Type` header, is not supported by the
@@ -98,7 +111,16 @@ status codes include:
    proxy, received an invalid response from an upstream server.
 
 ** `503 Service Unavailable`: Indicates that the server is not ready to handle
-   the request, typically due to maintenance or overload.
+   the request, typically due to maintenance or overload. This status is
+   normally transient, and responses SHOULD include a `Retry-After` header
+   indicating when the client may usefully retry.
+
+The `Retry-After` header is not exclusive to `429` and `503`. It MAY also be
+used with `202 Accepted` responses for long-running operations (see
+*Asynchronous operations*), to hint at a sensible polling interval, and with
+any other retryable error where the server can estimate how long the
+condition will persist. Its value MAY be either a number of seconds or an
+HTTP-date, per RFC 7231.
 
 == Method-to-status mapping
 

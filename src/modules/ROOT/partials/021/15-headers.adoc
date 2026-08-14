@@ -19,6 +19,16 @@ is the most widely used naming convention.
 Avoid using underscores or alternative letter case conventions such as
 camelCase, even for your application's own non-standard header fields.
 
+== `Date` header
+
+Every response MUST include a `Date` header, giving the time at which the
+server generated the response, formatted per RFC 5322 and expressed in GMT.
+
+[source,http]
+----
+Date: Wed, 24 Aug 2016 18:41:30 GMT
+----
+
 == Content negotiation
 
 HTTP APIs use a small number of standard headers to negotiate the format of
@@ -106,6 +116,35 @@ This does not apply to the genuine, protocol-level use of `Location` in `3xx`
 redirect responses, where the header is structurally required for HTTP
 redirection to function and is handled transparently by HTTP client libraries.
 
+== CORS
+
+HTTP APIs that are integrated into browser-based client applications MUST
+support Cross-Origin Resource Sharing (CORS), so that a browser will permit a
+page served from one origin to call the API on another.
+
+An API SHOULD permit an allowed origin of `*` and rely on the `Authorization`
+header (a valid OAuth 2.0 Bearer token, per the *Authentication and
+authorization* section) to enforce access control, rather than supporting
+user credentials with per-origin validation. An API with a genuine need to
+restrict origins, eg. one that accepts cookie-based credentials, MAY instead
+validate the `Origin` request header against an allow-list and echo it back,
+but this is the exception, not the default.
+
+A server MUST inspect the `Origin` request header and, where present, include
+the appropriate CORS response headers (`Access-Control-Allow-Origin` and
+related headers) on every response, not only on preflight responses.
+
+A "simple" request – one using `GET`, `HEAD`, or `POST` with only CORS-safe
+headers and content types – is not preflighted by the browser. Any other
+request, eg. one using `PUT`, `PATCH`, or `DELETE`, or that sets a
+non-standard header such as `X-Api-Key`, triggers a preflight: the browser
+sends an `OPTIONS` request carrying `Access-Control-Request-Method` and
+`Access-Control-Request-Headers`, and the server MUST respond with matching
+`Access-Control-Allow-Methods` and `Access-Control-Allow-Headers` headers
+before the browser will send the real request. Because a preflight adds a full
+round-trip, performance-critical endpoints SHOULD prefer "simple" request
+shapes where practical.
+
 == `Prefer` header
 
 HTTP APIs MAY support the `Prefer` header. This standard HTTP header is
@@ -181,6 +220,19 @@ consistency guarantee:
 An API that supports any of these tokens MUST document which of its endpoints
 honor them, and MUST document the default behavior for endpoints where no
 `Prefer` header is supplied.
+
+Where a request includes a `Prefer` header, the response SHOULD include a
+`Preference-Applied` header indicating which of the requested preferences were
+actually honoured. This lets a client that requested, eg.
+`Prefer: return=minimal, read-cache`, tell whether both preferences took
+effect, only one did, or neither did – rather than having to infer this from
+the response body's shape.
+
+[source,http]
+----
+Prefer: return=minimal
+Preference-Applied: return=minimal
+----
 
 == Header propagation
 

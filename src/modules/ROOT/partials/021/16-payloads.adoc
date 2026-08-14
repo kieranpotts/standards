@@ -40,6 +40,15 @@ names.
 
 * Hypermedia link relation names (the `rel` field) MUST be lower-case.
 
+Clients MUST NOT rely on the order in which fields appear within a JSON
+object in a request or response body. JSON object member order is not
+semantically significant, and servers, intermediaries, and serialization
+libraries are all free to reorder fields. Where an explicit, meaningful order
+is required, eg. the order of items in an array returned from a sorted
+collection (see the *Sorting* section of *Collections*), that ordering MUST be
+conveyed structurally, such as by array position, rather than by relying on
+object field order.
+
 == Primitive types
 
 JSON's own type system is looser than most programming languages assume, and
@@ -68,7 +77,13 @@ For this reason:
   language, its values may be interpreted as either fixed-point or
   floating-point, which is a common source of rounding bugs. Decimal and
   monetary values SHOULD instead be represented as a `string`, constrained with
-  `pattern`, `minLength`, and `maxLength`.
+  `pattern`, `minLength`, and `maxLength`. This applies to any value that may
+  exceed 2^53 or otherwise exceed IEEE 754 double-precision range, not only
+  monetary amounts, eg. a 64-bit database identifier exposed in a response.
+  (An API MAY instead adopt a convention such as OData's `IEEE754Compatible`
+  mode, in which large integers are serialized as JSON strings only when a
+  client opts in via a request header, but this standard's simpler default is
+  to always use a `string` for such values.)
 
 * The `integer` type SHOULD be used only for values that fit within a 32-bit
   signed integer (`-2147483648` to `2147483647`), and an explicit `minimum` and
@@ -332,12 +347,15 @@ to the client.
           "type": "string"
         },
         "method": {
-          "type": "string"
+          "type": "string",
+          "default": "GET"
         },
         "href": {
-          "type": "string"
+          "type": "string",
+          "format": "uri"
         }
       },
+      "required": ["rel", "href"],
       "additionalProperties": false
     },
     "RelatedCollection": {
@@ -627,6 +645,26 @@ link between a payment card and prior orders paid with the same card.
 }
 ----
 
+=== Requesting related resources
+
+By default, the "related" field is populated at the server's discretion. An API
+MAY additionally support a client-driven `expand` query parameter, giving
+clients control over which related resources are embedded, to avoid the
+round-trips that would otherwise be needed to fetch them individually.
+
+----
+GET /v1/vault/payment-cards/{id}?expand=history/orders
+----
+
+Where supported, the `expand` query parameter's value SHOULD be a
+comma-separated list of the `type` values (in the same
+`\{namespace}/\{resource}` form used by the "related" field's own `type`
+property) that the client wants embedded. An API MAY restrict which relations
+are expandable, and MUST document the supported set for each endpoint. An
+`expand` value naming an unsupported relation SHOULD be ignored rather than
+causing the request to fail, consistent with this standard's tolerant-reader
+posture towards client input.
+
 == Links
 
 This HTTP message schema supports the embedding of hypermedia controls, aka.
@@ -691,10 +729,14 @@ Each hypermedia link is composed of an object with three properties:
   the word "next" is used to navigate to the next page of results in a paginated
   collection.
 
-* `href`: Specifies the URL of the resource.
+* `href`: Specifies the URL of the resource. This MUST be an absolute URI, and
+  SHOULD be resolvable as a URI Template per
+  https://tools.ietf.org/html/rfc6570[RFC 6570] where it carries variables.
+  Clients typically retain a link's `href` for later use, so an API MUST NOT
+  return a relative path here.
 
 * `method`: Defines the HTTP method – eg. `GET`, `POST` – that can be used with
-  the link.
+  the link. This property MAY be omitted, in which case it defaults to `GET`.
 
 For example, a typical PayPal API response might include links like this:
 
@@ -896,12 +938,22 @@ API, this entry point typically takes one of the following forms:
   next steps, based on the current state of the process. For example, a credit
   application might begin at an `applyForCredit` action, whose response links to
   a `signAgreement` action, whose response in turn links to an `approve` or
-  `decline` outcome.
+  `decline` outcome. Where a step fails because the client's data was
+  incomplete or incorrect, the response MAY return only a link back to the
+  step that needs correcting, eg. a `PATCH` link to resubmit the missing or
+  invalid data, rather than a link to the next state in the happy path.
 
 * For a namespace that exposes mostly independent, action-oriented endpoints
   rather than resources (see *Actions*), the `GET /v\{major}/\{namespace}/actions`
   endpoint described in *Actions* serves as the entry point, linking to each
   available action.
+
+Clients SHOULD treat every `href` value as an opaque identifier, rather than
+attempting to construct or otherwise compose URIs themselves from constituent
+parts. The responsibility for URI construction belongs to the server; a client
+that parses or builds URLs by convention forfeits the ability of new versions
+of the API to change unrelated parts of the URL structure without breaking
+that client.
 
 *Service-controlled flow.* Because the set of links returned with a resource MAY
 vary based on that resource's current state, links can be used to communicate
@@ -1003,10 +1055,22 @@ The following rules govern the use of status codes and error responses.
 * For server errors (`5xx`), the error response SHOULD limit the amount of
   information to avoid exposing internal service implementation details. Service
   developers SHOULD use logging and tracking utilities to capture additional
-  diagnostic information.
+  diagnostic information. In particular, an error response MUST NOT include a
+  stack trace or any other information that could assist an attacker in
+  understanding the server's internals; see also *Security*.
 
 * `5xx` status codes SHOULD NOT be used for validation or logic errors. These
   are client-side errors and MUST be reported with `4xx` status codes.
+
+* A service that calls an upstream or downstream service MUST NOT blindly
+  propagate that dependency's error response to its own caller. The service
+  SHOULD instead re-map the error to a response appropriate to its own
+  contract – for example, an upstream `400 Bad Request` caused by the
+  service's own malformed call to that upstream SHOULD be reported to the
+  service's own caller as a `500 Internal Server Error`, not forwarded as a
+  `400`, since the fault lies with this service, not with its caller. Blindly
+  forwarding an upstream error also risks exposing that upstream's
+  implementation details to a caller who has no relationship with it.
 
 === Error response schema
 
@@ -1042,6 +1106,14 @@ The following field is OPTIONAL and deprecated:
 
 * `information_link`: A URI for expanded developer information related to this
   error. Use `links` instead.
+
+NOTE: This error schema is not an implementation of the IETF's
+https://datatracker.ietf.org/doc/rfc7807/[RFC 7807] Problem Details format
+(`application/problem+json`, obsoleted by RFC 9457). RFC 7807's `type`,
+`title`, `status`, `detail`, and `instance` members serve a similar purpose to
+this schema's `name`, `message`, and `debug_id`, but this standard's schema is
+retained for its richer per-field `details` array and its `links` and error
+catalog machinery, described below.
 
 .Error response schema
 [source,json]
@@ -1134,6 +1206,14 @@ in the request body that caused the error. For example,
 For errors in path parameters or query parameters, the `field` property SHOULD
 contain the parameter name, and the `location` property MUST be set to `path` or
 `query` respectively.
+
+An API that has already published a version identifying `field` by some other
+means (eg. a dotted path, or the bare field name) MAY continue using that
+existing scheme unchanged, rather than being forced to adopt JSON Pointer
+retroactively. But migrating an already-`LIVE` version to JSON Pointer is a
+breaking change for any client that parses `field` programmatically, and MUST
+be released as a new major version, per *Versioning*, with migration support
+for existing consumers.
 
 === Input validation errors
 
@@ -1337,6 +1417,11 @@ Each error specification SHOULD include:
 
 * `http_status_codes`: The HTTP status codes applicable to this error.
 
+* `legacy_code`: An older error code, used if and only if a previously
+  published version of the error catalog already used this code and it must
+  continue to be supported for backward compatibility. This SHOULD NOT be used
+  for new errors.
+
 * `suggested_application_actions`: Practical actions that the developer of an
   application consuming the API could take to resolve the error.
 
@@ -1355,6 +1440,61 @@ Each issue within an error specification SHOULD include:
 * `issue`: The reason for the error. This MUST match the `issue` field in the
   error response `details` array. This value MAY be localized and MAY contain
   parameterized strings for runtime substitution.
+
+.Example catalog entry, namespace `payments`
+[source,json]
+----
+{
+  "namespace": "payments",
+  "language": "en-US",
+  "errors": [
+    {
+      "error_spec": {
+        "name": "VALIDATION_ERROR",
+        "message": "Invalid request - see details",
+        "log_level": "ERROR",
+        "http_status_codes": [400],
+        "issues": [
+          {
+            "id": "InvalidCreditCardType",
+            "issue": "Value must be visa, mastercard, amex, or discover"
+          }
+        ]
+      }
+    }
+  ]
+}
+----
+
+==== Canonical error names
+
+An organization maintaining multiple HTTP APIs SHOULD adopt a shared,
+canonical vocabulary of top-level error `name` values for conditions that recur
+across APIs, so that a client integrating with more than one of the
+organization's APIs can handle common failure modes generically. The following
+names are RECOMMENDED as a starting point:
+
+* `INVALID_ARGUMENT`: The request is malformed or fails validation.
+* `FAILED_PRECONDITION`: The request is valid, but the current state of the
+  server does not permit the operation.
+* `OUT_OF_RANGE`: A parameter is outside the range of valid values, distinct
+  from `INVALID_ARGUMENT` in that the valid range may itself be dynamic.
+* `UNAUTHENTICATED`: The request lacks valid authentication credentials.
+* `PERMISSION_DENIED`: The caller is authenticated but lacks permission for
+  the operation.
+* `NOT_FOUND`: The requested resource does not exist.
+* `ALREADY_EXISTS`: The resource the client attempted to create already
+  exists.
+* `ABORTED`: The operation was aborted, typically due to a concurrency
+  conflict (see *Concurrency control*).
+* `UNAVAILABLE`: The service is currently unavailable; the request is
+  retryable.
+
+An API-specific error catalog MAY define further `name` values for conditions
+specific to its own domain, alongside these canonical ones. Once published,
+adding a new top-level canonical name to the shared vocabulary is a breaking
+change (see *Versioning*); a new, narrower error condition SHOULD instead be
+expressed as a `details` entry under an existing canonical name.
 
 == JSON schema
 
@@ -1480,12 +1620,15 @@ match, or to hand-maintain a compatible subset of keywords.
           "type": "string"
         },
         "method": {
-          "type": "string"
+          "type": "string",
+          "default": "GET"
         },
         "href": {
-          "type": "string"
+          "type": "string",
+          "format": "uri"
         }
       },
+      "required": ["rel", "href"],
       "additionalProperties": false
     },
     "RelatedCollection": {

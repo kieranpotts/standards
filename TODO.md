@@ -1,25 +1,33 @@
 # TODO
 
-> **Next up:** TS-21 gaps.
-
 Outstanding work across the technical standards in this repository: standards
 that are still stubs (no substantive content written), and standards whose
 `GAPS.md` gap analysis still has open items.
 
 This file is a manually-maintained index, regenerated from the tree. The
-counts below were last regenerated on **2026-08-14** — this run closed all 29
-of TS-26's actionable items across three `close-gaps` batches, the last of
-which also reversed and closed 4 of TS-26's original 9 out-of-scope items at
-the user's explicit direction, importing a roughly 1,373-entry A-Z glossary
-as a new partial (see the table note below); a fifth out-of-scope item was
-confirmed out-of-scope and its gap routed instead to TS-15, adding 1 new
-actionable item there (50 → 51). This is on top of the same-day closure of
-TS-29's gaps in full (29 actionable items and all 3 out-of-scope items
-resolved, across four `close-gaps` batches plus a follow-up decision pass on
-the out-of-scope items and the one remaining Partial item), TS-43's gaps in
-full, TS-16's actionable items in full (1 out-of-scope batch and 1 unresolved
-resource remain), and 16 of TS-40's 17 (the last declined, see
-[Known inconsistencies](#known-inconsistencies)).
+counts below were last regenerated on **2026-08-14** — this run closed all of
+TS-21's actionable items (0 Missing, 39 Partial, all resolved across six
+`close-gaps` batches over two sessions) and then walked all 13 of its
+out-of-scope items and 4 unresolved resources with the user: 9 out-of-scope
+items confirmed outright; 2 confirmed out-of-scope for TS-21 but routed to
+another standard's `GAPS.md` as a new Missing item instead of being dropped
+(document-level conventions → TS-26, actionable 0 → 1; rate-limit headers →
+TS-20, actionable 0 → 1, moving TS-20 out of the fully-resolved list); 1
+closed with a small cross-reference added to TS-21 itself (PII in URLs →
+TS-52/TS-53); and 1 closed by a new "Alternative HTTP API styles" section in
+TS-21 briefly surveying HAL/JSON:API/Siren/Ion/OData/JSON-LD/JSON-RPC, which
+also folded in the JSON-RPC item. 3 of TS-21's 4 unresolved Stack Overflow-
+adjacent items were re-attempted (still Cloudflare-blocked) and dismissed;
+the fourth (a YouTube transcript) was left open. TS-21 now joins the
+TS-4/TS-16/TS-27/TS-29/TS-43 group: 0 actionable, 0 out-of-scope, but 1
+unresolved reference keeps it out of the fully-resolved list. This is on top
+of the prior same-day closure of TS-26's 29 actionable items (now 30, minus
+the newly-routed item — see above) and TS-29's and TS-43's gaps in full, and
+TS-16's and TS-40's actionable items (see the table notes below for the
+detailed breakdown of each). This regeneration also added TS-43 to the table
+below for the first time — it was omitted from prior versions of this file
+despite having 6 open out-of-scope items and 4 unresolved references; that
+was an oversight in an earlier regeneration, not new work.
 Re-derive the counts with the script in
 [Regenerating this file](#regenerating-this-file) before trusting them after
 any content work.
@@ -52,20 +60,34 @@ positive — verify by reading the page before trusting the grep alone.
 
 ## Open gap analyses
 
-Forty-one standards have a `GAPS.md`. Twenty-seven are fully resolved and are
-omitted from the table below — TS-2, TS-3, TS-5, TS-6, TS-7, TS-8, TS-9,
-TS-10, TS-11, TS-12, TS-13, TS-14, TS-20, TS-23, TS-25, TS-31, TS-36, TS-41,
-TS-43, TS-46, TS-48, TS-49, TS-50, TS-52, TS-54, TS-57, and TS-61. The other
-twelve have open items — TS-37 and TS-39 are also stubs, so their open items
-live in the table below but writing the standard is tracked separately,
-above.
+Forty-one standards have a `GAPS.md`. Twenty-five are fully resolved (zero
+unchecked items of any kind) and are omitted from the table below — TS-2,
+TS-3, TS-5, TS-6, TS-7, TS-8, TS-9, TS-10, TS-11, TS-12, TS-13, TS-14, TS-23,
+TS-25, TS-31, TS-36, TS-41, TS-46, TS-48, TS-49, TS-50, TS-52, TS-54, TS-57,
+and TS-61. Fourteen have open items and appear in the table below — TS-37 and
+TS-39 are also stubs, so their open items live in the table below but writing
+the standard is tracked separately, above. The remaining two — TS-38 and
+TS-44 — are stubs with a genuinely open legacy-format gap each; they are
+tracked in the stub table above instead, per the note below.
 
-TS-29 is now fully worked — all 29 actionable items and all 3 out-of-scope
-items are resolved — but it stays in the open-items table below, not the
-fully-resolved list, because its 2 unresolved YouTube references keep it
-short of zero unchecked items of *any* kind. See
+TS-20 was fully resolved as of 2026-08-13, but gained a new Missing item on
+2026-08-14, routed in from TS-21 while confirming TS-21's own out-of-scope
+items (rate-limit response headers) — it now has 1 open actionable item and
+has left the fully-resolved list for the table below.
+
+TS-21, TS-29, and TS-43 are now fully worked on actionable items — all
+Missing and Partial items resolved, and (for TS-21 and TS-43) all Out-of-scope
+items also confirmed or routed — but each stays in the open-items table
+below, not the fully-resolved list, because at least one Unresolved reference
+(TS-21, TS-29) or Out-of-scope item still awaiting confirmation (TS-43) keeps
+it short of zero unchecked items of *any* kind. See
 [What the columns mean](#what-the-columns-mean) for why that distinction
-matters, and TS-4/TS-16/TS-27 for the same shape.
+matters, and TS-4/TS-16/TS-26/TS-27 for the same shape.
+
+TS-43 was previously omitted from this table's rows entirely, despite having
+6 open Out-of-scope items and 4 Unresolved references recorded in its own
+`GAPS.md` — an oversight in an earlier regeneration (it actually was, and
+remains, not fully resolved), not new work. Corrected in this regeneration.
 
 TS-10 and TS-41 were previously omitted from this file entirely — an
 oversight in an earlier regeneration, not a change in their content. TS-41
@@ -86,10 +108,10 @@ standard is authored.
 ### The two GAPS.md formats
 
 The files are in two formats, and the columns mean different things in each.
-The counts below are of the ten non-stub files with open items, tallying
-with the table's rows (TS-37 and TS-39 are also stubs, so twelve rows total).
-Of the twenty-seven fully-resolved files, only TS-6 is still in the legacy
-format; the other twenty-six were converted as they were worked.
+The counts below are of the twelve non-stub files with open items, tallying
+with the table's rows (TS-37 and TS-39 are also stubs, so fourteen rows
+total). Of the twenty-five fully-resolved files, only TS-6 is still in the
+legacy format; the other twenty-four were converted as they were worked.
 
 - **Template format** (38 files). Follows the `gap-analysis` skill's bundled
   template: flat `- [ ]` checklists under `## Missing`, `## Partial`,
@@ -126,17 +148,19 @@ not in a separate sweep.
 | --- | --- | ---: | ---: | ---: | --- |
 | [TS-4](src/modules/ROOT/partials/004/GAPS.md) | Modeling | 0 | 0 | 1 | Template — 1 unresolved resource, repeatedly unfetchable |
 | [TS-16](src/modules/ROOT/partials/016/GAPS.md) | Command line interfaces (CLIs) | 0 | 9 | 1 | Template — all 59 actionable items closed 2026-08-14 |
-| [TS-26](src/modules/ROOT/partials/026/GAPS.md) | Technical writing style guide | 0 | 6 | 2 | Template — all 29 actionable items closed 2026-08-14, across three batches; 4 of 9 out-of-scope items also reversed and closed |
-| [TS-27](src/modules/ROOT/partials/027/GAPS.md) | Markdown | 0 | 6 | 1 | Template — all 15 actionable items closed 2026-08-13 |
+| [TS-21](src/modules/ROOT/partials/021/GAPS.md) | HTTP APIs | 0 | 0 | 1 | Template — all 39 Partial items and all 13 out-of-scope items closed 2026-08-14, across six batches; 3 of 4 unresolved Stack-Overflow-adjacent items dismissed |
 | [TS-29](src/modules/ROOT/partials/029/GAPS.md) | JSON Schema | 0 | 0 | 2 | Template — all 29 actionable and all 3 out-of-scope items closed 2026-08-14 |
+| [TS-43](src/modules/ROOT/partials/043/GAPS.md) | Relational databases and SQL | 0 | 6 | 4 | Template — all 61 actionable items closed 2026-08-14; table row restored after being omitted in a prior regeneration |
+| [TS-20](src/modules/ROOT/partials/020/GAPS.md) | Network APIs | 1 | 0 | 0 | Template — gained 1 item 2026-08-14, routed in from TS-21 |
+| [TS-26](src/modules/ROOT/partials/026/GAPS.md) | Technical writing style guide | 1 | 6 | 2 | Template — all original 29 actionable items closed 2026-08-14, across three batches; 4 of 9 out-of-scope items also reversed and closed; gained 1 new item 2026-08-14, routed in from TS-21 |
+| [TS-27](src/modules/ROOT/partials/027/GAPS.md) | Markdown | 0 | 6 | 1 | Template — all 15 actionable items closed 2026-08-13 |
 | [TS-40](src/modules/ROOT/partials/040/GAPS.md) | CSS | 1 | 12 | 0 | Template — 16 of 17 actionable items closed 2026-08-14; 1 declined and left open |
 | [TS-37](src/modules/ROOT/partials/037/GAPS.md) | Web platform APIs | 18 | 4 | 1 | Template — also a stub |
-| [TS-21](src/modules/ROOT/partials/021/GAPS.md) | HTTP APIs | 49 | 13 | 4 | Template |
 | [TS-15](src/modules/ROOT/partials/015/GAPS.md) | User interfaces | 51 | 7 | 12 | Template — gained 1 item 2026-08-14, routed in from TS-26 |
 | [TS-33](src/modules/ROOT/partials/033/GAPS.md) | Java | 55 | 3 | 4 | Template |
 | [TS-18](src/modules/ROOT/partials/018/GAPS.md) | Web GUIs | 56 | 26 | 5 | Template |
 | [TS-39](src/modules/ROOT/partials/039/GAPS.md) | HTML | 136 | 5 | 4 | Template — also a stub |
-| | **Total** | **366** | **91** | **37** | |
+| | **Total** | **319** | **84** | **38** | |
 
 TS-29 (JSON Schema) was closed out on 2026-08-14 across four `close-gaps`
 batches plus a same-day follow-up: the first batch closed the eight
@@ -233,9 +257,45 @@ turned out to already be resolved in TS-5 and TS-57's own directories, so
 TS-10 needed no content of its own — and has left this table for the
 fully-resolved list.
 
-One standard — TS-39 — now holds 136 of the 366 actionable items on its own,
-over a third of the total, and will need several passes once it is authored.
-TS-18 (56) and TS-15 (51) are next largest.
+TS-21 (HTTP APIs) was closed out on 2026-08-14, in two sessions across six
+`close-gaps` batches: all 8 Missing items in the first three batches (an
+earlier session), then all 39 Partial items in the next three batches
+(hypermedia/actions/uploads/bulk-correlation; async operations/error
+handling/versioning/headers; concurrency control/PATCH/common types/version-
+justification checklist; then a dedicated batch for the 9 remaining
+independent Partial items; then a final dedicated batch for the six
+interrelated Brandur idempotency-key entries, which substantially
+restructured `10-safeness-and-idempotency.adoc` with new sections on
+naturally-idempotent design, genuinely non-idempotent operations,
+idempotency-key locking, atomic phases, foreign state mutations, and passive
+safety). All 13 Out-of-scope items were then walked with the user in a
+follow-up pass: 9 confirmed out-of-scope outright; 2 confirmed out-of-scope
+for TS-21 but routed to TS-26 and TS-20's own `GAPS.md` files as new Missing
+items instead of being dropped; 1 closed with a cross-reference added to
+TS-21 itself (PII in URLs → TS-52/TS-53); and 1 closed by a new "Alternative
+HTTP API styles" section in TS-21 briefly surveying HAL/JSON:API/Siren/Ion/
+OData/JSON-LD, which also folded in the JSON-RPC out-of-scope item. This
+required inserting a new partial before the standard's references partial,
+renumbering `20-references.adoc` → `21-references.adoc` via `git mv`. 3 of
+TS-21's 4 Unresolved items (Stack-Overflow-adjacent, Cloudflare-blocked) were
+re-attempted and dismissed; the fourth (a YouTube transcript) was left open,
+keeping TS-21 in this table at 0 actionable / 0 out-of-scope / 1 unresolved.
+
+TS-43 (Relational databases and SQL) was restored to this table's rows on
+2026-08-14 — it was previously omitted, despite genuinely having 6 open
+Out-of-scope items and 4 Unresolved references in its own `GAPS.md`, an
+oversight in an earlier regeneration rather than new work. Its actionable
+count has been 0 since the 2026-08-14 `close-gaps` run described below.
+
+TS-20 (Network APIs) left the fully-resolved list on 2026-08-14, gaining 1
+new Missing item routed in from TS-21 while confirming TS-21's own
+out-of-scope items (general rate-limit response headers,
+`X-RateLimit-Limit`/`Remaining`/`Reset`). Not yet reviewed against TS-20's
+current content.
+
+One standard — TS-39 — now holds 136 of the 319 actionable items on its own,
+over two fifths of the total, and will need several passes once it is
+authored. TS-18 (56) and TS-15 (51) are next largest.
 
 ## Standards with neither a stub nor a GAPS.md
 
@@ -359,8 +419,11 @@ govern how all new content should be written.
   150–153) says a reference list MUST NOT be split into a separate partial.
   Eight standards do exactly that: TS-17, TS-18, TS-21, TS-23, TS-29, TS-31,
   TS-32, and TS-33 (TS-29's own references live in `20-references.adoc` as
-  of the 2026-08-14 gap-closing work, having been renumbered four times).
-  Twenty-three pages carry a `== References` section.
+  of the 2026-08-14 gap-closing work, having been renumbered four times;
+  TS-21's now live in `21-references.adoc`, renumbered from
+  `20-references.adoc` the same day to make room for a new
+  "Alternative HTTP API styles" partial). Twenty-three pages carry a
+  `== References` section.
 
 - **RESOLVED — a broken sentence in the `deep-dive` skill.**
   `.agents/skills/deep-dive/SKILL.md:55` read "The mechanical verification in
@@ -396,17 +459,22 @@ govern how all new content should be written.
   resolved or deleted. TS-40 stays in the actionable-count table at 1
   pending any future reversal of this decision.
 
-- **RESOLVED — TS-43 closed out in one run.** All 61 of TS-43's actionable
-  items (59 Missing, 2 Partial) were closed by a `close-gaps` run on
-  2026-08-14, across six new content partials
-  (`02-sql-style.adoc` through `07-transactions-and-consistency.adoc`). One
-  genuine naming conflict surfaced mid-run — general column-naming guidance
-  says avoid a bare `id`, while primary-key guidance mandates it — resolved
-  by scope: `id` is reserved for the primary key, every other identifier
-  column follows the descriptive-naming rule. TS-43 moved to the
-  fully-resolved list; its 6 out-of-scope and 4 persistently-unfetchable
-  reference items remain open in its own `GAPS.md`, since neither is an
-  actionable count.
+- **RESOLVED — TS-43 closed out in one run; table omission fixed
+  2026-08-14.** All 61 of TS-43's actionable items (59 Missing, 2 Partial)
+  were closed by a `close-gaps` run on 2026-08-14, across six new content
+  partials (`02-sql-style.adoc` through `07-transactions-and-consistency.adoc`).
+  One genuine naming conflict surfaced mid-run — general column-naming
+  guidance says avoid a bare `id`, while primary-key guidance mandates it —
+  resolved by scope: `id` is reserved for the primary key, every other
+  identifier column follows the descriptive-naming rule. TS-43's 6
+  out-of-scope and 4 persistently-unfetchable reference items remain open in
+  its own `GAPS.md`, since neither is an actionable count — but a prior
+  regeneration of this file incorrectly stated TS-43 "moved to the
+  fully-resolved list" and omitted its row from the open-items table
+  entirely. It never belonged there: 6 open out-of-scope items and 4
+  unresolved references is not "zero unchecked items of any kind". Corrected
+  in the same-day 2026-08-14 regeneration that closed out TS-21, restoring
+  TS-43's row to the table.
 
 - **RESOLVED — TS-16 closed out in one run.** All 59 of TS-16's actionable
   items (9 Missing, 50 Partial) were closed by a `close-gaps` run on

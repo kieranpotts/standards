@@ -111,6 +111,12 @@ is not authorized to access MUST NOT be included in a collection. If all
 resources in a collection are not authorized, returning a `403 Forbidden`
 response would be appropriate.
 
+Query parameters SHOULD be used only to restrict, search, or filter a
+collection. A resource identifier SHOULD NOT be used as a query parameter
+value to select a single resource out of a collection; the identifier belongs
+in the URL path instead, per the *Resources and collections* section of the
+*URLs* section, above.
+
 Additional, optional filtering may be applied by clients using query parameters.
 For example, the following query parameters MAY be available for clients to
 filter collections by a time range:
@@ -250,7 +256,12 @@ index:
 
 Where an error needs to reference a specific field within a specific item of the
 request, the error's `field` JSON Pointer SHOULD include the item's index, eg.
-`/items/1/currency_code`.
+`/items/1/currency_code`. Where the request items do not have a stable index –
+for example, where a client-supplied identifying attribute is more meaningful
+to the client than positional order – an attribute-filter form MAY be used
+instead, eg. `/items/@account_number=='2097094104180012047'/address_id`. An API
+MUST document which of the two forms it uses, and MUST use that form
+consistently across all of its bulk operations.
 
 A bulk operation MUST document whether it is *atomic* (all items succeed, or
 none are applied) or *partial* (each item succeeds or fails independently). An
@@ -266,6 +277,39 @@ Bulk operations SHOULD be atomic wherever this is practical for the underlying
 system to implement. Where an operation is not atomic, this MUST be documented,
 so that clients know to check the per-item results rather than assuming a `2xx`
 response means every item succeeded.
+
+=== Bulk update and replace
+
+Where a client needs to `PUT` or `PATCH` many resources in a single call, the
+`bulkCreate`-style action described above is not directly reusable, because
+there is no single collection URL to target the update at. Instead, model the
+bulk request itself as a first-class, uniquely identifiable *batch resource*.
+
+A bulk-create action MAY return the identifier of the batch it created, in
+addition to the created resources' own identifiers:
+
+[source,json]
+----
+{
+  "resources": { "...": "..." },
+  "metadata": {
+    "batch_id": "batch_5f3d9a1c"
+  }
+}
+----
+
+Subsequent bulk updates or replacements are then addressed to that batch, and
+act on its constituent items the same way a single-resource `PUT` or `PATCH`
+acts on one resource:
+
+.Template
+----
+PUT|PATCH /v{major}/{namespace}/{resource}/actions/bulkUpdate/{batch_id}
+----
+
+As with bulk create, every effort SHOULD be made to make a bulk update or
+replace atomic. Where atomicity is not practical, the response SHOULD follow
+the same partial-response shape as bulk create, described above.
 
 == HTTP statuses
 

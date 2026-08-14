@@ -36,3 +36,37 @@ The server then checks if the ETag in the request matches the current version of
 the resource known to the server. If they match, the update proceeds. If they do
 not match, it means another client has updated the resource in the meantime, and
 the update fails with a `412 Precondition Failed` status code.
+
+An API SHOULD document its policy for a conditional update request that omits
+`If-Match` entirely: either the update proceeds unconditionally (last write
+wins), or it is rejected as a client error. Which is appropriate depends on
+the resource; there is no single correct default.
+
+== Client retry pattern
+
+A client performing a conditional update SHOULD implement a bounded retry
+loop, rather than surfacing a single `412` directly to the end user:
+
+1. `GET` the resource, noting its current `ETag`.
+2. Apply the intended change to the retrieved representation, locally.
+3. Attempt the update with `If-Match` set to the noted `ETag`.
+4. On `412 Precondition Failed`, another client updated the resource in the
+   interim; return to step 1 and retry, up to a small, documented maximum
+   number of attempts.
+
+This gives the client a chance to reconcile its change against a concurrent
+update automatically, rather than requiring the end user to retry the entire
+operation by hand.
+
+== Cache validation
+
+ETags also support a second, distinct use: letting a client avoid re-fetching
+a representation it already has, when it has not changed. Where a resource
+supports this, the server MUST honor the `If-None-Match` request header: if
+the ETag supplied by the client matches the resource's current ETag, the
+server MUST respond with `304 Not Modified` and an empty body, rather than
+re-sending the full representation.
+
+Unlike `If-Match`, which is used to guard a *mutating* request against a lost
+update, `If-None-Match` is used on a `GET` request to let the *client* decide
+whether a refetch is necessary. See also *Response caching* in *Headers*.

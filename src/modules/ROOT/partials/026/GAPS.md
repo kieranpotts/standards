@@ -49,6 +49,13 @@ items and 2 unresolved resources remain open — this file is not yet fully
 resolved on the "zero unchecked items of any kind" standard, only on
 actionable items.
 
+**2026-08-14 addendum.** One new Missing item was added, routed here from
+TS-21 (HTTP APIs) at the user's direction while confirming TS-21's own
+out-of-scope items: `api-style-guide.md`'s document-level conventions
+(RFC 2119 rendering, all-caps REST/JSON, fixed-width machine-readable text,
+URI Template syntax). Not yet reviewed against this standard's current
+content.
+
 ## Missing
 
 - [x] O'Reilly Style Guide#Punctuation and `9999-reference.md:880-882` /
@@ -405,6 +412,21 @@ actionable items.
       guidance. Permits a fragment as a deliberate pacing device and
       restricts it to a clause a reader could not mistake for an
       accidentally incomplete sentence.
+
+## Missing
+
+- [ ] `api-style-guide.md:27-44` (surfaced while gap-closing TS-21, HTTP APIs,
+      2026-08-14) — document-level convention: RFC 2119 keyword
+      interpretation, all-caps rendering of "REST"/"JSON", fixed-width
+      rendering of machine-readable text, and URI Template (RFC 6570) syntax
+      for variable blocks in prose/URL templates. TS-21 confirmed this as
+      out-of-scope for itself — it is a cross-cutting authoring convention,
+      not HTTP-API-specific content — and the user asked that it be routed
+      here instead, since these are exactly the kind of document-level
+      conventions this standard's style guide governs. Not yet checked
+      against TS-26's current content; needs its own coverage check before
+      being actioned. Recommend a new section, or extending an existing one
+      on abbreviation/keyword conventions, once reviewed.
 
 ## Out-of-scope
 

@@ -27,18 +27,20 @@ currency code and a value, rather than as a bare number.
 * `currency_code` and `value` MUST both be present. A monetary amount without a
   currency is not meaningful.
 
-* `value` MUST be represented as a `string`, not a number. This is also true
-  where a value is expressed in a currency's minor unit (eg. cents) as an
-  integer, rather than as a decimal major-unit amount. A 64-bit floating-point
-  representation cannot reliably preserve every value a service may need to
-  store — JavaScript's numeric type, for example, only represents integers
-  exactly up to 2^53, beyond which values silently round. An integer minor-unit
-  amount also carries an implicit scale (how many minor units make a major unit)
-  that varies by currency, forcing every client to know and correctly apply the
-  right scale for each currency it handles. A decimal `string` avoids both
-  problems. It is exact regardless of magnitude, and its scale is
-  self-describing rather than implied. Some currencies, eg. Japanese yen, have
-  no minor unit. For these, the fractional part of `value` SHOULD be `0`.
+* `value` MUST be represented as a `string`, not a number, per the general
+  JSON number-precision rule in the *Payloads* section's *Primitive types*.
+  This is also true where a value is expressed in a currency's minor unit (eg.
+  cents) as an integer, rather than as a decimal major-unit amount. A 64-bit
+  floating-point representation cannot reliably preserve every value a service
+  may need to store — JavaScript's numeric type, for example, only represents
+  integers exactly up to 2^53, beyond which values silently round. An integer
+  minor-unit amount also carries an implicit scale (how many minor units make
+  a major unit) that varies by currency, forcing every client to know and
+  correctly apply the right scale for each currency it handles. A decimal
+  `string` avoids both problems. It is exact regardless of magnitude, and its
+  scale is self-describing rather than implied. Some currencies, eg. Japanese
+  yen, have no minor unit. For these, the fractional part of `value` SHOULD be
+  `0`.
 
 * A monetary amount SHOULD NOT be negative. Whether a particular amount
   represents a debit or a credit is a property of the transaction or account
@@ -87,6 +89,10 @@ the country code type, above).
 Address formats vary significantly between countries, so a common address type
 SHOULD avoid assuming any single country's conventions, eg. by using generic
 field names like `admin_area` rather than country-specific ones like `state`.
+Where the `admin_area` value needs to be validated or compared programmatically
+rather than only displayed, it SHOULD be represented using the subdivision code
+from https://en.wikipedia.org/wiki/ISO_3166-2[ISO 3166-2] (eg. `US-CA` for
+California), rather than a free-text name.
 
 == Dates, times, and time zones
 
@@ -112,3 +118,28 @@ field names like `admin_area` rather than country-specific ones like `state`.
   These values SHOULD be represented without any time zone or offset information
   at all, since attaching one would misrepresent the value as referring to a
   specific instant, when it does not.
+
+* Some floating values carry only a year and month, eg. a card's expiry date.
+  These SHOULD be represented as a `year_month` string in `YYYY-MM` format
+  (the same ordering as RFC 3339's `full-date`, with the day omitted), eg.
+  `"2028-11"`, rather than as a full `full-date` with a fabricated day-of-month
+  value.
+
+== Durations and intervals
+
+* A span of time not anchored to a specific start or end, eg. "renew every 30
+  days", SHOULD be represented as an ISO 8601 duration string, in the form
+  `P[n]Y[n]M[n]DT[n]H[n]M[n]S`. For example, `P3Y6M4DT12H30M5S` represents
+  three years, six months, four days, twelve hours, thirty minutes, and five
+  seconds. Only the components that are non-zero need be present.
+
+* A span of time anchored to specific points, eg. a booking's occupancy
+  period, SHOULD be represented as an ISO 8601 interval string, in one of
+  three forms: start and end (`2007-03-01T13:00:00Z/2008-05-11T15:30:00Z`),
+  start and duration (`2007-03-01T13:00:00Z/P1Y2M10DT2H30M`), or duration and
+  end (`P1Y2M10DT2H30M/2008-05-11T15:30:00Z`).
+
+* A recurring schedule, eg. "every week for the next five occurrences", SHOULD
+  be represented as an ISO 8601 repeating interval, formed by prefixing an
+  interval expression with `R[n]/`, where `[n]` is the repetition count, eg.
+  `R5/2008-03-01T13:00:00Z/P1Y2M10DT2H30M`.

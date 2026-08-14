@@ -1,0 +1,63 @@
+= Alternative HTTP API styles
+
+This standard defines its own conventions for hypermedia, filtering, sorting,
+pagination, and RPC-style actions, described throughout the preceding
+sections. Several established alternatives exist for parts of this design
+space. TS-21 does not adopt any of them wholesale — its own conventions take
+cues from some of them, as noted where relevant — but a reader evaluating
+whether TS-21's design fits a given API SHOULD be aware of the alternatives
+and what each one specifically standardizes.
+
+== Hypermedia media types
+
+The following are complete, standalone specifications for hypermedia-driven
+JSON payloads, each defining its own document structure for embedding links
+and related resources. TS-21's own `resources`/`metadata`/`links`/`related`
+envelope (see *Resources* and *Related resources* in *Payloads*) takes design
+cues from several of these but does not implement any of them; adopting one of
+these specifications directly, rather than TS-21's envelope, is a valid
+alternative design choice for an API that wants to interoperate with tooling
+built around a named standard.
+
+* https://stateless.co/hal_specification.html[HAL (Hypertext Application
+  Language)] — a lightweight convention adding `_links` and `_embedded`
+  members to any JSON (or XML) representation, plus CURIEs for compact,
+  namespaced link relations.
+
+* https://jsonapi.org/format/1.2/[JSON:API] — a more prescriptive
+  specification covering compound documents (`included`), sparse fieldsets
+  (`fields[TYPE]`), and a defined document structure for resources,
+  relationships, and errors.
+
+* https://github.com/kevinswiber/siren[Siren] — models a representation as
+  `entities`, `actions`, and `fields`, giving the richest treatment of
+  embedding available *actions* (with their expected input) directly in the
+  representation, closest in spirit to TS-21's own `links` mechanism.
+
+* https://ionspec.org/[Ion] — a hypermedia type built on Amazon's Ion data
+  format, with value/collection objects, embedded forms, and a registered
+  type system.
+
+* https://docs.oasis-open.org/odata/odata-json-format/v4.0/odata-json-format-v4.0.html[OData
+  JSON Format] — part of the wider OData specification, which also defines
+  its own query language (`$filter`, `$orderBy`, `$top`/`$skip`) and change-
+  tracking model (`$delta`), both broader in scope than TS-21's lighter
+  filtering, sorting, and pagination conventions.
+
+* https://www.w3.org/TR/json-ld/[JSON-LD] — a W3C standard for expressing
+  Linked Data in JSON, with `@context`, `@list`/`@set`, and node/value
+  objects; oriented around Semantic Web interoperability rather than
+  HTTP-API hypermedia specifically.
+
+== RPC-style alternatives
+
+* https://www.jsonrpc.org/specification[JSON-RPC 2.0] — a transport-agnostic
+  remote-procedure-call protocol built around a `jsonrpc`/`method`/`params`/
+  `id` envelope, with support for notifications (no response expected) and
+  batched calls. Unlike this standard's *Actions* (see *Actions*), which are
+  layered on top of an otherwise resource-oriented, RESTful HTTP design,
+  JSON-RPC dispenses with the RESTful style entirely: every call is a `POST`
+  to a single endpoint, and the operation being invoked is named inside the
+  body rather than encoded in the URL or HTTP method. An API that is
+  overwhelmingly RPC-shaped, with few or no resource-oriented endpoints, MAY
+  be a better fit for JSON-RPC than for TS-21's hybrid model.

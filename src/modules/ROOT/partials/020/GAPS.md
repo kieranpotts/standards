@@ -12,9 +12,14 @@ other but never how the contract between them is defined and enforced. This
 file was converted from the legacy format on 2026-08-13.
 
 **Status:** 1 of 1 actionable gaps closed (2026-08-13). This run converted the
-file from the legacy format and closed the schema-driven contracts gap. Nothing
-remains open: 0 missing, 0 partial, 0 out-of-scope awaiting the user, 0
-unresolved.
+file from the legacy format and closed the schema-driven contracts gap.
+
+**2026-08-14 addendum.** One new Missing item was added, routed here from
+TS-21 (HTTP APIs) at the user's direction while confirming TS-21's own
+out-of-scope items: rate-limit response headers
+(`X-RateLimit-Limit`/`Remaining`/`Reset`). Not yet reviewed against this
+standard's current content. 1 missing, 0 partial, 0 out-of-scope awaiting
+the user, 0 unresolved.
 
 ## Missing
 
@@ -56,6 +61,23 @@ unresolved.
       payload design, and links internally to the standard's existing
       "Version management" section for the compatibility rules. Source added
       to the page's new `== References` section.
+
+## Missing
+
+- [ ] `https://github.com/microsoft/api-guidelines/blob/master/Guidelines.md#8-cors`
+      and rate-limit headers (`X-RateLimit-Limit`/`Remaining`/`Reset` per
+      `https://digitalspecs.portofantwerpbruges.com/api-guidelines/#http-status-codes-and-errors`)
+      (surfaced while gap-closing TS-21, HTTP APIs, 2026-08-14) — general
+      rate-limiting mechanics for network APIs: the `X-RateLimit-Limit`,
+      `X-RateLimit-Remaining`, and `X-RateLimit-Reset` response headers. TS-21
+      confirmed this as out-of-scope for itself, since
+      `05-http-status-codes.adoc:90` there already carries a TODO pointing to
+      a dedicated rate-limiting standard once one exists, and the user asked
+      that it be tracked here instead, as a cross-cutting network concern.
+      (TS-21 already covers the `429`+`Retry-After` status-code rule itself;
+      this item is only the rate-limit-specific headers.) Not yet checked
+      against TS-20's current content; needs its own coverage check before
+      being actioned.
 
 ## Partial
 

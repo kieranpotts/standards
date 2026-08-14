@@ -68,6 +68,20 @@ reviewing a proposed change to an API that is already `LIVE`.
   values for an existing link relation MUST remain stable in meaning, even if
   the specific URL they point to changes.
 
+Clients MUST ignore unknown fields in a JSON response, rather than treating
+their presence as an error (the *Tolerant Reader* pattern). This tolerance is
+what makes the additive rules above possible: a server can add a new response
+field within a minor version specifically because clients are required not to
+choke on it.
+
+The equivalent tolerance does NOT extend to requests. A server SHOULD reject a
+request body containing an unrecognized field with `400 Bad Request`, rather
+than silently ignoring it. Silently ignoring an unknown request field hides
+client-side mistakes, such as a misspelled field name, that would otherwise go
+undetected; and once a server begins ignoring a field, adding real support for
+that field name later becomes a breaking change for any client that was
+relying on the old, silently-ignored behavior.
+
 A good example of a scalable API design is one that avoids array of scalar data
 types (strings, integers, etc.). Consider the following example:
 
@@ -154,7 +168,32 @@ existing consumer, the decision to do so SHOULD NOT be taken lightly. Before
 starting work on a new major version, it is RECOMMENDED to document why the
 change cannot be made within the current major version's expanding-contract
 model, what value the new version delivers that justifies the migration cost,
-and how existing consumers will be supported through the transition.
+and how existing consumers will be supported through the transition. The
+following structured checklist is RECOMMENDED for this justification:
+
+*Business case.*
+
+* What customer value does the new version deliver that is not possible
+  within the existing version's expanding-contract model?
+* What is the cost-benefit comparison between maintaining the deprecated
+  version and shipping the new one?
+* What alternatives to a new major version were considered, and why were they
+  rejected? (This item MAY be omitted where the change is required to address
+  a critical security issue.)
+
+*API design.*
+
+* How does the new version's domain model compare to the version it replaces?
+* What operations and use cases does the new version implement?
+* What service level objectives (performance, availability) does the new
+  version commit to, relative to the version it replaces?
+
+*Migration strategy.*
+
+* How many existing consumers are impacted, across internal, external, and
+  partner integrations?
+* What is the communication and support plan for informing existing consumers
+  of the new version, its value, and the migration path?
 
 == Deprecation
 

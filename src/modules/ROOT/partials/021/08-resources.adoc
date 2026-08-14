@@ -58,6 +58,36 @@ GET /v{major}/{namespace}/{resource}/{resource_id}
 GET /v1/vault/customers/123e4567-e89b-12d3-a456-426614174000
 ----
 
+=== Partial content
+
+Where a resource may itself carry large or binary content, eg. one of the
+files described in *File uploads*, below, the corresponding `GET` endpoint MAY
+support ranged retrieval, so that a client can fetch the content in chunks
+rather than downloading it in a single response.
+
+Where supported, the response to an ordinary `GET` MUST include an
+`Accept-Ranges: bytes` header, so that clients can discover the capability. A
+client MAY then issue a `HEAD` request first to discover the resource's total
+size without transferring its content, followed by one or more ranged `GET`
+requests using the `Range` header:
+
+[source,http]
+----
+GET /v1/vault/documents/{document_id} HTTP/1.1
+Range: bytes=0-2499
+----
+
+The server responds with `206 Partial Content`, a `Content-Range` header
+identifying which part of the resource was returned, and a `Content-Length`
+reflecting only the bytes in this response, not the resource's total size:
+
+[source,http]
+----
+HTTP/1.1 206 Partial Content
+Content-Length: 2500
+Content-Range: bytes 0-2499/4580
+----
+
 == Updating
 
 There are two ways to update resources:
@@ -83,18 +113,30 @@ system-calculated values, trying to do so should be treated as a client error.
 PUT|PATCH /v{major}/{namespace}/{resource}/{resource_id}
 ----
 
+The plain partial-representation form of `PATCH` described above is equivalent
+to https://datatracker.ietf.org/doc/html/rfc7396[JSON Merge Patch], and where
+implemented as such SHOULD use the `application/merge-patch+json` media type.
+Because a `null` value in a JSON Merge Patch document means "delete this
+field", merge patch is not suitable for a resource that can legitimately hold
+an explicit `null` value in one of its own fields – there is no way to
+distinguish "set this field to `null`" from "delete this field" in the patch
+document itself.
+
 Alternatively, standards such as
 https://datatracker.ietf.org/doc/html/rfc6902[JSON Patch] MAY be implemented for
-`PATCH` requests. Rather than sending a partial representation of the resource,
-clients instead send a list of operations to be made on particular members or
-fields of the resource.
+`PATCH` requests, using the `application/json-patch+json` media type. Rather
+than sending a partial representation of the resource, clients instead send a
+list of operations to be made on particular members or fields of the
+resource. JSON Patch does not share Merge Patch's `null` ambiguity, and it
+additionally allows operations to be sequenced, which matters where the order
+changes MUST be applied in.
 
 [source,http]
 ----
 PATCH /widgets/abc123 HTTP/1.1
 Host: api.example.com
 Content-Length: ...
-Content-Type: application/json-patch
+Content-Type: application/json-patch+json
 
 [
   {
@@ -135,6 +177,12 @@ the path `/a/b/c` refers to the element "c" in the below JSON:
 The supported operations are "add", "remove", "replace", "move", "copy", and
 "test". To support partial updates to fixed-schema resources, APIs need to
 support only "add", "remove", and "replace" operations.
+
+An API that supports `PATCH` MUST document which of these formats (plain
+partial representation, JSON Merge Patch, or JSON Patch) it accepts, via the
+request's `Content-Type` header. A `PATCH` request whose `Content-Type` names
+a format the endpoint does not support MUST receive
+`415 Unsupported Media Type`, per *Headers*.
 
 After a successful update operation, both `PUT` and `PATCH` operations SHOULD
 normally respond with `204 No Content` status, with no accompanying response
@@ -284,17 +332,34 @@ whether the file exists independently of other resource data.
 *Standalone file upload.* Where the file is itself the primary subject of the
 request, eg. uploading a profile photo, it SHOULD be submitted to a dedicated
 URL using the `multipart/form-data` media type, per
-https://www.ietf.org/rfc/rfc2388.txt[RFC 2388].
+https://www.ietf.org/rfc/rfc2388.txt[RFC 2388]. The request body SHOULD carry a
+part for the binary file content, identified by a `Content-Disposition` header
+with both `name` and `filename` parameters, and MAY carry a further part for
+accompanying metadata.
 
 [source,http]
 ----
 POST /v1/{namespace}/{resource}/{resource_id}/actions/uploadDocument
-Content-Type: multipart/form-data; boundary=...
+Content-Type: multipart/form-data; boundary=ExampleBoundary
+
+--ExampleBoundary
+Content-Disposition: form-data; name="metadata"
+Content-Type: application/json
+
+{ "description": "Front of driving licence" }
+--ExampleBoundary
+Content-Disposition: form-data; name="file"; filename="licence-front.jpg"
+Content-Type: image/jpeg
+
+{binary data}
+--ExampleBoundary--
 ----
 
-The response MUST include an identifier or URL for the uploaded file (see
-*Creating*), which clients then reference in subsequent requests, rather than
-re-submitting the file's content each time.
+The response MUST include the uploaded file's metadata, which clients then
+reference in subsequent requests, rather than re-submitting the file's content
+each time. At minimum, this SHOULD include an `id`, `create_time`, `size` (in
+bytes), `url` (from which the file's content can subsequently be retrieved),
+and `type` (its media type).
 
 *File upload as an attachment to structured data.* Where a file needs to be
 submitted together with structured JSON data in the same request, eg. uploading

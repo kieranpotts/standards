@@ -35,10 +35,23 @@ that operates across multiple resource types.
 Composite actions may be implemented for both performance optimization and
 usability reasons.
 
+A composite action's response SHOULD include hypermedia links (see *Links* in
+*Payloads*) to every resource affected by the operation, not only the primary
+one, so that the client can navigate to any of them without having to know in
+advance which resources the action touches. For the refund example above, the
+response would include links such as `self` (the refund itself),
+`parent_payment`, and `capture`.
+
 Another use case for actions is to implement transient operations. A transient
 operation is one that does not mutate the state of any resources, or create new
 ones. An example might be a "dry run" action that validates the input data for a
-subsequent operation, such as a payment.
+subsequent operation, such as a payment. A transient action SHOULD only be used
+after resource-oriented alternatives have been considered and found unsuitable,
+since it is about as RPC-like as an HTTP API design gets. A transient action
+MUST return `200 OK`, with a response body containing the calculated result;
+because nothing is persisted, the same request MAY produce a different result
+if repeated, eg. where the calculation depends on live, externally-sourced
+data.
 
 There are many other use cases for augmenting HTTP APIs, which are predominantly
 resource-oriented, with standalone RPC-like actions. You can think of actions as
@@ -62,6 +75,40 @@ resource-oriented model, and augment the API with actions where specific
 operations do not fit neatly into that model. We should not try to force
 everything into the resource model just for the sake of purity of the API
 design.
+
+== Request-scoped transactions
+
+This standard requires atomicity explicitly for composite actions (above) and
+for bulk operations (see *Bulk operations* in *Collections*). But the same
+principle SHOULD be applied more generally, as a default posture for every
+idempotent request, not only the cases that obviously combine multiple
+operations: wherever practical, the whole of an idempotent request's
+server-side work SHOULD execute within a single database transaction, so that
+its effects commit or abort together as one unit.
+
+This 1:1 mapping between a request and a transaction gives the request
+lifecycle a natural transactional boundary. A request has a clear beginning,
+a clear end, and a single result; wrapping that lifecycle in a transaction
+means the boundary the client already experiences (it either gets a
+successful response or it doesn't) matches the boundary the database
+enforces (either everything committed or nothing did). This protects against
+the failure modes that occur regularly at any real volume of traffic – a
+client disconnecting mid-request, a bug causing the handler to fail partway
+through its work, or a request timing out – any of which would otherwise
+leave the resources touched by the request in a partially-mutated,
+inconsistent state.
+
+This principle applies most directly to requests whose work is entirely
+*local* – confined to the API's own database. Where a request's work also
+involves *foreign* state mutations – calls to external services, message
+queues, or other systems outside the local database's transactional
+guarantees – a single wrapping transaction is not sufficient on its own; see
+*Genuinely non-idempotent operations* in *Safeness and idempotency*.
+
+NOTE: The transaction-isolation mechanism this relies on (eg. `SERIALIZABLE`
+isolation to protect a check-then-insert sequence from a concurrent
+duplicate) is the scope of xref:043.adoc[*TS-43: Relational databases and
+SQL*], not this standard.
 
 == HTTP methods
 
@@ -191,6 +238,52 @@ appropriate for a single resource to mix plain CRUD operations for its simple
 state transitions with one or more reified action collections for the
 transitions whose history matters – there is no need to force every state change
 on a resource through the same mechanism.
+
+== Complex search actions
+
+Simple collection filtering SHOULD use query parameters directly on the
+collection endpoint, per the *Filtering* section of *Collections*. But some
+search use cases demand a search syntax too complex to express as query
+parameters – for example, combining many optional criteria, nested boolean
+logic, or criteria whose values would run up against practical URL-length
+limits. In these cases, a `POST`-based search action MAY be used instead,
+accepting the search criteria as a JSON request body.
+
+.Template
+----
+POST /v{major}/{namespace}/{resource}Search
+----
+
+.Example
+----
+POST /v1/factory/widgetSearch
+
+{
+  "created_before": "2026-05-13",
+  "status": "ACTIVE"
+}
+----
+
+A search action's results SHOULD be paginated the same way as an ordinary
+collection – see the *Pagination* section of *Collections* – with one
+exception: because a search action is a `POST` and its results are not
+addressable by a `GET`-able URL of their own, the `page` and `per_page` (or
+`page_token`) parameters MUST be supplied as query parameters on the search
+action's URL, not in the request body, even though the search criteria
+themselves are in the body. This is the one case in this standard where a
+`POST` request combines a body with query parameters, and it exists
+specifically so that hypermedia pagination links (`next`, `previous`, `first`,
+`last`) can be generated as ordinary URLs that carry the paging state, without
+requiring the client to resubmit the search criteria via a link.
+
+----
+POST /v1/factory/widgetSearch?page=2&per_page=25
+
+{
+  "created_before": "2026-05-13",
+  "status": "ACTIVE"
+}
+----
 
 == Status codes
 

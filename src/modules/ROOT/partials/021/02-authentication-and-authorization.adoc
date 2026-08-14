@@ -6,4 +6,52 @@ including private (internal network) HTTP APIs.
 Authentication and authorization is especially important for operations that
 modify data.
 
-// TODO: Extend with recommended auth systems, JWTs, etc.
+Every secured endpoint MUST require one of the schemes described below. All
+schemes rely on TLS for transport encryption; credentials and tokens MUST NOT
+be sent over an unencrypted connection.
+
+== OAuth 2.0
+
+OAuth 2.0 SHOULD be used to protect endpoints that act on behalf of a user or
+a third-party application, and it is the RECOMMENDED default scheme for
+public-facing HTTP APIs. Clients authenticate by presenting a Bearer token in
+the `Authorization` header:
+
+[source,http]
+----
+GET /v1/vault/credit-cards HTTP/1.1
+Host: api.example.com
+Authorization: Bearer {token}
+----
+
+Token issuance, refresh, scopes, and revocation are delegated to an OAuth 2.0
+authorization server and are outside this standard's scope.
+
+== HTTP Basic Authentication
+
+HTTP Basic Authentication MAY be used for simpler, internal, or
+machine-to-machine use cases where the overhead of OAuth 2.0 is not
+justified. As with OAuth 2.0, Basic Authentication MUST only be used over
+TLS, since the credentials are base64-encoded, not encrypted.
+
+== API keys
+
+API keys are a simpler alternative to OAuth 2.0 and Basic Authentication for
+authenticating client *applications* — as opposed to end users — for example
+where a third-party service integrates with an API server-to-server.
+
+Where implemented, an API key SHOULD be passed using a custom HTTP header. The
+header field SHOULD be named `X-Api-Key`.
+
+[source,http]
+----
+GET /v1/vault/credit-cards HTTP/1.1
+Host: api.example.com
+X-Api-Key: {api_key}
+----
+
+API keys MUST have an expiry, and it MUST be possible to revoke an active key,
+in case it is compromised. Where an API key is used to authenticate *outbound*
+calls to an external service, the key MUST NOT be checked into source control;
+store it using the secrets management practices described in
+xref:052.adoc[*TS-52: Security and secrets management*].
