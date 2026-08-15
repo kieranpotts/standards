@@ -25,34 +25,37 @@ guide is the closest match to TS-26's stated technical-book purpose and fed
 the majority of the originally-missing items, concentrated in punctuation,
 capitalization, and figure/list mechanics.
 
-**Status:** All 31 actionable items resolved (the 29 original plus the one
+**Status:** All 32 actionable items resolved (the 29 original plus the one
 routed in from TS-21 on 2026-08-15, plus one found while resolving the
-Unresolved link-collection triage on 2026-08-15), plus 4 of the original 9
-out-of-scope items (2026-08-14), across four `close-gaps` batches — the
-first closed the comma/quotation-mark/apostrophe/dash/hyphenation/
-exclamation-question-mark/colon-capitalization cluster in
-`13-punctuation.adoc` plus abbreviation mechanics, dates/numbers,
-code-block formatting, emphasis/typography, and referencing mechanics; the
-second closed that/which, collective nouns, overused words, sentence
-fragments, and contractions/passive-voice detection in
-`14-sentences-and-paragraphs.adoc` and `01-voice-and-tense.adoc`, and
-heading formatting plus nested/variable lists in `02-headings.adoc` and
-`08-lists.adoc`; the third closed the two remaining Partial items
-(commonly-confused words, person-first/gender-neutral language) and, at the
-user's explicit direction, reversed and closed four Out-of-scope items
-(honorifics/titles, place/country names, sports/currencies/measures, and
-the A-Z spelling list itself) by importing the full ~1,373-entry A-Z word
-list as a new `16-glossary.adoc` partial — see that item's resolution note
-for what the import contains and the two corrections made to the source
-along the way. One further Out-of-scope item (`copywriting.adoc`'s UI/
-short-message conventions) was confirmed out-of-scope for TS-26 and routed
-to TS-15 (User interfaces) instead, at the user's direction. Both
-previously-Unresolved resources (the PDF and the link collections) were
-resolved on 2026-08-15 — see below — surfacing one new Missing item
-(procedural/instructional phrasing) still open, alongside 5 remaining
-open out-of-scope items. This file is not yet fully resolved on the
-"zero unchecked items of any kind" standard: 1 Missing item and 5
-out-of-scope items remain unchecked.
+Unresolved link-collection triage on 2026-08-15 and closed the same batch
+on 2026-08-15), plus 4 of the original 9 out-of-scope items (2026-08-14),
+across five `close-gaps` batches — the first closed the comma/quotation-
+mark/apostrophe/dash/hyphenation/exclamation-question-mark/colon-
+capitalization cluster in `13-punctuation.adoc` plus abbreviation
+mechanics, dates/numbers, code-block formatting, emphasis/typography, and
+referencing mechanics; the second closed that/which, collective nouns,
+overused words, sentence fragments, and contractions/passive-voice
+detection in `14-sentences-and-paragraphs.adoc` and
+`01-voice-and-tense.adoc`, and heading formatting plus nested/variable
+lists in `02-headings.adoc` and `08-lists.adoc`; the third closed the two
+remaining Partial items (commonly-confused words, person-first/gender-
+neutral language) and, at the user's explicit direction, reversed and
+closed four Out-of-scope items (honorifics/titles, place/country names,
+sports/currencies/measures, and the A-Z spelling list itself) by importing
+the full ~1,373-entry A-Z word list as a new `16-glossary.adoc` partial —
+see that item's resolution note for what the import contains and the two
+corrections made to the source along the way. One further Out-of-scope
+item (`copywriting.adoc`'s UI/short-message conventions) was confirmed
+out-of-scope for TS-26 and routed to TS-15 (User interfaces) instead, at
+the user's direction. Both previously-Unresolved resources (the PDF and
+the link collections) were resolved on 2026-08-15 — see below — surfacing
+one new Missing item (procedural/instructional phrasing), closed the same
+day by a fifth `close-gaps` batch: a new "Instructional steps" section in
+`14-sentences-and-paragraphs.adoc`, requiring chronological sequencing
+over spatial reference and device-agnostic action verbs. This file has 0
+actionable items remaining. 5 out-of-scope items remain unticked, awaiting
+the user's confirm/overrule decision — this file is not yet fully resolved
+on the "zero unchecked items of any kind" standard.
 
 **2026-08-14 addendum.** One new Missing item was added, routed here from
 TS-21 (HTTP APIs) at the user's direction while confirming TS-21's own
@@ -462,7 +465,7 @@ device-agnostic action verbs) — and is recorded below, not yet actioned.
       (`levid-gc/paypal-api-standards`), matching how TS-21 already cites the
       same source elsewhere in this repository.
 
-- [ ] `alistapart.com/article/standards-for-writing-accessibly/` (fetched
+- [x] `alistapart.com/article/standards-for-writing-accessibly/` (fetched
       2026-08-15, routed in from the Unresolved link-collection triage) —
       procedural/instructional phrasing for accessibility: prefer
       chronological sequencing over spatial references when describing UI
@@ -478,6 +481,13 @@ device-agnostic action verbs) — and is recorded below, not yet actioned.
       Recommend a new section, most likely in `14-sentences-and-
       paragraphs.adoc` or as a new numbered partial, since this is
       procedural prose rather than punctuation, emphasis, or referencing.
+
+      **Resolved.** Closed by a new "Instructional steps" section in
+      `14-sentences-and-paragraphs.adoc`. Requires chronological sequencing
+      over spatial reference for describing UI interactions, and requires
+      a device-agnostic action verb ("select," "choose," "view") over a
+      device-specific one ("click," "tap," "press," "see"). Source added
+      to the page's `== References`.
 
 ## Out-of-scope
 
