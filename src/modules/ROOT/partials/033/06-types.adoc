@@ -38,3 +38,100 @@ String[] args
 /* ✗ */
 String args[]
 ----
+
+== Nullability
+
+A null reference lets a variable point to nothing, which makes it possible to
+define an uninitialized reference-typed variable. Every mainstream language
+carries some form of this concept, under different names: `None` in Python,
+`null` in Java, JavaScript, Kotlin, and Scala, `NULL` in PHP, and `nil` in
+Ruby and Swift. C.A.R. Hoare, who introduced the null reference into ALGOL W
+in 1965, later called it his "billion-dollar mistake" for the errors,
+vulnerabilities, and system crashes it has caused since.
+
+Java has neither non-nullable types nor null-safe operators, which makes a
+`NullPointerException` easy to trigger by accident. Consider the following
+method chain:
+
+[source,java]
+----
+var baz = getFoo().getBar().getBaz();
+----
+
+Every method in this chain can potentially return `null`, and calling a
+method on that `null` result raises a `NullPointerException`. Avoiding this
+safely means checking every intermediate return value, which becomes
+verbose quickly:
+
+[source,java]
+----
+var foo = getFoo();
+var bar = null;
+var baz = null;
+
+if (foo != null) {
+  bar = foo.getBar();
+  if (bar != null) {
+    baz = bar.getBaz();
+  }
+}
+----
+
+Java 8 introduced
+https://docs.oracle.com/javase/8/docs/api/java/util/Optional.html[`Optional`],
+a wrapper type around a value that may be absent, comparable to `Maybe` or
+`Option` in other languages. This standard RECOMMENDS `Optional` as Java's
+nullability mechanism: a method SHOULD return type `X` where `X` cannot be
+`null`, and `Optional<X>` where it can. Applying this to the `getFoo`,
+`getBar`, and `getBaz` methods above allows the method chain to be
+refactored in a null-safe way, using `flatMap` to chain the calls:
+
+[source,java]
+----
+final var baz = getFoo().flatMap(Foo::getBar)
+                        .flatMap(Bar::getBaz)
+                        .orElse(null);
+----
+
+`Optional` does not eliminate `NullPointerException`s entirely: Java gives
+no guarantee that an `Optional` reference itself is not `null`. `Optional`
+SHOULD NOT be used for method input parameters — it exists to communicate an
+absent return value, not to express an optional argument.
+
+A number of annotation libraries exist to make nullability explicit in code
+that does not use `Optional`, each providing its own `@NonNull`/`@Nullable`
+(or similarly named) annotations:
+
+[cols="1,2"]
+|===
+| Library | Package
+
+| https://github.com/amaembo/jsr-305/tree/master/ri/src/main/java/javax/annotation[JSR 305]
+| `javax.annotation`
+
+| https://github.com/spring-projects/spring-framework/tree/main/spring-core/src/main/java/org/springframework/lang[Spring]
+| `org.springframework.lang`
+
+| https://github.com/JetBrains/java-annotations/tree/master/common/src/main/java/org/jetbrains/annotations[JetBrains]
+| `org.jetbrains.annotations`
+
+| https://github.com/stephenc/findbugs-annotations/tree/master/src/main/java/edu/umd/cs/findbugs/annotations[Findbugs]
+| `edu.umd.cs.findbugs.annotations`
+
+| https://github.com/eclipse/aspectj.eclipse.jdt.core/tree/main/org.eclipse.jdt.annotation/src/org/eclipse/jdt/annotation[Eclipse]
+| `org.eclipse.jdt.annotation`
+
+| https://github.com/typetools/checker-framework/tree/master/checker-qual/src/main/java/org/checkerframework/checker/nullness/qual[Checker Framework]
+| `org.checkerframework.checker.nullness.qual`
+
+| https://github.com/jspecify/jspecify/tree/main/src/main/java/org/jspecify/annotations[JSpecify]
+| `org.jspecify`
+
+| https://projectlombok.org/features/NonNull[Lombok]
+| `lombok`
+|===
+
+None of these libraries are bulletproof — each works differently, and none
+can guarantee null-safety the way a language with built-in non-nullable
+types can — but where `Optional` does not fit, an annotation library is the
+best mechanism Java offers.

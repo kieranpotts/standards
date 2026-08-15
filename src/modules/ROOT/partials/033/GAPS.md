@@ -53,11 +53,27 @@ gaps. The Quora URL could not be fetched (see Unresolved).
 **Status:** Re-run, 2026-08-05. All Run 1 gaps remain open (the standard has
 not been modified). Run 2 gaps added below.
 
+**Status:** `close-gaps` batch run, 2026-08-15, against the Javadoc-content
+cluster in `07-comments.adoc`. 22 Missing items ticked (6 from Run 1, 16
+from Run 2 — all fully resolved except the block-tag-ordering item, ticked
+Partially resolved) and 2 Partial items ticked (the summary-fragment
+contradiction, fully resolved; the Javadoc-scope-thoroughness item from Run
+1 and its Run 2 reinforcement, both ticked Partially resolved). All new
+content landed in `07-comments.adoc`'s existing "Javadoc" section — no new
+partial was needed.
+
+**Status:** Second `close-gaps` batch run, 2026-08-15, same day, against the
+nullability cluster (all 4 Run 1 items, the standard's largest single
+finding). All 4 closed by a new "Nullability" section in `06-types.adoc`.
+19 Missing and 8 Partial items now remain open and unticked (55 actionable
+→ 27 actionable across the two batches). 3 Out-of-scope and 4 Unresolved
+items are unchanged from the original run, still awaiting the user.
+
 ## Missing
 
 ### From Run 1 (`__TODO__/`)
 
-- [ ] `__TODO__/033/nullability.adoc:1-110` — the standard addresses
+- [x] `__TODO__/033/nullability.adoc:1-110` — the standard addresses
       nullability nowhere. The reference covers the null-reference concept
       (Hoare's "billion-dollar mistake"), Java's lack of non-nullable types
       and null-safe operators, the verbose manual null-checking pattern, and
@@ -65,37 +81,79 @@ not been modified). Run 2 gaps added below.
       section (e.g. a new `10-nullability.adoc`, or a subsection under
       `06-types.adoc`).
 
-- [ ] `__TODO__/033/nullability.adoc:1-110` — the Java 8 `Optional` type
+      **Resolved.** Closed by a new "Nullability" section in
+      `06-types.adoc`, following the recommended subsection option rather
+      than a new partial: the null-reference concept, Hoare's
+      "billion-dollar mistake" quote, Java's lack of non-nullable
+      types/null-safe operators, the method-chain `NullPointerException`
+      risk, and the verbose manual null-checking pattern, each carried over
+      from the source.
+
+- [x] `__TODO__/033/nullability.adoc:1-110` — the Java 8 `Optional` type
       as the recommended nullability mechanism: return type `X` when `X`
       cannot be null, `Optional<X>` when it can; `flatMap` chaining for
       null-safe traversal. Not addressed in the standard. Recommend the same
       new nullability section.
 
-- [ ] `__TODO__/033/nullability.adoc:1-110` — caveats on `Optional`: it
+      **Resolved.** Closed by the same "Nullability" section: `Optional`
+      introduced and recommended (`X` vs `Optional<X>` return types), with
+      the source's `flatMap`-chaining refactor of the earlier
+      `NullPointerException`-prone example.
+
+- [x] `__TODO__/033/nullability.adoc:1-110` — caveats on `Optional`: it
       can itself be `null` (Java gives no guarantee), and it is not advised
       for method input parameters. Not addressed in the standard. Recommend
       the same new nullability section.
 
-- [ ] `__TODO__/033/nullability.adoc:1-110` — nullability annotation
+      **Resolved.** Closed by the same "Nullability" section: both caveats
+      stated immediately after the `Optional` introduction.
+
+- [x] `__TODO__/033/nullability.adoc:1-110` — nullability annotation
       libraries (JSR 305, Spring, JetBrains, Findbugs, Eclipse, Checker
       Framework, JSpecify, Lombok) with their `@NonNull`/`@Nullable`
       packages, and the caveat that none are bulletproof. Not addressed in
       the standard. Recommend the same new nullability section.
 
-- [ ] `__TODO__/033/comments.adoc:122-162` — Javadoc MUST be used to
+      **Resolved.** Closed by the same "Nullability" section, as a table of
+      all eight libraries and their packages. The source's table had a
+      copy-paste error — it listed Lombok's package as
+      `org.checkerframework.checker.nullness.qual` (the Checker Framework's
+      own package, repeated from the row above) — corrected to Lombok's
+      actual package, `lombok`, rather than carried over verbatim. The
+      per-library non-null/nullable annotation-name columns were dropped
+      from the table (most use the library's own `@NonNull`/`@Nullable`
+      naming and add little beyond the package name and link), and the
+      "none are bulletproof" caveat closes the section as prose. No
+      reference-list entry was added for this item's source — the
+      `__TODO__/033/nullability.adoc` staging file is an internal analysis
+      artifact, not an externally citable published URL, consistent with
+      how Run 1's other items were closed in the prior batch.
+
+- [x] `__TODO__/033/comments.adoc:122-162` — Javadoc MUST be used to
       help distinguish overloaded methods from each other, including
       constructors. The standard (`07-comments.adoc:87-121`) does not mention
       overloads. Recommend placing at `07-comments.adoc:87` (Javadoc
       section).
 
-- [ ] `__TODO__/033/comments.adoc:122-162` — guidance on documenting
+      **Resolved.** Closed by a new paragraph in `07-comments.adoc`'s
+      "Javadoc" section, after the summary-fragment style guidance: Javadoc
+      MUST distinguish overloaded methods/constructors, and each overload's
+      summary fragment SHOULD identify what makes it distinct.
+
+- [x] `__TODO__/033/comments.adoc:122-162` — guidance on documenting
       private members: private methods SHOULD be documented if complex or
       called from multiple places; if called from one place, MAY be
       documented in the calling method instead. The standard says only that
       Javadoc is for `public`/`protected` members. Recommend placing at
       `07-comments.adoc:100` (after the public/protected member rule).
 
-- [ ] `__TODO__/033/comments.adoc:163-227` — Javadoc description
+      **Resolved.** Closed by a new paragraph immediately after the
+      public/protected scope rule in `07-comments.adoc`'s "Javadoc" section:
+      a private member SHOULD carry Javadoc where complex or called from
+      multiple places, and MAY instead be documented in the calling method
+      where called from only one place.
+
+- [x] `__TODO__/033/comments.adoc:163-227` — Javadoc description
       phrasing: method descriptions SHOULD start with a third-person
       descriptive verb ("Gets the label", not "Get the label");
       class/interface/field descriptions SHOULD state what the thing
@@ -103,29 +161,55 @@ not been modified). Run 2 gaps added below.
       phrasing. Not addressed in the standard. Recommend placing at
       `07-comments.adoc:141` (near the summary-fragment rule).
 
-- [ ] `__TODO__/033/comments.adoc:228-271` — the `@since`, `@author`,
+      **Resolved.** Closed by a new paragraph after the summary-fragment
+      definition in `07-comments.adoc`'s "Javadoc" section, covering the
+      third-person-verb rule for methods, the what-it-represents rule for
+      classes/interfaces/fields, and the "This class…"/"This method…"
+      phrasing to avoid. The same paragraph also folds in the "this" vs
+      "the" and parenthesized-overload phrasing rules from the Run 2 "A
+      Style Guide" item below, since both describe the same summary-fragment
+      prose conventions.
+
+- [x] `__TODO__/033/comments.adoc:228-271` — the `@since`, `@author`,
       and `@version` tags SHOULD NOT be included (the version control
       system tracks this; they are more useful in library than application
       development). The standard (`07-comments.adoc:149-159`) lists only
       `@param`/`@return`/`@throws`/`@deprecated` and is silent on these.
       Recommend placing at `07-comments.adoc:156`.
 
-- [ ] `__TODO__/033/comments.adoc:272-301` — advanced Javadoc
+      **Resolved.** Closed by a new paragraph in `07-comments.adoc`'s
+      "Javadoc" section, after the block-tag mistake example: `@since`,
+      `@author`, and `@version` SHOULD NOT be used, with the rationale from
+      the source.
+
+- [x] `__TODO__/033/comments.adoc:272-301` — advanced Javadoc
       formatting: wrap Java keywords, package names, class names, method
       names, interface names, field names, argument names, and code
       examples in `<code> … </code>` blocks. Not addressed in the standard.
       Recommend a new subsection at `07-comments.adoc:170` (after block
       tags).
 
-- [ ] `__TODO__/033/comments.adoc:289-301` — the `{@link}` inline tag
+      **Resolved.** Closed by a new paragraph in `07-comments.adoc`'s
+      "Javadoc" section, alongside the curly-quotes and Latin-abbreviation
+      rules: Javadoc text referring to a keyword, package, class, method,
+      interface, field, or argument name, or a code example, MUST be
+      wrapped in `<code>` tags.
+
+- [x] `__TODO__/033/comments.adoc:289-301` — the `{@link}` inline tag
       for automatic links to other classes, methods, or fields, and the
       `@see` block tag as an alternative for cross-references. The standard
       does not mention either. Recommend placing at
       `07-comments.adoc:156` (block tags) and `07-comments.adoc:170`.
 
+      **Resolved.** Closed by a new paragraph in `07-comments.adoc`'s
+      "Javadoc" section, after the `@deprecated` guidance: `{@link}` SHOULD
+      be used for an automatic link to another class/method/field, `@see`
+      is the block-tag alternative for a standalone cross-reference, and
+      multiple `@see` tags SHOULD be ordered nearest-first by proximity.
+
 ### From Run 2 (issue #66)
 
-- [ ] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#Introduction`
+- [x] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#Introduction`
       — Javadoc should textually document the thread-safety guarantees of an
       object; absent explicit indication, all objects are assumed
       thread-safe. TS-33's comments section does not mention documenting
@@ -133,7 +217,14 @@ not been modified). Run 2 gaps added below.
       content rules). (The design of thread-safe classes themselves is
       TS-7's domain, but the documentation obligation is a Javadoc concern.)
 
-- [ ] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#Introduction`
+      **Resolved.** Closed by a new paragraph in `07-comments.adoc`'s
+      "Javadoc" section, after the private-members paragraph: a class or
+      method whose contract is not obviously thread-safe MUST state its
+      thread-safety guarantees, absent statement a caller may assume it is
+      not thread-safe, and the paragraph cross-references TS-7 (Code
+      design) for the design of thread-safe classes themselves.
+
+- [x] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#Introduction`
       — The distinction between an API specification (a contract describing
       behavior callers can rely on, implementation-independent) and a
       programming guide (examples, term definitions, conceptual overviews,
@@ -141,17 +232,31 @@ not been modified). Run 2 gaps added below.
       but does not draw this distinction or warn against mixing the two.
       Recommend placing at `07-comments.adoc:87`.
 
-- [ ] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#Descriptions`
+      **Resolved.** Closed by a new paragraph in `07-comments.adoc`'s
+      "Javadoc" section, immediately after the thread-safety paragraph,
+      distinguishing the API-specification and programming-guide purposes
+      and stating a comment SHOULD NOT mix them.
+
+- [x] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#Descriptions`
       — The spec should be complete enough for conforming implementors,
       including boundary conditions, parameter ranges, and corner cases,
       and should state what is left unspecified. TS-33 does not address
       Javadoc spec completeness. Recommend placing at `07-comments.adoc:97`.
 
-- [ ] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#Descriptions`
+      **Resolved.** Closed by the same API-specification paragraph as the
+      item above: the specification purpose is described as covering
+      boundary conditions, parameter ranges, corner cases, and what is
+      deliberately left unspecified.
+
+- [x] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#Descriptions`
       — Implementation-specific behavior should be documented in a separate
       paragraph with a lead-in such as "On <platform>" or
       "Implementation-Specific:". Not addressed in the standard. Recommend
       placing at `07-comments.adoc:97`.
+
+      **Resolved.** Closed by the same paragraph: implementation-specific
+      material belongs in its own paragraph, introduced with a lead-in such
+      as "Implementation-Specific:".
 
 - [ ] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#Tag-Conventions`
       — The canonical block-tag order is `@author`, `@version`, `@param`,
@@ -162,14 +267,32 @@ not been modified). Run 2 gaps added below.
       lists only `@param`/`@return`/`@throws`/`@deprecated` in order and gives
       no multi-tag ordering rules. Recommend placing at `07-comments.adoc:156`.
 
-- [ ] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#Required-Tags`
+      **Partially resolved.** The multi-tag ordering rules (`@param` in
+      declaration order, `@throws` alphabetically, `@see` nearest-first)
+      were added in this batch, each alongside the relevant tag's own
+      content guidance in `07-comments.adoc`. The full canonical
+      tag-ordering position for `@author`/`@version`/`@since`/`@serial*` was
+      deliberately not adopted: TS-33 now explicitly disallows `@author`,
+      `@version`, and `@since` (see the Run 1 item above), and `@serial*`
+      tags were judged out of scope for an application-focused standard —
+      left open for the user to confirm, rather than folded into this
+      resolution silently.
+
+- [x] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#Required-Tags`
       — `@param` is required for every parameter (even when obvious), and
       `@return` is required for every non-void method (even if seemingly
       redundant). TS-33 lists these tags but does not state they are
       required. Recommend placing at `07-comments.adoc:151` and
       `07-comments.adoc:152`.
 
-- [ ] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#Documenting-Exceptions-with-throws-Tag`
+      **Resolved.** Closed by a new paragraph in `07-comments.adoc`'s
+      "Javadoc" section stating `@param` and `@return` are REQUIRED for
+      every parameter and every non-`void` method respectively, even where
+      the purpose seems obvious. The same paragraph adds the `@param`
+      name-not-type / no-`<code>`-wrapping rule and the collection-element
+      `@return` guidance from the Partial item below.
+
+- [x] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#Documenting-Exceptions-with-throws-Tag`
       — `@throws` should cover all checked exceptions and any unchecked
       exception the caller might reasonably want to catch (except
       `NullPointerException`); errors should not be documented; an unchecked
@@ -180,20 +303,38 @@ not been modified). Run 2 gaps added below.
       (`07-comments.adoc:153` and `05-programming-constructs.adoc:196-224`)
       does not address any of this. Recommend placing at `07-comments.adoc:153`.
 
-- [ ] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#Tag-Comments`
+      **Resolved.** Closed by a new paragraph in `07-comments.adoc`'s
+      "Javadoc" section covering all of this, verbatim in substance:
+      checked-exception and reasonably-catchable-unchecked-exception
+      coverage, the `NullPointerException` and error exclusions, the
+      supertype-not-subtype rule with the `IndexOutOfBoundsException`
+      example, the `@throws`-vs-`throws`-clause distinction, and the
+      alphabetical multi-tag ordering.
+
+- [x] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#Tag-Comments`
       — `@deprecated`'s first sentence should state when the API was
       deprecated and what to use as a replacement, using `{@link}` (or
       `@see`) to point to the replacement; if no replacement, state "No
       replacement". TS-33 lists `@deprecated` but gives no content guidance
       for it. Recommend placing at `07-comments.adoc:154`.
 
-- [ ] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#Custom-Tags-and-Annotations`
+      **Resolved.** Closed by a new paragraph in `07-comments.adoc`'s
+      "Javadoc" section: the first sentence SHOULD state when the API was
+      deprecated and what to use instead, linked via `{@link}` or `@see`,
+      or state "No replacement".
+
+- [x] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#Custom-Tags-and-Annotations`
       — Use both the `@Deprecated` annotation (compiler warning) and the
       `@deprecated` Javadoc tag (documentation) together. TS-33 mentions
       `@Deprecated` only in a formatting example
       (`05-programming-constructs.adoc:153`) and `@deprecated` only as a
       Javadoc tag, without linking the two. Recommend placing at
       `07-comments.adoc:154` or `05-programming-constructs.adoc:129`.
+
+      **Resolved.** Closed by the same `@deprecated` paragraph in
+      `07-comments.adoc`: `@deprecated` MUST be paired with the
+      `@Deprecated` annotation, with the compiler-warning-vs-documentation
+      distinction stated explicitly.
 
 - [ ] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#Documenting-Default-Constructors`
       — All constructors in public and protected classes should be explicit
@@ -210,23 +351,33 @@ not been modified). Run 2 gaps added below.
       does not mention package-level documentation. Recommend a new
       subsection at `07-comments.adoc:170` or `02-source-files.adoc`.
 
-- [ ] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#Documenting-Anonymous-Inner-Classes`
+- [x] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#Documenting-Anonymous-Inner-Classes`
       — The Javadoc tool does not document anonymous inner classes; they
       should be documented in the doc comment of their outer class. TS-33
       does not mention this. Recommend placing at `07-comments.adoc:100`.
+
+      **Resolved.** Closed by a new paragraph in `07-comments.adoc`'s
+      "Javadoc" section, after the overloads paragraph: the Javadoc tool
+      does not document anonymous inner classes, and such content SHOULD be
+      written in the enclosing class's doc comment instead.
 
 - [ ] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#Including-Images`
       — Including images in Javadoc via a per-package `doc-files` directory,
       with images named `<class>-<n>.gif`. TS-33 does not address Javadoc
       images. Recommend a new subsection at `07-comments.adoc:170`.
 
-- [ ] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#Troubleshooting-Curly-Quotes`
+- [x] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#Troubleshooting-Curly-Quotes`
       — Avoid curly/smart quotes (from word processors) in Javadoc; use
       straight quotes. TS-33 does not mention this. Recommend placing at
       `07-comments.adoc:21` (near the whitespace/comment-format rules) or
       `07-comments.adoc:87`.
 
-- [ ] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#A-Style-Guide`
+      **Resolved.** Closed by a new paragraph near the end of
+      `07-comments.adoc`'s "Javadoc" section, alongside the `<code>`-wrapping
+      and Latin-abbreviation rules: curly/smart quotes MUST NOT appear in
+      Javadoc text.
+
+- [x] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#A-Style-Guide`
       — Use "this" rather than "the" when referring to the current object
       ("Gets the toolkit for this component"); omit parentheses when
       referring to the general form of a method ("the `add` method") and
@@ -234,12 +385,20 @@ not been modified). Run 2 gaps added below.
       `add(int, Object)` method"). TS-33 does not address either. Recommend
       placing at `07-comments.adoc:141`.
 
-- [ ] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#A-Style-Guide`
+      **Resolved.** Folded into the Run 1 description-phrasing resolution
+      above — the same new paragraph in `07-comments.adoc` covers the
+      "this" vs "the" rule and the parenthesized-overload convention.
+
+- [x] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#A-Style-Guide`
       — Avoid Latin abbreviations in Javadoc: use "also known as" not "aka",
       "that is" not "i.e.", "for example" not "e.g.", "in other words"/"namely"
       not "viz.". TS-33 does not address this. Recommend placing at
       `07-comments.adoc:87`. (Borderline — also a technical-writing concern
       covered by TS-26 — but applied here to Javadoc content.)
+
+      **Resolved.** Closed by the same paragraph as the curly-quotes item
+      above: Latin abbreviations SHOULD be avoided in favor of their
+      English equivalents, with all four examples from the source.
 
 - [ ] `https://www.oracle.com/java/technologies/javase/codeconventions-comments.html#385`
       — Avoid redundant comments that are likely to get out of date as the
@@ -347,28 +506,44 @@ not been modified). Run 2 gaps added below.
       exception handling but does not mention `finalize`. Recommend placing
       at `05-programming-constructs.adoc:224` or a new subsection.
 
-- [ ] `https://google.github.io/styleguide/javaguide.html#s7.2` — The
+- [x] `https://google.github.io/styleguide/javaguide.html#s7.2` — The
       `{@return}` inline tag as an alternative to a `@return` block tag for
       the summary fragment. TS-33 does not mention `{@return}`. Recommend
       placing at `07-comments.adoc:152`.
 
-- [ ] `https://google.github.io/styleguide/javaguide.html#s7.1.3` — Block
+      **Resolved.** Closed by a new paragraph in `07-comments.adoc`'s
+      "Javadoc" section, after the `{@link}`/`@see` paragraph: `{@return}`
+      MAY be used in place of a `@return` block tag.
+
+- [x] `https://google.github.io/styleguide/javaguide.html#s7.1.3` — Block
       tags must never appear with an empty description. TS-33
       (`07-comments.adoc:156-159`) says block tags are followed by a space
       and a text description but does not explicitly prohibit empty
       descriptions. Recommend placing at `07-comments.adoc:157`.
 
-- [ ] `https://google.github.io/styleguide/javaguide.html#s7.1.2` — A
+      **Resolved.** Closed by adding "which MUST NOT be empty" to the
+      existing block-tag-description sentence in `07-comments.adoc`.
+
+- [x] `https://google.github.io/styleguide/javaguide.html#s7.1.2` — A
       blank line (containing only the aligned `*`) should appear before the
       group of block tags in multi-line Javadoc. TS-33
       (`07-comments.adoc:137-139`) mentions blank lines between paragraphs
       but not before block tags. Recommend placing at `07-comments.adoc:148`.
 
-- [ ] `https://google.github.io/styleguide/javaguide.html#s7.3.4` —
+      **Resolved.** Closed by a new sentence in the same block-tag
+      paragraph in `07-comments.adoc`: a blank line SHOULD appear before
+      the group of block tags, separating them from the preceding prose.
+
+- [x] `https://google.github.io/styleguide/javaguide.html#s7.3.4` —
       Non-required Javadoc (i.e. Javadoc added beyond the minimum) is not
       strictly required to follow the formatting rules of sections 7.1.1–7.3,
       though it is recommended. TS-33 applies its Javadoc rules uniformly
       with no such relaxation. Recommend placing at `07-comments.adoc:170`.
+
+      **Resolved.** Closed by a new closing paragraph at the end of
+      `07-comments.adoc`'s "Javadoc" section: where Javadoc is written
+      beyond what the scope rules require, following this section's
+      conventions is RECOMMENDED but not REQUIRED.
 
 ## Partial
 
@@ -399,6 +574,16 @@ not been modified). Run 2 gaps added below.
       `public`/`protected` member, and MAY be skipped for overriding
       methods.
 
+      **Partially resolved.** The "simple, obvious" exception (trivial
+      getters/setters, non-overridden no-arg constructors) was added to
+      `07-comments.adoc`'s existing scope paragraph, alongside the
+      already-recorded overriding-method exception. The
+      broader-than-`public` scope claim (all classes, all public fields)
+      was deliberately not adopted — it would change TS-33's Javadoc
+      obligation, not just add detail, and is left open for the user to
+      confirm alongside the closely related Run 2 visibility-framing item
+      below.
+
 - [ ] `__TODO__/033/comments.adoc:122-162` covers Javadoc content
       focus more thoroughly than `07-comments.adoc:97-99` — specifically,
       the reference states that long descriptions and usage examples
@@ -420,9 +605,25 @@ not been modified). Run 2 gaps added below.
       cross-references. The standard lists only the tag order and
       indentation.
 
+      **Partially resolved.** This batch closed the `@param`
+      name-not-type/no-`<code>` rule, the `@return` collection-element-type
+      rule, the `@throws` conditions-coverage rule (folded into the
+      Oracle-sourced `@throws` resolution above, since both sources make
+      the same point), and `@see` for cross-references. Not adopted: the
+      single-sentence/no-capitalization/no-terminal-period description
+      style (a register choice — TS-33's existing prose style requires full
+      sentences with terminal periods elsewhere in this same section,
+      so relaxing it only for block-tag descriptions is a scope call, not
+      a straightforward gap); optional column alignment for tags (a
+      formatting preference with no existing precedent in TS-33 to extend);
+      and the `@deprecated` deprecation-date requirement (this batch's
+      `@deprecated` resolution above covers replacement guidance but not a
+      date requirement). Left open for a future batch or for the user to
+      weigh in on the description-style question specifically.
+
 ### From Run 2 (issue #66)
 
-- [ ] `https://google.github.io/styleguide/javaguide.html#s7.2` — Google
+- [x] `https://google.github.io/styleguide/javaguide.html#s7.2` — Google
       defines the Javadoc summary fragment as a noun phrase or verb phrase
       that is _not_ a complete sentence, but capitalized and punctuated _as
       if_ it were one. TS-33 (`07-comments.adoc:141-142`) states the summary
@@ -431,7 +632,15 @@ not been modified). Run 2 gaps added below.
       the standard's wording should be corrected to match its own primary
       source.
 
-- [ ] `https://google.github.io/styleguide/javaguide.html#s7.3` and
+      **Resolved.** The contradiction was a genuine defect — TS-33 names
+      the Google Java Style Guide as its own primary basis (the page's
+      introduction), so misstating Google's own rule is an internal error,
+      not a deliberate divergence. Corrected in `07-comments.adoc`: the
+      summary fragment is now described as "a noun phrase or verb phrase,
+      not a complete sentence, but capitalized and punctuated as if it were
+      one", matching the source exactly.
+
+- [x] `https://google.github.io/styleguide/javaguide.html#s7.3` and
       `#s7.3.1` — At minimum Javadoc is present for every _visible_ class
       and member (visibility defined for top-level classes, members, and
       record components), and is optional for "simple, obvious" members
@@ -441,6 +650,12 @@ not been modified). Run 2 gaps added below.
       exception, but does not frame the rule around visibility generally,
       does not mention record components, and does not articulate the
       "simple, obvious" exception. Reinforces the Run 1 Javadoc-scope gap.
+
+      **Partially resolved.** The "simple, obvious" exception was added to
+      `07-comments.adoc`'s scope paragraph, worded generally (not tied to a
+      `getFoo()`-style example). The broader visibility-based framing and
+      record-component scope were deliberately not adopted, for the same
+      reason as the Run 1 item above — left open for the user to confirm.
 
 - [ ] `https://source.android.com/docs/setup/contribute/code-style#use-javadoc-standard-comments`
       — Every file should have a copyright statement at the top. TS-33
