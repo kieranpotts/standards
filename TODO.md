@@ -6,9 +6,17 @@ that are still stubs (no substantive content written), and standards whose
 
 This file is a manually-maintained index, regenerated from the tree. The
 counts below were last regenerated on **2026-08-15** — this run reflects
-five same-day `close-gaps` batches against TS-33 (Java), described in their
-own section below, that closed all 55 of its actionable items. The prior
-regeneration, on **2026-08-14**, applied a joint `close-gaps` pass against
+four `close-gaps` batches run the same day against TS-20 (Network APIs),
+TS-26 (Technical writing style guide), TS-18 (Web GUIs), and a confirm-only
+pass against TS-40 (CSS), described in their own section below. TS-20's
+batch closed both of its items and left it fully resolved; TS-26's closed
+its one remaining item; TS-18's closed its one remaining item
+(neurodiversity.design) after a re-fetch of the source succeeded; TS-40's
+one remaining item was re-confirmed as declined, not reversed, so nothing
+changed there. Earlier the same day, five `close-gaps` batches against
+TS-33 (Java), described in their own section below, closed all 55 of its
+actionable items. The prior regeneration, on **2026-08-14**, applied a
+joint `close-gaps` pass against
 TS-15 (User interfaces) and TS-18 (Web GUIs), run together at the user's
 explicit request specifically to catch gaps that would be better routed
 between the two standards. None were found in either direction: every item
@@ -84,14 +92,19 @@ positive — verify by reading the page before trusting the grep alone.
 
 ## Open gap analyses
 
-Forty-one standards have a `GAPS.md`. Twenty-eight are fully resolved (zero
+Forty-one standards have a `GAPS.md`. Twenty-nine are fully resolved (zero
 unchecked items of any kind) and are omitted from the table below — TS-2,
-TS-3, TS-5, TS-6, TS-7, TS-8, TS-9, TS-10, TS-11, TS-12, TS-13, TS-14, TS-23,
-TS-25, TS-31, TS-36, TS-37, TS-38, TS-41, TS-44, TS-46, TS-48, TS-49, TS-50,
-TS-52, TS-54, TS-57, and TS-61.
+TS-3, TS-5, TS-6, TS-7, TS-8, TS-9, TS-10, TS-11, TS-12, TS-13, TS-14, TS-20,
+TS-23, TS-25, TS-31, TS-36, TS-37, TS-38, TS-41, TS-44, TS-46, TS-48, TS-49,
+TS-50, TS-52, TS-54, TS-57, and TS-61. TS-20 joined this list on 2026-08-15:
+its Scope and Unresolved counts were already zero (the file's only source
+re-fetched successfully back on 2026-08-13, and the legacy-format
+conversion recorded no Out-of-scope or Unresolved items), so closing its
+last Actionable item today brought it to zero unchecked items of any kind —
+see the note below.
 
-Thirteen have open items and appear in the table below: TS-4, TS-39, TS-16,
-TS-21, TS-29, TS-43, TS-20, TS-26, TS-27, TS-40, TS-15, TS-33, and TS-18.
+Twelve have open items and appear in the table below: TS-4, TS-39, TS-16,
+TS-21, TS-29, TS-43, TS-26, TS-27, TS-40, TS-15, TS-33, and TS-18.
 TS-15 and TS-18 are both new to the 2026-08-14 run's zero/near-zero
 actionable state — see the note above. TS-33 reached zero actionable items
 on 2026-08-15 — see the note below — but stays in this table rather than
@@ -141,14 +154,27 @@ not in a separate sweep.
 | [TS-21](src/modules/ROOT/partials/021/GAPS.md) | HTTP APIs | 0 | 0 | 1 | Template — all 39 Partial items and all 13 out-of-scope items closed 2026-08-14, across six batches; 3 of 4 unresolved Stack-Overflow-adjacent items dismissed |
 | [TS-29](src/modules/ROOT/partials/029/GAPS.md) | JSON Schema | 0 | 0 | 2 | Template — all 29 actionable and all 3 out-of-scope items closed 2026-08-14 |
 | [TS-43](src/modules/ROOT/partials/043/GAPS.md) | Relational databases and SQL | 0 | 6 | 4 | Template — all 61 actionable items closed 2026-08-14; table row restored after being omitted in a prior regeneration |
-| [TS-20](src/modules/ROOT/partials/020/GAPS.md) | Network APIs | 1 | 0 | 0 | Template — gained 1 item 2026-08-14, routed in from TS-21 |
-| [TS-26](src/modules/ROOT/partials/026/GAPS.md) | Technical writing style guide | 1 | 6 | 2 | Template — all original 29 actionable items closed 2026-08-14, across three batches; 4 of 9 out-of-scope items also reversed and closed; gained 1 new item 2026-08-14, routed in from TS-21 |
+| [TS-26](src/modules/ROOT/partials/026/GAPS.md) | Technical writing style guide | 0 | 6 | 2 | Template — all 30 actionable items closed (29 on 2026-08-14 across three batches, plus 1 more on 2026-08-15); 4 of 9 out-of-scope items also reversed and closed |
 | [TS-27](src/modules/ROOT/partials/027/GAPS.md) | Markdown | 0 | 6 | 1 | Template — all 15 actionable items closed 2026-08-13 |
-| [TS-40](src/modules/ROOT/partials/040/GAPS.md) | CSS | 1 | 12 | 0 | Template — 16 of 17 actionable items closed 2026-08-14; 1 declined and left open |
+| [TS-40](src/modules/ROOT/partials/040/GAPS.md) | CSS | 1 | 12 | 0 | Template — 16 of 17 actionable items closed 2026-08-14; 1 declined and left open; re-confirmed as declined, not reversed, 2026-08-15 |
 | [TS-15](src/modules/ROOT/partials/015/GAPS.md) | User interfaces | 0 | 7 | 12 | Template — all 51 actionable items closed 2026-08-14, jointly with TS-18 |
 | [TS-33](src/modules/ROOT/partials/033/GAPS.md) | Java | 0 | 3 | 4 | Template — all 55 actionable items closed 2026-08-15, across five batches |
-| [TS-18](src/modules/ROOT/partials/018/GAPS.md) | Web GUIs | 1 | 26 | 5 | Template — 59 of 60 actionable items closed 2026-08-14, jointly with TS-15; 1 (neurodiversity.design) left open pending a proper re-fetch |
-| | **Total** | **4** | **80** | **37** | |
+| [TS-18](src/modules/ROOT/partials/018/GAPS.md) | Web GUIs | 0 | 26 | 4 | Template — all 60 actionable items closed (59 on 2026-08-14 jointly with TS-15, plus the last one — neurodiversity.design — on 2026-08-15 once its source re-fetched successfully) |
+| | **Total** | **1** | **80** | **36** | |
+
+TS-20 (Network APIs) left the fully-resolved list on 2026-08-14, gaining 1
+new Missing item routed in from TS-21 while confirming TS-21's own
+out-of-scope items (general rate-limit response headers,
+`X-RateLimit-Limit`/`Remaining`/`Reset`), not yet reviewed against TS-20's
+current content at the time. It was closed out the next day, 2026-08-15,
+and moved back to the fully-resolved list above: the item was closed by
+extending the existing "Rate limiting and backoff" section in
+`04-reliability-and-resilience.adoc` with the three headers, sourced from
+the Port of Antwerp-Bruges API guidelines (the item's other cited source, a
+GitHub Microsoft-guidelines CORS-section anchor, turned out on re-fetch to
+be a mismatched citation with no header guidance). TS-20 had no open Scope
+or Unresolved items already, so this brought it to zero unchecked items of
+any kind.
 
 TS-15 (User interfaces) was closed out in full on 2026-08-14, jointly with
 TS-18 — see the note at the top of this file. All 51 actionable items (47
@@ -180,8 +206,20 @@ readable measure). The references partial was renumbered
 `04-references.adoc` → `06-references.adoc` to make room, and gained roughly
 13 new source entries. One Missing item (neurodiversity.design) was
 deliberately left open, since only a thin landing page was ever fetched for
-it — not enough to write from without fabricating detail. TS-18 stays in
-this table at Actionable=1, Scope=26, Unresolved=5.
+it — not enough to write from without fabricating detail. TS-18 stayed in
+this table at Actionable=1, Scope=26, Unresolved=5 after that run.
+
+TS-18's last item — neurodiversity.design — was closed on 2026-08-15, once
+all eight of the source's per-principle pages (Font, Typography, Colour,
+Buttons/Links/Inputs, Interface, Numbers, Animations, Communications)
+retrieved successfully on re-fetch, where only the thin landing page had
+been reachable before. Closed by a new "5. Neurodiversity" section
+appended to `02-web-accessibility.adoc`, after the standard's four WCAG
+principle sections, since the guidance is cross-cutting and does not map
+onto any one of them. This brought TS-18 to Actionable=0; its Scope=26 and
+Unresolved=4 (one Unresolved item dismissed alongside the Missing item it
+was paired with) remain open, so it stays in this table rather than joining
+the fully-resolved list.
 
 TS-29 (JSON Schema) was closed out on 2026-08-14 across four `close-gaps`
 batches plus a same-day follow-up: the first batch closed the eight
@@ -231,11 +269,26 @@ Out-of-scope item — `copywriting.adoc`'s UI/short-message conventions — was
 confirmed out-of-scope for TS-26 (its content is UI microcopy register, not
 documentation prose) and instead routed to TS-15 (User interfaces) as a new
 Missing item there, which TS-15's 2026-08-14 `close-gaps` run subsequently
-closed (see the "Microcopy and UI text" section noted above). TS-26 stays in
-this table, not the fully-resolved list, because its remaining 6
-Out-of-scope items and 2 Unresolved YouTube-adjacent references keep it
+closed (see the "Microcopy and UI text" section noted above). TS-26 stayed
+in this table, not the fully-resolved list, because its remaining 6
+Out-of-scope items and 2 Unresolved YouTube-adjacent references kept it
 short of zero unchecked items of any kind — the same shape as TS-4, TS-16,
 TS-27, and TS-29.
+
+TS-26 gained one more Missing item the same day, routed in from TS-21 while
+confirming TS-21's own out-of-scope items: `api-style-guide.md`'s
+document-level authoring conventions (RFC 2119 keyword rendering, all-caps
+REST/JSON, fixed-width machine-readable text, URI Template syntax). Closed
+on 2026-08-15: two of the four sub-items were already covered
+(fixed-width rendering in `06-emphasis.adoc`, all-caps acronyms in
+`04-abbreviations.adoc`) and needed no change; the other two were genuinely
+missing and closed by a new "Normative language" section in
+`01-voice-and-tense.adoc` (RFC 2119 keyword declaration and capitalization)
+and an extension to the existing "Placeholders" section in
+`11-code-blocks.adoc` (inline-prose URI Template syntax). TS-26 reached
+Actionable=0 (30 of 30 actionable items resolved in total); its 6
+Out-of-scope items and 2 Unresolved references remain open, so it stays in
+this table.
 
 TS-39 was authored from a pure stub on 2026-08-14 and now has zero
 actionable items but stays in this table rather than joining the
@@ -300,12 +353,6 @@ TS-43 (Relational databases and SQL) was restored to this table's rows on
 Out-of-scope items and 4 Unresolved references in its own `GAPS.md`, an
 oversight in an earlier regeneration rather than new work. Its actionable
 count has been 0 since the 2026-08-14 `close-gaps` run described above.
-
-TS-20 (Network APIs) left the fully-resolved list on 2026-08-14, gaining 1
-new Missing item routed in from TS-21 while confirming TS-21's own
-out-of-scope items (general rate-limit response headers,
-`X-RateLimit-Limit`/`Remaining`/`Reset`). Not yet reviewed against TS-20's
-current content.
 
 TS-39 (HTML) was authored from a pure stub on 2026-08-14, closing all 136 of
 its actionable items — over two fifths of the repository's prior total — in
