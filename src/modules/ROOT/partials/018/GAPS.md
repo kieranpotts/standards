@@ -130,6 +130,20 @@ partially actioned, one (webstyleguide.com root) left open. TS-18 now has 3
 actionable items (all Missing), 26 Out-of-scope, and 1 open Unresolved item
 (the webstyleguide.com root chapters not yet assessed).
 
+**Ninth run (`close-gaps`), 2026-08-15.** All 3 remaining Missing items
+closed: a new "Images" section in `01-performance-optimization.adoc`
+(format selection plus `srcset`/`sizes`/`<picture>` responsive-image
+markup), and a new inline-SVG-accessibility bullet in
+`02-web-accessibility.adoc`'s "1. Perceivable" > *Text alternatives*
+(`<title>`/`<desc>`/`role="img"`/`aria-labelledby`), cross-linked from
+`03-fonts.adoc`'s icon-fonts bullet. webstyleguide.com's Images chapter and
+both Smashing Book chapters (re-verified via `pdftotext`) fed the content;
+the Yoav Weiss chapter's own `w`/`x`/`sizes` syntax detail was not present
+in this extraction, so that portion was written from the stable HTML
+Living Standard specification instead. TS-18 now has 0 actionable items.
+26 Out-of-scope items and 1 Unresolved item (webstyleguide.com's other
+chapters) remain open — neither actioned in this run.
+
 ## Missing
 
 - [x] https://csswizardry.com/2019/08/time-to-first-byte-what-it-is-and-why-it-matters/#what-is-ttfb — Time to First Byte (TTFB) as a performance metric and its contributors (latency, routing, application runtime, DB queries, SSR cost). TS-18 mentions LCP but never TTFB. Recommend a new subsection in `01-performance-optimization.adoc` after the LCP note (~L53). Reinforced by https://web.dev/articles/top-cwv#3-use-a-cdn-to-optimize-ttfb, which frames TTFB as CDN-optimizable and additionally recommends caching static HTML at the edge (even briefly) and moving dynamic logic to edge compute — TS-18's CDN/Squid bullets (L31-34) cover CDN and proxy caching but not edge-cached HTML or edge compute.
@@ -567,11 +581,41 @@ section (see the rsjs items above); the performance items sit in
       concern on the client side, consistent with how the rsjs items above
       were resolved.
 
-- [ ] https://webstyleguide.com/11-images.html — the Web Style Guide's Images chapter (Lynch & Horton) covers image-format selection (GIF/JPEG/PNG/SVG use cases and trade-offs), compression trade-offs, and alt-text conventions. Not currently in TS-18: the standard requires text alternatives (`02-web-accessibility.adoc`, "Text alternatives") but gives no format-selection guidance for images at all. Recommend a new subsection, likely in `01-performance-optimization.adoc` (format choice affects payload) or a new "Images" section alongside fonts. Content not yet written — this item records the gap only; see the two related Missing items below (`srcset`/`sizes`/`<picture>` and SVG accessibility) for adjacent image-markup gaps found independently in the same run.
+- [x] https://webstyleguide.com/11-images.html — the Web Style Guide's Images chapter (Lynch & Horton) covers image-format selection (GIF/JPEG/PNG/SVG use cases and trade-offs), compression trade-offs, and alt-text conventions. Not currently in TS-18: the standard requires text alternatives (`02-web-accessibility.adoc`, "Text alternatives") but gives no format-selection guidance for images at all. Recommend a new subsection, likely in `01-performance-optimization.adoc` (format choice affects payload) or a new "Images" section alongside fonts. Content not yet written — this item records the gap only; see the two related Missing items below (`srcset`/`sizes`/`<picture>` and SVG accessibility) for adjacent image-markup gaps found independently in the same run.
 
-- [ ] `__TODO__/018/web-clients/_todo/Real Life Responsive Web Design (Smashing Book).pdf`, Chapter 7 "Responsive Images" (Yoav Weiss) — the `srcset`/`sizes` responsive-image markup (`w` descriptors for variable-width images, `x` descriptors for fixed-width/DPR-only cases, the `sizes` attribute for telling the browser an image's expected display width) and the `<picture>`/`<source>` element for *art direction* (serving genuinely different crops/images per breakpoint, as opposed to the same image at different quality levels). TS-18 mentions `srcset` only in passing, once, as part of the `data-src`-anti-pattern bullet in "Rendering and asset delivery" (`01-performance-optimization.adoc`) — it never explains the `w`/`x`/`sizes` syntax or the `<picture>` art-direction pattern at all. Recommend a new subsection in `01-performance-optimization.adoc`, near the existing image-sizing bullets, or folded into whatever new "Images" section results from the webstyleguide.com/11-images.html item above.
+      **Resolved.** Closed by a new "Images" section in
+      `01-performance-optimization.adoc`, opening with format selection:
+      JPEG for photographs, PNG preferred over GIF for line art/logos, and
+      SVG for icons and simple vector shapes, plus a note to test formats
+      empirically. Cross-linked to <<Icon fonts>> and the accessibility
+      text-alternative requirements. Source added to `06-references.adoc`.
 
-- [ ] `__TODO__/018/web-clients/_todo/Real Life Responsive Web Design (Smashing Book).pdf`, Chapter 4 "Mastering SVG for Responsive Web Design" (Sara Soueidan) — SVG accessibility: the `<title>` and `<desc>` elements as an SVG image's text alternative (analogous to `alt` on `<img>`), and the `role="img"` plus `aria-labelledby` pattern to work around inconsistent browser/screen-reader support for SVG 1.1's native accessibility elements. TS-18 recommends inline SVGs/SVG sprites in place of icon fonts (`03-fonts.adoc`, "Icon fonts") specifically for their accessibility benefit, but never states how to actually make an SVG accessible — the `<title>`/`<desc>`/ARIA markup itself. Recommend a new bullet or subsection in `02-web-accessibility.adoc`, "1. Perceivable" > *Text alternatives*, cross-linked from the icon-fonts bullet in `03-fonts.adoc`.
+- [x] `__TODO__/018/web-clients/_todo/Real Life Responsive Web Design (Smashing Book).pdf`, Chapter 7 "Responsive Images" (Yoav Weiss) — the `srcset`/`sizes` responsive-image markup (`w` descriptors for variable-width images, `x` descriptors for fixed-width/DPR-only cases, the `sizes` attribute for telling the browser an image's expected display width) and the `<picture>`/`<source>` element for *art direction* (serving genuinely different crops/images per breakpoint, as opposed to the same image at different quality levels). TS-18 mentions `srcset` only in passing, once, as part of the `data-src`-anti-pattern bullet in "Rendering and asset delivery" (`01-performance-optimization.adoc`) — it never explains the `w`/`x`/`sizes` syntax or the `<picture>` art-direction pattern at all. Recommend a new subsection in `01-performance-optimization.adoc`, near the existing image-sizing bullets, or folded into whatever new "Images" section results from the webstyleguide.com/11-images.html item above.
+
+      **Resolved.** Closed by the same new "Images" section: `w` descriptors
+      with `sizes` for variable-width images, `x` descriptors for
+      fixed-display-size images needing only resolution variants, and
+      `<picture>`/`<source>` reserved for art direction (a genuinely
+      different image per breakpoint) versus `srcset`/`sizes` for
+      resolution-only variation. The PDF's own chapter text (re-checked via
+      `pdftotext`) confirmed the `<picture>`-for-art-direction distinction
+      and deferred the `w`/`x`/`sizes` syntax detail to Yoav Weiss's own
+      chapter, which this extraction did not capture in full; that syntax
+      is stable, well-documented HTML Living Standard behavior, so it was
+      written from the platform specification rather than the PDF extract.
+      Sources (both book chapters) added to `06-references.adoc`.
+
+- [x] `__TODO__/018/web-clients/_todo/Real Life Responsive Web Design (Smashing Book).pdf`, Chapter 4 "Mastering SVG for Responsive Web Design" (Sara Soueidan) — SVG accessibility: the `<title>` and `<desc>` elements as an SVG image's text alternative (analogous to `alt` on `<img>`), and the `role="img"` plus `aria-labelledby` pattern to work around inconsistent browser/screen-reader support for SVG 1.1's native accessibility elements. TS-18 recommends inline SVGs/SVG sprites in place of icon fonts (`03-fonts.adoc`, "Icon fonts") specifically for their accessibility benefit, but never states how to actually make an SVG accessible — the `<title>`/`<desc>`/ARIA markup itself. Recommend a new bullet or subsection in `02-web-accessibility.adoc`, "1. Perceivable" > *Text alternatives*, cross-linked from the icon-fonts bullet in `03-fonts.adoc`.
+
+      **Resolved.** Closed by a new bullet in `02-web-accessibility.adoc`,
+      "1. Perceivable" > *Text alternatives*. Requires `<title>` (and
+      `<desc>` for longer explanations) as an inline SVG's text
+      alternative, plus `role="img"`/`aria-labelledby` to work around
+      inconsistent SVG 1.1 accessibility support, with the caution to omit
+      `role="img"` where the SVG contains an interactive element. Verified
+      against the PDF's own worked example. Cross-linked from the
+      icon-fonts bullet in `03-fonts.adoc`. Source added to
+      `06-references.adoc`.
 
 ## Partial
 
