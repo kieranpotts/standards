@@ -595,7 +595,16 @@ retrieved successfully this run. Their content is platform-agnostic HCI/UX
 guidance, not web-implementation-specific, so TS-15 (not TS-18) is the
 right home. Two new Missing gaps added below.
 
-- [ ] https://webstyleguide.com/7-interface-design.html (Chapter 7,
+**Seventh run (`close-gaps`), 2026-08-15.** Both wayfinding/navigation and
+typography Missing items closed: a new "Wayfinding and navigation" section
+in `01-design-principles.adoc`, and a new "Typography" section in
+`10-visual-rhythm-and-text.adoc`. Both sources re-fetched and confirmed
+before writing. This file now has 0 actionable items. 7 Out-of-scope items
+and 0 Unresolved items remain open (all 12 original Unresolved items were
+resolved or dismissed in the sixth run's predecessor work), so this file is
+not yet fully resolved on the "zero unchecked items of any kind" standard.
+
+- [x] https://webstyleguide.com/7-interface-design.html (Chapter 7,
       "Interface Design") is not addressed anywhere in the standard. Covers
       wayfinding as four components — orientation (where am I?), route
       decisions (can I find where I want to go?), mental mapping (do I
@@ -609,7 +618,15 @@ right home. Two new Missing gaps added below.
       in `01-design-principles.adoc`, or its own partial if it grows beyond
       one section.
 
-- [ ] https://webstyleguide.com/9-typography.html (Chapter 9, "Typography")
+      **Resolved.** Closed by a new "Wayfinding and navigation" section in
+      `01-design-principles.adoc`. States the four-component wayfinding
+      model (orientation, route decisions, mental mapping, closure), and
+      requires persistent navigation with breadcrumb/"you are here"
+      indicators, support for both browse-dominant and search-dominant
+      users, and applying the 80/20 principle to prioritize navigation for
+      the most-used features. Source added to the page's `== References`.
+
+- [x] https://webstyleguide.com/9-typography.html (Chapter 9, "Typography")
       is not addressed anywhere in the standard. Covers typeface-pairing
       discipline (limit to two typefaces, typically a serif/sans-serif
       pairing; prioritize legibility and proven screen performance over
@@ -625,6 +642,16 @@ right home. Two new Missing gaps added below.
       alignment/emphasis). Recommend a new "Typography" section, most likely
       in `10-visual-rhythm-and-text.adoc` alongside the existing
       spacing-and-rhythm content.
+
+      **Resolved.** Closed by a new "Typography" section in
+      `10-visual-rhythm-and-text.adoc`, placed before the existing
+      "Microcopy and UI text" section. Requires limiting an interface to
+      two typefaces (or one family varied by weight/size) and checking
+      x-height at rendered size when pairing, left-aligning text and
+      avoiding justified/centered/right-aligned body text, varying only
+      one emphasis parameter at a time and reserving underline/color for
+      links, and using generous relative-unit leading for screen reading.
+      Source added to the page's `== References`.
 
 ## Partial
 
