@@ -793,7 +793,7 @@ issue #61.
 
 ## Unresolved
 
-- [ ] https://webstyleguide.com/ — only the contents/landing page was retrieved; the individual chapters (Strategy, IA, Interface Design, Typography, Images, Video, etc.) are separate pages that were not fetched. The out-of-scope call above is based on the table of contents alone. If any chapter (especially Typography, Images, or Page Structure) should be compared in depth, re-run with those chapter URLs as explicit references.
+- [x] https://webstyleguide.com/ — only the contents/landing page was retrieved; the individual chapters (Strategy, IA, Interface Design, Typography, Images, Video, etc.) are separate pages that were not fetched. The out-of-scope call above is based on the table of contents alone. If any chapter (especially Typography, Images, or Page Structure) should be compared in depth, re-run with those chapter URLs as explicit references.
 
       **Partially actioned, 2026-08-15.** The main session separately fetched
       the Images chapter, https://webstyleguide.com/11-images.html, and found
@@ -803,6 +803,48 @@ issue #61.
       remains unresolved for its other chapters (Typography, Interface
       Design are routed to TS-15 per the maintainer; Strategy, IA, Page
       Structure, Video were not separately assessed).
+
+      **Resolved, 2026-08-15.** Fetched and assessed all remaining chapters
+      (Front Matter's table of contents confirmed the full chapter list):
+      Strategy, Research, Process, Information Architecture, Site
+      Structure, Page Structure, Graphic Design, Editorial Style, and
+      Video. (Typography and Interface Design were already fetched and
+      routed to TS-15; Images was already fetched and closed above.)
+
+      The great majority of the remaining chapters are content-strategy,
+      project-management, editorial-workflow, and video-production
+      material — team assembly, project charters, card-sorting research
+      method, CMS selection, social-media posting cadence, brainstorming
+      technique, video equipment and interview technique — all outside
+      TS-18's three declared pillars (performance, WCAG accessibility, web
+      fonts) plus its JavaScript-behaviors and CSS-layout partials. This
+      matches the pattern already established for TS-26's out-of-scope
+      content-strategy/marketing exclusions; confirmed out-of-scope for
+      the same reason, not a gap.
+
+      A handful of technical points overlap content TS-18 (or a sibling
+      standard) already covers, so no new gap: semantic HTML5 landmark
+      elements and ARIA landmark roles (Site Structure, Page Structure
+      chapters) are already required via `02-web-accessibility.adoc`'s
+      "Use semantic HTML elements... Identify the page's major regions
+      with ARIA landmark roles" guidance; responsive images via
+      `srcset`/`<picture>` (Page Structure chapter) is already covered in
+      full by the new <<Images>> section; descriptive link text over
+      "click here" (Editorial Style chapter) is already covered by TS-26
+      (Technical writing style guide), `09-links.adoc`; mobile-first
+      responsive breakpoints (Page Structure chapter) is already covered
+      in TS-15 (User interfaces), `01-design-principles.adoc`.
+
+      One genuine gap was found: the Video chapter's explicit prohibition
+      on video autoplay, requiring playback to be user-initiated with the
+      title/description/duration available beforehand. TS-18's existing
+      time-based-media guidance covers captions, transcripts, and audio
+      descriptions in detail but never addressed autoplay. Closed by a
+      new bullet at the start of `02-web-accessibility.adoc`'s
+      "Time-based media" subsection. Source added to `06-references.adoc`.
+
+      No further webstyleguide.com chapters remain unassessed; this item
+      is now fully resolved.
 
 - [x] The following binary PDFs in `__TODO__/018/web-clients/_todo/` were skipped silently per the gap-analysis rules (binary files are not text references): `Frontend Architecture for Design Systems.pdf`, `The Principles of Beautiful Web Design.pdf`, `Real Life Responsive Web Design (Smashing Book).pdf`, `Build Mobile Websites and Apps for Smart Devices.pdf`, `Beyond the 12 Factor App.pdf`. Not included in the comparison. If any should be treated as references, extract their text and re-run.
 
