@@ -6,12 +6,15 @@ that are still stubs (no substantive content written), and standards whose
 
 This file is a manually-maintained index, regenerated from the tree. The
 counts below were last regenerated on **2026-08-15**, after `close-gaps` runs
-against TS-15 and TS-26 closed all of TS-15's remaining Missing items and all
-but one of TS-26's — the last was re-scoped as documentation lifecycle/process
-content and routed to TS-25's `GAPS.md` instead, since it didn't fit TS-26's
-sentence-level style scope. TS-26 is now fully resolved; TS-15 drops to a
-single deliberately-open Out-of-scope placeholder; TS-25 picks up the one
-routed item. See [the table below](#standards-ordered-by-actionable-count) for
+against TS-14 and TS-19 closed all of TS-14's remaining Missing items and
+withdrew all three of TS-19's. TS-14's two items were both closed with new
+content in `06-accessibility-testing.adoc` (CI/Axe automated scanning, and
+an assistive-technology test matrix and audit process). TS-19's three
+routed-in items were all withdrawn on inspection — none of the source
+material was genuinely SEO-specific (misrouted content-strategy/copywriting
+notes, or bare URLs with no notes to write from and no live fetch available
+in that run). Both standards are now fully resolved and have left the table
+below. See [the table below](#standards-ordered-by-actionable-count) for
 what remains.
 
 Re-derive the counts with the script in
@@ -35,8 +38,8 @@ positive — verify by reading the page before trusting the grep alone.
 
 ## Open gap analyses
 
-Forty-two standards have a `GAPS.md`. Nine of them currently carry open items
-of some kind: TS-7, TS-14, TS-15, TS-16, TS-18, TS-19, TS-25, TS-40 for
+Forty-two standards have a `GAPS.md`. Seven of them currently carry open
+items of some kind: TS-7, TS-15, TS-16, TS-18, TS-25, TS-40 for
 actionable/scope items still open, plus TS-38 for its known false-negative
 (see below).
 
@@ -78,19 +81,25 @@ not in a separate sweep.
 | TS | Title | Actionable | Scope | Unresolved | Notes |
 | --- | --- | ---: | ---: | ---: | --- |
 | [TS-18](src/modules/ROOT/partials/018/GAPS.md) | Web GUIs | 3 | 0 | 0 | Unchanged since the 2026-08-15 `close-gaps` run. 3 items deliberately deferred: DOM/scripting/fetch/CORS (placement undecided between TS-18 and TS-37), and two items (Windows app design, Shopify Polaris) needing an assessment pass before writing. |
-| [TS-19](src/modules/ROOT/partials/019/GAPS.md) | SEO | 3 | 0 | 0 | Unchanged since the file was created 2026-08-15 to receive routed items — no `gap-analysis` run of its own yet. |
 | [TS-40](src/modules/ROOT/partials/040/GAPS.md) | CSS | 3 | 0 | 0 | Unchanged since the 2026-08-15 sweep. |
-| [TS-14](src/modules/ROOT/partials/014/GAPS.md) | Performance testing | 2 | — | — | Unchanged since the 2026-08-15 sweep. |
 | [TS-16](src/modules/ROOT/partials/016/GAPS.md) | Command line interfaces (CLIs) | 1 | 0 | 0 | Unchanged since the 2026-08-15 sweep. |
 | [TS-7](src/modules/ROOT/partials/007/GAPS.md) | Code design | 1 | — | — | Unchanged since the 2026-08-15 sweep. |
-| [TS-25](src/modules/ROOT/partials/025/GAPS.md) | Technical documentation | 1 | 0 | 0 | New row. Gained 1 Missing item on 2026-08-15, routed in from TS-26 while TS-26 was working its own Out-of-scope backlog: documentation process philosophy (keeping docs fresh, deleting cruft, doc-review etiquette) — lifecycle/process content, not sentence-level style, per both standards' own stated scope split. Not yet actioned. |
+| [TS-25](src/modules/ROOT/partials/025/GAPS.md) | Technical documentation | 1 | 0 | 0 | Unchanged since the 2026-08-15 routing from TS-26: documentation process philosophy (keeping docs fresh, deleting cruft, doc-review etiquette) — lifecycle/process content, not sentence-level style, per both standards' own stated scope split. Not yet actioned. |
 | [TS-15](src/modules/ROOT/partials/015/GAPS.md) | User interfaces | 0 | 1 | 0 | All 5 Missing items closed 2026-08-15 (`close-gaps`): trust-over-time principle, AI-experience design, user research (planning/conducting, personas, website audits). Only the one deliberately-open Out-of-scope item remains (design.google project-narrative essays, pending a fetch-and-reassess pass) — kept in this table for that reason alone. |
-| | **Total** | **14** | **1** | **0** | |
+| | **Total** | **9** | **1** | **0** | |
 
-Every other standard with a `GAPS.md` (33 of the 42) is fully resolved: zero
+TS-14 (Performance testing) and TS-19 (SEO) left this table on 2026-08-15:
+TS-14's 2 actionable items were both closed with new content; TS-19's 3
+items were all withdrawn on inspection (see above). Both are now fully
+resolved and appear in the fully-resolved count below.
+
+Every other standard with a `GAPS.md` (35 of the 42) is fully resolved: zero
 unchecked items of any kind. TS-26 joined that list on 2026-08-15 — all of
 its Missing items were either closed or routed to another standard's
-`GAPS.md`, and no Out-of-scope items remain open.
+`GAPS.md`, and no Out-of-scope items remain open. TS-14 and TS-19 joined it
+the same day: TS-14 by closing its 2 remaining items with new content;
+TS-19 by withdrawing all 3 of its routed-in items as not genuinely
+SEO-specific.
 
 ## Standards with neither a stub nor a GAPS.md
 

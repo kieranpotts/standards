@@ -11,12 +11,13 @@ inside, TS-14's stated scope of testing quality attributes: reasoning across
 stack layers to diagnose performance, and benchmarking candidate technologies
 before adoption. Converted from the legacy format on 2026-08-13.
 
-**Status:** 2 of 2 original actionable gaps closed (2026-08-13). Added a
-"Diagnosing across abstraction layers" subsection to
-`02-performance-testing.adoc`. Resolved the second gap by cross-reference:
-the content already exists in TS-3 (Design docs). On 2026-08-15 one new
-Missing item was routed in from TS-39's Out-of-scope review (CI/Axe
-accessibility-testing tooling configuration), not yet closed.
+**Status:** 4 of 4 actionable gaps closed (2026-08-15). Added a "Diagnosing
+across abstraction layers" subsection to `02-performance-testing.adoc`.
+Resolved a second gap by cross-reference: the content already exists in
+TS-3 (Design docs). Added an "Automated accessibility testing in CI" and
+an "Assistive technology test matrix and audit process" subsection to
+`06-accessibility-testing.adoc`, closing the two items routed in from
+TS-39 and TS-18's Out-of-scope reviews. No open items remain.
 
 ## Missing
 
@@ -47,7 +48,7 @@ accessibility-testing tooling configuration), not yet closed.
       growing the capability deliberately through pairing rather than hiring
       for it. Source added to the page's `== References`.
 
-- [ ] `__TODO__/039/html/_accessibility testing checklist.txt:7` (routed in
+- [x] `__TODO__/039/html/_accessibility testing checklist.txt:7` (routed in
       from TS-39's Out-of-scope review, 2026-08-15) — CI/Axe automated
       accessibility-testing tooling configuration on the `dev` branch.
       TS-39 judged this HTML-authoring-adjacent but out of its own scope
@@ -58,7 +59,17 @@ accessibility-testing tooling configuration), not yet closed.
       CI-integrated automated accessibility scanning (Axe or equivalent)
       as a testing-pipeline practice. Not yet written into any partial.
 
-- [ ] `__TODO__/018/web-clients/_todo/0300-accessibility.md:60` (Testing)
+      **Resolved.** Closed by a new "Automated accessibility testing in
+      CI" subsection in `06-accessibility-testing.adoc`, extending the
+      existing "Accessibility testing" section rather than adding a
+      section of its own. States that automated scanning MUST run on
+      every merge request into the integration branch, that only a bounded
+      subset of WCAG criteria is automatable, that a new violation MUST
+      fail the build, and that the full manual audit MUST still run at a
+      regular cadence regardless of CI status. Source added to the page's
+      `== References`.
+
+- [x] `__TODO__/018/web-clients/_todo/0300-accessibility.md:60` (Testing)
       (routed in from TS-18's Out-of-scope review, 2026-08-15) — the
       assistive-technology test matrix (JAWS, VoiceOver, NVDA, ZoomText,
       Dragon) and the manual/automated accessibility audit process. TS-18
@@ -67,6 +78,17 @@ accessibility-testing tooling configuration), not yet closed.
       Recommend extending `06-accessibility-testing.adoc` with the AT
       test-matrix and audit-process content, alongside the CI/Axe
       subsection. Not yet written into any partial.
+
+      **Resolved.** Closed by a new "Assistive technology test matrix and
+      audit process" subsection in `06-accessibility-testing.adoc`.
+      Requires a documented test matrix naming assistive
+      technology/browser combinations (not assistive technology alone,
+      since behavior varies by pairing), requires testing default
+      settings before customized ones, requires a regular audit cadence
+      plus an additional pass for major feature work (cross-referencing
+      "Shift left"), recommends including real assistive-technology users
+      in the audit, and requires recording audit findings alongside other
+      QA results. Source added to the page's `== References`.
 
 ## Partial
 
