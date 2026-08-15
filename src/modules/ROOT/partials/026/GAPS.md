@@ -25,8 +25,9 @@ guide is the closest match to TS-26's stated technical-book purpose and fed
 the majority of the originally-missing items, concentrated in punctuation,
 capitalization, and figure/list mechanics.
 
-**Status:** All 29 actionable items resolved, plus 4 of the original 9
-out-of-scope items (2026-08-14), across three `close-gaps` batches — the
+**Status:** All 30 actionable items resolved (the 29 original plus the one
+routed in from TS-21 on 2026-08-15), plus 4 of the original 9 out-of-scope
+items (2026-08-14), across four `close-gaps` batches — the
 first closed the comma/quotation-mark/apostrophe/dash/hyphenation/
 exclamation-question-mark/colon-capitalization cluster in
 `13-punctuation.adoc` plus abbreviation mechanics, dates/numbers,
@@ -53,8 +54,7 @@ actionable items.
 TS-21 (HTTP APIs) at the user's direction while confirming TS-21's own
 out-of-scope items: `api-style-guide.md`'s document-level conventions
 (RFC 2119 rendering, all-caps REST/JSON, fixed-width machine-readable text,
-URI Template syntax). Not yet reviewed against this standard's current
-content.
+URI Template syntax). Closed 2026-08-15 — see below.
 
 ## Missing
 
@@ -415,7 +415,7 @@ content.
 
 ## Missing
 
-- [ ] `api-style-guide.md:27-44` (surfaced while gap-closing TS-21, HTTP APIs,
+- [x] `api-style-guide.md:27-44` (surfaced while gap-closing TS-21, HTTP APIs,
       2026-08-14) — document-level convention: RFC 2119 keyword
       interpretation, all-caps rendering of "REST"/"JSON", fixed-width
       rendering of machine-readable text, and URI Template (RFC 6570) syntax
@@ -427,6 +427,27 @@ content.
       against TS-26's current content; needs its own coverage check before
       being actioned. Recommend a new section, or extending an existing one
       on abbreviation/keyword conventions, once reviewed.
+
+      **Resolved.** Re-checked against TS-26's current content: two of the
+      four sub-items were already covered — fixed-width rendering of
+      machine-readable text (`06-emphasis.adoc`, "Use monospace formatting
+      for anything a reader might type or that the system might output
+      literally") and all-caps rendering of acronyms like REST/JSON
+      (`04-abbreviations.adoc`, "Omit periods from an abbreviation written in
+      capitals") — so no change was needed for either. The remaining two were
+      genuinely missing. RFC 2119 keyword interpretation is closed by a new
+      "Normative language" section in `01-voice-and-tense.adoc`, requiring
+      capitalized keyword rendering and a stated interpretation declaration
+      before a document may rely on the keywords carrying RFC 2119 weight.
+      URI Template (RFC 6570) syntax for variable blocks in prose is closed
+      by extending the existing "Placeholders" section in
+      `11-code-blocks.adoc`, which already established the standard's own
+      `<placeholder>` angle-bracket convention — added the inline-prose case
+      (a URL with a variable segment) and the exception for a formal grammar
+      like URI Template that uses curly braces instead. Source added to the
+      page's `== References`, cited by its canonical GitHub location
+      (`levid-gc/paypal-api-standards`), matching how TS-21 already cites the
+      same source elsewhere in this repository.
 
 ## Out-of-scope
 
