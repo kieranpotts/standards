@@ -931,40 +931,61 @@ awaiting the user's confirm/overrule decision from the third run.
 
 ## Out-of-scope
 
-- [ ] `__TODO__/databases/mysql.md:14-100` covers MySQL installation
+- [x] `__TODO__/databases/mysql.md:14-100` covers MySQL installation
       (`apt-get install mysql-server`, `mysql_secure_installation`), service
       controls (`systemctl start/stop/restart/enable mysqld`), and `my.cnf`
       resource tuning — this is OS/DBA administration, plausibly outside a
       "writing SQL / working with relational databases" standard. Flagged
       for the user to confirm or overrule.
 
-- [ ] `__TODO__/databases/mysql.md:103-180` covers MySQL user and permission
+      **Overrule pending a new standard, 2026-08-15.** The user decided
+      DBA/database-administration operations warrant a dedicated new
+      technical standard, not yet created. Held here rather than routed,
+      pending that standard's creation — see the matching note on the
+      four other DBA-administration items below.
+
+- [x] `__TODO__/databases/mysql.md:103-180` covers MySQL user and permission
       administration (`CREATE USER`, `GRANT`, `REVOKE`, `FLUSH PRIVILEGES`,
       `DROP USER`, privilege types) — database administration rather than
       application SQL best practices. Flagged for the user to confirm or
       overrule.
 
-- [ ] `__TODO__/databases/mysql.md:257-273` covers MySQL table
+      **Overrule pending a new standard, 2026-08-15.** Same DBA-
+      administration bucket as above.
+
+- [x] `__TODO__/databases/mysql.md:257-273` covers MySQL table
       defragmentation via scheduled `OPTIMIZE TABLE`/`mysqlcheck` cron jobs —
       DBA maintenance operations. Flagged for the user to confirm or
       overrule.
 
-- [ ] `__TODO__/databases/mysql.md:274-291` and `__TODO__/databases/mysql2.md:47-90`
+      **Overrule pending a new standard, 2026-08-15.** Same DBA-
+      administration bucket as above.
+
+- [x] `__TODO__/databases/mysql.md:274-291` and `__TODO__/databases/mysql2.md:47-90`
       cover MySQL backup and restore tooling (`automysqlbackup`,
       `mysqldump` export/import of single, multiple, and all databases) —
       backup/restore administration. Flagged for the user to confirm or
       overrule.
 
-- [ ] `__TODO__/databases/mysql2.md:1-44` covers MySQL/MariaDB version
+      **Overrule pending a new standard, 2026-08-15.** Same DBA-
+      administration bucket as above.
+
+- [x] `__TODO__/databases/mysql2.md:1-44` covers MySQL/MariaDB version
       checking, connecting via the CLI, and listing databases at the
       `mysql>` prompt — client/CLI operation. Flagged for the user to confirm
       or overrule.
 
-- [ ] `__TODO__/databases/_200-schema-less.md:1` is a stub titled "Schema-less
+      **Overrule pending a new standard, 2026-08-15.** Same DBA-
+      administration bucket as above.
+
+- [x] `__TODO__/databases/_200-schema-less.md:1` is a stub titled "Schema-less
       data" containing only `TODO`. Schema-less / NoSQL data modelling likely
       belongs to TS-44 (Non-Relational Databases) rather than this relational
       standard; no extractable claims either way. Flagged for the user to
       confirm or overrule.
+
+      **Confirmed out-of-scope.** 2026-08-15. No extractable content to
+      route anywhere — the stub is empty.
 
 ## Unresolved
 

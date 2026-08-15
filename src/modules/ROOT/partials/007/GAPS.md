@@ -121,6 +121,15 @@ file is now fully resolved.
       in full as new subsections. Source added to the page's
       `== References`.
 
+- [ ] `https://www.infoworld.com/article/2165633/design-for-thread-safety.html`
+      (routed in from TS-33's Out-of-scope review, 2026-08-15) —
+      design-level thread-safety guidance: synchronizing critical
+      sections, immutable objects, thread-safe wrappers, when to make a
+      class thread-safe, and the associated performance trade-offs.
+      TS-33 (Java)'s `AGENTS.md` already defers concurrency to TS-7, and
+      this article's content fits `10-concurrency.adoc`, but has not yet
+      been checked against that partial's current coverage or written in.
+
 ## Partial
 
 - [x] https://blog.nelhage.com/post/computers-can-be-understood/ says: keep a

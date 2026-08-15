@@ -489,6 +489,47 @@ device-agnostic action verbs) — and is recorded below, not yet actioned.
       device-specific one ("click," "tap," "press," "see"). Source added
       to the page's `== References`.
 
+- [ ] https://google.github.io/styleguide/docguide/style.html#minimum-viable-documentation
+      and https://google.github.io/styleguide/docguide/style.html#better-is-better-than-best
+      (routed in from TS-27's Out-of-scope review, 2026-08-15) — documentation
+      process philosophy: keep docs fresh, delete cruft, review etiquette, the
+      "better/best rule." TS-27 (Markdown) judged this out of its own
+      syntax-authoring scope and the user confirmed it belongs here instead.
+      Not yet checked against TS-26's current content or written into any
+      partial.
+
+- [ ] https://google.github.io/styleguide/docguide/style.html#capitalization
+      (routed in from TS-27's Out-of-scope review, 2026-08-15) — preserving
+      the original capitalization of product, tool, and binary names (e.g.
+      `Markdown` not `markdown`). TS-27 already defers general prose
+      capitalization to TS-26; this item makes that deferral concrete. Not
+      yet checked against TS-26's current content or written into any
+      partial.
+
+- [ ] https://google.github.io/styleguide/docguide/style.html#capitalization-of-titles-and-headers
+      (routed in from TS-27's Out-of-scope review, 2026-08-15) — title/heading
+      capitalization convention. Not yet checked against TS-26's current
+      content or written into any partial.
+
+- [ ] `OLD-NOTES.md:4243` / `OLD-NOTES-2.md:2001-2011` (moved from
+      Out-of-scope, overruled 2026-08-15) — general English grammar rules:
+      split infinitives, dangling participles, subjunctive mood, gerunds
+      taking possessive adjectives, "an" before vowel sounds. Originally
+      judged as general-grammar instruction outside TS-26's prose-level
+      scope; the user overruled that and asked for it to be kept in TS-26.
+      Recommend a new section, likely a "Grammar" partial of its own,
+      since existing partials are organized by presentational concern
+      (punctuation, emphasis, sentences) rather than grammatical
+      correctness. Not yet written into any partial.
+
+- [ ] `OLD-NOTES.md:3347-3361` / `9999-reference.md:805-808` (moved from
+      Out-of-scope, overruled 2026-08-15) — Latin/biological nomenclature,
+      classical-music work referencing, biblical citation format.
+      Originally judged as specialized referencing domains outside
+      technical documentation's needs; the user overruled that and asked
+      for it to be kept in TS-26. Recommend a new subsection of
+      `12-referencing.adoc`. Not yet written into any partial.
+
 ## Out-of-scope
 
 - [x] `copywriting.adoc` ("Copywriting guidelines") — UI/short-message
@@ -547,23 +588,34 @@ device-agnostic action verbs) — and is recorded below, not yet actioned.
       all of which are already transcribed in the glossary's A-Z as part of
       the full import. No separate section was needed.
 
-- [ ] `0100-forward.md`, `0200-strategy.md`, `blogs.md`, `seo.md`,
+- [x] `0100-forward.md`, `0200-strategy.md`, `blogs.md`, `seo.md`,
       `reference-resources.md` — content strategy, SEO, corporate blogging,
       keyword density, page-`<title>` tag optimization, sales-copy "sizzle"
       words, calls to action. Flagged: marketing/web-strategy, not prose
       style.
 
-- [ ] `OLD-NOTES.md:4243` / `OLD-NOTES-2.md:3-28` — web-scannability tactics
+      **Confirmed out-of-scope for TS-26, routed to TS-19, 2026-08-15.**
+      Filed as a new item in TS-19 (SEO)'s `GAPS.md` (created, if it did
+      not already have one).
+
+- [x] `OLD-NOTES.md:4243` / `OLD-NOTES-2.md:3-28` — web-scannability tactics
       (highlight three times as many words as print, `<strong>` over `<em>`
       for keywords, blue reserved for links, keyword density 5–8%). Flagged:
       web-design/SEO heuristics; TS-26 is format-agnostic prose style.
 
-- [ ] O'Reilly Style Guide#Code (Line Length table by book series),
+      **Confirmed out-of-scope for TS-26, routed to TS-19, 2026-08-15.**
+      Filed as a new item in TS-19 (SEO)'s `GAPS.md`, alongside the item
+      above.
+
+- [x] O'Reilly Style Guide#Code (Line Length table by book series),
       #Considering Electronic Formats (InDesign/Atlas/DocBook/Word workflows,
       oreil.ly short links, "do not link to Amazon/Apple/Google"),
       #O'Reilly Cover Copy, #O'Reilly Word List — book-production and
       publisher-specific workflow. Flagged: tooling/publisher convention, not
       a general style rule.
+
+      **Confirmed out-of-scope.** 2026-08-15. Publisher-specific tooling,
+      no clear routing target; left unrouted.
 
 - [x] `9999-reference.md`, `OLD-NOTES.md` (long A-Z spelling and word-choice
       lists: "acknowledgment not acknowledgement", "aeroplane not airplane",
@@ -598,16 +650,24 @@ device-agnostic action verbs) — and is recorded below, not yet actioned.
       with no transferable content) and a handful of items whose content
       already appears verbatim in another A-Z entry.
 
-- [ ] `OLD-NOTES.md:4243` / `OLD-NOTES-2.md:2001-2011` — general English
+- [x] `OLD-NOTES.md:4243` / `OLD-NOTES-2.md:2001-2011` — general English
       grammar (split infinitives, dangling participles, subjunctive mood,
       gerunds take possessive adjectives, "an" before vowel sounds). Flagged:
       a general-grammar reference; TS-26 deliberately scopes itself to
       prose-level/presentational conventions, not grammar instruction.
 
-- [ ] `OLD-NOTES.md:3347-3361` / `9999-reference.md:805-808` — Latin/biological
+      **Overruled, 2026-08-15.** The user asked for this to be kept in
+      TS-26, reversing the original scope decision. Filed as a new
+      Missing item below, to be written up via `close-gaps`.
+
+- [x] `OLD-NOTES.md:3347-3361` / `9999-reference.md:805-808` — Latin/biological
       nomenclature, classical-music work referencing, biblical citation
       format. Flagged: specialized referencing domains not relevant to
       technical documentation.
+
+      **Overruled, 2026-08-15.** The user asked for this to be kept in
+      TS-26, reversing the original scope decision. Filed as a new
+      Missing item below, to be written up via `close-gaps`.
 
 - [x] `accessibility.md`, `styleguides.md`, `writing.md`,
       `reference-resources.md` — these files are lists of external URLs with

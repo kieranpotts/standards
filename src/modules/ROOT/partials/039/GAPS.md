@@ -1429,7 +1429,7 @@ already covers the ground these sources cover; see the dated notes under
 
 ## Out-of-scope
 
-- [ ] `__TODO__/039/svg/_todo/Tips for Creating and Exporting Better SVGs for the Web.URL:2`
+- [x] `__TODO__/039/svg/_todo/Tips for Creating and Exporting Better SVGs for the Web.URL:2`
       (https://www.sarasoueidan.com/blog/svg-tips-for-designers/) covers
       graphics-editor (Illustrator/Inkscape/Sketch) SVG authoring &
       export workflow — shape elements vs paths, text-to-outlines, path
@@ -1437,30 +1437,51 @@ already covers the ground these sources cover; see the dated notes under
       designer/asset-creation guidance, not HTML authoring. Flagged for
       the user to confirm or overrule (relevant only if TS-39 expands to
       cover SVG asset production).
-- [ ] `__TODO__/039/html/_todo/semantic-web.md:1` — "Semantic Web"
+
+      **Confirmed out-of-scope.** 2026-08-15.
+
+- [x] `__TODO__/039/html/_todo/semantic-web.md:1` — "Semantic Web"
       background (RDF, RDF/XML, RDF Schema, OWL, Tim Berners-Lee
       provenance) is general background reading, not HTML authoring
       rules. Flagged for the user to confirm or overrule (the
       actionable subset — Schema.org/Microformats — is captured under
       **Missing** → "Metadata schemas", now resolved above).
-- [ ] `__TODO__/039/html/_accessibility testing checklist.txt:7`
+
+      **Overruled, 2026-08-15.** The user asked for this to be routed to
+      another standard rather than dropped. Filed as a new Missing item
+      in TS-18's `GAPS.md` (Web GUIs), with a cross-reference added from
+      TS-19 (SEO), since Semantic Web/RDFa/structured-data material is a
+      web-client implementation concern the search engines consume, not
+      an HTML-syntax authoring rule.
+- [x] `__TODO__/039/html/_accessibility testing checklist.txt:7`
       — CI/Axe tooling configuration on the `dev` branch is process/
       tooling, not an HTML authoring rule. Flagged for the user to
       confirm or overrule.
-- [ ] `__TODO__/039/html/_todo/misc.md:1` and
+
+      **Overruled, 2026-08-15.** Out-of-scope for TS-39, but the user
+      asked it be routed rather than dropped. Filed as a new Missing item
+      in TS-14's `GAPS.md` (Performance testing), which already owns
+      accessibility-testing process per TS-18's documented boundary
+      ("Accessibility testing process is covered by TS-14").
+- [x] `__TODO__/039/html/_todo/misc.md:1` and
       `__TODO__/039/html/_todo/document-structure.md:5` and
       `__TODO__/039/html/_todo/semantics.md:5` etc. — these files
       are largely bare reference-link lists (further-reading URLs)
       without normative content. Flagged for the user to confirm or
       overrule (the underlying topics are captured under **Missing**
       where the other files give concrete rules, now resolved above).
-- [ ] `__TODO__/039/html/_todo/Tutorials Overview • WAI Web Accessibility Tutorials.URL:2`
+
+      **Confirmed out-of-scope.** 2026-08-15.
+
+- [x] `__TODO__/039/html/_todo/Tutorials Overview • WAI Web Accessibility Tutorials.URL:2`
       (https://www.w3.org/WAI/tutorials/) — a tutorial index/landing
       page, not normative reference material. Its concrete techniques
       (images, tables, forms, menus, carousels, landmarks) are
       in-scope but are better sourced from the in-repository
       `accessibility.md`/checklist already captured under **Missing**,
       now resolved above. Flagged for the user to confirm or overrule.
+
+      **Confirmed out-of-scope.** 2026-08-15.
 
 ## Unresolved
 

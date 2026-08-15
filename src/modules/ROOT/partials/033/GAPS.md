@@ -1037,16 +1037,21 @@ ticked in the prior status entry.
 
 ### From Run 1 (`__TODO__/`)
 
-- [ ] `__TODO__/033/nullability.adoc:111-170` covers nullability in
+- [x] `__TODO__/033/nullability.adoc:111-170` covers nullability in
       Kotlin, but this plausibly sits outside TS-33's stated purpose
       (Java coding guidelines) because it is a different language.
       Flagged for the user to confirm or overrule — a brief comparative
       note could be considered if the standard ever expands to
       JVM-ecosystem guidance.
 
+      **Overrule pending a new standard, 2026-08-15.** The user does not
+      want this folded directly into TS-33, and no dedicated Kotlin/JVM-
+      ecosystem standard exists in the repository yet. Held pending a
+      decision on whether to create one — not routed anywhere yet.
+
 ### From Run 2 (issue #66)
 
-- [ ] `https://www.infoworld.com/article/2165633/design-for-thread-safety.html`
+- [x] `https://www.infoworld.com/article/2165633/design-for-thread-safety.html`
       (entire article) — design-level thread-safety guidance (synchronizing
       critical sections, immutable objects, thread-safe wrappers, when to
       make classes thread-safe, performance trade-offs). TS-33's
@@ -1056,7 +1061,10 @@ ticked in the prior status entry.
       _documentation_ obligation (see Missing, Oracle javadoc-tool
       Introduction). Flagged for the user to confirm.
 
-- [ ] `https://www.oracle.com/java/technologies/javase/codeconventions-introduction.html`
+      **Confirmed out-of-scope for TS-33, routed to TS-7, 2026-08-15.**
+      Filed as a new Missing item in TS-7 (Code design)'s `GAPS.md`.
+
+- [x] `https://www.oracle.com/java/technologies/javase/codeconventions-introduction.html`
       (entire page) — rationale for having code conventions (80% of
       lifetime cost is maintenance; software is rarely maintained by its
       original author) and attribution/history of the Oracle Code
@@ -1065,6 +1073,10 @@ ticked in the prior status entry.
       page states the document is archived and no longer maintained (last
       revised 1999); the user may wish to reconsider citing it as a
       reference from `09-references.adoc`.
+
+      **Confirmed out-of-scope, citation kept as-is, 2026-08-15.** No
+      rule to extract; the existing `09-references.adoc` citation is left
+      unchanged.
 
 ## Unresolved
 

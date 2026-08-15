@@ -164,6 +164,13 @@ run, so the analysis is not materially affected.
       notification for long tasks a user is likely to switch away from,
       alongside terminal output.
 
+- [ ] https://unix.stackexchange.com/a/4132 (routed in from the
+      Out-of-scope review, 2026-08-15) — definitions of terminal, shell,
+      tty, console, pseudo-ttys, terminal emulators, and the division of
+      labor between terminal and shell. The user explicitly asked for a
+      new "Terminology" section covering this, overruling the original
+      out-of-scope classification. Not yet written into any partial.
+
 ## Partial
 
 - [x] `__TODO__/principles.md:82` covers the "make it feel robust" framing more
@@ -764,7 +771,7 @@ run, so the analysis is not materially affected.
 
 ## Out-of-scope
 
-- [ ] `__TODO__/principles.md` cross-references companion programming-principle
+- [x] `__TODO__/principles.md` cross-references companion programming-principle
       standards (`crash-only.md`, `defensive-programming.md`, `simplicity.md`,
       `programming/principles/README.md`) and `__TODO__/options/README.md` references
       `delivery/versioning.md`. These are cross-links to a broader standards system
@@ -773,7 +780,9 @@ run, so the analysis is not materially affected.
       TS-16 should add cross-references to companion standards on simplicity,
       defensive programming, crash-only design, and versioning.
 
-- [ ] https://en.wikipedia.org/wiki/The_Unix_Programming_Environment — this is a
+      **Confirmed out-of-scope.** 2026-08-15.
+
+- [x] https://en.wikipedia.org/wiki/The_Unix_Programming_Environment — this is a
       Wikipedia article about a 1984 book (its contents, historical context, C
       programming style, critical reception, editions), not CLI design guidance.
       Its one in-scope essence — the Unix philosophy of small cooperating tools with
@@ -781,34 +790,53 @@ run, so the analysis is not materially affected.
       already covered by the standard's Composability principle
       (`01-principles.adoc:12`). The rest is background/reference.
 
-- [ ] https://unix.stackexchange.com/a/4132 — definitions of terminal, shell, tty,
+      **Confirmed out-of-scope.** 2026-08-15.
+
+- [x] https://unix.stackexchange.com/a/4132 — definitions of terminal, shell, tty,
       console, pseudo-ttys, terminal emulators, and the division of labor between
       terminal and shell. This is foundational background the standard assumes its
       technical audience already knows; it is not CLI interface design guidance.
       Flagged for the user to confirm whether TS-16 should add a "Terminology"
       section.
 
-- [ ] https://devcenter.heroku.com/articles/cli-style-guide#dependency-guidelines
+      **Overruled, 2026-08-15.** The user asked for a new "Terminology"
+      section to be added. Filed as a new Missing item below, to be
+      written up via `close-gaps`.
+
+- [x] https://devcenter.heroku.com/articles/cli-style-guide#dependency-guidelines
       — Node/oclif dependency-management guidance (native dependencies,
       judiciousness, dev dependencies, discouraged packages like `request`/
       `underscore`). This is implementation/library guidance, not CLI interface
       design.
 
-- [ ] https://medium.com/@jdxcode/12-factor-cli-apps-dd3c227a0e46 (Factor X,
+      **Confirmed out-of-scope.** 2026-08-15.
+
+- [x] https://medium.com/@jdxcode/12-factor-cli-apps-dd3c227a0e46 (Factor X,
       "Encourage contributions") — open-sourcing the CLI, picking a license,
       hosting on GitHub/GitLab, contribution guidelines, code of conduct, plugin
       systems. This is project/community process, not CLI interface design.
 
-- [ ] https://www.gnu.org/prep/standards/html_node/Names.html — naming of C source
+      **Overruled, 2026-08-15 — not yet routed.** The user agreed this
+      doesn't belong in TS-16, but felt existing standards may not have a
+      good home for open-source project process (licensing, contribution
+      guidelines, code of conduct, plugin systems) either, and floated
+      that a new standard might be needed. Left unrouted pending that
+      decision — not filed against any other standard's `GAPS.md` yet.
+
+- [x] https://www.gnu.org/prep/standards/html_node/Names.html — naming of C source
       variables, functions, and files (underscores, lower case, `enum` vs `#define`,
       14-char file-name limits, `doschk`). This is internal code naming, not CLI
       command/interface naming.
 
-- [ ] https://www.gnu.org/prep/standards/html_node/Using-Extensions.html — when to
+      **Confirmed out-of-scope.** 2026-08-15.
+
+- [x] https://www.gnu.org/prep/standards/html_node/Using-Extensions.html — when to
       use GNU/C language extensions vs portable constructs. C/GNU-extension usage
       policy, not CLI design.
 
-- [ ] https://www.gnu.org/prep/standards/html_node/_002d_002dversion.html — the
+      **Confirmed out-of-scope.** 2026-08-15.
+
+- [x] https://www.gnu.org/prep/standards/html_node/_002d_002dversion.html — the
       exhaustive table of license abbreviations (`GPL`, `LGPL`, `Apache`, `MPL`,
       etc.) and the legal rules for `--version` copyright notices (the word
       "Copyright" must be in English per international treaty, `(C)` vs `©`). Legal
@@ -816,12 +844,16 @@ run, so the analysis is not materially affected.
       `--version` format (captured as a partial gap above), not the license
       taxonomy.
 
-- [ ] https://uxdesign.cc/user-experience-clis-and-breaking-the-world-baed8709244f
+      **Confirmed out-of-scope.** 2026-08-15.
+
+- [x] https://uxdesign.cc/user-experience-clis-and-breaking-the-world-baed8709244f
       — case-study-specific details (the IBM Cloud Kubernetes Service CLI's beta
       environment variable, code-churn statistics, Slack channels, contributor
       names) and the "always run user tests / provide tools / leave plenty of time"
       process advice. Project-specific or process guidance, not CLI interface
       rules.
+
+      **Confirmed out-of-scope.** 2026-08-15.
 
 ## Unresolved
 

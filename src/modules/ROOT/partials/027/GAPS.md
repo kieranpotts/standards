@@ -273,7 +273,7 @@ in the closed items above).
 
 ## Out-of-scope
 
-- [ ] https://google.github.io/styleguide/docguide/style.html#minimum-viable-documentation
+- [x] https://google.github.io/styleguide/docguide/style.html#minimum-viable-documentation
       and https://google.github.io/styleguide/docguide/style.html#better-is-better-than-best
       cover documentation process philosophy (keep docs fresh, delete cruft,
       review etiquette, the "better/best rule"). This sits outside this
@@ -282,19 +282,28 @@ in the closed items above).
       (Technical writing style guide). Flagged for the user to confirm or
       overrule.
 
-- [ ] https://google.github.io/styleguide/docguide/style.html#capitalization
+      **Confirmed out-of-scope for TS-27, routed to TS-26, 2026-08-15.**
+      Filed as a new Missing item in TS-26's `GAPS.md`.
+
+- [x] https://google.github.io/styleguide/docguide/style.html#capitalization
       covers preserving the original capitalization of product, tool, and
       binary names (e.g. `Markdown` not `markdown`). This is a prose writing
       convention that belongs to TS-26 (Technical writing style guide), which
       TS-27 already defers to. Flagged for the user to confirm or overrule.
 
-- [ ] https://google.github.io/styleguide/docguide/style.html#capitalization-of-titles-and-headers
+      **Confirmed out-of-scope for TS-27, routed to TS-26, 2026-08-15.**
+      Filed as a new Missing item in TS-26's `GAPS.md`.
+
+- [x] https://google.github.io/styleguide/docguide/style.html#capitalization-of-titles-and-headers
       covers title/heading capitalization by deferring to the Google
       Developer Documentation Style Guide. This is a writing-style concern
       belonging to TS-26, not a Markdown syntax rule. Flagged for the user to
       confirm or overrule.
 
-- [ ] https://google.github.io/styleguide/docguide/style.html#document-layout
+      **Confirmed out-of-scope for TS-27, routed to TS-26, 2026-08-15.**
+      Filed as a new Missing item in TS-26's `GAPS.md`.
+
+- [x] https://google.github.io/styleguide/docguide/style.html#document-layout
       recommends a document skeleton (`# Document Title`, short introduction,
       `[TOC]`, `## Topic`, `## See also`). This is document-structure
       guidance that overlaps TS-26, and parts of it rely on the Gitiles-only
@@ -303,19 +312,28 @@ in the closed items above).
       directing such needs to AsciiDoc. Flagged for the user to confirm or
       overrule.
 
-- [ ] https://google.github.io/styleguide/docguide/style.html#table-of-contents
+      **Confirmed out-of-scope.** 2026-08-15. Conflicts with TS-27's
+      deliberate `[TOC]`-exclusion stance; not routed elsewhere.
+
+- [x] https://google.github.io/styleguide/docguide/style.html#table-of-contents
       recommends the `[TOC]` directive (a Gitiles-specific extension). TS-27
       explicitly excludes generated TOCs from Markdown's scope
       (`src/modules/ROOT/partials/027/01-overview.adoc:21-28`), so this is a deliberate scope
       disagreement rather than a gap. Flagged for the user to confirm or
       overrule.
 
-- [ ] `__TODO__/027/_markdown.md` (References) links to John Gruber's
+      **Confirmed out-of-scope.** 2026-08-15. TS-27's existing exclusion
+      of generated TOCs is reaffirmed, not reversed.
+
+- [x] `__TODO__/027/_markdown.md` (References) links to John Gruber's
       original 2004 Markdown spec. TS-27 deliberately avoids the original
       Markdown.pl dialect (`src/modules/ROOT/partials/027/02-flavors.adoc:20-22`) and recommends
       GFM/CommonMark instead, so referencing the original spec as a resource
       is out of step with the standard's stated stance. Flagged for the user
       to confirm or overrule.
+
+      **Confirmed out-of-scope.** 2026-08-15. TS-27's GFM/CommonMark
+      stance stands; the original spec is not added as a reference.
 
 ## Unresolved
 

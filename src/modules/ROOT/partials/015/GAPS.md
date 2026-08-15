@@ -653,6 +653,52 @@ not yet fully resolved on the "zero unchecked items of any kind" standard.
       links, and using generous relative-unit leading for screen reading.
       Source added to the page's `== References`.
 
+- [ ] https://www.ibm.com/design/language/ (routed in from the Out-of-scope
+      review, 2026-08-15) — a general principle extracted from IBM's
+      "Build Bonds" design-language philosophy: interfaces should build
+      user trust and relationship over time, not just optimize
+      moment-to-moment usability. The user asked for this to be captured
+      despite the source itself being IBM-specific brand material.
+      Recommend a new principle in `01-design-principles.adoc`. Not yet
+      written into any partial.
+
+- [ ] https://atlassian.design/ (routed in from the Out-of-scope review,
+      2026-08-15) — designing AI experiences: guidance specific to
+      AI-driven or AI-assisted interfaces. Originally judged too narrow a
+      topic for a general interface-design standard; the user overruled
+      that and asked for it to be kept in TS-15. Recommend a new section,
+      likely its own partial given how distinct the topic is from TS-15's
+      existing structure. Not yet written into any partial.
+
+- [ ] https://www.usability.gov/ (routed in from the Out-of-scope review,
+      2026-08-15) — user-research methodology: writing a research plan,
+      conducting a usability test, interview debriefs, participant
+      agreements. Originally judged out of TS-15's design/implementation
+      scope with only a cross-reference to TS-12 (Quality assurance)
+      suggested; the user asked for a full "User research" section
+      instead. Recommend a new section or partial covering the research
+      process at a level appropriate to TS-15's audience, cross-referenced
+      from/to TS-12. Not yet written into any partial.
+
+- [ ] `__TODO__/018/web-clients/_todo/audits.md` (routed in from TS-18's
+      Out-of-scope review, 2026-08-15) — website audit / technical
+      due-diligence checklists. TS-18 (Web GUIs) judged this
+      process/auditing material outside its own scope; the user confirmed
+      it fits TS-15 instead. Recommend placing alongside the new "User
+      research" section, since both are process-oriented additions to
+      TS-15. Not yet checked against TS-15's current content or written
+      into any partial.
+
+- [ ] https://neurodiversity.design/ (Learner Personas) (routed in from
+      TS-18's Out-of-scope review, 2026-08-15) — neurodivergent learner
+      personas (e.g. dyspraxia, dyslexia, ADHD) as a UX-research tool,
+      originally scoped to Learning Management Systems in the source.
+      TS-18 judged the persona-based UX-research method (as opposed to
+      the underlying NDS design principles, already captured as a
+      TS-18 Missing item) out of its own scope; the user confirmed it
+      fits TS-15's new "User research" section instead. Not yet checked
+      against TS-15's current content or written into any partial.
+
 ## Partial
 
 - [x] https://www.nngroup.com/articles/ten-usability-heuristics/ (Heuristic 4:
@@ -776,42 +822,74 @@ not yet fully resolved on the "zero unchecked items of any kind" standard.
 
 ## Out-of-scope
 
-- [ ] https://www.ibm.com/design/language/ ("Build Bonds" philosophy) covers
+- [x] https://www.ibm.com/design/language/ ("Build Bonds" philosophy) covers
       IBM-specific brand ethos. Flagged out-of-scope because it is a corporate
       brand statement rather than a general interface principle.
 
-- [ ] https://developer.microsoft.com/en-us/windows/apps/design covers
+      **Overruled, 2026-08-15.** The user asked for a general principle to
+      be extracted: interfaces should build user trust and relationship
+      over time, not just optimize moment-to-moment usability. Filed as a
+      new Missing item below, to be written up via `close-gaps`.
+
+- [x] https://developer.microsoft.com/en-us/windows/apps/design covers
       Windows-specific app design (UWP/WinUI foundations, input types, form
       factors). Flagged out-of-scope because it is platform-specific guidance;
       any general principle it implies (intuitive, accessible, delightful) is
       already vague enough not to constitute a gap.
 
-- [ ] https://polaris.shopify.com/ (Polaris homepage: Foundations, Components,
+      **Confirmed out-of-scope for TS-15, routed to TS-18, 2026-08-15.**
+      The user felt this may have a place in TS-18 (Web GUIs) instead.
+      Filed as a new Missing item there.
+
+- [x] https://polaris.shopify.com/ (Polaris homepage: Foundations, Components,
       Tokens, Icons) covers Shopify's commerce-domain design system mechanics
       (tokens, coded component packaging, commerce-domain iconography).
       Flagged out-of-scope as design-system implementation detail rather than
       general interface design guidance.
 
-- [ ] https://atlassian.design/ ("Design for AI") covers designing AI
+      **Confirmed out-of-scope for TS-15, routed to TS-18, 2026-08-15.**
+      Design tokens/component packaging judged a web-implementation
+      concern, same reasoning as the item above. Filed as a new Missing
+      item in TS-18.
+
+- [x] https://atlassian.design/ ("Design for AI") covers designing AI
       experiences specifically. Flagged out-of-scope as a narrower topic than
       general user-interface design.
 
-- [ ] https://www.bbc.co.uk/gel/guidelines/category/foundations lists BBC GEL's
+      **Overruled, 2026-08-15.** The user asked for this to be kept in
+      TS-15. Filed as a new Missing item below, to be written up via
+      `close-gaps`.
+
+- [x] https://www.bbc.co.uk/gel/guidelines/category/foundations lists BBC GEL's
       foundational categories (icons, grid, motion, spacing, typography).
       Flagged out-of-scope as a design-system inventory; only the spacing-units
       guidance was extracted as a substantive in-scope gap above.
+
+      **Confirmed out-of-scope.** 2026-08-15.
 
 - [ ] https://design.google/ homepage article blurbs (e.g. "Illustrating the
       Gemini App", "Refreshing Chrome", "UX Design as Dance Theater") are
       individual essays on specific projects. Flagged out-of-scope as
       project-specific narratives rather than general principles.
 
-- [ ] https://www.usability.gov/ resource items (how to write a research plan,
+      **Overruled, but not yet actioned, 2026-08-15.** The homepage
+      blurbs alone don't carry enough to extract a principle from; the
+      user wants the actual linked essays fetched and re-assessed in a
+      future pass before deciding what, if anything, is missing.
+      Deliberately left unticked — this is a standing gap, not resolved
+      to either exclude or include.
+
+- [x] https://www.usability.gov/ resource items (how to write a research plan,
       how to conduct a usability test, interview debriefs, participant
       agreements) cover user-research methodology. Flagged out-of-scope because
       TS-15 is about designing and implementing interfaces, not research
       methods — though the standard could usefully cross-reference TS-12
       (Quality assurance) or a future research standard.
+
+      **Overruled, 2026-08-15.** The user felt user research deserves its
+      own section within TS-15, rather than being excluded or merely
+      cross-referenced. Filed as a new Missing item below, to be written
+      up via `close-gaps`.
 
 ## Unresolved
 

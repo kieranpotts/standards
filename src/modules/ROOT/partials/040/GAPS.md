@@ -174,6 +174,25 @@ into the page. Date: 2026-08-14.
       section's ID-versus-class-count rule. Source (`CSS Master`) already
       added to the page's `== References` by an earlier item in this batch.
 
+- [ ] `__TODO__/css/5000-architecture/` (routed in from the Out-of-scope
+      review, 2026-08-15) — an app-namespace prefix for component class
+      names shared across multiple apps. The user asked specifically for
+      this heuristic to be adopted, overruling the original "alternative,
+      unadopted methodology" classification. Recommend a new paragraph or
+      subsection in `03-class-names.adoc`, alongside the existing
+      component-naming conventions. Not yet written into any partial.
+
+- [ ] https://cssguidelin.es/#naming-conventions (routed in from the
+      Out-of-scope review, 2026-08-15) — a `js-` prefix convention for
+      JavaScript hook classes, as an alternative or addition to TS-40's
+      current `data-*`-attribute JS-hook approach
+      (`03-class-names.adoc:171-183`). The user asked specifically for
+      this to be adopted, overruling the original "alternative naming
+      methodology" classification. Recommend a new paragraph in
+      `03-class-names.adoc`, near the existing `data-*` JS-hook guidance,
+      reconciling the two approaches (e.g. clarifying whether `js-`
+      replaces or supplements `data-*`). Not yet written into any partial.
+
 ## Partial
 
 - [x] `__TODO__/css3/_200-selectors.md:18-43`, the Vanseo Design URL
@@ -428,13 +447,22 @@ into the page. Date: 2026-08-14.
 
 ## Out-of-scope
 
-- [ ] `__TODO__/css/` (terminology, charset formatting, selector/property/value
+- [x] `__TODO__/css/` (terminology, charset formatting, selector/property/value
       formatting, comments, docblocks) and `__TODO__/css3/_todo/general-style.md`
       cover CSS *syntax formatting* and *comment/documentation* conventions. The
       standard explicitly excludes these (`01-overview.adoc:95-99`). Flagged for
       the user to confirm.
 
-- [ ] `__TODO__/css3/_todo/` topic notes on individual properties and techniques
+      **Overruled, pending a scope-broadening RFC, 2026-08-15.** The user
+      wants TS-40 broadened to also cover CSS syntax formatting and to act
+      as a property/technique reference (see items below with the same
+      note). This is a redefinition of a published standard's stated
+      scope — normally an RFC decision — but the user asked to record the
+      decision now without drafting the RFC yet. Not written into any
+      partial; the overview text (`01-overview.adoc`) is unchanged for
+      now. Treat this as a held decision pending formal write-up.
+
+- [x] `__TODO__/css3/_todo/` topic notes on individual properties and techniques
       — `transitions.md`, `backgrounds-and-borders.md`, `filters.md`,
       `forms-and-buttons.md`, `hiding-things.md`, `typography-and-fonts.md`,
       `units.md`, `pseudo-elements.md`, `selectors-and-specificity.md`,
@@ -444,29 +472,47 @@ into the page. Date: 2026-08-14.
       are property/technique references; the standard is an architecture
       methodology, not a property reference. Flagged for the user to confirm.
 
-- [ ] `__TODO__/css3/_todo/performance.md` and `CSS Master.pdf` Ch.3 "Debugging
+      **Overruled, pending a scope-broadening RFC, 2026-08-15.** Same
+      pending scope-broadening decision as the item above.
+
+- [x] `__TODO__/css3/_todo/performance.md` and `CSS Master.pdf` Ch.3 "Debugging
       and Optimization" (minification, CSS Lint, UnCSS, critical-path CSS,
       HTTP/2 concatenation, reflows) cover performance and tooling. The standard
       mentions "rendering speed" as a methodology benefit and covers
       shallow-selector architecture, but performance optimization and tooling
       are explicitly out-of-scope (`01-overview.adoc:46-49`).
 
-- [ ] `CSS Master.pdf` Ch.2 "Managing Styles for Legacy Browsers" (IE
+      **Overruled, pending a scope-broadening RFC, 2026-08-15.** Same
+      pending scope-broadening decision.
+
+- [x] `CSS Master.pdf` Ch.2 "Managing Styles for Legacy Browsers" (IE
       conditional comments) is legacy-IE-specific. The standard's
       progressive-enhancement approach (`02-principles.adoc:399-414`) already
       covers the modern strategy; IE-specific techniques are out-of-scope.
 
-- [ ] The Painless CSS URL's Mistake #9 (SEO / semantic HTML) is covered by
+      **Overruled, pending a scope-broadening RFC, 2026-08-15.** The user
+      confirmed this dated/superseded IE-specific content should still be
+      bundled into the same pending scope-broadening decision, rather than
+      confirmed out on its own dated-content grounds.
+
+- [x] The Painless CSS URL's Mistake #9 (SEO / semantic HTML) is covered by
       TS-39 (HTML) and TS-19 (SEO), not TS-40. Mistakes #2 and #1 (reading
       documentation, learning CSS systematically) are meta/learning advice.
 
-- [ ] `__TODO__/css2/_todo-styleguide.md` and `CSS Master.pdf` Ch.2 "Pattern
+      **Confirmed out-of-scope.** 2026-08-15. Duplicate of TS-39/TS-19
+      coverage, plus generic learning advice; nothing to add.
+
+- [x] `__TODO__/css2/_todo-styleguide.md` and `CSS Master.pdf` Ch.2 "Pattern
       Libraries" cover living style guides, pattern libraries, and
       style-guide-driven development. The overview explicitly states "A web
       design methodology is not a visual style guide or UI pattern library"
       (`01-overview.adoc:45-49`); workflow is also excluded.
 
-- [ ] `__TODO__/css/5000-architecture/` (one-word element names, double-dash
+      **Overruled, routed to TS-18, 2026-08-15.** The user agreed this
+      doesn't belong in TS-40 but should live in TS-18 (Web GUIs) instead
+      of being dropped. Filed as a new Missing item in TS-18's `GAPS.md`.
+
+- [x] `__TODO__/css/5000-architecture/` (one-word element names, double-dash
       `--` modifiers, two-word component names, app-namespace prefixes) and
       `__TODO__/css2/_conventions.md` (special-character class names like
       `OFF_CANVAS/BANNER`) are an *alternative, unadopted* methodology whose
@@ -475,21 +521,34 @@ into the page. Date: 2026-08-14.
       flagged for the user to overrule if any heuristic (e.g. an app-namespace
       prefix for components shared across apps) is wanted.
 
-- [ ] https://cssguidelin.es/#syntax-and-formatting (Multiple Files, Table of
+      **Overruled, 2026-08-15.** The user asked specifically for the
+      app-namespace-prefix heuristic (for components shared across apps)
+      to be adopted. Filed as a new Missing item below, to be written up
+      via `close-gaps`; a concrete, scoped addition, not part of the
+      pending scope-broadening RFC.
+
+- [x] https://cssguidelin.es/#syntax-and-formatting (Multiple Files, Table of
       Contents, 80 Characters Wide, Titling, Anatomy of a Ruleset, Indenting,
       Meaningful Whitespace, HTML quoting/multiclass grouping) and the entire
       https://github.com/necolas/idiomatic-css (whitespace, comments, ruleset
       format, declaration order) cover CSS *syntax formatting* and *commenting*.
       TS-40 explicitly excludes these (`01-overview.adoc:95-99`).
 
-- [ ] https://github.com/anthonyshort/idiomatic-sass from "Naming Conventions"
+      **Overruled, pending a scope-broadening RFC, 2026-08-15.** Same
+      pending scope-broadening decision as the syntax-formatting item
+      above.
+
+- [x] https://github.com/anthonyshort/idiomatic-sass from "Naming Conventions"
       onward (Selectors, Properties, Ordering, Nesting, Indentation, File
       Structure, Functions, Mixins, Modules/Packages, Namespacing, Load Paths,
       Bower package management) is Sass-specific *tooling and preprocessor
       workflow*. TS-40 excludes tooling (`01-overview.adoc:45-49`) and states it
       applies equally to plain CSS or Sass (`01-overview.adoc:101-102`).
 
-- [ ] https://cssguidelin.es/#css-selectors "Selector Performance" (browsers
+      **Overruled, pending a scope-broadening RFC, 2026-08-15.** Same
+      pending scope-broadening decision.
+
+- [x] https://cssguidelin.es/#css-selectors "Selector Performance" (browsers
       read selectors right-to-left; the key selector; descendant vs. child
       selector cost) and idiomatic-sass' nesting-depth-as-performance notes
       cover CSS selector *performance mechanics*. Performance optimisation and
@@ -497,7 +556,10 @@ into the page. Date: 2026-08-14.
       says selector performance "should be fairly low on your list of things to
       optimise."
 
-- [ ] https://cssguidelin.es/#naming-conventions (BEM `__`/`--` syntax, hyphen-
+      **Overruled, pending a scope-broadening RFC, 2026-08-15.** Same
+      pending scope-broadening decision.
+
+- [x] https://cssguidelin.es/#naming-conventions (BEM `__`/`--` syntax, hyphen-
       delimited-only, no camelCase), https://github.com/anthonyshort/idiomatic-sass
       "Naming Conventions" (BEM, Montage `namespace-BlockName-childName`), and
       http://rscss.io/ (two-word dashed component names; one-word elements;
@@ -511,13 +573,22 @@ into the page. Date: 2026-08-14.
       heuristic (e.g. a `js-` hook prefix, which cssguidelin.es advocates over
       TS-40's `data-*` approach at `03-class-names.adoc:171-183`) is wanted.
 
-- [ ] https://cssguidelin.es/#css-selectors "Quasi-Qualified Selectors"
+      **Overruled, 2026-08-15.** The user asked specifically for the
+      `js-` hook-prefix convention to be adopted alongside/instead of the
+      current `data-*` JS-hook approach. Filed as a new Missing item
+      below, to be written up via `close-gaps`; a concrete, scoped
+      addition, not part of the pending scope-broadening RFC.
+
+- [x] https://cssguidelin.es/#css-selectors "Quasi-Qualified Selectors"
       (`/*ul*/.nav`) and "Naming UI Components" (`data-ui-component` attribute)
       are *formatting/annotation techniques* for signalling a class's intended
       context. TS-40 addresses the same concerns via defensive type-qualification
       (`02-principles.adoc:166-194`) and abstract naming
       (`03-class-names.adoc:212-231`); the commented-out and attribute-based
       variants are formatting/annotation conventions, out-of-scope.
+
+      **Overruled, pending a scope-broadening RFC, 2026-08-15.** Same
+      pending scope-broadening decision.
 
 ## Unresolved
 

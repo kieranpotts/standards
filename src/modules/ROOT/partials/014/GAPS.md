@@ -11,10 +11,12 @@ inside, TS-14's stated scope of testing quality attributes: reasoning across
 stack layers to diagnose performance, and benchmarking candidate technologies
 before adoption. Converted from the legacy format on 2026-08-13.
 
-**Status:** 2 of 2 actionable gaps closed (2026-08-13). Added a "Diagnosing
-across abstraction layers" subsection to `02-performance-testing.adoc`.
-Resolved the second gap by cross-reference: the content already exists in
-TS-3 (Design docs). 0 missing, 0 partial, 0 out-of-scope, 0 unresolved.
+**Status:** 2 of 2 original actionable gaps closed (2026-08-13). Added a
+"Diagnosing across abstraction layers" subsection to
+`02-performance-testing.adoc`. Resolved the second gap by cross-reference:
+the content already exists in TS-3 (Design docs). On 2026-08-15 one new
+Missing item was routed in from TS-39's Out-of-scope review (CI/Axe
+accessibility-testing tooling configuration), not yet closed.
 
 ## Missing
 
@@ -44,6 +46,27 @@ TS-3 (Design docs). 0 missing, 0 partial, 0 out-of-scope, 0 unresolved.
       reproducing the symptom at the smallest layer that shows it, and
       growing the capability deliberately through pairing rather than hiring
       for it. Source added to the page's `== References`.
+
+- [ ] `__TODO__/039/html/_accessibility testing checklist.txt:7` (routed in
+      from TS-39's Out-of-scope review, 2026-08-15) — CI/Axe automated
+      accessibility-testing tooling configuration on the `dev` branch.
+      TS-39 judged this HTML-authoring-adjacent but out of its own scope
+      (process/tooling, not a markup rule); TS-18's `AGENTS.md` already
+      states accessibility-testing process is covered by TS-14, so the
+      user directed it here rather than dropping it. Recommend a new
+      subsection in `06-accessibility-testing.adoc` covering
+      CI-integrated automated accessibility scanning (Axe or equivalent)
+      as a testing-pipeline practice. Not yet written into any partial.
+
+- [ ] `__TODO__/018/web-clients/_todo/0300-accessibility.md:60` (Testing)
+      (routed in from TS-18's Out-of-scope review, 2026-08-15) — the
+      assistive-technology test matrix (JAWS, VoiceOver, NVDA, ZoomText,
+      Dragon) and the manual/automated accessibility audit process. TS-18
+      (Web GUIs)'s own `AGENTS.md` already states accessibility-testing
+      process is covered by TS-14, matching the earlier CI/Axe item above.
+      Recommend extending `06-accessibility-testing.adoc` with the AT
+      test-matrix and audit-process content, alongside the CI/Axe
+      subsection. Not yet written into any partial.
 
 ## Partial
 

@@ -617,6 +617,120 @@ section (see the rsjs items above); the performance items sit in
       icon-fonts bullet in `03-fonts.adoc`. Source added to
       `06-references.adoc`.
 
+- [ ] `__TODO__/039/html/_todo/semantic-web.md:1` (routed in from TS-39's
+      Out-of-scope review, 2026-08-15) — "Semantic Web" background (RDF,
+      RDF/XML, RDF Schema, OWL) and its actionable web-client subset: how
+      to actually markup a page with RDFa/structured data as a GUI
+      implementation concern (the vocabulary/syntax mechanics, not just
+      the choice of schema). TS-39 judged the general RDF/OWL background
+      out of its own HTML-authoring scope; the user directed it be routed
+      to TS-18 rather than dropped, since it's a web-client implementation
+      topic. Add a cross-reference from TS-19 (SEO), since structured
+      data/RDFa markup is largely consumed by search engines. Not yet
+      written into any partial.
+
+- [ ] `__TODO__/css2/_todo-styleguide.md` and `CSS Master.pdf` Ch.2
+      "Pattern Libraries" (routed in from TS-40's Out-of-scope review,
+      2026-08-15) — living style guides, pattern libraries, and
+      style-guide-driven development. TS-40 (CSS) explicitly states it is
+      not a visual style guide or UI pattern library, and workflow is
+      also outside its scope; the user agreed this doesn't belong in
+      TS-40 but should live in TS-18 (Web GUIs) rather than being
+      dropped. Not yet checked against TS-18's current content or written
+      into any partial.
+
+- [ ] https://developer.microsoft.com/en-us/windows/apps/design (routed in
+      from TS-15's Out-of-scope review, 2026-08-15) — Windows-specific app
+      design (UWP/WinUI foundations, input types, form factors). TS-15
+      (User interfaces) judged this platform-specific and out of its own
+      general-principles scope; the user felt it may have a place in
+      TS-18 instead. Not yet checked against TS-18's current content or
+      written into any partial — needs assessment for what, if anything,
+      is web-implementation-relevant versus purely Windows-native.
+
+- [ ] https://polaris.shopify.com/ (routed in from TS-15's Out-of-scope
+      review, 2026-08-15) — Shopify Polaris's design-system mechanics:
+      design tokens, coded component packaging, commerce-domain
+      iconography. TS-15 judged this design-system implementation detail
+      rather than general interface principles; the user agreed it fits
+      TS-18 (web-implementation-specific) better. Not yet checked against
+      TS-18's current content or written into any partial.
+
+- [ ] https://stephaniewalter.design/blog/the-ultimate-guide-to-not-fck-up-push-notifications/
+      (moved from Out-of-scope, overruled 2026-08-15) — push-notification
+      UX: do not request permission on page load, ask in context, avoid
+      the "double permission" pattern, timing/precision/personalization,
+      user control and opt-out. Originally judged a distinct feature
+      topic outside TS-18's three stated pillars; the user overruled that
+      and asked for a new notifications section. Recommend a new section,
+      most likely its own partial given how self-contained the topic is.
+      Not yet written into any partial.
+
+- [ ] `__TODO__/018/web-clients/_todo/responsive-design.md` (moved from
+      Out-of-scope, overruled 2026-08-15) — responsive design methodology:
+      mobile-first, `min-width` media queries, content-based breakpoints,
+      the viewport `<meta>` tag, rem-based breakpoints, container queries.
+      TS-18's accessibility section already covers reflow at 320px and
+      orientation, but not the broader methodology. The user asked for a
+      new section. Recommend a new partial, since this is a substantial,
+      coherent topic of its own. Not yet written into any partial.
+
+- [ ] `__TODO__/018/web-clients/_todo/browsers.md` (moved from
+      Out-of-scope, overruled 2026-08-15) — browser/device support policy:
+      a market-share threshold (e.g. 1%), supporting the last two major
+      versions of each supported browser, not testing pre-release betas.
+      Originally judged as testing/support policy belonging to TS-14/
+      TS-15; the user overruled that and asked for it to be kept in
+      TS-18. Recommend a new section, e.g. alongside or near the
+      accessibility/browser-support content. Not yet written into any
+      partial.
+
+- [ ] `__TODO__/018/web-clients/_todo/feature-detection.md` and
+      `polyfilling.md` (moved from Out-of-scope, overruled 2026-08-15) —
+      feature detection vs. user-agent detection, CSS feature detection
+      (`@supports`), and dynamic polyfilling strategy. Originally judged
+      an implementation technique outside the three stated pillars; the
+      user overruled that and asked for it to be kept in TS-18. Recommend
+      a new section, likely near the progressive-enhancement content in
+      `01-performance-optimization.adoc`. Not yet written into any
+      partial.
+
+- [ ] `__TODO__/018/web-clients/_todo/dom.md`, `dom2.md`, `scripting.md`,
+      `window-events.md`, `web-client-apis.md`, `fetch-ajax.md` (moved
+      from Out-of-scope, overruled 2026-08-15) — DOM manipulation, event
+      handling, scripting patterns, XHR/`fetch`, and CORS implementation
+      details. The user asked for this to be written into TS-18, but
+      flagged that it may actually belong in TS-37 (Web platform APIs)
+      instead, with a cross-reference from TS-18 either way — that
+      placement decision is still open. Recommend resolving the TS-18-
+      vs-TS-37 placement question before writing any content, to avoid
+      duplicating the same material in two standards. Not yet written
+      into any partial.
+
+- [ ] `__TODO__/018/web-clients/_todo/0300-accessibility.md:484` (7:1
+      contrast), `:508` (sign-language tracks), and the lower-secondary
+      reading-level guidance (`:159`) (reframed, overruled 2026-08-15) —
+      these target WCAG Level AAA. The user asked for TS-18 to state
+      Level AA as the *minimum* requirement, not the ceiling, and to also
+      cover these AAA items as optional/stretch guidance above that
+      floor. Recommend: (1) editing the existing AA-target statement in
+      `02-web-accessibility.adoc` to frame it explicitly as a minimum;
+      (2) adding a new subsection or set of bullets covering 7:1 contrast,
+      sign-language tracks for video, and lower-secondary reading-level
+      simplification, clearly marked as AAA-level stretch goals rather
+      than the baseline requirement. Not yet written into any partial.
+
+- [ ] https://frontendmasters.com/blog/patterns-for-memory-efficient-dom-manipulation/#profiling-debugging
+      (moved from Out-of-scope, overruled 2026-08-15) — the Chrome
+      DevTools Memory-tab (heap snapshots) and Performance-tab (JavaScript
+      execution timeline, rendering/painting) profiling workflow.
+      Originally judged testing/process material belonging to TS-14/
+      TS-15; the user overruled that and asked for it to be kept in
+      TS-18. Recommend a new section, e.g. in
+      `01-performance-optimization.adoc`, covering the profiling workflow
+      as a practical diagnostic technique. Not yet written into any
+      partial.
+
 ## Partial
 
 - [x] `__TODO__/018/web-clients/_todo/0200-progressive-enhancement.md:7` and `:86` — progressive enhancement as the framing for performance: serve a static baseline that works without JS/CSS, then layer enhancements. TS-18 says "server-render as much HTML as possible" but does not require the no-JS baseline or the progressive-enhancement model, and never states that anything requiring JS must be injected by JS. Recommend strengthening `01-performance-optimization.adoc` L7-9 (server-render bullet) and cross-linking to accessibility.
@@ -719,77 +833,185 @@ The following Partial items are from the resources listed in GitHub issue #61.
 
 ## Out-of-scope
 
-- [ ] `__TODO__/018/web-clients-2/7000-security/200-xsrf.md` (Cross-site request forgery) — XSRF mechanisms (synchronizer token, double-submit token, JSON obfuscation, session expiry, re-authentication). Flagged: TS-18's stated pillars are performance, accessibility, and fonts; web client security is not among them, though a `7000-security/` tree exists in `__TODO__`, suggesting the maintainers may intend to add it. Confirm whether security belongs in TS-18 or a separate standard.
+- [x] `__TODO__/018/web-clients-2/7000-security/200-xsrf.md` (Cross-site request forgery) — XSRF mechanisms (synchronizer token, double-submit token, JSON obfuscation, session expiry, re-authentication). Flagged: TS-18's stated pillars are performance, accessibility, and fonts; web client security is not among them, though a `7000-security/` tree exists in `__TODO__`, suggesting the maintainers may intend to add it. Confirm whether security belongs in TS-18 or a separate standard.
 
-- [ ] `__TODO__/018/web-clients-2/7000-security/300-mitm.md` (Man-in-the-middle) — HTTPS everywhere, `Secure` cookie flag, securing logs/dumps/backups. Flagged for the same scope reason as XSRF.
+      **Overruled, pending a scope-broadening decision, 2026-08-15.** The
+      user wants web-client security added as a fourth pillar to TS-18,
+      alongside performance, accessibility, and fonts. This is a scope
+      redefinition of a published standard; the user asked to record the
+      decision without formalizing it (via RFC or an overview-text edit)
+      yet. Bundled with the three items below (MITM, XSS, Bearer auth) —
+      same pending security-pillar decision.
 
-- [ ] `__TODO__/018/web-clients-2/7000-security/400-xss.md` (Cross-site scripting) — input sanitization, output escaping, `HttpOnly` cookies, avoiding web storage for session data, third-party/CDN script risk. Flagged for the same scope reason as XSRF.
+- [x] `__TODO__/018/web-clients-2/7000-security/300-mitm.md` (Man-in-the-middle) — HTTPS everywhere, `Secure` cookie flag, securing logs/dumps/backups. Flagged for the same scope reason as XSRF.
 
-- [ ] `__TODO__/018/web-clients-2/7000-security/700-bearer-auth.md` (Bearer auth) — token storage trade-offs (memory vs. cookie vs. session/local storage), `HttpOnly` tokens, refresh tokens, revocation, same-origin API proxies. Flagged for the same scope reason as XSRF.
+      **Overruled, pending a scope-broadening decision, 2026-08-15.** Same
+      pending security-pillar decision as XSRF above.
 
-- [ ] https://stephaniewalter.design/blog/the-ultimate-guide-to-not-fck-up-push-notifications/ — push-notification UX (do not request permission on page load; ask in context; the "double permission" pattern; timing/precision/personalization; user control and opt-out). Flagged: push notifications are a distinct feature topic, not one of TS-18's three pillars. Confirm whether to add a notifications section to TS-18.
+- [x] `__TODO__/018/web-clients-2/7000-security/400-xss.md` (Cross-site scripting) — input sanitization, output escaping, `HttpOnly` cookies, avoiding web storage for session data, third-party/CDN script risk. Flagged for the same scope reason as XSRF.
 
-- [ ] `__TODO__/018/web-clients/_todo/0400-architecture.md` — web client architecture (static site, dynamic site, SPA, MPA, micro frontends, PWA, server/client logic split). Plausibly sits outside TS-18 because `AGENTS.md` defers general application architecture to TS-5. Flagged for confirmation.
+      **Overruled, pending a scope-broadening decision, 2026-08-15.** Same
+      pending security-pillar decision.
 
-- [ ] `__TODO__/018/web-clients/_todo/single-pade-applications.md` and `application-frameworks.md` and `application-state.md` — SPA frameworks, MV* patterns, models as single source of truth, framework agnosticity. Out of scope: application architecture (TS-5).
+- [x] `__TODO__/018/web-clients-2/7000-security/700-bearer-auth.md` (Bearer auth) — token storage trade-offs (memory vs. cookie vs. session/local storage), `HttpOnly` tokens, refresh tokens, revocation, same-origin API proxies. Flagged for the same scope reason as XSRF.
 
-- [ ] `__TODO__/018/web-clients/_todo/responsive-design.md` — responsive design methodology (mobile-first, `min-width` media queries, content-based breakpoints, the viewport `<meta>` tag, rem-based breakpoints, container queries). Flagged: TS-18's accessibility section covers reflow at 320px and orientation, but responsive design methodology is not one of the three stated pillars. Confirm whether responsive design belongs in TS-18 (the `__TODO__` placement suggests the maintainers think it might).
+      **Overruled, pending a scope-broadening decision, 2026-08-15.** Same
+      pending security-pillar decision.
 
-- [ ] `__TODO__/018/web-clients/_todo/browsers.md` — browser/device support policy (1% market-share threshold, last two major versions, not testing betas). Out of scope: testing/support policy (TS-14 / TS-15).
+- [x] https://stephaniewalter.design/blog/the-ultimate-guide-to-not-fck-up-push-notifications/ — push-notification UX (do not request permission on page load; ask in context; the "double permission" pattern; timing/precision/personalization; user control and opt-out). Flagged: push notifications are a distinct feature topic, not one of TS-18's three pillars. Confirm whether to add a notifications section to TS-18.
 
-- [ ] `__TODO__/018/web-clients/_todo/feature-detection.md` and `polyfilling.md` — feature detection vs. user-agent detection, CSS feature detection, dynamic polyfilling. Flagged: implementation technique, not one of the three pillars. Confirm scope.
+      **Overruled, 2026-08-15.** The user asked for a new notifications
+      section to be added. Filed as a new Missing item below, to be
+      written up via `close-gaps`.
 
-- [ ] `__TODO__/018/web-clients/_todo/dom.md`, `dom2.md`, `scripting.md`, `window-events.md`, `web-client-apis.md`, `fetch-ajax.md` — DOM/events/scripting/XHR/CORS/web-client-API implementation details. Out of scope: low-level implementation guidance beyond TS-18's three pillars.
+- [x] `__TODO__/018/web-clients/_todo/0400-architecture.md` — web client architecture (static site, dynamic site, SPA, MPA, micro frontends, PWA, server/client logic split). Plausibly sits outside TS-18 because `AGENTS.md` defers general application architecture to TS-5. Flagged for confirmation.
 
-- [ ] `__TODO__/018/web-clients/_todo/i18n.md` — internationalization (localization, translation, dialects, UTF-8/Unicode). Out of scope: i18n is a separate concern (likely its own standard).
+      **Overruled, pending a scope-broadening decision, 2026-08-15.** The
+      user wants TS-18 to cover web client architecture, reversing its
+      documented deferral to TS-5. Recorded as a decision without
+      formalizing it yet. Bundled with the three items below (SPA
+      frameworks, PWA, microfrontends) — same pending architecture-scope
+      decision.
 
-- [ ] `__TODO__/018/web-clients/_todo/seo.md` — SEO. Out of scope: TS-19 covers SEO.
+- [x] `__TODO__/018/web-clients/_todo/single-pade-applications.md` and `application-frameworks.md` and `application-state.md` — SPA frameworks, MV* patterns, models as single source of truth, framework agnosticity. Out of scope: application architecture (TS-5).
 
-- [ ] `__TODO__/018/web-clients/_todo/pwa.md` — Progressive Web Apps as a packaging/installability model. Out of scope: TS-18 already references service workers for caching; PWA as an architecture is out of scope (TS-5).
+      **Overruled, pending a scope-broadening decision, 2026-08-15.** Same
+      pending architecture-scope decision as `0400-architecture.md` above.
 
-- [ ] `__TODO__/018/web-clients/_todo/audits.md` — website audit / technical due-diligence checklists. Out of scope: process/auditing (TS-14 / TS-15).
+- [x] `__TODO__/018/web-clients/_todo/responsive-design.md` — responsive design methodology (mobile-first, `min-width` media queries, content-based breakpoints, the viewport `<meta>` tag, rem-based breakpoints, container queries). Flagged: TS-18's accessibility section covers reflow at 320px and orientation, but responsive design methodology is not one of the three stated pillars. Confirm whether responsive design belongs in TS-18 (the `__TODO__` placement suggests the maintainers think it might).
 
-- [ ] `__TODO__/018/web-clients/_todo/0300-accessibility.md:60` (Testing) — the assistive-technology test matrix (JAWS, VoiceOver, NVDA, ZoomText, Dragon) and the manual/automated accessibility audit process. Out of scope: TS-18's `AGENTS.md` states that "Accessibility testing process is covered by TS-14: Performance testing."
+      **Overruled, 2026-08-15.** The user asked for a new responsive
+      design section to be added — a concrete, self-contained topic,
+      unlike the broader architecture/security bundles. Filed as a new
+      Missing item below, to be written up via `close-gaps`.
 
-- [ ] `__TODO__/018/web-clients/_todo/0300-accessibility.md:484` (7:1 contrast), `:508` (sign-language tracks), and the lower-secondary reading-level guidance (`:159`) — these target WCAG Level AAA. Out of scope: TS-18 explicitly targets Level AA.
+- [x] `__TODO__/018/web-clients/_todo/browsers.md` — browser/device support policy (1% market-share threshold, last two major versions, not testing betas). Out of scope: testing/support policy (TS-14 / TS-15).
 
-- [ ] https://w3ctag.github.io/design-principles/ — the W3C TAG Web Platform Design Principles (priority of constituencies, safe-to-visit, trusted UI, user activation, feature detectability, etc.). Out of scope: this document is aimed at designers of web-platform specifications/APIs, not at builders of web GUIs.
+      **Overruled, 2026-08-15.** The user asked for this to be kept in
+      TS-18. Filed as a new Missing item below, to be written up via
+      `close-gaps`.
 
-- [ ] https://webstyleguide.com/ — Web Style Guide (Lynch & Horton) covers Strategy, Research, Process, Information Architecture, Site/Page Structure, Interface Design, Graphic Design, Typography, Editorial Style, Images, and Video. Out of scope: broader UI/usability guidance (TS-15). Only the table-of-contents page was retrievable; the per-chapter content was not fetched (see Unresolved).
+- [x] `__TODO__/018/web-clients/_todo/feature-detection.md` and `polyfilling.md` — feature detection vs. user-agent detection, CSS feature detection, dynamic polyfilling. Flagged: implementation technique, not one of the three pillars. Confirm scope.
+
+      **Overruled, 2026-08-15.** The user asked for this to be kept in
+      TS-18. Filed as a new Missing item below, to be written up via
+      `close-gaps`.
+
+- [x] `__TODO__/018/web-clients/_todo/dom.md`, `dom2.md`, `scripting.md`, `window-events.md`, `web-client-apis.md`, `fetch-ajax.md` — DOM/events/scripting/XHR/CORS/web-client-API implementation details. Out of scope: low-level implementation guidance beyond TS-18's three pillars.
+
+      **Overruled, placement undecided between TS-18 and TS-37,
+      2026-08-15.** The user asked for this to be written in, but flagged
+      that it may actually belong in TS-37 (Web platform APIs) instead,
+      with a cross-reference from TS-18 either way. Filed as a new
+      Missing item below in TS-18 pending that placement decision, and
+      not yet duplicated into TS-37 to avoid double-booking the same
+      content in two standards at once.
+
+- [x] `__TODO__/018/web-clients/_todo/i18n.md` — internationalization (localization, translation, dialects, UTF-8/Unicode). Out of scope: i18n is a separate concern (likely its own standard).
+
+      **Overruled pending a new standard, 2026-08-15.** The user decided
+      internationalization warrants a dedicated new technical standard,
+      not yet created. Held here rather than routed, pending that
+      standard's creation.
+
+- [x] `__TODO__/018/web-clients/_todo/seo.md` — SEO. Out of scope: TS-19 covers SEO.
+
+      **Confirmed out-of-scope for TS-18, routed to TS-19, 2026-08-15.**
+      Filed as a new item in TS-19's `GAPS.md`.
+
+- [x] `__TODO__/018/web-clients/_todo/pwa.md` — Progressive Web Apps as a packaging/installability model. Out of scope: TS-18 already references service workers for caching; PWA as an architecture is out of scope (TS-5).
+
+      **Overruled, pending a scope-broadening decision, 2026-08-15.** Same
+      pending architecture-scope decision as `0400-architecture.md` above.
+
+- [x] `__TODO__/018/web-clients/_todo/audits.md` — website audit / technical due-diligence checklists. Out of scope: process/auditing (TS-14 / TS-15).
+
+      **Confirmed out-of-scope for TS-18, routed to TS-15, 2026-08-15.**
+      Filed as a new item in TS-15's `GAPS.md`.
+
+- [x] `__TODO__/018/web-clients/_todo/0300-accessibility.md:60` (Testing) — the assistive-technology test matrix (JAWS, VoiceOver, NVDA, ZoomText, Dragon) and the manual/automated accessibility audit process. Out of scope: TS-18's `AGENTS.md` states that "Accessibility testing process is covered by TS-14: Performance testing."
+
+      **Confirmed out-of-scope for TS-18, routed to TS-14, 2026-08-15.**
+      Matches TS-18's documented deferral and the earlier CI/Axe item
+      routed the same way from TS-39. Filed as a new item in TS-14's
+      `GAPS.md`, alongside that earlier one.
+
+- [x] `__TODO__/018/web-clients/_todo/0300-accessibility.md:484` (7:1 contrast), `:508` (sign-language tracks), and the lower-secondary reading-level guidance (`:159`) — these target WCAG Level AAA. Out of scope: TS-18 explicitly targets Level AA.
+
+      **Reframed, 2026-08-15.** The user asked for TS-18 to state AA as
+      the *minimum* requirement while also covering AAA guidelines, not
+      simply reversing the AA-only target. Filed as a new Missing item
+      below — a concrete, precisely-scoped change — to be written up via
+      `close-gaps`: adjust the existing AA-target statement, then add the
+      three named AAA items (7:1 contrast, sign-language tracks, reading-
+      level simplification) as stretch/optional guidance above the floor.
+
+- [x] https://w3ctag.github.io/design-principles/ — the W3C TAG Web Platform Design Principles (priority of constituencies, safe-to-visit, trusted UI, user activation, feature detectability, etc.). Out of scope: this document is aimed at designers of web-platform specifications/APIs, not at builders of web GUIs.
+
+      **Confirmed out-of-scope.** 2026-08-15.
+
+- [x] https://webstyleguide.com/ — Web Style Guide (Lynch & Horton) covers Strategy, Research, Process, Information Architecture, Site/Page Structure, Interface Design, Graphic Design, Typography, Editorial Style, Images, and Video. Out of scope: broader UI/usability guidance (TS-15). Only the table-of-contents page was retrievable; the per-chapter content was not fetched (see Unresolved).
+
+      **Overruled, pending a scope-broadening decision, 2026-08-15.** The
+      user suggested TS-19 (SEO) could be expanded into a broader Content
+      Strategy and SEO standard, which might be a better home for this
+      remaining content-strategy/process material (Interface Design and
+      Typography chapters were already routed to TS-15 earlier this run;
+      Images was already closed against TS-18 itself). Held pending that
+      decision — not fetched, not routed, not written in.
 
 The following items were relocated from TS-36's gap analysis (rsjs). They are
 out-of-scope for TS-18 because they are library-specific, jQuery-specific, or
 dated tooling recipes rather than web-GUI design/implementation guidance.
 
-- [ ] https://ricostacruz.com/rsjs/#consider-using-onmount — recommending the
+- [x] https://ricostacruz.com/rsjs/#consider-using-onmount — recommending the
       `onmount` library specifically is a library/tooling recommendation for
       jQuery-era DOM lifecycles, outside TS-18's scope.
 
-- [ ] https://ricostacruz.com/rsjs/#use-each-when-needed — using `jQuery.each`
+      **Confirmed out-of-scope.** 2026-08-15.
+
+- [x] https://ricostacruz.com/rsjs/#use-each-when-needed — using `jQuery.each`
       to initialize per-element state is a jQuery-specific pattern, outside
       TS-18's scope.
 
-- [ ] https://ricostacruz.com/rsjs/#load-3rd-party-resources-asynchronously —
+      **Confirmed out-of-scope.** 2026-08-15.
+
+- [x] https://ricostacruz.com/rsjs/#load-3rd-party-resources-asynchronously —
       async-loading external vendor scripts (e.g. Google Maps) via a helper
       that defers a global to a callback is a legacy pattern superseded by
       dynamic `import()`. The script-loading-strategy gap is already tracked
       above from the `web-clients` reference. Out of scope as a dated
       technique.
 
-- [ ] https://ricostacruz.com/rsjs/#loading-component-files — the appendix
+      **Confirmed out-of-scope.** 2026-08-15.
+
+- [x] https://ricostacruz.com/rsjs/#loading-component-files — the appendix
       recipes for bulk-loading `behaviors/` via Rails Sprockets `require_tree`,
       Browserify `require-globify`, Webpack `require.context`, and Brunch
       `glob-brunch` are dated tooling recipes for concatenation pipelines,
       outside TS-18's scope.
 
+      **Confirmed out-of-scope.** 2026-08-15.
+
 The following Out-of-scope items are from the resources listed in GitHub
 issue #61.
 
-- [ ] https://vercel.com/blog/how-vercel-adopted-microfrontends — microfrontends architecture: vertical (split-by-path) vs horizontal (split-by-feature) microfrontends, Next.js Multi-Zones, monorepo with Turborepo, and incremental migration via feature flags. Out of scope: application architecture (TS-5). This overlaps with the existing `0400-architecture.md` out-of-scope item above. The prefetch/prerender performance angle (Speculation Rules to mitigate hard navigations between microfrontends) is captured as a missing gap above.
+- [x] https://vercel.com/blog/how-vercel-adopted-microfrontends — microfrontends architecture: vertical (split-by-path) vs horizontal (split-by-feature) microfrontends, Next.js Multi-Zones, monorepo with Turborepo, and incremental migration via feature flags. Out of scope: application architecture (TS-5). This overlaps with the existing `0400-architecture.md` out-of-scope item above. The prefetch/prerender performance angle (Speculation Rules to mitigate hard navigations between microfrontends) is captured as a missing gap above.
 
-- [ ] https://frontendmasters.com/blog/patterns-for-memory-efficient-dom-manipulation/#profiling-debugging — the Chrome DevTools Memory-tab (heap snapshots) and Performance-tab (JavaScript execution timeline, rendering/painting) profiling workflow. Out of scope: testing/process (TS-14 / TS-15).
+      **Overruled, pending a scope-broadening decision, 2026-08-15.** Same
+      pending architecture-scope decision as `0400-architecture.md` above.
 
-- [ ] https://neurodiversity.design/ (Learner Personas) — neurodivergent learner personas (e.g. dyspraxia, dyslexia, ADHD) as a UX-research tool, scoped to Learning Management Systems. Out of scope: persona-based UX research and LMS-specific design (plausibly TS-15). The NDS design-principle content is captured as a missing gap above.
+- [x] https://frontendmasters.com/blog/patterns-for-memory-efficient-dom-manipulation/#profiling-debugging — the Chrome DevTools Memory-tab (heap snapshots) and Performance-tab (JavaScript execution timeline, rendering/painting) profiling workflow. Out of scope: testing/process (TS-14 / TS-15).
+
+      **Overruled, 2026-08-15.** The user asked for this to be kept in
+      TS-18. Filed as a new Missing item below, to be written up via
+      `close-gaps`.
+
+- [x] https://neurodiversity.design/ (Learner Personas) — neurodivergent learner personas (e.g. dyspraxia, dyslexia, ADHD) as a UX-research tool, scoped to Learning Management Systems. Out of scope: persona-based UX research and LMS-specific design (plausibly TS-15). The NDS design-principle content is captured as a missing gap above.
+
+      **Confirmed out-of-scope for TS-18, routed to TS-15, 2026-08-15.**
+      Fits alongside the new "User research" section just added to TS-15
+      this run. Filed as a new item in TS-15's `GAPS.md`.
 
 ## Unresolved
 
