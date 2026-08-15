@@ -102,6 +102,15 @@ they are restated in the run summary reported to the user, for the user to
 confirm or overrule, consistent with how this file has always treated a
 scope call as the user's decision rather than the gap-closing agent's.
 
+**Seventh run (`close-gaps`), 2026-08-15.** The one Missing item left open
+by the sixth run — neurodiversity.design — was closed. All eight
+per-principle pages (Font, Typography, Colour, Buttons/Links/Inputs,
+Interface, Numbers, Animations, Communications) retrieved successfully on
+re-fetch, closing both this item and its paired Unresolved entry. Closed by
+a new "5. Neurodiversity" section in `02-web-accessibility.adoc`. TS-18 now
+has 0 actionable items; 26 Out-of-scope and 5 Unresolved items remain open,
+none of them actioned in this run.
+
 ## Missing
 
 - [x] https://csswizardry.com/2019/08/time-to-first-byte-what-it-is-and-why-it-matters/#what-is-ttfb — Time to First Byte (TTFB) as a performance metric and its contributors (latency, routing, application runtime, DB queries, SSR cost). TS-18 mentions LCP but never TTFB. Recommend a new subsection in `01-performance-optimization.adoc` after the LCP note (~L53). Reinforced by https://web.dev/articles/top-cwv#3-use-a-cdn-to-optimize-ttfb, which frames TTFB as CDN-optimizable and additionally recommends caching static HTML at the edge (even briefly) and moving dynamic logic to edge compute — TS-18's CDN/Squid bullets (L31-34) cover CDN and proxy caching but not edge-cached HTML or edge compute.
@@ -400,7 +409,7 @@ section (see the rsjs items above); the performance items sit in
       `AbortController`. Source (frontendmasters.com) added to
       `06-references.adoc`.
 
-- [ ] https://neurodiversity.design/ — neurodiversity / cognitive-accessibility design guidance: the Neurodiversity Design System covers Font, Typography, Colour, Buttons/Links/Inputs, Interface, Communications, Numbers, and Animations for neurodivergent learners (e.g. font shapes that help dyslexic readers; typography that supports reading on screens). TS-18's opening states it covers "cognitive disabilities" and targets WCAG 2.2 Level AA, but its body provides no neurodiversity-specific guidance beyond `prefers-reduced-motion` (animations) and general colour contrast. Missing (with a scope nuance: TS-18 explicitly claims cognitive disabilities, so this is in scope; much of the NDS goes beyond WCAG AA, but TS-18's own framing invites it). Recommend a new subsection in `02-web-accessibility.adoc`. NOTE: only the NDS landing page was retrieved — see Unresolved.
+- [x] https://neurodiversity.design/ — neurodiversity / cognitive-accessibility design guidance: the Neurodiversity Design System covers Font, Typography, Colour, Buttons/Links/Inputs, Interface, Communications, Numbers, and Animations for neurodivergent learners (e.g. font shapes that help dyslexic readers; typography that supports reading on screens). TS-18's opening states it covers "cognitive disabilities" and targets WCAG 2.2 Level AA, but its body provides no neurodiversity-specific guidance beyond `prefers-reduced-motion` (animations) and general colour contrast. Missing (with a scope nuance: TS-18 explicitly claims cognitive disabilities, so this is in scope; much of the NDS goes beyond WCAG AA, but TS-18's own framing invites it). Recommend a new subsection in `02-web-accessibility.adoc`. NOTE: only the NDS landing page was retrieved — see Unresolved.
 
       **Left open, 2026-08-14.** Not actioned in this run. As the item's
       own note flags, only the NDS landing page was ever retrieved — two
@@ -409,6 +418,32 @@ section (see the rsjs items above); the performance items sit in
       not actually provide. Re-fetching the per-principle pages (see the
       paired Unresolved item below) is a precondition for closing this, not
       optional polish.
+
+      **Resolved, 2026-08-15.** The eight per-principle pages (Font,
+      Typography, Colour, Buttons/Links/Inputs, Interface, Numbers,
+      Animations, Communications) retrieved successfully this run — the
+      persistent-fetch-failure that blocked the 2026-08-14 run had cleared.
+      Closed by a new "5. Neurodiversity" section appended to
+      `02-web-accessibility.adoc`, after the standard's existing four WCAG
+      principle sections (Perceivable/Operable/Understandable/Robust),
+      since the guidance is cross-cutting and does not map cleanly onto any
+      single one of the four. Covers: typeface shape and spacing for
+      dyslexia (humanist sans-serif, distinct letterforms, single-storey
+      a/g, line-height and letter-spacing targets); a 7:1 AAA contrast
+      preference and colour-overlay themes over the standard's own 4.5:1 AA
+      floor, plus consistent functional colour-coding; visually distinct
+      interactive states and larger click targets (Fitts's Law); consistent
+      layout with only essential elements visible, to reduce ADHD-relevant
+      choice overload; numeric-input auto-formatting, digit grouping, and
+      pairing bare numbers with a visual representation, for dyscalculia;
+      animation bounds (at most one-third of the viewport, no parallax or
+      auto-looping) to avoid triggering vestibular disorders, layered on top
+      of the standard's existing `prefers-reduced-motion` requirement in
+      "2. Operable" rather than replacing it; and plain, consistent,
+      solution-focused written microcopy. Learner personas and LMS-specific
+      UX-research content from the same site were excluded, per the
+      out-of-scope item below. Source added to `06-references.adoc`, citing
+      the site root and naming the eight principle pages actually used.
 
 - [x] https://www.trysmudford.com/blog/hyper-responsive-web-components/
       ("Responsive typography & space") — fluid typography via `clamp()` with
@@ -695,6 +730,10 @@ issue #61.
 
 - [ ] `__TODO__/018/web-clients/_todo/encoding.md`, `modules-and-bundling.md`, and `0500-csp.md` are empty stubs (no substantive content), so no claims were extracted from them.
 
-- [ ] https://neurodiversity.design/ — only the landing page was retrieved. The per-principle pages (Numbers, Font, Typography, Colour, Buttons/Links/Inputs, Interface, Communications, Animations) were not fetched, so the cognitive-accessibility gap above is based on the landing page's category list and two inline snippets ("the right typography can support neurodivergent learners' reading on screens"; "specific font shapes that make dyslexic readers, read better") only. Re-run with the individual principle-page URLs to compare in depth.
+- [x] https://neurodiversity.design/ — only the landing page was retrieved. The per-principle pages (Numbers, Font, Typography, Colour, Buttons/Links/Inputs, Interface, Communications, Animations) were not fetched, so the cognitive-accessibility gap above is based on the landing page's category list and two inline snippets ("the right typography can support neurodivergent learners' reading on screens"; "specific font shapes that make dyslexic readers, read better") only. Re-run with the individual principle-page URLs to compare in depth.
+
+      **Dismissed, 2026-08-15.** All eight per-principle pages retrieved
+      successfully on re-fetch (the previous run's failure did not recur).
+      Content compared against TS-18 and closed as the Missing item above.
 
 - [ ] https://www.youtube.com/watch?v=-Ln-8QM8KhQ — this video is already listed in TS-18's own `04-references.adoc`. The comparison is against the creator's video description (extracted via the helper script), not a full transcript. The description's chapters (Server-Rendered HTML, Prefetching HTML, CDN Caching, Client Caching with Service Worker, Preloading Assets, Critical CSS, LCP, Fixed-Size Images, JavaScript) map almost 1-1 to TS-18's existing `01-performance-optimization.adoc` content, so no new gaps were identified from it. A full transcript was not fetched, so spoken-only details could not be verified.
