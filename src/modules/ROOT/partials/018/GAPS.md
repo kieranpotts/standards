@@ -144,6 +144,34 @@ Living Standard specification instead. TS-18 now has 0 actionable items.
 26 Out-of-scope items and 1 Unresolved item (webstyleguide.com's other
 chapters) remain open — neither actioned in this run.
 
+**Tenth run (`close-gaps`), 2026-08-15.** 8 of the 9 Missing items added by
+the previous day's Out-of-scope sweep were closed, across three new
+partials and edits to two existing ones. New partials:
+`07-responsive-design.adoc` (mobile-first methodology, content-based/`rem`
+breakpoints, the viewport meta tag), `08-push-notifications.adoc`
+(permission-request timing, the double-permission anti-pattern, user
+control), and `09-browser-support.adoc` (market-share support policy plus
+feature detection/polyfilling, combined into one partial since both answer
+"which environments must this GUI work in, and how"). `06-references.adoc`
+was renumbered to `10-references.adoc` to make room, using `git mv`; the
+page's include list was rebuilt accordingly. Existing-partial edits: a new
+"Profiling" section and a "Structured data" subsection in
+`01-performance-optimization.adoc` and `02-web-accessibility.adoc`
+respectively (the TS-39-routed RDFa item), a new "Pattern libraries and
+living style guides" section in `04-javascript-behaviors.adoc` (the
+TS-40-routed item), and the AA-as-floor reframing plus a new "Beyond Level
+AA" section in `02-web-accessibility.adoc` covering the three named AAA
+stretch items. The one remaining Missing item (DOM/scripting/fetch/CORS,
+`__TODO__/018/web-clients/_todo/dom.md` and siblings) was left open at the
+user's direction, since it is explicitly flagged as needing a TS-18-vs-
+TS-37 placement decision before writing, to avoid duplicating content
+across both standards. Two Out-of-scope-originated items (Windows app
+design, Shopify Polaris) were also deferred at the user's direction — both
+need an assessment of what content is actually web-implementation-relevant
+before writing, not just transcription. TS-18 now has 2 actionable items
+(both Missing, both deferred as above), 26 Out-of-scope items, and 1
+Unresolved item — none of the last two categories actioned in this run.
+
 ## Missing
 
 - [x] https://csswizardry.com/2019/08/time-to-first-byte-what-it-is-and-why-it-matters/#what-is-ttfb — Time to First Byte (TTFB) as a performance metric and its contributors (latency, routing, application runtime, DB queries, SSR cost). TS-18 mentions LCP but never TTFB. Recommend a new subsection in `01-performance-optimization.adoc` after the LCP note (~L53). Reinforced by https://web.dev/articles/top-cwv#3-use-a-cdn-to-optimize-ttfb, which frames TTFB as CDN-optimizable and additionally recommends caching static HTML at the edge (even briefly) and moving dynamic logic to edge compute — TS-18's CDN/Squid bullets (L31-34) cover CDN and proxy caching but not edge-cached HTML or edge compute.
@@ -617,7 +645,7 @@ section (see the rsjs items above); the performance items sit in
       icon-fonts bullet in `03-fonts.adoc`. Source added to
       `06-references.adoc`.
 
-- [ ] `__TODO__/039/html/_todo/semantic-web.md:1` (routed in from TS-39's
+- [x] `__TODO__/039/html/_todo/semantic-web.md:1` (routed in from TS-39's
       Out-of-scope review, 2026-08-15) — "Semantic Web" background (RDF,
       RDF/XML, RDF Schema, OWL) and its actionable web-client subset: how
       to actually markup a page with RDFa/structured data as a GUI
@@ -629,7 +657,17 @@ section (see the rsjs items above); the performance items sit in
       data/RDFa markup is largely consumed by search engines. Not yet
       written into any partial.
 
-- [ ] `__TODO__/css2/_todo-styleguide.md` and `CSS Master.pdf` Ch.2
+      **Resolved.** Closed by a new "Structured data" subsection in
+      `02-web-accessibility.adoc`, "4. Robust". Recommends schema.org
+      vocabulary in JSON-LD over RDFa/Microdata (a self-contained block
+      rather than markup-threaded attributes), and cross-links TS-19 (SEO)
+      for how the markup affects search-result presentation, plus notes
+      why the mechanics live here rather than in TS-19: it is markup that
+      lives in the page the GUI renders. RDF/OWL's general background
+      (outside the actionable web-client subset) was not written up —
+      TS-39's routing note scoped this item to the markup mechanics only.
+
+- [x] `__TODO__/css2/_todo-styleguide.md` and `CSS Master.pdf` Ch.2
       "Pattern Libraries" (routed in from TS-40's Out-of-scope review,
       2026-08-15) — living style guides, pattern libraries, and
       style-guide-driven development. TS-40 (CSS) explicitly states it is
@@ -638,6 +676,18 @@ section (see the rsjs items above); the performance items sit in
       TS-40 but should live in TS-18 (Web GUIs) rather than being
       dropped. Not yet checked against TS-18's current content or written
       into any partial.
+
+      **Resolved.** Closed by a new "Pattern libraries and living style
+      guides" section in `04-javascript-behaviors.adoc`, placed alongside
+      the component-behavior conventions since a pattern library catalogs
+      the same components those conventions organize. Covers building the
+      library from the application's own component markup/styles rather
+      than hand-copied examples, documenting component states and
+      variants, and using it as the canonical check before building a new
+      component. `CSS Master.pdf` was not re-extracted for this run — the
+      `__TODO__/css2/_todo-styleguide.md` source and the routing note's
+      own summary were sufficient to write the section without
+      fabricating detail beyond what was already recorded.
 
 - [ ] https://developer.microsoft.com/en-us/windows/apps/design (routed in
       from TS-15's Out-of-scope review, 2026-08-15) — Windows-specific app
@@ -656,7 +706,7 @@ section (see the rsjs items above); the performance items sit in
       TS-18 (web-implementation-specific) better. Not yet checked against
       TS-18's current content or written into any partial.
 
-- [ ] https://stephaniewalter.design/blog/the-ultimate-guide-to-not-fck-up-push-notifications/
+- [x] https://stephaniewalter.design/blog/the-ultimate-guide-to-not-fck-up-push-notifications/
       (moved from Out-of-scope, overruled 2026-08-15) — push-notification
       UX: do not request permission on page load, ask in context, avoid
       the "double permission" pattern, timing/precision/personalization,
@@ -666,7 +716,13 @@ section (see the rsjs items above); the performance items sit in
       most likely its own partial given how self-contained the topic is.
       Not yet written into any partial.
 
-- [ ] `__TODO__/018/web-clients/_todo/responsive-design.md` (moved from
+      **Resolved.** Closed by a new `08-push-notifications.adoc` partial:
+      no permission request on page load, asking in context, the
+      double-permission anti-pattern, explaining what/how-often before
+      requesting, relevance/precision of timing, and discoverable
+      opt-out. Source added to `10-references.adoc`.
+
+- [x] `__TODO__/018/web-clients/_todo/responsive-design.md` (moved from
       Out-of-scope, overruled 2026-08-15) — responsive design methodology:
       mobile-first, `min-width` media queries, content-based breakpoints,
       the viewport `<meta>` tag, rem-based breakpoints, container queries.
@@ -675,7 +731,14 @@ section (see the rsjs items above); the performance items sit in
       new section. Recommend a new partial, since this is a substantial,
       coherent topic of its own. Not yet written into any partial.
 
-- [ ] `__TODO__/018/web-clients/_todo/browsers.md` (moved from
+      **Resolved.** Closed by a new `07-responsive-design.adoc` partial:
+      mobile-first with `min-width` media queries, content-based
+      breakpoints (not device-specific ones), `rem`-based breakpoints, a
+      cross-link to container queries for component-level responsiveness,
+      and the viewport `<meta>` tag. Cross-links the existing 320px reflow
+      requirement in <<1. Perceivable>> rather than repeating it.
+
+- [x] `__TODO__/018/web-clients/_todo/browsers.md` (moved from
       Out-of-scope, overruled 2026-08-15) — browser/device support policy:
       a market-share threshold (e.g. 1%), supporting the last two major
       versions of each supported browser, not testing pre-release betas.
@@ -685,7 +748,13 @@ section (see the rsjs items above); the performance items sit in
       accessibility/browser-support content. Not yet written into any
       partial.
 
-- [ ] `__TODO__/018/web-clients/_todo/feature-detection.md` and
+      **Resolved.** Closed by the "Browser support policy" subsection of
+      a new `09-browser-support.adoc` partial: a market-share (~1%)
+      threshold measured from the application's own traffic, the last-
+      two-major-versions rule, and the prohibition on testing against
+      pre-release betas.
+
+- [x] `__TODO__/018/web-clients/_todo/feature-detection.md` and
       `polyfilling.md` (moved from Out-of-scope, overruled 2026-08-15) —
       feature detection vs. user-agent detection, CSS feature detection
       (`@supports`), and dynamic polyfilling strategy. Originally judged
@@ -694,6 +763,16 @@ section (see the rsjs items above); the performance items sit in
       a new section, likely near the progressive-enhancement content in
       `01-performance-optimization.adoc`. Not yet written into any
       partial.
+
+      **Resolved.** Closed by the "Feature detection and polyfilling"
+      subsection of the new `09-browser-support.adoc` partial (placed
+      alongside browser support policy rather than in
+      `01-performance-optimization.adoc`, since both are the same
+      "which environments must this GUI work in, and how" concern):
+      feature detection over user-agent sniffing, `@supports` for CSS
+      (with a cross-link to <<Container queries>> as a worked example),
+      dynamic/conditional polyfill loading, and preferring a Baseline
+      platform feature over a polyfill where support allows.
 
 - [ ] `__TODO__/018/web-clients/_todo/dom.md`, `dom2.md`, `scripting.md`,
       `window-events.md`, `web-client-apis.md`, `fetch-ajax.md` (moved
@@ -707,7 +786,7 @@ section (see the rsjs items above); the performance items sit in
       duplicating the same material in two standards. Not yet written
       into any partial.
 
-- [ ] `__TODO__/018/web-clients/_todo/0300-accessibility.md:484` (7:1
+- [x] `__TODO__/018/web-clients/_todo/0300-accessibility.md:484` (7:1
       contrast), `:508` (sign-language tracks), and the lower-secondary
       reading-level guidance (`:159`) (reframed, overruled 2026-08-15) —
       these target WCAG Level AAA. The user asked for TS-18 to state
@@ -720,7 +799,17 @@ section (see the rsjs items above); the performance items sit in
       simplification, clearly marked as AAA-level stretch goals rather
       than the baseline requirement. Not yet written into any partial.
 
-- [ ] https://frontendmasters.com/blog/patterns-for-memory-efficient-dom-manipulation/#profiling-debugging
+      **Resolved.** Closed in `02-web-accessibility.adoc`: the opening
+      "Level AA is the target RECOMMENDED" statement now explicitly
+      states AA as a floor, cross-linking a new "Beyond Level AA" section
+      appended after "5. Neurodiversity". That section covers the three
+      named AAA items as OPTIONAL stretch goals — 7:1 contrast (4.5:1 for
+      large text), sign-language video tracks alongside pre-recorded
+      audio content, and lower-secondary reading level for non-technical
+      content — each cross-linked to the related AA/neurodiversity
+      guidance it builds on rather than duplicating it.
+
+- [x] https://frontendmasters.com/blog/patterns-for-memory-efficient-dom-manipulation/#profiling-debugging
       (moved from Out-of-scope, overruled 2026-08-15) — the Chrome
       DevTools Memory-tab (heap snapshots) and Performance-tab (JavaScript
       execution timeline, rendering/painting) profiling workflow.
@@ -730,6 +819,16 @@ section (see the rsjs items above); the performance items sit in
       `01-performance-optimization.adoc`, covering the profiling workflow
       as a practical diagnostic technique. Not yet written into any
       partial.
+
+      **Resolved.** Closed by a new "Profiling" section in
+      `01-performance-optimization.adoc`, before "Reflows, repaints, and
+      layout thrashing": the Performance tab's timeline for confirming a
+      suspected bottleneck, and the Memory tab's heap-snapshot comparison
+      technique for finding a leak, cross-linked to the
+      `WeakMap`/`WeakRef`/listener-cleanup patterns in
+      <<Memory-efficient DOM manipulation>> as the most common fix.
+      Reuses the existing frontendmasters.com reference entry (annotation
+      updated) rather than adding a duplicate.
 
 ## Partial
 
