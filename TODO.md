@@ -5,13 +5,24 @@ that are still stubs (no substantive content written), and standards whose
 `GAPS.md` gap analysis still has open items.
 
 This file is a manually-maintained index, regenerated from the tree. The
-counts below were last regenerated on **2026-08-15**, after two `close-gaps`
-batch runs (TS-43, then TS-33) closed all 15 of their combined open
-`## Missing` items, and after a full mechanical re-scan of every open
-standard's `GAPS.md` — reading each file's actual `## Missing` / `## Partial`
-/ `## Out-of-scope` / `## Unresolved` sections directly, rather than trusting
-this file's own prior prose summaries — turned up two standing errors in
-this file's own bookkeeping:
+counts below were last regenerated on **2026-08-15**, after a fourth
+`close-gaps` wave (TS-26, TS-15, TS-18) closed all 7 of their combined open
+`## Missing`/`## Partial` items, at the user's explicit direction to
+"complete all remaining open items — both missing and partial." TS-40's one
+remaining Partial item was deliberately left declined, per the user's
+explicit choice, rather than reversed. **Every standard in this repository
+now has 0 actionable (`## Missing`/`## Partial`) items**, except TS-40's one
+declined item. What remains open across the repository is entirely
+`## Out-of-scope` items (79, awaiting a human confirm/overrule decision) and
+`## Unresolved` items (1, TS-18's un-individually-assessed webstyleguide.com
+chapters) — no further content-writing work is outstanding.
+
+Before that run, two `close-gaps` batch runs (TS-43, then TS-33) closed all
+15 of their combined open `## Missing` items, and a full mechanical re-scan
+of every open standard's `GAPS.md` — reading each file's actual
+`## Missing` / `## Partial` / `## Out-of-scope` / `## Unresolved` sections
+directly, rather than trusting this file's own prior prose summaries —
+turned up two standing errors in this file's own bookkeeping:
 
 - **TS-27 was not actually fully resolved.** Every previous regeneration —
   including the one recorded immediately below, from earlier the same day —
@@ -141,13 +152,15 @@ misses) — it is genuinely fully resolved; see
 [Regenerating this file](#regenerating-this-file).
 
 Nine have open items and appear in the table below: TS-18, TS-15, TS-40,
-TS-16, TS-26, TS-43, TS-33, TS-27, and TS-39. Four of the nine still have
-genuine content-writing work outstanding — TS-18 (3 Missing items), TS-15
-(2), TS-26 (1), and TS-40 (1 Partial item, declined and left open) — see the
-per-standard notes below. The other five (TS-16, TS-43, TS-33, TS-27, TS-39)
-have zero open `## Missing`/`## Partial` items and remain in this table only
-for their `## Out-of-scope` items (TS-33 also carries 2 Unresolved
-scope-call items).
+TS-16, TS-26, TS-43, TS-33, TS-27, and TS-39. Only one — TS-40 — still has
+genuine content-writing work outstanding, and it is declined and
+deliberately left open, not undone work: see the per-standard note below.
+TS-18, TS-15, and TS-26 closed their last remaining Missing/Partial items
+on 2026-08-15 (see their per-standard notes). All nine standards in the
+table now have zero open `## Missing`/`## Partial` items except TS-40, and
+remain in this table only for their `## Out-of-scope` items (TS-33 also
+carries 2 Unresolved scope-call items, and TS-18 carries 1 Unresolved
+reference item).
 
 ### The two GAPS.md formats
 
@@ -191,23 +204,26 @@ not in a separate sweep.
 | [TS-43](src/modules/ROOT/partials/043/GAPS.md) | Relational databases and SQL | 0 | 6 | 0 | Template — all 68 actionable items closed (61 on 2026-08-14, plus 7 more 2026-08-15 via a `close-gaps` batch against the `__TODO__` PDF/link-collection re-ingestion findings) |
 | [TS-27](src/modules/ROOT/partials/027/GAPS.md) | Markdown | 0 | 6 | 0 | Template — all 15 actionable items closed 2026-08-13; corrected 2026-08-15 back into this table — its 6 Out-of-scope items were never actually ticked, despite an earlier regeneration's prose claiming "zero unchecked items of any kind" |
 | [TS-33](src/modules/ROOT/partials/033/GAPS.md) | Java | 0 | 3 | 2 | Template — all 63 actionable items closed (55 on 2026-08-14/15, plus 8 more 2026-08-15 via a `close-gaps` batch against the `__TODO__` PDF re-ingestion findings — the `equals()`/`hashCode()` contract, `==` vs `.equals()` for `String`, floating-point/`BigDecimal`, broad-`catch` prohibition, utility-class private constructors, inner-assignment and empty-statement avoidance); 2 Unresolved items remain — pre-existing scope-call questions for the user (Javadoc-content rules bordering TS-7/TS-26; Java Platform Module System directive-ordering), not fetch failures |
-| [TS-26](src/modules/ROOT/partials/026/GAPS.md) | Technical writing style guide | 1 | 5 | 0 | Template — 30 of 31 actionable items closed by 2026-08-15; 1 remains open — instructional-step phrasing, found the same day during its `__TODO__` link-collection triage but not yet written into the standard |
-| [TS-40](src/modules/ROOT/partials/040/GAPS.md) | CSS | 1 | 12 | 0 | Template — 16 of 17 actionable items closed 2026-08-14; 1 declined and left open; re-confirmed as declined, not reversed, 2026-08-15 |
-| [TS-15](src/modules/ROOT/partials/015/GAPS.md) | User interfaces | 2 | 7 | 0 | Template — 51 of 53 actionable items closed by 2026-08-15; 2 remain open — wayfinding/navigation, typography — routed in from TS-18's webstyleguide.com Unresolved item at the user's direction and recorded 2026-08-15, but not yet written into the standard |
-| [TS-18](src/modules/ROOT/partials/018/GAPS.md) | Web GUIs | 3 | 26 | 1 | Template — 60 of 63 actionable items closed by 2026-08-14; 3 remain open — image-format selection, responsive images `srcset`/`sizes`/`picture`, SVG accessibility — found 2026-08-15 re-ingesting its `__TODO__` PDFs and following up webstyleguide.com, but not yet written into the standard; 1 Unresolved item remains — `webstyleguide.com`'s other chapters (Strategy, IA, Page Structure, Video), not yet individually assessed |
-| | **Total** | **7** | **79** | **3** | |
+| [TS-26](src/modules/ROOT/partials/026/GAPS.md) | Technical writing style guide | 0 | 5 | 0 | Template — all 32 actionable items closed 2026-08-15; its last item (instructional-step phrasing) closed the same day via `close-gaps`, a new "Instructional steps" section in `14-sentences-and-paragraphs.adoc` |
+| [TS-40](src/modules/ROOT/partials/040/GAPS.md) | CSS | 1 | 12 | 0 | Template — 16 of 17 actionable items closed 2026-08-14; 1 declined and left open at the user's explicit choice; re-confirmed as declined, not reversed, 2026-08-15 |
+| [TS-15](src/modules/ROOT/partials/015/GAPS.md) | User interfaces | 0 | 7 | 0 | Template — all 53 actionable items closed 2026-08-15; its last 2 items (wayfinding/navigation, typography) closed the same day via `close-gaps` — new "Wayfinding and navigation" and "Typography" sections in `01-design-principles.adoc` and `10-visual-rhythm-and-text.adoc` |
+| [TS-18](src/modules/ROOT/partials/018/GAPS.md) | Web GUIs | 0 | 26 | 1 | Template — all 63 actionable items closed 2026-08-15; its last 3 items (image-format selection, responsive images `srcset`/`sizes`/`picture`, SVG accessibility) closed the same day via `close-gaps` — a new "Images" section in `01-performance-optimization.adoc` and a new inline-SVG-accessibility bullet in `02-web-accessibility.adoc`; 1 Unresolved item remains — `webstyleguide.com`'s other chapters (Strategy, IA, Page Structure, Video), not yet individually assessed |
+| | **Total** | **1** | **79** | **3** | |
 
-Five of the nine standards in the table above — TS-39, TS-16, TS-43, TS-27,
-TS-33 — have **zero** open `## Missing`/`## Partial` items. What remains
-open for them is `## Out-of-scope` items awaiting the user's confirm/overrule
-decision, plus TS-33's 2 genuine scope-call `## Unresolved` items — none of
-that is content-writing work.
+Eight of the nine standards in the table above — TS-39, TS-16, TS-43, TS-27,
+TS-33, TS-26, TS-15, TS-18 — have **zero** open `## Missing`/`## Partial`
+items. What remains open for them is `## Out-of-scope` items awaiting the
+user's confirm/overrule decision, plus TS-33's 2 genuine scope-call
+`## Unresolved` items and TS-18's 1 unfetched-chapters `## Unresolved`
+item — none of that is content-writing work.
 
-The other four — TS-26 (1), TS-40 (1), TS-15 (2), TS-18 (3) — still have 7
-open `## Missing`/`## Partial` items between them; this is genuine
-content-writing work, not yet done, recorded during the 2026-08-15
-`__TODO__`/webstyleguide.com re-fetch sweep. These are good `close-gaps`
-candidates for a future run — smaller than TS-43's or TS-33's batches were.
+Only TS-40 (1 declined Partial item) still has an open `## Missing`/
+`## Partial` item, and it is deliberately left open at the user's explicit
+choice, not outstanding work awaiting a `close-gaps` run. As of
+2026-08-15's fourth `close-gaps` wave — run against TS-26, TS-15, and
+TS-18 at the user's explicit request to "complete all remaining open items
+— both missing and partial" — **every genuine content-writing gap
+recorded anywhere in this repository has been closed.**
 
 TS-43 (Relational databases and SQL) closed its final 7 Missing items on
 2026-08-15 via a `close-gaps` batch run: EAV and object-oriented-schema
