@@ -126,24 +126,57 @@ the other three are short, 1–3 page documents). See the Unresolved section
 below for what each contained and the Missing/Partial sections for the
 genuine gaps found in `SDCP-2-Java-v1.0.0-290722-0931.pdf`.
 
+**Status:** Sixth `close-gaps` batch run, 2026-08-15, same day, closing all
+8 Missing items found by the PDF re-ingestion above — 8 actionable → 0
+actionable. `equals()`/`hashCode()` contract and the broad-`catch`
+prohibition landed in `05-programming-constructs.adoc`'s "Exceptions"
+section; the utility-class-private-constructor rule and inner-assignment
+avoidance landed in "Classes and interfaces" and "Variable declarations"
+respectively, both in the same file; `String` `==`/`!=` comparison and
+floating-point/`BigDecimal` guidance landed as two new sections ("Strings",
+"Numeric precision") in `06-types.adoc`; the methods-must-not-return-null
+rule was folded into `06-types.adoc`'s existing "Nullability" section; and
+empty-statement avoidance landed in `04-code-style.adoc`'s "Brace style"
+section. No new partial was needed and no file was renumbered — every item
+extended an existing section. No reference-list entry was added for the
+PDF source, consistent with how the earlier `__TODO__/033/nullability.adoc`
+staging-file item was handled: an internal analysis artifact is not an
+externally citable published URL. TS-33's `GAPS.md` now has zero open
+Missing/Partial items, with only 3 Out-of-scope and 2 Unresolved (both
+scope-call) items remaining — the 2 dismissed/resolved Unresolved items
+from the PDF re-ingestion are not recounted here, since they were already
+ticked in the prior status entry.
+
 ## Missing
 
 ### From `SDCP-2-Java-v1.0.0-290722-0931.pdf` (2026-08-15)
 
-- [ ] `SDCP-2-Java-v1.0.0-290722-0931.pdf`, "Methods" section — classes
+- [x] `SDCP-2-Java-v1.0.0-290722-0931.pdf`, "Methods" section — classes
       that override `equals()` MUST also override `hashCode()`, per the
       contract that equal objects must have equal hash codes (required for
       correct behavior in hash-based collections). TS-33 does not mention
       this anywhere. Recommend a new paragraph in `05-programming-
       constructs.adoc`, near the `Object.finalize` prohibition.
 
-- [ ] `SDCP-2-Java-v1.0.0-290722-0931.pdf`, "Attributes" section — `==`
+      **Resolved.** Closed by a new paragraph in `05-programming-
+      constructs.adoc`'s "Exceptions" section, immediately after the
+      `Object.finalize` prohibition (the section the prohibition itself
+      already lived in, rather than "Classes and interfaces" as originally
+      recommended): states the `equals()`/`hashCode()` contract and its
+      consequence for hash-based collections.
+
+- [x] `SDCP-2-Java-v1.0.0-290722-0931.pdf`, "Attributes" section — `==`
       and `!=` MUST NOT be used to compare `String` values; use `.equals()`
       instead, since `==` compares reference identity, not content. TS-33
       does not address this common Java pitfall anywhere. Recommend a new
       paragraph in `06-types.adoc` or `05-programming-constructs.adoc`.
 
-- [ ] `SDCP-2-Java-v1.0.0-290722-0931.pdf`, "Attributes" section — avoid
+      **Resolved.** Closed by a new "Strings" section in `06-types.adoc`,
+      before "Nullability": the `==`/`!=` prohibition with the reference-
+      identity-vs-content explanation and a worked example showing two
+      equal-content `String` objects comparing unequal with `==`.
+
+- [x] `SDCP-2-Java-v1.0.0-290722-0931.pdf`, "Attributes" section — avoid
       floating-point arithmetic (`float`/`double`) for values like currency
       amounts, since binary floating-point cannot represent most decimal
       fractions exactly; `BigDecimal` SHOULD be used instead for monetary
@@ -152,7 +185,12 @@ genuine gaps found in `SDCP-2-Java-v1.0.0-290722-0931.pdf`.
       convention and says nothing about floating-point precision pitfalls
       or `BigDecimal`. Recommend a new paragraph in `06-types.adoc`.
 
-- [ ] `SDCP-2-Java-v1.0.0-290722-0931.pdf`, "Error handling" section —
+      **Resolved.** Closed by a new "Numeric precision" section in
+      `06-types.adoc`, after "Strings": states the `float`/`double`
+      precision pitfall and the `BigDecimal` recommendation for monetary
+      and precision-sensitive values.
+
+- [x] `SDCP-2-Java-v1.0.0-290722-0931.pdf`, "Error handling" section —
       avoid catching `java.lang.Exception`, `java.lang.Error`, or
       `java.lang.RuntimeException` directly; catching these broad types
       risks silently swallowing unrelated failures (eg.
@@ -163,7 +201,13 @@ genuine gaps found in `SDCP-2-Java-v1.0.0-290722-0931.pdf`.
       exception types caught. Recommend a new paragraph in
       `05-programming-constructs.adoc`'s "Exceptions" section.
 
-- [ ] `SDCP-2-Java-v1.0.0-290722-0931.pdf`, "Methods" section — methods
+      **Resolved.** Closed by a new paragraph in `05-programming-
+      constructs.adoc`'s "Exceptions" section, between the empty-catch-
+      block examples and the `equals()`/`hashCode()` paragraph: states the
+      broad-`catch` prohibition and the specific-exception-type
+      recommendation.
+
+- [x] `SDCP-2-Java-v1.0.0-290722-0931.pdf`, "Methods" section — methods
       SHOULD be coded so they cannot return a `null` reference; where a
       meaningful value truly cannot be produced, an exception SHOULD be
       thrown instead. TS-33's "Nullability" section (`06-types.adoc`)
@@ -174,7 +218,13 @@ genuine gaps found in `SDCP-2-Java-v1.0.0-290722-0931.pdf`.
       reinforcing sentence in `06-types.adoc`'s "Nullability" section,
       near the `Optional` recommendation.
 
-- [ ] `SDCP-2-Java-v1.0.0-290722-0931.pdf`, "Constructors" section — a
+      **Resolved.** Closed by a new paragraph in `06-types.adoc`'s
+      "Nullability" section, between the `flatMap` example and the
+      `Optional`-can-itself-be-`null` caveat: states the
+      methods-must-not-return-null rule and the throw-instead-of-return-
+      null guidance.
+
+- [x] `SDCP-2-Java-v1.0.0-290722-0931.pdf`, "Constructors" section — a
       utility class (one containing only `static` methods and constants)
       SHOULD NOT have a public constructor; its constructor SHOULD be
       `private` (or `protected` if subclassing is intended), since
@@ -187,7 +237,13 @@ genuine gaps found in `SDCP-2-Java-v1.0.0-290722-0931.pdf`.
       constructs.adoc`'s "Classes and interfaces" section, alongside the
       existing explicit-constructor guidance.
 
-- [ ] `SDCP-2-Java-v1.0.0-290722-0931.pdf`, "Attributes" section — avoid
+      **Resolved.** Closed by a new paragraph in `05-programming-
+      constructs.adoc`'s "Classes and interfaces" section, immediately
+      after the explicit-constructor guidance: states the utility-class
+      private-constructor rule, cross-referencing the "Class and interface
+      names" section's existing definition of a utility class.
+
+- [x] `SDCP-2-Java-v1.0.0-290722-0931.pdf`, "Attributes" section — avoid
       inner assignment (assigning a variable as a side effect inside a
       larger expression, eg. `String s = Integer.toString(i = 2);`) except
       in the header of a `for` loop; all assignments SHOULD occur as their
@@ -197,13 +253,25 @@ genuine gaps found in `SDCP-2-Java-v1.0.0-290722-0931.pdf`.
       in `05-programming-constructs.adoc`'s "Variable declarations"
       section.
 
-- [ ] `SDCP-2-Java-v1.0.0-290722-0931.pdf`, "Attributes" section — avoid
+      **Resolved.** Closed by a new paragraph in `05-programming-
+      constructs.adoc`'s "Variable declarations" section, after the
+      initializer guidance: states the inner-assignment prohibition with
+      the source's own `Integer.toString(i = 2)` example, and the `for`
+      loop-header exception.
+
+- [x] `SDCP-2-Java-v1.0.0-290722-0931.pdf`, "Attributes" section — avoid
       empty statements (a stray `;` with no effect). TS-33 addresses empty
       _blocks_ (`04-code-style.adoc`'s brace-style section, which
       explicitly permits `{}`) but says nothing about a bare empty
       statement, which is a different and always-erroneous construct (eg.
       an accidental `;` after an `if` condition). Recommend a short
       paragraph in `04-code-style.adoc`, near the empty-block guidance.
+
+      **Resolved.** Closed by a new paragraph in `04-code-style.adoc`'s
+      "Brace style" section, after the empty-block examples: states the
+      empty-statement anti-pattern, distinguishes it from the intentional
+      empty-block case, and gives a worked example of the classic
+      accidental-`;`-after-`if` bug.
 
 ### From Run 1 (`__TODO__/`)
 

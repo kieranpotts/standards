@@ -33,6 +33,14 @@ they are first used. The aim is to minimize the scope of variables.
 Local variable declarations SHOULD typically have initializers, or SHOULD be
 initialized immediately after the declaration.
 
+Inner assignment — assigning a variable as a side effect inside a larger
+expression, eg. `String s = Integer.toString(i = 2);` — SHOULD be avoided.
+An assignment SHOULD occur as its own top-level statement, so a reader
+scanning an expression for its value is not also scanning it for side
+effects. The one common exception is the header of a `for` loop, where an
+assignment as part of the loop's initialization or update clause is
+idiomatic.
+
 == Classes and interfaces
 
 There SHOULD be a logical ordering to the contents of classes and other
@@ -64,6 +72,14 @@ implicit default constructor SHOULD NOT be relied upon in a class-like
 construct that forms part of a public API. Declaring the constructor
 explicitly forces a deliberate decision about its access level, and prevents
 a class from becoming publicly instantiable by accident.
+
+A utility class — one containing only `static` methods and constants, per
+<<Class and interface names>> — SHOULD NOT have a `public` constructor.
+Declare its constructor `private` (or `protected` if the class is intended
+to be subclassed) instead. Instantiating a utility class serves no purpose,
+and a forgotten default constructor leaves it publicly instantiable by
+accident, which the explicit-constructor rule above does not by itself
+prevent — an explicit `public` constructor is still `public`.
 
 == Enums
 
@@ -229,8 +245,23 @@ try {
 } catch (NoSuchElementException expected) {}
 ----
 
+Avoid catching `java.lang.Exception`, `java.lang.Error`, or
+`java.lang.RuntimeException` directly. Catching one of these broad types
+risks silently swallowing a failure the `catch` block was never written to
+handle — a `NullPointerException` or an `OutOfMemoryError`, for example —
+that should be allowed to propagate rather than being absorbed by a handler
+meant for a narrower, expected failure. Catch the most specific exception
+type the code can meaningfully recover from instead.
+
 `Object.finalize` MUST NOT be overridden. Finalization is unreliable, and
 Java has scheduled the finalization mechanism for removal.
+
+A class that overrides `equals()` MUST also override `hashCode()`. The
+`equals()`/`hashCode()` contract requires that two objects considered equal
+by `equals()` produce the same hash code; violating this breaks the
+class's behavior in any hash-based collection (`HashMap`, `HashSet`, and
+similar), where an object may become unfindable even by a key that
+`equals()` says is identical to the one it was stored under.
 
 == Switch statements
 

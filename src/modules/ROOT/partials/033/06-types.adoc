@@ -62,6 +62,32 @@ String[] args
 String args[]
 ----
 
+== Strings
+
+`==` and `!=` MUST NOT be used to compare `String` values. Use `.equals()`
+instead: `==` compares reference identity — whether two variables point to
+the same `String` object — not content, so two `String`s holding the same
+characters can compare unequal with `==` if they were not interned to the
+same object.
+
+[source,java]
+----
+String a = new String("foo");
+String b = new String("foo");
+
+a.equals(b); // true
+a == b;      // false
+----
+
+== Numeric precision
+
+`float` and `double` SHOULD NOT be used for values that require exact
+decimal precision, such as currency amounts. Binary floating-point cannot
+represent most decimal fractions exactly, so arithmetic on `float`/`double`
+values accumulates small rounding errors that compound over repeated
+calculations. Use `BigDecimal` instead for monetary and other
+precision-sensitive decimal values.
+
 == Nullability
 
 A null reference lets a variable point to nothing, which makes it possible to
@@ -115,6 +141,12 @@ final var baz = getFoo().flatMap(Foo::getBar)
                         .flatMap(Bar::getBaz)
                         .orElse(null);
 ----
+
+A method whose return type is not `Optional<X>` MUST NOT return `null`
+under any circumstance. Where a meaningful value genuinely cannot be
+produced, throw an exception instead of returning `null` from a
+non-`Optional` return type — `Optional<X>` is how this standard expects an
+absent return value to be communicated.
 
 `Optional` does not eliminate `NullPointerException`s entirely: Java gives
 no guarantee that an `Optional` reference itself is not `null`. `Optional`
