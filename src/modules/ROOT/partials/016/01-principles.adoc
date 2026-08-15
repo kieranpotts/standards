@@ -9,6 +9,46 @@ sensible defaults, reasonable timeouts, and so on.
 This section sets out some design principles that will help you to think through
 all the little details of your CLI programs.
 
+== Terminology
+
+This standard uses several terms – terminal, shell, tty, console, and
+terminal emulator – that are closely related and often used loosely as
+synonyms. They are not the same thing, and the distinction matters when
+reasoning about I/O, signals, and environment detection.
+
+*Shell.* The command-line interpreter a user interacts with directly – Bash,
+Zsh, `cmd.exe`, PowerShell, etc. Its primary purpose is to read commands and
+start other programs. A CLI program is normally invoked from a shell, but is
+not itself a shell.
+
+*Terminal, in the Unix sense, and tty.* A text input/output environment: the
+thing that reads keystrokes and displays output. In Unix terminology,
+"terminal" is synonymous with tty – a particular kind of device file
+supporting a set of control operations (`ioctl`\s) beyond plain reads and
+writes. Some ttys are backed directly by a hardware device or a kernel-level
+virtual console; others, called pseudo-ttys (ptys), are provided through a
+thin kernel layer by a terminal emulator.
+
+*Terminal emulator.* A program that provides a pseudo-tty and renders it as a
+window or a remote session – for example Xterm, `screen`, `tmux`, or an SSH
+client connecting a local terminal to programs running on a remote machine.
+"Terminal," in its everyday sense, most often refers to this kind of program:
+a window with a keyboard and a display, standing in for the physical
+teleprinters the terminology originally described.
+
+*Console.* A terminal in the physical sense – conventionally, the primary
+terminal directly connected to a machine. It appears to the operating system
+as a tty like any other, so the distinction from "terminal" is about
+physical/primary status, not about the underlying mechanism.
+
+A CLI program's own I/O model – reading from standard input, writing to
+standard output and standard error, detecting whether it is attached to a
+tty (see <<Piping>>) – is the same regardless of which of
+these sits behind it. The terms matter mainly for correctly describing
+*where* a behavior applies: a `NO_COLOR`-style check is a tty check on the
+process's streams, not a check for any particular shell or terminal
+emulator.
+
 == Simplicity
 
 Above all, robustness is achieved by keeping the program simple. Complex code

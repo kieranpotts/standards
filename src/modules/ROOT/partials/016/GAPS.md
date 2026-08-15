@@ -37,13 +37,15 @@ formatting. The UX Collective case study surfaces help-discoverability problems 
 with very many commands and the "automated migration command" pattern. The Wikipedia and
 Unix SE resources are background/reference rather than CLI design rules (out-of-scope).
 
-**Status:** Third run, 2026-08-14. All 59 actionable gaps (9 Missing, 50 Partial) closed
-in this run, across every content file in the standard — `01-principles.adoc` through
-`11-documentation.adoc`, plus `03-distribution.adoc`. 9 Out-of-scope items remain open,
-awaiting the user's confirm/overrule decision (see below). 1 Unresolved item
-(`Program-Behavior.html`) remains open — not re-attempted this run; its CLI-relevant
-content was already captured via the GNU Coding Standards index sub-agent in the second
-run, so the analysis is not materially affected.
+**Status:** Fourth run, 2026-08-15. All 60 actionable gaps (10 Missing, 50 Partial)
+closed. Third run (2026-08-14) closed 59 of them across every content file in the
+standard — `01-principles.adoc` through `11-documentation.adoc`, plus
+`03-distribution.adoc`. This run closed the remaining Missing item — the
+user-authorized "Terminology" section, routed in from the Out-of-scope review. All
+9 Out-of-scope items are resolved (8 confirmed, 1 overruled and actioned, 1 overruled
+but left unrouted pending a separate standards decision — see below). 1 Unresolved
+item (`Program-Behavior.html`) is dismissed as a persistent fetch failure whose
+content was already captured elsewhere. This file is now fully resolved.
 
 ## Missing
 
@@ -164,12 +166,28 @@ run, so the analysis is not materially affected.
       notification for long tasks a user is likely to switch away from,
       alongside terminal output.
 
-- [ ] https://unix.stackexchange.com/a/4132 (routed in from the
+- [x] https://unix.stackexchange.com/a/4132 (routed in from the
       Out-of-scope review, 2026-08-15) — definitions of terminal, shell,
       tty, console, pseudo-ttys, terminal emulators, and the division of
       labor between terminal and shell. The user explicitly asked for a
       new "Terminology" section covering this, overruling the original
       out-of-scope classification. Not yet written into any partial.
+
+      **Resolved.** Closed by a new "Terminology" section opening
+      `01-principles.adoc`, before "Simplicity". Defines shell (the
+      command-line interpreter), terminal/tty (the Unix text I/O
+      environment, a device file supporting `ioctl`-based control beyond
+      plain read/write), terminal emulator (the program providing a
+      pseudo-tty and rendering it — Xterm, `screen`, `tmux`, SSH), and
+      console (the primary terminal physically/directly connected to a
+      machine). Closes with a note that a CLI's own I/O model — stdin/
+      stdout/stderr, tty detection — is the same regardless of which of
+      these sits behind it, cross-referencing the "Piping" section for
+      where that matters in practice. The direct `unix.stackexchange.com`
+      fetch failed with HTTP 403 again this run, as it did previously; the
+      content was retrieved via a Wayback Machine snapshot instead, which
+      returned HTTP 200 with the full accepted answer. Source added to the
+      page's `== References`.
 
 ## Partial
 
