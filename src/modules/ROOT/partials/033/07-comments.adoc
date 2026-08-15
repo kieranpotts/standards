@@ -13,10 +13,16 @@ _API documentation_ comments.
 
 The single-line implementation comment syntax is used in two use cases:
 
-* To comment-out code.
+* To comment-out code temporarily. `//` SHOULD be avoided for this purpose in
+  production code, where it SHOULD be temporary only, since a `//`-commented-
+  out line is easy for static analysis tooling to detect and reject before
+  the code is merged.
 
 * For short end-of-line comments that decode or explain a value assigned,
   returned, or printed by the statement.
+
+Commented-out code SHOULD NOT be committed to version control, which already
+tracks the code's history — a comment is not needed to preserve it.
 
 Java's multi-line implementation comment syntax, `/* … \*/`, SHOULD, in fact, be
 used for both single-line and multi-line implementation comments. For short
@@ -111,19 +117,25 @@ Javadoc MUST NOT be used to document implementation details, such as the
 algorithms used in a method. Standard comments MUST be used for that purpose.
 Information about a class, interface, variable, or method that is not
 appropriate for the doc comment SHOULD instead go in an implementation
-comment immediately after the declaration.
+comment immediately after the declaration. A long, discursive description or
+a usage example SHOULD generally be excluded from Javadoc too, and placed
+instead in a README or other out-of-band document that the Javadoc
+references — Javadoc is consulted in passing, at the point of use, and is a
+poor home for material a reader needs to sit down and read.
 
-Javadoc SHOULD be used to document all `public` classes and every `public` and
-`protected` member of such classes. Javadoc MAY be skipped for methods that
-override a supertype method that is already documented; the supertype method's
-documentation is inherited. Javadoc MAY also be skipped for a member that is
-"simple" and "obvious" — a trivial getter or setter, or a no-arg constructor
-that is not itself overridden — provided there is truly nothing else
-worthwhile to say about it.
+Javadoc SHOULD be used to document every _visible_ top-level class-like
+construct and every visible member — visibility here meaning any class,
+interface, record, field, or method that is not `private`, plus every
+component of a `public` or `protected` record. Javadoc MAY be skipped for a
+member that is "simple" and "obvious" — such as a trivial getter or setter —
+only where there is truly nothing else worthwhile to say about it, and MAY
+also be skipped for a method that overrides a supertype method which is
+already documented, since the supertype method's documentation is inherited.
 
-A private member SHOULD carry Javadoc where it is complex, or where it is
-called from multiple places. Where a private method is called from only one
-place, its documentation MAY instead live in the calling method's Javadoc.
+A `private` member is not required to carry Javadoc, but SHOULD where it is
+complex, or where it is called from multiple places. Where a private method
+is called from only one place, its documentation MAY instead live in the
+calling method's Javadoc.
 
 Where a class or method's contract is not obviously thread-safe from its
 name and signature, its Javadoc MUST state the thread-safety guarantees it
@@ -228,6 +240,13 @@ continuation lines indented four spaces from the position of the `@` symbol.
 A blank line (containing only the aligned leading asterisk) SHOULD appear
 before the group of block tags, separating them from the preceding prose.
 
+A block tag's description is tag content, not prose, and follows a different
+register from the rest of this section's full-sentence rule: it SHOULD be a
+single sentence fragment, without a capitalized first word or a terminal
+period. Columns MAY be aligned across a run of block tags, but this is a
+cosmetic choice, not a requirement, and SHOULD NOT be maintained by
+reformatting lines that a change did not otherwise touch.
+
 `@param` and `@return` are REQUIRED — for every parameter and for every
 non-`void` method, respectively — even where their purpose seems obvious from
 the signature alone. `@param` takes the parameter name, not its data type,
@@ -280,6 +299,15 @@ control system already tracks when and by whom a declaration was introduced,
 and these tags are of more use to library maintainers publishing a versioned
 API than to application development.
 
+Where a class implements `Serializable` and its Javadoc uses the
+serialization-specific tags `@serial`, `@serialField`, or `@serialData`,
+those tags MUST come after `@see` and before `@deprecated`. Combined with the
+order given above and the tags this standard disallows, the full canonical
+block-tag order — for reference, though `@author`, `@version`, and `@since`
+SHOULD NOT appear per the rule above — is: `@author`, `@version`, `@param`,
+`@return`, `@throws`, `@see`, `@since`, `@serial`/`@serialField`/
+`@serialData`, `@deprecated`.
+
 Where a Javadoc comment refers to a Java keyword, a package name, a class,
 method, interface, or field name, an argument name, or a code example, that
 text MUST be wrapped in `<code>` tags. Curly (smart) quotes MUST NOT appear
@@ -291,3 +319,18 @@ and "in other words" or "namely" rather than "viz.".
 Not every Javadoc comment needs to meet the full formatting bar above. Where
 Javadoc is written beyond what the scope rules above require, following the
 conventions in this section is RECOMMENDED but not REQUIRED.
+
+== Package-level Javadoc
+
+Package-level Javadoc is written in the file-level doc comment of a
+`package-info.java` file (see <<Special source files>>). It SHOULD follow a
+three-part structure: a summary sentence describing the package's purpose, a
+"Package Specification" section for any formal contract the package as a
+whole makes, and a "Related Documentation" section linking out to other
+relevant material.
+
+== Images in Javadoc
+
+Where an image is needed in Javadoc, it MUST be placed in a `doc-files`
+subdirectory of the package it documents, and named `<class>-<n>.gif`,
+matching the class it illustrates and a sequence number.

@@ -5,14 +5,17 @@ that are still stubs (no substantive content written), and standards whose
 `GAPS.md` gap analysis still has open items.
 
 This file is a manually-maintained index, regenerated from the tree. The
-counts below were last regenerated on **2026-08-14** — this run applied a
-joint `close-gaps` pass against TS-15 (User interfaces) and TS-18 (Web GUIs),
-run together at the user's explicit request specifically to catch gaps that
-would be better routed between the two standards. None were found in either
-direction: every item TS-18 closed is web-implementation-specific (HTTP
-headers, CSS properties, DOM APIs, WCAG markup) and every item TS-15 closed
-is a platform-agnostic HCI/UX principle that applies equally to a CLI or a
-native app, so no item moved between the two files.
+counts below were last regenerated on **2026-08-15** — this run reflects
+five same-day `close-gaps` batches against TS-33 (Java), described in their
+own section below, that closed all 55 of its actionable items. The prior
+regeneration, on **2026-08-14**, applied a joint `close-gaps` pass against
+TS-15 (User interfaces) and TS-18 (Web GUIs), run together at the user's
+explicit request specifically to catch gaps that would be better routed
+between the two standards. None were found in either direction: every item
+TS-18 closed is web-implementation-specific (HTTP headers, CSS properties,
+DOM APIs, WCAG markup) and every item TS-15 closed is a platform-agnostic
+HCI/UX principle that applies equally to a CLI or a native app, so no item
+moved between the two files.
 
 TS-15 was closed out in full: all 51 actionable items (47 Missing, 4 Partial)
 resolved in one run, across ten new content partials
@@ -89,8 +92,11 @@ TS-52, TS-54, TS-57, and TS-61.
 
 Thirteen have open items and appear in the table below: TS-4, TS-39, TS-16,
 TS-21, TS-29, TS-43, TS-20, TS-26, TS-27, TS-40, TS-15, TS-33, and TS-18.
-TS-15 and TS-18 are both new to this run's zero/near-zero actionable state —
-see the note above.
+TS-15 and TS-18 are both new to the 2026-08-14 run's zero/near-zero
+actionable state — see the note above. TS-33 reached zero actionable items
+on 2026-08-15 — see the note below — but stays in this table rather than
+joining the fully-resolved list, for the same reason as TS-15/TS-18/TS-4/
+TS-16/etc.: its 3 Out-of-scope and 4 Unresolved items are still open.
 
 ### The two GAPS.md formats
 
@@ -140,9 +146,9 @@ not in a separate sweep.
 | [TS-27](src/modules/ROOT/partials/027/GAPS.md) | Markdown | 0 | 6 | 1 | Template — all 15 actionable items closed 2026-08-13 |
 | [TS-40](src/modules/ROOT/partials/040/GAPS.md) | CSS | 1 | 12 | 0 | Template — 16 of 17 actionable items closed 2026-08-14; 1 declined and left open |
 | [TS-15](src/modules/ROOT/partials/015/GAPS.md) | User interfaces | 0 | 7 | 12 | Template — all 51 actionable items closed 2026-08-14, jointly with TS-18 |
-| [TS-33](src/modules/ROOT/partials/033/GAPS.md) | Java | 55 | 3 | 4 | Template |
+| [TS-33](src/modules/ROOT/partials/033/GAPS.md) | Java | 0 | 3 | 4 | Template — all 55 actionable items closed 2026-08-15, across five batches |
 | [TS-18](src/modules/ROOT/partials/018/GAPS.md) | Web GUIs | 1 | 26 | 5 | Template — 59 of 60 actionable items closed 2026-08-14, jointly with TS-15; 1 (neurodiversity.design) left open pending a proper re-fetch |
-| | **Total** | **59** | **80** | **37** | |
+| | **Total** | **4** | **80** | **37** | |
 
 TS-15 (User interfaces) was closed out in full on 2026-08-14, jointly with
 TS-18 — see the note at the top of this file. All 51 actionable items (47
@@ -318,8 +324,37 @@ blanket-forbidden; RDFa Lite is preferred over Microdata for Schema.org; and
 `<base href>` carries no trailing slash. TS-39's 5 Out-of-scope items and 4
 Unresolved references were carried forward unresolved, so it stays in the
 open-items table above (at Actionable=0) rather than joining the
-fully-resolved list. TS-33 (Java, 55) is now the largest actionable count
-remaining.
+fully-resolved list.
+
+TS-33 (Java) was closed out across five `close-gaps` batches on 2026-08-15,
+run back-to-back the same day: the first closed the 22-item Javadoc-content
+cluster in `07-comments.adoc` (tag semantics, description phrasing, scope
+exceptions, thread-safety documentation) plus the summary-fragment
+contradiction with TS-33's own primary source (Google's Java Style Guide),
+which the standard had misquoted; the second closed the standard's largest
+single finding, a new "Nullability" section in `06-types.adoc` covering
+`Optional`, method-chain `NullPointerException` risk, and eight nullability-
+annotation libraries (correcting a copy-paste error in the source's own
+library table along the way); the third closed the remaining Oracle
+`codeconventions-comments#385` items in `07-comments.adoc`, withdrawing one
+(a multi-line block-comment format that would have contradicted TS-33's own
+pre-existing example) rather than forcing it in; the fourth closed a
+modern-Java-features cluster spread across six files (records, `package-
+info.java`/`module-info.java` structures, switch expressions, text blocks,
+the unnamed-variable `_` syntax, grouping parentheses, `Object.finalize`,
+explicit constructors); and the fifth closed the final 4 Missing and 8
+Partial items, including two genuine scope calls the user was asked to
+settle directly rather than have decided silently — writing in Java Platform
+Module System directive-ordering guidance (previously left open as
+possibly out-of-scope), and adopting Google's broader visibility-based
+Javadoc-scope obligation (every non-`private` class/member, including record
+components) in place of TS-33's narrower `public`/`protected`-only rule.
+All 55 of TS-33's actionable items are now closed; it stays in the
+open-items table above (at Actionable=0) only because its 3 Out-of-scope and
+4 Unresolved items remain open, the same shape as TS-4, TS-16, TS-21, TS-27,
+TS-29, TS-43, and TS-15. TS-33's own `GAPS.md` carries the full per-item
+resolution notes; see the standard-by-standard history there for what each
+batch actually wrote.
 
 ## Standards with neither a stub nor a GAPS.md
 

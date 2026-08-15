@@ -92,10 +92,31 @@ variable (`_`) syntax; grouping-parentheses guidance; the
 for `public`/`protected` classes. The module-directive-ordering item was
 deliberately left open — its own text flags it as niche/possibly
 out-of-scope, and it belongs with a scope decision rather than a content
-batch. 4 Missing and 8 Partial items now remain open and unticked (55
-actionable → 12 actionable across the four batches). 3 Out-of-scope and 4
-Unresolved items are unchanged from the original run, still awaiting the
-user.
+batch.
+
+**Status:** Fifth `close-gaps` batch run, 2026-08-15, same day, closing the
+final 4 Missing and 8 Partial items — 55 actionable → 0 actionable. Two
+items needed a user scope decision before they could be closed rather than
+left open silently, and the user was asked directly: the module-directive-
+ordering item, previously left open pending a scope call, is now written in
+(a new paragraph and worked example in `02-source-files.adoc`'s "Special
+source files" section); and the Javadoc-scope-breadth item — Google's
+broader visibility-based obligation (every non-`private` class/member, plus
+record components) versus TS-33's narrower `public`/`protected`-only rule
+— is now adopted, replacing the narrower rule in `07-comments.adoc`. The
+remaining 10 items were straightforward content additions: the full
+canonical Javadoc block-tag order (with `@serial*` tags and an explicit note
+that `@author`/`@version`/`@since` remain disallowed); package-level Javadoc
+structure; Javadoc images; the `//`-in-production-code and commented-out-
+code-not-committed rules; the README-exclusion rule for long Javadoc
+descriptions; the block-tag description register (single-sentence fragment,
+no capitalization/terminal period) and column-alignment guidance; the
+copyright-header project-policy clarification; horizontal-alignment
+maintenance discouragement; and the camelCase conversion algorithm. TS-33's
+`GAPS.md` now has zero open Missing/Partial items — 0 actionable — with only
+3 Out-of-scope and 4 Unresolved items remaining, both categories being
+decisions/re-fetches rather than content work, unchanged from the original
+2026-08-05 analysis.
 
 ## Missing
 
@@ -286,7 +307,7 @@ user.
       material belongs in its own paragraph, introduced with a lead-in such
       as "Implementation-Specific:".
 
-- [ ] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#Tag-Conventions`
+- [x] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#Tag-Conventions`
       — The canonical block-tag order is `@author`, `@version`, `@param`,
       `@return`, `@throws`, `@see`, `@since`, `@serial`/`@serialField`/`@serialData`,
       `@deprecated`; multiple `@param` in argument-declaration order; multiple
@@ -295,16 +316,16 @@ user.
       lists only `@param`/`@return`/`@throws`/`@deprecated` in order and gives
       no multi-tag ordering rules. Recommend placing at `07-comments.adoc:156`.
 
-      **Partially resolved.** The multi-tag ordering rules (`@param` in
-      declaration order, `@throws` alphabetically, `@see` nearest-first)
-      were added in this batch, each alongside the relevant tag's own
-      content guidance in `07-comments.adoc`. The full canonical
-      tag-ordering position for `@author`/`@version`/`@since`/`@serial*` was
-      deliberately not adopted: TS-33 now explicitly disallows `@author`,
-      `@version`, and `@since` (see the Run 1 item above), and `@serial*`
-      tags were judged out of scope for an application-focused standard —
-      left open for the user to confirm, rather than folded into this
-      resolution silently.
+      **Resolved.** The multi-tag ordering rules (`@param` in declaration
+      order, `@throws` alphabetically, `@see` nearest-first) were added in
+      an earlier batch, each alongside the relevant tag's own content
+      guidance in `07-comments.adoc`. This batch closed the remainder: a
+      new paragraph gives `@serial`/`@serialField`/`@serialData` their
+      position (after `@see`, before `@deprecated`) for classes that use
+      them, and states the full canonical order for reference — noting
+      explicitly that `@author`, `@version`, and `@since` SHOULD NOT appear
+      at all per this standard's own disallowal of those tags, so their
+      position in the canonical order is informational only.
 
 - [x] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#Required-Tags`
       — `@param` is required for every parameter (even when obvious), and
@@ -379,12 +400,18 @@ user.
       decision-forcing and accidental-public-instantiability rationale from
       the source.
 
-- [ ] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#Package-Level-Comments`
+- [x] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#Package-Level-Comments`
       — Package-level Javadoc via `package-info.java` (or `package.html`),
       including its recommended structure: a summary sentence, a "Package
       Specification" section, and a "Related Documentation" section. TS-33
       does not mention package-level documentation. Recommend a new
       subsection at `07-comments.adoc:170` or `02-source-files.adoc`.
+
+      **Resolved.** Closed by a new "Package-level Javadoc" section in
+      `07-comments.adoc`, cross-referencing the "Special source files"
+      section for where `package-info.java` itself is described: the
+      three-part summary/Package-Specification/Related-Documentation
+      structure from the source.
 
 - [x] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#Documenting-Anonymous-Inner-Classes`
       — The Javadoc tool does not document anonymous inner classes; they
@@ -396,10 +423,14 @@ user.
       does not document anonymous inner classes, and such content SHOULD be
       written in the enclosing class's doc comment instead.
 
-- [ ] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#Including-Images`
+- [x] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#Including-Images`
       — Including images in Javadoc via a per-package `doc-files` directory,
       with images named `<class>-<n>.gif`. TS-33 does not address Javadoc
       images. Recommend a new subsection at `07-comments.adoc:170`.
+
+      **Resolved.** Closed by a new "Images in Javadoc" section in
+      `07-comments.adoc`: the `doc-files` subdirectory location and the
+      `<class>-<n>.gif` naming convention.
 
 - [x] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#Troubleshooting-Curly-Quotes`
       — Avoid curly/smart quotes (from word processors) in Javadoc; use
@@ -557,13 +588,20 @@ user.
       `module-info.java`'s module-declaration-only structure with no
       `package` statement.
 
-- [ ] `https://google.github.io/styleguide/javaguide.html#s3.5.1` — Module
+- [x] `https://google.github.io/styleguide/javaguide.html#s3.5.1` — Module
       directive ordering: `requires`, `exports`, `opens`, `uses`,
       `provides`, each in a single block separated by a blank line. TS-33
       does not address the Java Platform Module System at all. Recommend a
       new subsection at `02-source-files.adoc` or
       `05-programming-constructs.adoc`. (Niche — may be considered
       out-of-scope if modules are deemed beyond this standard's purpose.)
+
+      **Resolved.** The user confirmed, when asked directly, that this
+      should be written in rather than declined as out-of-scope. Closed by
+      a new paragraph and worked example appended to `02-source-files.adoc`'s
+      "Special source files" section: the `requires`/`exports`/`opens`/
+      `uses`/`provides` directive order, each in its own blank-line-
+      separated block.
 
 - [x] `https://google.github.io/styleguide/javaguide.html#s4.8.4` —
       New-style (arrow) switch syntax and switch expressions. TS-33
@@ -669,14 +707,18 @@ user.
 
 ### From Run 1 (`__TODO__/`)
 
-- [ ] `__TODO__/033/comments.adoc:98-121` covers `//` more restrictively
+- [x] `__TODO__/033/comments.adoc:98-121` covers `//` more restrictively
       than `07-comments.adoc:14-19` — specifically, the reference says `//`
       SHOULD be avoided in production code and used only for temporary
       commented-out code and for noting expected return values/outputs,
       whereas the standard permits `//` for "short end-of-line comments"
       generally without that production caveat.
 
-- [ ] `__TODO__/033/comments.adoc:98-121` adds guidance the standard
+      **Resolved.** Closed by a new clause on the existing "To comment-out
+      code" bullet in `07-comments.adoc`: `//` SHOULD be avoided for this
+      purpose in production code, where it SHOULD be temporary only.
+
+- [x] `__TODO__/033/comments.adoc:98-121` adds guidance the standard
       omits at `07-comments.adoc:14-19` — specifically, that commented-out
       code SHOULD NOT be committed (version control tracks changes), and
       that `//` is preferred for temporary commented-out code precisely
@@ -684,7 +726,12 @@ user.
       standard mentions `//` for "commenting-out code" without these
       caveats.
 
-- [ ] `__TODO__/033/comments.adoc:122-162` covers Javadoc scope more
+      **Resolved.** Closed by the same clause (the static-analysis-
+      detectability rationale) plus a new sentence immediately after the
+      two-use-cases list: commented-out code SHOULD NOT be committed to
+      version control.
+
+- [x] `__TODO__/033/comments.adoc:122-162` covers Javadoc scope more
       thoroughly than `07-comments.adoc:100-108` — specifically, the
       reference requires Javadoc for all classes (not just `public` ones)
       and all public fields, and lists explicit exceptions (trivial
@@ -694,17 +741,17 @@ user.
       `public`/`protected` member, and MAY be skipped for overriding
       methods.
 
-      **Partially resolved.** The "simple, obvious" exception (trivial
-      getters/setters, non-overridden no-arg constructors) was added to
-      `07-comments.adoc`'s existing scope paragraph, alongside the
-      already-recorded overriding-method exception. The
-      broader-than-`public` scope claim (all classes, all public fields)
-      was deliberately not adopted — it would change TS-33's Javadoc
-      obligation, not just add detail, and is left open for the user to
-      confirm alongside the closely related Run 2 visibility-framing item
-      below.
+      **Resolved.** The "simple, obvious" exception (trivial getters/
+      setters, non-overridden no-arg constructors) was added to
+      `07-comments.adoc`'s scope paragraph in an earlier batch. This batch
+      closed the remainder: the user, asked directly, confirmed adopting
+      Google's broader visibility-based scope over TS-33's narrower
+      `public`/`protected`-only rule. The scope paragraph now requires
+      Javadoc for every visible (non-`private`) class-like construct and
+      member, folded into the same resolution as the Run 2 visibility-
+      framing item below.
 
-- [ ] `__TODO__/033/comments.adoc:122-162` covers Javadoc content
+- [x] `__TODO__/033/comments.adoc:122-162` covers Javadoc content
       focus more thoroughly than `07-comments.adoc:97-99` — specifically,
       the reference states that long descriptions and usage examples
       SHOULD generally be excluded from Javadoc and placed in other
@@ -712,7 +759,13 @@ user.
       standard says only that Javadoc MUST NOT document implementation
       details.
 
-- [ ] `__TODO__/033/comments.adoc:228-271` covers block tags more
+      **Resolved.** Closed by a new sentence appended to the existing
+      "MUST NOT be used to document implementation details" paragraph in
+      `07-comments.adoc`: a long description or usage example SHOULD
+      generally be excluded from Javadoc and placed in a README or other
+      out-of-band document instead.
+
+- [x] `__TODO__/033/comments.adoc:228-271` covers block tags more
       thoroughly than `07-comments.adoc:149-159` — specifically, the
       reference adds: `@param` takes the parameter name (not data type)
       and MUST NOT wrap it in `<code>`, descriptions SHOULD be single
@@ -725,21 +778,21 @@ user.
       cross-references. The standard lists only the tag order and
       indentation.
 
-      **Partially resolved.** This batch closed the `@param`
-      name-not-type/no-`<code>` rule, the `@return` collection-element-type
-      rule, the `@throws` conditions-coverage rule (folded into the
-      Oracle-sourced `@throws` resolution above, since both sources make
-      the same point), and `@see` for cross-references. Not adopted: the
-      single-sentence/no-capitalization/no-terminal-period description
-      style (a register choice — TS-33's existing prose style requires full
-      sentences with terminal periods elsewhere in this same section,
-      so relaxing it only for block-tag descriptions is a scope call, not
-      a straightforward gap); optional column alignment for tags (a
-      formatting preference with no existing precedent in TS-33 to extend);
-      and the `@deprecated` deprecation-date requirement (this batch's
-      `@deprecated` resolution above covers replacement guidance but not a
-      date requirement). Left open for a future batch or for the user to
-      weigh in on the description-style question specifically.
+      **Resolved.** An earlier batch closed the `@param` name-not-type/
+      no-`<code>` rule, the `@return` collection-element-type rule, the
+      `@throws` conditions-coverage rule (folded into the Oracle-sourced
+      `@throws` resolution, since both sources make the same point), and
+      `@see` for cross-references. This batch closed the remainder: a new
+      paragraph in `07-comments.adoc` states that a block tag's description
+      is tag content, not prose, and follows a different register from the
+      rest of the section — a single sentence fragment, uncapitalized, no
+      terminal period — and that column alignment across a run of tags MAY
+      be used but is cosmetic, not required, and SHOULD NOT be maintained by
+      reformatting untouched lines. The `@deprecated` deprecation-date
+      requirement turned out to already be covered: the existing
+      `@deprecated` paragraph already says its first sentence SHOULD state
+      "when the API was deprecated", which is the date requirement in
+      different words — no separate change was needed for it.
 
 ### From Run 2 (issue #66)
 
@@ -771,20 +824,33 @@ user.
       does not mention record components, and does not articulate the
       "simple, obvious" exception. Reinforces the Run 1 Javadoc-scope gap.
 
-      **Partially resolved.** The "simple, obvious" exception was added to
-      `07-comments.adoc`'s scope paragraph, worded generally (not tied to a
-      `getFoo()`-style example). The broader visibility-based framing and
-      record-component scope were deliberately not adopted, for the same
-      reason as the Run 1 item above — left open for the user to confirm.
+      **Resolved.** The "simple, obvious" exception was added to
+      `07-comments.adoc`'s scope paragraph in an earlier batch, worded
+      generally (not tied to a `getFoo()`-style example). This batch closed
+      the remainder, folded into the same resolution as the Run 1 item
+      above: the user confirmed adopting Google's visibility-based framing,
+      including record components — the scope paragraph now defines
+      "visible" explicitly and requires Javadoc for every visible
+      class-like construct and member, plus every component of a `public`
+      or `protected` record.
 
-- [ ] `https://source.android.com/docs/setup/contribute/code-style#use-javadoc-standard-comments`
+- [x] `https://source.android.com/docs/setup/contribute/code-style#use-javadoc-standard-comments`
       — Every file should have a copyright statement at the top. TS-33
       (`02-source-files.adoc:21-24`) lists license/copyright as the first
       file section but makes it conditional ("if required"). The Android
       guide treats it as always-present. Partial — a project-licensing
       policy question the standard leaves open.
 
-- [ ] `https://google.github.io/styleguide/javaguide.html#s4.6.3` —
+      **Resolved.** TS-33's existing "if required" wording was kept as-is
+      rather than overridden — whether every file needs a license/copyright
+      header is a project-level policy decision (some organizations mandate
+      it, others don't), not a Java-language convention this standard
+      should dictate on Android's authority alone. Closed by making that
+      reasoning explicit: a new sentence on the existing list item states
+      plainly that the requirement is a project policy decision, not
+      prescribed here.
+
+- [x] `https://google.github.io/styleguide/javaguide.html#s4.6.3` —
       Horizontal alignment (adding variable spaces so tokens appear
       directly below previous tokens) is permitted but never required and
       does not need to be maintained; reformatting otherwise-unaffected
@@ -794,13 +860,25 @@ user.
       alignment maintenance or the discouragement of realignment-only
       diffs. Recommend placing at `04-code-style.adoc:300`.
 
-- [ ] `https://google.github.io/styleguide/javaguide.html#s5.3` — Camel
+      **Resolved.** Closed by a new paragraph in `04-code-style.adoc`,
+      after the existing vertical-alignment example: horizontal alignment
+      generally is permitted but never REQUIRED, does not need to be
+      maintained once broken, and reformatting an otherwise-untouched line
+      purely to realign is discouraged.
+
+- [x] `https://google.github.io/styleguide/javaguide.html#s5.3` — Camel
       case conversion proceeds by a specific algorithm (convert to plain
       ASCII, remove apostrophes, split on spaces/punctuation, lowercase
       all, then uppercase first character of each word or each word except
       the first). TS-33 (`03-naming-conventions.adoc`) mandates camel-case
       forms but does not define the conversion algorithm. Recommend
       placing at `03-naming-conventions.adoc:19` (identifiers section).
+
+      **Resolved.** Closed by a new paragraph in `03-naming-conventions.adoc`'s
+      "Identifiers" section, after the unnamed-variable paragraph: the
+      transliterate-to-ASCII/remove-apostrophes/split/lowercase/uppercase-
+      first-letter procedure, with a "Müller" → "Mueller" worked example for
+      the transliteration and apostrophe-removal steps.
 
 ## Out-of-scope
 
