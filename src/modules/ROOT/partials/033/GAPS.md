@@ -65,9 +65,37 @@ partial was needed.
 **Status:** Second `close-gaps` batch run, 2026-08-15, same day, against the
 nullability cluster (all 4 Run 1 items, the standard's largest single
 finding). All 4 closed by a new "Nullability" section in `06-types.adoc`.
-19 Missing and 8 Partial items now remain open and unticked (55 actionable
-→ 27 actionable across the two batches). 3 Out-of-scope and 4 Unresolved
-items are unchanged from the original run, still awaiting the user.
+
+**Status:** Third `close-gaps` batch run, 2026-08-15, same day, against the
+remaining Oracle `codeconventions-comments#385` items (7 of the source's
+items, all landing in `07-comments.adoc`'s existing "Comments"/"Javadoc"
+prose). 6 resolved: redundant/stale-comment and comment-frequency-signals-
+poor-code guidance, the no-boxed-comments prohibition, the Javadoc-
+placement rule (MUST NOT sit inside a method/constructor body), the
+Javadoc asterisk-alignment/indentation rules, and the where-implementation-
+detail-goes rule. 1 withdrawn: the source's multi-line `/* … */`
+asterisk-aligned block-comment format was found to contradict TS-33's own
+pre-existing example, which uses unprefixed wrapped lines — adopting it
+would have been a content change, not a gap fill, so it was left as-is and
+recorded as withdrawn rather than actioned.
+
+**Status:** Fourth `close-gaps` batch run, 2026-08-15, same day, against the
+modern-Java-features cluster (8 items, spread across
+`01-terminology.adoc`, `02-source-files.adoc`, `03-naming-conventions.adoc`,
+`04-code-style.adoc`, `05-programming-constructs.adoc`, and
+`06-types.adoc`, each a small self-contained addition rather than a shared
+destination). All 8 resolved: records added to the class-like-constructs
+terminology and given a naming rule; `package-info.java`/`module-info.java`
+source-file structures; switch expressions; text blocks; the unnamed-
+variable (`_`) syntax; grouping-parentheses guidance; the
+`Object.finalize`-override prohibition; and explicit-constructor guidance
+for `public`/`protected` classes. The module-directive-ordering item was
+deliberately left open — its own text flags it as niche/possibly
+out-of-scope, and it belongs with a scope decision rather than a content
+batch. 4 Missing and 8 Partial items now remain open and unticked (55
+actionable → 12 actionable across the four batches). 3 Out-of-scope and 4
+Unresolved items are unchanged from the original run, still awaiting the
+user.
 
 ## Missing
 
@@ -336,13 +364,20 @@ items are unchanged from the original run, still awaiting the user.
       `@Deprecated` annotation, with the compiler-warning-vs-documentation
       distinction stated explicitly.
 
-- [ ] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#Documenting-Default-Constructors`
+- [x] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#Documenting-Default-Constructors`
       — All constructors in public and protected classes should be explicit
       (no implicit default constructors in public APIs), because an
       explicit declaration forces a decision about access and prevents
       inadvertent public instantiability. TS-33 does not address default
       constructors. Recommend placing at `05-programming-constructs.adoc:36`
       (classes and interfaces section) or a new subsection.
+
+      **Resolved.** Closed by a new paragraph in
+      `05-programming-constructs.adoc`'s "Classes and interfaces" section,
+      after the method-grouping requirement: every constructor in a
+      `public`/`protected` class SHOULD be explicit, with the
+      decision-forcing and accidental-public-instantiability rationale from
+      the source.
 
 - [ ] `https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html#Package-Level-Comments`
       — Package-level Javadoc via `package-info.java` (or `package.html`),
@@ -400,36 +435,69 @@ items are unchanged from the original run, still awaiting the user.
       above: Latin abbreviations SHOULD be avoided in favor of their
       English equivalents, with all four examples from the source.
 
-- [ ] `https://www.oracle.com/java/technologies/javase/codeconventions-comments.html#385`
+- [x] `https://www.oracle.com/java/technologies/javase/codeconventions-comments.html#385`
       — Avoid redundant comments that are likely to get out of date as the
       code evolves. TS-33 (`07-comments.adoc:75-85`) says comments should
       communicate info not readily available from the code but does not
       warn against staleness. Recommend placing at `07-comments.adoc:75`.
 
-- [ ] `https://www.oracle.com/java/technologies/javase/codeconventions-comments.html#385`
+      **Resolved.** Closed by a new paragraph in `07-comments.adoc`, after
+      the existing implementation-comments-content paragraph: implementation
+      comments SHOULD NOT restate what the code already says, since a
+      redundant comment is likely to fall out of date as the code evolves.
+
+- [x] `https://www.oracle.com/java/technologies/javase/codeconventions-comments.html#385`
       — The frequency of comments sometimes reflects poor code quality;
       when you feel compelled to add a comment, consider rewriting the
       code to make it clearer. TS-33 does not make this point. Recommend
       placing at `07-comments.adoc:75`.
 
-- [ ] `https://www.oracle.com/java/technologies/javase/codeconventions-comments.html#385`
+      **Resolved.** Closed by the same new paragraph: comment frequency is
+      sometimes itself a symptom of poor code quality, and rewriting the
+      code to make it clearer SHOULD be considered before adding a comment.
+
+- [x] `https://www.oracle.com/java/technologies/javase/codeconventions-comments.html#385`
       — Comments should not be enclosed in boxes drawn with asterisks or
       other characters. TS-33 does not prohibit this. Recommend placing at
       `07-comments.adoc:21`.
 
-- [ ] `https://www.oracle.com/java/technologies/javase/codeconventions-comments.html#385`
+      **Resolved.** Closed by a new sentence appended to the existing
+      block-level-comment-indentation rule in `07-comments.adoc`: comments
+      MUST NOT be enclosed in boxes drawn with asterisks or other
+      characters.
+
+- [x] `https://www.oracle.com/java/technologies/javase/codeconventions-comments.html#385`
       — Multi-line block comment format: `/*` on its own line, subsequent
       lines beginning with ` * ` aligned to the first `*`, closing ` */` on
       its own line. TS-33 (`07-comments.adoc:21-27`) describes when to use
       `/* … */` but does not specify the asterisk-alignment convention for
       wrapped comments. Recommend placing at `07-comments.adoc:26`.
 
-- [ ] `https://www.oracle.com/java/technologies/javase/codeconventions-comments.html#385`
+      **Withdrawn.** Re-checked against the standard's actual multi-line
+      `/* … */` example (`07-comments.adoc`'s comment-notation code block):
+      TS-33's own example does not use a leading `*` on wrapped lines at
+      all — it writes plain unprefixed text between the opening `/*` and
+      closing `*/`. The source's asterisk-aligned format describes Sun/
+      Oracle's own multi-line *implementation*-comment convention, which
+      TS-33 has already deliberately not adopted (its example predates this
+      gap analysis and was untouched by every prior batch). Adopting the
+      source's format now would contradict the standard's own existing
+      example rather than fill a gap. The closely related asterisk-
+      alignment format *is* adopted below, but only for Javadoc comments
+      (`/** … */`), which already use a leading `*` in TS-33's own
+      examples — a different comment kind from the one this item describes.
+
+- [x] `https://www.oracle.com/java/technologies/javase/codeconventions-comments.html#385`
       — Doc comments must not be positioned inside a method or constructor
       body (Java associates a doc comment with the first declaration after
       it). TS-33 does not state this. Recommend placing at `07-comments.adoc:87`.
 
-- [ ] `https://www.oracle.com/java/technologies/javase/codeconventions-comments.html#385`
+      **Resolved.** Closed by a new paragraph at the start of
+      `07-comments.adoc`'s "Javadoc" section: a Javadoc comment MUST
+      immediately precede the declaration it documents and MUST NOT be
+      positioned inside a method or constructor body.
+
+- [x] `https://www.oracle.com/java/technologies/javase/codeconventions-comments.html#385`
       — Javadoc indentation rules: for top-level classes/interfaces the
       first `/**` line is not indented and subsequent lines have 1 space to
       align asterisks; for members the first line is indented 4 spaces and
@@ -438,7 +506,13 @@ items are unchanged from the original run, still awaiting the user.
       Javadoc-specific asterisk-alignment rules. Recommend a new subsection
       at `07-comments.adoc:122` (near the multi-line form).
 
-- [ ] `https://www.oracle.com/java/technologies/javase/codeconventions-comments.html#385`
+      **Resolved.** Closed by a new paragraph in `07-comments.adoc`'s
+      "Javadoc" section, after the multi-line/single-line notation example:
+      the opening `/**`, the aligned `*` on subsequent lines, and the
+      closing `*/` alignment rules, including the top-level-vs-member
+      indentation distinction from the source.
+
+- [x] `https://www.oracle.com/java/technologies/javase/codeconventions-comments.html#385`
       — Information about a class/interface/variable/method that is not
       appropriate for documentation should go in an implementation block
       comment or single-line comment immediately after the declaration,
@@ -446,7 +520,13 @@ items are unchanged from the original run, still awaiting the user.
       must not document implementation details but does not say where such
       detail should go. Recommend placing at `07-comments.adoc:98`.
 
-- [ ] `https://www.theserverside.com/feature/Java-naming-conventions-explained#PascalCase-for-Java-reference-types`
+      **Resolved.** Closed by a sentence appended to the existing
+      "MUST NOT be used to document implementation details" rule in
+      `07-comments.adoc`'s "Javadoc" section: such information SHOULD
+      instead go in an implementation comment immediately after the
+      declaration.
+
+- [x] `https://www.theserverside.com/feature/Java-naming-conventions-explained#PascalCase-for-Java-reference-types`
       and `https://google.github.io/styleguide/javaguide.html#s1.1` —
       Records are a Java reference type (alongside classes, interfaces,
       annotations, and enums). TS-33's "class-like constructs" definition
@@ -456,12 +536,26 @@ items are unchanged from the original run, still awaiting the user.
       Recommend updating `01-terminology.adoc:5` and
       `03-naming-conventions.adoc:88`.
 
-- [ ] `https://google.github.io/styleguide/javaguide.html#s3` — Special
+      **Resolved.** Closed in two places: `01-terminology.adoc`'s
+      "class-like constructs" definition now lists records alongside
+      classes, enums, interfaces, and annotation types; and
+      `03-naming-conventions.adoc` gained a new paragraph after "Field,
+      variable, and parameter names" — records SHOULD follow the same
+      UpperCamelCase naming convention as classes.
+
+- [x] `https://google.github.io/styleguide/javaguide.html#s3` — Special
       source-file structures for `package-info.java` (package-level
       declarations/doc comments) and `module-info.java` (module
       declaration, no package declaration). TS-33
       (`02-source-files.adoc:1-35`) covers only ordinary `.java` files.
       Recommend a new subsection at `02-source-files.adoc:35`.
+
+      **Resolved.** Closed by a new "Special source files" section in
+      `02-source-files.adoc`, before "Encoding": `package-info.java`'s
+      package-level-declarations-and-Javadoc-only structure (noting
+      `package.html` as the superseded predecessor), and
+      `module-info.java`'s module-declaration-only structure with no
+      `package` statement.
 
 - [ ] `https://google.github.io/styleguide/javaguide.html#s3.5.1` — Module
       directive ordering: `requires`, `exports`, `opens`, `uses`,
@@ -471,14 +565,20 @@ items are unchanged from the original run, still awaiting the user.
       `05-programming-constructs.adoc`. (Niche — may be considered
       out-of-scope if modules are deemed beyond this standard's purpose.)
 
-- [ ] `https://google.github.io/styleguide/javaguide.html#s4.8.4` —
+- [x] `https://google.github.io/styleguide/javaguide.html#s4.8.4` —
       New-style (arrow) switch syntax and switch expressions. TS-33
       (`05-programming-constructs.adoc:226-256`) covers only the old-style
       (`case … :`/`break`) switch and does not mention arrow-style labels,
       switch expressions, or the rule that switch expressions must use
       new-style syntax. Recommend updating `05-programming-constructs.adoc:226`.
 
-- [ ] `https://google.github.io/styleguide/javaguide.html#s4.8.9` — Text
+      **Resolved.** Closed by a new "Switch expressions" section in
+      `05-programming-constructs.adoc`, after "Switch statements": the
+      arrow-labeled syntax, an example, and the rule that a switch
+      expression MUST use new-style syntax while a switch statement MAY
+      use either (arrow syntax RECOMMENDED for consistency).
+
+- [x] `https://google.github.io/styleguide/javaguide.html#s4.8.9` — Text
       blocks (`""" … """`): the opening `"""` on a new line, the closing
       `"""` on a new line with the same indentation, each text line indented
       at least as much as the delimiters, and that text-block contents may
@@ -486,25 +586,45 @@ items are unchanged from the original run, still awaiting the user.
       Recommend a new subsection at `06-types.adoc:8` (after numeric
       literals) or `04-code-style.adoc`.
 
-- [ ] `https://google.github.io/styleguide/javaguide.html#s5.2.9` — The `_`
+      **Resolved.** Closed by a new "Text blocks" section in
+      `06-types.adoc`, placed after "Numeric literals" per the
+      recommendation: an example, the opening/closing-delimiter and
+      content-indentation rules, and the column-limit exception.
+
+- [x] `https://google.github.io/styleguide/javaguide.html#s5.2.9` — The `_`
       syntax for unnamed variables and parameters, allowed wherever it is
       applicable. TS-33 (`03-naming-conventions.adoc:17-19`) restricts
       identifiers to `\w+` but does not mention the unnamed-variable
       pattern. Recommend placing at `03-naming-conventions.adoc:19` or
       `05-programming-constructs.adoc:23`.
 
-- [ ] `https://google.github.io/styleguide/javaguide.html#s4.7` — Optional
+      **Resolved.** Closed by a new paragraph in `03-naming-conventions.adoc`,
+      after the special-prefixes/suffixes rule: `_` MAY be used as an
+      unnamed variable or parameter wherever Java's unnamed-variable syntax
+      applies.
+
+- [x] `https://google.github.io/styleguide/javaguide.html#s4.7` — Optional
       grouping parentheses should be omitted only when author and reviewer
       agree there is no reasonable chance of misinterpretation; it is not
       reasonable to assume readers have the Java operator precedence table
       memorized. TS-33 does not address grouping parentheses. Recommend a
       new subsection at `04-code-style.adoc` (after horizontal whitespace).
 
-- [ ] `https://google.github.io/styleguide/javaguide.html#s6.4` — Do not
+      **Resolved.** Closed by a new "Grouping parentheses" section in
+      `04-code-style.adoc`, after "Horizontal whitespace": parentheses
+      SHOULD be kept unless author and reviewer agree there is no
+      reasonable chance of misreading, with the operator-precedence
+      rationale from the source.
+
+- [x] `https://google.github.io/styleguide/javaguide.html#s6.4` — Do not
       override `Object.finalize`; finalization support is scheduled for
       removal. TS-33 (`05-programming-constructs.adoc:196-224`) discusses
       exception handling but does not mention `finalize`. Recommend placing
       at `05-programming-constructs.adoc:224` or a new subsection.
+
+      **Resolved.** Closed by a new sentence at the end of the "Exceptions"
+      section in `05-programming-constructs.adoc`: `Object.finalize` MUST
+      NOT be overridden.
 
 - [x] `https://google.github.io/styleguide/javaguide.html#s7.2` — The
       `{@return}` inline tag as an alternative to a `@return` block tag for

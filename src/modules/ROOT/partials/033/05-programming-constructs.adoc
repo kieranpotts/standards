@@ -59,6 +59,12 @@ applies to variadic constructors.
 Constructor and method declarations MUST be separated by a blank line. Constants
 and fields MAY be. (See *vertical whitespace*.)
 
+Every constructor in a `public` or `protected` class SHOULD be explicit — an
+implicit default constructor SHOULD NOT be relied upon in a class-like
+construct that forms part of a public API. Declaring the constructor
+explicitly forces a deliberate decision about its access level, and prevents
+a class from becoming publicly instantiable by accident.
+
 == Enums
 
 An enum class with no methods and no documentation on its constants MAY be
@@ -223,6 +229,9 @@ try {
 } catch (NoSuchElementException expected) {}
 ----
 
+`Object.finalize` MUST NOT be overridden. Finalization is unreliable, and
+Java has scheduled the finalization mechanism for removal.
+
 == Switch statements
 
 After a switch label (`case <label>:`, `default:`), there SHOULD be a line
@@ -254,3 +263,26 @@ no code. Only a switch statement for an `enum` type MAY omit the `default`
 statement group, and only if it includes explicit cases that cover all possible
 values of the type (this enables static analysis tools to issue warnings if
 cases are missed).
+
+== Switch expressions
+
+Java also supports new-style, arrow-labeled switch syntax, which SHOULD be
+preferred over the old-style `case … :`/`break`/fall-through form above for
+new code. Each label is followed by `->` and either a single expression, a
+block, or a `throw` statement — never a `break` — and there is no
+fall-through between labels.
+
+[source,java]
+----
+String result = switch (input) {
+  case 1, 2 -> "one or two";
+  case 3 -> "three";
+  default -> "large number";
+};
+----
+
+A switch _expression_ — one whose result is assigned or returned, as in the
+example above — MUST use the new-style arrow syntax; the old-style
+`case … :` form is not permitted there. A switch _statement_, which does not
+produce a value, MAY use either form, but arrow syntax is RECOMMENDED for
+consistency and to avoid unintended fall-through.
