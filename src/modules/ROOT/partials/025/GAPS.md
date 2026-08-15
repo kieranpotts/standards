@@ -14,8 +14,15 @@ format on 2026-08-13.
 
 **Status:** 1 of 1 actionable gaps closed (2026-08-13). This run converted the
 file to the template format and closed the source-reading bias gap with a new
-subsection in `11-when-not-to-document.adoc`. Nothing remains open: 0 missing,
-0 partial, 0 out-of-scope awaiting the user, 0 unresolved.
+subsection in `11-when-not-to-document.adoc`.
+
+**2026-08-15 addendum.** One new Missing item was added, routed here from
+TS-26 (Technical writing style guide) while it was working its own
+Out-of-scope backlog — the item itself started life routed to TS-26 from
+TS-27 (Markdown), then TS-26 judged it lifecycle/process content rather
+than sentence-level style and routed it on to TS-25 instead. Not yet
+actioned. 1 missing, 0 partial, 0 out-of-scope awaiting the user, 0
+unresolved.
 
 ## Missing
 
@@ -58,6 +65,32 @@ subsection in `11-when-not-to-document.adoc`. Nothing remains open: 0 missing,
       reviewer who could have answered the question from the diff is not
       evidence the document was unnecessary. Source added to the page's
       `== References`.
+
+- [ ] https://google.github.io/styleguide/docguide/style.html#minimum-viable-documentation
+      and https://google.github.io/styleguide/docguide/style.html#better-is-better-than-best
+      (routed in from TS-26's Out-of-scope review, 2026-08-15, which was
+      itself routed in from TS-27's Out-of-scope review) — documentation
+      process philosophy: "a small set of fresh and accurate docs is
+      better than a sprawling, loose assembly of documentation in various
+      states of disrepair," maintaining docs with the rigor applied to
+      code and tests, regularly removing outdated content in small
+      increments, and a review-etiquette standard distinct from code
+      review ("when reasonable, LGTM immediately and trust that comments
+      will be fixed appropriately"; authors should "avoid wasting cycles
+      with trivial argument, capitulate early and move on"). TS-26
+      confirmed this is documentation lifecycle/process content, not
+      sentence-level style, and routed it here since that is exactly the
+      scope split stated in both standards' opening paragraphs. Coverage
+      check: `10-ownership.adoc` already covers staleness and ownership in
+      similar spirit ("prefer documentation whose staleness is
+      self-evident... over documentation whose staleness is silent"), but
+      neither it nor any other partial addresses the review-etiquette
+      half (approving documentation PRs quickly, not blocking on
+      perfection) or the explicit "delete outdated content in small
+      increments" practice. Recommend expanding `10-ownership.adoc`, or a
+      new subsection, covering the review-etiquette angle specifically as
+      the genuinely new material. Not yet checked in depth or written into
+      any partial.
 
 ## Partial
 

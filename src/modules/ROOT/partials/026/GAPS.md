@@ -489,7 +489,21 @@ device-agnostic action verbs) — and is recorded below, not yet actioned.
       device-specific one ("click," "tap," "press," "see"). Source added
       to the page's `== References`.
 
-- [ ] https://google.github.io/styleguide/docguide/style.html#minimum-viable-documentation
+**2026-08-15 second addendum (`close-gaps`).** All 5 remaining Missing
+items closed or routed: the doc-process-philosophy item was re-scoped as
+lifecycle/process content and routed to TS-25's `GAPS.md` rather than
+written here (see that item's resolution note); product/tool/binary-name
+capitalization was closed by expanding `03-terminology.adoc`; title/
+heading capitalization needed no change (the source only delegates back to
+the same guide, and TS-26 already covers heading capitalization); general
+grammar was closed by a new `17-grammar.adoc` partial; and Latin/
+biological/music/biblical referencing was closed by a new "Specialized
+referencing conventions" section in `12-referencing.adoc`. TS-26 now has 0
+actionable items and 0 open Out-of-scope items — every item in this file
+is now either resolved, confirmed out-of-scope, or routed elsewhere. This
+file is fully resolved on the "zero unchecked items of any kind" standard.
+
+- [x] https://google.github.io/styleguide/docguide/style.html#minimum-viable-documentation
       and https://google.github.io/styleguide/docguide/style.html#better-is-better-than-best
       (routed in from TS-27's Out-of-scope review, 2026-08-15) — documentation
       process philosophy: keep docs fresh, delete cruft, review etiquette, the
@@ -498,7 +512,16 @@ device-agnostic action verbs) — and is recorded below, not yet actioned.
       Not yet checked against TS-26's current content or written into any
       partial.
 
-- [ ] https://google.github.io/styleguide/docguide/style.html#capitalization
+      **Confirmed out-of-scope for TS-26, routed to TS-25, 2026-08-15.**
+      Re-checked against TS-26's own stated scope ("how to write" —
+      prose/formatting) versus TS-25's ("what documentation, where, who
+      it's for, how it stays trustworthy"): keeping docs fresh, deleting
+      cruft, and doc-review etiquette are lifecycle/process concerns, not
+      sentence-level style, so this belongs in TS-25 despite the source
+      being routed here first. The user confirmed this re-routing. Filed
+      as a new Missing item in TS-25's `GAPS.md`.
+
+- [x] https://google.github.io/styleguide/docguide/style.html#capitalization
       (routed in from TS-27's Out-of-scope review, 2026-08-15) — preserving
       the original capitalization of product, tool, and binary names (e.g.
       `Markdown` not `markdown`). TS-27 already defers general prose
@@ -506,12 +529,30 @@ device-agnostic action verbs) — and is recorded below, not yet actioned.
       yet checked against TS-26's current content or written into any
       partial.
 
-- [ ] https://google.github.io/styleguide/docguide/style.html#capitalization-of-titles-and-headers
+      **Resolved.** Re-fetched the source: "Use the original names of
+      products, tools and binaries, preserving the capitalization," with
+      `Markdown` given as the worked example. Closed by a new paragraph in
+      `03-terminology.adoc`, immediately after the plain-words guidance:
+      requires preserving a product/tool/binary name's own capitalization
+      even where it breaks the sentence-case convention in
+      <<Headings>> or normal mid-sentence lowercasing.
+
+- [x] https://google.github.io/styleguide/docguide/style.html#capitalization-of-titles-and-headers
       (routed in from TS-27's Out-of-scope review, 2026-08-15) — title/heading
       capitalization convention. Not yet checked against TS-26's current
       content or written into any partial.
 
-- [ ] `OLD-NOTES.md:4243` / `OLD-NOTES-2.md:2001-2011` (moved from
+      **No change needed.** Re-fetched the source: this section carries no
+      independent guidance of its own — it says only "Follow the guidance
+      for capitalization in the Google Developer Documentation Style
+      Guide," delegating to the same broader Google style guide rather
+      than stating a title/heading-specific rule. TS-26's own heading
+      capitalization is already normatively covered at `02-headings.adoc`
+      ("Use sentence case for headings... This applies equally to document
+      titles"). Nothing to import — the routed item resolves to a pointer
+      at the same document TS-26 already independently covers.
+
+- [x] `OLD-NOTES.md:4243` / `OLD-NOTES-2.md:2001-2011` (moved from
       Out-of-scope, overruled 2026-08-15) — general English grammar rules:
       split infinitives, dangling participles, subjunctive mood, gerunds
       taking possessive adjectives, "an" before vowel sounds. Originally
@@ -522,13 +563,30 @@ device-agnostic action verbs) — and is recorded below, not yet actioned.
       (punctuation, emphasis, sentences) rather than grammatical
       correctness. Not yet written into any partial.
 
-- [ ] `OLD-NOTES.md:3347-3361` / `9999-reference.md:805-808` (moved from
+      **Resolved.** Closed by a new `17-grammar.adoc` partial, appended
+      after the glossary: split infinitives permitted where the
+      alternative is awkward, avoiding dangling participles, the
+      subjunctive mood for hypothetical/contrary-to-fact conditions
+      ("were" not "was"), a gerund taking a possessive adjective when it
+      is the clause's true subject, and "an" chosen by pronunciation
+      rather than spelling. Source cited as the internal reference
+      document.
+
+- [x] `OLD-NOTES.md:3347-3361` / `9999-reference.md:805-808` (moved from
       Out-of-scope, overruled 2026-08-15) — Latin/biological nomenclature,
       classical-music work referencing, biblical citation format.
       Originally judged as specialized referencing domains outside
       technical documentation's needs; the user overruled that and asked
       for it to be kept in TS-26. Recommend a new subsection of
       `12-referencing.adoc`. Not yet written into any partial.
+
+      **Resolved.** Closed by a new "Specialized referencing conventions"
+      section in `12-referencing.adoc`: italicized Latin binomial names
+      with genus-abbreviation on second use, catalog-designation citation
+      for classical-music works (opus number or a composer-specific
+      catalog), and `<Book> <chapter>:<verse>` biblical citation with
+      first-use abbreviation rules. Source cited as the internal
+      reference documents.
 
 ## Out-of-scope
 
