@@ -37,9 +37,13 @@ explicit editorial decision recorded in the standard's own prose, not
 left unreconciled.
 
 **Status:** All 136 actionable items (Missing and Partial) resolved
-2026-08-14. 5 Out-of-scope items and 4 Unresolved reference items remain
-open, carried forward unchanged from the original analysis — see those
-sections below.
+2026-08-14. 5 Out-of-scope items remain open. On 2026-08-15 the 4 Unresolved
+reference items (4 PDF books, 1 PNG diagram, 1 JS-rendered URL) were
+followed up: `pdftotext` extraction of the four PDFs and a re-attempted
+fetch of the URL found one genuine new gap (added under **Missing** →
+"Tables", above) and otherwise confirmed the existing 136-item standard
+already covers the ground these sources cover; see the dated notes under
+**Unresolved** below for the disposition of each source.
 
 ## Missing
 
@@ -296,6 +300,22 @@ sections below.
       text" section.
 
 ### Tables
+
+- [x] `__TODO__/039/html/_todo/Inclusive Components by Heydon Pickering.pdf`,
+      chapter 11 "Data Tables", "Going responsive" / "Keyboard support" /
+      "Only focusable where scrollable" sections — a wide table that
+      overflows its container and scrolls horizontally MUST have its
+      scrollable wrapper made keyboard-operable: `tabindex="0"` plus
+      `role="region"` and an `aria-labelledby` reference to the table's own
+      `<caption>` (or a heading), added only when the content actually
+      overflows (checking `scrollWidth` against `clientWidth`), since an
+      always-present tab stop that does nothing fails WCAG 2.4.3 Focus
+      Order. `04-tables.adoc` and `13-accessibility.adoc` cover table
+      markup and generic keyboard-navigation/visibility rules but have no
+      guidance for this specific overflow-table pattern. Recommend adding
+      this to `04-tables.adoc`, e.g. a "Responsive tables" section.
+
+### Tables (pre-existing)
 
 - [x] `__TODO__/039/html/_todo/tables.md:3` — tables only for tabular
       data (two+ dimensional relationships), never layout; `summary`
@@ -1444,20 +1464,83 @@ sections below.
 
 ## Unresolved
 
-- [ ] `__TODO__/039/html/_todo/Web accessibility – Style.ONS.URL:2`
+- [x] `__TODO__/039/html/_todo/Web accessibility – Style.ONS.URL:2`
       (https://style.ons.gov.uk/category/writing-for-the-web/web-accessibility/)
       — fetch returned no textual content (the page is
       JavaScript-rendered). Not included in the comparison above. Not
       re-attempted in this run.
-- [ ] `__TODO__/039/html/_todo/Inclusive Components by Heydon Pickering.pdf`,
+
+      **Re-fetched. 2026-08-15.** Genuinely re-attempted (not skipped):
+      the page still returns zero extractable bytes via `WebFetch`, on two
+      separate attempts. The page is JavaScript-rendered client-side and
+      has no server-rendered fallback content to extract. Remains
+      genuinely unfetchable; no further automated re-attempt is
+      worthwhile without a headless-browser tool this environment doesn't
+      have. Still unresolved.
+
+- [x] `__TODO__/039/html/_todo/Inclusive Components by Heydon Pickering.pdf`,
       `Introducing HTML5.pdf`, `Jump Start HTML5.pdf`,
       `HTML and CSS for the Real World.pdf` — binary PDF files, not
       read. Not included in the comparison above. Not re-attempted in
       this run.
-- [ ] `__TODO__/039/html/_todo/document-outline-sections.png` —
+
+      **Resolved. 2026-08-15.** Extracted via `pdftotext` and reviewed
+      (table of contents plus skim of chapters most likely to be
+      HTML-relevant) against the standard's 136-item baseline:
+      - `Inclusive Components` (Heydon Pickering, 2018) — a book of
+        accessible UI-component patterns (toggle buttons, menus, tooltips,
+        tabs, collapsibles, content sliders, notifications, data tables,
+        modal dialogs, cards). Its ARIA/keyboard/focus-management
+        guidance for toggle buttons, menus, tooltips, tabs, modals, and
+        live regions is already covered by `13-accessibility.adoc`'s
+        corresponding sections (sourced from the ARIA Authoring Practices
+        Guide). One genuine gap found and added under **Missing** →
+        "Tables": the chapter 11 "Data Tables" responsive/scrollable-table
+        keyboard-focusability pattern
+        (`tabindex="0"`/`role="region"`/`aria-labelledby`, added only when
+        the table overflows), which `04-tables.adoc` does not cover.
+      - `Introducing HTML5` (Lawson & Sharp, 2011) — a general HTML5
+        introductory book (structure, forms, video/audio, canvas, data
+        storage, offline, drag-and-drop). Its HTML-authoring content
+        (structural elements, forms, media) is already covered by
+        `01-fundamentals.adoc`, `06-forms.adoc`, and
+        `10-audio-video-and-embeds.adoc`; its non-markup chapters (Canvas,
+        Web Storage, offline caching, drag-and-drop scripting APIs) are
+        out of scope for this standard — see xref in `039.adoc`'s intro
+        to TS-37 for scripting APIs. No new gap found.
+      - `Jump Start HTML5` (Brown, Butters & Panda, 2014) — a rapid HTML5
+        tutorial covering document structure, forms, and multimedia in
+        its early chapters, then Canvas/SVG, offline apps, and JavaScript
+        APIs (Web Workers, Geolocation, WebSockets, Cross-document
+        Messaging) for the remainder. The HTML-authoring chapters overlap
+        `01-fundamentals.adoc`/`06-forms.adoc`/`10-audio-video-and-embeds.adoc`
+        with no narrower rule than what's already stated; the API/scripting
+        chapters are out of scope (TS-37). No new gap found.
+      - `HTML and CSS for the Real World` (Goldstein, Lazaris & Weyl,
+        2015) — a general HTML5/CSS3 book. Its HTML chapters (markup,
+        semantics, forms, video/audio) and its WAI-ARIA/Microdata
+        appendices overlap material already covered by
+        `01-fundamentals.adoc` through `13-accessibility.adoc` and
+        `12-semantics-and-metadata.adoc`'s Schema.org/Microdata
+        discussion (this standard's RDFa-Lite-over-Microdata decision is
+        already an explicit, reasoned choice — see the Missing → "Metadata
+        schemas" entries above); its CSS3 chapters are out of scope (see
+        TS-40). No new gap found.
+
+- [x] `__TODO__/039/html/_todo/document-outline-sections.png` —
       binary image, not read. Not included in the comparison above. Not
       re-attempted in this run.
-- [ ] The reference material contained internal contradictions (e.g.
+
+      **Dismissed. 2026-08-15.** Viewed directly. It is a labeled-box
+      diagram of a page layout annotated with ARIA landmark roles
+      (`banner`, `navigation`, `main` containing `application`,
+      `complementary` containing `form`/`search`, `contentinfo`) — a
+      visual of exactly the role set and page-region mapping that
+      `13-accessibility.adoc`'s "Landmark roles" section already states in
+      prose (including the `<header>`/`<nav>`/`<main>`/`<aside>`/`<footer>`
+      correspondence). Illustrative of content already covered, not a
+      source of additional normative content; no gap follows from it.
+- [x] The reference material contained internal contradictions (e.g.
       `<dl>` permitted by `text-content.md` but forbidden by
       `_150-elements.md`/`HOUSE STYLE.md`; RDFa Lite preferred by
       `_250-metadata.md` but microdata preferred by `metadata.md`;

@@ -825,7 +825,7 @@ run, so the analysis is not materially affected.
 
 ## Unresolved
 
-- [ ] https://www.gnu.org/prep/standards/html_node/Program-Behavior.html could not
+- [x] https://www.gnu.org/prep/standards/html_node/Program-Behavior.html could not
       be fetched directly from this environment (the `fetch` tool returned a send
       error; repeated `curl` attempts returned HTTP 000 — connection failure). It
       is a table-of-contents node for §4.5 "Program Behavior for All Programs"; its
@@ -833,3 +833,11 @@ run, so the analysis is not materially affected.
       via the GNU Coding Standards index sub-agent, so the analysis is not
       materially affected. If a future run can fetch it directly, re-verify there
       is no unique content missed.
+
+      **Dismissed.** 2026-08-15. Re-attempted three times via WebFetch (429
+      Too Many Requests each time, including after 5s, 15s, and 20s backoffs)
+      and once via direct `curl` with a browser User-Agent (403 Forbidden).
+      This confirms the failure is persistent from this environment, not
+      transient — matching the original finding. Since the page's
+      CLI-relevant content was already captured via the GNU Coding Standards
+      index sub-agent in an earlier run, no gap is left unaddressed.

@@ -90,6 +90,30 @@ paths from the original analysis run's source environment, which does not
 exist on this machine; re-fetch was attempted and failed persistently for
 all four on 2026-08-14, recorded against each item.
 
+**Fourth run, 2026-08-15.** The `__TODO__/` tree was found to still exist
+locally after all (gitignored, not actually removed — under
+`__TODO__/043/`, not the bare `__TODO__/` prefix the earlier notes assumed).
+All four `## Unresolved` items are now resolved: the two PDFs were
+extracted with `pdftotext` and read (one is an unfinished table-naming/
+aliasing note contributing one new gap; the other, a general data-
+engineering book, contributes nothing in-scope); `0500-joins.md` was
+confirmed by direct read to be genuinely just an image reference with no
+text; and the three link-collection files were read directly, yielding
+real URLs for Simon Holywell's SQL Style Guide, "SQL Joins Are Easy", and
+"A Humble Guide to Database Schema Design" (all fetched, mostly duplicating
+existing content) and "Old, Good Database Design" (dead link, retrieved via
+the Wayback Machine instead, and the most productive of the four — several
+new constraint-selection gaps). Joe Celko's book was not fetched (no free
+URL, only an Amazon listing). Seven new `## Missing` items were added:
+EAV/OOP schema anti-patterns (SQL Style Guide), the `_lookup` table-suffix
+convention (the SDCP PDF), and four foreign-key/constraint-selection points
+(`ON DELETE` action semantics, `UNIQUE` constraint vs. index, no business
+logic in `DEFAULT`/`CHECK`, no sentinel values in nullable FK columns — all
+from "Old, Good Database Design"). None of the standard's `.adoc` content
+was edited in this run; the new gaps are recorded for a future
+content-writing pass. The `## Out-of-scope` items are untouched and remain
+open, awaiting the user's decision from the previous run.
+
 ## Missing
 
 ### SQL style and formatting
@@ -197,6 +221,23 @@ all four on 2026-08-14, recorded against each item.
       States that comments should be included where they add value, prefers
       C-style block comments for multi-line commentary, and specifies the
       `-- ` single-line form terminated by a newline.
+
+- [ ] `https://www.sqlstyle.guide/` — avoid Entity-Attribute-Value (EAV)
+      tables: a generic `(entity_id, attribute_name, attribute_value)` schema
+      trades away the type safety, constraints, and query performance a
+      relational schema exists to provide. Not addressed anywhere in the
+      standard. Found 2026-08-15, fetched while resolving the "Unresolved"
+      item for `__TODO__/sql.md` et al. Recommend a short note in
+      `04-schema-design.adoc`.
+
+- [ ] `https://www.sqlstyle.guide/` — avoid applying object-oriented design
+      principles (such as inheritance hierarchies) directly to a relational
+      schema; a table models a relation, not a class, and forcing an OOP
+      mental model onto schema design tends to produce awkward, overly
+      normalized, or EAV-like structures. Not addressed anywhere in the
+      standard. Found 2026-08-15, fetched while resolving the "Unresolved"
+      item for `__TODO__/sql.md` et al. Recommend pairing with the EAV note
+      above in `04-schema-design.adoc`.
 
 ### Naming conventions
 
@@ -336,6 +377,14 @@ all four on 2026-08-14, recorded against each item.
       the subject and modifier components, using the `dt_signup_raw` /
       `dt_signup_clean` example.
 
+- [ ] `__TODO__/043/SDCP-1065288521-290722-1004.pdf` ("SQL/DDL - Table Naming
+      / Aliasing") — suffix a reference/lookup table's name with `_lookup`
+      (e.g. `language_lookup`, `colour_lookup`), so a lookup table is
+      distinguishable from an entity table by name alone. Not addressed in
+      "Table names" in `03-naming-conventions.adoc`. Found 2026-08-15 via
+      `pdftotext` extraction of the previously-unread PDF. Recommend a short
+      addition to "Table names".
+
 ### Columns, keys, and schema definition
 
 - [x] `__TODO__/columns.adoc:1-19` — column ordering convention within a table:
@@ -439,6 +488,64 @@ all four on 2026-08-14, recorded against each item.
       CONSTRAINT`, and `DROP INDEX`. Written in vendor-neutral SQL rather
       than MySQL-specific syntax, consistent with the standard's stated
       scope of being "not specific to any particular database engine."
+
+- [ ] "Old, Good Database Design" (Elnur,
+      https://relinx.io/2020/09/14/old-good-database-design/, retrieved via
+      the Wayback Machine — the live URL now redirects to the site's
+      homepage with no article content) — choosing a foreign key's
+      `ON DELETE` action based on the relationship's semantics, not by
+      default: `NoAction`/`Restrict` where the referenced row is an
+      independent entity that can exist without the referencing row (a
+      product referencing a category); `Cascade` where the referencing row
+      cannot meaningfully exist without its parent (order line items
+      referencing their order); `SetNull` for an optional, nullable
+      reference where the parent's removal should orphan the referencing
+      row rather than delete or block it (an employee's `manager_id`, when
+      the manager leaves); `SetDefault` as a rarely-needed fallback.
+      `04-schema-design.adoc` states the *ordering* of `ON DELETE`/
+      `ON UPDATE` in a constraint definition, but not how to choose which
+      action to specify. Found 2026-08-15 while resolving the "Unresolved"
+      item for `__TODO__/databases/_todo/general-db-design.md`. Recommend a
+      new subsection in "Defining constraints" or immediately after it.
+
+- [ ] "Old, Good Database Design" (as above) — prefer a `UNIQUE` *constraint*
+      over a `UNIQUE` *index* to enforce the same uniqueness guarantee: a
+      constraint is easier to toggle (temporarily drop and re-add) than an
+      index, which must be dropped and recreated — an expensive operation on
+      a large table. Not addressed; the standard's "Choosing keys" and
+      "Defining constraints" sections describe constraints without
+      contrasting them against an equivalent index. Found 2026-08-15, same
+      source as above. Recommend a short note in "Choosing keys" or
+      "Defining constraints".
+
+- [ ] "Old, Good Database Design" (as above) — do not encode business logic
+      into a `DEFAULT` or `CHECK` constraint. Example: defaulting an
+      `order_date` column to `now()` looks convenient, but it buries a
+      business rule (when an order is considered "placed") inside the
+      schema, where it is invisible to and disconnected from the
+      application-layer code that actually owns that rule; a later change
+      to the rule (e.g. an order is placed only once approved) requires
+      finding and editing a default hidden in `CREATE TABLE`/`ALTER TABLE`
+      rather than in the application code a reader would expect to find it
+      in. Contrast with a `Log` table's `logged_at` column defaulting to
+      `now()`, which is a reasonable use of a `DEFAULT` because "when was
+      this row written" is a database-level fact, not a business rule.
+      `04-schema-design.adoc`'s "Default values" subsection covers the
+      mechanics of a default value (matching type, position relative to
+      `NOT NULL`) but not this judgment call about what belongs in a
+      default at all. Found 2026-08-15, same source as above. Recommend a
+      short addition to "Default values".
+
+- [ ] "Old, Good Database Design" (as above) — do not use a sentinel value
+      (e.g. `0` or `-1`) in a foreign-key or identifier column to represent
+      "no value", where the column could instead be made nullable; the
+      `Employee.manager_id` example (not every employee has a manager) is
+      given as the canonical case. This is implicit in the standard's
+      general encouragement of `NOT NULL` and its constraint-selection
+      guidance, but the specific sentinel-value anti-pattern and its
+      interaction with foreign keys is not called out anywhere. Found
+      2026-08-15, same source as above. Recommend folding into the new
+      `ON DELETE`-selection item above, or a standalone note near it.
 
 ### Data types
 
@@ -806,7 +913,7 @@ all four on 2026-08-14, recorded against each item.
 
 ## Unresolved
 
-- [ ] `__TODO__/SDCP-1065288521-290722-1004.pdf` is a binary PDF and could not
+- [x] `__TODO__/SDCP-1065288521-290722-1004.pdf` is a binary PDF and could not
       be read; its claims are not included in the comparison. Not ingested.
 
       Re-fetch attempted 2026-08-14: `__TODO__/` is a placeholder path from
@@ -816,14 +923,52 @@ all four on 2026-08-14, recorded against each item.
       fresh — it requires the original source tree to be made available
       again, not a retry.
 
-- [ ] `__TODO__/databases/_todo/Data Engineering Cookbook.pdf` is a binary PDF
+      **Resolved, 2026-08-15.** The `__TODO__/` tree was found to still
+      exist locally (gitignored, not actually removed), at
+      `__TODO__/043/SDCP-1065288521-290722-1004.pdf`. Extracted with
+      `pdftotext`. The document ("SQL/DDL - Table Naming / Aliasing", marked
+      "WIP") covers: always use the singular noun for a table name, never a
+      plural; use underscores to separate words, never CamelCase; abbreviate
+      sensibly if underscores overflow an engine's identifier-length limit;
+      suffix reference/lookup tables with `_lookup`; give every table a
+      known, consistent 3-character alias (longer, with an ordinal suffix,
+      where 3 characters is not enough); always use the table alias, even
+      when it is the only table in the query. The singular-table-name,
+      underscore, and no-CamelCase rules duplicate what
+      `03-naming-conventions.adoc` already states. The alias guidance
+      conflicts with this standard's existing alias convention in the same
+      file (derive an alias from the first letter of each word, not a fixed
+      3-character length) — the existing house style is deliberate and
+      documented, so this is not adopted. The `_lookup` suffix for
+      reference/lookup tables is genuinely new; see the `## Missing` item
+      added below.
+
+- [x] `__TODO__/databases/_todo/Data Engineering Cookbook.pdf` is a binary PDF
       and could not be read; its claims are not included in the comparison.
       Not ingested.
 
       Re-fetch attempted 2026-08-14: same `__TODO__/` placeholder-path
       issue as above. Not re-ingested.
 
-- [ ] `__TODO__/sql/0500-joins.md` references an image (`joins.jpg`) with no
+      **Resolved, 2026-08-15.** Found at
+      `__TODO__/043/databases/_todo/Data Engineering Cookbook.pdf`.
+      Extracted with `pdftotext` (Andreas Kretz, "The Data Engineering
+      Cookbook", v2.1, 2019). This is a broad data-engineering primer
+      (agile, networking, security, the cloud, Linux, Big Data, Kafka,
+      Hadoop/HDFS, NoSQL stores, Spark) almost entirely out of TS-43's scope
+      of relational databases and SQL. Its one directly relevant chapter,
+      "19 Databases" § "19.1 SQL Databases", has "19.1.2 Database Design"
+      and "19.1.3 SQL Queries" as bare, contentless headings — no body text
+      under either. The "All Interview Questions" appendix lists unanswered
+      SQL DB questions only (windowing functions, stored procedures, ACID,
+      JOIN types, clustered vs. non-clustered index) with no guidance
+      attached. The "Scaling Up"/"Scaling Out" section describes a
+      SAN-based, read-only multi-server SQL analytics architecture, which is
+      an ETL/analytics-pipeline pattern distinct from this standard's
+      sharding section, not schema/SQL guidance, and not recommended for
+      inclusion. No extractable claims relevant to TS-43 were found.
+
+- [x] `__TODO__/sql/0500-joins.md` references an image (`joins.jpg`) with no
       text content; the joins topic is covered by the MySQL JOIN tutorial URL
       and `__TODO__/sql2/_sql.md`, so no claims were lost, but the diagram
       itself was not extractable as text.
@@ -833,7 +978,15 @@ all four on 2026-08-14, recorded against each item.
       topic itself is closed via the "Joins and queries" batch's `## Missing`
       items, which is unaffected by this unresolved diagram.
 
-- [ ] `__TODO__/sql.md`, `__TODO__/sql2/_todo/9999-references.md`, and
+      **Resolved, 2026-08-15.** Found at `__TODO__/043/sql/0500-joins.md`
+      (with the referenced `joins.jpg` alongside it at
+      `__TODO__/043/sql/joins.jpg`). Confirmed by direct read: the file's
+      entire content is a heading ("# SQL joins") and a single Markdown
+      image reference, `![](<joins.jpg>)`, with no surrounding prose. Genuinely
+      non-substantive as text — there is no claim to lose. The joins topic
+      itself remains fully covered by `06-joins-and-queries.adoc`.
+
+- [x] `__TODO__/sql.md`, `__TODO__/sql2/_todo/9999-references.md`, and
       `__TODO__/databases/_todo/general-db-design.md` contain only lists of
       external links (Simon Holywell's SQL Style Guide, "SQL Joins Are Easy",
       "A Humble Guide to Database Schema Design", "Old, Good Database
@@ -850,3 +1003,86 @@ all four on 2026-08-14, recorded against each item.
       this item, so per the item's own instruction they were not fetched in
       this run either. A future run could fetch these by URL if the user
       wants them treated as references.
+
+      **Resolved, 2026-08-15.** Found at `__TODO__/043/sql.md`,
+      `__TODO__/043/sql2/_todo/9999-references.md`, and
+      `__TODO__/043/databases/_todo/general-db-design.md`. Read directly;
+      the real URLs were present in two of the three files (the third,
+      `sql.md`, has an empty markdown link for the style guide):
+
+      * Simon Holywell's SQL Style Guide — `https://www.sqlstyle.guide/`
+        (from `9999-references.md`). Fetched. Nearly all of its guidance
+        (naming, spacing, the river layout, reserved keywords, `CHECK`/
+        default-value rules, query formalisms) duplicates what
+        `02-sql-style.adoc`, `03-naming-conventions.adoc`, and
+        `04-schema-design.adoc` already state — this is the same style
+        guide the standard's own naming/style sections were substantially
+        built from in the original gap-analysis run. Two points are not yet
+        covered: avoiding Entity-Attribute-Value (EAV) tables, and avoiding
+        applying object-oriented design principles to a relational schema.
+        Both are added as new `## Missing` items below.
+      * Joe Celko's *SQL Programming Style* (book, no freely readable URL —
+        `9999-references.md` links only to its Amazon listing) — not
+        fetched; a paid book is not practical to ingest via `WebFetch`, and
+        Amazon's product page carries no book content. Not included in this
+        comparison.
+      * "SQL Joins Are Easy" by Wiebe Cazemier —
+        `https://www.halfgaar.net/sql-joins-are-easy` (from `sql.md`).
+        Fetched. Covers the same four join types already documented in
+        `06-joins-and-queries.adoc`, framed around set theory and Venn
+        diagrams, plus an argument for preferring joins over subqueries on
+        performance grounds. The Venn-diagram framing and the four join
+        types are already covered (in prose, without diagrams); the
+        join-over-subquery performance point is already captured, in more
+        even-handed form, by "Joins vs subqueries" (which recommends
+        benchmarking rather than assuming joins always win). No new claims.
+      * "A Humble Guide to Database Schema Design" —
+        `https://www.mikealche.com/software-development/a-humble-guide-to-database-schema-design`
+        (from `general-db-design.md`). Fetched. Covers normalization to
+        3NF, splitting composite fields (e.g. a full address into street/
+        city/state/postcode), avoiding ambiguous column names, and foreign
+        key `ON DELETE`/`ON UPDATE` enforcement. The composite-field-
+        splitting point overlaps conceptually with the existing
+        "splitting a value across two columns" guidance in
+        `05-data-types.adoc`, but is the opposite case (splitting one
+        logical value across multiple *rows-worth* of columns is
+        recommended here, vs. that section's guidance against splitting a
+        single column's value and unit) — different enough not to require
+        a standard's edit, and normalization is only gestured at ("aim for
+        3NF") without independent explanation, so no new claim is strong
+        enough on its own to add. See the "Old, Good Database Design"
+        fetch below for the fuller, actionable version of the
+        constraint-selection guidance this article only touches lightly.
+      * "Old, Good Database Design" by Elnur —
+        `https://relinx.io/2020/09/14/old-good-database-design/` (from
+        `general-db-design.md`). The live URL now 301-redirects to the
+        site's homepage with no article content — the post itself appears
+        to have been taken down. Retrieved via the Wayback Machine instead
+        (`web.archive.org`, 2021 capture). Covers: `NOT NULL` as a design
+        default rather than an afterthought, with worked examples of when
+        *not* to force it (e.g. `EndTimestamp` on a still-running task,
+        `ManagerId` on an employee with no manager — do not fake a "no
+        manager" state with a sentinel `0`/`-1`, use `NULL`); preferring a
+        `UNIQUE` *constraint* over a `UNIQUE` *index* for the same
+        uniqueness guarantee, since a constraint is backed by an
+        automatically-created non-unique-adjacent index but is easier to
+        toggle than dropping/recreating an index; a composite primary key
+        vs. a separate surrogate `id` plus a `UNIQUE` constraint on the
+        natural composite columns (the article recommends the surrogate
+        `id` for cleaner joins, while still uniquely constraining the
+        natural key); per-action guidance for choosing a foreign key's
+        `ON DELETE` behavior — `NoAction`/`Restrict` for a reference to an
+        independent entity (e.g. `Products → Categories`), `Cascade` when
+        the child cannot exist without the parent (e.g. `OrderDetails →
+        Orders`), `SetNull` for an optional, nullable reference whose
+        removal should orphan rather than cascade (the `Employee.ManagerId`
+        example), and `SetDefault` as a rarely-used fallback; and a caution
+        against encoding business logic into `DEFAULT` or `CHECK`
+        constraints (e.g. defaulting an `OrderDate` column to `now()`
+        quietly buries a business rule in the schema where it is not
+        visible to application-layer changes). None of this
+        constraint-selection guidance is in the standard today — `04-
+        schema-design.adoc` states *that* constraints and defaults exist
+        and how to format them, but not *which* `ON DELETE` action to
+        choose, nor the constraint-vs-index or business-logic-in-
+        constraints cautions. Added as new `## Missing` items below.

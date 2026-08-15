@@ -24,8 +24,10 @@ no extractable claims beyond the `modeling-examples/` tree.
 extended into one new "Class diagram notation" subsection (relationships,
 multiplicity, member notation) and one new "Use case diagram notation"
 subsection in `03-notations.adoc`. The out-of-scope item was confirmed
-excluded (2026-08-13). 1 unresolved resource re-checked: the reference
-directory no longer exists on disk, so the re-fetch failed again.
+excluded (2026-08-13). The final Unresolved item was resolved (2026-08-15):
+the reference directory was found to still exist on disk all along (it was
+Git-ignored, not deleted), was reviewed in full, and contributed no new
+gaps. All items in this file are now resolved — 0 unchecked.
 
 ## Missing
 
@@ -125,7 +127,7 @@ classified as Partial.)
 
 ## Unresolved
 
-- [ ] The directories `__TODO__/004/47710241/`, `__TODO__/004/164352/`,
+- [x] ~~The directories `__TODO__/004/47710241/`, `__TODO__/004/164352/`,
       and `__TODO__/004/47874101/` contain only binary `.png` images (skipped
       silently per the skill — binary files are not plain-text reference
       resources) plus one `.uxf` that is a duplicate of the `Person` class
@@ -153,4 +155,59 @@ classified as Partial.)
       original local source restoring these files or a citable URL that
       does not currently exist in any recoverable record. Remains
       unresolved; no further automated re-fetch is possible without new
-      information about the original source.
+      information about the original source.~~
+
+      **Correction and resolution (2026-08-15).** The prior "no longer
+      exists" conclusion was wrong — the directories were never deleted.
+      They were, and still are, present on disk at `__TODO__/004/47710241/`,
+      `__TODO__/004/164352/`, and `__TODO__/004/47874101/`, but they sit
+      outside this repository's Git tracking (excluded via a global
+      `~/local.gitignore`), so every prior Git-scoped `find`/`git log`
+      search correctly found nothing even though the files were present the
+      whole time. Corrected here for the record: the resource was never
+      lost, only invisible to version-control-based searches.
+
+      With the directories now accessible, all 27 files were reviewed
+      directly: `47710241/47415330.png` (1 image), `164352/` (25 `.png`
+      images plus `47513625.uxf`), and `47874101/48070690.png` (1 image).
+
+      The `.uxf` file (`164352/47513625.uxf`) was read as XML text and
+      compared against
+      `modeling-examples/uml/diagrams/class/entities/person.umlet.uxf`: the
+      two files are identical in substance — the same single `UMLClass`
+      element, same `Person` class with `id`/`name`/`age`/`height`
+      attributes and `setName()`/`setAge()`/`setHeight()` operations, same
+      UMLet boilerplate `help_text`. Confirmed: it is a duplicate, exactly as
+      originally assessed.
+
+      All 25 `.png` files were opened and viewed as images. They are UMLet
+      screenshot renders of small, standalone UML diagrams — mostly class
+      diagrams (`Person`, `Teacher`/`Student`, `BankAccount`, `Order`/
+      `OrderDetail`/`Item`, `Book`/`Page`, `MovieTheatre`/`BoxOffice`,
+      `Car`/`Engine`, `RectangularShape`/`Rectangle`, `Animal` interface,
+      `Employee`, `Lottery Ticket`/`Random Number`, `Staff` reflexive
+      association, etc.), plus one use case diagram (`Manager`/`Customer`
+      actors against two use cases). Every notational device shown —
+      visibility markers, three-compartment class boxes, `<<interface>>`
+      stereotype, italic abstract members, underlined static members,
+      association/aggregation/composition/generalization/dependency lines,
+      reflexive associations, multiplicity, actors, use cases — is already
+      documented in "Class diagram notation" and "Use case diagram
+      notation" in `03-notations.adoc`. Two minor UML property-string
+      conventions appear that are not called out verbatim in the standard's
+      prose — a derived-attribute slash prefix (`/area` in
+      `164352/47644695.png`) and bracketed constraint tags such as
+      `{readOnly}`, `{unique}`, `{ordered}` (eg.
+      `164352/47186340.png`) — but these are incidental embellishments on
+      notation already covered in depth (member and multiplicity notation),
+      not a new diagram type, view, or technique, and TS-4 explicitly
+      states it is "NOT RECOMMENDED to attempt to learn or apply the full
+      UML specification." No new modeling gap was found.
+
+      **Judgment: dismissed, no new gap.** The images and `.uxf` file add no
+      claims beyond what `modeling-examples/` already contributed and what
+      is already documented. The original assessment's substance
+      ("ad-hoc downloaded screenshots" with "no additional claims") is
+      confirmed correct; only the "directory no longer exists" diagnosis was
+      wrong, and is corrected above. This item is resolved — TS-4's
+      `GAPS.md` now has zero unchecked items.

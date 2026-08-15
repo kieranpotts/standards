@@ -519,12 +519,22 @@ above, with the renumbering noted in its own resolution note.
 
 ## Unresolved
 
-- [ ] [https://www.youtube.com/watch?v=QiAXxaLrt7E] could not be retrieved:
+- [x] [https://www.youtube.com/watch?v=QiAXxaLrt7E] could not be retrieved:
       the YouTube page returned only generic site chrome/footer with no video
       title, description, or transcript. Not included in the comparison
       above.
 
-- [ ] [https://www.youtube.com/watch?v=GjJpRsVffg0] could not be retrieved:
+      **Dismissed.** 2026-08-15. Re-attempted via WebFetch; still returns
+      only YouTube's footer/navigation chrome and the bare page title ("A
+      Few JSON Schema Tips & Tricks: Getting Started"), no transcript or
+      description text. Persistent, not transient. No claims extractable.
+
+- [x] [https://www.youtube.com/watch?v=GjJpRsVffg0] could not be retrieved:
       the YouTube page returned only generic site chrome/footer with no video
       title, description, or transcript. Not included in the comparison
       above.
+
+      **Dismissed.** 2026-08-15. Re-attempted via WebFetch; still returns
+      only YouTube's footer/navigation chrome and the bare page title
+      ("Maintaining JSON Schemas at Scale - Jason Desrosiers"), no transcript
+      or description text. Persistent, not transient. No claims extractable.

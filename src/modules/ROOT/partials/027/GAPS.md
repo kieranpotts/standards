@@ -319,8 +319,21 @@ in the closed items above).
 
 ## Unresolved
 
-- [ ] `__TODO__/027/markdown.adoc` contributed no content of its own —
+- [x] `__TODO__/027/markdown.adoc` contributed no content of its own —
       it is a stub containing only a TODO comment that points to the Google
       style guide URL. The Google URL was fetched successfully and its
       content is reflected in the findings above; the stub file itself added
       nothing further.
+
+      **Resolved, 2026-08-15.** The `__TODO__/` tree was found to still
+      exist locally (gitignored, not actually removed). Re-confirmed
+      `markdown.adoc` is genuinely just the TODO stub described above. Its
+      sibling in the same directory, `__TODO__/027/_markdown.md` (not
+      previously cited in this file), was also read: it is the well-known
+      "adam-p/markdown-here" basic-Markdown cheat sheet (headers, emphasis,
+      lists, links, images, code, tables, blockquotes, horizontal rules,
+      inline HTML, embedded media). Compared against TS-27's current
+      content — every one of those topics already has its own dedicated
+      partial (`04-headings.adoc` through `17-footnotes.adoc`), each more
+      detailed and GFM/CommonMark-specific than the cheat sheet's generic
+      syntax examples. No new gap found.

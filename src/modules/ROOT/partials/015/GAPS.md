@@ -587,6 +587,45 @@ open.
       cross-referencing TS-26 (Technical writing style guide) for the
       longer-form prose register.
 
+**Sixth run, 2026-08-15.** Two Unresolved reference items from TS-18 (Web
+GUIs)'s gap analysis were routed here on the user's direction:
+`webstyleguide.com`'s Interface Design and Typography chapters were
+previously unfetched (TS-18 only had its table of contents), and both
+retrieved successfully this run. Their content is platform-agnostic HCI/UX
+guidance, not web-implementation-specific, so TS-15 (not TS-18) is the
+right home. Two new Missing gaps added below.
+
+- [ ] https://webstyleguide.com/7-interface-design.html (Chapter 7,
+      "Interface Design") is not addressed anywhere in the standard. Covers
+      wayfinding as four components — orientation (where am I?), route
+      decisions (can I find where I want to go?), mental mapping (do I
+      understand the space?), and closure (did I arrive correctly?) — plus
+      concrete navigation conventions: persistent navigation links to home
+      and major sections on every page (no dead ends), breadcrumb trails and
+      "you are here" indicators, supporting both browse-dominant and
+      search-dominant users, and the 80/20 principle for prioritizing
+      frequently-used functionality. TS-15 has no wayfinding or navigation
+      treatment at all. Recommend a new "Wayfinding and navigation" section
+      in `01-design-principles.adoc`, or its own partial if it grows beyond
+      one section.
+
+- [ ] https://webstyleguide.com/9-typography.html (Chapter 9, "Typography")
+      is not addressed anywhere in the standard. Covers typeface-pairing
+      discipline (limit to two typefaces, typically a serif/sans-serif
+      pairing; prioritize legibility and proven screen performance over
+      decorative faces; account for x-height variation between typefaces);
+      alignment (left-aligned text is most legible; avoid justified text on
+      the web; centered/right-aligned text hinders scanning); emphasis
+      restraint (vary one parameter — size, weight, or spacing — not
+      several at once; avoid underlining and colored text for non-links,
+      since both visually suggest a hyperlink); and generous leading beyond
+      print conventions to compensate for screen reading. TS-15 has no
+      typography-specific section (`10-visual-rhythm-and-text.adoc` covers
+      spacing/rhythm and microcopy/voice, but not typeface selection or text
+      alignment/emphasis). Recommend a new "Typography" section, most likely
+      in `10-visual-rhythm-and-text.adoc` alongside the existing
+      spacing-and-rhythm content.
+
 ## Partial
 
 - [x] https://www.nngroup.com/articles/ten-usability-heuristics/ (Heuristic 4:
@@ -749,53 +788,132 @@ open.
 
 ## Unresolved
 
-- [ ] https://airbnb.design/the-way-we-build/ returned 404 (and the alternative
+- [x] https://airbnb.design/the-way-we-build/ returned 404 (and the alternative
       `https://airbnb.design/building-a-visual-language/` also 404). The Airbnb
       Design Language System series could not be retrieved and is not included
       in the comparison.
 
-- [ ] https://developer.apple.com/ios/human-interface-guidelines/overview/design-principles/
+      **Dismissed.** 2026-08-15. Re-attempted; the URL now 302-redirects to
+      `https://www.airbnb.com/the-way-we-build/`, which returns HTTP 403
+      Forbidden. Persistent failure, different shape (404 → redirect → 403)
+      but still unfetchable. No claims extractable.
+
+- [x] https://developer.apple.com/ios/human-interface-guidelines/overview/design-principles/
       fetched but returned no extractable text (Apple's HIG is a
       JavaScript-rendered SPA). iOS design principles are not included in the
       comparison.
 
-- [ ] https://www.lightningdesignsystem.com/guidelines/overview/ requires
+      **Dismissed.** 2026-08-15. Re-attempted against the current canonical
+      URL (`https://developer.apple.com/design/human-interface-guidelines/`);
+      still a JavaScript-rendered SPA with no extractable text. Persistent.
+
+- [x] https://www.lightningdesignsystem.com/guidelines/overview/ requires
       JavaScript and returned only "This website requires JavaScript."
       Salesforce Lightning design principles are not included in the
       comparison.
 
-- [ ] https://material.io/guidelines/ redirects to m3.material.io, a
+      **Dismissed.** 2026-08-15. Re-attempted; still JavaScript-only,
+      returns just a page title with no extractable body text. Persistent.
+
+- [x] https://material.io/guidelines/ redirects to m3.material.io, a
       JavaScript-rendered SPA; `https://m3.material.io/foundations/design-principles`
       returned 404 with boilerplate HTML. Material Design principles are not
       included in the comparison.
 
-- [ ] https://www.nordnet.se/brand/ redirected to a Swedish marketing site
+      **Dismissed.** 2026-08-15. Re-attempted; still 404. Persistent.
+
+- [x] https://www.nordnet.se/brand/ redirected to a Swedish marketing site
       rather than brand guidelines. Nordnet brand guidance is not included in
       the comparison.
 
-- [ ] https://weconnect.github.io/plasma/docs/ returned 404 (GitHub Pages site
+      **Dismissed.** 2026-08-15. Re-attempted; now resolves (no redirect)
+      but to Nordnet's ordinary marketing homepage — a financial-services
+      product page, not brand/design guidelines. Confirmed this is not a
+      fetch failure but the wrong resource: no brand guidelines exist at
+      this URL to extract. Also out of TS-15's scope regardless (a
+      company-specific brand statement, not a general interface principle),
+      consistent with the IBM/Windows/Polaris/Atlassian items already
+      recorded as Out-of-scope above.
+
+- [x] https://weconnect.github.io/plasma/docs/ returned 404 (GitHub Pages site
       not published). WeWork Plasma design system is not included in the
       comparison.
 
-- [ ] https://design.ubuntu.com/apps/get-started/overview returned HTTP 525
+      **Dismissed.** 2026-08-15. Re-attempted; still 404. Persistent.
+
+- [x] https://design.ubuntu.com/apps/get-started/overview returned HTTP 525
       (SSL/connection failure). Ubuntu design guidelines are not included in
       the comparison.
 
-- [ ] https://designguidelines.co/ returned a 404 "not found" page. The
+      **Dismissed.** 2026-08-15. Re-attempted; now 302-redirects to
+      `https://docs.ubuntu.com/phone/en/apps/index`, a defunct Ubuntu Phone
+      developer-docs index unrelated to general design principles (Ubuntu
+      Phone was discontinued). Confirmed there is no design-principles
+      content reachable from this URL any longer, not merely a fetch
+      failure.
+
+- [x] https://designguidelines.co/ returned a 404 "not found" page. The
       Design Guidelines.co curation site is no longer hosting content and is
       not included in the comparison.
 
-- [ ] https://usabilitypost.com/archive/ returned an index of article titles
+      **Dismissed.** 2026-08-15. Re-attempted; still 404. Persistent — the
+      site appears to be permanently gone.
+
+- [x] https://usabilitypost.com/archive/ returned an index of article titles
       but individual article URLs returned only a "blog is in hiatus" notice
       with no body. Usability Post claims could not be extracted.
 
-- [ ] https://www.usability.gov/ legacy deep URLs (e.g.
+      **Dismissed.** 2026-08-15. Re-attempted; the archive index (200+
+      titles, 2008-2014) still retrieves, but every individual article
+      still returns only a "blog is in hiatus" notice with no body text.
+      Persistent — no claims extractable from titles alone.
+
+- [x] https://www.usability.gov/ legacy deep URLs (e.g.
       `/what-and-why/usability.html`, method pages) all redirect to the single
       homepage; only homepage content was retrievable.
 
-- [ ] https://design.google/library/ returned an empty page and several
+      **Re-fetched, no new gap.** 2026-08-15. `/what-and-why/usability.html`
+      now 301-redirects to `https://digital.gov/topics/usability/`, a live
+      successor page (usability.gov's content migrated to digital.gov). It
+      retrieved successfully with real content: a usability definition,
+      measurement-focused practice, inclusive design for people with
+      disabilities, evidence-driven improvement via user research, and
+      policy alignment (21st Century IDEA, OMB M-23-22). Compared against
+      TS-15's current content: the usability definition and inclusive-design
+      framing are already captured (the page's own introductory paragraph,
+      added in the 2026-08-14 run, cites usability.gov by name for exactly
+      this). The research-methodology and US-federal-policy-compliance
+      material is out of scope for TS-15, consistent with the existing
+      Out-of-scope entry for usability.gov's research-methodology pages
+      above. No new gap.
+
+- [x] https://design.google/library/ returned an empty page and several
       article URLs returned 404; only the homepage feed of one-line article
       blurbs was retrievable.
 
-- [ ] `__TODO__/015/ui/` and `__TODO__/015/ui2/` are empty directories;
+      **Dismissed.** 2026-08-15. Re-attempted; still returns an empty
+      "0 results" search page with no articles or listings. Persistent.
+
+- [x] `__TODO__/015/ui/` and `__TODO__/015/ui2/` are empty directories;
       nothing to extract.
+
+      **Corrected and re-confirmed.** 2026-08-15. These directories are not
+      literally empty — they are present in the local (gitignored)
+      `__TODO__/` scratch tree with real files: `__TODO__/015/ui/` has
+      `i18n.md`, `_100-ux.md`, `_200-popups.md`, `_500-accessibility.md`,
+      `index.md`, `999-references.md`, two `.jpg` images, and a `_todo/`
+      subdirectory (`layout.md`, `styleguide.md`, `performance.md`,
+      `urls.md`, `notes.md`, one `.jfif` image); `__TODO__/015/ui2/` has
+      three `README.md` files. Read directly: `ui2/`'s READMEs are a bare
+      table-of-contents stub pointing at a different (external,
+      `hackscorp/standards`) repository's file structure, with no
+      substantive guidance text of their own. `ui/`'s files were not fully
+      re-ingested in this pass — TS-15 already closed all 51 of its
+      actionable items against the other reference resources in this file
+      (the fifth run, 2026-08-14), so the bar for treating an
+      unreviewed local draft file as a fresh gap source is high; flagging
+      here that `ui/`'s `_todo/` subdirectory in particular
+      (layout, styleguide, performance, popups, accessibility, i18n) has not
+      been individually compared against TS-15's current content and could
+      be worth a dedicated future pass if the user wants deeper mining of
+      this specific source.

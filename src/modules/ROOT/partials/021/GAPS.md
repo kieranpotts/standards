@@ -1151,7 +1151,7 @@ Missing, 0 Partial, 0 Out-of-scope awaiting the user, 1 Unresolved (the GOTO
 
 ## Unresolved
 
-- [ ] `https://www.youtube.com/watch?v=etKM5-gGwto` (GOTO 2024, Mike Amundsen,
+- [x] `https://www.youtube.com/watch?v=etKM5-gGwto` (GOTO 2024, Mike Amundsen,
       "RESTful API Patterns & Practices") — compared against the video's
       description only; a full transcript could not be fetched (YouTube watch
       pages are JS-rendered). The description advertises 75+ patterns across
@@ -1163,6 +1163,11 @@ Missing, 0 Partial, 0 Out-of-scope awaiting the user, 1 Unresolved (the GOTO
       workflow — closer to TS-20 / TS-22). No specific new gap was derived from
       the description beyond those already identified above; re-running with a
       transcript may yield further findings.
+
+      **Dismissed.** 2026-08-15. Re-attempted via WebFetch; the page still
+      returns only YouTube's footer/navigation chrome, no transcript or
+      description text — confirming the JS-rendering limitation is
+      persistent, not transient. No new gap derivable without a transcript.
 
 - [x] `https://stackoverflow.com/questions/39789818/best-practice-for-passing-enum-params-in-web-api`
       — fetch blocked by a Cloudflare anti-bot challenge (HTTP 403). Not

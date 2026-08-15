@@ -111,6 +111,25 @@ a new "5. Neurodiversity" section in `02-web-accessibility.adoc`. TS-18 now
 has 0 actionable items; 26 Out-of-scope and 5 Unresolved items remain open,
 none of them actioned in this run.
 
+**Eighth run (`gap-analysis`), 2026-08-15.** Worked the five remaining
+Unresolved items. The five binary PDFs were extracted with `pdftotext` and
+skimmed — four yielded no actionable gap (dated tooling/architecture books,
+or content thinner than an already-tracked item); one (*Real Life Responsive
+Web Design*, a Smashing Book anthology) yielded two genuine new Missing
+items from its Responsive Images and SVG chapters. The three "empty stub"
+`.md` files were re-read directly and confirmed genuinely empty/near-empty
+(two 0-byte files, one heading-only placeholder) — the prior
+characterization was accurate. The webstyleguide.com root item was
+partially actioned: its separately-fetched Images chapter
+(`/11-images.html`) is now tracked as its own Missing item; the root item
+itself stays open for its other unassessed chapters. The YouTube video was
+re-attempted via `WebFetch` (one retry, as instructed) and again returned
+only footer/nav chrome — re-confirmed unfetchable, dismissed. Three new
+Missing items added; three Unresolved items resolved/re-confirmed, one
+partially actioned, one (webstyleguide.com root) left open. TS-18 now has 3
+actionable items (all Missing), 26 Out-of-scope, and 1 open Unresolved item
+(the webstyleguide.com root chapters not yet assessed).
+
 ## Missing
 
 - [x] https://csswizardry.com/2019/08/time-to-first-byte-what-it-is-and-why-it-matters/#what-is-ttfb — Time to First Byte (TTFB) as a performance metric and its contributors (latency, routing, application runtime, DB queries, SSR cost). TS-18 mentions LCP but never TTFB. Recommend a new subsection in `01-performance-optimization.adoc` after the LCP note (~L53). Reinforced by https://web.dev/articles/top-cwv#3-use-a-cdn-to-optimize-ttfb, which frames TTFB as CDN-optimizable and additionally recommends caching static HTML at the edge (even briefly) and moving dynamic logic to edge compute — TS-18's CDN/Squid bullets (L31-34) cover CDN and proxy caching but not edge-cached HTML or edge compute.
@@ -548,6 +567,12 @@ section (see the rsjs items above); the performance items sit in
       concern on the client side, consistent with how the rsjs items above
       were resolved.
 
+- [ ] https://webstyleguide.com/11-images.html — the Web Style Guide's Images chapter (Lynch & Horton) covers image-format selection (GIF/JPEG/PNG/SVG use cases and trade-offs), compression trade-offs, and alt-text conventions. Not currently in TS-18: the standard requires text alternatives (`02-web-accessibility.adoc`, "Text alternatives") but gives no format-selection guidance for images at all. Recommend a new subsection, likely in `01-performance-optimization.adoc` (format choice affects payload) or a new "Images" section alongside fonts. Content not yet written — this item records the gap only; see the two related Missing items below (`srcset`/`sizes`/`<picture>` and SVG accessibility) for adjacent image-markup gaps found independently in the same run.
+
+- [ ] `__TODO__/018/web-clients/_todo/Real Life Responsive Web Design (Smashing Book).pdf`, Chapter 7 "Responsive Images" (Yoav Weiss) — the `srcset`/`sizes` responsive-image markup (`w` descriptors for variable-width images, `x` descriptors for fixed-width/DPR-only cases, the `sizes` attribute for telling the browser an image's expected display width) and the `<picture>`/`<source>` element for *art direction* (serving genuinely different crops/images per breakpoint, as opposed to the same image at different quality levels). TS-18 mentions `srcset` only in passing, once, as part of the `data-src`-anti-pattern bullet in "Rendering and asset delivery" (`01-performance-optimization.adoc`) — it never explains the `w`/`x`/`sizes` syntax or the `<picture>` art-direction pattern at all. Recommend a new subsection in `01-performance-optimization.adoc`, near the existing image-sizing bullets, or folded into whatever new "Images" section results from the webstyleguide.com/11-images.html item above.
+
+- [ ] `__TODO__/018/web-clients/_todo/Real Life Responsive Web Design (Smashing Book).pdf`, Chapter 4 "Mastering SVG for Responsive Web Design" (Sara Soueidan) — SVG accessibility: the `<title>` and `<desc>` elements as an SVG image's text alternative (analogous to `alt` on `<img>`), and the `role="img"` plus `aria-labelledby` pattern to work around inconsistent browser/screen-reader support for SVG 1.1's native accessibility elements. TS-18 recommends inline SVGs/SVG sprites in place of icon fonts (`03-fonts.adoc`, "Icon fonts") specifically for their accessibility benefit, but never states how to actually make an SVG accessible — the `<title>`/`<desc>`/ARIA markup itself. Recommend a new bullet or subsection in `02-web-accessibility.adoc`, "1. Perceivable" > *Text alternatives*, cross-linked from the icon-fonts bullet in `03-fonts.adoc`.
+
 ## Partial
 
 - [x] `__TODO__/018/web-clients/_todo/0200-progressive-enhancement.md:7` and `:86` — progressive enhancement as the framing for performance: serve a static baseline that works without JS/CSS, then layer enhancements. TS-18 says "server-render as much HTML as possible" but does not require the no-JS baseline or the progressive-enhancement model, and never states that anything requiring JS must be injected by JS. Recommend strengthening `01-performance-optimization.adoc` L7-9 (server-render bullet) and cross-linking to accessibility.
@@ -726,9 +751,65 @@ issue #61.
 
 - [ ] https://webstyleguide.com/ — only the contents/landing page was retrieved; the individual chapters (Strategy, IA, Interface Design, Typography, Images, Video, etc.) are separate pages that were not fetched. The out-of-scope call above is based on the table of contents alone. If any chapter (especially Typography, Images, or Page Structure) should be compared in depth, re-run with those chapter URLs as explicit references.
 
-- [ ] The following binary PDFs in `__TODO__/018/web-clients/_todo/` were skipped silently per the gap-analysis rules (binary files are not text references): `Frontend Architecture for Design Systems.pdf`, `The Principles of Beautiful Web Design.pdf`, `Real Life Responsive Web Design (Smashing Book).pdf`, `Build Mobile Websites and Apps for Smart Devices.pdf`, `Beyond the 12 Factor App.pdf`. Not included in the comparison. If any should be treated as references, extract their text and re-run.
+      **Partially actioned, 2026-08-15.** The main session separately fetched
+      the Images chapter, https://webstyleguide.com/11-images.html, and found
+      format-selection guidance (GIF/JPEG/PNG/SVG use cases, compression
+      trade-offs, alt-text conventions) not currently in TS-18. That chapter
+      is now tracked as its own Missing item below. The site root item itself
+      remains unresolved for its other chapters (Typography, Interface
+      Design are routed to TS-15 per the maintainer; Strategy, IA, Page
+      Structure, Video were not separately assessed).
 
-- [ ] `__TODO__/018/web-clients/_todo/encoding.md`, `modules-and-bundling.md`, and `0500-csp.md` are empty stubs (no substantive content), so no claims were extracted from them.
+- [x] The following binary PDFs in `__TODO__/018/web-clients/_todo/` were skipped silently per the gap-analysis rules (binary files are not text references): `Frontend Architecture for Design Systems.pdf`, `The Principles of Beautiful Web Design.pdf`, `Real Life Responsive Web Design (Smashing Book).pdf`, `Build Mobile Websites and Apps for Smart Devices.pdf`, `Beyond the 12 Factor App.pdf`. Not included in the comparison. If any should be treated as references, extract their text and re-run.
+
+      **Resolved, 2026-08-15.** All five PDFs extracted with `pdftotext` and
+      skimmed in full (tables of contents plus the chapters most likely to
+      be relevant). Findings per book:
+
+      - *Beyond the Twelve-Factor App* (Kevin Hoffman) — entirely backend
+        cloud-application architecture (API-first design, config/credentials,
+        logs, statelessness, port binding, telemetry). No web-GUI content.
+        Out of scope for TS-18 (TS-5/TS-8/TS-31 territory, not assessed
+        further here).
+
+      - *Frontend Architecture for Design Systems* (Micah Godbolt) — design
+        system tooling, workflow, task runners, testing/documentation
+        infrastructure (Pattern Lab, style-guide generators). Process/tooling
+        concerns outside TS-18's implementation-level pillars, and dated
+        (2016, pre-dates current build tooling). No actionable gap found.
+
+      - *The Principles of Beautiful Web Design* (Beaird & George) — visual
+        and graphic design craft (layout composition, color theory, texture,
+        typography as aesthetics, image sourcing/art direction). Its one
+        technical subsection, "File Formats and Resolutions" (JPEG/GIF/PNG),
+        is dated (2014, IE6/IE7 references, no WebP/AVIF/SVG guidance) and
+        thinner than the already-identified webstyleguide.com/11-images.html
+        gap below; not added separately to avoid duplicating that item.
+
+      - *Build Mobile Websites and Apps for Smart Devices* (Castledine,
+        Eftos, Wheeler) — 2011-era mobile web development built entirely
+        around PhoneGap/Cordova native-app packaging. Obsolete tooling and
+        architecture (TS-5 territory where still relevant); no actionable
+        gap for TS-18's current pillars.
+
+      - *Real Life Responsive Web Design* (Smashing Book #5) — a multi-author
+        anthology; two chapters yielded genuine, current, actionable gaps not
+        already in TS-18, added as new Missing items below: Yoav Weiss's
+        "Responsive Images" chapter (`srcset`/`sizes`/`<picture>` markup) and
+        Sara Soueidan's "Mastering SVG" chapter (SVG accessibility via
+        `<title>`/`<desc>` and ARIA). Its Flexbox and offline/Application
+        Cache chapters are dated (2015, pre-dating mature Service Worker
+        practice and the CSS Grid/Flexbox fluency TS-18 already assumes) and
+        yielded nothing beyond what TS-18 already covers.
+
+- [x] `__TODO__/018/web-clients/_todo/encoding.md`, `modules-and-bundling.md`, and `0500-csp.md` are empty stubs (no substantive content), so no claims were extracted from them.
+
+      **Re-confirmed, 2026-08-15.** Re-read directly rather than relying on
+      the prior characterization. `encoding.md` and `modules-and-bundling.md`
+      are literally 0 bytes. `0500-csp.md` contains only a single Markdown H1
+      heading, `# Content Security Policy (CSP)`, with no body text — a
+      title placeholder, not substantive content. The "empty stub"
+      characterization was accurate for all three; no claims to extract.
 
 - [x] https://neurodiversity.design/ — only the landing page was retrieved. The per-principle pages (Numbers, Font, Typography, Colour, Buttons/Links/Inputs, Interface, Communications, Animations) were not fetched, so the cognitive-accessibility gap above is based on the landing page's category list and two inline snippets ("the right typography can support neurodivergent learners' reading on screens"; "specific font shapes that make dyslexic readers, read better") only. Re-run with the individual principle-page URLs to compare in depth.
 
@@ -736,4 +817,14 @@ issue #61.
       successfully on re-fetch (the previous run's failure did not recur).
       Content compared against TS-18 and closed as the Missing item above.
 
-- [ ] https://www.youtube.com/watch?v=-Ln-8QM8KhQ — this video is already listed in TS-18's own `04-references.adoc`. The comparison is against the creator's video description (extracted via the helper script), not a full transcript. The description's chapters (Server-Rendered HTML, Prefetching HTML, CDN Caching, Client Caching with Service Worker, Preloading Assets, Critical CSS, LCP, Fixed-Size Images, JavaScript) map almost 1-1 to TS-18's existing `01-performance-optimization.adoc` content, so no new gaps were identified from it. A full transcript was not fetched, so spoken-only details could not be verified.
+- [x] https://www.youtube.com/watch?v=-Ln-8QM8KhQ — this video is already listed in TS-18's own `04-references.adoc`. The comparison is against the creator's video description (extracted via the helper script), not a full transcript. The description's chapters (Server-Rendered HTML, Prefetching HTML, CDN Caching, Client Caching with Service Worker, Preloading Assets, Critical CSS, LCP, Fixed-Size Images, JavaScript) map almost 1-1 to TS-18's existing `01-performance-optimization.adoc` content, so no new gaps were identified from it. A full transcript was not fetched, so spoken-only details could not be verified.
+
+      **Dismissed, 2026-08-15.** Re-attempted via `WebFetch` as instructed
+      (one retry only). The page still returns only YouTube's footer/nav
+      chrome (About/Press/Copyright/Contact/etc. links and the copyright
+      notice) — no transcript or video description content, the same
+      unfetchable result as before. This is the expected outcome: YouTube
+      pages don't expose transcripts to this fetch tool. Re-confirmed
+      unfetchable; not re-attempted further. The prior comparison against
+      the video description stands as the best available evidence, and
+      found no new gaps.

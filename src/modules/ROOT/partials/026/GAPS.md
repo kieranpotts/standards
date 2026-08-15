@@ -25,9 +25,10 @@ guide is the closest match to TS-26's stated technical-book purpose and fed
 the majority of the originally-missing items, concentrated in punctuation,
 capitalization, and figure/list mechanics.
 
-**Status:** All 30 actionable items resolved (the 29 original plus the one
-routed in from TS-21 on 2026-08-15), plus 4 of the original 9 out-of-scope
-items (2026-08-14), across four `close-gaps` batches — the
+**Status:** All 31 actionable items resolved (the 29 original plus the one
+routed in from TS-21 on 2026-08-15, plus one found while resolving the
+Unresolved link-collection triage on 2026-08-15), plus 4 of the original 9
+out-of-scope items (2026-08-14), across four `close-gaps` batches — the
 first closed the comma/quotation-mark/apostrophe/dash/hyphenation/
 exclamation-question-mark/colon-capitalization cluster in
 `13-punctuation.adoc` plus abbreviation mechanics, dates/numbers,
@@ -45,16 +46,28 @@ list as a new `16-glossary.adoc` partial — see that item's resolution note
 for what the import contains and the two corrections made to the source
 along the way. One further Out-of-scope item (`copywriting.adoc`'s UI/
 short-message conventions) was confirmed out-of-scope for TS-26 and routed
-to TS-15 (User interfaces) instead, at the user's direction. 6 out-of-scope
-items and 2 unresolved resources remain open — this file is not yet fully
-resolved on the "zero unchecked items of any kind" standard, only on
-actionable items.
+to TS-15 (User interfaces) instead, at the user's direction. Both
+previously-Unresolved resources (the PDF and the link collections) were
+resolved on 2026-08-15 — see below — surfacing one new Missing item
+(procedural/instructional phrasing) still open, alongside 5 remaining
+open out-of-scope items. This file is not yet fully resolved on the
+"zero unchecked items of any kind" standard: 1 Missing item and 5
+out-of-scope items remain unchecked.
 
 **2026-08-14 addendum.** One new Missing item was added, routed here from
 TS-21 (HTTP APIs) at the user's direction while confirming TS-21's own
 out-of-scope items: `api-style-guide.md`'s document-level conventions
 (RFC 2119 rendering, all-caps REST/JSON, fixed-width machine-readable text,
 URI Template syntax). Closed 2026-08-15 — see below.
+
+**2026-08-15 addendum.** The two remaining Unresolved items were resolved:
+the PDF (`Web Copy That Sells - Second Edition.pdf`) was extracted with
+`pdftotext` and confirmed out-of-scope (direct-response sales copywriting,
+the same register as the already-out-of-scope `copywriting.adoc`), and the
+five link-collection files were read in full and their ~77 URLs triaged,
+with 8 of the most promising fetched. One genuine new Missing item was
+found — procedural/instructional phrasing (chronological sequencing,
+device-agnostic action verbs) — and is recorded below, not yet actioned.
 
 ## Missing
 
@@ -449,6 +462,23 @@ URI Template syntax). Closed 2026-08-15 — see below.
       (`levid-gc/paypal-api-standards`), matching how TS-21 already cites the
       same source elsewhere in this repository.
 
+- [ ] `alistapart.com/article/standards-for-writing-accessibly/` (fetched
+      2026-08-15, routed in from the Unresolved link-collection triage) —
+      procedural/instructional phrasing for accessibility: prefer
+      chronological sequencing over spatial references when describing UI
+      interactions (e.g. "next, select OK to continue" over "click the OK
+      button below," since position is not stable for a screen-reader or
+      voice-interface user), and prefer device-agnostic action verbs
+      ("select," "choose," "view") over device-specific ones ("click,"
+      "tap," "press," "see") in procedural steps. TS-26 has no
+      instructional-step-writing guidance at all — the closest existing
+      content is `09-links.adoc`'s descriptive-link-text rule and
+      `12-referencing.adoc`'s prohibition on "above"/"below" for figures,
+      neither of which covers UI-interaction verbs or step sequencing.
+      Recommend a new section, most likely in `14-sentences-and-
+      paragraphs.adoc` or as a new numbered partial, since this is
+      procedural prose rather than punctuation, emphasis, or referencing.
+
 ## Out-of-scope
 
 - [x] `copywriting.adoc` ("Copywriting guidelines") — UI/short-message
@@ -569,20 +599,118 @@ URI Template syntax). Closed 2026-08-15 — see below.
       format. Flagged: specialized referencing domains not relevant to
       technical documentation.
 
-- [ ] `accessibility.md`, `styleguides.md`, `writing.md`,
+- [x] `accessibility.md`, `styleguides.md`, `writing.md`,
       `reference-resources.md` — these files are lists of external URLs with
       at most a one-line gloss each; their linked content was not fetched
       (see Unresolved). Flagged: pointers, not reference content in
       themselves.
 
+      **Resolved, 2026-08-15.** Superseded by the Unresolved-section
+      resolution below, which read these files (plus `seo.md`) in full and
+      fetched the most promising of their ~77 URLs. Confirmed out-of-scope
+      overall — see that resolution note for the per-URL findings and the
+      one genuine gap it surfaced (procedural/instructional phrasing, in
+      Missing above).
+
 ## Unresolved
 
-- [ ] `__TODO__/_todo/Web Copy That Sells - Second Edition.pdf` — binary PDF,
+- [x] `__TODO__/_todo/Web Copy That Sells - Second Edition.pdf` — binary PDF,
       not read (no text-extraction tool available to the agent). Not included
       in the comparison.
 
-- [ ] `__TODO__/_todo/accessibility.md`, `seo.md`, `styleguides.md`,
+      **Resolved, 2026-08-15.** `pdftotext` (now available at
+      `/usr/bin/pdftotext`) was used to extract the full text (`-layout`
+      mode; the PDF logged benign `Dictionary key must be a name object`
+      warnings from a malformed embedded object but extracted cleanly
+      otherwise). Skimmed the front-matter praise, and read a full
+      chapter-length sample from "Crafting Your Copy," including the
+      book's "Selling Quotient" scoring formula. **Confirmed out-of-scope
+      for TS-26.** The book is exclusively direct-response sales
+      copywriting: headline formulas designed to "stop readers dead in
+      their tracks," emotional/psychological persuasion tactics (fear,
+      greed, guilt, curiosity as "proven emotional drivers"), embedded
+      commands in link text, and a scoring rubric for a website's
+      "selling quotient." None of this is documentation prose guidance —
+      it is marketing copy for driving purchase decisions, the same
+      register as `copywriting.adoc`'s UI/short-message conventions,
+      which this file's Out-of-scope section already confirmed
+      out-of-scope for TS-26 and routed to TS-15 instead. This PDF sits
+      even further from TS-26's purpose than `copywriting.adoc` did (that
+      file was at least about short UI microcopy mechanics; this book is
+      about sales-page rhetoric), so no routing target applies here —
+      it is simply not a technical-writing-adjacent resource at all, for
+      any standard in this repository.
+
+- [x] `__TODO__/_todo/accessibility.md`, `seo.md`, `styleguides.md`,
       `writing.md`, `reference-resources.md` contain ~40 external URLs (e.g.
       alistapart.com, nngroup.com, copyblogger.com, monzo.com/tone-of-voice).
       These are link collections; the linked pages were not individually
       fetched. Only the local file content was used.
+
+      **Resolved, 2026-08-15.** Read all five files directly; they total
+      77 URLs (`accessibility.md`: 1, `seo.md`: 1, `styleguides.md`: 1,
+      `writing.md`: 4, `reference-resources.md`: 70). The great majority,
+      concentrated in `reference-resources.md`, are early-2010s web-design/
+      content-strategy/SEO/blogging posts (webdesignerdepot.com,
+      copyblogger.com, smashingmagazine.com, problogger.com, etc.) —
+      already covered by this file's existing Out-of-scope items for
+      content strategy, SEO, and marketing/web-strategy, so the bulk was
+      triaged out without fetching. 8 of the most promising
+      writing-prose-relevant URLs from reputable sources were fetched:
+
+      - `alistapart.com/article/standards-for-writing-accessibly/` — UI
+        microcopy/accessibility phrasing (chronological over spatial
+        references, device-agnostic action verbs, critical info before
+        action points). Its "click here" point duplicates the existing
+        `09-links.adoc` descriptive-link-text rule; its "above/below"
+        point duplicates the existing `12-referencing.adoc` figure-
+        reference rule. Yielded one genuine new item — see Missing below.
+      - `monzo.com/tone-of-voice/` — brand tone-of-voice guide. Confirmed
+        out-of-scope: the source's own text scopes its distinctive
+        "everyday magic" and "warm wit" principles to "brand and
+        marketing writing" specifically; only its generic "clear,
+        inclusive, reader-focused" principle would transfer, and that is
+        already TS-26's baseline throughout. No actionable gap.
+      - `nngroup.com/articles/concise-scannable-and-objective-how-to-write-for-the-web/`
+        — validates conciseness/scannability/objectivity principles TS-26
+        already states via headings, lists, and `14-sentences-and-
+        paragraphs.adoc`'s plain-sentence guidance. No new rule; the
+        article is usability-research support for existing content, not
+        a gap.
+      - `nngroup.com/articles/microcontent-how-to-write-headlines-page-titles-and-subject-lines/`
+        — confirmed out-of-scope: explicitly about web microcontent
+        (search-result snippets, social posts, email subject lines), not
+        document headings or technical prose.
+      - `nicolefenton.com/interface-writing/` — confirmed out-of-scope:
+        explicitly about UI/product microcopy (buttons, error messages,
+        tooltips), the same register already routed to TS-15.
+      - `gov.uk/guidance/content-design/writing-for-gov-uk` — redirects
+        (301) to `guidance.publishing.service.gov.uk/writing-to-gov-uk-
+        standards/tone-of-voice/`, which itself redirects again to a
+        `writing-guidelines/` page; the content could not be reached
+        through two redirect hops in the time available. Left unfetched;
+        not actioned.
+      - `plainenglish.co.uk/how-to-write-in-plain-english.html` — dead
+        link (HTTP 404). Not actioned.
+      - `orwell.ru/library/essays/politics/english/e_polit/` (Orwell's
+        "Politics and the English Language," linked from `writing.md`)
+        — the source is already cited in TS-26's `== References` (the
+        Wikipedia "Signs of AI writing" entry draws on the same
+        tradition), and its six numbered rules (avoid stale metaphors,
+        prefer short words, cut unnecessary words, prefer active voice,
+        avoid jargon/foreign phrases with a plain equivalent) are all
+        already independently covered by existing TS-26 content: active
+        voice (`01-voice-and-tense.adoc`), plain terminology
+        (`03-terminology.adoc`, `05-inclusive-language.adoc`), and
+        conciseness (`14-sentences-and-paragraphs.adoc`'s "Overused
+        words" section). No new rule.
+
+      The remaining ~69 URLs were not individually fetched: triage by
+      title/domain against this file's existing Out-of-scope categories
+      (content strategy, SEO, marketing copy, UI microcopy) placed all of
+      them in an already-flagged out-of-scope bucket with high confidence
+      — titles like "5 tips on how to write a killer slogan,"
+      "copywriting A to Z," "magnetic headlines," and "the 10 commandments
+      of PageRank sculpting" are unambiguously sales-copy or SEO content,
+      consistent with the pattern already established across this file's
+      Out-of-scope section.

@@ -118,7 +118,92 @@ maintenance discouragement; and the camelCase conversion algorithm. TS-33's
 decisions/re-fetches rather than content work, unchanged from the original
 2026-08-05 analysis.
 
+**Status:** PDFs read, 2026-08-15. All four `SDCP-*.pdf` files in
+`__TODO__/033/` were extracted with `pdftotext` and read in full (the
+largest, `SDCP-2-Java-v1.0.0-290722-0931.pdf`, is an internal Java coding
+standard document, ~800 lines of extracted text but well under 30 pages;
+the other three are short, 1–3 page documents). See the Unresolved section
+below for what each contained and the Missing/Partial sections for the
+genuine gaps found in `SDCP-2-Java-v1.0.0-290722-0931.pdf`.
+
 ## Missing
+
+### From `SDCP-2-Java-v1.0.0-290722-0931.pdf` (2026-08-15)
+
+- [ ] `SDCP-2-Java-v1.0.0-290722-0931.pdf`, "Methods" section — classes
+      that override `equals()` MUST also override `hashCode()`, per the
+      contract that equal objects must have equal hash codes (required for
+      correct behavior in hash-based collections). TS-33 does not mention
+      this anywhere. Recommend a new paragraph in `05-programming-
+      constructs.adoc`, near the `Object.finalize` prohibition.
+
+- [ ] `SDCP-2-Java-v1.0.0-290722-0931.pdf`, "Attributes" section — `==`
+      and `!=` MUST NOT be used to compare `String` values; use `.equals()`
+      instead, since `==` compares reference identity, not content. TS-33
+      does not address this common Java pitfall anywhere. Recommend a new
+      paragraph in `06-types.adoc` or `05-programming-constructs.adoc`.
+
+- [ ] `SDCP-2-Java-v1.0.0-290722-0931.pdf`, "Attributes" section — avoid
+      floating-point arithmetic (`float`/`double`) for values like currency
+      amounts, since binary floating-point cannot represent most decimal
+      fractions exactly; `BigDecimal` SHOULD be used instead for monetary
+      and other precision-sensitive decimal values. TS-33's "Numeric
+      literals" section (`06-types.adoc`) covers only the `L` suffix
+      convention and says nothing about floating-point precision pitfalls
+      or `BigDecimal`. Recommend a new paragraph in `06-types.adoc`.
+
+- [ ] `SDCP-2-Java-v1.0.0-290722-0931.pdf`, "Error handling" section —
+      avoid catching `java.lang.Exception`, `java.lang.Error`, or
+      `java.lang.RuntimeException` directly; catching these broad types
+      risks silently swallowing unrelated failures (eg.
+      `NullPointerException`, `OutOfMemoryError`) that should propagate.
+      TS-33's "Exceptions" section (`05-programming-constructs.adoc`)
+      covers the empty-catch-block documentation rule and the
+      `Object.finalize` prohibition, but says nothing about the breadth of
+      exception types caught. Recommend a new paragraph in
+      `05-programming-constructs.adoc`'s "Exceptions" section.
+
+- [ ] `SDCP-2-Java-v1.0.0-290722-0931.pdf`, "Methods" section — methods
+      SHOULD be coded so they cannot return a `null` reference; where a
+      meaningful value truly cannot be produced, an exception SHOULD be
+      thrown instead. TS-33's "Nullability" section (`06-types.adoc`)
+      recommends `Optional<X>` as the return type where a value may be
+      absent, but does not separately state the stronger rule that a
+      method declared to return a non-`Optional`, non-nullable type MUST
+      NOT return `null` under any circumstance. Recommend a short
+      reinforcing sentence in `06-types.adoc`'s "Nullability" section,
+      near the `Optional` recommendation.
+
+- [ ] `SDCP-2-Java-v1.0.0-290722-0931.pdf`, "Constructors" section — a
+      utility class (one containing only `static` methods and constants)
+      SHOULD NOT have a public constructor; its constructor SHOULD be
+      `private` (or `protected` if subclassing is intended), since
+      instantiating a utility class serves no purpose and a forgotten
+      default constructor leaves it publicly instantiable by accident.
+      TS-33's naming section (`03-naming-conventions.adoc`) recognizes
+      utility classes as a named concept (classes with plural names
+      containing only static methods) but does not state this construction
+      rule for them. Recommend a new paragraph in `05-programming-
+      constructs.adoc`'s "Classes and interfaces" section, alongside the
+      existing explicit-constructor guidance.
+
+- [ ] `SDCP-2-Java-v1.0.0-290722-0931.pdf`, "Attributes" section — avoid
+      inner assignment (assigning a variable as a side effect inside a
+      larger expression, eg. `String s = Integer.toString(i = 2);`) except
+      in the header of a `for` loop; all assignments SHOULD occur as their
+      own top-level statement. TS-33's "Variable declarations" section
+      (`05-programming-constructs.adoc`) addresses declaration style and
+      scope but not inner/embedded assignment. Recommend a new paragraph
+      in `05-programming-constructs.adoc`'s "Variable declarations"
+      section.
+
+- [ ] `SDCP-2-Java-v1.0.0-290722-0931.pdf`, "Attributes" section — avoid
+      empty statements (a stray `;` with no effect). TS-33 addresses empty
+      _blocks_ (`04-code-style.adoc`'s brace-style section, which
+      explicitly permits `{}`) but says nothing about a bare empty
+      statement, which is a different and always-erroneous construct (eg.
+      an accidental `;` after an `if` condition). Recommend a short
+      paragraph in `04-code-style.adoc`, near the empty-block guidance.
 
 ### From Run 1 (`__TODO__/`)
 
@@ -915,16 +1000,72 @@ decisions/re-fetches rather than content work, unchanged from the original
 
 ## Unresolved
 
-- [ ] `__TODO__/033/SDCP-1065287937-290722-0934.pdf`,
+- [x] `__TODO__/033/SDCP-1065287937-290722-0934.pdf`,
       `__TODO__/033/SDCP-1065287946-290722-0933.pdf`,
       `__TODO__/033/SDCP-2-Java-v1.0.0-290722-0931.pdf`, and
       `__TODO__/033/SDCP-BuildTools-v1.0.0-290722-0959.pdf` are binary
       PDFs and were not parsed. Not included in the comparison above.
 
-- [ ] `https://www.quora.com/What-is-the-difference-between-string-args-and-string-args-in-Java`
+      **Resolved, 2026-08-15.** All four extracted with `pdftotext` and
+      read in full.
+
+      `SDCP-1065287937-290722-0934.pdf` ("Linting tools (Java)", 4 lines)
+      states that Specsavers agreed to use Checkstyle for Java linting,
+      with a link to the Maven Checkstyle plugin. This is tooling/CI
+      configuration, not a coding-style rule, and names a specific
+      organization's tool choice — out of TS-33's scope (a
+      language-agnostic-tooling standard, not this one, would be the right
+      home if ever wanted). No gap.
+
+      `SDCP-1065287946-290722-0933.pdf` ("Unit Testing (Java)", 36 lines)
+      states that Specsavers agreed to use JUnit 5 and Mockito for unit
+      testing, and summarizes the FIRST principles (Fast, Isolated,
+      Repeatable, Self-validating, Thorough) plus Arrange/Act/Assert test
+      structure. This is unit-testing methodology, not Java code style —
+      out of TS-33's scope; a testing-focused standard is the natural home
+      if this is ever wanted. No gap.
+
+      `SDCP-2-Java-v1.0.0-290722-0931.pdf` ("2 - Java - v1.0.0", ~800
+      lines of extracted text, well under 30 pages) is a substantial
+      internal Java coding standard covering IDE auto-formatting, package
+      naming, general/class/method/attribute/constant naming conventions,
+      code layout and ordering, error handling, Javadoc/comments, line
+      length and line-wrapping, whitespace, imports, modifiers, a catalog
+      of GoF design patterns, and a list of code/method-level and
+      class-level "symptoms of poor design". The great majority overlaps
+      with content TS-33 already covers (often near-identically, since
+      both ultimately draw on the same industry conventions), or is
+      out-of-scope design-level material that TS-33 already defers
+      elsewhere (the design-pattern catalog and "symptoms of poor design"
+      section — duplicate code, long methods, large classes, class envy,
+      etc. — are code-design concerns for TS-7, not style/naming/format
+      concerns for TS-33, consistent with how thread-safety design was
+      already deferred to TS-7 in an earlier batch). Six genuine, concrete
+      gaps were found and added under Missing above: the
+      `equals()`/`hashCode()` contract, the `==`/`!=`-with-`String`
+      prohibition, floating-point/`BigDecimal` guidance, the
+      overly-broad-`catch` prohibition, the methods-must-not-return-null
+      rule, the utility-class-private-constructor rule, inner-assignment
+      avoidance, and empty-statement avoidance.
+
+      `SDCP-BuildTools-v1.0.0-290722-0959.pdf` ("Build Tools", 51 lines)
+      compares Gradle and Maven as build-automation tools (task-graph vs.
+      phase model, build caching, dependency resolution, plugin
+      ecosystems) with no Java-code-level guidance at all — it is
+      build-tooling selection/comparison material, entirely out of
+      TS-33's scope (a Java code-style standard, not a build-tooling
+      standard). No gap.
+
+- [x] `https://www.quora.com/What-is-the-difference-between-string-args-and-string-args-in-Java`
       — fetch returned HTTP 403 (Cloudflare bot challenge). The page
       content could not be retrieved without authenticated access. No
       claims extracted. Not included in the comparison above.
+
+      **Dismissed.** 2026-08-15. Re-attempted via WebFetch; still 403
+      Forbidden (Cloudflare bot challenge). Persistent, not transient. The
+      topic itself (`String[] args` vs `String args[]` array-declaration
+      syntax) is a minor, well-known Java syntax equivalence, not a style
+      or design question — low-value even if it had been retrievable.
 
 - [ ] Scope call: the Javadoc-content rules derived from the Oracle
   javadoc-tool article (documenting thread-safety, spec completeness,
