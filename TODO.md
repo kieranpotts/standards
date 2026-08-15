@@ -299,14 +299,14 @@ longer blocks the standard from being "fully resolved" in the strict sense
 used by this file, because its Missing item was closed against other
 sources; only Out-of-scope items remain open in TS-39's own `GAPS.md`.
 
-TS-18 (Web GUIs) gained 3 new Missing items on 2026-08-15, **still open**:
-image-format selection (GIF/JPEG/PNG/SVG use cases, compression trade-offs,
-alt-text conventions — from webstyleguide.com's Images chapter, fetched
-after its root page's table of contents was retrieved during this run's
-Unresolved sweep), responsive-image markup (`srcset`/`sizes`/`w`/`x`
-descriptors, `<picture>`/`<source>` art direction — from a Yoav Weiss
-chapter in "Real Life Responsive Web Design", one of five previously-unread
-PDFs rediscovered in its local `__TODO__` tree), and SVG accessibility
+TS-18 (Web GUIs) gained 3 new Missing items on 2026-08-15: image-format
+selection (GIF/JPEG/PNG/SVG use cases, compression trade-offs, alt-text
+conventions — from webstyleguide.com's Images chapter, fetched after its
+root page's table of contents was retrieved during this run's Unresolved
+sweep), responsive-image markup (`srcset`/`sizes`/`w`/`x` descriptors,
+`<picture>`/`<source>` art direction — from a Yoav Weiss chapter in "Real
+Life Responsive Web Design", one of five previously-unread PDFs
+rediscovered in its local `__TODO__` tree), and SVG accessibility
 (`<title>`/`<desc>`, `role="img"`/`aria-labelledby` — from a Sara Soueidan
 chapter in the same book). The other four PDFs (a 12-factor-style
 server-side book, a design-system tooling book, a dated visual-design book,
@@ -314,15 +314,18 @@ and an obsolete 2011 PhoneGap/Cordova book) contributed nothing in scope.
 TS-18's 3 "empty stub" files (`encoding.md`, `modules-and-bundling.md`,
 `0500-csp.md`) were re-verified as genuinely empty or near-empty — the
 prior characterization held. Its YouTube reference item was re-confirmed
-persistently unfetchable and dismissed. TS-18 now stands at Actionable=3,
-Scope=26, Unresolved=1 — the 3 Missing items above have not yet been
-written into the standard, and webstyleguide.com's other chapters
-(Strategy, Research, Process, IA, Site Structure, Page Structure, Graphic
-Design, Editorial Style, Video) were never individually fetched and remain
-open for a future pass, if wanted.
+persistently unfetchable and dismissed. **All 3 Missing items were closed
+the same day** via a `close-gaps` batch run: a new "Images" section in
+`01-performance-optimization.adoc` (format selection plus responsive-image
+markup) and a new inline-SVG-accessibility bullet in
+`02-web-accessibility.adoc`. TS-18 now stands at Actionable=0, Scope=26,
+Unresolved=1 — webstyleguide.com's other chapters (Strategy, Research,
+Process, IA, Site Structure, Page Structure, Graphic Design, Editorial
+Style, Video) were never individually fetched and remain open for a future
+pass, if wanted.
 
-TS-15 (User interfaces) gained 2 new Missing items on 2026-08-15, **still
-open**: wayfinding and navigation (the four-component orientation/route/
+TS-15 (User interfaces) gained 2 new Missing items on 2026-08-15:
+wayfinding and navigation (the four-component orientation/route/
 mapping/closure model, persistent navigation and breadcrumbs, the 80/20
 prioritization principle) and typography (typeface-pairing discipline,
 alignment, emphasis restraint, leading) — both from webstyleguide.com's
@@ -345,8 +348,11 @@ table-of-contents stub with no substantive prose of its own) — re-confirmed
 as non-substantive, though `ui/`'s `_todo/` subdirectory (layout,
 styleguide, performance, popups, accessibility, i18n drafts) was not
 individually mined this run and could be worth a dedicated future pass.
-TS-15 now stands at Actionable=2, Scope=7, Unresolved=0 — the 2 Missing
-items above have not yet been written into the standard.
+**Both Missing items were closed the same day** via a `close-gaps` batch
+run: a new "Wayfinding and navigation" section in
+`01-design-principles.adoc` and a new "Typography" section in
+`10-visual-rhythm-and-text.adoc`. TS-15 now stands at Actionable=0,
+Scope=7, Unresolved=0.
 
 TS-4 (Modeling) and TS-27 (Markdown)'s Missing/Partial items both reached
 zero on 2026-08-15 — but see the correction above: TS-27's Out-of-scope
@@ -727,12 +733,13 @@ and essentially no prose; a false positive like TS-47 has complete sections.
 
 A standard is "fully resolved" when its `GAPS.md` has zero unchecked items of
 *any* kind — `grep -c '^- \[ \]'` returns 0 — not merely zero actionable
-items. TS-16, TS-27, TS-33, TS-39, and TS-43 are the current examples that
-make this distinction matter: every one of them has 0 actionable items, but
-each has at least one open Out-of-scope or Unresolved item, keeping it in
-the open-items table. TS-18, TS-26, TS-40, and TS-15 are a different case —
-they have open `## Missing`/`## Partial` items too, so they belong in the
-table for a more basic reason: they are not yet done.
+items. TS-16, TS-27, TS-33, TS-39, TS-43, TS-26, TS-15, and TS-18 are the
+current examples that make this distinction matter: every one of them has 0
+actionable items, but each has at least one open Out-of-scope or Unresolved
+item, keeping it in the open-items table. TS-40 is a different case — it
+has one open `## Partial` item too (declined, left open at the user's
+explicit choice), so it belongs in the table for a more basic reason: a
+human decision, not authoring, is what's outstanding.
 
 The legacy-format script also has one known false negative: it matches the
 literal string `**RESOLVED**`, but TS-38's `GAPS.md` closes its one gap with
