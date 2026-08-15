@@ -11,15 +11,15 @@ missing rather than partial: the standard describes how services talk to each
 other but never how the contract between them is defined and enforced. This
 file was converted from the legacy format on 2026-08-13.
 
-**Status:** 1 of 1 actionable gaps closed (2026-08-13). This run converted the
-file from the legacy format and closed the schema-driven contracts gap.
+**Status:** 2 of 2 actionable gaps closed (2026-08-15). This run converted the
+file from the legacy format, closed the schema-driven contracts gap, and
+closed the rate-limit-headers gap routed in from TS-21. 0 missing, 0 partial,
+0 out-of-scope, 0 unresolved.
 
 **2026-08-14 addendum.** One new Missing item was added, routed here from
 TS-21 (HTTP APIs) at the user's direction while confirming TS-21's own
 out-of-scope items: rate-limit response headers
-(`X-RateLimit-Limit`/`Remaining`/`Reset`). Not yet reviewed against this
-standard's current content. 1 missing, 0 partial, 0 out-of-scope awaiting
-the user, 0 unresolved.
+(`X-RateLimit-Limit`/`Remaining`/`Reset`). Closed 2026-08-15 — see below.
 
 ## Missing
 
@@ -62,9 +62,7 @@ the user, 0 unresolved.
       "Version management" section for the compatibility rules. Source added
       to the page's new `== References` section.
 
-## Missing
-
-- [ ] `https://github.com/microsoft/api-guidelines/blob/master/Guidelines.md#8-cors`
+- [x] `https://github.com/microsoft/api-guidelines/blob/master/Guidelines.md#8-cors`
       and rate-limit headers (`X-RateLimit-Limit`/`Remaining`/`Reset` per
       `https://digitalspecs.portofantwerpbruges.com/api-guidelines/#http-status-codes-and-errors`)
       (surfaced while gap-closing TS-21, HTTP APIs, 2026-08-14) — general
@@ -78,6 +76,23 @@ the user, 0 unresolved.
       this item is only the rate-limit-specific headers.) Not yet checked
       against TS-20's current content; needs its own coverage check before
       being actioned.
+
+      **Resolved.** Re-fetched both cited sources on 2026-08-15. The GitHub
+      CORS-section anchor turned out to be a mismatched citation — that
+      section of the Microsoft REST API Guidelines mentions rate limiting
+      only in passing (failures due to rate limiting MUST NOT count as
+      faults) and names no headers. The Port of Antwerp-Bruges source is the
+      substantive one: it documents `X-RateLimit-Limit`,
+      `X-RateLimit-Remaining`, and `X-RateLimit-Reset` as the most widely
+      adopted rate-limit header set, returned on every request rather than
+      only once throttled. TS-20 already had a "Rate limiting and backoff"
+      section (`04-reliability-and-resilience.adoc`) that said to include
+      rate-limit headers "where possible" without naming any — extended it
+      with a paragraph naming the three headers, recommending they be
+      returned unconditionally, and flagging the lack of industry consensus
+      on `X-RateLimit-Reset`'s unit (relative seconds vs. UTC epoch), which
+      the standard resolves by requiring the API to document and hold its
+      own convention consistent. Source added to the page's `== References`.
 
 ## Partial
 

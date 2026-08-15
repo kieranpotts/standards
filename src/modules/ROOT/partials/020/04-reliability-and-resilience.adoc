@@ -29,6 +29,17 @@ can see how close they are to hitting limits and adjust their behavior
 accordingly. When clients do hit rate limits or encounter transient failures,
 they should implement exponential backoff for their retry logic.
 
+Where a de facto standard exists, use it. `X-RateLimit-Limit`,
+`X-RateLimit-Remaining`, and `X-RateLimit-Reset` are the most widely adopted
+set of rate-limit headers, communicating respectively the maximum number of
+requests allowed in the current window, how many of that allowance remain,
+and when the window resets. Return them on every request, not only once the
+client has been throttled, so a well-behaved client can back off before
+hitting `429`. There is no single agreed unit for `X-RateLimit-Reset` across
+the industry — some APIs return relative seconds until reset, others a UTC
+epoch timestamp — so document the convention in use for your API and hold it
+consistent across every endpoint.
+
 It's important to distinguish between rate limits (temporary restrictions to
 protect the API) and usage quotas (permanent restrictions on what a customer is
 allowed to do), as they have different semantics and should be communicated
