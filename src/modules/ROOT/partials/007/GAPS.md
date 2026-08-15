@@ -19,8 +19,8 @@ over-engineering, orphan modules, and Kent Beck's two-step refactor
 discipline) are absent or only partially covered. This file was converted
 from the legacy format on 2026-08-13.
 
-**Status:** 13 of 13 actionable gaps closed (2026-08-13). All items resolved
-across two runs. First run: the refactor-discipline gap (new "Make the change
+**Status:** 14 of 14 actionable gaps closed (2026-08-15). All items resolved
+across three runs. First run: the refactor-discipline gap (new "Make the change
 easy, then make the easy change" section in `01-bike-shedding.adoc`), LSP,
 ISP, and the SOLID-as-a-framework restatement (new "SOLID" section in
 `09-object-oriented-design.adoc`, plus OCP and DIP named at their existing
@@ -29,8 +29,10 @@ new sections in `05-dependency-management.adoc`). Second run: mental models
 (new `11-mental-models.adoc` partial), exception aggregation (new "Aggregate
 exception handling" section in `07-error-handling.adoc`), and orphan modules,
 the Rule of Three, and optimization as a source of over-engineering (three
-new sections in `03-decomposition.adoc`). 0 out-of-scope, 0 unresolved. This
-file is now fully resolved.
+new sections in `03-decomposition.adoc`). Third run (2026-08-15): thread-safe
+class design, routed in from TS-33's Out-of-scope review (new "Designing
+thread-safe classes" section in `10-concurrency.adoc`). 0 out-of-scope, 0
+unresolved. This file is now fully resolved.
 
 ## Missing
 
@@ -121,7 +123,7 @@ file is now fully resolved.
       in full as new subsections. Source added to the page's
       `== References`.
 
-- [ ] `https://www.infoworld.com/article/2165633/design-for-thread-safety.html`
+- [x] `https://www.infoworld.com/article/2165633/design-for-thread-safety.html`
       (routed in from TS-33's Out-of-scope review, 2026-08-15) —
       design-level thread-safety guidance: synchronizing critical
       sections, immutable objects, thread-safe wrappers, when to make a
@@ -129,6 +131,19 @@ file is now fully resolved.
       TS-33 (Java)'s `AGENTS.md` already defers concurrency to TS-7, and
       this article's content fits `10-concurrency.adoc`, but has not yet
       been checked against that partial's current coverage or written in.
+
+      **Resolved.** Closed by a new "Designing thread-safe classes" section
+      in `10-concurrency.adoc`, directly before "Testing concurrent code."
+      States the usage-driven criterion for deciding whether a class needs
+      to be thread-safe, the private-field-plus-critical-section technique
+      for synchronization (including the JVM's non-atomic `long`/`double`
+      caveat), the trade-off of immutability (allocation/GC pressure vs.
+      safety), the thread-safe-wrapper pattern for third-party or dual-mode
+      classes, and the performance cost of synchronization (both
+      unnecessary use and the cost of skipping it where genuinely needed).
+      Cross-references "Optimization as a source of over-engineering" in
+      the Decomposition section. Source added to the page's
+      `== References`.
 
 ## Partial
 

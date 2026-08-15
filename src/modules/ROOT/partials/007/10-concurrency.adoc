@@ -71,6 +71,59 @@ different order. If multiple locks are genuinely necessary, establish and
 document a consistent acquisition ordering across the codebase, and follow it
 without exception.
 
+== Designing thread-safe classes
+
+Not every class needs to be thread-safe, and making one thread-safe is not
+free. Decide deliberately, per class, rather than by blanket policy.
+
+*When to make a class thread-safe.* Base the decision on how the class is
+actually used: will instances be exposed to concurrent write/write or
+read/write access from your own code? If so, the class must be thread-safe.
+If a class is only ever used from a single thread, or only ever read
+concurrently after safe construction, synchronizing it adds cost for no
+benefit. A library or shared component whose usage context is not known in
+advance should offer both variants – see "Thread-safe wrappers" below –
+rather than guessing.
+
+*Synchronizing critical sections.* Where shared mutable state cannot be
+avoided (see "Shared mutable state" above), the standard technique is to make
+the relevant fields private and mark the code that reads and writes them as a
+critical section, guarded by a lock. Only code that controls access to the
+data through its own methods can enforce that access is safe – a public
+mutable field cannot be protected by any amount of synchronization elsewhere
+in the class. On platforms where only some primitive read/writes are atomic
+by default (for example the JVM, where `long` and `double` are not), treat
+those types with the same care as any other shared mutable field.
+
+*Immutable objects.* Immutability (see "Shared mutable state" above) works
+best for small value types – simple data carried by the object, with no
+identity beyond its value. A mutating-looking method returns a new instance
+rather than altering the existing one, which is what makes the object safe to
+share across threads without synchronization. The trade-off is allocation:
+an immutable design under high-frequency mutation can generate many
+short-lived objects and add garbage-collection pressure. This is rarely a
+reason to abandon immutability, but it is a reason to profile before
+assuming the trade-off is free (see "Optimization as a source of
+over-engineering" in <<Decomposition>>).
+
+*Thread-safe wrappers.* Where a class cannot be made thread-safe directly –
+commonly because it comes from a third-party library you cannot modify, or
+because you want to offer both variants from your own code – wrap it. A
+thread-safe wrapper accepts the same operations as the object it encloses,
+delegating each one through a synchronized method. This is the same
+structure as the decorator pattern, and it is how many standard-library
+collection types offer a synchronized view over an unsynchronized
+implementation.
+
+*The cost of synchronization.* Synchronization is not free: a synchronized
+method invocation is meaningfully slower than an unsynchronized one on most
+platforms, and unnecessary synchronization adds thread contention – blocking
+and unblocking – for no correctness benefit. Do not synchronize a class that
+is never exposed to concurrent access. Conversely, do not skip synchronization
+on a class that is, in order to avoid this cost: an intermittent, hard-to-
+reproduce concurrency bug (see "Testing concurrent code" below) is far more
+expensive than the overhead of a lock.
+
 == Testing concurrent code
 
 Concurrency bugs are notoriously difficult to test because they are often
