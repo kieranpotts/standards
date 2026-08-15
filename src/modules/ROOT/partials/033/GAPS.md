@@ -1135,14 +1135,35 @@ ticked in the prior status entry.
       syntax) is a minor, well-known Java syntax equivalence, not a style
       or design question — low-value even if it had been retrievable.
 
-- [ ] Scope call: the Javadoc-content rules derived from the Oracle
+- [x] Scope call: the Javadoc-content rules derived from the Oracle
   javadoc-tool article (documenting thread-safety, spec completeness,
   implementation-specific behavior) overlap with TS-7 (Code design) and
   TS-26 (Technical Writing). They are classified here as missing because
   they concern what Javadoc _should contain_, which is TS-33's comments
   section — but the user may prefer to defer some to TS-7 or TS-26.
 
-- [ ] Scope call: the module-directives gap
+      **Confirmed in scope, 2026-08-15.** Stale duplicate: this scope call
+      was already settled and actioned earlier the same day, in the "Run
+      2 (issue #66)" batch above — all three Javadoc-content items
+      (thread-safety documentation, spec-vs-guide distinction, spec
+      completeness, implementation-specific behavior) were kept in TS-33
+      and closed by new paragraphs in `07-comments.adoc`'s "Javadoc"
+      section, each cross-referencing TS-7 where the underlying design
+      concern (e.g. thread-safe class design itself) belongs there instead
+      of duplicating it. See those items' own `**Resolved.**` notes above
+      for what was written. This bullet records the confirm decision
+      itself, which had not been separately ticked.
+
+- [x] Scope call: the module-directives gap
   (`https://google.github.io/styleguide/javaguide.html#s3.5.1`) is marked
   missing but is niche. The user may consider the Java Platform Module
   System out-of-scope for this standard.
+
+      **Confirmed in scope, 2026-08-15.** Stale duplicate: this scope call
+      was already settled and actioned earlier the same day. The user was
+      asked directly (see the "Fifth `close-gaps` batch run" note above)
+      and chose to keep the Java Platform Module System in scope rather
+      than decline it. Closed by a new paragraph and worked example in
+      `02-source-files.adoc`'s "Special source files" section — see that
+      item's own `**Resolved.**` note above. This bullet records the
+      confirm decision itself, which had not been separately ticked.
