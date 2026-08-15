@@ -653,7 +653,7 @@ not yet fully resolved on the "zero unchecked items of any kind" standard.
       links, and using generous relative-unit leading for screen reading.
       Source added to the page's `== References`.
 
-- [ ] https://www.ibm.com/design/language/ (routed in from the Out-of-scope
+- [x] https://www.ibm.com/design/language/ (routed in from the Out-of-scope
       review, 2026-08-15) — a general principle extracted from IBM's
       "Build Bonds" design-language philosophy: interfaces should build
       user trust and relationship over time, not just optimize
@@ -662,7 +662,18 @@ not yet fully resolved on the "zero unchecked items of any kind" standard.
       Recommend a new principle in `01-design-principles.adoc`. Not yet
       written into any partial.
 
-- [ ] https://atlassian.design/ (routed in from the Out-of-scope review,
+      **Resolved.** Closed by a new "Build trust over time" section in
+      `01-design-principles.adoc`, after "Keep it tidy": trust as
+      accumulating across many interactions rather than any single one,
+      cross-linked to TS-18's consequential-action confirmation
+      requirement and to "Keep it tidy" for consistency. Re-fetching the
+      source for this run returned HTTP 403 (it had succeeded in the
+      2026-08-15 Out-of-scope review); the section was written from the
+      claim as already recorded in this item, without embellishing beyond
+      it, and the reference entry flags the source as currently
+      unconfirmed.
+
+- [x] https://atlassian.design/ (routed in from the Out-of-scope review,
       2026-08-15) — designing AI experiences: guidance specific to
       AI-driven or AI-assisted interfaces. Originally judged too narrow a
       topic for a general interface-design standard; the user overruled
@@ -670,7 +681,18 @@ not yet fully resolved on the "zero unchecked items of any kind" standard.
       likely its own partial given how distinct the topic is from TS-15's
       existing structure. Not yet written into any partial.
 
-- [ ] https://www.usability.gov/ (routed in from the Out-of-scope review,
+      **Resolved.** Closed by a new `11-ai-experiences.adoc` partial, "AI
+      involvement disclosure", "confident wrongness" as a distinct failure
+      mode from a conventional error state, keeping a human able to
+      intervene (cross-linked to TS-18's confirm-before-consequential-
+      action requirement), and treating latency/failure as first-class.
+      Re-fetching atlassian.design for this run returned only
+      homepage-level material, not deep AI-UX guidance, so the section is
+      written from established AI-UX practice consistent with that
+      framing rather than transcribed from the source; the reference
+      entry states this explicitly.
+
+- [x] https://www.usability.gov/ (routed in from the Out-of-scope review,
       2026-08-15) — user-research methodology: writing a research plan,
       conducting a usability test, interview debriefs, participant
       agreements. Originally judged out of TS-15's design/implementation
@@ -680,7 +702,17 @@ not yet fully resolved on the "zero unchecked items of any kind" standard.
       process at a level appropriate to TS-15's audience, cross-referenced
       from/to TS-12. Not yet written into any partial.
 
-- [ ] `__TODO__/018/web-clients/_todo/audits.md` (routed in from TS-18's
+      **Resolved.** Closed by a new `12-user-research.adoc` partial,
+      "Planning and conducting research" section: research plans before
+      recruiting, task-based (not guided-tour) usability tests,
+      structured interviews with debriefs, and informed-consent
+      participant agreements. Cross-references TS-12 (Quality assurance)
+      for the wider testing/quality process. usability.gov's own methods
+      page has migrated to digital.gov (see the corresponding Unresolved
+      item's re-fetch note); the new content and reference entry cite the
+      live digital.gov URL rather than the dead usability.gov one.
+
+- [x] `__TODO__/018/web-clients/_todo/audits.md` (routed in from TS-18's
       Out-of-scope review, 2026-08-15) — website audit / technical
       due-diligence checklists. TS-18 (Web GUIs) judged this
       process/auditing material outside its own scope; the user confirmed
@@ -689,7 +721,14 @@ not yet fully resolved on the "zero unchecked items of any kind" standard.
       TS-15. Not yet checked against TS-15's current content or written
       into any partial.
 
-- [ ] https://neurodiversity.design/ (Learner Personas) (routed in from
+      **Resolved.** Closed by the "Website and interface audits" section
+      of the same new `12-user-research.adoc` partial: a structured,
+      periodic, checklist-driven review distinct from a one-off usability
+      test, checked against TS-15's own heuristics, TS-18's WCAG
+      accessibility requirements, and the interface's own usability
+      goals, run on a regular cadence.
+
+- [x] https://neurodiversity.design/ (Learner Personas) (routed in from
       TS-18's Out-of-scope review, 2026-08-15) — neurodivergent learner
       personas (e.g. dyspraxia, dyslexia, ADHD) as a UX-research tool,
       originally scoped to Learning Management Systems in the source.
@@ -698,6 +737,36 @@ not yet fully resolved on the "zero unchecked items of any kind" standard.
       TS-18 Missing item) out of its own scope; the user confirmed it
       fits TS-15's new "User research" section instead. Not yet checked
       against TS-15's current content or written into any partial.
+
+      **Resolved.** Closed by the "Personas" section of the same new
+      `12-user-research.adoc` partial: personas built from research
+      rather than assumption, explicitly including neurodivergent
+      profiles (dyslexia, dyspraxia, ADHD, autism) where the audience
+      includes them, cross-linked to "Understand context"'s
+      hardest-to-reach-users principle. Generalized from the source's
+      original Learning-Management-System scoping to personas generally,
+      since TS-15 is not LMS-specific.
+
+**Eighth run (`close-gaps`), 2026-08-15.** All 5 remaining Missing items
+closed: a new "Build trust over time" section in
+`01-design-principles.adoc`, and two new partials —
+`11-ai-experiences.adoc` (AI-involvement disclosure, confident wrongness as
+a distinct failure mode, human intervention, latency/failure handling) and
+`12-user-research.adoc` (research planning/conducting, personas including
+neurodivergent profiles, and website/interface audits, folding in the two
+items routed from TS-18's Out-of-scope review). Two sources could not be
+fully re-verified on re-fetch: ibm.com/design/language now returns HTTP 403
+(it had succeeded in the 2026-08-15 Out-of-scope review, so the trust
+section was written from that prior extraction without embellishing beyond
+it, and the reference entry flags this); atlassian.design returned only
+homepage-level material, so the AI-experiences section is written from
+established AI-UX practice consistent with that framing rather than
+transcribed from a deeper source, and the reference entry says so.
+usability.gov's research-methods content was successfully re-fetched at its
+live successor, digital.gov, and cited there instead. TS-15 now has 0
+actionable items. 4 Out-of-scope items remain — 1 deliberately open
+(design.google essays, unchanged) and 3 already `**Confirmed**`/resolved
+from prior runs — and 0 Unresolved items; none actioned in this run.
 
 ## Partial
 
