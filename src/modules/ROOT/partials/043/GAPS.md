@@ -114,6 +114,21 @@ was edited in this run; the new gaps are recorded for a future
 content-writing pass. The `## Out-of-scope` items are untouched and remain
 open, awaiting the user's decision from the previous run.
 
+**Fifth run, 2026-08-15.** All 7 `## Missing` items opened by the fourth run
+were closed. `04-schema-design.adoc` gained a new "Modeling data as
+relations" section (EAV and OOP-schema anti-patterns) and a new "Choosing a
+foreign key's `ON DELETE` action" subsection (the four `ON DELETE` actions
+plus the sentinel-value caution), plus additions to its existing "Choosing
+keys" section (`UNIQUE` constraint vs. index) and "Default values"
+subsection (no business logic in `DEFAULT`/`CHECK`).
+`03-naming-conventions.adoc`'s "Table names" section gained the `_lookup`
+suffix convention. Two new sources (Simon Holywell's SQL Style Guide and
+"Old, Good Database Design", via the Wayback Machine) were added to the
+page's `== References`. No files were renumbered; all changes extend
+existing partials. TS-43 now has 0 actionable items, 6 Out-of-scope items,
+and 0 Unresolved items — all remaining open items are Out-of-scope,
+awaiting the user's confirm/overrule decision from the third run.
+
 ## Missing
 
 ### SQL style and formatting
@@ -222,7 +237,7 @@ open, awaiting the user's decision from the previous run.
       C-style block comments for multi-line commentary, and specifies the
       `-- ` single-line form terminated by a newline.
 
-- [ ] `https://www.sqlstyle.guide/` — avoid Entity-Attribute-Value (EAV)
+- [x] `https://www.sqlstyle.guide/` — avoid Entity-Attribute-Value (EAV)
       tables: a generic `(entity_id, attribute_name, attribute_value)` schema
       trades away the type safety, constraints, and query performance a
       relational schema exists to provide. Not addressed anywhere in the
@@ -230,7 +245,13 @@ open, awaiting the user's decision from the previous run.
       item for `__TODO__/sql.md` et al. Recommend a short note in
       `04-schema-design.adoc`.
 
-- [ ] `https://www.sqlstyle.guide/` — avoid applying object-oriented design
+      **Resolved.** Closed by `04-schema-design.adoc`, new "Modeling data as
+      relations" section, first paragraph: states the EAV anti-pattern, why
+      it trades away type safety/constraints/query performance, and points
+      to TS-44 for genuinely schema-less needs instead of simulating one
+      relationally. Source added to the page's `== References`.
+
+- [x] `https://www.sqlstyle.guide/` — avoid applying object-oriented design
       principles (such as inheritance hierarchies) directly to a relational
       schema; a table models a relation, not a class, and forcing an OOP
       mental model onto schema design tends to produce awkward, overly
@@ -238,6 +259,12 @@ open, awaiting the user's decision from the previous run.
       standard. Found 2026-08-15, fetched while resolving the "Unresolved"
       item for `__TODO__/sql.md` et al. Recommend pairing with the EAV note
       above in `04-schema-design.adoc`.
+
+      **Resolved.** Closed by the same "Modeling data as relations" section,
+      second paragraph: states the anti-pattern and its two typical failure
+      shapes (over-normalized class-mirroring tables, or an EAV-like
+      structure simulating polymorphism), and redirects to designing each
+      table around its data and queries instead.
 
 ### Naming conventions
 
@@ -377,13 +404,19 @@ open, awaiting the user's decision from the previous run.
       the subject and modifier components, using the `dt_signup_raw` /
       `dt_signup_clean` example.
 
-- [ ] `__TODO__/043/SDCP-1065288521-290722-1004.pdf` ("SQL/DDL - Table Naming
+- [x] `__TODO__/043/SDCP-1065288521-290722-1004.pdf` ("SQL/DDL - Table Naming
       / Aliasing") — suffix a reference/lookup table's name with `_lookup`
       (e.g. `language_lookup`, `colour_lookup`), so a lookup table is
       distinguishable from an entity table by name alone. Not addressed in
       "Table names" in `03-naming-conventions.adoc`. Found 2026-08-15 via
       `pdftotext` extraction of the previously-unread PDF. Recommend a short
       addition to "Table names".
+
+      **Resolved.** Closed by `03-naming-conventions.adoc`, "Table names"
+      section, new bullet: states the `_lookup` suffix convention for
+      reference/lookup tables with the source's own examples, and defines
+      what makes a table a "reference/lookup table" for the purpose of the
+      rule.
 
 ### Columns, keys, and schema definition
 
@@ -489,7 +522,7 @@ open, awaiting the user's decision from the previous run.
       than MySQL-specific syntax, consistent with the standard's stated
       scope of being "not specific to any particular database engine."
 
-- [ ] "Old, Good Database Design" (Elnur,
+- [x] "Old, Good Database Design" (Elnur,
       https://relinx.io/2020/09/14/old-good-database-design/, retrieved via
       the Wayback Machine — the live URL now redirects to the site's
       homepage with no article content) — choosing a foreign key's
@@ -508,7 +541,13 @@ open, awaiting the user's decision from the previous run.
       item for `__TODO__/databases/_todo/general-db-design.md`. Recommend a
       new subsection in "Defining constraints" or immediately after it.
 
-- [ ] "Old, Good Database Design" (as above) — prefer a `UNIQUE` *constraint*
+      **Resolved.** Closed by `04-schema-design.adoc`, new "Choosing a
+      foreign key's `ON DELETE` action" subsection: covers all four actions
+      (`NO ACTION`/`RESTRICT`, `CASCADE`, `SET NULL`, `SET DEFAULT`) with the
+      source's own worked examples (products/categories, order line items,
+      employee/manager). Source added to the page's `== References`.
+
+- [x] "Old, Good Database Design" (as above) — prefer a `UNIQUE` *constraint*
       over a `UNIQUE` *index* to enforce the same uniqueness guarantee: a
       constraint is easier to toggle (temporarily drop and re-add) than an
       index, which must be dropped and recreated — an expensive operation on
@@ -518,7 +557,11 @@ open, awaiting the user's decision from the previous run.
       source as above. Recommend a short note in "Choosing keys" or
       "Defining constraints".
 
-- [ ] "Old, Good Database Design" (as above) — do not encode business logic
+      **Resolved.** Closed by `04-schema-design.adoc`, "Choosing keys"
+      section, new paragraph: states the constraint-over-index preference
+      and the toggle-vs-recreate rationale.
+
+- [x] "Old, Good Database Design" (as above) — do not encode business logic
       into a `DEFAULT` or `CHECK` constraint. Example: defaulting an
       `order_date` column to `now()` looks convenient, but it buries a
       business rule (when an order is considered "placed") inside the
@@ -536,7 +579,13 @@ open, awaiting the user's decision from the previous run.
       default at all. Found 2026-08-15, same source as above. Recommend a
       short addition to "Default values".
 
-- [ ] "Old, Good Database Design" (as above) — do not use a sentinel value
+      **Resolved.** Closed by `04-schema-design.adoc`, "Default values"
+      subsection, new paragraph: states the business-logic-in-`DEFAULT`
+      caution with the `order_date`/`now()` example, and the `logged_at`
+      counter-example distinguishing a database-level fact from a business
+      rule.
+
+- [x] "Old, Good Database Design" (as above) — do not use a sentinel value
       (e.g. `0` or `-1`) in a foreign-key or identifier column to represent
       "no value", where the column could instead be made nullable; the
       `Employee.manager_id` example (not every employee has a manager) is
@@ -546,6 +595,12 @@ open, awaiting the user's decision from the previous run.
       interaction with foreign keys is not called out anywhere. Found
       2026-08-15, same source as above. Recommend folding into the new
       `ON DELETE`-selection item above, or a standalone note near it.
+
+      **Resolved.** Closed by folding into the new "Choosing a foreign key's
+      `ON DELETE` action" subsection, closing paragraph: states the
+      sentinel-value anti-pattern using the same `manager_id` example
+      already established earlier in the subsection, so the two related
+      points read together rather than as a separate note.
 
 ### Data types
 
