@@ -136,6 +136,40 @@ be reviewable and confirmable before it commits — see
 <<3. Understandable>>, "Input assistance" — which addresses informed
 consent, not duplicate submission.
 
+== DOM interaction conventions
+
+These conventions govern how a component behavior touches the DOM and reads
+its inputs. They are implementation-agnostic conventions about *what* a
+behavior does; for the platform APIs that carry them out — the event
+propagation model, `fetch`, CORS — see
+xref:037.adoc[*TS-37: Web platform APIs*], "DOM events and HTTP requests".
+
+* *Only apply interactive behavior to semantically interactive elements* —
+  `<a>`, `<button>`, `<input>`, `<select>`, and `<textarea>`. These elements
+  carry built-in keyboard operability and assistive-technology semantics for
+  free; any other element made clickable or tappable requires the behavior
+  to reimplement that support by hand (a `tabindex`, a `role`, and keyboard
+  handlers, per <<2. Operable>>). Where a non-interactive container needs to
+  become interactive — for example, making a table's header cells
+  sortable — inject a `<button>` into the cell and bind the behavior to the
+  button, rather than binding it to the `<th>` itself.
+
+* *Attach behaviors to `data-js-*` hooks, never to HTML event
+  attributes.* `onclick`, `onchange`, and the other inline event-handler
+  attributes MUST NOT be used. This restates, for the specific case of event
+  attributes, the `data-js-*`-hook convention in <<Component behaviors>>: a
+  behavior discovered only by reading a JavaScript file, not one scattered
+  through the markup as inline attribute values, keeps behavior and markup
+  in one place each.
+
+* *Prefer `requestAnimationFrame` over `setTimeout`/`setInterval` for any
+  animation a behavior drives directly.* `requestAnimationFrame` synchronizes
+  the callback with the browser's own repaint cycle, so it produces smoother
+  results and lower power consumption than timer-based polling. This applies
+  only to the rare case where an animation cannot be expressed in CSS; see
+  <<Reflows, repaints, and layout thrashing>> for why a CSS animation
+  SHOULD be preferred in the first place.
+
 == Pattern libraries and living style guides
 
 A *pattern library* (or *living style guide*) is a standalone reference page,
@@ -164,3 +198,17 @@ drift out of sync with what ships.
   need can be met by an existing component before a new one is built.
   Checking it first is what keeps a component set from accumulating
   near-duplicate components that differ only by an oversight.
+
+* *Name design tokens by semantic role, not by literal value.* A design
+  token — a named CSS custom property standing in for a raw color, spacing,
+  or typography value — SHOULD be named for what it *means* in the
+  interface (`--color-bg-danger`, `--color-text-brand-hover`), not for what
+  it literally *is* (`--color-red-500`). A hierarchical
+  `--<category>-<subcategory>-<state>` naming scheme (for example: category
+  `bg` or `text`, subcategory a semantic intent such as `brand` or
+  `danger`, state a suffix such as `hover` or `disabled`) keeps a large
+  token set navigable and lets the underlying value change — a rebrand, a
+  dark-mode variant — without renaming every place the token is used. This
+  is the naming convention Shopify's Polaris design system uses for its own
+  token set, and it generalizes past that one system: a semantic name is
+  what makes a token library a design *system* rather than a values list.

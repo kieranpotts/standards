@@ -172,6 +172,25 @@ before writing, not just transcription. TS-18 now has 2 actionable items
 (both Missing, both deferred as above), 26 Out-of-scope items, and 1
 Unresolved item — none of the last two categories actioned in this run.
 
+**Eleventh run (`close-gaps`), 2026-08-16.** All 3 remaining Missing items
+closed, resuming work deferred by the tenth run pending user decisions that
+have now been made. The DOM/scripting/fetch/CORS item was split between
+TS-18 (component-behavior conventions, in a new "DOM interaction
+conventions" section of `04-javascript-behaviors.adoc`) and TS-37 — Web
+platform APIs (raw event/fetch/CORS mechanics, in a new
+`06-dom-events-and-http-requests.adoc` partial there), cross-linked both
+ways; see the item's own resolution note for the full breakdown of what
+went where and what was deliberately left unwritten as dated or
+out-of-scope. The Windows app design item was confirmed out-of-scope after
+fetching the (redirected) source and finding only a thin landing page with
+no web-transferable content. The Shopify Polaris item was resolved: its own
+site is now a thin navigation hub (Polaris React is archived as of this
+run), but its archived token-reference page yielded a generalizable
+design-token naming convention, written into `04-javascript-behaviors.adoc`
+alongside the existing pattern-library guidance. TS-18 now has 0 actionable
+items. 26 Out-of-scope items and 1 Unresolved item remain open — neither
+actioned in this run.
+
 ## Missing
 
 - [x] https://csswizardry.com/2019/08/time-to-first-byte-what-it-is-and-why-it-matters/#what-is-ttfb — Time to First Byte (TTFB) as a performance metric and its contributors (latency, routing, application runtime, DB queries, SSR cost). TS-18 mentions LCP but never TTFB. Recommend a new subsection in `01-performance-optimization.adoc` after the LCP note (~L53). Reinforced by https://web.dev/articles/top-cwv#3-use-a-cdn-to-optimize-ttfb, which frames TTFB as CDN-optimizable and additionally recommends caching static HTML at the edge (even briefly) and moving dynamic logic to edge compute — TS-18's CDN/Squid bullets (L31-34) cover CDN and proxy caching but not edge-cached HTML or edge compute.
@@ -689,7 +708,7 @@ section (see the rsjs items above); the performance items sit in
       own summary were sufficient to write the section without
       fabricating detail beyond what was already recorded.
 
-- [ ] https://developer.microsoft.com/en-us/windows/apps/design (routed in
+- [x] https://developer.microsoft.com/en-us/windows/apps/design (routed in
       from TS-15's Out-of-scope review, 2026-08-15) — Windows-specific app
       design (UWP/WinUI foundations, input types, form factors). TS-15
       (User interfaces) judged this platform-specific and out of its own
@@ -698,13 +717,40 @@ section (see the rsjs items above); the performance items sit in
       written into any partial — needs assessment for what, if anything,
       is web-implementation-relevant versus purely Windows-native.
 
-- [ ] https://polaris.shopify.com/ (routed in from TS-15's Out-of-scope
+      **Confirmed out-of-scope, 2026-08-16.** Fetched: the URL redirects to
+      `https://learn.microsoft.com/windows/uwp/design/`, which is a thin
+      landing page (128 words) linking out to Fluent Design's own
+      UWP/WinUI-native design-principles, guidelines, and toolkit pages. It
+      carries no content of its own — no HTML/CSS/JS technique, design
+      token, or accessibility guidance that is web-implementation-relevant
+      independent of the Fluent/XAML tooling it's written for. The
+      assessment the item asked for found nothing to route to TS-18;
+      genuinely nothing here transfers to a web GUI.
+
+- [x] https://polaris.shopify.com/ (routed in from TS-15's Out-of-scope
       review, 2026-08-15) — Shopify Polaris's design-system mechanics:
       design tokens, coded component packaging, commerce-domain
       iconography. TS-15 judged this design-system implementation detail
       rather than general interface principles; the user agreed it fits
       TS-18 (web-implementation-specific) better. Not yet checked against
       TS-18's current content or written into any partial.
+
+      **Resolved, 2026-08-16.** `polaris.shopify.com` and
+      `shopify.dev/docs/api/polaris` are both thin navigation hubs with no
+      substantive content of their own (Polaris React itself is archived as
+      of August 2026, superseded by "Polaris Web Components"). The
+      generally-applicable mechanic was found instead at the archived
+      token-reference page,
+      `shopify.github.io/polaris-react-archive/tokens/color`: a
+      hierarchical, semantic design-token naming scheme
+      (`--p-color-bg-fill-brand-hover` — category/subcategory/semantic-
+      intent/state) mapped to CSS custom properties. Closed by a new bullet
+      in `04-javascript-behaviors.adoc`, "Pattern libraries and living
+      style guides", generalizing the naming scheme past Polaris itself.
+      Commerce-domain content (checkout components, commerce iconography,
+      admin/POS/customer-account surfaces) was not written up — it is
+      Shopify-specific, not a web-GUI-implementation mechanic. Source added
+      to `10-references.adoc`.
 
 - [x] https://stephaniewalter.design/blog/the-ultimate-guide-to-not-fck-up-push-notifications/
       (moved from Out-of-scope, overruled 2026-08-15) — push-notification
@@ -774,7 +820,7 @@ section (see the rsjs items above); the performance items sit in
       dynamic/conditional polyfill loading, and preferring a Baseline
       platform feature over a polyfill where support allows.
 
-- [ ] `__TODO__/018/web-clients/_todo/dom.md`, `dom2.md`, `scripting.md`,
+- [x] `__TODO__/018/web-clients/_todo/dom.md`, `dom2.md`, `scripting.md`,
       `window-events.md`, `web-client-apis.md`, `fetch-ajax.md` (moved
       from Out-of-scope, overruled 2026-08-15) — DOM manipulation, event
       handling, scripting patterns, XHR/`fetch`, and CORS implementation
@@ -785,6 +831,83 @@ section (see the rsjs items above); the performance items sit in
       vs-TS-37 placement question before writing any content, to avoid
       duplicating the same material in two standards. Not yet written
       into any partial.
+
+      **Resolved, split between TS-18 and TS-37, 2026-08-16.** The user
+      decided: component-behavior conventions stay in TS-18; raw platform
+      API mechanics move to TS-37. All six source files were read in full
+      to determine the boundary — most of the content is a dated (2010s-era,
+      IE8/9/10-compatibility-focused) dump, much of which is either already
+      superseded by current platform behavior, already covered elsewhere in
+      TS-18/TS-37, or too thin/obsolete to write from (`web-client-apis.md`
+      in particular has no actionable content — it is a meta-commentary on
+      not being able to keep up with the platform). The durable, current,
+      non-duplicated subset was extracted:
+
+      *Written into TS-18*, `04-javascript-behaviors.adoc`, new "DOM
+      interaction conventions" section: restricting interactive behavior to
+      semantically interactive elements (`<a>`, `<button>`, `<input>`, etc.,
+      injecting a `<button>` into a non-interactive container rather than
+      making the container itself interactive — from `dom.md`'s "Best
+      practices"); the `onclick=`/inline-event-attribute prohibition,
+      restated for the `data-js-*` hook convention already in <<Component
+      behaviors>> (from `dom2.md`'s "Event attributes" and "HTML event
+      attributes" sections); and preferring `requestAnimationFrame` over
+      `setTimeout`/`setInterval` for the rare animation that cannot be
+      expressed in CSS (from `dom2.md`'s "Animating the DOM" section,
+      cross-linked to the existing CSS-animation-preferred guidance in
+      <<Reflows, repaints, and layout thrashing>>). Cross-links to TS-37 for
+      the underlying platform APIs. Source (WHATWG DOM Standard) added to
+      `10-references.adoc`.
+
+      *Written into TS-37* (which was already fully resolved, 0 open items,
+      before this run — a separate, un-batched write against that
+      standard, done at the user's explicit direction rather than routed
+      through TS-37's own `close-gaps` flow, since the split decision was
+      the user's to make and both halves were being written in the same
+      session): new `06-dom-events-and-http-requests.adoc` partial, "Event
+      propagation" (bubbling/capturing, `addEventListener`'s `useCapture`
+      argument, `stopPropagation()`), "Choosing an event type" (pointer,
+      keyboard, and form-element event types; the deprecated
+      `keyCode`/`charCode`/`which` properties versus current
+      `KeyboardEvent.key`; from `dom.md`'s "Safe events"/"Keyboard events"
+      and `dom2.md`'s extensive keyboard-event material), "Observing DOM
+      mutations" (`MutationObserver` replacing deprecated `MutationEvents`;
+      from `dom.md`), "`fetch`" (preferred over `XMLHttpRequest`; the
+      `response.ok`-must-be-checked-explicitly pitfall; the
+      markup-must-never-be-fetched restriction, cross-linked to TS-18's
+      progressive-enhancement framing; `FormData` for form submission
+      including file uploads; from `fetch-ajax.md` and `dom2.md`'s
+      `FormData`/file-upload material, rewritten from `XMLHttpRequest` to
+      the current `fetch` API since XHR is legacy), and "CORS"
+      (`Access-Control-Allow-Origin`, the credentials-plus-wildcard
+      restriction, preflight requests; from `fetch-ajax.md`'s CORS stub,
+      expanded from the current CORS specification since the stub itself
+      had no content — the item was a bare `TODO`). Wired into
+      `src/modules/ROOT/pages/037.adoc`; `06-references.adoc` renumbered to
+      `07-references.adoc` via `git mv` to make room. Source (WHATWG DOM
+      Standard, WHATWG Fetch Standard) added to TS-37's own
+      `07-references.adoc`.
+
+      Content deliberately NOT written, as dated/superseded/out of either
+      standard's scope: browser-specific quirks and workarounds throughout
+      all six files (Safari iOS click-bubbling bugs, `XDomainRequest`,
+      `mouseenter`/`mouseleave` cross-browser gaps, IE-specific attribute
+      handling) — these targeted browsers no longer in any current
+      support-policy baseline (see TS-18's <<Browser support policy>>);
+      `<canvas>`/WebGL/`<svg>` element introductions (already adjacent
+      content — SVG accessibility — exists in TS-18's
+      `02-web-accessibility.adoc`, and a from-scratch `<canvas>`/WebGL
+      primer is graphics-API territory, not GUI-behavior or platform-API
+      guidance either standard claims); Shadow DOM (`dom2.md` mentions it
+      only in passing — already covered in full by TS-37's own
+      `03-shadow-dom.adoc`); DOM-extension-via-prototype discouragement and
+      `document.write` discouragement (both already dated advice about
+      practices no current codebase would reach for, not omitted for scope
+      reasons but because they add nothing a reader doesn't already know
+      not to do); `hashchange`/`deviceorientation` window events
+      (`window-events.md` — each is a single unelaborated paragraph, too
+      thin to write a section from without padding); `web-client-apis.md`
+      in full (pure meta-commentary, no technical content).
 
 - [x] `__TODO__/018/web-clients/_todo/0300-accessibility.md:484` (7:1
       contrast), `:508` (sign-language tracks), and the lower-secondary

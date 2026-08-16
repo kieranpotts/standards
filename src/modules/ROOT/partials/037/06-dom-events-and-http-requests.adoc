@@ -1,0 +1,140 @@
+= DOM events and HTTP requests
+
+This section covers two families of native browser API that sit underneath
+GUI-level component behavior: the DOM event-propagation model, and the APIs
+for making an HTTP request without a full page navigation. For where these
+APIs fit into a component behavior's own conventions — which elements to
+bind them to, which hook attribute to use — see
+xref:018.adoc[*TS-18: Web GUIs*], "DOM interaction conventions".
+
+== Event propagation
+
+An event dispatched on a DOM element travels through the document tree in
+two phases, standardized by the DOM Events specification:
+
+* *Capturing.* The event starts at the document root and travels down
+  towards the target element.
+* *Bubbling.* Once the event reaches its target, it travels back up through
+  every ancestor element.
+
+`addEventListener` MUST attach to the bubbling phase by default (its third
+argument, `useCapture`, defaults to `false`); only set it to `true` to
+observe the capturing phase, which is rarely needed. Bubbling is what makes
+event delegation possible: a single listener on a common ancestor can
+observe events dispatched on any of its descendants, using the event's
+`target` property to determine which descendant actually triggered it. See
+the event-delegation guidance in
+xref:018.adoc[*TS-18: Web GUIs*], "Reflows, repaints, and layout thrashing".
+
+A handler MUST call `stopPropagation()` deliberately, not as a default
+habit, since it prevents any ancestor's delegated listener from seeing the
+event at all.
+
+== Choosing an event type
+
+Prefer the following widely-supported event types; a "DOM"-prefixed event
+(`DOMAttrModified`, `DOMNodeInserted`) is legacy and MUST NOT be used —
+observe DOM mutations with `MutationObserver` instead (see
+<<Observing DOM mutations>>).
+
+* *Pointer input:* `click`, `mousedown`, `mouseup`, `mousemove`. Prefer
+  `mousedown`/`mouseup` over `click` where the exact moment of press or
+  release matters — a user can depress a button, drag off it, and release
+  elsewhere, which registers as a `mousedown` with no matching `click`.
+* *Keyboard input:* `keydown` and `keyup` for detecting *which key* was
+  pressed — including control keys such as arrows and `Escape` that produce
+  no printable character — and the `input` event, on the element itself,
+  for detecting a *change to a text value* regardless of how it was
+  produced (typing, paste, or voice input). Do not use `keydown`/`keyup` to
+  detect text input: an `input` event fires for input methods that never
+  raise a keyboard event.
+* *Form elements:* `input` (fires on every value change) and `change`
+  (fires when a value change is committed — on blur for a text field, or
+  immediately for a checkbox, radio, or `<select>`).
+
+`KeyboardEvent.key` (a string such as `"a"`, `"Enter"`, or `"ArrowLeft"`) is
+the current standard for identifying which key produced an event. The older
+`keyCode`, `charCode`, and `which` numeric properties are deprecated and
+MUST NOT be used in new code.
+
+== Observing DOM mutations
+
+`MutationObserver` observes changes to a DOM subtree — added or removed
+nodes, attribute changes, text-content changes — and invokes a callback with
+a batch of the changes, rather than firing once per individual change. It is
+the standard replacement for the deprecated `MutationEvents` API, and is the
+correct tool for reacting to DOM changes a component behavior did not itself
+make (for example, a third-party script inserting content into the page).
+
+== `fetch`
+
+`fetch` is the standard API for making an HTTP request from client-side
+JavaScript. It MUST be preferred over `XMLHttpRequest` in new code —
+`XMLHttpRequest` remains supported for legacy compatibility only.
+
+[source,js]
+----
+const response = await fetch("/api/orders", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ item: "widget", quantity: 2 }),
+});
+
+if (!response.ok) {
+  throw new Error(`Request failed: ${response.status}`);
+}
+
+const data = await response.json();
+----
+
+`fetch` only rejects its returned promise on a network failure (the request
+could not be sent, or no response was received at all); an HTTP error
+status such as `404` or `500` still resolves successfully. Every call site
+MUST check `response.ok` (or `response.status`) explicitly before treating
+the response as successful.
+
+Restrict client-side HTTP requests to fetching and submitting *data*, not
+markup. A request MUST NOT return a partial HTML view to be spliced into
+the page — all of the markup a page can ever need SHOULD already be present
+in the document from the initial server render, per the progressive
+enhancement model described in
+xref:018.adoc[*TS-18: Web GUIs*], "Performance optimization".
+
+Use the `FormData` interface, constructed directly from an existing
+`<form>` element, to submit form data (including file uploads) via `fetch`
+without hand-assembling a request body:
+
+[source,js]
+----
+async function submitForm(form) {
+  const response = await fetch(form.action, {
+    method: form.method,
+    body: new FormData(form),
+  });
+  return response.ok;
+}
+----
+
+== CORS
+
+A `fetch` request to a different origin (a different scheme, host, or port)
+is subject to Cross-Origin Resource Sharing (CORS). The browser only exposes
+the response to the requesting script if the server explicitly allows it, by
+returning an `Access-Control-Allow-Origin` response header naming either the
+requesting origin or `*` for any origin. Requests carrying credentials
+(cookies, HTTP authentication) MUST have credentials enabled explicitly on
+the request (`credentials: "include"`) and the server MUST echo back the
+exact requesting origin, rather than `*`, in `Access-Control-Allow-Origin` —
+the wildcard is not permitted alongside credentialed requests.
+
+A request that uses a non-simple method (anything other than `GET`, `HEAD`,
+or `POST` with a simple content type) or a custom header triggers a
+browser-issued CORS *preflight*: an automatic `OPTIONS` request the server
+must also answer correctly, independent of the actual request that follows
+it. This is browser-enforced, automatic behavior — it requires no
+application code, only correct server-side CORS headers.
+
+Where a client-side request targets an origin outside the application's own
+control, treat the possibility of the remote server withdrawing or
+restricting CORS support as an ordinary failure mode to handle, not an edge
+case.
