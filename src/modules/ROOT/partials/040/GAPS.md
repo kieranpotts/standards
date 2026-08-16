@@ -117,6 +117,17 @@ recorded on 2026-08-15 (or, for two of them, already confirmed/routed) — see
 the "Out-of-scope" section below for the per-item breakdown. The 1
 Unresolved item (none — all sources were retrieved) is already closed.
 
+**Run 5, 2026-08-16.** The user confirmed the OOCSS/BEM/SMACSS/SUIT CSS
+methodology-comparison item's 2026-08-14 decline stands as final rather
+than merely deferred; its checkbox ticked accordingly. TS-40 now has 0
+unchecked items of any kind and is fully resolved by the flat-count
+measure. Note this is not the same as "nothing left pending": 10
+Out-of-scope items remain ticked-but-held against the still-unformalized
+scope-broadening RFC recorded on 2026-08-15 (web-client security,
+architecture/SPA/PWA, syntax formatting, performance/tooling, legacy-IE
+content) — decided in direction but not yet written up. That RFC, not a
+`close-gaps` run, is what would action them.
+
 ## Missing
 
 - [x] `__TODO__/css3/0100-layout.md:9` and `__TODO__/css3/_todo/layout-and-positioning.md`

@@ -5,27 +5,30 @@ that are still stubs (no substantive content written), and standards whose
 `GAPS.md` gap analysis still has open items.
 
 This file is a manually-maintained index, regenerated from the tree. The
-counts below were last regenerated on **2026-08-16**, after a second batch
-of runs the same day closed TS-40's 2 remaining Missing items (the
-app-namespace component-prefix and `js-` hook-class conventions), TS-25's 1
-remaining Missing item (documentation review etiquette), and TS-15's 1
-deliberately-open Out-of-scope item (the design.google fidelity-sequencing
-essay, via the fetch-and-reassess pass a prior run had deferred). TS-25 and
-TS-15 are now fully resolved and have left the table below. TS-40 remains
-in the table with 1 open item — see its row for what that item is and why
-it stays open.
+counts below were last regenerated on **2026-08-16**, after the user
+confirmed TS-40's last open item — the OOCSS/BEM/SMACSS/SUIT CSS
+methodology-comparison gap, declined as scope creep on 2026-08-14 — should
+be marked closed rather than left standing as a pending decision. TS-40 now
+has 0 unchecked items of any kind and has left the table below. It is worth
+noting this is a narrower kind of "resolved" than most rows that leave this
+table: TS-40 still carries 10 Out-of-scope items ticked-but-held against an
+unformalized scope-broadening RFC (see "Known inconsistencies" below) —
+decided in direction, not yet written up. A `close-gaps` run cannot action
+those; only that RFC can.
 
-This follows an earlier batch the same day: an eleventh `close-gaps` run
-against TS-18 closed all 3 of its remaining Missing items (the
-DOM/scripting/fetch/CORS split between TS-18 and TS-37, the Windows app
-design confirmed-out-of-scope call, and the Shopify Polaris design-token
-gap). TS-18 is now fully resolved. TS-37, the other standard touched by
-that run, was already fully resolved before it and remains so. That same
-regeneration also found that TS-7 and TS-16 — both listed as having 1 open
-actionable item each as of the 2026-08-15 snapshot — were in fact already
-fully resolved as of 2026-08-15; neither had been touched by that day's
-session, the previous table snapshot had simply gone stale. See
-[the table below](#standards-ordered-by-actionable-count) for what remains.
+This follows two earlier batches the same day. The first: an eleventh
+`close-gaps` run against TS-18 closed all 3 of its remaining Missing items
+(the DOM/scripting/fetch/CORS split between TS-18 and TS-37, the Windows
+app design confirmed-out-of-scope call, and the Shopify Polaris
+design-token gap); that regeneration also found TS-7 and TS-16 — both
+listed as having 1 open actionable item each as of the 2026-08-15
+snapshot — were in fact already fully resolved as of 2026-08-15, neither
+touched by that day's session, the previous snapshot simply gone stale.
+The second: TS-40's 2 concrete Missing items (app-namespace prefix, `js-`
+hook class), TS-25's 1 remaining Missing item (documentation review
+etiquette), and TS-15's 1 deliberately-open Out-of-scope item (the
+design.google fidelity-sequencing essay) were all closed. The table below
+now reflects all of this plus today's final TS-40 item.
 
 Re-derive the counts with the script in
 [Regenerating this file](#regenerating-this-file) before trusting them after
@@ -48,8 +51,11 @@ positive — verify by reading the page before trusting the grep alone.
 
 ## Open gap analyses
 
-Forty-two standards have a `GAPS.md`. One of them currently carries an open
-item: TS-40, plus TS-38 for its known false-negative (see below).
+Forty-two standards have a `GAPS.md`. None currently carries an actionable,
+scope, or unresolved open item — every one is at 0 unchecked items. TS-38
+still shows `actionable=1` under the mechanical script alone, its known
+false-negative (see below); reading the file confirms it is genuinely
+closed.
 
 ### The two GAPS.md formats
 
@@ -86,10 +92,9 @@ not in a separate sweep.
 
 ### Standards, ordered by actionable count
 
-| TS | Title | Actionable | Scope | Unresolved | Notes |
-| --- | --- | ---: | ---: | ---: | --- |
-| [TS-40](src/modules/ROOT/partials/040/GAPS.md) | CSS | 1 | 0 | 0 | Down from 3 on 2026-08-16: the app-namespace component-prefix and `js-` hook-class conventions were closed. The remaining item — a comparative OOCSS/BEM/SMACSS/SUIT CSS summary in `01-overview.adoc` — was **Declined** as scope creep on 2026-08-14 (TS-40's purpose is to prescribe its own methodology, not survey others) and is intentionally left unticked as a standing decision, not pending work. |
-| | **Total** | **1** | **0** | **0** | |
+No standard currently has an open actionable, scope, or unresolved item.
+This table is empty for the first time since this file began being
+tracked.
 
 TS-14 (Performance testing) and TS-19 (SEO) left this table on 2026-08-15:
 TS-14's 2 actionable items were both closed with new content; TS-19's 3
@@ -103,18 +108,30 @@ interfaces) also left the table on 2026-08-16: TS-25's 1 remaining Missing
 item (documentation review etiquette) was closed, and TS-15's 1
 deliberately-open Out-of-scope item (the design.google essays) was
 resolved via the fetch-and-reassess pass a prior run had deferred, finding
-one genuine gap (design-process fidelity sequencing). All six are now
-fully resolved and appear in the fully-resolved count below.
+one genuine gap (design-process fidelity sequencing). TS-40 (CSS) left the
+table last, also on 2026-08-16: its 2 concrete Missing items (app-namespace
+prefix, `js-` hook class) were closed first, then its one remaining item —
+the OOCSS/BEM/SMACSS/SUIT CSS methodology-comparison gap, already declined
+on 2026-08-14 — was confirmed by the user as closed rather than left as a
+standing decision. All seven are now fully resolved and appear in the
+fully-resolved count below.
 
-Every other standard with a `GAPS.md` (41 of the 42) is fully resolved:
-zero unchecked items of any kind. TS-26 joined that list on 2026-08-15 —
-all of its Missing items were either closed or routed to another
-standard's `GAPS.md`, and no Out-of-scope items remain open. TS-14, TS-19,
-TS-7, and TS-16 joined it the same day: TS-14 by closing its 2 remaining
-items with new content; TS-19 by withdrawing all 3 of its routed-in items
-as not genuinely SEO-specific; TS-7 and TS-16 by closing all of their
-remaining items with new content. TS-18, TS-25, and TS-15 joined it on
-2026-08-16 (see above).
+Every standard with a `GAPS.md` (all 42) is fully resolved: zero unchecked
+items of any kind. TS-26 joined that list on 2026-08-15 — all of its
+Missing items were either closed or routed to another standard's
+`GAPS.md`, and no Out-of-scope items remain open. TS-14, TS-19, TS-7, and
+TS-16 joined it the same day: TS-14 by closing its 2 remaining items with
+new content; TS-19 by withdrawing all 3 of its routed-in items as not
+genuinely SEO-specific; TS-7 and TS-16 by closing all of their remaining
+items with new content. TS-18, TS-25, TS-15, and TS-40 joined it on
+2026-08-16 (see above). TS-40's case is worth flagging on its own: it is
+"fully resolved" by the flat-unchecked-count measure only — it still
+carries 10 Out-of-scope items ticked-but-held against an unformalized
+scope-broadening RFC (see "Known inconsistencies" below), decided in
+direction but not yet actioned. Nothing in this file's counts distinguishes
+that from a standard with no pending decisions at all; treat "fully
+resolved" here as "no `close-gaps` work outstanding," not as "nothing left
+to decide."
 
 ## Standards with neither a stub nor a GAPS.md
 
@@ -141,15 +158,39 @@ the first two govern how all new content should be written.
   Eight standards do exactly that: TS-17, TS-18, TS-21, TS-23, TS-29, TS-31,
   TS-32, and TS-33. Twenty-three pages carry a `== References` section.
 
-- **DECLINED — TS-40's methodology-comparison gap.** A `close-gaps` run on
-  2026-08-14 closed 16 of TS-40's 17 actionable items; a further run on
-  2026-08-16 closed the 2 concrete, user-directed items filed by the
+- **DECLINED, now closed — TS-40's methodology-comparison gap.** A
+  `close-gaps` run on 2026-08-14 closed 16 of TS-40's 17 actionable items,
+  declining the 17th — expanding `01-overview.adoc` into a comparative
+  summary of OOCSS/BEM/SMACSS/SUIT CSS — as borderline scope creep, and
+  left it unticked with a dated rationale note. A further run on
+  2026-08-16 closed 2 more concrete, user-directed items filed by the
   2026-08-15 Out-of-scope sweep (app-namespace prefix, `js-` hook class).
-  One item remains: it proposed expanding `01-overview.adoc` into a
-  comparative summary of OOCSS/BEM/SMACSS/SUIT CSS; declined as borderline
-  and left open with a dated rationale note. Superseded in practice by
-  2026-08-15's broader pending scope-broadening decision for TS-40, which
-  would touch the same overview section if formalized.
+  The same day, the user confirmed the declined item's checkbox should be
+  ticked — the decision itself was never in question, only whether it
+  counted as "closed" — so TS-40's `GAPS.md` now has 0 unchecked items.
+  No content changed as a result; `01-overview.adoc` still just names the
+  methodologies and links them in References. This item is superseded in
+  practice by TS-40's broader pending scope-broadening decision (see the
+  next entry), which would touch the same overview section if formalized —
+  that decision remains unformalized and is tracked separately via the 10
+  ticked-but-held Out-of-scope items, not this one.
+
+- **UNFORMALIZED — TS-40's scope-broadening decision.** On 2026-08-15 the
+  user directed TS-40 (CSS) to broaden beyond its stated three concerns
+  (architecture/naming methodology, excluding syntax formatting,
+  performance/tooling, and workflow) to also cover CSS syntax formatting
+  and act as a general property/technique reference — a redefinition of a
+  published standard's scope that would normally go through an RFC. The
+  decision was recorded rather than formalized: 10 items in TS-40's
+  `GAPS.md` `## Out-of-scope` section are ticked `[x]` with a
+  "**Overruled, pending a scope-broadening RFC**" note apiece, but no RFC
+  has been drafted and `01-overview.adoc`'s stated scope is unchanged.
+  Because those items are ticked, TS-40's `GAPS.md` reads as fully
+  resolved by the flat-unchecked-count measure (see above) — this entry is
+  the record that "fully resolved" here means "no `close-gaps` work
+  outstanding," not "no decision outstanding." Drafting the RFC (`/rfc`)
+  is the next step if this is to be formalized; until then, treat TS-40's
+  syntax-formatting/property-reference expansion as decided-but-inert.
 
 - **The legacy-format script has one known false negative.** It matches the
   literal string `**RESOLVED**`, but TS-38's `GAPS.md` closes its one gap
