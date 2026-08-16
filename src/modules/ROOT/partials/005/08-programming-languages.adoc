@@ -1,0 +1,178 @@
+= Programming languages
+
+A programming language is a technology choice like any other covered in
+<<Dependencies,dependencies>>, and the same defaults apply: favor a proven,
+well-understood language over a fashionable one, and weigh a new language
+against the <<Technology selection criteria>> rather than adopting it on the
+strength of a blog post or a colleague's enthusiasm. But a language choice
+carries a weight the other criteria in that section don't fully capture,
+because a language is not merely consumed by an application — it shapes how
+the people building the application think about the problem.
+
+[quote, Alan J. Perlis, Epigrams on Programming (1982)]
+____
+A language that doesn't affect the way you think about programming is not
+worth knowing.
+____
+
+Perlis's point cuts both ways. A language worth learning is one that changes
+how you think — but a language chosen for a production system is a
+standing decision to think that way, in that system, for as long as the
+system lives. The learning value of a paradigm and its cost in a codebase
+are different questions, and this section addresses the second.
+
+== Paradigm fit over paradigm preference
+
+Most mainstream languages support more than one programming paradigm —
+object-oriented, functional, procedural — to varying degrees, and the choice
+of which paradigm to lean on within a codebase matters more than which
+language nominally "is" object-oriented or functional. Neither paradigm is
+categorically superior; each fits some problems better than others.
+
+Object-oriented design tends to fit problems that are naturally modeled as
+interacting entities with identity and mutable state over time — a domain
+model of orders, accounts, and inventory, for example, where an object's
+identity persists across state changes and the operations that matter are
+verbs performed on that identity. See
+xref:007.adoc[*TS-7: Code design*] for detailed guidance on object-oriented
+design.
+
+Functional programming tends to fit problems that are naturally modeled as
+data transformations — parsing, validation pipelines, stream processing, and
+anything where the correctness of the output depends on composing pure
+functions rather than tracking the state of long-lived entities. Immutability
+and the absence of side effects make functional code easier to test and
+reason about in isolation, at the cost of requiring different idioms for
+anything that does need to manage state or sequence effects over time.
+
+In practice, most production codebases mix paradigms: an object-oriented
+domain model with a functional core for data transformation logic, or a
+functional language reaching for a small amount of mutable state at its
+edges. Choosing a language SHOULD account for how well it supports the
+paradigm mix the problem actually calls for, rather than treating "our
+language is object-oriented" or "our language is functional" as a decision
+that settles every subsequent design question. A language that supports only
+one paradigm well forces every problem into that paradigm's shape, whether or
+not it fits.
+
+== Type system
+
+A language's type system is one of the more consequential choices bundled
+into the choice of language, and it is easy to underweight because its costs
+and benefits are both deferred — paid or earned long after the initial choice
+is made.
+
+Static typing catches a class of defects — passing the wrong shape of data,
+calling a method that doesn't exist on a given type — at compile time rather
+than in production, and it lets tooling provide accurate autocomplete,
+refactoring, and navigation. This benefit compounds with codebase size and
+team size: the larger and longer-lived the system, and the more engineers who
+will touch code they didn't write, the more that upfront cost pays for
+itself. Dynamic typing trades that upfront cost for faster initial iteration,
+at the cost of pushing type-related defects to runtime and relying more
+heavily on test coverage to catch what the compiler otherwise would.
+
+Neither is a universal default. A short-lived script or a small, single-owner
+tool may never accrue enough complexity for static typing's benefits to
+outweigh its overhead. A large, long-lived application maintained by multiple
+teams over years is exactly the case static typing was built for. Where a
+dynamically typed language is chosen for the latter case, a gradual typing
+layer — TypeScript over JavaScript, type hints over Python — SHOULD be
+adopted to recover some of static typing's benefit without a full rewrite.
+See xref:036.adoc[*TS-36: ECMAScript (JavaScript/TypeScript)*] and
+xref:035.adoc[*TS-35: Python*] for language-specific guidance.
+
+== Concurrency model
+
+How a language represents concurrent execution — threads with shared memory,
+an event loop with cooperative async/await, isolated processes communicating
+by message passing, or lightweight language-managed coroutines — determines
+which classes of concurrency defect are possible at all, not merely how hard
+they are to avoid.
+
+Shared-memory threading gives the most direct access to multiple cores but
+makes data races and deadlocks possible any time two threads touch the same
+mutable state without disciplined synchronization. An event loop avoids data
+races on in-process state entirely, by construction, but serializes CPU-bound
+work onto a single thread, and a long-running synchronous operation blocks
+every other unit of concurrent work in the process. Message-passing and
+isolated-process models trade some raw throughput for eliminating shared
+mutable state as a source of defects altogether.
+
+Weigh the concurrency model against the application's actual workload: an
+I/O-bound service handling many concurrent requests is well served by an
+event loop; a CPU-bound workload that needs to use multiple cores needs
+either true parallelism (multiple processes, or a language runtime that
+supports it) or work distributed to a separate compute layer. Choosing a
+language whose concurrency model doesn't fit the workload tends to surface
+as a scaling problem much later, once the mismatch is expensive to
+unwind.
+
+== Ecosystem depth for the domain
+
+A language's general popularity is a weak proxy for whether it fits a
+specific application. What matters is the depth of its ecosystem for the
+domain at hand — mature libraries for the problem the application actually
+needs to solve, established patterns other teams have already worked out,
+and a body of production experience to draw on when something goes wrong.
+
+A language with a small but deep ecosystem in the relevant domain — numerical
+computing, systems programming, data engineering — can be a better fit than a
+more popular general-purpose language with only shallow, third-party support
+for that domain. Conversely, a niche language with no meaningful ecosystem
+for the problem at hand imposes the cost of building foundational tooling
+in-house before any domain work can start. Weigh this against the
+<<Favor proven technology>> guidance above: a language can be a long-proven,
+mature technology in general while still being a poor fit for a specific
+domain it was never designed around.
+
+== Runtime and deployment characteristics
+
+A language's runtime shapes the operational profile of everything built in
+it — startup time, memory footprint, packaging and distribution, and
+deployment target compatibility. A language with a slow cold start is a poor
+fit for a workload that scales via short-lived, frequently-spun-up instances,
+such as a serverless function invoked per request. A language whose runtime
+requires bundling a large managed runtime or virtual machine complicates
+distribution to constrained environments such as CLIs, embedded targets, or
+edge compute.
+
+These characteristics rarely change the choice of language on their own, but
+they SHOULD be checked explicitly against the target deployment environment
+before committing — a language chosen purely on the merits of its syntax or
+ecosystem can turn out to be a poor operational fit once it reaches
+production.
+
+== Interoperability with the existing stack
+
+Where an application will run alongside, call into, or be called by other
+systems already built in a particular language, that existing language has a
+gravitational pull that SHOULD be weighed explicitly, in the same terms as
+the <<Favor proven technology>> guidance above. A new language introduces a
+second set of tooling, a second set of idioms, and a second thing every
+engineer on the team eventually needs to be able to read, even if they don't
+write it day to day — the same conceptual disunity that
+xref:002.adoc[*TS-2: Software design qualities*] warns against under
+cohesiveness.
+
+This does not mean a polyglot stack is never justified. A component with
+requirements the existing language genuinely cannot meet — a hard performance
+ceiling, a memory-safety requirement per
+xref:052.adoc[*TS-52: Security and secrets management*], or a domain-specific
+ecosystem with no equivalent in the existing language — can justify crossing
+that boundary. But the bar is the same one <<Triggers for adopting new
+technology>> sets for any new technology: a concrete, evidenced limitation in
+what's already in use, not a preference for the new language's syntax or
+paradigm.
+
+== Hiring and team fit
+
+The available pool of engineers who already know a language, and the
+learnability of the language for the team that will maintain it, are
+practical constraints on language choice, not secondary concerns. A language
+with excellent technical merits but no engineers on the team who know it, and
+a thin regional or remote hiring pool to draw from, imposes an ongoing
+training and hiring cost for as long as the system runs. This cost is real
+even when the language itself is a good technical fit, and it SHOULD be
+weighed as part of the <<Technology selection criteria>> above, under
+support and maturity.
