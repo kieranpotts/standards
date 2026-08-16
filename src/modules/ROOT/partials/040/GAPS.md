@@ -283,7 +283,7 @@ Unresolved item (none — all sources were retrieved) is already closed.
       accompanied by a note on which browsers still need it. Source (`The
       CSS Handbook`) added to the page's `== References`.
 
-- [ ] `__TODO__/css3/_todo/architecture.md:40-302` surveys OOCSS, BEM, SMACSS,
+- [x] `__TODO__/css3/_todo/architecture.md:40-302` surveys OOCSS, BEM, SMACSS,
       and SUIT CSS (their categories, naming syntax, and rules); `CSS
       Master.pdf` Ch.2 "BEM"/"Atomic CSS" (`cssmaster.txt:2777`) adds BEM and
       Atomic CSS. The standard names these methodologies
@@ -299,6 +299,10 @@ Unresolved item (none — all sources were retrieved) is already closed.
       of document. The methodologies remain named in `01-overview.adoc:87-93`
       and linked in References, which is judged sufficient. No content
       change.
+
+      **Closed, 2026-08-16.** The user confirmed the 2026-08-14 decline
+      stands; no further action. Checkbox ticked to reflect that this item
+      is finally settled, not merely deferred.
 
 - [x] `CSS Master.pdf` Ch.4 "Choosing a Box Model with box-sizing"
       (`cssmaster.txt:3957`), `The CSS Handbook by Flavio Copes.pdf` "Normalizing
