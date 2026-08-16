@@ -768,6 +768,13 @@ actionable items. 4 Out-of-scope items remain — 1 deliberately open
 (design.google essays, unchanged) and 3 already `**Confirmed**`/resolved
 from prior runs — and 0 Unresolved items; none actioned in this run.
 
+**Ninth run (`close-gaps`), 2026-08-16.** Closed the one remaining
+deliberately-open item — the design.google essays — by doing the
+fetch-and-reassess pass the eighth run deferred. New "Match fidelity to
+problem resolution" section added to `01-design-principles.adoc`. TS-15 now
+has 0 actionable items and 0 open Out-of-scope items — fully resolved. 0
+Unresolved items, unchanged.
+
 ## Partial
 
 - [x] https://www.nngroup.com/articles/ten-usability-heuristics/ (Heuristic 4:
@@ -936,7 +943,7 @@ from prior runs — and 0 Unresolved items; none actioned in this run.
 
       **Confirmed out-of-scope.** 2026-08-15.
 
-- [ ] https://design.google/ homepage article blurbs (e.g. "Illustrating the
+- [x] https://design.google/ homepage article blurbs (e.g. "Illustrating the
       Gemini App", "Refreshing Chrome", "UX Design as Dance Theater") are
       individual essays on specific projects. Flagged out-of-scope as
       project-specific narratives rather than general principles.
@@ -947,6 +954,35 @@ from prior runs — and 0 Unresolved items; none actioned in this run.
       future pass before deciding what, if anything, is missing.
       Deliberately left unticked — this is a standing gap, not resolved
       to either exclude or include.
+
+      **Resolved, 2026-08-16.** Fetched the homepage's current article
+      list (eight essays) and read the two most substantive-looking
+      ones in full: "Code is a Design Material" (Katie Jacquez) and
+      "Designing for Transparent Screens" (on Jetpack Compose Glimmer, a
+      display-AI-glasses design system). "Designing for Transparent
+      Screens" turned out to be display-hardware-specific (additive
+      displays, visual-angle-based typography, AR glasses physics) —
+      narrower and more platform-specific than TS-15's general-principles
+      scope, and confirmed out-of-scope on the same grounds the original
+      flag anticipated for project narratives, not written up. "Code is a
+      Design Material" yielded a genuine, general design-process
+      principle, not present anywhere in TS-15: fidelity should match how
+      resolved the underlying problem is, not how fast a polished
+      prototype can be produced, plus the related distinction between
+      strategic design work and tool-assisted execution. Closed by a new
+      "Match fidelity to problem resolution" section in
+      `01-design-principles.adoc`. The remaining six homepage blurbs
+      ("Illustrating the Gemini App", "Making Google Sans Flex", "True
+      Design Is Better Than New Design", "Unboxing a New Collaboration",
+      "UX Design as Dance Theater", "When Brand Fonts are Open Source")
+      were not individually fetched in this run — their titles alone read
+      as project-specific narratives or typography/branding case studies,
+      consistent with the original out-of-scope characterization, and the
+      two essays that were fetched were chosen as the most likely to
+      carry a general principle. If a future pass wants to check the
+      remaining six in depth, that is a fresh `gap-analysis`, not a
+      re-opening of this item. Source added to the page's
+      `== References`.
 
 - [x] https://www.usability.gov/ resource items (how to write a research plan,
       how to conduct a usability test, interview debriefs, participant

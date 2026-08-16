@@ -104,6 +104,19 @@ open for the user to decide. 12 Out-of-scope and 1 Unresolved item are
 untouched, per the skill's rules. New `09-variables.adoc` added and wired
 into the page. Date: 2026-08-14.
 
+**Run 4 (`close-gaps`), 2026-08-16.** Closed the 2 Missing items that had
+been filed by the 2026-08-15 Out-of-scope sweep as concrete, user-directed
+adoptions separate from the still-pending scope-broadening RFC: the
+app-namespace component-prefix heuristic, and the `js-` JavaScript-hook-class
+fallback. Both written into `03-class-names.adoc`. TS-40 now has 0
+actionable items. The one Partial item declined on 2026-08-14 (OOCSS/BEM/
+SMACSS/SUIT CSS methodology comparison) remains terminally closed with no
+content change, per that run's own note — not re-opened. 10 Out-of-scope
+items remain open, all still pending the same scope-broadening RFC decision
+recorded on 2026-08-15 (or, for two of them, already confirmed/routed) — see
+the "Out-of-scope" section below for the per-item breakdown. The 1
+Unresolved item (none — all sources were retrieved) is already closed.
+
 ## Missing
 
 - [x] `__TODO__/css3/0100-layout.md:9` and `__TODO__/css3/_todo/layout-and-positioning.md`
@@ -174,7 +187,7 @@ into the page. Date: 2026-08-14.
       section's ID-versus-class-count rule. Source (`CSS Master`) already
       added to the page's `== References` by an earlier item in this batch.
 
-- [ ] `__TODO__/css/5000-architecture/` (routed in from the Out-of-scope
+- [x] `__TODO__/css/5000-architecture/` (routed in from the Out-of-scope
       review, 2026-08-15) — an app-namespace prefix for component class
       names shared across multiple apps. The user asked specifically for
       this heuristic to be adopted, overruling the original "alternative,
@@ -182,7 +195,15 @@ into the page. Date: 2026-08-14.
       subsection in `03-class-names.adoc`, alongside the existing
       component-naming conventions. Not yet written into any partial.
 
-- [ ] https://cssguidelin.es/#naming-conventions (routed in from the
+      **Resolved, 2026-08-16.** Closed by a new paragraph in
+      `03-class-names.adoc`, immediately after the paragraph explaining
+      case-based role hierarchy. States that a component's `CamelCase` name
+      MAY be prefixed with a lower-case application namespace joined by a
+      colon (`app1:NavBar`) where its markup is shared across multiple,
+      independently-deployed applications, reserved for that specific
+      collision case rather than applied by default.
+
+- [x] https://cssguidelin.es/#naming-conventions (routed in from the
       Out-of-scope review, 2026-08-15) — a `js-` prefix convention for
       JavaScript hook classes, as an alternative or addition to TS-40's
       current `data-*`-attribute JS-hook approach
@@ -192,6 +213,16 @@ into the page. Date: 2026-08-14.
       `03-class-names.adoc`, near the existing `data-*` JS-hook guidance,
       reconciling the two approaches (e.g. clarifying whether `js-`
       replaces or supplements `data-*`). Not yet written into any partial.
+
+      **Resolved, 2026-08-16.** Closed by a new paragraph in
+      `03-class-names.adoc`'s "Dynamic classes" section, immediately after
+      the existing `data-*` guidance. Reconciled the two approaches by
+      scoping `js-` to a fallback for when a codebase's existing tooling or
+      a third-party library expects a class-based hook, not an alternative
+      to `data-*` in the general case; states the `js-` class MUST NOT also
+      carry styling, preserving the same separation of concerns the
+      `data-*` convention protects. Source (cssguidelin.es) already present
+      in the page's `== References`; annotated with this section.
 
 ## Partial
 

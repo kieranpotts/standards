@@ -24,6 +24,12 @@ than sentence-level style and routed it on to TS-25 instead. Not yet
 actioned. 1 missing, 0 partial, 0 out-of-scope awaiting the user, 0
 unresolved.
 
+**Run 2 (`close-gaps`), 2026-08-16.** Closed the remaining Missing item —
+the documentation review-etiquette gap routed in from TS-26/TS-27 — with a
+new "Reviewing documentation" subsection in `10-ownership.adoc`. TS-25 now
+has 0 actionable items, 0 Out-of-scope items, and 0 Unresolved items — fully
+resolved.
+
 ## Missing
 
 - [x] https://blog.nelhage.com/post/computers-can-be-understood/ says that
@@ -66,7 +72,7 @@ unresolved.
       evidence the document was unnecessary. Source added to the page's
       `== References`.
 
-- [ ] https://google.github.io/styleguide/docguide/style.html#minimum-viable-documentation
+- [x] https://google.github.io/styleguide/docguide/style.html#minimum-viable-documentation
       and https://google.github.io/styleguide/docguide/style.html#better-is-better-than-best
       (routed in from TS-26's Out-of-scope review, 2026-08-15, which was
       itself routed in from TS-27's Out-of-scope review) — documentation
@@ -91,6 +97,23 @@ unresolved.
       new subsection, covering the review-etiquette angle specifically as
       the genuinely new material. Not yet checked in depth or written into
       any partial.
+
+      **Resolved, 2026-08-16.** Re-fetched the source to confirm the exact
+      wording before writing. Closed by a new "Reviewing documentation"
+      subsection in `10-ownership.adoc`, after the existing staleness
+      guidance it extends. States the minimum-viable-documentation
+      principle (small, fresh, accurate beats sprawling and stale) and the
+      small-increments deletion discipline verbatim from the coverage
+      check; then covers the review-etiquette half that was the genuinely
+      new material: a reviewer SHOULD approve immediately where
+      reasonable rather than blocking on minor comments, SHOULD suggest a
+      specific alternative rather than a vague one and raise a
+      disagreement as their own follow-up rather than blocking on it, and
+      an author SHOULD capitulate early on trivial argument rather than
+      defend it at length. Cross-linked to the existing "Support-driven
+      documentation" section, explaining why both share the same
+      underlying concern (cheap-to-update documentation stays current).
+      Source added to the page's `== References`.
 
 ## Partial
 

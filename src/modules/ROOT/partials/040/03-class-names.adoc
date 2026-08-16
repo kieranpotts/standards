@@ -99,6 +99,17 @@ within layout sections) are less prominent, and lower-case modifier classes —
 the least critical to achieving a default presentation — are the least
 conspicuous.
 
+Where a component's markup is shared across multiple, independently-deployed
+applications (eg. after an acquisition, or across a suite of related
+products with separate front ends), its `CamelCase` name MAY be prefixed
+with a lower-case application namespace, joined by a colon:
+`app1:NavBar`, `app2:NavBar`. This disambiguates two components that share a
+base name but diverge in markup or styling between applications, without
+abandoning the standard's own `CamelCase` convention for the base name
+itself. Reserve the namespace prefix for this specific, cross-application
+collision case — a component consumed by only one application MUST NOT
+carry a namespace prefix it does not need.
+
 A second example, for a page header:
 
 [source,html]
@@ -190,6 +201,18 @@ document.querySelectorAll('[data-popup="true"]');
 This leaves the `class` attribute as the primary interface between HTML and CSS,
 and the `data-*` attributes (and, where appropriate, the `<data>` element) as
 the interface between HTML and JavaScript — a clean separation of concerns.
+
+Where a codebase's existing conventions instead rely on a class as the
+JavaScript query target — for example, integrating with tooling or a
+third-party library that expects one — the class MUST be prefixed `js-`
+(eg. `js-toggle`, `js-modal-trigger`) and MUST NOT also appear in a style
+sheet rule. This keeps the same separation of concerns the `data-*`
+convention above exists to protect: restyling a component can never
+silently break its behavior, because a `js-` class is never a styling
+hook, and a reader can tell a class's purpose from its prefix alone. The
+`js-` prefix is a fallback for this specific case, not an alternative to
+`data-*` in the general case — prefer `data-*` attributes as the default
+JavaScript-hook mechanism throughout.
 
 It is acceptable for modifier classes to be injected into a document dynamically
 by a client-side script. Dynamic modifiers MUST use the `is-` prefix, so it is
