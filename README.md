@@ -16,6 +16,7 @@ architects, and technical leads. They are reference material, not tutorials.
 - [**Contributing**](./CONTRIBUTING.md)
 - [**Style guide**](./docs/style-guide.md)
 - [**Committing**](./docs/committing.md)
+- [**Repository settings**](./docs/development/repository-settings.md)
 
 ---
 
