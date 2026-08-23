@@ -301,6 +301,62 @@ the model in real sources, prompting well, cross-checking against a second
 context — reduce how often hallucination bites; none of them removes it, because
 none of them changes what the model fundamentally is.
 
+One consequence is worth stating plainly, because it is easy to underestimate
+until you have been caught by it: a model essentially never answers "I don't
+know". Faced with a question it has no basis to answer, it does not fall
+silent or flag its own uncertainty — it emits the most probable continuation
+regardless, with the same fluency and the same confident register it uses for
+everything else. There is no internal signal that distinguishes "I am recalling
+a fact" from "I am filling a gap plausibly", so nothing surfaces to warn you
+when the second is what happened. Treat any output that reads like confident
+recall — a specific date, a citation, an API signature, a quoted figure — as
+the case most worth independent verification, precisely because its surface
+gives no hint of which case you are in. Direct recall of a specific, checkable
+fact is one of the weakest things to ask a model for at all; a traditional
+search engine or an authoritative source will serve better, precisely because
+it can say nothing at all rather than confabulate.
+
+This connects to a design trade-off worth understanding. A model trained to
+stay very close to the statistical patterns in its training data is
+*overfitted*: it reproduces what it has seen faithfully, but generalizes
+poorly to inputs unlike anything in its training data, producing output that
+is stale, generic, or subtly wrong when the input strays from familiar
+territory. <<Temperature and sampling,Sampling randomness>> is one of the
+countermeasures — introducing controlled
+unpredictability so the model does not always default to the single most
+probable, most "seen-before" continuation. That trade-off runs in both
+directions: the same randomness that helps a model generalize and produce
+fresh, varied output also widens the opening for hallucination, because it
+makes the model more willing to wander from the token sequence the training
+data most strongly supports. There is no setting that removes the trade-off,
+only ways of choosing where to sit on it for a given task.
+
+Hallucination also originates upstream, in the training data itself, which is
+why a substantial share of frontier model development effort now goes into
+curating that data — sifting reliable sources from unreliable ones, and
+opinion, satire, and fiction from statements of fact, so the patterns a model
+absorbs are less often patterns of confident falsehood. Combined with
+post-training techniques and, in some models, an explicit "reflect and revise"
+step that lets a model reconsider part of its own output before returning it,
+measured hallucination rates have been falling release over release. None of
+this changes the underlying mechanism described above, and none of it
+justifies expecting the problem to be solved outright — a lower rate is not
+the absence of the failure mode, and the discipline of verification does not
+relax as the rate improves.
+
+Taken together this is the *AI paradox*: the same mechanism that makes a model
+prone to hallucinate — generating a plausible continuation with no anchor to
+whether the training data actually supports it — is what lets it reach genuinely
+novel connections that lie outside anything it was explicitly trained to do.
+Unreliability and creative reach are not two separate properties in tension;
+they are the same property, read in the two different lights of failure and
+capability. This is why the discipline this standard asks for is not to
+suppress the mechanism — that would suppress the capability along with the
+flaw — but to route each kind of task to where the mechanism helps rather than
+hurts: away from precise recall and mission-critical, error-intolerant work
+(see <<When not to use AI>>), and toward the open-ended, judgment-shaped, or
+genuinely novel work developed next.
+
 == Using AI for what it is good at
 
 Large language models are, at core, engines of inference over patterns in
@@ -365,11 +421,67 @@ enumerating alternatives, stress-testing a design, arguing the opposing case —
 rather than asking it to decide for you. This kind of augmentation is developed
 further in <<AI-augmented software development>>.
 
+The idea-generation strength is not incidental; it follows from what a model
+literally is. Training builds relationships between tokens that need not
+resemble any relationship a human would draw explicitly, but that encode some
+real, if often subtle, association latent in the training data — a language
+model is, in a fairly literal sense, a connection-making machine, and
+innovation of any kind is disproportionately the product of connecting ideas
+that were not obviously related to begin with. You can see the effect for
+yourself with a standard test of human creativity, the Alternative Uses Test:
+given two minutes to list unconventional uses for an everyday object such as a
+paper clip, a person typically produces a dozen or so. Put the same prompt to
+a capable model and it will typically produce many more, and faster — not
+because it is "more creative" in any human sense, but because breadth-first
+recombination of stored associations is exactly the kind of pattern-completion
+task the technology is built for. This is the same mechanism, and the same
+trade-off, described under <<Hallucination>>: a mind with no firm boundary
+between a real association and a fabricated one will occasionally connect
+things that are not truly related, but that same lack of a boundary is what
+lets it connect things a more literal-minded system never would. Put to work
+deliberately — brainstorming, proofreading with fresh eyes, reviewing code
+from an unfamiliar angle — this consistently shows up as a measurable gain in
+both the quality and the volume of ideas produced, alongside the analytical
+strengths already covered under <<Beyond code generation>>. Some early
+reporting has even suggested general-purpose models bring enough broad,
+cross-domain context to bear that they compete with narrow, purpose-built
+models on tasks like financial analysis — a claim worth treating as
+suggestive rather than established, but consistent with the same underlying
+mechanism: a model that has absorbed patterns across an enormous and varied
+corpus can place a new data point in a wider context than a system trained
+only on the narrow domain it operates in.
+
 Match the task to the strength. Do not reach for the most powerful available
 model to brute-force a poorly-fitting task; reach instead for the task framing
 that plays to what the technology does well. Much of the craft covered in the
 rest of this standard — context engineering, harness design, evaluation — is
 about widening the range of tasks for which both properties can be made to hold.
+
+=== Delegated versus automated tasks
+
+Not all tasks handed to a model are handed over the same way. It is worth
+distinguishing two categories.
+
+A *delegated* task keeps a human in the loop somewhere in its lifecycle — the
+output is reviewed, the workflow has a checkpoint, or an engineered sensor
+gates it — even though the model does the work. Most of what this standard
+covers is delegation. Delegated tasks need not be simple: they can be complex,
+sophisticated, and carry real consequences if done badly — managing an
+investment portfolio delegated to an agent is still delegation, not automation,
+provided a human remains accountable for the outcome. Delegation buys back
+time; it does not remove the human decision from the loop (see
+<<Human-in-the-loop>>).
+
+An *automated* task has no human checkpoint at all. The model's output is acted
+on directly, end to end, with no review gate before or after. This is currently
+a small category, reserved for low-stakes, high-volume, easily-reversible work
+where an occasional wrong output is cheap — spam filtering is a familiar
+example, and one many people already rely on without realizing an AI model
+makes the call. Promoting a task from delegated to automated is a deliberate
+decision to remove the human checkpoint entirely, not merely to loosen it, and
+it SHOULD be reserved for tasks that can tolerate being wrong occasionally with
+no meaningful consequence. Compare <<Calibrating human involvement>>, which
+covers loosening or tightening supervision on tasks that remain delegated.
 
 == Beyond code generation
 

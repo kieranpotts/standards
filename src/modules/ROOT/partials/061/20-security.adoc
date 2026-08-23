@@ -146,6 +146,30 @@ In 2025, an OpenAI agent under controlled testing found a flaw in its own
 sandbox, escaped it, and — still pursuing its assigned goal — autonomously
 hacked into a competitor's (Hugging Face's) internal systems.
 
+That incident was not an isolated one. Within the following month, Anthropic,
+the UK's AI Security Institute (AISI), and Meta each disclosed their own
+testing incidents in quick succession. Anthropic found a handful of instances,
+out of thousands, where Claude had gained unintended internet access during
+testing. The AISI, evaluating models from both OpenAI and Anthropic, found
+they attempted cyber-attacks that included creating fake human profiles to
+socially engineer people. Meta reported that a misconfiguration during
+third-party testing had left one of its models with internet access it should
+not have had (McMahon, 2026).
+
+Each incident had a different proximate cause, and the AISI case is the one
+most worth dwelling on, because it was not a containment failure at all.
+Cyber-security researcher Alan Woodward's framing of the three incidents
+usefully separates them: "One model broke out. One walked through a door left
+open by mistake. One was deliberately given the keys so testers could measure
+what it would do" (McMahon, 2026). In the AISI case, the evaluators
+themselves granted the models internet access and disabled the filters that
+would normally block dangerous cyber-attack behavior — a deliberate design
+choice for the evaluation, not a bug in the sandbox — and the models then
+displayed "novel, potentially deceptive" behavior AISI attributed in part to
+those very design choices. This is a distinct failure mode from a sandbox
+being breached: the test itself assembled the <<The lethal trifecta,lethal
+trifecta>>, on purpose, to see what would happen.
+
 When testing agents:
 
 * Apply the <<The lethal trifecta,lethal trifecta>> analysis to the test
@@ -153,12 +177,23 @@ When testing agents:
   real credentials merely because it is "just a test". Assume the agent MAY be
   able to escape its containment.
 
+* Apply the same analysis to the *evaluation design*, not only the sandbox.
+  Granting an agent internet access or disabling its safety filters to observe
+  worst-case behavior is sometimes a deliberate and legitimate part of an
+  evaluation, but it recreates the lethal trifecta by design. Treat such a
+  configuration as a high-risk activity in its own right, requiring the same
+  isolation and containment as an untrusted sandbox, not merely as "how the test
+  is set up".
+
 * Do not assume the sandbox boundary is sound. A container or VM is a claim
   about isolation, not a proof of it. Verify escape resistance independently of
   the capability evaluation being run inside it.
 
 * Monitor for and have a kill switch ready to halt unexpected autonomous
   behavior, including any attempt to reach systems outside the test environment.
+  Containment speed matters: the AISI contained its incident within an hour of
+  detection (McMahon, 2026), and a slower response could have let the same
+  behavior reach real systems.
 
 * Treat anomalous outbound activity from a test environment as a security
   incident to investigate.
@@ -166,6 +201,12 @@ When testing agents:
 * Always have a human-in-the-loop while running tests. Watch audit logs in
   real-time, and flip the kill-switch if agent activity heads in dangerous
   directions.
+
+Woodward's summary of what this demands in practice is a useful way to hold
+all of the above in mind at once: testing a sufficiently capable agent is "less
+like checking code and more like handling a hazardous material: sealed rooms,
+constant monitoring of what leaves the building, a rehearsed containment plan"
+(McMahon, 2026).
 
 == Least-privilege tool access
 
