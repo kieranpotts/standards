@@ -18,8 +18,8 @@ have built is the binding constraint on what we can build.
 
 [quote, John Ousterhout, A Philosophy of Software Design (2018)]
 ____
-The greatest limitation in writing software is our ability to understand the
-systems we are creating.
+The greatest limitation in writing software is our ability to
+understand the systems we are creating.
 ____
 
 As a system acquires features, dependencies accumulate between its parts, and it
@@ -32,7 +32,7 @@ Good tools help. Static analysis, type systems, debuggers, observability
 platforms, and increasingly AI-assisted development all extend how much
 complexity a person can work with productively. But there is a ceiling on what
 tooling alone can achieve, because tools help us cope with complexity rather
-than remove it. A simpler design raises the ceiling itself: it allows larger and
+than remove it. A simpler design raises the ceiling itself. It allows larger and
 more capable systems to be built before understanding becomes the bottleneck.
 This is why design effort cannot be substituted with better instruments, and why
 simplicity repays investment in a way that tooling alone does not.
@@ -156,20 +156,43 @@ change amplification specifically.
 
 == Coupling
 
-Implementation simplicity turns on a single critical factor: coupling – how
+Implementation simplicity turns on a single critical factor — coupling, or how
 tightly the different parts of the system depend on each other. High coupling
 makes systems brittle and difficult to change; low coupling makes them flexible
 and adaptable. This is not about the volume of code. A large codebase can be
-simple if its components are loosely coupled with clear purposes; a small
+simple if its components are loosely coupled with clear purposes. A small
 codebase can be impenetrably complex if its parts are tightly coupled.
 
 Coupling is not itself one of the design qualities. It is the primary means by
 which we measure and reason about one of them. Simplicity, as noted above,
-resists direct measurement: it is a qualitative judgment. Coupling is far more
+resists direct measurement. It is a qualitative judgment. Coupling is far more
 tractable. Dependencies can be counted, their direction traced, and cycles among
 them detected – often mechanically. Coupling is therefore the most useful
 instrument we have for turning an assessment of simplicity from an opinion into
 an observation.
+
+////
+
+Coupling can go undetected, but it shows up in:
+
+* Slow builds. Sign of circular dependencies.
+
+* Complex test setup.
+
+* Brittle tests that break when you change the name of an internal class.
+  Coupling to implementation.
+
+* Blocked teams. Teams move at the pace of the slowest team, due to cross-team
+  dependencies.
+
+* Lockstep platform releases. Shared code demands every dependent service to
+  take a new version.
+
+* Long parameter lists. A function with 8 parameters probably knows too much.
+
+* Risky releases. Often involving rollbacks.
+
+////
 
 === Dimensions of coupling
 
@@ -202,6 +225,70 @@ that matter most in practice are:
   another – typically via flag arguments or mode parameters. This makes the
   callee harder to reason about in isolation, because its behavior is no longer
   a property of the callee alone.
+
+////
+
+Michael T Nygard in the book _Release It!_ categorized coupling into five types:
+
+* *Operational coupling.* Runtime coupling, eg. an application that won't even
+  start up when its DB server isn't available. Only flaky shard service ->
+  downtime across lots of apps. Enemy of fault tolerance - can't degrade our
+  service gracefully if we have operational coupling.
+
+* *Developmental coupling.* This is about change. This one bites as soon as we
+  have more than a few people working simultaneously on the same system. This
+  coupling is where two components have to be changed together. Modification in
+  one forces a coordinated modification in the other. The moment two components
+  share a function or a data schema, neither can evolve fully independently.
+  This problem gets exponentially more complicated as systems and teams grow in
+  size and complexity.
+
+* *Semantic coupling.* Two or more components share a concept, eg. what an
+  order contains. They may not share a single line of code, but still they can't
+  change independently because they have to agree on the _meaning_ of things
+  to be able to work together. Difficult to reason about because no deterministic
+  tooling will warn you about this type of coupling (non-deterministic agentic
+  checks might).
+
+* *Functional coupling.* Where different parts of a system address the same
+  problem in different ways, eg. two slightly different implementations of
+  "calculate discount" or "validate email address" -> inconsistent behavior
+  emerge in different parts of the UI (seemingly buggy behavior). Tests won't
+  catch this category of bugs.
+
+* *Incidental coupling.* Coupling that exists for no good reason at all, eg.
+  a call from one module right across across a system to grab a value that it
+  has no business knowing about - spaghetti code, no architecture! Pure
+  accidental complexity, pure cost. Buys you nothing at all.
+
+[quote, David Parnas]
+____
+The connections between modules are the assumptions
+which the modules make about each other.
+____
+
+Rule of thumb: strong coupling is acceptable where the thing you're coupling to
+is stable, eg. the SQL language hardly ever changes, definitely not in a
+breaking way, but your DB schema is much more volatile.
+
+''''
+
+Not all coupling is bad. By definition, all software has coupling. Coupling is
+how the parts of a software system talk to each other. Software architecture is
+about making deliberate decisions about how and where that necessary coupling
+is done.
+
+Different architectural patterns prioritize managing different categories of
+coupling. Building complex system is not about removing coupling entirely,
+but about trading one type of coupling for another. For example, event-driven
+systems trade operational coupling for developmental coupling - you're coupling
+things by contract (in the form of data message structures) rather than their
+operational runtimes (no more direct calls).
+
+You can't eliminate coupling. You can only move it to where it is easier to
+manage.
+
+////
 
 === Interpreting the measurements
 
