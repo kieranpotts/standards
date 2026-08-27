@@ -45,15 +45,15 @@ purposes. A small codebase can be impenetrably complex if its parts are tightly 
 
 Michael T Nygard in the book _Release It!_ categorized coupling into five types.
 
-* *Operational coupling.* Runtime coupling, eg. an application that won't even start up when its DB server isn't
-  available. Only flaky shard service -> downtime across lots of apps. Enemy of fault tolerance - can't degrade our
-  service gracefully if we have operational coupling.
+* *Operational coupling.* Runtime coupling, eg. an application that won't even start up when its database server isn't
+  available. A single flaky shared service can cause downtime across many dependent applications. This is the enemy of
+  fault tolerance — a system cannot degrade gracefully while it carries operational coupling.
 
-* *Developmental coupling.* This is about change. This one bites as soon as we have more than a few people working
-  simultaneously on the same system. This coupling is where two components have to be changed together. Modification in
-  one forces a coordinated modification in the other. The moment two components share a function or a data schema,
-  neither can evolve fully independently. This problem gets exponentially more complicated as systems and teams grow in
-  size and complexity. Developmental coupling can be further categorized into a family of related properties.
+* *Developmental coupling.* This is about change. It bites as soon as more than a few people are working simultaneously
+  on the same system. This coupling is where two components have to be changed together. Modification in one forces a
+  coordinated modification in the other. The moment two components share a function or a data schema, neither can
+  evolve fully independently. This problem gets exponentially more complicated as systems and teams grow in size and
+  complexity. Developmental coupling can be further categorized into a family of related properties.
 
   * *Efferent coupling.* The number of other components a given component depends upon. High efferent coupling means a
     component cannot be understood, tested, or moved without dragging much of the system along with it.
@@ -77,17 +77,17 @@ Michael T Nygard in the book _Release It!_ categorized coupling into five types.
     property of the callee alone.
 
 * *Semantic coupling.* Two or more components share a concept, eg. what an order contains. They may not share a single
-  line of code, but still they can't change independently because they have to agree on the _meaning_ of things to be
-  able to work together. Difficult to reason about because no deterministic tooling will warn you about this type of
-  coupling (non-deterministic agentic checks might).
+  line of code, but they still can't change independently, because they have to agree on the _meaning_ of things to be
+  able to work together. This is difficult to reason about, because no deterministic tooling will warn you about this
+  type of coupling.
 
-* *Functional coupling.* Where different parts of a system address the same problem in different ways, eg. two slightly
-  different implementations of "calculate discount" or "validate email address" -> inconsistent behavior emerge in
-  different parts of the UI (seemingly buggy behavior). Tests won't catch this category of bugs.
+* *Functional coupling.* Different parts of a system address the same problem in different ways, eg. two slightly
+  different implementations of "calculate discount" or "validate email address". The result is inconsistent behavior
+  in different parts of the interface, which looks like a bug but isn't caught by tests.
 
-* *Incidental coupling.* Coupling that exists for no good reason at all, eg. a call from one module right across across
-  a system to grab a value that it has no business knowing about - spaghetti code, no architecture! Pure accidental
-  complexity, pure cost. Buys you nothing at all.
+* *Incidental coupling.* Coupling that exists for no good reason at all, eg. a call from one module reaching right
+  across a system to grab a value that it has no business knowing about. This is spaghetti code — the absence of
+  architecture. It is pure accidental complexity, pure cost, and buys nothing in return.
 
 [quote, David Parnas]
 ____
@@ -98,15 +98,15 @@ Not all coupling is bad. By definition, all software has coupling. Coupling is h
 to each other. Software architecture is about making deliberate decisions about how and where that necessary coupling
 is done.
 
-Different architectural patterns prioritize managing different categories of coupling. Building complex system is not
+Different architectural patterns prioritize managing different categories of coupling. Building a complex system is not
 about removing coupling entirely, but about trading one type of coupling for another. For example, event-driven systems
-trade operational coupling for developmental coupling - you're coupling things by contract (in the form of data message
-structures) rather than their operational runtimes (no more direct calls).
+trade operational coupling for developmental coupling — components are coupled by contract, in the form of data message
+structures, rather than by their operational runtimes, since there are no more direct calls between them.
 
 You can't eliminate coupling. You can only move it to where it is easier to manage.
 
 As a rule-of-thumb, strong coupling is acceptable where the thing you're coupling to is stable. For example, the SQL
-language hardly ever changes, definitely not in a breaking way, but your DB schema is much more volatile.
+language hardly ever changes, and certainly not in a breaking way, but a database schema is much more volatile.
 
 == Measuring complexity
 
@@ -124,7 +124,7 @@ Cyclomatic complexity is a related, narrower metric, measuring the number of ind
 code — a function or method — by counting its branch points. It is a proxy for how hard that unit is to reason about and
 test. A function with a cyclomatic complexity of 15 has at least 15 distinct paths that tests would need to cover for
 full branch coverage. But it says nothing about coupling between components, and a codebase can score well on it while
-still being tightly coupled and hard to change. So cyclometric complexity complements structural coupling metrics rather
+still being tightly coupled and hard to change. So cyclomatic complexity complements structural coupling metrics rather
 than substituting for them.
 
 == Managing complexity
@@ -149,7 +149,7 @@ Achieving simplicity in the interface of a system requires a disciplined approac
 requirements and to its design. It means resisting the temptation to add features users might someday want, and instead
 focusing on what they genuinely need right now.
 
-Companies that deliver software perceived as fast and responsive tend to  have very focused product offerings – not by
+Companies that deliver software perceived as fast and responsive tend to have very focused product offerings – not by
 accident, but because the effort required to make software fast forces difficult decisions about what to include and
 what to leave out.
 
@@ -164,7 +164,7 @@ consistent feedback for user actions, building confidence and making the softwar
 
 == Why simplicity matters
 
-Simple software more expensive to achieve than complex software. Complexity is often the result of a _lack_ of effort
+Simple software is more expensive to achieve than complex software. Complexity is often the result of a _lack_ of effort
 put into the requirements and design.
 
 How well a software solution is made – its internal structure, its data flows, its architectural patterns – directly
@@ -193,7 +193,7 @@ ____
 
 Good tools help. Static analysis, type systems, debuggers, observability platforms, and increasingly AI-assisted
 development all extend how much complexity a person can work with productively. But there is a ceiling on what tooling
-alone can achieve. Tools help us cope with complexity, they do not remove it.
+alone can achieve. Tools help us cope with complexity; they do not remove it.
 
 A simpler design raises the ceiling for what's possible. It allows larger and more capable systems to be built.
 
@@ -202,24 +202,22 @@ ____
 Simplicity is the ultimate sophistication.
 ____
 
-Coupling can go undetected, but it shows up in:
+Coupling can go undetected, but it shows up in a number of recognizable symptoms.
 
-* Slow builds. Sign of circular dependencies.
+* *Slow builds.* Often a sign of circular dependencies.
 
-* Complex test setup.
+* *Complex test setup.* Tests need to construct much more context than the behavior under test should require.
 
-* Brittle tests that break when you change the name of an internal class.
-  Coupling to implementation.
+* *Brittle tests.* Tests break when you rename an internal class — a sign of coupling to implementation details rather
+  than to behavior.
 
-* Blocked teams. Teams move at the pace of the slowest team, due to cross-team
-  dependencies.
+* *Blocked teams.* Teams move at the pace of the slowest team, because of cross-team dependencies.
 
-* Lockstep platform releases. Shared code demands every dependent service to
-  take a new version.
+* *Lockstep platform releases.* Shared code demands that every dependent service take a new version at the same time.
 
-* Long parameter lists. A function with 8 parameters probably knows too much.
+* *Long parameter lists.* A function with eight parameters probably knows too much about its callers.
 
-* Risky releases. Often involving rollbacks.
+* *Risky releases.* Deployments that frequently require rollbacks.
 
 Complexity manifests itself in multiple ways. John Ousterhout in _A Philosophy of Software Design_ (2018) identifies
 three.
