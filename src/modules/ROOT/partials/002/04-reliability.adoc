@@ -1,123 +1,108 @@
 = Reliability
 
-Reliability is closely related to performance. However, while performance
-measures how well a system operates within specified constraints, reliability is
-more specific: it addresses a system's ability to handle and recover gracefully
-when failures occur. This distinction makes reliability important in every
-software system, and worth calling out as a distinct concern.
+Reliability is closely related to performance. However, while performance measures how well a system operates within
+specified constraints, reliability is more specific. It addresses a system's ability to handle and recover gracefully
+when failures occur.
 
-Reliability covers multiple concerns in software design. It refers to the degree
-to which a software system consistently performs its intended functions
-correctly, without failures or errors, over a specified period of time and under
-specified conditions (such as load). Since systems operate under conditions of
-operational uncertainty, designing for reliability means planning for the
-unexpected.
+Reliability is also closely related to correctness. Correctness refers to the degree to which a system consistently
+performs its intended functions, without failures or errors. A system that is correct all of the time is, by definition,
+a highly reliable system. But, from a strictly architectural definition, the quality of reliability is more specific. It
+addresses how effectively a system recovers, when failures do occur, from error states back to correct states.
 
-Key to reliability is the ability of a system to recover from failures, and so
-to continue operating, at least with partial functionality, in exceptional
-circumstances. This quality is known as fault tolerance.
+Key to reliability is the ability of a system to recover from failures, and so to continue operating, at least with
+partial functionality, in exceptional circumstances. This quality is known as *fault tolerance* or *resilience*.
 
-A system with high fault tolerance will have high availability. Availability is
-defined as the proportion of time that a software system is operational and
-accessible to users. It is often measured as a percentage of time, called
-uptime.
+A system with high fault tolerance will have *high availability*. Availability is defined as the proportion of time that
+a software system is operational and accessible to users. It is often measured as a percentage of time, called *uptime*.
+Downtime is the opposite metric.
 
-While reliability is often discussed in the context of software-as-a-service and
-other continuously-operated systems, where downtime directly impacts users, it
-is equally important for all software. Shrinkwrapped products, internal tools,
-batch processing systems, and embedded systems all benefit from being designed
-with fault tolerance and failure recovery in mind. The specific failure modes
-and acceptable downtime will vary, but the principle of designing for failure
-applies universally.
+== Designing for failure
 
-To achieve fault tolerance, systems must anticipate failure modes – things like
-runtime exceptions, network latency, and other disruptions – and gracefully
-handle them. All sorts of possible failure modes are explicitly designed to be
-handled. The system is said to be "designed for failure".
+While reliability is often discussed in the context of software-as-a-service and other continuously-operated systems,
+where downtime directly impacts users, it is equally important for other categories of software. Shrinkwrapped products,
+internal tools, batch processing systems, and embedded systems all benefit from being designed with fault tolerance and
+failure recovery in mind. The specific failure modes and levels of acceptable downtime will vary, but the principle of
+designing for failure applies universally.
 
-A system built to be fault tolerant is not one that never fails. Rather, the
-principle of designing for failure is to _assume_ that failures will happen and
-for the design to have explicit recovery logic for each failure scenario.
+To achieve fault tolerance, systems must anticipate failure modes – things like runtime exceptions, network latency, and
+other disruptions – and gracefully handle them. All sorts of possible failure modes are explicitly designed to be
+handled. Such a system is said to be "designed for failure".
 
-The key principle of designing for failure is to plan for a failure that happens
-in one part of a system to have minimal impact on the rest of the system, so
-avoiding full outages. A common analogy is the electrical grid, where a failure
-in one component does not cause the whole grid to fail.
+A system built to be fault tolerant is _not_ one that never fails. Rather, the principle of designing for failure is to
+_assume_ that failures will happen and for the design to have explicit recovery logic for each failure scenario.
+Designing software for reliability is about planning for the unexpected.
 
-This is the opposite to the approach of trying to prevent failures and make
-complex systems run perfectly all the time. Such an approach produces inherently
-brittle systems. Rather than designing for perfection (the MIT/Stanford
-approach), we should design software for failure.
+The key principle of designing for failure is to plan for a failure that happens in one part of a system to have minimal
+impact on the rest of the system, so avoiding full outages. A common analogy is the electrical grid, where a failure in
+one component does not cause the whole grid to fail.
 
-Designing for failure is especially important in distributed system design.
-Distributed systems are inherently unreliable because their internal
-communication patterns involve making network calls. Distributed systems are
-subject to a much wider range of failure modes than single-node systems, such as
-network partitions, delayed messages, and node crashes.
+This is the opposite to the approach of trying to prevent failures from happening at all, to try to make systems run
+perfectly all the time. Such an approach produces inherently brittle systems. Rather than designing for perfection
+(the MIT/Stanford approach), we should design software for failure.
 
-In distributed system design, numerous design patterns and operations strategies
-can help to build in resiliency, including:
+== Resilience in distributed systems
 
-* Redundancy: Running multiple instances of a service. Load balancers and
-  circuit breakers distribute processing across multiple instances, and
-  automatically failover to backup instances when primary instances fail.
+Designing for failure is especially important in distributed system design. Distributed systems are inherently
+unreliable because their internal communication patterns involve making network calls. Distributed systems are subject
+to a much wider range of failure modes than single-node systems, such as network partitions, delayed messages, and node
+crashes.
 
-* Replication and caching: Copies of data are stored in multiple locations, and
-  closer to the services that need the data (so reducing the physical distance
-  between nodes, which reduces latency).
+In distributed system design, numerous design patterns and operations strategies can help to build in resiliency,
+including the following.
 
-* Retries and timeouts: Timeouts fail requests that take too long, and failed
-  requests are retried in case of transient failures in the network or target
-  service.
+* *Redundancy.* Running multiple instances of a service. Load balancers and circuit breakers distribute processing
+  across multiple instances, and automatically failover to backup instances when primary instances fail.
 
-* Asynchronous messaging: Reduces direct dependencies between components,
-  reducing coupling and making it easier to scale nodes individually.
+* *Replication and caching.* Copies of data are stored in multiple locations, and closer to the services that need the
+  data (so reducing the physical distance between nodes, which reduces latency).
 
-Advanced strategies for achieving fault tolerance in mission-critical and
-safety-critical systems include stand-in systems (a failover system that is
-entirely independent of the primary system), blue-green deployments and canary
-releases (deployment strategies in which new versions of a system are tested in
-production before going live), and chaos engineering (intentionally causing
-failures in production to test the system's ability to recover from them).
+* *Retries and timeouts.* Timeouts fail requests that take too long, and failed requests are retried in case of transient
+  failures in the network or target service.
 
-Monitoring and alerting systems create feedback loops that are critical to the
-maintenance and operation of software-as-a-service.
+* *Asynchronous messaging.* Reduces direct dependencies between components, reducing coupling and making it easier to
+  scale nodes individually.
 
-Designing for failure needs to be considered at every level of a system's
-architecture. At the low-level of code modules, consideration must be given to
-programming defensively (raising an exception whenever any expectation of any
-component is not met) and exception handling (to enable graceful degradation
-from failure modes).
+Advanced strategies for achieving fault tolerance in mission-critical and safety-critical systems include
+*stand-in systems* (a failover system that is entirely independent of the primary system), *blue-green deployments* and
+*canary releases* (deployment strategies in which new versions of a system are tested in production before going live),
+and *chaos engineering* (intentionally causing failures in production to test the system's ability to recover from them).
 
-The user experience needs to be considered, too. A reliable system is also one
-that behaves predictably from the user's perspective. If an operation is
-performed correctly, but it is not what the user expected, the system will be
-_perceived_ as being unreliable, which will impact people's confidence in it.
+In addition, *monitoring and alerting systems* create feedback loops that are critical to the reliable operation of
+software-as-a-service.
 
-Security is also integral to reliability. A system that is compromised or under
-attack is, from the user's perspective, unreliable. Security threats – whether
-unauthorized access, data breaches, or denial-of-service attacks – are failure
+== Other factors
+
+Designing for failure needs to be considered at every level of a system's architecture. At the low-level of code modules,
+consideration must be given to *programming defensively* (raising an exception whenever any expectation of any component
+is not met) and *exception handling* (to enable graceful degradation from failure modes).
+
+The user experience needs to be considered, too. A reliable system is also one that *behaves predictably* from the user's
+perspective. If an operation is performed correctly, but it is not what the user expected, the system will be _perceived_
+as being unreliable, which will impact people's confidence in it.
+
+*Security* is also integral to reliability. A system that is compromised or under attack is, from the user's perspective,
+unreliable. Security threats – whether unauthorized access, data breaches, or denial-of-service attacks – are failure
 modes that must be explicitly designed for.
 
-== Seeking out failure
+== Software engineering
 
-Designing for failure requires knowing what the failure modes are, and they are
-not always obvious. This is what distinguishes software _engineering_ from
-programming: a deliberate share of the effort goes into anticipating failure
-rather than into producing behavior.
+Designing for failure requires knowing what the failure modes are, and they are not always obvious. This is what
+distinguishes software _engineering_ from mere _development_. In software engineering practices, a deliberate share of
+the overall effort goes into anticipating failure.
 
-The term "software engineering" acquired this meaning during the Apollo program,
-when major systems first had to be built to standards where failure would cost
-lives. That class of high-integrity system makes the discipline visible, but the
-underlying practice generalizes. Serious engineering organizations assume
-failure rather than hoping to avoid it; the Toyota Production System is built on
-the same assumption, and stops the line when reality contradicts the plan.
+The term *software engineering* acquired this meaning during the Apollo space program, when major systems first had to
+be built to standards where failure would cost lives. The Toyota Production System is another famed system designed
+for fault tolerance.
 
-In practice this means treating failure discovery as an activity in its own
-right. Post-mortems examine failures that have already happened. A _pre_-mortem
-inverts this: the team assumes a future failure has occurred and works backwards
+[quote, Russ Cox]
+____
+Software engineering is what happens to programming when you add time and other programmers.
+____
+
+In practice, this means treating *failure discovery* as an activity in its own right. *Post-mortems* examine failures that
+have already happened. A *pre-mortem* inverts this. The team assumes a future failure has occurred and works backwards
 to explain it, surfacing weaknesses while there is still time to address them.
-Deliberately running doomsday scenarios against a design – asking what happens
-when this dependency is unavailable, when this queue backs up, when this
-credential expires – is one of the cheapest ways to find the failure modes that
-the design has not yet accounted for.
+
+Deliberately running doomsday scenarios against a design – asking what happens when this dependency is unavailable, when
+this queue backs up, when this credential expires – is one of the cheapest ways to find the failure modes that a design
+has not yet accounted for.

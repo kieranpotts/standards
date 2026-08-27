@@ -1,74 +1,56 @@
 = Trade-offs
 
-The nine qualities largely reinforce one another. A simple design tends also to
-be reliable, changeable, and cohesive, and the effort spent on one is rarely
-wasted on the others. This is the general case, and it is why the qualities are
-presented as a single design philosophy rather than a menu.
+The nine software design qualities discussed in this technical standard — completeness, correctness, performance,
+reliability, experience, habitability, cohesiveness, changeability, and simplicity — reinforce one another. Taken
+together, they form a cohesive software design philosophy. Central to this philosophy is th principle of simplicity
+in both the interface and the implementation. Focused requirements implemented through simple designs tend to produce
+software that is reliable, changeable, and cohesive.
 
-It is not the universal case. Some pairs of qualities pull against each other
-directly, and no amount of skill dissolves the tension. Every design resolves
-those conflicts somehow. The distinction that matters is between a conflict
-resolved deliberately and one resolved by accident — by whichever quality
-happened to be on the mind of whoever wrote the code that week.
+But sometimes these qualities are in tension. Classic examples of trade-offs made in software design are listed below.
 
-== Where the qualities conflict
+* *Security versus experience.* Multi-factor authentication, short session lifetimes, re-authentication before sensitive
+  operations, aggressive rate limits — all these security procedures necessarily add friction to the user experience.
 
-The recurring conflicts are worth naming, because they are predictable enough to
-anticipate rather than discover:
+* *Performance versus simplicity.* Caching, denormalization, batching, and hand-tuned code paths all buy speed by adding
+  state, duplication, and coupling. A cache is a second copy of the truth, and every second copy is an invalidation
+  problem.
 
-* *Security against experience.* Multi-factor authentication, short session
-  lifetimes, re-authentication before sensitive operations, aggressive rate
-  limits — each buys security with friction the user pays for directly. This is
-  the most common conflict in ordinary business software, and the one most often
-  settled without anyone noticing a decision was made.
+* *Performance versus portability.* Tuning for a specific runtime, database engine, or instruction set buys throughput
+  by binding the system to the thing it was tuned for.
 
-* *Performance against simplicity.* Caching, denormalization, batching, and
-  hand-tuned code paths all buy speed by adding state, duplication, and
-  coupling. A cache is a second copy of the truth, and every second copy is an
-  invalidation problem.
+* *Correctness versus performance.* Relaxing consistency — eventual consistency across replicas, reading a value that
+  may be stale — buys latency and availability with a weakened guarantee about the state of the system.
 
-* *Performance against portability.* Tuning for a specific runtime, database
-  engine, or instruction set buys throughput by binding the system to the thing
-  it was tuned for.
+* *Completeness versus simplicity.* Every feature added to serve an unmet need costs interface simplicity, and that cost
+  compounds with every feature added.
 
-* *Correctness against performance.* Relaxing consistency — eventual consistency
-  across replicas, reading a value that may be stale — buys latency and
-  availability with a weakened guarantee about the state of the system.
+It is the role of the software architect to resolve these conflicts. Trade-offs should be pragmatic, without emotional
+attachment to any particular principle over another, and the rationale recorded in durable artifacts such as
+architectural decision records.
 
-* *Completeness against simplicity.* Every feature added to serve an unmet need
-  costs interface simplicity, and the cost compounds. This is the tension behind
-  the discipline described in the section on simplicity: focusing on what users
-  genuinely need now, rather than what they might someday want.
+Nevertheless, there are some rules-of-thumb that help to resolve design trade-offs.
 
-== Resolving a conflict
+The first rule-of-thumb is that, in general, correctness should not be sacrificed for any other quality. For example, it
+will often be better to deliberately design a system to be slower for some operations, than to speed things up in a way
+that risks the system entering an invalid state. It will typically be better to implement additional validation checks
+that slow down a write operation, but which ensure that the application state remains consistent and valid.
 
-Three rules apply when a design meets one of these tensions.
+Of course, there are problem spaces where other qualities may be prioritized differently. In distributed systems, for
+example, consistency of replicated data (a form of correctness) is often intentionally sacrificed for higher availability
+and fault tolerance. But the core principle here is that the purpose of software is to automate real-world processes,
+and software fails in that purpose when it is not _correct_.
 
-*First, try to dissolve it before accepting it.* Many apparent trade-offs are
-artifacts of a particular design rather than properties of the problem.
-Passkeys are the standard illustration: for years, stronger authentication meant
-worse usability, until a design arrived that improved both at once. A trade-off
-is real only once a genuine attempt to avoid it has failed. Reaching for the
-compromise first is how designs acquire costs nobody had to pay.
+Follow the below guidelines to help resolve other design trade-offs.
 
-*Second, defer to the priority order set by the requirements.* Which qualities
-matter most is a business question, settled during requirements specification
-and recorded there — see
-xref:001.adoc[*TS-1: Software requirements specification*]. The
-design's job is to honor that ranking, not to re-decide it. Where a conflict
-surfaces that the requirements did not anticipate, or where honoring the ranking
-turns out to be disproportionately expensive, escalate it rather than quietly
-picking a winner. A design decision that silently overrides a stated priority is
-indistinguishable from a defect.
+* *First, try to dissolve conflicts* by coming up with a design that improves _both_ qualities that are in tension.
+  Passkeys are an excellent example of a design innovation that simultaneously improved security _and_ user experience,
+  where the two were previously in conflict.
 
-*Third, record the compromise and its reasoning.* What was given up, in exchange
-for what, and under which constraints. A design doc is the natural home for this
-— see xref:003.adoc[*TS-3: Design docs*]. Without the record, the
-compromise reads to a future maintainer as an oversight, and gets "fixed."
+* *Second, defer to the priority order set by the requirements.* Which software design qualities matter most SHOULD be
+  negotiated with business stakeholders and captured as part of the system's requirements specifications. Where a
+  conflict surfaces that the requirements did not anticipate, or where honoring the existing ranking would be
+  disproportionately expensive, the design decision SHOULD be escalated to a collective decision involving all
+  stakeholders. See also xref:001.adoc[*TS-1: Software requirements specification*].
 
-That last point has a corollary. A trade-off is decided under the constraints of
-its moment: the cost of hardware, the maturity of a library, the size of the
-team, the load the system was then carrying. Those constraints move. A
-compromise that was correct when it was made can quietly stop being correct
-without anything in the code changing, which is why the reasoning is worth more
-in the record than the decision is.
+* *Third, record the compromise and its reasoning.* An architectural decision record, or equivalent design documentation,
+  is the natural home for this. See also xref:003.adoc[*TS-3: Design docs*].
