@@ -1,215 +1,163 @@
 = Agentic workflows
 
-For decades, the developer's primary interface with the machine has been syntax
-— curly braces, type annotations, and the precise grammar of programming
-languages. Agentic development is a change in emphasis. Developers now express
-what they want built — their intent — and trust intelligent systems to translate
-that intent into working software, rather than writing the syntax themselves.
+For decades, the developer's primary interface with the machine has been syntax — curly braces, type annotations, and
+the precise grammar of programming languages. Agentic development is a change in emphasis. Developers now express what
+they want built — their intent — and trust intelligent systems to translate that intent into working software, rather
+than writing the syntax themselves.
 
-That intent is captured in artifacts — instructions, rules, standards,
-specifications, designs, plans — precise enough for an agent to act on and for a
-human, a script, or another agent to verify against.
+That intent is captured in artifacts — instructions, rules, standards, specifications, designs, plans — precise enough
+for an agent to act on and for a human, a script, or another agent to verify against.
 
-Trust in the result is not assumed. It is earned incrementally, through guides
-and sensors (see <<Guides and sensors>>).
+Trust in the result is not assumed. It is earned incrementally, through guides and sensors (see <<Guides and sensors>>).
 
-Agentic development requires more than a chat interface to a model. It requires
-a whole ecosystem of supporting development tools and methods, carefully
-choreographed into a cohesive system of checks and balances that steer agent
+Agentic development requires more than a chat interface to a model. It requires a whole ecosystem of supporting
+development tools and methods, carefully choreographed into a cohesive system of checks and balances that steer agent
 output to the required level of correctness, completeness, and quality.
 
-Understood this way, a harness used for _agentic_ development, rather than
-merely AI-assisted development, is much bigger than a single program providing a
-user interface to a model. It is an extensive suite of methods and tools that
-extends far beyond the AI interface, of which reusable context bundles such as
-skills are only one component.
+Understood this way, a harness used for _agentic_ development, rather than merely AI-assisted development, is much
+bigger than a single program providing a user interface to a model. It is an extensive suite of methods and tools that
+extends far beyond the AI interface, of which reusable context bundles such as skills are only one component.
 
 == Objectives
 
-The overriding objective in the design of an agentic workflow is to produce
-*predictable outcomes*, and for those outcomes to be highly *consistent* across
-all mainstream coding models. Predictability comes from the guides and sensors
-wrapped around agents (see <<Guides and sensors>>), and from calibrating those
-constraints so that agents get clear, self-verifiable criteria for what "done"
-and "correct" look like.
+The overriding objective in the design of an agentic workflow is to produce *predictable outcomes*, and for those
+outcomes to be highly *consistent* across all mainstream coding models. Predictability comes from the guides and sensors
+wrapped around agents (see <<Guides and sensors>>), and from calibrating those constraints so that agents get clear,
+self-verifiable criteria for what "done" and "correct" look like.
 
-This predictability is engineered, and it is partial. It is a property of the
-harness wrapped around the agent, never of the model at its centre, which
-remains non-deterministic and capable of confident error however tightly it is
-constrained. The objective is to make outcomes _more_ predictable and to raise
-the floor on reliability — not to reach the guaranteed, repeatable behavior of
-traditional software, which no amount of wrapping delivers. An agent is not to
-be trusted more than the model driving it; the guards reduce the residual risk,
-they do not retire it, and they do not remove the need for verification and
-human oversight in high-stakes work. See
-<<The inherent nature of the technology>>.
+This predictability is engineered, and it is partial. It is a property of the harness wrapped around the agent, never of
+the model at its centre, which remains non-deterministic and capable of confident error however tightly it is
+constrained. The objective is to make outcomes _more_ predictable and to raise the floor on reliability — not to reach
+the guaranteed, repeatable behavior of traditional software, which no amount of wrapping delivers. An agent is not to be
+trusted more than the model driving it; the guards reduce the residual risk, they do not retire it, and they do not
+remove the need for verification and human oversight in high-stakes work. See <<The inherent nature of the technology>>.
 
-Beneath that sit four supporting objectives, each realized by practices
-described in this section and elsewhere in this standard:
+Beneath that sit four supporting objectives, each realized by practices described in this section and elsewhere in this
+standard:
 
-* *Composability.* Each step in a workflow is a small, sharp tool with a
-  well-defined interface, which any orchestrator — a human, a script, or an
-  agent — can compose into new pipelines (see <<Composable pipelines>>).
+* *Composability.* Each step in a workflow is a small, sharp tool with a well-defined interface, which any orchestrator
+  — a human, a script, or an agent — can compose into new pipelines (see <<Composable pipelines>>).
 
-* *Portability.* Reusable context encodes rules, not knowledge, staying
-  technology- and domain-agnostic so it runs unmodified across projects and
-  across models (see the section on <<Agent skills,agent skills>>).
+* *Portability.* Reusable context encodes rules, not knowledge, staying technology- and domain-agnostic so it runs
+  unmodified across projects and across models (see the section on <<Agent skills,agent skills>>).
 
-* *Context economy.* The quality of a model's output degrades as its context
-  window fills, so workflows are designed to keep each agent's context trim —
-  through small increments of work, narrowly-scoped skills, and persisting
-  distilled outputs to disk rather than carrying working state forward
-  in-conversation (see <<Persistence>> and the section on <<Context
-  engineering,context engineering>>).
+* *Context economy.* The quality of a model's output degrades as its context window fills, so workflows are designed to
+  keep each agent's context trim — through small increments of work, narrowly-scoped skills, and persisting distilled
+  outputs to disk rather than carrying working state forward in-conversation (see <<Persistence>> and the section on
+  <<Context engineering,context engineering>>).
 
-* *Earned autonomy.* As deterministic verification proves itself, fewer human
-  checkpoints are needed in the loop (see <<Calibrating human
-  involvement,human-in-the-loop>>). The long-term goal is production-grade code
-  delivered from specifications ("specs-to-code") with minimal human involvement
-  downstream.
+* *Earned autonomy.* As deterministic verification proves itself, fewer human checkpoints are needed in the loop (see
+  <<Calibrating human involvement,human-in-the-loop>>). The long-term goal is production-grade code delivered from
+  specifications ("specs-to-code") with minimal human involvement downstream.
 
 == Agentic versus automated
 
-The section on <<Ways of working with AI,ways of working with AI>> set out how
-agentic development differs from vibe coding and from AI-assisted development.
-It is also worth being clear about the distinction between agentic workflows and
-traditional automation.
+The section on <<Ways of working with AI,ways of working with AI>> set out how agentic development differs from vibe
+coding and from AI-assisted development. It is also worth being clear about the distinction between agentic workflows
+and traditional automation.
 
-Automation consists of static, rules-based processes. An automation script is
-deterministic, following a predefined sequence of "if-this-then-that" logic. If
-it encounters a state it was not explicitly programmed to handle, it fails.
+Automation consists of static, rules-based processes. An automation script is deterministic, following a predefined
+sequence of "if-this-then-that" logic. If it encounters a state it was not explicitly programmed to handle, it fails.
 Automation is ideal for repetitive, predictable tasks in a stable environment.
 
-Agentic workflows are dynamic and reasoning-based. Rather than following a rigid
-script, an agent uses a probabilistic model to reason through a problem. It can
-handle ambiguity, adapt to unexpected outputs from tools, and devise new
+Agentic workflows are dynamic and reasoning-based. Rather than following a rigid script, an agent uses a probabilistic
+model to reason through a problem. It can handle ambiguity, adapt to unexpected outputs from tools, and devise new
 strategies on-the-fly to overcome obstacles.
 
-That flexibility is the flip side of determinism. Give an agent the same inputs
-in different sessions and you may get different outputs each time, whereas an
-automation script always produces the same result. So an agentic step is worth
-adding wherever judgment cannot be reduced to a deterministic rule — and nowhere
-else.
+That flexibility is the flip side of determinism. Give an agent the same inputs in different sessions and you may get
+different outputs each time, whereas an automation script always produces the same result. So an agentic step is worth
+adding wherever judgment cannot be reduced to a deterministic rule — and nowhere else.
 
-Automation is about execution of a known path. Agentic workflows are about
-navigation toward a known goal.
+Automation is about execution of a known path. Agentic workflows are about navigation toward a known goal.
 
-This distinction matters when choosing between approaches. Not every task that
-can be automated should be made agentic. Traditional automation — scripts,
-pipelines, scheduled jobs — is preferable when the task is deterministic, the
-environment is stable, and the failure modes are well understood. Deterministic
-steps in the delivery lifecycle — linting, building, packaging, deploying,
-migrating — belong in scripts, not agents. Reserve agentic approaches for work
-that demands what a language model uniquely brings — judgment to weigh
-trade-offs, experimentation to try different paths, and reflection to assess its
-own progress — such as tasks involving genuine ambiguity, adaptive reasoning, or
+This distinction matters when choosing between approaches. Not every task that can be automated should be made agentic.
+Traditional automation — scripts, pipelines, scheduled jobs — is preferable when the task is deterministic, the
+environment is stable, and the failure modes are well understood. Deterministic steps in the delivery lifecycle —
+linting, building, packaging, deploying, migrating — belong in scripts, not agents. Reserve agentic approaches for work
+that demands what a language model uniquely brings — judgment to weigh trade-offs, experimentation to try different
+paths, and reflection to assess its own progress — such as tasks involving genuine ambiguity, adaptive reasoning, or
 recovery from unexpected states.
 
-Agentic systems carry higher operational complexity and cost than equivalent
-automation scripts. That overhead is only justified where the model's reasoning
-capability is genuinely needed.
+Agentic systems carry higher operational complexity and cost than equivalent automation scripts. That overhead is only
+justified where the model's reasoning capability is genuinely needed.
 
-This is starkest for exact multi-step computation, such as arithmetic on large
-numbers or tracing the execution of an algorithm. Such tasks are
-*computationally irreducible*: the only way to know the outcome is to carry out
-every step, not to predict it from learned patterns.
+This is starkest for exact multi-step computation, such as arithmetic on large numbers or tracing the execution of an
+algorithm. Such tasks are *computationally irreducible*: the only way to know the outcome is to carry out every step,
+not to predict it from learned patterns.
 
-No model, however capable, reliably shortcuts this, because models are trained
-to extrapolate statistical patterns rather than to execute exact computation.
-Computational tasks MUST therefore be delegated to a tool that actually executes
-the steps — a code interpreter, a script, a calculator — rather than left to a
-model to guess token-by-token.
+No model, however capable, reliably shortcuts this, because models are trained to extrapolate statistical patterns
+rather than to execute exact computation. Computational tasks MUST therefore be delegated to a tool that actually
+executes the steps — a code interpreter, a script, a calculator — rather than left to a model to guess token-by-token.
 
 == Agentic architectures
 
-Depending on the complexity of the task, agentic systems can be organized into
-different architectural patterns.
+Depending on the complexity of the task, agentic systems can be organized into different architectural patterns.
 
 === Single-agent systems
 
 The simplest architecture is the linear flow: `TASK → AGENT → SOLUTION`.
 
-A single agent is responsible for the entire lifecycle of the task: planning,
-execution, and verification. This is the recommended starting point for most
-tasks, and it is highly effective where goals are well defined and scope is
-limited.
+A single agent is responsible for the entire lifecycle of the task: planning, execution, and verification. This is the
+recommended starting point for most tasks, and it is highly effective where goals are well defined and scope is limited.
 
 === Multi-agent systems
 
-For complex, large-scale projects, a hierarchical structure is often more
-effective: `TASK → SUPERVISOR AGENT → SUB-AGENTS → SOLUTION`.
+For complex, large-scale projects, a hierarchical structure is often more effective: `TASK → SUPERVISOR AGENT →
+SUB-AGENTS → SOLUTION`.
 
-In a multi-agent system, a *supervisor agent* acts as the project manager. It
-decomposes the high-level task into smaller, specialized sub-tasks and delegates
-them to *sub-agents*. The supervisor is the orchestrator of the workflow, in the
-sense defined earlier, when that role is filled by an agent rather than a human
-or a script.
+In a multi-agent system, a *supervisor agent* acts as the project manager. It decomposes the high-level task into
+smaller, specialized sub-tasks and delegates them to *sub-agents*. The supervisor is the orchestrator of the workflow,
+in the sense defined earlier, when that role is filled by an agent rather than a human or a script.
 
-Sub-agents may be specialized for specific roles, eg. a "Security Auditor"
-agent, a "Test Engineer" agent, or a "Documentation" agent.
+Sub-agents may be specialized for specific roles, eg. a "Security Auditor" agent, a "Test Engineer" agent, or a
+"Documentation" agent.
 
-The supervisor never sees the context of its sub-agents. It captures their
-responses, aggregates the results, ensures they are cohesive, and verifies the
-final outcome.
+The supervisor never sees the context of its sub-agents. It captures their responses, aggregates the results, ensures
+they are cohesive, and verifies the final outcome.
 
-This architecture models real-world organizational structures. It also reduces
-the likelihood of a single agent becoming overwhelmed by a massive context
-window or a too-broad objective.
+This architecture models real-world organizational structures. It also reduces the likelihood of a single agent becoming
+overwhelmed by a massive context window or a too-broad objective.
 
 === When to upgrade to multi-agent
 
-Single-agent systems are the recommended default. Upgrading to a multi-agent
-architecture introduces coordination overhead — aggregating results, reconciling
-conflicting outputs, orchestrating handoffs — so it should be a deliberate
-response to a specific limitation, not a default posture. Reasons to upgrade
-include:
+Single-agent systems are the recommended default. Upgrading to a multi-agent architecture introduces coordination
+overhead — aggregating results, reconciling conflicting outputs, orchestrating handoffs — so it should be a deliberate
+response to a specific limitation, not a default posture. Reasons to upgrade include:
 
-* *Context management*: A single agent's context window fills with exploratory
-  dead ends, tool output, and reasoning traces as a task grows. Splitting work
-  across sub-agents keeps each agent's context focused on its own sub-task,
+* *Context management*: A single agent's context window fills with exploratory dead ends, tool output, and reasoning
+  traces as a task grows. Splitting work across sub-agents keeps each agent's context focused on its own sub-task,
   improving reasoning quality and avoiding degradation as context grows.
 
-* *Parallelism*: Independent sub-tasks — eg. reviewing multiple files, or
-  running security, performance, and style checks — can execute concurrently
-  across sub-agents rather than serially in one agent, reducing wall-clock time.
+* *Parallelism*: Independent sub-tasks — eg. reviewing multiple files, or running security, performance, and style
+  checks — can execute concurrently across sub-agents rather than serially in one agent, reducing wall-clock time.
 
-* *Specialization*: Different sub-tasks may benefit from different models or
-  tool access, eg. an efficient model for mechanical execution versus a frontier
-  model for planning (see <<Model tiering>>), or a sub-agent restricted to only
-  the tools its role requires, tightening the permission surface (see <<Guides
-  and sensors>>).
+* *Specialization*: Different sub-tasks may benefit from different models or tool access, eg. an efficient model for
+  mechanical execution versus a frontier model for planning (see <<Model tiering>>), or a sub-agent restricted to only
+  the tools its role requires, tightening the permission surface (see <<Guides and sensors>>).
 
-* *Fault isolation*: A sub-agent that goes off track — through flawed reasoning
-  or runaway tool use — is contained to its own sub-task. It can be retried or
-  discarded without corrupting the context or state of the overall task, whereas
-  a single agent's error compounds into everything downstream in the same
-  session.
+* *Fault isolation*: A sub-agent that goes off track — through flawed reasoning or runaway tool use — is contained to
+  its own sub-task. It can be retried or discarded without corrupting the context or state of the overall task, whereas
+  a single agent's error compounds into everything downstream in the same session.
 
-* *Independent verification*: An agent reviewing another agent's output needs
-  fresh context, uncontaminated by the implementer's reasoning, to judge that
-  output fairly rather than sycophantically (see <<Guides and sensors>>, on
+* *Independent verification*: An agent reviewing another agent's output needs fresh context, uncontaminated by the
+  implementer's reasoning, to judge that output fairly rather than sycophantically (see <<Guides and sensors>>, on
   inferential sensors).
 
-* *Reusability*: A well-scoped sub-agent (eg. a "Security Auditor" agent)
-  becomes a composable unit that other workflows can invoke, not just the
-  supervisor that first defined it (see <<Composable pipelines>>).
+* *Reusability*: A well-scoped sub-agent (eg. a "Security Auditor" agent) becomes a composable unit that other workflows
+  can invoke, not just the supervisor that first defined it (see <<Composable pipelines>>).
 
 == Model tiering
 
-To optimize for both quality and cost, agentic workflows should employ a tiered
-model strategy (see <<Capability tiers,capability tiers>>). Not every step
-requires the highest reasoning capability available.
+To optimize for both quality and cost, agentic workflows should employ a tiered model strategy (see
+<<Capability tiers,capability tiers>>). Not every step requires the highest reasoning capability available.
 
-A hybrid approach, mixing frontier (premium cloud) models with efficient
-(smaller or local) models, is RECOMMENDED.
+A hybrid approach, mixing frontier (premium cloud) models with efficient (smaller or local) models, is RECOMMENDED.
 
-Use frontier models for the role of the *supervisor agent*. These models are
-best suited for complex planning, architectural decision-making, and high-level
-quality assurance.
+Use frontier models for the role of the *supervisor agent*. These models are best suited for complex planning,
+architectural decision-making, and high-level quality assurance.
 
-Use smaller, faster, or locally-hosted models for the *sub-agents* that execute
-pre-approved plans. Once a frontier model has defined a precise, step-by-step
-path, efficient models are often perfectly capable of implementing the code or
+Use smaller, faster, or locally-hosted models for the *sub-agents* that execute pre-approved plans. Once a frontier
+model has defined a precise, step-by-step path, efficient models are often perfectly capable of implementing the code or
 performing routine checks at a fraction of the cost and latency.
 
 [mermaid]
@@ -223,164 +171,124 @@ flowchart LR
   R -->|verify| S
 ....
 
-By offloading the execution phase to efficient models while reserving the
-reasoning phase for frontier models, developers can maintain high output quality
-while significantly reducing token consumption and subscription costs (see
+By offloading the execution phase to efficient models while reserving the reasoning phase for frontier models,
+developers can maintain high output quality while significantly reducing token consumption and subscription costs (see
 <<Cost optimization,cost optimization>>).
 
 == Guides and sensors
 
-Guardrails — constraints that bound agent behavior, reducing the risk of
-unintended or harmful actions — are important in AI-assisted workflows. They are
-critical in agentic ones, where humans are much less involved in the loop.
+Guardrails — constraints that bound agent behavior, reducing the risk of unintended or harmful actions — are important
+in AI-assisted workflows. They are critical in agentic ones, where humans are much less involved in the loop.
 
-It is useful to distinguish two categories of control over agent behavior:
-guides and sensors.
+It is useful to distinguish two categories of control over agent behavior: guides and sensors.
 
-*Guides* are feed-forward controls that steer an agent _before_ it acts,
-anticipating problems and increasing the odds of a good result on the first
-attempt. There are two main types:
+*Guides* are feed-forward controls that steer an agent _before_ it acts, anticipating problems and increasing the odds
+of a good result on the first attempt. There are two main types:
 
-* *Behavioral instructions* (advisory): Rules embedded in system prompts,
-  `AGENTS.md`, skills, and other instructions loaded into context, that direct
-  how the agent should approach tasks. Examples: "create an explicit plan before
-  making destructive changes" or "never commit directly to the main branch."
+* *Behavioral instructions* (advisory): Rules embedded in system prompts, `AGENTS.md`, skills, and other instructions
+  loaded into context, that direct how the agent should approach tasks. Examples: "create an explicit plan before making
+  destructive changes" or "never commit directly to the main branch."
 
-* *Permission constraints* (enforced): Explicit allow/deny lists that control
-  which tools, shell commands, file paths, or network endpoints an agent may
-  access, configured in the agent harness rather than relied on via
-  context/prompts. These are the most reliable form of guide because they are
-  enforced by the runtime, not by the model's interpretation.
+* *Permission constraints* (enforced): Explicit allow/deny lists that control which tools, shell commands, file paths,
+  or network endpoints an agent may access, configured in the agent harness rather than relied on via context/prompts.
+  These are the most reliable form of guide because they are enforced by the runtime, not by the model's interpretation.
 
-*Sensors* are feedback controls that check an agent's output _after_ it acts.
-They are validation gates an agent must satisfy before proceeding, eg. running a
-test suite before committing code, or requesting human approval before an
+*Sensors* are feedback controls that check an agent's output _after_ it acts. They are validation gates an agent must
+satisfy before proceeding, eg. running a test suite before committing code, or requesting human approval before an
 irreversible action.
 
-Sensors regulate agent output at multiple levels, including but not limited to:
-code quality (maintainability, style, complexity); architectural fitness
-(performance, scalability, observability); and behavioral correctness (whether
-the system meets its requirements).
+Sensors regulate agent output at multiple levels, including but not limited to: code quality (maintainability, style,
+complexity); architectural fitness (performance, scalability, observability); and behavioral correctness (whether the
+system meets its requirements).
 
-Of these levels, behavioral correctness ranks highest, and executable acceptance
-tests are the sensor that measures it. A linter or a type checker confirms only
-that a change is well-formed; an acceptance test confirms that it does what was
-actually required. A passing acceptance test is therefore the most decisive
-evidence an agent has that it is on the right track, which makes acceptance
-criteria expressed in executable form the highest-ranking sensor in an agentic
-workflow — the primary quality gate, and the deterministic check to invest in
-first.
+Of these levels, behavioral correctness ranks highest, and executable acceptance tests are the sensor that measures it.
+A linter or a type checker confirms only that a change is well-formed; an acceptance test confirms that it does what was
+actually required. A passing acceptance test is therefore the most decisive evidence an agent has that it is on the
+right track, which makes acceptance criteria expressed in executable form the highest-ranking sensor in an agentic
+workflow — the primary quality gate, and the deterministic check to invest in first.
 
-Sensors work best distributed across every step of the pipeline, rather than
-concentrated in a single gate at the end. The sooner a defect is caught, the
-cheaper it is to fix, and the less work an agent has to unwind.
+Sensors work best distributed across every step of the pipeline, rather than concentrated in a single gate at the end.
+The sooner a defect is caught, the cheaper it is to fix, and the less work an agent has to unwind.
 
 Sensors are of two kinds:
 
-* *Deterministic sensors* are scripts and tools that give the same verdict on
-  the same input every time. Examples include linters, type checkers, and
-  automated tests. These provide the strongest signal available, because their
-  result does not depend on judgment. Wherever a rule is mechanically checkable,
-  prefer enforcing it with a deterministic sensor over stating it as guidance
-  and hoping the agent follows it.
+* *Deterministic sensors* are scripts and tools that give the same verdict on the same input every time. Examples
+  include linters, type checkers, and automated tests. These provide the strongest signal available, because their
+  result does not depend on judgment. Wherever a rule is mechanically checkable, prefer enforcing it with a
+  deterministic sensor over stating it as guidance and hoping the agent follows it.
 
-* An *inferential sensor* is a second agent tasked with judging the output of
-  the first. These add value by bringing a fresh perspective (their context is
-  not polluted by the reasoning of the implementation model). But they MUST NOT
-  be treated as a substitute for deterministic checks, because their judgment is
-  itself probabilistic.
+* An *inferential sensor* is a second agent tasked with judging the output of the first. These add value by bringing a
+  fresh perspective (their context is not polluted by the reasoning of the implementation model). But they MUST NOT be
+  treated as a substitute for deterministic checks, because their judgment is itself probabilistic.
 
-For work whose correctness lives in user-facing behavior — a UI flow, an
-end-to-end user journey — a deterministic sensor can drive the interface
-itself, eg. a browser-automation tool exercising the application as a user
-would, rather than only inspecting code or calling an API directly. This
-catches defects a unit test suite misses, because it exercises the same
-integrated path a user does. It is not complete coverage, though: some
-categories of interaction — native browser dialogs and modals are a known
-example — are difficult or impossible for automation to observe. Treat a
-passing end-to-end run as strong evidence, not as proof that every interaction
-path was actually exercised.
+For work whose correctness lives in user-facing behavior — a UI flow, an end-to-end user journey — a deterministic
+sensor can drive the interface itself, eg. a browser-automation tool exercising the application as a user would, rather
+than only inspecting code or calling an API directly. This catches defects a unit test suite misses, because it
+exercises the same integrated path a user does. It is not complete coverage, though: some categories of interaction —
+native browser dialogs and modals are a known example — are difficult or impossible for automation to observe. Treat a
+passing end-to-end run as strong evidence, not as proof that every interaction path was actually exercised.
 
-A good agent harness consists of a mix of both guides and sensors, and of both
-the deterministic and inferential kinds. An agent steered only by guides repeats
-the same undetected mistakes indefinitely. An agent checked only by sensors runs
-an expensive trial-and-error loop with no steering. Reliable agentic workflows
-need both.
+A good agent harness consists of a mix of both guides and sensors, and of both the deterministic and inferential kinds.
+An agent steered only by guides repeats the same undetected mistakes indefinitely. An agent checked only by sensors runs
+an expensive trial-and-error loop with no steering. Reliable agentic workflows need both.
 
-Where an inferential sensor is used, the agent reviewing the output MUST NOT be
-the same agent, in the same session, that produced it. Models exhibit
-sycophancy. An agent asked to critique its own recent work is biased toward
-judging it favorably, whereas a fresh agent with no visibility into the
-reasoning that produced the work is far more likely to surface real defects.
+Where an inferential sensor is used, the agent reviewing the output MUST NOT be the same agent, in the same session,
+that produced it. Models exhibit sycophancy. An agent asked to critique its own recent work is biased toward judging it
+favorably, whereas a fresh agent with no visibility into the reasoning that produced the work is far more likely to
+surface real defects.
 
-Invoke inferential sensors as distinct agent sessions, and frame the evaluating
-agent adversarially. Instruct it to assume the work is broken and to actively
-verify that claim, rather than to assume it is correct and check for obvious
+Invoke inferential sensors as distinct agent sessions, and frame the evaluating agent adversarially. Instruct it to
+assume the work is broken and to actively verify that claim, rather than to assume it is correct and check for obvious
 problems. The latter framing tends to produce agreement with whatever it reads.
 
 == Guarding against runaway loops
 
-A recurring failure mode in agentic systems is the *runaway loop*, where an
-agent gets stuck repeating the same action without making progress. A search
-agent might repeatedly re-issue the same web search, for example, because it
-cannot handle an unexpected response such as a redirect. Left unchecked, a
-looping agent burns tokens and time until it exhausts its context window,
-without producing a useful result.
+A recurring failure mode in agentic systems is the *runaway loop*, where an agent gets stuck repeating the same action
+without making progress. A search agent might repeatedly re-issue the same web search, for example, because it cannot
+handle an unexpected response such as a redirect. Left unchecked, a looping agent burns tokens and time until it
+exhausts its context window, without producing a useful result.
 
 Guarding against this requires a hard guide and a soft guide, working together:
 
-* *Tool quotas* (enforced): A hard cap, configured in the agent harness, on how
-  many times a given tool may be called within an agent run. The harness counts
-  each invocation and blocks any call that would exceed the limit, returning an
-  error instead. Because this is enforced by the runtime rather than the model,
-  it is a reliable backstop against runaway loops regardless of what the model
-  does. This is a permission constraint, applied to call frequency rather than
-  to which tools are accessible.
+* *Tool quotas* (enforced): A hard cap, configured in the agent harness, on how many times a given tool may be called
+  within an agent run. The harness counts each invocation and blocks any call that would exceed the limit, returning an
+  error instead. Because this is enforced by the runtime rather than the model, it is a reliable backstop against
+  runaway loops regardless of what the model does. This is a permission constraint, applied to call frequency rather
+  than to which tools are accessible.
 
-* *Budget awareness* (advisory): A behavioral instruction, stated in the system
-  prompt, that tells the agent what quotas apply to it, eg. "you have 15 web
-  searches available for this task." An agent that knows its budget can ration
-  its tool use, working more conservatively as it approaches the limit. An agent
-  with no visibility into its quotas has no reason to conserve, and will treat
-  the hard cap as a wall it hits unexpectedly rather than a constraint it plans
-  around. Note that budget awareness does not fully close off the failure mode.
-  An agent can still work around a quota on itself by spawning sub-agents, each
-  with its own fresh budget.
+* *Budget awareness* (advisory): A behavioral instruction, stated in the system prompt, that tells the agent what quotas
+  apply to it, eg. "you have 15 web searches available for this task." An agent that knows its budget can ration its
+  tool use, working more conservatively as it approaches the limit. An agent with no visibility into its quotas has no
+  reason to conserve, and will treat the hard cap as a wall it hits unexpectedly rather than a constraint it plans
+  around. Note that budget awareness does not fully close off the failure mode. An agent can still work around a quota
+  on itself by spawning sub-agents, each with its own fresh budget.
 
-Hard quotas alone are not enough, because an agent that does not know its budget
-cannot plan around it and will exhaust it unproductively. Soft budgets alone are
-not enough either, because advisory limits stated only in the prompt can be
-ignored or miscounted by the model. The two layers address different failure
-modes and SHOULD be used together.
+Hard quotas alone are not enough, because an agent that does not know its budget cannot plan around it and will exhaust
+it unproductively. Soft budgets alone are not enough either, because advisory limits stated only in the prompt can be
+ignored or miscounted by the model. The two layers address different failure modes and SHOULD be used together.
 
-There is a trade-off in how tightly quotas are set. Tighter hard quotas keep
-agent runs fast and bounded in cost, but risk the agent hitting the limit before
-the task is complete. Looser quotas give the agent more freedom to be thorough,
-exploring more search results before concluding, for example. That may produce
-better outcomes, at the cost of slower and more expensive runs.
+There is a trade-off in how tightly quotas are set. Tighter hard quotas keep agent runs fast and bounded in cost, but
+risk the agent hitting the limit before the task is complete. Looser quotas give the agent more freedom to be thorough,
+exploring more search results before concluding, for example. That may produce better outcomes, at the cost of slower
+and more expensive runs.
 
-As models become more capable, the balance shifts between prescriptive guides
-and model judgment. Overly detailed or redundant behavioral instructions can
-conflict with the model's own reasoning, causing it to follow explicit rules
-that diverge from what the context suggests is correct.
+As models become more capable, the balance shifts between prescriptive guides and model judgment. Overly detailed or
+redundant behavioral instructions can conflict with the model's own reasoning, causing it to follow explicit rules that
+diverge from what the context suggests is correct.
 
-The same token-efficiency principle from <<Context engineering,context
-engineering>> applies. Start with the minimum constraints necessary, and add
-guides only in response to observed failure modes.
+The same token-efficiency principle from <<Context engineering,context engineering>> applies. Start with the minimum
+constraints necessary, and add guides only in response to observed failure modes.
 
-Guides SHOULD be reviewed when switching model versions, since one written to
-correct a failure mode in an older model may become unnecessary or
-counterproductive in a newer one.
+Guides SHOULD be reviewed when switching model versions, since one written to correct a failure mode in an older model
+may become unnecessary or counterproductive in a newer one.
 
 == Composable pipelines
 
-An effective agentic workflow is a pipeline of agentic steps plus automated
-(scripted) steps, each narrowly scoped, where the output of one step is the
-input to the next.
+An effective agentic workflow is a pipeline of agentic steps plus automated (scripted) steps, each narrowly scoped,
+where the output of one step is the input to the next.
 
-Agentic steps do the reasoning-heavy work, while scripted steps — the
-deterministic sensors described in <<Guides and sensors>> — catch failure modes
-and either feed back to an earlier step or escalate to a human.
+Agentic steps do the reasoning-heavy work, while scripted steps — the deterministic sensors described in
+<<Guides and sensors>> — catch failure modes and either feed back to an earlier step or escalate to a human.
 
 [mermaid]
 ....
@@ -409,183 +317,145 @@ flowchart LR
   classDef tertiary fill:#fff3cd,stroke:#856404,color:#856404,stroke-width:1px,stroke-dasharray:2 3
 ....
 
-An agentic workflow is not necessarily a single linear pipeline with one entry
-point. Work can enter at different points depending on what triggered it. For
-example:
+An agentic workflow is not necessarily a single linear pipeline with one entry point. Work can enter at different points
+depending on what triggered it. For example:
 
-* *Proactive* paths, triggered by new product requirements, eg. a "specify" step
-  that turns a request into acceptance criteria.
+* *Proactive* paths, triggered by new product requirements, eg. a "specify" step that turns a request into acceptance
+  criteria.
 
-* *Reactive* paths, triggered by bugs or incidents, eg. a "triage" step that
-  classifies an incoming issue.
+* *Reactive* paths, triggered by bugs or incidents, eg. a "triage" step that classifies an incoming issue.
 
-* *Scheduled* paths, triggered on a recurring interval, eg. an "audit" step that
-  periodically checks the codebase for structural drift.
+* *Scheduled* paths, triggered on a recurring interval, eg. an "audit" step that periodically checks the codebase for
+  structural drift.
 
-For this reason, individual steps — both agentic and scripted — should be
-composable, so they can be sequenced into all sorts of workflows.
+For this reason, individual steps — both agentic and scripted — should be composable, so they can be sequenced into all
+sorts of workflows.
 
-To achieve this, each step needs to be a small, sharp tool with well-defined
-input and output. Steps that explicitly hand off to other steps are tightly
-coupled, and the workflows built from them are inflexible. Instead, the input
-and output become the contract between steps.
+To achieve this, each step needs to be a small, sharp tool with well-defined input and output. Steps that explicitly
+hand off to other steps are tightly coupled, and the workflows built from them are inflexible. Instead, the input and
+output become the contract between steps.
 
-The orchestrator of a workflow — whether a human, a script, or an agent — is
-then responsible for determining the order in which steps run.
+The orchestrator of a workflow — whether a human, a script, or an agent — is then responsible for determining the order
+in which steps run.
 
-Different steps in a pipeline SHOULD be assigned to different models, rather
-than running the same model end-to-end. Each model has its own blind spots and
-failure modes, and a pipeline that uses one model throughout lets those
-weaknesses compound across every step. Assigning steps to models from
-different providers breaks that chain: a gap one model misses is likely to be
-caught by a model trained on a different data mix with different biases. For
-example, use one model to perform gap analysis on a specification, and a
-different model to implement the findings.
+Different steps in a pipeline SHOULD be assigned to different models, rather than running the same model end-to-end.
+Each model has its own blind spots and failure modes, and a pipeline that uses one model throughout lets those
+weaknesses compound across every step. Assigning steps to models from different providers breaks that chain: a gap one
+model misses is likely to be caught by a model trained on a different data mix with different biases. For example, use
+one model to perform gap analysis on a specification, and a different model to implement the findings.
 
-For high-stakes analytical steps, an even stronger pattern is to run two models
-independently on the same step and only act on the findings they both agree
-on. Discarding the disagreements filters out the idiosyncratic errors each
-model makes on its own, at the cost of some coverage. This consensus approach is
-worth the extra tokens where a false positive would send the pipeline down the
-wrong branch — gap analysis, triage, and review are good candidates.
+For high-stakes analytical steps, an even stronger pattern is to run two models independently on the same step and only
+act on the findings they both agree on. Discarding the disagreements filters out the idiosyncratic errors each model
+makes on its own, at the cost of some coverage. This consensus approach is worth the extra tokens where a false positive
+would send the pipeline down the wrong branch — gap analysis, triage, and review are good candidates.
 
 == Persistence
 
-The input/output contract described above only decouples steps in the abstract.
-In practice, that decoupling holds only if a step's output outlives the session
-that produced it.
+The input/output contract described above only decouples steps in the abstract. In practice, that decoupling holds only
+if a step's output outlives the session that produced it.
 
-For one step in a pipeline to hand off to the next — whether that is a different
-agent, a different session, or a deterministic script — the step's output MUST
-be persisted to a durable store, not merely held in the conversation. An agent
-that finishes a planning step and writes its decisions to a plan document has
-produced something the next agent, in a fresh session with an empty context
-window, can read and act on.
+For one step in a pipeline to hand off to the next — whether that is a different agent, a different session, or a
+deterministic script — the step's output MUST be persisted to a durable store, not merely held in the conversation. An
+agent that finishes a planning step and writes its decisions to a plan document has produced something the next agent,
+in a fresh session with an empty context window, can read and act on.
 
-Persisting output to disk also keeps the context window clean. Agentic workflows
-accumulate noise — exploratory dead ends, intermediate reasoning, tool output
-that mattered briefly and then stopped mattering. The persistence layer between
-steps need only capture a step's distilled output, such as a technical decision
-or an implementation plan. That becomes the minimal input to the next step.
+Persisting output to disk also keeps the context window clean. Agentic workflows accumulate noise — exploratory dead
+ends, intermediate reasoning, tool output that mattered briefly and then stopped mattering. The persistence layer
+between steps need only capture a step's distilled output, such as a technical decision or an implementation plan. That
+becomes the minimal input to the next step.
 
-A version control system like Git is the preferred substrate for this
-persistence layer. Artifacts like requirements, decisions, designs, and plans
-that an agentic workflow produces can be persisted in the same way as the code
-it produces. This brings several benefits:
+A version control system like Git is the preferred substrate for this persistence layer. Artifacts like requirements,
+decisions, designs, and plans that an agentic workflow produces can be persisted in the same way as the code it
+produces. This brings several benefits:
 
-* Code, requirements, decisions, designs, and plans are all branched, committed,
-  reviewed, and merged using the same workflow — there's no separate tooling for
-  "the spec" and "the code."
+* Code, requirements, decisions, designs, and plans are all branched, committed, reviewed, and merged using the same
+  workflow — there's no separate tooling for "the spec" and "the code."
 
-* Everything stays together, rather than being scattered across wikis, trackers,
-  and shared filesystems.
+* Everything stays together, rather than being scattered across wikis, trackers, and shared filesystems.
 
-* Every artifact gets durability, diff-ability, and an audit trail for free,
-  plus a stable path other steps can address it by. Rollback is built-in.
+* Every artifact gets durability, diff-ability, and an audit trail for free, plus a stable path other steps can address
+  it by. Rollback is built-in.
 
-* Existing automation integrates easily — for example, a CI system can apply
-  deterministic verification directly to agent output.
+* Existing automation integrates easily — for example, a CI system can apply deterministic verification directly to
+  agent output.
 
 == Isolated environments
 
-Persisting state to a shared repository solves handoff between steps that run
-one after another. But it creates a new problem the moment more than one agent
-or script operates on that repository at the same time — parallel sub-agents
-working on independent increments, say, or a human still working in a checkout
-while an agent runs against it.
+Persisting state to a shared repository solves handoff between steps that run one after another. But it creates a new
+problem the moment more than one agent or script operates on that repository at the same time — parallel sub-agents
+working on independent increments, say, or a human still working in a checkout while an agent runs against it.
 
-Two processes writing to the same working tree concurrently may corrupt each
-other's work. Build artifacts and lockfiles collide.
+Two processes writing to the same working tree concurrently may corrupt each other's work. Build artifacts and lockfiles
+collide.
 
-Wherever a workflow runs multiple agents or scripts against a single repository
-at once, each MUST be given its own isolated working copy, rather than sharing
-one.
+Wherever a workflow runs multiple agents or scripts against a single repository at once, each MUST be given its own
+isolated working copy, rather than sharing one.
 
-A Git worktree — a second working directory checked out from the same
-repository, on its own branch, without the overhead of a full clone — is the
-appropriate mechanism here. It lets an orchestrator give each parallel agent its
-own isolated copy of the codebase, reconciling the resulting branches only at
-integration time.
+A Git worktree — a second working directory checked out from the same repository, on its own branch, without the
+overhead of a full clone — is the appropriate mechanism here. It lets an orchestrator give each parallel agent its own
+isolated copy of the codebase, reconciling the resulting branches only at integration time.
 
-This is not always necessary. CI systems typically provide isolation already, by
-cloning the repository fresh into an ephemeral environment for every job, so
-there is no shared working tree to corrupt.
+This is not always necessary. CI systems typically provide isolation already, by cloning the repository fresh into an
+ephemeral environment for every job, so there is no shared working tree to corrupt.
 
-Whether isolation is needed at all, and which mechanism provides it — a
-worktree, a fresh clone, a container — is a decision for whoever is
-orchestrating the workflow, not for the individual steps.
+Whether isolation is needed at all, and which mechanism provides it — a worktree, a fresh clone, a container — is a
+decision for whoever is orchestrating the workflow, not for the individual steps.
 
-Persistence, version control, and isolation are not incidental tooling choices.
-Together they compose the infrastructure an agentic workflow runs on.
+Persistence, version control, and isolation are not incidental tooling choices. Together they compose the infrastructure
+an agentic workflow runs on.
 
-This exposes a deliberate asymmetry in how agentic steps are coupled. The steps
-are loosely coupled _to one another_, connected only through their input/output
-contracts, so they compose freely (see <<Composable pipelines>>). But each step
-is necessarily tightly coupled _to this shared infrastructure_. It assumes a
-durable store, version control, and isolation are already in place around it.
+This exposes a deliberate asymmetry in how agentic steps are coupled. The steps are loosely coupled _to one another_,
+connected only through their input/output contracts, so they compose freely (see <<Composable pipelines>>). But each
+step is necessarily tightly coupled _to this shared infrastructure_. It assumes a durable store, version control, and
+isolation are already in place around it.
 
-A well-designed agentic workflow therefore cannot simply be dropped, unmodified,
-into any development environment. It presupposes a structured development
-environment built around it.
+A well-designed agentic workflow therefore cannot simply be dropped, unmodified, into any development environment. It
+presupposes a structured development environment built around it.
 
 == Success criteria
 
 Setting clear success criteria is the key to effective agentic workflows.
 
-Well-defined criteria ensure that generated code meets your quality standards
-and project requirements, and models perform best when outcomes are easy to
-verify. Concrete, executable criteria — acceptance tests, schemas, linters —
-matter more for predictable outcomes than the size or capability of the
-underlying model.
+Well-defined criteria ensure that generated code meets your quality standards and project requirements, and models
+perform best when outcomes are easy to verify. Concrete, executable criteria — acceptance tests, schemas, linters —
+matter more for predictable outcomes than the size or capability of the underlying model.
 
-Vague guidance leaves output quality to the model's own judgment. Precise,
-verifiable criteria narrow the gap between a frontier model and a cheaper one,
-because both are steered by the same external check rather than by their own
-unaided interpretation of the task.
+Vague guidance leaves output quality to the model's own judgment. Precise, verifiable criteria narrow the gap between a
+frontier model and a cheaper one, because both are steered by the same external check rather than by their own unaided
+interpretation of the task.
 
-Verification of AI-generated output MUST NOT rely solely on the AI session that
-produced it. Wherever a rule or standard can be checked by a machine, it SHOULD
-be enforced by an independent, deterministic process — a linter, a type-checker,
+Verification of AI-generated output MUST NOT rely solely on the AI session that produced it. Wherever a rule or standard
+can be checked by a machine, it SHOULD be enforced by an independent, deterministic process — a linter, a type-checker,
 a test suite — run outside the agent's own context.
 
-Agents are not reliable judges of their own work. Treat agent-reported success
-("tests pass", "this meets the requirement") as a claim to be verified, not a
-fact.
+Agents are not reliable judges of their own work. Treat agent-reported success ("tests pass", "this meets the
+requirement") as a claim to be verified, not a fact.
 
-Concrete success criteria require imposing an opinion. You can only verify
-something against a definitive standard, so where a task admits several
-acceptable approaches, pick one, make it the standard, and encode that opinion
-in the criteria. The alternative leaves the choice open and the outcome
-unverifiable. This is the same discipline as providing a default rather than a
-menu of equal options (see <<Effective instruction patterns,agent skills>>).
+Concrete success criteria require imposing an opinion. You can only verify something against a definitive standard, so
+where a task admits several acceptable approaches, pick one, make it the standard, and encode that opinion in the
+criteria. The alternative leaves the choice open and the outcome unverifiable. This is the same discipline as providing
+a default rather than a menu of equal options (see <<Effective instruction patterns,agent skills>>).
 
-Where success criteria are recorded as a backlog the agent itself works
-through — a list of items each carrying a pass/fail status — that backlog MUST
-be treated as data the agent is graded against, not data it is trusted to
-maintain. An agent that can edit its own success criteria can satisfy them two
-ways: by finishing the work, or by narrowing, deleting, or marking-complete the
-item that describes it, and the two look identical from outside the session.
-Gate the write path to that backlog the same way any other output is gated —
-through review, a diff check, or a hook that blocks changes to the criteria
-file from the same session that is trying to satisfy it — so that "done"
-cannot be established by a change to the yardstick as well as by a change to
-the work.
+Where success criteria are recorded as a backlog the agent itself works through — a list of items each carrying a
+pass/fail status — that backlog MUST be treated as data the agent is graded against, not data it is trusted to maintain.
+An agent that can edit its own success criteria can satisfy them two ways: by finishing the work, or by narrowing,
+deleting, or marking-complete the item that describes it, and the two look identical from outside the session. Gate the
+write path to that backlog the same way any other output is gated — through review, a diff check, or a hook that blocks
+changes to the criteria file from the same session that is trying to satisfy it — so that "done" cannot be established
+by a change to the yardstick as well as by a change to the work.
 
-Directed this way — toward well-defined problems, with clear criteria and
-rigorous oversight — developers move faster and make better decisions, for
-instance by using AI to explore more options before committing to one path.
+Directed this way — toward well-defined problems, with clear criteria and rigorous oversight — developers move faster
+and make better decisions, for instance by using AI to explore more options before committing to one path.
 
 == Codebase quality
 
-Another factor in the successful implementation of AI-augmented workflows is the
-quality of the codebase in which the agents operate.
+Another factor in the successful implementation of AI-augmented workflows is the quality of the codebase in which the
+agents operate.
 
-A clean, well-structured codebase yields better results from AI code generators,
-because clear tiers and boundaries constrain the blast radius of any change.
-Without them, AI tools are more likely to make sweeping changes with unintended
-consequences.
+A clean, well-structured codebase yields better results from AI code generators, because clear tiers and boundaries
+constrain the blast radius of any change. Without them, AI tools are more likely to make sweeping changes with
+unintended consequences.
 
-Fixing one bug can inadvertently create bugs elsewhere. This is a time-honored
-problem in software development, and AI tools magnify it unless they are put to
-work with strong guardrails, enforced at the architectural level, and human
+Fixing one bug can inadvertently create bugs elsewhere. This is a time-honored problem in software development, and AI
+tools magnify it unless they are put to work with strong guardrails, enforced at the architectural level, and human
 oversight, enforced in the software development life cycle.

@@ -2,153 +2,119 @@
 
 [quote, Kent Beck]
 ____
-I get paid for code that works, not for tests, so my philosophy is to test as
-little as possible to reach a given level of confidence [...]. If I don't
-typically make a kind of mistake (like setting the wrong variables in a
-constructor), I don't test for it.
+I get paid for code that works, not for tests, so my philosophy is to test as little as possible to reach a given level
+of confidence [...]. If I don't typically make a kind of mistake (like setting the wrong variables in a constructor), I
+don't test for it.
 ____
 
-Test coverage — also known as code coverage — is a measure of how much of the
-codebase is executed by the test suite. Coverage metrics help identify untested
-areas of the code, but they must be interpreted carefully: high coverage does
-not guarantee good tests, and low coverage does not necessarily indicate poor
-quality tests either.
+Test coverage — also known as code coverage — is a measure of how much of the codebase is executed by the test suite.
+Coverage metrics help identify untested areas of the code, but they must be interpreted carefully: high coverage does
+not guarantee good tests, and low coverage does not necessarily indicate poor quality tests either.
 
 Coverage can be measured at several granularities:
 
-* *Statement coverage* measures whether each statement in the code has been
-  executed at least once. This is the most basic and most commonly reported
-  coverage metric.
+* *Statement coverage* measures whether each statement in the code has been executed at least once. This is the most
+  basic and most commonly reported coverage metric.
 
-* *Branch coverage* (also called condition coverage or decision coverage)
-  measures whether each branch of every conditional expression has been
-  evaluated as both true and false. Branch coverage is strictly more rigorous
-  than statement coverage — it is possible to achieve 100% statement coverage
-  while missing branches entirely.
+* *Branch coverage* (also called condition coverage or decision coverage) measures whether each branch of every
+  conditional expression has been evaluated as both true and false. Branch coverage is strictly more rigorous than
+  statement coverage — it is possible to achieve 100% statement coverage while missing branches entirely.
 
-* *Path coverage* measures whether every possible execution path through the
-  code has been traversed. Path coverage is the most thorough metric, but it is
-  often impractical to achieve fully, because the number of possible paths grows
+* *Path coverage* measures whether every possible execution path through the code has been traversed. Path coverage is
+  the most thorough metric, but it is often impractical to achieve fully, because the number of possible paths grows
   exponentially with the number of branches.
 
 == Coverage across test levels
 
-An important principle is that coverage is not the exclusive concern of unit
-tests. Coverage can — and should — be achieved through tests at multiple levels.
+An important principle is that coverage is not the exclusive concern of unit tests. Coverage can — and should — be
+achieved through tests at multiple levels.
 
-A system test that exercises a complete user workflow will execute code paths
-across many components, contributing to statement and branch coverage just as a
-unit test would. Similarly, integration tests contribute coverage at the
-boundaries between components. The coverage tool does not distinguish which
-level of test exercised a given line — it simply records that the line was
-executed.
+A system test that exercises a complete user workflow will execute code paths across many components, contributing to
+statement and branch coverage just as a unit test would. Similarly, integration tests contribute coverage at the
+boundaries between components. The coverage tool does not distinguish which level of test exercised a given line — it
+simply records that the line was executed.
 
-This means that a project does not need to unit test every function to achieve
-high coverage. If a particular code path is already well-covered by integration
-or system tests, adding a redundant unit test for the same path adds maintenance
-cost without proportional benefit. Conversely, complex branching logic deep
-inside a component may be impractical to cover through high-level tests alone,
-and is best covered by targeted unit tests.
+This means that a project does not need to unit test every function to achieve high coverage. If a particular code path
+is already well-covered by integration or system tests, adding a redundant unit test for the same path adds maintenance
+cost without proportional benefit. Conversely, complex branching logic deep inside a component may be impractical to
+cover through high-level tests alone, and is best covered by targeted unit tests.
 
-The goal is to achieve adequate coverage through the most appropriate
-combination of test levels — not to maximize coverage at any single level.
+The goal is to achieve adequate coverage through the most appropriate combination of test levels — not to maximize
+coverage at any single level.
 
 == Coverage targets
 
-Coverage targets — such as "80% statement coverage" — are a common practice but
-should be applied thoughtfully. A rigid coverage target can incentivize the
-wrong behavior: writing low-value tests that exercise trivial code simply to
-satisfy the metric, while leaving genuinely complex or risky code undertested.
+Coverage targets — such as "80% statement coverage" — are a common practice but should be applied thoughtfully. A rigid
+coverage target can incentivize the wrong behavior: writing low-value tests that exercise trivial code simply to satisfy
+the metric, while leaving genuinely complex or risky code undertested.
 
-Treat coverage as a diagnostic tool, not a goal in itself. A coverage report is
-most useful for identifying gaps — areas of the codebase that are not exercised
-by any test — so those gaps can be evaluated and addressed where appropriate.
-Not every gap needs to be filled; some code is genuinely trivial and does not
-warrant a dedicated test.
+Treat coverage as a diagnostic tool, not a goal in itself. A coverage report is most useful for identifying gaps — areas
+of the codebase that are not exercised by any test — so those gaps can be evaluated and addressed where appropriate. Not
+every gap needs to be filled; some code is genuinely trivial and does not warrant a dedicated test.
 
 Best practices:
 
-* Use coverage reports to identify untested code, then make a deliberate
-  decision about whether that code warrants testing. Focus on complex logic,
-  error-handling paths, and high-risk components.
+* Use coverage reports to identify untested code, then make a deliberate decision about whether that code warrants
+  testing. Focus on complex logic, error-handling paths, and high-risk components.
 
-* Measure branch coverage in addition to statement coverage. Statement coverage
-  alone can give a misleading picture of test thoroughness.
+* Measure branch coverage in addition to statement coverage. Statement coverage alone can give a misleading picture of
+  test thoroughness.
 
-* Do not pursue 100% coverage as an end in itself. The effort required to cover
-  the last few percent almost always exceeds the value gained.
+* Do not pursue 100% coverage as an end in itself. The effort required to cover the last few percent almost always
+  exceeds the value gained.
 
-* Track coverage trends over time. A declining coverage trend — especially in
-  areas of active development — is a more useful signal than any absolute
-  number.
+* Track coverage trends over time. A declining coverage trend — especially in areas of active development — is a more
+  useful signal than any absolute number.
 
-* When setting coverage thresholds, apply them per-component or per-module
-  rather than as a single project-wide number. Critical modules may warrant
-  higher thresholds than utility code.
+* When setting coverage thresholds, apply them per-component or per-module rather than as a single project-wide number.
+  Critical modules may warrant higher thresholds than utility code.
 
 == What not to test
 
-A coverage report tells you which lines are untested. It does not tell you
-which of them are worth testing. Some code does not warrant a test of its
-own, and some code is actively worth _not_ testing.
+A coverage report tells you which lines are untested. It does not tell you which of them are worth testing. Some code
+does not warrant a test of its own, and some code is actively worth _not_ testing.
 
-Tests MUST NOT be written to verify behavior supplied wholly by a framework,
-a library, or the language runtime. That code is already tested by its
-maintainers, who know it far better than its consumers do, and re-testing it
-buys nothing. Such a test cannot fail for any reason you are able to act on,
-it adds runtime to every subsequent run of the suite, and it usually has to
-reach into the dependency's internals to assert anything at all — coupling
-the suite to implementation details that are not yours and that may change
-on any upgrade.
+Tests MUST NOT be written to verify behavior supplied wholly by a framework, a library, or the language runtime. That
+code is already tested by its maintainers, who know it far better than its consumers do, and re-testing it buys nothing.
+Such a test cannot fail for any reason you are able to act on, it adds runtime to every subsequent run of the suite, and
+it usually has to reach into the dependency's internals to assert anything at all — coupling the suite to implementation
+details that are not yours and that may change on any upgrade.
 
-The discriminator is to ask whether the assertion would still hold if your
-own code were deleted. If it would, you are testing the framework. Asserting
-that an ORM writes a row when its own `save` method is called, that a
-state-management hook re-renders the view when its setter runs, or that a
-validation library rejects a malformed email address against one of its own
-built-in rules — each of these is a test of somebody else's code, and belongs
-in somebody else's test suite.
+The discriminator is to ask whether the assertion would still hold if your own code were deleted. If it would, you are
+testing the framework. Asserting that an ORM writes a row when its own `save` method is called, that a state-management
+hook re-renders the view when its setter runs, or that a validation library rejects a malformed email address against
+one of its own built-in rules — each of these is a test of somebody else's code, and belongs in somebody else's test
+suite.
 
-What remains yours, and MUST still be covered, is everything you contributed
-to the arrangement:
+What remains yours, and MUST still be covered, is everything you contributed to the arrangement:
 
-* *Your configuration of the dependency.* Custom validation rules, schema and
-  mapping definitions, routing tables, access policies, and any setting moved
-  off its default are your logic expressed in the dependency's vocabulary.
-  Test the outcomes they produce, not the mechanism that applies them.
+* *Your configuration of the dependency.* Custom validation rules, schema and mapping definitions, routing tables,
+  access policies, and any setting moved off its default are your logic expressed in the dependency's vocabulary. Test
+  the outcomes they produce, not the mechanism that applies them.
 
-* *Your integration with the dependency.* That your code invokes the right
-  operation, with the right arguments, at the right point in a workflow is
-  your behavior and not the dependency's. This is the proper subject of an
-  integration test — see <<Integration tests>>.
+* *Your integration with the dependency.* That your code invokes the right operation, with the right arguments, at the
+  right point in a workflow is your behavior and not the dependency's. This is the proper subject of an integration test
+  — see <<Integration tests>>.
 
-* *Your own logic.* Everything the framework did not supply, including the
-  branches and error paths around the call into it.
+* *Your own logic.* Everything the framework did not supply, including the branches and error paths around the call into
+  it.
 
-There is one exception. Where you depend on behavior you have specific reason
-to distrust — a known upstream defect you are working around, or an
-undocumented behavior the design leans on — a test that pins that behavior
-earns its place. It is not a test of the dependency; it is a regression test
-of an assumption, and its value is that it fails when an upgrade invalidates
-the assumption rather than leaving you to discover it in production. Such a
-test SHOULD state the assumption and cite the upstream issue in a comment, so
-that a later reader can retire it once it is no longer needed. See
-<<Regression testing>>.
+There is one exception. Where you depend on behavior you have specific reason to distrust — a known upstream defect you
+are working around, or an undocumented behavior the design leans on — a test that pins that behavior earns its place. It
+is not a test of the dependency; it is a regression test of an assumption, and its value is that it fails when an
+upgrade invalidates the assumption rather than leaving you to discover it in production. Such a test SHOULD state the
+assumption and cite the upstream issue in a comment, so that a later reader can retire it once it is no longer needed.
+See <<Regression testing>>.
 
 === Small components need fewer tests
 
-Where the boundary between framework behavior and your own behavior falls is
-itself a design decision. A small component leaves most of the heavy lifting
-to the framework and contributes little logic of its own, so there is little
-to test, and what there is can be reached directly. A large component
-interleaves its own logic with framework behavior until the two cannot be
-exercised separately, and the tests that result are both more numerous and
-unavoidably tests of the framework as well.
+Where the boundary between framework behavior and your own behavior falls is itself a design decision. A small component
+leaves most of the heavy lifting to the framework and contributes little logic of its own, so there is little to test,
+and what there is can be reached directly. A large component interleaves its own logic with framework behavior until the
+two cannot be exercised separately, and the tests that result are both more numerous and unavoidably tests of the
+framework as well.
 
-A component that appears to demand a large number of tests SHOULD therefore
-be read as a design signal before it is read as a testing problem. Splitting
-it usually removes more test cases than it adds. This is the same observation
-as the one quoted in <<Test-driven development>>: a testability problem
-points to an underlying design problem. See
-xref:007.adoc[*TS-7: Code design*] for component sizing and separation of
-concerns.
+A component that appears to demand a large number of tests SHOULD therefore be read as a design signal before it is read
+as a testing problem. Splitting it usually removes more test cases than it adds. This is the same observation as the one
+quoted in <<Test-driven development>>: a testability problem points to an underlying design problem. See
+xref:007.adoc[*TS-7: Code design*] for component sizing and separation of concerns.

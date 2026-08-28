@@ -3,103 +3,79 @@
 [#keyboard-navigation]
 == Keyboard navigation
 
-Keyboard operability is the cornerstone of accessible interaction: every
-interactive element MUST be fully operable from the keyboard alone, with
-no functionality that depends on a mouse, touch, or hover.
+Keyboard operability is the cornerstone of accessible interaction: every interactive element MUST be fully
+operable from the keyboard alone, with no functionality that depends on a mouse, touch, or hover.
 
-* Native interactive elements (`<a href>`, `<button>`, form controls) are
-  keyboard-operable by default — this is one of the strongest reasons to
-  prefer them over a custom-built equivalent, per <<Semantic markup>>.
-* `tabindex="0"` adds a non-natively-focusable element to the natural tab
-  order, at its position in the DOM. `tabindex="-1"` removes an element
-  from the tab order while still allowing it to receive focus
-  programmatically (via `.focus()`) — used for a container that needs to
-  receive focus on open (a modal, per <<Modals and focus management>>)
-  without itself being tab-reachable.
-* A positive `tabindex` (`tabindex="1"`, `tabindex="2"`, and so on)
-  overrides source order with an explicit numeric order, and SHOULD be
-  avoided — it is difficult to maintain consistently as a page evolves,
-  and a page relying on it usually indicates the DOM order itself should
-  be fixed instead. Where a positive `tabindex` is genuinely unavoidable,
-  use large, widely spaced increments (100, 200, 300) so a later
-  insertion has room to fit in sequence without renumbering everything
-  after it.
-* Every custom-built interactive component (see <<Custom input controls>>,
-  <<Custom buttons>>) MUST be fully operable by keyboard, replicating the
-  keyboard behavior a native equivalent would have had.
+* Native interactive elements (`<a href>`, `<button>`, form controls) are keyboard-operable by default — this
+  is one of the strongest reasons to prefer them over a custom-built equivalent, per <<Semantic markup>>.
+* `tabindex="0"` adds a non-natively-focusable element to the natural tab order, at its position in the DOM.
+  `tabindex="-1"` removes an element from the tab order while still allowing it to receive focus
+  programmatically (via `.focus()`) — used for a container that needs to receive focus on open (a modal, per
+  <<Modals and focus management>>) without itself being tab-reachable.
+* A positive `tabindex` (`tabindex="1"`, `tabindex="2"`, and so on) overrides source order with an explicit
+  numeric order, and SHOULD be avoided — it is difficult to maintain consistently as a page evolves, and a
+  page relying on it usually indicates the DOM order itself should be fixed instead. Where a positive
+  `tabindex` is genuinely unavoidable, use large, widely spaced increments (100, 200, 300) so a later
+  insertion has room to fit in sequence without renumbering everything after it.
+* Every custom-built interactive component (see <<Custom input controls>>, <<Custom buttons>>) MUST be fully
+  operable by keyboard, replicating the keyboard behavior a native equivalent would have had.
 
 [#modals-and-focus-management]
 == Modals and focus management
 
-Opening a modal dialog MUST move focus into the modal — typically to its
-first focusable element or its heading — and background navigation MUST be
-disabled for the duration: focus MUST be trapped within the modal's
-content (Tab and Shift+Tab cycle only among the modal's own focusable
-elements) rather than escaping to page content the user cannot currently
-see or reach. The modal MUST be closable via the Escape key as well as an
-explicit close control, and closing it MUST return focus to the element
-that triggered it, so a keyboard user's position in the page is preserved
-across the interaction.
+Opening a modal dialog MUST move focus into the modal — typically to its first focusable element or its
+heading — and background navigation MUST be disabled for the duration: focus MUST be trapped within the
+modal's content (Tab and Shift+Tab cycle only among the modal's own focusable elements) rather than escaping
+to page content the user cannot currently see or reach. The modal MUST be closable via the Escape key as
+well as an explicit close control, and closing it MUST return focus to the element that triggered it, so a
+keyboard user's position in the page is preserved across the interaction.
 
 == Accesskey
 
-`accesskey` binds a keyboard shortcut directly to an element, but is a
-suggestion the browser is free to override, commonly collides with the
-operating system's or the assistive technology's own shortcuts, and has no
-good answer for internationalization (a shortcut letter chosen for an
-English word may be meaningless or already taken in another locale).
-`accesskey` SHOULD NOT be used; where a project wants keyboard shortcuts,
-implement them with JavaScript `keydown` listeners instead, and surface
-the available shortcuts to the user through the interface rather than
-relying on `accesskey`'s own (poorly supported) advertisement mechanism.
+`accesskey` binds a keyboard shortcut directly to an element, but is a suggestion the browser is free to
+override, commonly collides with the operating system's or the assistive technology's own shortcuts, and has
+no good answer for internationalization (a shortcut letter chosen for an English word may be meaningless or
+already taken in another locale). `accesskey` SHOULD NOT be used; where a project wants keyboard shortcuts,
+implement them with JavaScript `keydown` listeners instead, and surface the available shortcuts to the user
+through the interface rather than relying on `accesskey`'s own (poorly supported) advertisement mechanism.
 
 [#visibility]
 == Visibility
 
-The `hidden` attribute (see <<Coding style>>) removes an element from both
-rendering and the accessibility tree — appropriate for content that is
-"not currently relevant," full stop, for every consumer alike.
+The `hidden` attribute (see <<Coding style>>) removes an element from both rendering and the accessibility
+tree — appropriate for content that is "not currently relevant," full stop, for every consumer alike.
 
-Hiding content from *some* clients but not others — the common case of a
-tabbed interface, where every panel's markup exists but only one is
-visually shown at a time — needs case-by-case judgment rather than one
+Hiding content from *some* clients but not others — the common case of a tabbed interface, where every
+panel's markup exists but only one is visually shown at a time — needs case-by-case judgment rather than one
 universal technique:
 
-* Content hidden only visually, but still meant to be discoverable by a
-  screen reader (a "skip to content" link, for example), MUST NOT use
-  `display: none` or `visibility: hidden` — both remove the content from
-  the accessibility tree as well as the visual rendering. The standard
-  screen-reader-only technique instead clips the element to a 1px box,
-  positions it absolutely, and hides overflow, while leaving it in normal
-  document flow and unaffected by `display`/`visibility`.
-* An inactive tab panel, conversely, generally SHOULD be hidden from
-  *both* sighted and assistive-technology users simultaneously (with
-  `hidden` or an equivalent), since its content genuinely is not part of
-  the current view for anyone — see <<Tabs and accordions>> for the ARIA
-  states that accompany this.
-* Utility classes for "visible only in print" or "announced only by a
-  screen reader" content are a reasonable pattern for expressing these
-  distinct visibility intents consistently across a codebase.
+* Content hidden only visually, but still meant to be discoverable by a screen reader (a "skip to content"
+  link, for example), MUST NOT use `display: none` or `visibility: hidden` — both remove the content from the
+  accessibility tree as well as the visual rendering. The standard screen-reader-only technique instead clips
+  the element to a 1px box, positions it absolutely, and hides overflow, while leaving it in normal document
+  flow and unaffected by `display`/`visibility`.
+* An inactive tab panel, conversely, generally SHOULD be hidden from *both* sighted and assistive-technology
+  users simultaneously (with `hidden` or an equivalent), since its content genuinely is not part of the
+  current view for anyone — see <<Tabs and accordions>> for the ARIA states that accompany this.
+* Utility classes for "visible only in print" or "announced only by a screen reader" content are a
+  reasonable pattern for expressing these distinct visibility intents consistently across a codebase.
 
 [#wai-aria]
 == WAI-ARIA
 
-WAI-ARIA supplies roles, states, and properties for conveying semantics
-that HTML alone does not express — required for custom, JavaScript-driven
-widgets (tabs, trees, tooltips, custom dialogs) that have no native HTML
-equivalent. Prefer a native HTML element wherever one exists — see
-<<Semantic markup>> — and reach for ARIA only for the gap that remains.
-Some ARIA usage that was once necessary has since been superseded by
-native HTML additions (sectioning elements superseding several landmark
-roles, for example — see <<Landmark roles>>); where a native alternative
-now exists, prefer it over the ARIA role that used to be the only option.
+WAI-ARIA supplies roles, states, and properties for conveying semantics that HTML alone does not express —
+required for custom, JavaScript-driven widgets (tabs, trees, tooltips, custom dialogs) that have no native
+HTML equivalent. Prefer a native HTML element wherever one exists — see <<Semantic markup>> — and reach for
+ARIA only for the gap that remains. Some ARIA usage that was once necessary has since been superseded by
+native HTML additions (sectioning elements superseding several landmark roles, for example — see
+<<Landmark roles>>); where a native alternative now exists, prefer it over the ARIA role that used to be the
+only option.
 
 [#redundant-aria]
 == Redundant ARIA
 
-An ARIA role or state MUST NOT be added where the element's native
-semantics already convey the exact same thing — the redundant declaration
-adds no information and is one more place for markup to drift out of sync
+An ARIA role or state MUST NOT be added where the element's native semantics already convey the exact same
+thing — the redundant declaration adds no information and is one more place for markup to drift out of sync
 with reality as the code evolves:
 
 [cols="1,1"]
@@ -123,141 +99,112 @@ with reality as the code evolves:
   accessibility tree.
 |===
 
-`role="presentation"` (removing an element's default semantics rather
-than adding to them) is the inverse case, and has its own caveat: applying
-it to an element that has focusable descendants can strip semantics those
-descendants still need, so it MUST only be applied where the whole subtree
-is genuinely presentation-only.
+`role="presentation"` (removing an element's default semantics rather than adding to them) is the inverse
+case, and has its own caveat: applying it to an element that has focusable descendants can strip semantics
+those descendants still need, so it MUST only be applied where the whole subtree is genuinely
+presentation-only.
 
 [#aria-roles]
 == ARIA roles
 
-The roles below cover the components most commonly built without a native
-HTML equivalent. Each is introduced in the section covering the
-component it applies to, rather than repeated here as a flat list:
-`alert`/`alertdialog`/`dialog` (<<Alerts and dialogs>>), `tooltip`
-(<<Tooltips>>), `button`/`toolbar` (<<Custom buttons>>),
-`checkbox`/`radio`/`radiogroup`/`textbox`/`combobox`/`listbox`/
-`spinbutton`/`slider` (<<Custom input controls>>),
-`grid`/`gridcell`/`row`/`columnheader` (<<Grids>>),
-`tab`/`tablist`/`tabpanel` (<<Tabs and accordions>>),
-`tree`/`treeitem`/`treegrid` (<<Trees>>),
-`menu`/`menubar`/`menuitem`/`menuitemcheckbox`/`menuitemradio`
-(<<Menus>>), `search` (<<Search>>), `progressbar`/`scrollbar`/`status`/
-`timer`/`marquee`/`log` (<<Other live-region components>>), and the
+The roles below cover the components most commonly built without a native HTML equivalent. Each is
+introduced in the section covering the component it applies to, rather than repeated here as a flat list:
+`alert`/`alertdialog`/`dialog` (<<Alerts and dialogs>>), `tooltip` (<<Tooltips>>), `button`/`toolbar`
+(<<Custom buttons>>), `checkbox`/`radio`/`radiogroup`/`textbox`/`combobox`/`listbox`/`spinbutton`/`slider`
+(<<Custom input controls>>), `grid`/`gridcell`/`row`/`columnheader` (<<Grids>>),
+`tab`/`tablist`/`tabpanel` (<<Tabs and accordions>>), `tree`/`treeitem`/`treegrid` (<<Trees>>),
+`menu`/`menubar`/`menuitem`/`menuitemcheckbox`/`menuitemradio` (<<Menus>>), `search` (<<Search>>),
+`progressbar`/`scrollbar`/`status`/`timer`/`marquee`/`log` (<<Other live-region components>>), and the
 landmark roles (<<Landmark roles>>).
 
 [#aria-states-and-properties]
 == ARIA states and properties
 
-Beyond roles, ARIA defines `aria-*` attributes for states and properties
-that change dynamically as the user interacts with a component — whether
-something is expanded, checked, selected, or invalid. Every ARIA state
-that a component's interaction changes at runtime MUST be updated by the
-same script that changes the visible state, so the two never drift apart
-— a visually expanded panel with `aria-expanded="false"` still attached is
-worse than not having the attribute at all, because it actively reports
-the wrong state.
+Beyond roles, ARIA defines `aria-*` attributes for states and properties that change dynamically as the user
+interacts with a component — whether something is expanded, checked, selected, or invalid. Every ARIA state
+that a component's interaction changes at runtime MUST be updated by the same script that changes the
+visible state, so the two never drift apart — a visually expanded panel with `aria-expanded="false"` still
+attached is worse than not having the attribute at all, because it actively reports the wrong state.
 
 [#live-regions]
 == Live regions
 
-`aria-live` marks a region whose content changes are announced to
-assistive technology as they happen, without the user having to move
-focus to notice them — a form validation summary, a "message sent"
+`aria-live` marks a region whose content changes are announced to assistive technology as they happen,
+without the user having to move focus to notice them — a form validation summary, a "message sent"
 confirmation, a live-updating status count.
 
-* `aria-live="polite"` announces the update after the screen reader
-  finishes whatever it is currently reading — the correct default for
-  most updates.
-* `aria-live="assertive"` interrupts immediately, and SHOULD be reserved
-  for genuinely time-critical updates (an error that blocks progress) —
-  overuse of `assertive` is disruptive in the same way an unexpected
+* `aria-live="polite"` announces the update after the screen reader finishes whatever it is currently
+  reading — the correct default for most updates.
+* `aria-live="assertive"` interrupts immediately, and SHOULD be reserved for genuinely time-critical updates
+  (an error that blocks progress) — overuse of `assertive` is disruptive in the same way an unexpected
   interruption is disruptive to a sighted user.
 
 [#applications-vs-documents]
 == Applications versus documents
 
-`role="application"` tells assistive technology to hand off most of its
-own keyboard shortcut handling to the page's own JavaScript, and
-`role="document"` is its inverse, restoring standard document reading
-behavior within a region that would otherwise inherit `application`. Both
-are last-resort tools: `role="application"` in particular disables
-assistive-technology behavior users rely on throughout the rest of the
-page, and SHOULD only be applied to a component that is genuinely a full
-interactive application in miniature (an embedded spreadsheet or code
-editor), not to an ordinary interactive widget that the specific roles
-elsewhere in this section already cover.
+`role="application"` tells assistive technology to hand off most of its own keyboard shortcut handling to
+the page's own JavaScript, and `role="document"` is its inverse, restoring standard document reading
+behavior within a region that would otherwise inherit `application`. Both are last-resort tools:
+`role="application"` in particular disables assistive-technology behavior users rely on throughout the rest
+of the page, and SHOULD only be applied to a component that is genuinely a full interactive application in
+miniature (an embedded spreadsheet or code editor), not to an ordinary interactive widget that the specific
+roles elsewhere in this section already cover.
 
 [#presentational-and-separator-roles]
 == Presentational and separator roles
 
-`role="presentation"` is covered in <<Redundant ARIA>> above.
-`role="separator"` marks a purely visual divider that also carries
-semantic meaning as a boundary (distinct from `<hr>`'s thematic-break
-meaning within content — see <<Horizontal rules>>) — for example, a
-divider between groups of items in a toolbar or menu, where the divider
-itself is not interactive.
+`role="presentation"` is covered in <<Redundant ARIA>> above. `role="separator"` marks a purely visual
+divider that also carries semantic meaning as a boundary (distinct from `<hr>`'s thematic-break meaning
+within content — see <<Horizontal rules>>) — for example, a divider between groups of items in a toolbar or
+menu, where the divider itself is not interactive.
 
 [#labelling-and-describing]
 == Labelling and describing
 
-Three mechanisms attach an accessible name or description to an element,
-each suited to a different case:
+Three mechanisms attach an accessible name or description to an element, each suited to a different case:
 
 `aria-labelledby`::
-References the `id` of one or more other elements whose text content
-becomes the accessible name. Preferred where the label text already
-exists visibly elsewhere on the page — referencing it avoids duplicating
-the string.
+References the `id` of one or more other elements whose text content becomes the accessible name. Preferred
+where the label text already exists visibly elsewhere on the page — referencing it avoids duplicating the
+string.
 
 `aria-describedby`::
-References the `id` of one or more elements providing a longer
-supplementary description, distinct from the name — a form field's
-associated hint text, for example. Unlike `aria-labelledby`, a single
+References the `id` of one or more elements providing a longer supplementary description, distinct from the
+name — a form field's associated hint text, for example. Unlike `aria-labelledby`, a single
 `aria-describedby` target is commonly reused by more than one element.
 
 `aria-label`::
-Sets an accessible name directly as a string, with no visible on-page
-counterpart. Use it only where no visible label exists to reference — an
-icon-only button with no visible text, for example — since a
-programmatically supplied label with no visible equivalent cannot be
-proofread or updated by anyone not editing the markup directly.
+Sets an accessible name directly as a string, with no visible on-page counterpart. Use it only where no
+visible label exists to reference — an icon-only button with no visible text, for example — since a
+programmatically supplied label with no visible equivalent cannot be proofread or updated by anyone not
+editing the markup directly.
 
 [#tooltips]
 == Tooltips
 
-There is no native HTML tooltip element. A custom tooltip MUST use
-`role="tooltip"` paired with `aria-describedby` on the element it
-describes, and MUST be reachable and dismissible by keyboard: it MUST
-appear on focus (not only on hover) and disappear on blur, and MUST be
-dismissible with Escape without moving focus away from the element it is
-attached to.
+There is no native HTML tooltip element. A custom tooltip MUST use `role="tooltip"` paired with
+`aria-describedby` on the element it describes, and MUST be reachable and dismissible by keyboard: it MUST
+appear on focus (not only on hover) and disappear on blur, and MUST be dismissible with Escape without
+moving focus away from the element it is attached to.
 
 [#alerts-and-dialogs]
 == Alerts and dialogs
 
-`role="alert"` announces a message immediately and assertively, without
-requiring focus to move to it — appropriate for a brief, self-contained
-notification. `role="alertdialog"` and `role="dialog"` are both used for
-a modal that requires user interaction to dismiss; `alertdialog` for one
-communicating an urgent message the user must acknowledge, `dialog` for a
-general-purpose modal. Either kind MUST move focus into the dialog on open
-and return it to the triggering element on close, per
-<<Modals and focus management>>.
+`role="alert"` announces a message immediately and assertively, without requiring focus to move to it —
+appropriate for a brief, self-contained notification. `role="alertdialog"` and `role="dialog"` are both used
+for a modal that requires user interaction to dismiss; `alertdialog` for one communicating an urgent message
+the user must acknowledge, `dialog` for a general-purpose modal. Either kind MUST move focus into the dialog
+on open and return it to the triggering element on close, per <<Modals and focus management>>.
 
 [#custom-buttons]
 == Custom buttons
 
-Where a custom-built button-like control cannot use `<button>` directly
-(rare, but occurring inside some composite widgets), it MUST carry
-`role="button"`, respond to both the Spacebar and Enter keys as
-activation triggers, and be in the tab order (`tabindex="0"`). A toggle
-button additionally exposes its pressed state via `aria-pressed`; a
-button that controls a separate, identifiable region of content exposes
-that relationship via `aria-controls`. A group of related buttons (a
-toolbar of formatting controls, for example) SHOULD be wrapped in a
-container with `role="toolbar"`.
+Where a custom-built button-like control cannot use `<button>` directly (rare, but occurring inside some
+composite widgets), it MUST carry `role="button"`, respond to both the Spacebar and Enter keys as activation
+triggers, and be in the tab order (`tabindex="0"`). A toggle button additionally exposes its pressed state
+via `aria-pressed`; a button that controls a separate, identifiable region of content exposes that
+relationship via `aria-controls`. A group of related buttons (a toolbar of formatting controls, for example)
+SHOULD be wrapped in a container with `role="toolbar"`.
 
 [#forms-accessibility]
 == Forms accessibility
@@ -265,28 +212,22 @@ container with `role="toolbar"`.
 Beyond the native `<label>`/`for` association covered in
 <<labels-fieldsets-and-legends,Labels, fieldsets, and legends>>:
 
-* `aria-invalid="true"` MUST be set on a field currently failing
-  validation, so assistive technology announces the invalid state at the
-  point of the field, not only in a summary elsewhere on the page.
-* `aria-required="true"` is needed only where a project has implemented
-  its own required-field validation instead of the native `required`
-  attribute (per <<Validation and input attributes>>'s preference for
-  custom validation) — where `required` is used directly, it already
-  conveys this and `aria-required` would be redundant, per
-  <<Redundant ARIA>>.
-* `aria-describedby` associates a field with its own hint or error text,
-  the same mechanism as <<Labelling and describing>> applied to a form
-  context.
-* `aria-labelledby` covers a custom label construction that is not a
-  simple `<label for>` pairing — a composite label built from more than
-  one text node, for example.
+* `aria-invalid="true"` MUST be set on a field currently failing validation, so assistive technology
+  announces the invalid state at the point of the field, not only in a summary elsewhere on the page.
+* `aria-required="true"` is needed only where a project has implemented its own required-field validation
+  instead of the native `required` attribute (per <<Validation and input attributes>>'s preference for
+  custom validation) — where `required` is used directly, it already conveys this and `aria-required` would
+  be redundant, per <<Redundant ARIA>>.
+* `aria-describedby` associates a field with its own hint or error text, the same mechanism as
+  <<Labelling and describing>> applied to a form context.
+* `aria-labelledby` covers a custom label construction that is not a simple `<label for>` pairing — a
+  composite label built from more than one text node, for example.
 
 [#search]
 == Search
 
-`role="search"` marks a region of the page as a search feature — a
-search form plus its associated controls — for a component more complex
-than a single `<input type="search">`, giving assistive technology a
+`role="search"` marks a region of the page as a search feature — a search form plus its associated
+controls — for a component more complex than a single `<input type="search">`, giving assistive technology a
 landmark to jump directly to it.
 
 [#custom-input-controls]

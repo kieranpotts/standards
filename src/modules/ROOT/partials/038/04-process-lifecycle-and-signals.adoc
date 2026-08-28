@@ -1,12 +1,10 @@
 = Process lifecycle and signals
 
-A long-running Node.js application (an HTTP server, a worker process) MUST
-handle `SIGTERM` and perform a graceful shutdown before exiting. The default
-behavior — the process dies immediately — drops in-flight requests and can
-leave a database connection or a message-queue acknowledgment in an
-inconsistent state. Every orchestration platform (Kubernetes, Docker,
-systemd) sends `SIGTERM` before escalating to `SIGKILL`, and gives the
-process a grace period to act on it:
+A long-running Node.js application (an HTTP server, a worker process) MUST handle `SIGTERM` and perform a graceful
+shutdown before exiting. The default behavior — the process dies immediately — drops in-flight requests and can
+leave a database connection or a message-queue acknowledgment in an inconsistent state. Every orchestration
+platform (Kubernetes, Docker, systemd) sends `SIGTERM` before escalating to `SIGKILL`, and gives the process a
+grace period to act on it:
 
 [source,javascript]
 ----
@@ -31,21 +29,16 @@ process.on("SIGTERM", () => shutdown("SIGTERM"))
 process.on("SIGINT", () => shutdown("SIGINT"))
 ----
 
-The forced-exit timeout MUST be shorter than the orchestrator's own grace
-period (Kubernetes' `terminationGracePeriodSeconds`, for example), so the
-application always exits on its own terms rather than being `SIGKILL`ed
-mid-cleanup.
+The forced-exit timeout MUST be shorter than the orchestrator's own grace period (Kubernetes'
+`terminationGracePeriodSeconds`, for example), so the application always exits on its own terms rather than being
+`SIGKILL`ed mid-cleanup.
 
-An application MUST register a handler for `uncaughtException` and
-`unhandledRejection` that logs the error with full context and then
-terminates the process. Node.js's own default behavior for an uncaught
-exception is to print a stack trace and exit, which is close to correct; the
-handler exists to guarantee structured logging (per
-<<Error handling and logging>>) rather than to *recover* and keep running.
-An application MUST NOT catch these events merely to swallow them and
-continue — a process that has hit an uncaught exception is in an unknown
-state, and continuing to serve traffic from it risks corrupting further
-requests:
+An application MUST register a handler for `uncaughtException` and `unhandledRejection` that logs the error with
+full context and then terminates the process. Node.js's own default behavior for an uncaught exception is to print
+a stack trace and exit, which is close to correct; the handler exists to guarantee structured logging (per
+<<Error handling and logging>>) rather than to *recover* and keep running. An application MUST NOT catch these
+events merely to swallow them and continue — a process that has hit an uncaught exception is in an unknown state,
+and continuing to serve traffic from it risks corrupting further requests:
 
 [source,javascript]
 ----
@@ -60,9 +53,7 @@ process.on("unhandledRejection", (reason) => {
 })
 ----
 
-An application MUST rely on its process supervisor (the orchestrator, or a
-tool such as `systemd` or PM2 in a non-containerized deployment) to restart
-it after a crash, rather than attempting to recover in-process. Node.js has
-no supported way to reset a corrupted process to a known-good state short of
-exiting, so a crash-and-restart cycle managed externally is the correct
-behavior, not a workaround.
+An application MUST rely on its process supervisor (the orchestrator, or a tool such as `systemd` or PM2 in a
+non-containerized deployment) to restart it after a crash, rather than attempting to recover in-process. Node.js
+has no supported way to reset a corrupted process to a known-good state short of exiting, so a crash-and-restart
+cycle managed externally is the correct behavior, not a workaround.

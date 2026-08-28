@@ -2,32 +2,27 @@
 
 == Files
 
-Files containing JavaScript executables MUST have the `.js` file extension.
-File names MUST be all lower case and MAY include dashes (`-`) but not
-underscores (`_`); there MUST NOT be any additional punctuation. All JavaScript
-files MUST be encoded in UTF-8.
+Files containing JavaScript executables MUST have the `.js` file extension. File names MUST be all lower case and MAY
+include dashes (`-`) but not underscores (`_`); there MUST NOT be any additional punctuation. All JavaScript files MUST
+be encoded in UTF-8.
 
-The line terminator sequence and the ASCII horizontal space character (0x20)
-MUST be the only whitespace characters used within a JavaScript source file.
-Other whitespace characters in string literals MUST be escaped. Tab
-characters MUST NOT be used for indentation.
+The line terminator sequence and the ASCII horizontal space character (0x20) MUST be the only whitespace characters used
+within a JavaScript source file. Other whitespace characters in string literals MUST be escaped. Tab characters MUST NOT
+be used for indentation.
 
-For characters that have special escape sequences, the escape sequence MUST be
-used rather than a numeric escape (e.g. `\x0a`, `\u000a`, or `\u\{a}`). Legacy
-octal escapes MUST NOT be used. The special escape sequences are: `\'`, `\"`,
+For characters that have special escape sequences, the escape sequence MUST be used rather than a numeric escape (e.g.
+`\x0a`, `\u000a`, or `\u\{a}`). Legacy octal escapes MUST NOT be used. The special escape sequences are: `\'`, `\"`,
 `\\`, `\b`, `\f`, `\n`, `\r`, `\t`, `\v`.
 
-Printable non-ASCII characters SHOULD be printed as their actual Unicode
-character:
+Printable non-ASCII characters SHOULD be printed as their actual Unicode character:
 
 [source,javascript]
 ----
 const units = 'μs'
 ----
 
-It SHOULD NOT be necessary to use an equivalent hex or Unicode escape for such
-characters. If it is necessary, the reason MUST be documented in an adjacent
-comment, and the literal character printed in an end-of-line comment:
+It SHOULD NOT be necessary to use an equivalent hex or Unicode escape for such characters. If it is necessary, the
+reason MUST be documented in an adjacent comment, and the literal character printed in an end-of-line comment:
 
 [source,javascript]
 ----
@@ -43,48 +38,41 @@ return '\ufeff' + content // Prepend a byte order mark.
 
 == Type system
 
-JavaScript is generally used as a duck typed language. There is no need to
-tell a function what type of parameters to expect, so values are often passed
-by type – this is duck typing. If the object looks like a duck and quacks
-like a duck, it must be a duck. But it might not actually be a duck; the
-passed object might just have an interface that is compatible with the
-`Duck` type.
+JavaScript is generally used as a duck typed language. There is no need to tell a function what type of parameters to
+expect, so values are often passed by type – this is duck typing. If the object looks like a duck and quacks like a
+duck, it must be a duck. But it might not actually be a duck; the passed object might just have an interface that is
+compatible with the `Duck` type.
 
-JavaScript is weakly typed. It does not support strong typing natively, but
-the language can be extended with static type analysis at compile time. We
-use TypeScript for this purpose; see <<TypeScript>>.
+JavaScript is weakly typed. It does not support strong typing natively, but the language can be extended with static
+type analysis at compile time. We use TypeScript for this purpose; see <<TypeScript>>.
 
-There are sometimes advantages to duck typing, and sometimes it may even be
-preferable to strong typing. The explicit nature of strong typing is that it
-can make function signatures too rigid. Dynamic methods that accept and return
-different types based on context are impossible to implement with strong typing.
-The most appropriate type system SHOULD be used depending on the context in
-which the API is expected to be used.
+There are sometimes advantages to duck typing, and sometimes it may even be preferable to strong typing. The explicit
+nature of strong typing is that it can make function signatures too rigid. Dynamic methods that accept and return
+different types based on context are impossible to implement with strong typing. The most appropriate type system SHOULD
+be used depending on the context in which the API is expected to be used.
 
-The main advantage of strong typing is that the compiler can often provide
-build-time error checking, before the program is even run.
+The main advantage of strong typing is that the compiler can often provide build-time error checking, before the program
+is even run.
 
 == Primitive values
 
-ECMAScript has two numeric representations: the IEEE 754 floating-point
-`Number` type, and `BigInt` for arbitrary-precision integers.
+ECMAScript has two numeric representations: the IEEE 754 floating-point `Number` type, and `BigInt` for
+arbitrary-precision integers.
 
 === Numbers
 
-JavaScript's `number` type uses IEEE 754 binary floating point, which cannot
-exactly represent most decimal fractions. The classic illustration:
+JavaScript's `number` type uses IEEE 754 binary floating point, which cannot exactly represent most decimal fractions.
+The classic illustration:
 
 [source,javascript]
 ----
 0.1 + 0.2 !== 0.3 // true
 ----
 
-Binary floating point is ill-suited to monetary and other business
-calculations. To avoid these errors, decimal values SHOULD be scaled to whole
-numbers – for example, monetary values represented as `2550` cents instead of
-`25.50` dollars. If precision to two decimal places is needed, scale by 100; to
-four, scale by 10,000. Integer addition, subtraction, and multiplication then
-produce exact results, up to the limits of the `number` type.
+Binary floating point is ill-suited to monetary and other business calculations. To avoid these errors, decimal values
+SHOULD be scaled to whole numbers – for example, monetary values represented as `2550` cents instead of `25.50` dollars.
+If precision to two decimal places is needed, scale by 100; to four, scale by 10,000. Integer addition, subtraction, and
+multiplication then produce exact results, up to the limits of the `number` type.
 
 [source,javascript]
 ----
@@ -92,10 +80,9 @@ produce exact results, up to the limits of the `number` type.
 0.1 + 0.2 === 0.3 // false
 ----
 
-Where scaling is impractical, custom value types or dedicated libraries – such
-as https://github.com/MikeMcl/decimal.js[Decimal.js] or
-https://github.com/MikeMcl/bignumber.js/[bignumber.js] – provide exact decimal
-arithmetic:
+Where scaling is impractical, custom value types or dedicated libraries – such as
+https://github.com/MikeMcl/decimal.js[Decimal.js] or https://github.com/MikeMcl/bignumber.js/[bignumber.js] – provide
+exact decimal arithmetic:
 
 [source,javascript]
 ----
@@ -106,16 +93,13 @@ n1.add(n2) // new Decimal('9999')
 
 === BigInt
 
-`BigInt` is the appropriate type for integers that exceed
-`Number.MAX_SAFE_INTEGER`. It cannot be perfectly polyfilled, so `BigInt` MUST
-be used only in programs that target runtime environments that support it
-natively.
+`BigInt` is the appropriate type for integers that exceed `Number.MAX_SAFE_INTEGER`. It cannot be perfectly polyfilled,
+so `BigInt` MUST be used only in programs that target runtime environments that support it natively.
 
 === Strings
 
-A string is a sequence of zero or more characters. String primitives are
-defined with single or double quotes; prefer single quotes, switching to double
-quotes only where that avoids ugly escaping:
+A string is a sequence of zero or more characters. String primitives are defined with single or double quotes; prefer
+single quotes, switching to double quotes only where that avoids ugly escaping:
 
 [source,javascript]
 ----
@@ -130,9 +114,8 @@ Template literals (backticks) allow interpolation and multi-line strings:
 const hello = `Hello, ${name}`
 ----
 
-To test whether a string contains a substring, use
-`String.prototype.includes`, which returns a boolean – not `indexOf`, whose
-purpose is to return an index:
+To test whether a string contains a substring, use `String.prototype.includes`, which returns a boolean – not `indexOf`,
+whose purpose is to return an index:
 
 [source,javascript]
 ----
@@ -143,18 +126,15 @@ if (philosophers.includes('Joshua')) {
 
 == Types and coercion
 
-JavaScript has seven types: six primitives (`undefined`, `null`, `boolean`,
-`number`, `string`, `symbol`) and `object`. Most things in JavaScript are
-objects; even functions are special objects. Booleans, numbers, and strings
-can also be created as wrapper objects (`new Boolean`, `new Number`, `new
-String`), but the wrappers behave differently from the primitives and are a
-common source of bugs.
+JavaScript has seven types: six primitives (`undefined`, `null`, `boolean`, `number`, `string`, `symbol`) and `object`.
+Most things in JavaScript are objects; even functions are special objects. Booleans, numbers, and strings can also be
+created as wrapper objects (`new Boolean`, `new Number`, `new String`), but the wrappers behave differently from the
+primitives and are a common source of bugs.
 
 === Primitives and wrapper objects
 
-Always define boolean, number, and string values as primitives, never as
-wrapper objects. A `Boolean` object is truthy even when its internal value is
-`false`:
+Always define boolean, number, and string values as primitives, never as wrapper objects. A `Boolean` object is truthy
+even when its internal value is `false`:
 
 [source,javascript]
 ----
@@ -164,9 +144,8 @@ if (test) {
 }
 ----
 
-If you need the primitive value of a wrapper, use `valueOf()`. To coerce
-another value to a primitive, use `Boolean()`, `Number()`, or `String()` as
-ordinary functions (without `new`):
+If you need the primitive value of a wrapper, use `valueOf()`. To coerce another value to a primitive, use `Boolean()`,
+`Number()`, or `String()` as ordinary functions (without `new`):
 
 [source,javascript]
 ----
@@ -179,8 +158,8 @@ Shorthand coercions (`'' + val`, `+val`, `!!val`) work but are less clear.
 
 === Truthy and falsy values
 
-A value is _truthy_ if it is, or coerces to, `true`; _falsy_ if it is, or coerces
-to, `false`. There are only six falsy values:
+A value is _truthy_ if it is, or coerces to, `true`; _falsy_ if it is, or coerces to, `false`. There are only six falsy
+values:
 
 * `false`
 * `null`
@@ -189,15 +168,13 @@ to, `false`. There are only six falsy values:
 * `0`
 * `''` (empty string)
 
-Everything else (including any object, any non-empty string, any non-zero
-number, and any array – even an empty one) is truthy. Truthiness is not the same
-as loose equality (`== true`); prefer explicit checks where intent is unclear.
+Everything else (including any object, any non-empty string, any non-zero number, and any array – even an empty one) is
+truthy. Truthiness is not the same as loose equality (`== true`); prefer explicit checks where intent is unclear.
 
 === `typeof` and `instanceof`
 
-`typeof` returns the type of a value as a string, and is safe to use on
-undeclared variables. `instanceof` tests whether an object is an instance of a
-constructor (checking the prototype chain):
+`typeof` returns the type of a value as a string, and is safe to use on undeclared variables. `instanceof` tests whether
+an object is an instance of a constructor (checking the prototype chain):
 
 [source,javascript]
 ----
@@ -206,16 +183,16 @@ typeof undefined // 'undefined'
 [] instanceof Array // true
 ----
 
-`typeof null` returns `'object'` (a long-standing bug), and `typeof` cannot
-distinguish subtypes of objects – use `instanceof` or `Array.isArray()` for that.
+`typeof null` returns `'object'` (a long-standing bug), and `typeof` cannot distinguish subtypes of objects – use
+`instanceof` or `Array.isArray()` for that.
 
 [#operators]
 == Operators
 
 === Equality
 
-Always use `===` and `!==` to compare values. The `==` and `!=` operators use
-implicit type conversion, whose behavior is unintuitive:
+Always use `===` and `!==` to compare values. The `==` and `!=` operators use implicit type conversion, whose behavior
+is unintuitive:
 
 [source,javascript]
 ----
@@ -227,17 +204,16 @@ false == '0' // true
 
 === Nullish coalescing and optional chaining
 
-The nullish coalescing operator `??` returns its right operand when the left is
-`null` or `undefined` (and only those – unlike `||`, which checks all falsy
-values):
+The nullish coalescing operator `??` returns its right operand when the left is `null` or `undefined` (and only those –
+unlike `||`, which checks all falsy values):
 
 [source,javascript]
 ----
 const score = input ?? 0
 ----
 
-The optional chaining operator `?.` short-circuits to `undefined` when the left
-operand is `null` or `undefined`, avoiding a `TypeError`:
+The optional chaining operator `?.` short-circuits to `undefined` when the left operand is `null` or `undefined`,
+avoiding a `TypeError`:
 
 [source,javascript]
 ----
@@ -246,9 +222,8 @@ const name = movie?.name
 
 === Spread
 
-The spread operator (`...`) expands an iterable into individual elements (in
-array literals and function calls) or copies an object's own enumerable
-properties (in object literals):
+The spread operator (`...`) expands an iterable into individual elements (in array literals and function calls) or
+copies an object's own enumerable properties (in object literals):
 
 [source,javascript]
 ----
@@ -258,20 +233,17 @@ const updated = { ...person, name: 'Peter' }
 
 === Other operators
 
-Use `in` to test for a property name (or array index), and `delete` to remove an
-own property. Avoid bitwise operators except for genuine bit-level work: they
-coerce operands to 32-bit integers and obscure intent when misused.
+Use `in` to test for a property name (or array index), and `delete` to remove an own property. Avoid bitwise operators
+except for genuine bit-level work: they coerce operands to 32-bit integers and obscure intent when misused.
 
 == Statements and expressions
 
-JavaScript distinguishes *statements* (executable units, like sentences) from
-*expressions* (units that evaluate to a value). An expression can be written
-wherever a value is expected; a statement cannot be written where an expression
-is expected.
+JavaScript distinguishes *statements* (executable units, like sentences) from *expressions* (units that evaluate to a
+value). An expression can be written wherever a value is expected; a statement cannot be written where an expression is
+expected.
 
-Write one statement per line. Each statement MUST end with a semicolon, with
-the exception of `for`, `function`, `if`, `switch`, `try`, and `while`. Function
-expressions and `do...while` statements MUST end with a semicolon:
+Write one statement per line. Each statement MUST end with a semicolon, with the exception of `for`, `function`, `if`,
+`switch`, `try`, and `while`. Function expressions and `do...while` statements MUST end with a semicolon:
 
 [source,javascript]
 ----
@@ -280,9 +252,8 @@ const doSomething = function () {
 };
 ----
 
-Because of automatic semicolon insertion, the expression in a `return`
-statement MUST be on the same line as the `return` keyword, and opening curly
-braces MUST be on the same line as whatever they open:
+Because of automatic semicolon insertion, the expression in a `return` statement MUST be on the same line as the
+`return` keyword, and opening curly braces MUST be on the same line as whatever they open:
 
 [source,javascript]
 ----
@@ -298,27 +269,22 @@ return
 }
 ----
 
-Avoid unreachable code: `return`, `break`, `continue`, and `throw` SHOULD be
-followed by `}`, `case`, or `default`. Avoid blockless statements and bare
-expression statements (`foo;`), both of which are bug-prone.
+Avoid unreachable code: `return`, `break`, `continue`, and `throw` SHOULD be followed by `}`, `case`, or `default`.
+Avoid blockless statements and bare expression statements (`foo;`), both of which are bug-prone.
 
-Prefer literal expressions over the `new` operator: use `[]` instead of `new
-Array()`, `{}` instead of `new Object()`, and primitive types instead of `new
-String()`, `new Number()`, or `new Boolean()`.
+Prefer literal expressions over the `new` operator: use `[]` instead of `new Array()`, `{}` instead of `new Object()`,
+and primitive types instead of `new String()`, `new Number()`, or `new Boolean()`.
 
 == Control structures
 
-Control statements SHOULD have one space between the control keyword and the
-opening parenthesis, to distinguish them from function calls. Curly braces
-SHOULD always be used, even where optional, and the opening brace MUST be on the
+Control statements SHOULD have one space between the control keyword and the opening parenthesis, to distinguish them
+from function calls. Curly braces SHOULD always be used, even where optional, and the opening brace MUST be on the
 keyword line.
 
-`else` and `else if` clauses SHOULD begin on a new line, rather than
-`} else {` on one line. This reduces the chance of introducing a syntax error
-when commenting out blocks.
+`else` and `else if` clauses SHOULD begin on a new line, rather than `} else {` on one line. This reduces the chance of
+introducing a syntax error when commenting out blocks.
 
-Long conditions SHOULD be broken into nested conditionals rather than chained
-with many binary operators on one line:
+Long conditions SHOULD be broken into nested conditionals rather than chained with many binary operators on one line:
 
 [source,javascript]
 ----
@@ -334,11 +300,10 @@ if (gender === 'male') {
 
 === `switch`
 
-Prefer `if`/`else` chains over `switch` where they read as well. A `switch`
-case MUST NOT intentionally fall through to the next case – every case SHOULD
-end with `break` (or `return`/`throw`), so that accidental fall-through is easy
-to spot. Where a `switch` would dispatch on a value to a function, prefer a map
-or dispatch table (a data structure), which is easier to extend:
+Prefer `if`/`else` chains over `switch` where they read as well. A `switch` case MUST NOT intentionally fall through to
+the next case – every case SHOULD end with `break` (or `return`/`throw`), so that accidental fall-through is easy to
+spot. Where a `switch` would dispatch on a value to a function, prefer a map or dispatch table (a data structure), which
+is easier to extend:
 
 [source,javascript]
 ----
@@ -355,11 +320,9 @@ commandTable[command]()
 [#loops]
 === Loops
 
-Use `for`, `while`, and `do...while` for counted loops; `for...of` for iterables
-(arrays, strings, etc.); and `for...in` only for object property enumeration.
-`break` exits the innermost loop (use labels to exit an outer loop); `continue`
-jumps to the next iteration. Optimize loops by avoiding repeated property access
-or function calls in the condition:
+Use `for`, `while`, and `do...while` for counted loops; `for...of` for iterables (arrays, strings, etc.); and `for...in`
+only for object property enumeration. `break` exits the innermost loop (use labels to exit an outer loop); `continue`
+jumps to the next iteration. Optimize loops by avoiding repeated property access or function calls in the condition:
 
 [source,javascript]
 ----
@@ -368,9 +331,8 @@ for (let i = 0, len = items.length; i < len; i++) {
 }
 ----
 
-`for...in` iterates over inherited properties as well as own properties, which
-is rarely what you want; guard it with `Object.hasOwn()`, or use
-`Object.keys()`/`Object.entries()` for own properties only:
+`for...in` iterates over inherited properties as well as own properties, which is rarely what you want; guard it with
+`Object.hasOwn()`, or use `Object.keys()`/`Object.entries()` for own properties only:
 
 [source,javascript]
 ----
@@ -384,19 +346,17 @@ for (const prop in obj) {
 [#arrays]
 == Arrays
 
-Arrays are list-like objects with a `length` property and integer keys. Define
-them with the literal `[]` syntax, never the `Array` constructor (whose
-single-number-argument behavior is a gotcha):
+Arrays are list-like objects with a `length` property and integer keys. Define them with the literal `[]` syntax, never
+the `Array` constructor (whose single-number-argument behavior is a gotcha):
 
 [source,javascript]
 ----
 const arr = [1, 2, 3]
 ----
 
-To test whether a value is in an array, use `Array.prototype.includes`, not
-`indexOf(...) !== -1`. To test whether any or all elements satisfy a condition,
-use `some` or `every` – both short-circuit. There is no `break` in `forEach`;
-use `some` (or a `for...of` loop) when you need to stop early:
+To test whether a value is in an array, use `Array.prototype.includes`, not `indexOf(...) !== -1`. To test whether any
+or all elements satisfy a condition, use `some` or `every` – both short-circuit. There is no `break` in `forEach`; use
+`some` (or a `for...of` loop) when you need to stop early:
 
 [source,javascript]
 ----
@@ -405,24 +365,21 @@ use `some` (or a `for...of` loop) when you need to stop early:
 })
 ----
 
-To remove or transform elements, prefer the non-mutating `filter` and `map`
-methods over in-place mutation with `splice`. Convert array-like objects
-(`NodeList`, `arguments`) to true arrays with `Array.from()` or the spread
+To remove or transform elements, prefer the non-mutating `filter` and `map` methods over in-place mutation with
+`splice`. Convert array-like objects (`NodeList`, `arguments`) to true arrays with `Array.from()` or the spread
 operator, not the `Array.prototype.slice` hack.
 
 == Strict mode
 
-Strict mode (ES5) is a restricted variant of JavaScript that throws errors for
-dodgy features and bad practices – it prohibits most uses of `eval`, assignment
-to undeclared variables, duplicate object properties, and overriding the
-`arguments` object. With the introduction of ES modules, which are always
-strict, strict mode has effectively become the default in modern JavaScript.
+Strict mode (ES5) is a restricted variant of JavaScript that throws errors for dodgy features and bad practices – it
+prohibits most uses of `eval`, assignment to undeclared variables, duplicate object properties, and overriding the
+`arguments` object. With the introduction of ES modules, which are always strict, strict mode has effectively become the
+default in modern JavaScript.
 
-In classic (non-module) scripts, strict mode is enabled with the `'use strict'`
-directive at the top of a file or function. Avoid enabling it in the global scope
-of a classic script (it would apply to concatenated code that may not be
-strict-compliant); scope it to an IIFE instead. ES modules and class bodies are
-always strict, so no directive is needed there.
+In classic (non-module) scripts, strict mode is enabled with the `'use strict'` directive at the top of a file or
+function. Avoid enabling it in the global scope of a classic script (it would apply to concatenated code that may not be
+strict-compliant); scope it to an IIFE instead. ES modules and class bodies are always strict, so no directive is needed
+there.
 
 [source,javascript]
 ----
@@ -435,6 +392,5 @@ function strict() {
 
 == Regular expressions
 
-Regular expressions are powerful but processor-intensive and hard to read.
-Where a more expressive alternative achieves the same result, prefer it.
-Complex patterns MUST be accompanied by comments explaining their meaning.
+Regular expressions are powerful but processor-intensive and hard to read. Where a more expressive alternative achieves
+the same result, prefer it. Complex patterns MUST be accompanied by comments explaining their meaning.

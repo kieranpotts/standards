@@ -1,67 +1,48 @@
 = Managing state
 
-State is the hardest part of distributed systems design. A component with no
-state of its own can be killed, restarted, rescheduled, or duplicated at will
-without any coordination — the platform can throw it away and stand up a
-replacement without asking anyone's permission. A component that owns state
-cannot: every one of those same operations now has to reckon with what
-happens to the data, and most of the hard problems covered elsewhere in this
-standard — <<Consistency and availability>>, <<Consensus and coordination>>,
-<<Distributed transactions and sagas>> — exist only because state has to live
-somewhere and be kept correct while the system around it keeps changing
-shape.
+State is the hardest part of distributed systems design. A component with no state of its own can be killed, restarted,
+rescheduled, or duplicated at will without any coordination — the platform can throw it away and stand up a replacement
+without asking anyone's permission. A component that owns state cannot: every one of those same operations now has to
+reckon with what happens to the data, and most of the hard problems covered elsewhere in this standard — <<Consistency
+and availability>>, <<Consensus and coordination>>, <<Distributed transactions and sagas>> — exist only because state
+has to live somewhere and be kept correct while the system around it keeps changing shape.
 
-It follows that the best service, all else being equal, is a stateless one.
-"Stateless" here means the service holds no data of record between requests —
-no data that would be lost, or would leave the system inconsistent, if the
-instance handling a request were killed the moment it finished responding. A
-stateless service can be scaled horizontally by adding instances, failed over
-by killing an unhealthy instance and starting another, and deployed by
-replacing every instance at once, all without a coordination protocol,
-because no instance holds anything the others don't already have equal claim
-to.
+It follows that the best service, all else being equal, is a stateless one. "Stateless" here means the service holds no
+data of record between requests — no data that would be lost, or would leave the system inconsistent, if the instance
+handling a request were killed the moment it finished responding. A stateless service can be scaled horizontally by
+adding instances, failed over by killing an unhealthy instance and starting another, and deployed by replacing every
+instance at once, all without a coordination protocol, because no instance holds anything the others don't already have
+equal claim to.
 
 == Minimize the number of stateful components
 
-The corollary is a system-design principle, not just a per-service one:
-minimize the number of components in the system that are stateful. In
-practice, this means a small number of services own a database — or another
-system of record — and every other service in the system is purely
-stateless, deriving everything it needs from a request, a message, or a call
+The corollary is a system-design principle, not just a per-service one: minimize the number of components in the system
+that are stateful. In practice, this means a small number of services own a database — or another system of record — and
+every other service in the system is purely stateless, deriving everything it needs from a request, a message, or a call
 to one of those few stateful services.
 
-This is not a call to build a single monolithic data store. It is a call to
-be deliberate about *where* state is allowed to accumulate, and to resist it
-accumulating anywhere else by default:
+This is not a call to build a single monolithic data store. It is a call to be deliberate about *where* state is allowed
+to accumulate, and to resist it accumulating anywhere else by default:
 
-- *Cache is not an exemption.* A service that holds a local, in-memory cache
-  is not stateless unless the system's correctness does not depend on that
-  cache surviving — see xref:046.adoc[*TS-46: Distributed data and caching*]
-  for the mechanics of keeping any state, cached or otherwise, consistent
-  once it exists in more than one place.
+- *Cache is not an exemption.* A service that holds a local, in-memory cache is not stateless unless the system's
+  correctness does not depend on that cache surviving — see xref:046.adoc[*TS-46: Distributed data and caching*] for the
+  mechanics of keeping any state, cached or otherwise, consistent once it exists in more than one place.
 
-- *Session and workflow state count.* In-memory session data, sticky-session
-  routing, and long-running in-process workflow state are all state, even
-  though they are easy to overlook because they don't sit in a database. A
-  service that requires the same instance to handle every request in a
-  sequence is no longer freely interchangeable, which defeats the point.
+- *Session and workflow state count.* In-memory session data, sticky-session routing, and long-running in-process
+  workflow state are all state, even though they are easy to overlook because they don't sit in a database. A service
+  that requires the same instance to handle every request in a sequence is no longer freely interchangeable, which
+  defeats the point.
 
-- *Pushing state to the edges is not free of design decisions.* State that
-  is pushed to the client, to a message broker, or to a small number of
-  dedicated stateful services still has to be designed, secured, and made
-  consistent. Minimizing the count of stateful components concentrates that
-  design effort onto a small, well-understood set of components, rather than
-  eliminating the effort altogether.
+- *Pushing state to the edges is not free of design decisions.* State that is pushed to the client, to a message broker,
+  or to a small number of dedicated stateful services still has to be designed, secured, and made consistent. Minimizing
+  the count of stateful components concentrates that design effort onto a small, well-understood set of components,
+  rather than eliminating the effort altogether.
 
-New services SHOULD be designed stateless by default. Introducing a new
-system of record — a new service that owns its own database — is a
-deliberate architectural decision, not an incidental side effect of a
-service needing somewhere to put data, and SHOULD be reviewed with the same
-scrutiny as any other decision that expands the system's stateful surface
-area (see xref:005.adoc[*TS-5: Application architecture*] for the
-application-level considerations around introducing a new data store).
+New services SHOULD be designed stateless by default. Introducing a new system of record — a new service that owns its
+own database — is a deliberate architectural decision, not an incidental side effect of a service needing somewhere to
+put data, and SHOULD be reviewed with the same scrutiny as any other decision that expands the system's stateful surface
+area (see xref:005.adoc[*TS-5: Application architecture*] for the application-level considerations around introducing a
+new data store).
 
-This principle also shapes topology: see
-<<service-topology,Service topology: discovery, gateways, and service
-mesh>> for how a service's stateless-or-stateful status affects how it is
-deployed, scaled, and discovered.
+This principle also shapes topology: see <<service-topology,Service topology: discovery, gateways, and service mesh>>
+for how a service's stateless-or-stateful status affects how it is deployed, scaled, and discovered.

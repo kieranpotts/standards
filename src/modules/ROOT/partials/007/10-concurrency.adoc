@@ -4,136 +4,103 @@
 ****
 * Keep concurrency mechanics separate from business logic.
 * Shared mutable state is the root cause of most concurrency bugs – minimize it.
-* Prefer immutability and message-passing over locks where the language and
-  runtime permit.
+* Prefer immutability and message-passing over locks where the language and runtime permit.
 * Keep synchronized sections as small as possible.
-* Test concurrent code rigorously. Many concurrency bugs are non-deterministic
-  and hard to reproduce.
+* Test concurrent code rigorously. Many concurrency bugs are non-deterministic and hard to reproduce.
 ****
 
-Concurrency – writing code that executes in parallel across multiple threads,
-processes, or asynchronous tasks – introduces a category of complexity that is
-qualitatively different from ordinary sequential logic. Bugs in concurrent code
-can be intermittent, environment-dependent, and extremely difficult to reproduce
-and diagnose. For this reason, concurrency deserves deliberate design attention
-rather than being treated as an implementation detail.
+Concurrency – writing code that executes in parallel across multiple threads, processes, or asynchronous tasks –
+introduces a category of complexity that is qualitatively different from ordinary sequential logic. Bugs in concurrent
+code can be intermittent, environment-dependent, and extremely difficult to reproduce and diagnose. For this reason,
+concurrency deserves deliberate design attention rather than being treated as an implementation detail.
 
 == Separate concurrency from business logic
 
-The single most important rule for concurrent code is to keep the concurrency
-mechanics separate from the business logic they are threading through. A
-function or class that simultaneously manages thread lifecycles, synchronization
-primitives, and domain behavior is doing too many things. It is harder to read,
-harder to test, and harder to reason about.
+The single most important rule for concurrent code is to keep the concurrency mechanics separate from the business logic
+they are threading through. A function or class that simultaneously manages thread lifecycles, synchronization
+primitives, and domain behavior is doing too many things. It is harder to read, harder to test, and harder to reason
+about.
 
-Extract the concurrency infrastructure – thread pools, task queues, executors,
-async wrappers – into its own layer. Business logic should be written as if it
-were single-threaded, and composed with the concurrency layer at a higher level.
-This separation makes it possible to test the business logic in isolation,
-without the non-determinism of concurrent execution.
+Extract the concurrency infrastructure – thread pools, task queues, executors, async wrappers – into its own layer.
+Business logic should be written as if it were single-threaded, and composed with the concurrency layer at a higher
+level. This separation makes it possible to test the business logic in isolation, without the non-determinism of
+concurrent execution.
 
 == Shared mutable state
 
-The fundamental source of concurrency bugs is shared mutable state – data that
-is readable and writeable by more than one thread or task at the same time. Race
-conditions, data corruption, and deadlocks all trace back to unsynchronized
+The fundamental source of concurrency bugs is shared mutable state – data that is readable and writeable by more than
+one thread or task at the same time. Race conditions, data corruption, and deadlocks all trace back to unsynchronized
 access to shared mutable data.
 
-The most reliable way to avoid these problems is to eliminate shared mutable
-state wherever possible. Two complementary strategies help here:
+The most reliable way to avoid these problems is to eliminate shared mutable state wherever possible. Two complementary
+strategies help here:
 
-*Immutability.* Objects that cannot be modified after construction are
-inherently thread-safe. They can be shared freely across threads without
-synchronization. Prefer immutable data structures and value objects in
-concurrent contexts. When state does need to change, produce a new value rather
-than mutating the existing one.
+*Immutability.* Objects that cannot be modified after construction are inherently thread-safe. They can be shared freely
+across threads without synchronization. Prefer immutable data structures and value objects in concurrent contexts. When
+state does need to change, produce a new value rather than mutating the existing one.
 
-*Message-passing.* Rather than sharing state between concurrent components, pass
-messages. Each component owns its own private state and communicates with others
-only by sending and receiving messages. This is the model underlying actor
-frameworks, channels in CSP-style concurrency (Go, Kotlin coroutines), and
-event-driven architectures. It eliminates shared mutable state by design.
+*Message-passing.* Rather than sharing state between concurrent components, pass messages. Each component owns its own
+private state and communicates with others only by sending and receiving messages. This is the model underlying actor
+frameworks, channels in CSP-style concurrency (Go, Kotlin coroutines), and event-driven architectures. It eliminates
+shared mutable state by design.
 
 == Synchronization
 
-When shared mutable state cannot be avoided, it must be protected with
-synchronization mechanisms – locks, mutexes, semaphores, atomic operations, or
-language-level constructs like `synchronized` blocks.
+When shared mutable state cannot be avoided, it must be protected with synchronization mechanisms – locks, mutexes,
+semaphores, atomic operations, or language-level constructs like `synchronized` blocks.
 
-Keep synchronized sections as small as possible. Only the minimal critical
-section – the exact reads and writes that must be atomic – should be inside the
-lock. Holding a lock across large blocks of logic increases contention, reduces
+Keep synchronized sections as small as possible. Only the minimal critical section – the exact reads and writes that
+must be atomic – should be inside the lock. Holding a lock across large blocks of logic increases contention, reduces
 throughput, and raises the risk of deadlock.
 
-Be wary of acquiring multiple locks. Any code that must acquire more than one
-lock at a time is at risk of deadlock if other code acquires the same locks in a
-different order. If multiple locks are genuinely necessary, establish and
-document a consistent acquisition ordering across the codebase, and follow it
-without exception.
+Be wary of acquiring multiple locks. Any code that must acquire more than one lock at a time is at risk of deadlock if
+other code acquires the same locks in a different order. If multiple locks are genuinely necessary, establish and
+document a consistent acquisition ordering across the codebase, and follow it without exception.
 
 == Designing thread-safe classes
 
-Not every class needs to be thread-safe, and making one thread-safe is not
-free. Decide deliberately, per class, rather than by blanket policy.
+Not every class needs to be thread-safe, and making one thread-safe is not free. Decide deliberately, per class, rather
+than by blanket policy.
 
-*When to make a class thread-safe.* Base the decision on how the class is
-actually used: will instances be exposed to concurrent write/write or
-read/write access from your own code? If so, the class must be thread-safe.
-If a class is only ever used from a single thread, or only ever read
-concurrently after safe construction, synchronizing it adds cost for no
-benefit. A library or shared component whose usage context is not known in
-advance should offer both variants – see "Thread-safe wrappers" below –
-rather than guessing.
+*When to make a class thread-safe.* Base the decision on how the class is actually used: will instances be exposed to
+concurrent write/write or read/write access from your own code? If so, the class must be thread-safe. If a class is only
+ever used from a single thread, or only ever read concurrently after safe construction, synchronizing it adds cost for
+no benefit. A library or shared component whose usage context is not known in advance should offer both variants – see
+"Thread-safe wrappers" below – rather than guessing.
 
-*Synchronizing critical sections.* Where shared mutable state cannot be
-avoided (see "Shared mutable state" above), the standard technique is to make
-the relevant fields private and mark the code that reads and writes them as a
-critical section, guarded by a lock. Only code that controls access to the
-data through its own methods can enforce that access is safe – a public
-mutable field cannot be protected by any amount of synchronization elsewhere
-in the class. On platforms where only some primitive read/writes are atomic
-by default (for example the JVM, where `long` and `double` are not), treat
-those types with the same care as any other shared mutable field.
+*Synchronizing critical sections.* Where shared mutable state cannot be avoided (see "Shared mutable state" above), the
+standard technique is to make the relevant fields private and mark the code that reads and writes them as a critical
+section, guarded by a lock. Only code that controls access to the data through its own methods can enforce that access
+is safe – a public mutable field cannot be protected by any amount of synchronization elsewhere in the class. On
+platforms where only some primitive read/writes are atomic by default (for example the JVM, where `long` and `double`
+are not), treat those types with the same care as any other shared mutable field.
 
-*Immutable objects.* Immutability (see "Shared mutable state" above) works
-best for small value types – simple data carried by the object, with no
-identity beyond its value. A mutating-looking method returns a new instance
-rather than altering the existing one, which is what makes the object safe to
-share across threads without synchronization. The trade-off is allocation:
-an immutable design under high-frequency mutation can generate many
-short-lived objects and add garbage-collection pressure. This is rarely a
-reason to abandon immutability, but it is a reason to profile before
-assuming the trade-off is free (see "Optimization as a source of
-over-engineering" in <<Decomposition>>).
+*Immutable objects.* Immutability (see "Shared mutable state" above) works best for small value types – simple data
+carried by the object, with no identity beyond its value. A mutating-looking method returns a new instance rather than
+altering the existing one, which is what makes the object safe to share across threads without synchronization. The
+trade-off is allocation: an immutable design under high-frequency mutation can generate many short-lived objects and add
+garbage-collection pressure. This is rarely a reason to abandon immutability, but it is a reason to profile before
+assuming the trade-off is free (see "Optimization as a source of over-engineering" in <<Decomposition>>).
 
-*Thread-safe wrappers.* Where a class cannot be made thread-safe directly –
-commonly because it comes from a third-party library you cannot modify, or
-because you want to offer both variants from your own code – wrap it. A
-thread-safe wrapper accepts the same operations as the object it encloses,
-delegating each one through a synchronized method. This is the same
-structure as the decorator pattern, and it is how many standard-library
-collection types offer a synchronized view over an unsynchronized
-implementation.
+*Thread-safe wrappers.* Where a class cannot be made thread-safe directly – commonly because it comes from a third-party
+library you cannot modify, or because you want to offer both variants from your own code – wrap it. A thread-safe
+wrapper accepts the same operations as the object it encloses, delegating each one through a synchronized method. This
+is the same structure as the decorator pattern, and it is how many standard-library collection types offer a
+synchronized view over an unsynchronized implementation.
 
-*The cost of synchronization.* Synchronization is not free: a synchronized
-method invocation is meaningfully slower than an unsynchronized one on most
-platforms, and unnecessary synchronization adds thread contention – blocking
-and unblocking – for no correctness benefit. Do not synchronize a class that
-is never exposed to concurrent access. Conversely, do not skip synchronization
-on a class that is, in order to avoid this cost: an intermittent, hard-to-
-reproduce concurrency bug (see "Testing concurrent code" below) is far more
-expensive than the overhead of a lock.
+*The cost of synchronization.* Synchronization is not free: a synchronized method invocation is meaningfully slower than
+an unsynchronized one on most platforms, and unnecessary synchronization adds thread contention – blocking and
+unblocking – for no correctness benefit. Do not synchronize a class that is never exposed to concurrent access.
+Conversely, do not skip synchronization on a class that is, in order to avoid this cost: an intermittent, hard-to-
+reproduce concurrency bug (see "Testing concurrent code" below) is far more expensive than the overhead of a lock.
 
 == Testing concurrent code
 
-Concurrency bugs are notoriously difficult to test because they are often
-non-deterministic – they may appear only under specific timing conditions, on
-specific hardware, or under load. A test suite that passes consistently in a
-development environment may fail in production.
+Concurrency bugs are notoriously difficult to test because they are often non-deterministic – they may appear only under
+specific timing conditions, on specific hardware, or under load. A test suite that passes consistently in a development
+environment may fail in production.
 
-Test concurrent code rigorously and with specific tooling. Run tests repeatedly
-and under stress conditions to expose race conditions that manifest only
-intermittently. Use thread sanitizers and concurrency analysis tools where
-available. Design business logic to be testable in isolation from concurrency
-infrastructure, so that the bulk of correctness testing can be done
-deterministically in a single-threaded context.
+Test concurrent code rigorously and with specific tooling. Run tests repeatedly and under stress conditions to expose
+race conditions that manifest only intermittently. Use thread sanitizers and concurrency analysis tools where available.
+Design business logic to be testable in isolation from concurrency infrastructure, so that the bulk of correctness
+testing can be done deterministically in a single-threaded context.

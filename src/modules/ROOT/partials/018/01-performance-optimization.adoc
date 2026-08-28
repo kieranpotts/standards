@@ -2,312 +2,231 @@
 
 Web GUIs SHOULD be designed to be as fast and responsive as possible.
 
-Performance is not only a satisfaction metric. Response time changes how
-users use an interface: a sub-100ms response invites interactive, iterative
-use, and a slow tool is used differently — and less often — than a fast one
-that solves the same problem. See
-xref:015.adoc[*TS-15: User interfaces*], "Feedback and system status", for
-the general response-time thresholds (100ms/400ms/1s/10s) and this effect,
-which applies to any interface and is not repeated here.
+Performance is not only a satisfaction metric. Response time changes how users use an interface: a sub-100ms response
+invites interactive, iterative use, and a slow tool is used differently — and less often — than a fast one that solves
+the same problem. See xref:015.adoc[*TS-15: User interfaces*], "Feedback and system status", for the general
+response-time thresholds (100ms/400ms/1s/10s) and this effect, which applies to any interface and is not repeated here.
 
-For the fastest possible web GUIs, the following optimizations are RECOMMENDED.
-This standard follows a *progressive enhancement* model: serve a static
-baseline that works without JavaScript or CSS, then layer enhancements on top
-of it. Anything that requires JavaScript to function MUST be injected by
-JavaScript, not present in the initial markup and then broken without it.
+For the fastest possible web GUIs, the following optimizations are RECOMMENDED. This standard follows a *progressive
+enhancement* model: serve a static baseline that works without JavaScript or CSS, then layer enhancements on top of it.
+Anything that requires JavaScript to function MUST be injected by JavaScript, not present in the initial markup and then
+broken without it.
 
 == Time to First Byte
 
-*Time to First Byte* (TTFB) is the time between a browser requesting a page
-and receiving the first byte of the response. It is a foundational
-performance metric — every other rendering metric (LCP, FCP) is delayed by
-however long TTFB takes, so optimizing rendering without addressing TTFB has
-a ceiling.
+*Time to First Byte* (TTFB) is the time between a browser requesting a page and receiving the first byte of the
+response. It is a foundational performance metric — every other rendering metric (LCP, FCP) is delayed by however long
+TTFB takes, so optimizing rendering without addressing TTFB has a ceiling.
 
-* TTFB has four main contributors: network latency, request routing, the
-  time the application takes to run and query its data sources, and (for
-  server-rendered pages) the cost of generating the HTML response itself.
-  Each SHOULD be measured separately to find where time is actually spent.
+* TTFB has four main contributors: network latency, request routing, the time the application takes to run and query its
+  data sources, and (for server-rendered pages) the cost of generating the HTML response itself. Each SHOULD be measured
+  separately to find where time is actually spent.
 
-* Use a CDN to reduce network latency and, where practical, cache rendered
-  HTML at the edge — even briefly — or move dynamic logic to edge compute, so
-  fewer requests travel all the way back to an origin server.
+* Use a CDN to reduce network latency and, where practical, cache rendered HTML at the edge — even briefly — or move
+  dynamic logic to edge compute, so fewer requests travel all the way back to an origin server.
 
-* Surface a server-side timing breakdown to the front end using the
-  `Server-Timing` HTTP response header. This lets performance tooling (and
-  browser DevTools) show *where* server time was spent — routing, database
-  queries, rendering — directly alongside client-side metrics, rather than
-  treating TTFB as an opaque number.
+* Surface a server-side timing breakdown to the front end using the `Server-Timing` HTTP response header. This lets
+  performance tooling (and browser DevTools) show *where* server time was spent — routing, database queries, rendering —
+  directly alongside client-side metrics, rather than treating TTFB as an opaque number.
 
 == HTTP/2 and asset delivery
 
-* Serve web GUI assets over *HTTP/2* (or later). HTTP/2 multiplexes many
-  requests over a single connection, removing the head-of-line blocking and
-  per-connection overhead that made HTTP/1.x asset-bundling workarounds
-  necessary.
+* Serve web GUI assets over *HTTP/2* (or later). HTTP/2 multiplexes many requests over a single connection, removing the
+  head-of-line blocking and per-connection overhead that made HTTP/1.x asset-bundling workarounds necessary.
 
-* Under HTTP/1.x, bundling many small files into fewer, larger ones reduces
-  the number of round trips, at the cost of coarser cache invalidation — a
-  one-line change busts the cache for the whole bundle. Under HTTP/2,
-  serving many small, natively-cacheable modules avoids that trade-off, since
-  multiplexing removes the per-request penalty that made bundling necessary
-  in the first place. Choose the strategy that matches the actual transport
-  in use, and reassess it if the transport changes.
+* Under HTTP/1.x, bundling many small files into fewer, larger ones reduces the number of round trips, at the cost of
+  coarser cache invalidation — a one-line change busts the cache for the whole bundle. Under HTTP/2, serving many small,
+  natively-cacheable modules avoids that trade-off, since multiplexing removes the per-request penalty that made
+  bundling necessary in the first place. Choose the strategy that matches the actual transport in use, and reassess it
+  if the transport changes.
 
 == Script loading
 
-* Place `<script>` elements before the closing `</body>` tag, or use the
-  `defer` attribute, so script downloading and execution does not block HTML
-  parsing and rendering.
+* Place `<script>` elements before the closing `</body>` tag, or use the `defer` attribute, so script downloading and
+  execution does not block HTML parsing and rendering.
 
-* Use `defer` for scripts that must run in document order after the DOM is
-  parsed; use `async` for independent scripts (such as analytics) that do not
-  depend on DOM state and can execute as soon as they are downloaded,
-  regardless of order.
+* Use `defer` for scripts that must run in document order after the DOM is parsed; use `async` for independent scripts
+  (such as analytics) that do not depend on DOM state and can execute as soon as they are downloaded, regardless of
+  order.
 
-* Load scripts after stylesheets in the document, so style information is
-  available before any script that might read computed styles runs.
+* Load scripts after stylesheets in the document, so style information is available before any script that might read
+  computed styles runs.
 
-* Minimize the JavaScript actually shipped. Prefer a Baseline
-  widely-available platform feature over a JavaScript reimplementation of the
-  same capability; use a coverage tool (eg. Chrome DevTools' Coverage panel)
-  to find and remove unused code; and periodically prune tag-manager tags
-  that have accumulated without being removed.
+* Minimize the JavaScript actually shipped. Prefer a Baseline widely-available platform feature over a JavaScript
+  reimplementation of the same capability; use a coverage tool (eg. Chrome DevTools' Coverage panel) to find and remove
+  unused code; and periodically prune tag-manager tags that have accumulated without being removed.
 
 == Profiling
 
-Diagnose a performance problem with browser DevTools before optimizing
-blind. Chrome DevTools' *Performance* tab records a timeline of JavaScript
-execution, layout, and paint work during a chosen interaction or page load,
-and is the direct way to confirm whether a suspected cause — a long task, a
-layout thrashing loop, an expensive paint — is the actual bottleneck, rather
-than guessing from the code alone. Its *Memory* tab captures heap snapshots
-that can be compared across a sequence of interactions to find a leak: an
-object that a snapshot shows growing in count or retained size across
-repeated cycles of the same interaction, when it should return to its
-starting size, points at retained references that never get released — see
-<<Memory-efficient DOM manipulation>> for the patterns (`WeakMap`/`WeakRef`,
+Diagnose a performance problem with browser DevTools before optimizing blind. Chrome DevTools' *Performance* tab records
+a timeline of JavaScript execution, layout, and paint work during a chosen interaction or page load, and is the direct
+way to confirm whether a suspected cause — a long task, a layout thrashing loop, an expensive paint — is the actual
+bottleneck, rather than guessing from the code alone. Its *Memory* tab captures heap snapshots that can be compared
+across a sequence of interactions to find a leak: an object that a snapshot shows growing in count or retained size
+across repeated cycles of the same interaction, when it should return to its starting size, points at retained
+references that never get released — see <<Memory-efficient DOM manipulation>> for the patterns (`WeakMap`/`WeakRef`,
 event-listener cleanup) that most commonly fix what this tool finds.
 
 [#reflows-repaints-and-layout-thrashing]
 == Reflows, repaints, and layout thrashing
 
-* Prefer CSS animations and transitions over JavaScript-driven animation.
-  Where JavaScript-driven animation is unavoidable, animate an unstyled
-  wrapper element rather than an element carrying layout-affecting styles
-  directly, to reduce the layout work triggered by each frame.
+* Prefer CSS animations and transitions over JavaScript-driven animation. Where JavaScript-driven animation is
+  unavoidable, animate an unstyled wrapper element rather than an element carrying layout-affecting styles directly, to
+  reduce the layout work triggered by each frame.
 
-* Never animate or transition a CSS property that requires a layout update —
-  `margin`, `border`, `top`, `left`, and similar. Prefer `transform` (eg.
-  `translateX`) and `opacity`, which the browser can animate on the
-  compositor without triggering layout, and which therefore cannot cause a
-  cumulative layout shift.
+* Never animate or transition a CSS property that requires a layout update — `margin`, `border`, `top`, `left`, and
+  similar. Prefer `transform` (eg. `translateX`) and `opacity`, which the browser can animate on the compositor without
+  triggering layout, and which therefore cannot cause a cumulative layout shift.
 
-* Avoid *layout thrashing*: interleaving DOM reads (eg. `offsetHeight`) with
-  DOM writes (eg. setting `style`) inside a loop forces the browser to
-  recalculate layout on every iteration. Batch all reads together, then all
-  writes, so layout is recalculated once.
+* Avoid *layout thrashing*: interleaving DOM reads (eg. `offsetHeight`) with DOM writes (eg. setting `style`) inside a
+  loop forces the browser to recalculate layout on every iteration. Batch all reads together, then all writes, so layout
+  is recalculated once.
 
-* Use the CSS `contain` property to scope layout, style, or paint
-  calculations to a subtree, so the browser can skip recalculating the rest
-  of the page when that subtree changes — particularly valuable for
-  off-screen or independently-updating regions of a large page.
+* Use the CSS `contain` property to scope layout, style, or paint calculations to a subtree, so the browser can skip
+  recalculating the rest of the page when that subtree changes — particularly valuable for off-screen or
+  independently-updating regions of a large page.
 
-* Keep the overall DOM size small. A large DOM makes every layout
-  recalculation more expensive, independent of how carefully reads and
-  writes are batched.
+* Keep the overall DOM size small. A large DOM makes every layout recalculation more expensive, independent of how
+  carefully reads and writes are batched.
 
-* Use event delegation: attach one listener to a common ancestor rather than
-  a separate listener to each of many child elements. This reduces the total
-  number of bound listeners, which reduces both memory use and the setup cost
-  of initializing many individual handlers. See
-  <<JavaScript behaviors>> for how this applies to component-scoped behavior
+* Use event delegation: attach one listener to a common ancestor rather than a separate listener to each of many child
+  elements. This reduces the total number of bound listeners, which reduces both memory use and the setup cost of
+  initializing many individual handlers. See <<JavaScript behaviors>> for how this applies to component-scoped behavior
   code specifically.
 
 == Interaction responsiveness
 
-* Track *Interaction to Next Paint* (INP) — the time from a user interaction
-  to the next frame the browser paints in response — as a Core Web Vital
-  alongside LCP and CLS.
+* Track *Interaction to Next Paint* (INP) — the time from a user interaction to the next frame the browser paints in
+  response — as a Core Web Vital alongside LCP and CLS.
 
-* Break up long-running JavaScript tasks so they yield control back to the
-  main thread periodically, rather than blocking it for the whole task
-  duration. Use the Scheduler API's `scheduler.yield()` where available, or
-  chunk the work manually, so user input is not delayed behind an in-flight
-  task.
+* Break up long-running JavaScript tasks so they yield control back to the main thread periodically, rather than
+  blocking it for the whole task duration. Use the Scheduler API's `scheduler.yield()` where available, or chunk the
+  work manually, so user input is not delayed behind an in-flight task.
 
 == Instant navigations
 
-* Design pages to be eligible for the browser's *back/forward cache*
-  (bfcache): avoid setting `Cache-Control: no-store` on pages that should be
-  bfcache-eligible, and avoid `unload` event listeners, which disqualify a
-  page from bfcache in most browsers. A bfcache hit restores the page
-  instantly from memory on back/forward navigation and eliminates the layout
-  shifts a fresh navigation would otherwise cause.
+* Design pages to be eligible for the browser's *back/forward cache* (bfcache): avoid setting `Cache-Control: no-store`
+  on pages that should be bfcache-eligible, and avoid `unload` event listeners, which disqualify a page from bfcache in
+  most browsers. A bfcache hit restores the page instantly from memory on back/forward navigation and eliminates the
+  layout shifts a fresh navigation would otherwise cause.
 
-* Use the *Speculation Rules API*
-  (`<script type="speculationrules">`) to pay forward the cost of a likely
-  next navigation. `prefetch` pays the next page's TTFB up front; `prerender`
-  additionally pays FCP and LCP up front, so the navigation itself is
-  effectively instant. Configure an eagerness level (`immediate`,
-  `moderate`, `eager`) appropriate to the confidence of the prediction, and
-  use `href_matches` or `selector_matches` predicates to scope which links
-  qualify. This extends the hover-based HTML pre-fetch technique above with
-  a declarative, browser-native mechanism, and SHOULD be layered with an
-  opt-in/opt-out hook (eg. a `data-prefetch` attribute) so individual links
-  can be excluded where speculative loading would be wasteful or unsafe.
+* Use the *Speculation Rules API* (`<script type="speculationrules">`) to pay forward the cost of a likely next
+  navigation. `prefetch` pays the next page's TTFB up front; `prerender` additionally pays FCP and LCP up front, so the
+  navigation itself is effectively instant. Configure an eagerness level (`immediate`, `moderate`, `eager`) appropriate
+  to the confidence of the prediction, and use `href_matches` or `selector_matches` predicates to scope which links
+  qualify. This extends the hover-based HTML pre-fetch technique above with a declarative, browser-native mechanism, and
+  SHOULD be layered with an opt-in/opt-out hook (eg. a `data-prefetch` attribute) so individual links can be excluded
+  where speculative loading would be wasteful or unsafe.
 
-* Where a Speculation Rules cache holds stale or sensitive data — for
-  example, after a user signs out — purge it explicitly with the
-  `Clear-Site-Data` HTTP response header's `prefetchCache` and
-  `prerenderCache` directives.
+* Where a Speculation Rules cache holds stale or sensitive data — for example, after a user signs out — purge it
+  explicitly with the `Clear-Site-Data` HTTP response header's `prefetchCache` and `prerenderCache` directives.
 
 == Rendering and asset delivery
 
-* *Server-render* as much HTML as possible, preferably all of it. The
-  browser's native HTML engine will always be able to render HTML faster than
-  any custom client-side JavaScript can. Where the LCP resource is an image,
-  use a plain `<img src>`/`srcset`, not a `data-src` attribute that requires
-  JavaScript to resolve, and prefer server-side rendering over client-side
-  rendering so the image markup is present in the HTML source the browser
-  first receives, discoverable before any JavaScript executes.
+* *Server-render* as much HTML as possible, preferably all of it. The browser's native HTML engine will always be able
+  to render HTML faster than any custom client-side JavaScript can. Where the LCP resource is an image, use a plain
+  `<img src>`/`srcset`, not a `data-src` attribute that requires JavaScript to resolve, and prefer server-side rendering
+  over client-side rendering so the image markup is present in the HTML source the browser first receives, discoverable
+  before any JavaScript executes.
 
-* *Pre-fetch* as much HTML as possible. For example, when the user hovers over a
-  link, the browser can pre-fetch the HTML for the linked page. Further
-  performance optimization can be achieved by client-side JavaScript
-  pre-fetching _partial_ HTML for the linked page, and then dynamically
-  inserting it into application's *shell*. Global areas such as the navigation
-  and footer do not usually require re-rendering when the user navigates to a
-  new page.
+* *Pre-fetch* as much HTML as possible. For example, when the user hovers over a link, the browser can pre-fetch the
+  HTML for the linked page. Further performance optimization can be achieved by client-side JavaScript pre-fetching
+  _partial_ HTML for the linked page, and then dynamically inserting it into application's *shell*. Global areas such as
+  the navigation and footer do not usually require re-rendering when the user navigates to a new page.
 
-* Also use `<link rel="preload">` in the HTML `<head>` section to suggest the
-  browser preload assets such as CSS, JavaScript, and web fonts. This will
-  reduce the number of blocking requests the browser has to make before it can
-  do an initial render of server-side HTML. Where the LCP resource must be
-  referenced from CSS or JavaScript rather than plain HTML markup, preload it
-  explicitly this way so the browser does not have to wait to discover it.
+* Also use `<link rel="preload">` in the HTML `<head>` section to suggest the browser preload assets such as CSS,
+  JavaScript, and web fonts. This will reduce the number of blocking requests the browser has to make before it can do
+  an initial render of server-side HTML. Where the LCP resource must be referenced from CSS or JavaScript rather than
+  plain HTML markup, preload it explicitly this way so the browser does not have to wait to discover it.
 
-* Set `fetchpriority="high"` on the `<img>` element identified as the page's
-  LCP resource, to raise its fetch priority above other images competing for
-  bandwidth early in the page load.
+* Set `fetchpriority="high"` on the `<img>` element identified as the page's LCP resource, to raise its fetch priority
+  above other images competing for bandwidth early in the page load.
 
-* Use `<link rel="dns-prefetch">` to suggest the browser pre-fetch DNS records
-  for third-party domains that are used by the application. This can reduce the
-  time it takes to resolve domain names to servers. Use this for your CDN, any
-  third-party services called from the client-side code, and for any other
-  assets or resources that are not served from the same domain as the web page
-  document.
+* Use `<link rel="dns-prefetch">` to suggest the browser pre-fetch DNS records for third-party domains that are used by
+  the application. This can reduce the time it takes to resolve domain names to servers. Use this for your CDN, any
+  third-party services called from the client-side code, and for any other assets or resources that are not served from
+  the same domain as the web page document.
 
 * Use a CDN to store and serve static assets.
 
-* Use a proxy tool such as Squid to cache dynamic content that is pre-rendered
-  by the server.
+* Use a proxy tool such as Squid to cache dynamic content that is pre-rendered by the server.
 
-* Use client-side HTTP *caching* aggressively. For example, use the
-  `Cache-Control` header to specify how long a resource should be cached by the
-  browser.
+* Use client-side HTTP *caching* aggressively. For example, use the `Cache-Control` header to specify how long a
+  resource should be cached by the browser.
 
-* On the client-side, use a *service worker* to cache pre-rendered HTML and
-  other dynamically-fetched assets. The service worker intercepts requests and
-  serves up a cached version of the resource, if it has one. This is also
-  helpful to provide offline support.
+* On the client-side, use a *service worker* to cache pre-rendered HTML and other dynamically-fetched assets. The
+  service worker intercepts requests and serves up a cached version of the resource, if it has one. This is also helpful
+  to provide offline support.
 
-* *Inline CSS* in a `<style>` tag in the HTML `<head>` section, uglified. This
-  SHOULD be restricted to just your *critical CSS*, which is the minimum CSS
-  required to do an initial render of a page. Additional CSS, required only for
-  an optional enhanced user experience, should be deferred to after the page is
-  rendered. If the overall size of the CSS is small, it can all be inlined. This
-  means the browser can start to render the page as soon as HTML is received,
-  without waiting for separate CSS resources to be downloaded. This technique
-  will give you the fastest possible time to first paint – a metric known as the
-  (Largest Contentful Paint (LCP), which is the time is takes the browser to
-  fully render the largest element on the page (ie. after all styles, fonts,
-  images, and other dependencies are fetched).
+* *Inline CSS* in a `<style>` tag in the HTML `<head>` section, uglified. This SHOULD be restricted to just your
+  *critical CSS*, which is the minimum CSS required to do an initial render of a page. Additional CSS, required only for
+  an optional enhanced user experience, should be deferred to after the page is rendered. If the overall size of the CSS
+  is small, it can all be inlined. This means the browser can start to render the page as soon as HTML is received,
+  without waiting for separate CSS resources to be downloaded. This technique will give you the fastest possible time to
+  first paint – a metric known as the (Largest Contentful Paint (LCP), which is the time is takes the browser to fully
+  render the largest element on the page (ie. after all styles, fonts, images, and other dependencies are fetched).
 
-* Similarly, for JavaScript, try to serve only the subset of code that is
-  required to enable dynamic functionality on the current page. This is known as
-  *code splitting* and tools are available to do this automatically (at compile
-  time or dynamically on the server-side). Avoid loading _all_ your JavaScript
-  on _all_ your pages. Which strategy code splitting should target depends on
-  the HTTP protocol in service — see <<HTTP/2 and asset delivery>>. Code
-  splitting decides *what* to serve; a build's module bundler decides *how*
-  it is packaged for delivery, and the two decisions are related but
-  distinct.
+* Similarly, for JavaScript, try to serve only the subset of code that is required to enable dynamic functionality on
+  the current page. This is known as *code splitting* and tools are available to do this automatically (at compile time
+  or dynamically on the server-side). Avoid loading _all_ your JavaScript on _all_ your pages. Which strategy code
+  splitting should target depends on the HTTP protocol in service — see <<HTTP/2 and asset delivery>>. Code splitting
+  decides *what* to serve; a build's module bundler decides *how* it is packaged for delivery, and the two decisions are
+  related but distinct.
 
-* Consider *lazy loading* additional JavaScript that enhances the user
-  experience but is not required to enable the core functionality.
+* Consider *lazy loading* additional JavaScript that enhances the user experience but is not required to enable the core
+  functionality.
 
 == Images
 
 *Choose an image format for what the image contains, not by habit.*
 
-* Use *JPEG* for photographs and other complex images with continuous color
-  gradients. Its compression is lossy — quality degrades a little on every
-  save — so keep an uncompressed source file and re-export from it rather
-  than re-saving the same JPEG repeatedly.
+* Use *JPEG* for photographs and other complex images with continuous color gradients. Its compression is lossy —
+  quality degrades a little on every save — so keep an uncompressed source file and re-export from it rather than
+  re-saving the same JPEG repeatedly.
 
-* Use *PNG* for line art, logos, and other images with sharp edges and flat
-  areas of color, where lossless compression keeps the result crisp. PNG
-  MUST be preferred over GIF for this purpose: it compresses losslessly and
-  matches or beats GIF's file size, with no reason to prefer GIF's legacy
-  256-color palette today.
+* Use *PNG* for line art, logos, and other images with sharp edges and flat areas of color, where lossless compression
+  keeps the result crisp. PNG MUST be preferred over GIF for this purpose: it compresses losslessly and matches or beats
+  GIF's file size, with no reason to prefer GIF's legacy 256-color palette today.
 
-* Use *SVG* for icons, logos, and other simple vector shapes. SVG remains
-  crisp at any size and resolution, so it needs no `@2x`/`@3x` variants for
-  high-density screens, unlike a raster format. See <<Icon fonts>> for why
-  SVG, not an icon font, is this standard's required choice for interface
-  icons, and <<1. Perceivable>> for the accessibility markup an SVG image
-  itself needs.
+* Use *SVG* for icons, logos, and other simple vector shapes. SVG remains crisp at any size and resolution, so it needs
+  no `@2x`/`@3x` variants for high-density screens, unlike a raster format. See <<Icon fonts>> for why SVG, not an icon
+  font, is this standard's required choice for interface icons, and <<1. Perceivable>> for the accessibility markup an
+  SVG image itself needs.
 
-* Test formats empirically rather than applying these defaults rigidly — an
-  image's actual content determines which format compresses it best, and
-  the guidance above is a starting point, not an absolute rule.
+* Test formats empirically rather than applying these defaults rigidly — an image's actual content determines which
+  format compresses it best, and the guidance above is a starting point, not an absolute rule.
 
-*Give every image a text alternative appropriate to its role*, per
-<<1. Perceivable>>: a functional image (a button, an icon acting as a
-control) takes an `alt` that names the action ("Play", "Close"), a complex
-chart or diagram takes a caption or an accompanying accessible data table
-rather than relying on `alt` alone, and a purely decorative image takes an
-empty `alt=""`.
+*Give every image a text alternative appropriate to its role*, per <<1. Perceivable>>: a functional image (a button, an
+icon acting as a control) takes an `alt` that names the action ("Play", "Close"), a complex chart or diagram takes a
+caption or an accompanying accessible data table rather than relying on `alt` alone, and a purely decorative image takes
+an empty `alt=""`.
 
-*Serve the right image size for the viewport*, using the `srcset` and
-`sizes` attributes on `<img>`:
+*Serve the right image size for the viewport*, using the `srcset` and `sizes` attributes on `<img>`:
 
-* Use `srcset` with `w` descriptors (`image-400.jpg 400w, image-800.jpg
-  800w`) plus a `sizes` attribute stating the image's expected rendered
-  width, to let the browser pick the smallest source that satisfies the
-  layout at the current viewport and device pixel ratio. This is the
-  general case for a variable-width image whose display size changes with
+* Use `srcset` with `w` descriptors (`image-400.jpg 400w, image-800.jpg 800w`) plus a `sizes` attribute stating the
+  image's expected rendered width, to let the browser pick the smallest source that satisfies the layout at the current
+  viewport and device pixel ratio. This is the general case for a variable-width image whose display size changes with
   the viewport.
 
-* Use `srcset` with `x` descriptors (`image.jpg 1x, image@2x.jpg 2x`)
-  instead where the image's display size is fixed regardless of viewport —
-  a logo or icon at a constant CSS size — and only the resolution needs to
-  vary with device pixel ratio.
+* Use `srcset` with `x` descriptors (`image.jpg 1x, image@2x.jpg 2x`) instead where the image's display size is fixed
+  regardless of viewport — a logo or icon at a constant CSS size — and only the resolution needs to vary with device
+  pixel ratio.
 
-* Use the `<picture>` element, with multiple `<source>` elements plus a
-  fallback `<img>`, for *art direction*: serving a genuinely different crop
-  or composition at different breakpoints, not just the same image at a
-  different quality level. Reach for `srcset`/`sizes` alone when only the
-  resolution should change; reach for `<picture>` only when the image
-  itself should change.
+* Use the `<picture>` element, with multiple `<source>` elements plus a fallback `<img>`, for *art direction*: serving a
+  genuinely different crop or composition at different breakpoints, not just the same image at a different quality
+  level. Reach for `srcset`/`sizes` alone when only the resolution should change; reach for `<picture>` only when the
+  image itself should change.
 
-* Put fixed `width` and `height` attributes on images, or use an inline `style`
-  attribute to set the `width` and `height` CSS properties of the images'
-  containers. This allows the browser to allocate space for an image before it
-  is downloaded, which prevents the page from jumping around as images are
-  loaded – which counts as another re-render. For elements whose width is
-  responsive but whose aspect ratio is fixed, use the CSS `aspect-ratio`
-  property to reserve the correct space without hardcoding pixel dimensions.
-  Where the final size cannot be known in advance (eg. user-generated content
-  of variable length), set a `min-height` as a fallback to at least bound how
-  severe the layout shift can be.
+* Put fixed `width` and `height` attributes on images, or use an inline `style` attribute to set the `width` and
+  `height` CSS properties of the images' containers. This allows the browser to allocate space for an image before it is
+  downloaded, which prevents the page from jumping around as images are loaded – which counts as another re-render. For
+  elements whose width is responsive but whose aspect ratio is fixed, use the CSS `aspect-ratio` property to reserve the
+  correct space without hardcoding pixel dimensions. Where the final size cannot be known in advance (eg. user-generated
+  content of variable length), set a `min-height` as a fallback to at least bound how severe the layout shift can be.
 
-* Use the native `loading="lazy"` attribute on below-the-fold `<img>`
-  elements to defer their download until they approach the viewport. MUST NOT
-  be applied to the page's LCP image — lazy-loading the LCP resource delays
-  the very metric this section is optimizing for.
+* Use the native `loading="lazy"` attribute on below-the-fold `<img>` elements to defer their download until they
+  approach the viewport. MUST NOT be applied to the page's LCP image — lazy-loading the LCP resource delays the very
+  metric this section is optimizing for.
 
-* Don't be afraid to use age-old techniques such as *image sprites* to reduce
-  the number of requests required to fetch things like product thumbnails,
-  icons, and other small images.
+* Don't be afraid to use age-old techniques such as *image sprites* to reduce the number of requests required to fetch
+  things like product thumbnails, icons, and other small images.

@@ -1,67 +1,55 @@
 = Principles
 
-The following principles apply to all data migrations, regardless of type or
-cutover profile.
+The following principles apply to all data migrations, regardless of type or cutover profile.
 
 == Reversibility
 
-Every migration step SHOULD be reversible. A reversible step is one that can be
-undone without data loss and without depending on state that the step itself
-destroyed.
+Every migration step SHOULD be reversible. A reversible step is one that can be undone without data loss and
+without depending on state that the step itself destroyed.
 
-Reversibility is not the same as rollback of the switch-over. A switch-over that
-simply repoints traffic from target back to source is cheap; a migration that
-has destroyed or overwritten source data is not. Migrations SHOULD therefore
-preserve the source representation, intact and writable, until the target has
-been validated and the switch-over is stable — typically until a defined soak
-period has elapsed.
+Reversibility is not the same as rollback of the switch-over. A switch-over that simply repoints traffic from
+target back to source is cheap; a migration that has destroyed or overwritten source data is not. Migrations
+SHOULD therefore preserve the source representation, intact and writable, until the target has been validated and
+the switch-over is stable — typically until a defined soak period has elapsed.
 
-Where a step is genuinely irreversible — for example, a destructive type
-coercion that loses information — that step MUST be identified explicitly in the
-plan, gated on validation of the steps that preceded it, and executed only when
-the cost of a forward-fix is acceptable.
+Where a step is genuinely irreversible — for example, a destructive type coercion that loses information — that
+step MUST be identified explicitly in the plan, gated on validation of the steps that preceded it, and executed
+only when the cost of a forward-fix is acceptable.
 
 == Idempotency
 
-A migration step SHOULD be idempotent: running it twice, or running it against
-partially-completed state, produces the same result as running it once.
-Idempotency allows a failed or interrupted migration to be resumed by re-running
-it, rather than by reconstructing lost state.
+A migration step SHOULD be idempotent: running it twice, or running it against partially-completed state, produces
+the same result as running it once. Idempotency allows a failed or interrupted migration to be resumed by
+re-running it, rather than by reconstructing lost state.
 
-In practice this means migration logic SHOULD key off the source data and the
-target's existing state, not off a separate record of "what has already been
-processed." Resume-by-replay is more robust than resume-by-checkpoint.
+In practice this means migration logic SHOULD key off the source data and the target's existing state, not off a
+separate record of "what has already been processed." Resume-by-replay is more robust than resume-by-checkpoint.
 
 == Testability
 
-A migration MUST be testable before it runs against production data. This
-requires that the migration logic be separable from the production data path,
-runnable against a representative copy of the source, and instrumented well
-enough to verify its result.
+A migration MUST be testable before it runs against production data. This requires that the migration logic be
+separable from the production data path, runnable against a representative copy of the source, and instrumented
+well enough to verify its result.
 
 == Observability
 
-A running migration emits its own observability signals — progress, throughput,
-error rate, lag — distinct from the production system's signals. These MUST be
-visible to the operator on duty, and they MUST be separated from application
-telemetry so that a migration failure is not lost in the application's noise.
+A running migration emits its own observability signals — progress, throughput, error rate, lag — distinct from
+the production system's signals. These MUST be visible to the operator on duty, and they MUST be separated from
+application telemetry so that a migration failure is not lost in the application's noise.
 
 == Minimal blast radius
 
-A migration SHOULD be designed so that a failure affects the smallest possible
-scope. Batched processing, per-tenant or per-shard isolation, and feature-gated
-switch-overs all reduce the blast radius of a single failure.
+A migration SHOULD be designed so that a failure affects the smallest possible scope. Batched processing,
+per-tenant or per-shard isolation, and feature-gated switch-overs all reduce the blast radius of a single failure.
 
 == Data integrity first
 
-Preserving data integrity — correctness, completeness, and the validity of every
-constraint, internal and external — takes precedence over schedule, downtime
-budget, and implementation cost. A migration that compromises integrity to meet
-a deadline has failed, even if it appears to have completed.
+Preserving data integrity — correctness, completeness, and the validity of every constraint, internal and external
+— takes precedence over schedule, downtime budget, and implementation cost. A migration that compromises integrity
+to meet a deadline has failed, even if it appears to have completed.
 
 == The migration is not the switch-over
 
-Restated as a principle: the data migration and the switch-over that consumes it
-are separate concerns, planned, executed, validated, and rolled back on
-independent schedules. Conflating them is a defect in the plan, not an
+Restated as a principle: the data migration and the switch-over that consumes it are separate concerns, planned,
+executed, validated, and rolled back on independent schedules. Conflating them is a defect in the plan, not an
 optimization.

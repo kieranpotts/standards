@@ -1,17 +1,14 @@
 = Variables
 
-Most variables in a script SHOULD be designed to be constants, which means their
-values SHOULD NOT change after being assigned the first time. Err on the side of
-writing new variables, rather than overwriting existing ones, whenever you need
-to store a new value in memory. Scripts that follow this design principle tend
-to be a bit more robust and easier to understand and debug.
+Most variables in a script SHOULD be designed to be constants, which means their values SHOULD NOT change after being
+assigned the first time. Err on the side of writing new variables, rather than overwriting existing ones, whenever you
+need to store a new value in memory. Scripts that follow this design principle tend to be a bit more robust and easier
+to understand and debug.
 
-Variables MUST be declared `readonly` unless they are required to be writable by
-the business logic. This improves the robustness of scripts by preventing the
-overwriting/reassignment of variables that are not intended to be changed. The
-`readonly` attribute SHOULD be applied immediately after the variable
-declaration. Alternatively, use `declare -r` to declare a variable and set its
-`readonly` attribute immediately.
+Variables MUST be declared `readonly` unless they are required to be writable by the business logic. This improves the
+robustness of scripts by preventing the overwriting/reassignment of variables that are not intended to be changed. The
+`readonly` attribute SHOULD be applied immediately after the variable declaration. Alternatively, use `declare -r` to
+declare a variable and set its `readonly` attribute immediately.
 
 [source,sh]
 ----
@@ -27,12 +24,10 @@ fi
 
 == Bracket syntax
 
-Most variable references SHOULD use the bracketed syntax, `$\{var}`, over the
-unbracketed one, `$var`. The bracketed syntax is more readable, more robust, and
-more flexible. Because the brackets clearly delimit the variable name, it is
-easier to identify the variable names, and it helps to avoid ambiguity in
-complex expressions. It also makes it easier to concatenate with other variables
-or literal string values, eg. `$\{var}bar`.
+Most variable references SHOULD use the bracketed syntax, `$\{var}`, over the unbracketed one, `$var`. The bracketed
+syntax is more readable, more robust, and more flexible. Because the brackets clearly delimit the variable name, it is
+easier to identify the variable names, and it helps to avoid ambiguity in complex expressions. It also makes it easier
+to concatenate with other variables or literal string values, eg. `$\{var}bar`.
 
 [source,sh]
 ----
@@ -45,18 +40,15 @@ echo "$varbar"
 echo "${var}bar"
 ----
 
-In addition, the bracketed syntax can be extended to query and manipulate values
-returned from variable substitution. For example, `${#var}` returns the length
-of a string value, `${var:0:1}` returns the first character of the value, and so
-on. It is also possible to provide default (fallback) values.
+In addition, the bracketed syntax can be extended to query and manipulate values returned from variable substitution.
+For example, `${#var}` returns the length of a string value, `${var:0:1}` returns the first character of the value, and
+so on. It is also possible to provide default (fallback) values.
 
-However, the brackets MAY be omitted from positional parameters – `$1`, `$@`,
-etc. – and other special variables.
+However, the brackets MAY be omitted from positional parameters – `$1`, `$@`, etc. – and other special variables.
 
 == Quotes and variable expansion
 
-For variable assignment, almost all values SHOULD be quoted. There are some
-exceptions:
+For variable assignment, almost all values SHOULD be quoted. There are some exceptions:
 
 [source,sh]
 ----
@@ -80,12 +72,11 @@ bool="true" # ✅
 bool=true   # ❌
 ----
 
-Variable references SHOULD be quoted in almost all cases, even if the values are
-things like commands or path names. This prevents word splitting and globbing
-issues.
+Variable references SHOULD be quoted in almost all cases, even if the values are things like commands or path names.
+This prevents word splitting and globbing issues.
 
-Double quotes SHOULD be used in almost all cases. Single quotes MUST be used
-only where you explicitly want to disable substitution.
+Double quotes SHOULD be used in almost all cases. Single quotes MUST be used only where you explicitly want to disable
+substitution.
 
 [source,sh]
 ----
@@ -106,9 +97,8 @@ rm ${filename}    # Interpreted as: `rm My File.txt`   → error
 rm "${filename}"  # Interpreted as: `rm "My File.txt"` → correct
 ----
 
-Where variable expansion is required, the variable reference MUST NOT be quoted,
-and an adjacent comment MUST explain why the variable is being allowed to
-expand.
+Where variable expansion is required, the variable reference MUST NOT be quoted, and an adjacent comment MUST explain
+why the variable is being allowed to expand.
 
 [source,sh]
 ----
@@ -118,18 +108,16 @@ some_command ${vars}
 
 == Positional parameters
 
-Positional parameters are the arguments passed to a script or function. They are
-accessed using the `$1`, `$2`, etc. syntax.
+Positional parameters are the arguments passed to a script or function. They are accessed using the `$1`, `$2`, etc.
+syntax.
 
-It is RECOMMENDED to provide default values for positional parameters in most
-use cases.
+It is RECOMMENDED to provide default values for positional parameters in most use cases.
 
-When you want to pass on _all_ parameters, say from the script to a `main()`
-function, you probably want to use `"$@"` (quoted). This will forward all
-arguments as-is. By comparison, both `$@` and `$*` (unquoted) will split on
-spaces, clobbering arguments that contain spaces and dropping empty-string
-arguments. `"$*"` (quoted) is probably not what you want either; it will expand
-to just one string argument, with words in the value concatenated by spaces.
+When you want to pass on _all_ parameters, say from the script to a `main()` function, you probably want to use `"$@"`
+(quoted). This will forward all arguments as-is. By comparison, both `$@` and
+`$*` (unquoted) will split on spaces, clobbering arguments that contain spaces and dropping empty-string arguments. `"$*"`
+(quoted) is probably not what you want either; it will expand to just one string argument, with words in the value
+concatenated by spaces.
 
 [IMPORTANT]
 ======
@@ -139,8 +127,7 @@ scripts and input to functions within a script. Be defensive in _all_ your code.
 
 == Argument parsing
 
-Choose an argument-handling pattern based on the complexity of the script's
-interface.
+Choose an argument-handling pattern based on the complexity of the script's interface.
 
 *No-argument scripts* SHOULD validate and reject unexpected input:
 
@@ -177,15 +164,14 @@ while [ $# -gt 0 ]; do
 done
 ----
 
-For scripts with more complex option requirements, consider `getopts`, which is
-POSIX-standard and handles short options (`-f`, `-v`) and combined flags
-(`-fv`).
+For scripts with more complex option requirements, consider `getopts`, which is POSIX-standard and handles short options
+(`-f`, `-v`) and combined flags (`-fv`).
 
 == Command substitution
 
 Prefer the newer syntax, `var=$(command)`, over the older backtick syntax,
-`var=`command``. The reason is that nested backticks require escaping with `\`,
-reducing readability of the command statement.
+`var=`command``. The reason is that nested backticks require escaping with `\`, reducing readability of the command
+statement.
 
 [source,sh]
 ----
@@ -196,5 +182,4 @@ var="$(command "$(command1)")"
 var="`command \`command1\``"
 ----
 
-However, both work in all modern POSIX-compliant shells. It is okay to maintain
-the older syntax in legacy scripts.
+However, both work in all modern POSIX-compliant shells. It is okay to maintain the older syntax in legacy scripts.

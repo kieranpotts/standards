@@ -2,16 +2,13 @@
 
 == Prompts
 
-Never build CLI commands that _require_ the user be prompted for input. It MUST
-be possible to run CLIs non-interactively. This means it MUST be possible to
-input all invocation-specific parameters via arguments or flags.
+Never build CLI commands that _require_ the user be prompted for input. It MUST be possible to run CLIs
+non-interactively. This means it MUST be possible to input all invocation-specific parameters via arguments or flags.
 
-Prompts and other interactive elements MUST be enabled only if stdin is an
-interactive terminal (a TTY). In Unix-like systems, this is a pretty reliable
-way to tell whether you're piping data into a command or whether it's being run
-in a script. If the program is not being run in an interactive terminal, prompts
-MUST NOT be used. Instead, the program MUST return errors when required input
-parameters are missing.
+Prompts and other interactive elements MUST be enabled only if stdin is an interactive terminal (a TTY). In Unix-like
+systems, this is a pretty reliable way to tell whether you're piping data into a command or whether it's being run in a
+script. If the program is not being run in an interactive terminal, prompts MUST NOT be used. Instead, the program MUST
+return errors when required input parameters are missing.
 
 [source,sh]
 ----
@@ -23,72 +20,56 @@ else
 fi
 ----
 
-Consider designing in the `--no-input` flag to disable prompts. This MUST force
-the program to run in non-interactive mode.
+Consider designing in the `--no-input` flag to disable prompts. This MUST force the program to run in non-interactive
+mode.
 
-In interactive mode, when a user does not pass a required argument or flag, the
-program SHOULD prompt for the missing input, if possible. In most use cases,
-this is a better experience for the user than receiving an error.
+In interactive mode, when a user does not pass a required argument or flag, the program SHOULD prompt for the missing
+input, if possible. In most use cases, this is a better experience for the user than receiving an error.
 
-In interactive mode, always prompt for confirmation before doing anything
-dangerous or highly destructive. A common convention is to require the user to
-type `y` or `yes`. In non-interactive environments, confirmation SHOULD be done
-by passing the `--force`/`-f` flag. Consider also offering users a `--dry-run`
-mode, which will show them the consequences of their action before they commit
-to it.
+In interactive mode, always prompt for confirmation before doing anything dangerous or highly destructive. A common
+convention is to require the user to type `y` or `yes`. In non-interactive environments, confirmation SHOULD be done by
+passing the `--force`/`-f` flag. Consider also offering users a `--dry-run` mode, which will show them the consequences
+of their action before they commit to it.
 
-Not every dangerous action deserves the same level of friction. Grade the
-confirmation to the severity of what's about to happen:
+Not every dangerous action deserves the same level of friction. Grade the confirmation to the severity of what's about
+to happen:
 
-* *Mild.* A small, local change – for example, deleting one file the user
-  named explicitly. This MAY need no prompt at all, since the user's own
-  command already made their intent explicit.
+* *Mild.* A small, local change – for example, deleting one file the user named explicitly. This MAY need no prompt at
+  all, since the user's own command already made their intent explicit.
 
-* *Moderate.* Deleting a directory, a change to a remote system, or a bulk
-  modification that can't be easily undone. This SHOULD prompt for
-  confirmation by default, and offering a `--dry-run` first is especially
-  valuable here.
+* *Moderate.* Deleting a directory, a change to a remote system, or a bulk modification that can't be easily undone.
+  This SHOULD prompt for confirmation by default, and offering a `--dry-run` first is especially valuable here.
 
-* *Severe.* Deleting something complex and hard to recreate – an entire
-  remote application or environment, for example. Make confirmation hard to
-  trigger by accident: ask the user to type something non-trivial, such as
-  the name of the thing being deleted, rather than a bare `y`/`yes`. Still
-  allow this to be scripted, via a flag that supplies the same value
-  non-interactively (eg. `--confirm=<name>`), so severe operations remain
-  usable in automation without weakening the safeguard for humans.
+* *Severe.* Deleting something complex and hard to recreate – an entire remote application or environment, for example.
+  Make confirmation hard to trigger by accident: ask the user to type something non-trivial, such as the name of the
+  thing being deleted, rather than a bare `y`/`yes`. Still allow this to be scripted, via a flag that supplies the same
+  value non-interactively (eg. `--confirm=<name>`), so severe operations remain usable in automation without weakening
+  the safeguard for humans.
 
-When prompting for passwords, don't print the password as the user types. In
-Unix-like systems, this is done by turning off echo in the terminal. Most other
-systems will have helper functions to support this.
+When prompting for passwords, don't print the password as the user types. In Unix-like systems, this is done by turning
+off echo in the terminal. Most other systems will have helper functions to support this.
 
-For choosing between several options, consider a richer interactive selection
-UI – an arrow-key list, checkboxes, or radio buttons – rather than asking the
-user to type a value exactly. Presenting the choices visually removes typos
-and the need to remember exact option spellings. As with any prompt, this
-MUST be gated on stdin being a TTY (see above), with an equivalent flag-based
-way to supply the same choice non-interactively.
+For choosing between several options, consider a richer interactive selection UI – an arrow-key list, checkboxes, or
+radio buttons – rather than asking the user to type a value exactly. Presenting the choices visually removes typos and
+the need to remember exact option spellings. As with any prompt, this MUST be gated on stdin being a TTY (see above),
+with an equivalent flag-based way to supply the same choice non-interactively.
 
 == Signals
 
-Let users escape from operations by typing `Ctrl`+`C` (the INT signal). Exit as
-soon as possible, and return a confirmation of the exit before you start
-clean-up. Make the exit path obvious – the user should never be left wondering
-how to get out of the program. Don't trap the user in a mode with no visible
-way back to the shell, the way some full-screen terminal programs do.
+Let users escape from operations by typing `Ctrl`+`C` (the INT signal). Exit as soon as possible, and return a
+confirmation of the exit before you start clean-up. Make the exit path obvious – the user should never be left wondering
+how to get out of the program. Don't trap the user in a mode with no visible way back to the shell, the way some
+full-screen terminal programs do.
 
-For a program that wraps execution of something else – an SSH session, a
-`tmux` client, a `telnet` session – `Ctrl+C` may be consumed by the wrapped
-program instead of reaching your CLI. Make the escape route clear in these
-cases, following the precedent of SSH's `~` escape sequences (eg. `~.` to
-terminate the connection), and document it in the program's help text.
+For a program that wraps execution of something else – an SSH session, a `tmux` client, a `telnet` session – `Ctrl+C`
+may be consumed by the wrapped program instead of reaching your CLI. Make the escape route clear in these cases,
+following the precedent of SSH's `~` escape sequences (eg. `~.` to terminate the connection), and document it in the
+program's help text.
 
-Remember to add a timeout to any clean-up operation, so it doesn't hang forever.
-If the user types `Ctrl`+`C` again during the clean-up operation, cancel the
-clean-up. Design your programs to start in situations where clean-up of prior
+Remember to add a timeout to any clean-up operation, so it doesn't hang forever. If the user types `Ctrl`+`C` again
+during the clean-up operation, cancel the clean-up. Design your programs to start in situations where clean-up of prior
 operations has not been completed.
 
-Where the second `Ctrl+C` would trigger something destructive – Docker
-Compose, for example, forces its containers to stop immediately on a second
-`Ctrl+C` rather than waiting for a graceful shutdown – tell the user what will
-happen if they press it again, at the moment clean-up begins. Don't let a
-destructive shortcut be a surprise.
+Where the second `Ctrl+C` would trigger something destructive – Docker Compose, for example, forces its containers to
+stop immediately on a second `Ctrl+C` rather than waiting for a graceful shutdown – tell the user what will happen if
+they press it again, at the moment clean-up begins. Don't let a destructive shortcut be a surprise.

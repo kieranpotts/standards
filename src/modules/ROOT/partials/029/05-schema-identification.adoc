@@ -1,9 +1,8 @@
 = Schema identification
 
-The Core vocabulary is the set of keywords the JSON Schema specification
-itself depends on, independent of any other vocabulary — schema identity,
-inline reuse, and dynamic referencing. `$ref` (see <<Cross-references>>) is
-also part of this vocabulary; the keywords below are its companions.
+The Core vocabulary is the set of keywords the JSON Schema specification itself depends on, independent of any other
+vocabulary — schema identity, inline reuse, and dynamic referencing. `$ref` (see <<Cross-references>>) is also part of
+this vocabulary; the keywords below are its companions.
 
 == Document skeleton
 
@@ -20,35 +19,26 @@ A schema document SHOULD begin with `$schema` and `$id`:
 }
 ----
 
-`$schema` declares which draft the document is written against (see
-<<Versions>>) and is REQUIRED at the root of every schema document, so that
-validators and tooling know which keyword set to apply. `$id` declares the
-schema's own canonical URI. It is REQUIRED at the root of every schema
-document that is referenced from elsewhere via `$ref`, since `$ref`
-resolution is relative to the nearest enclosing `$id`; it is OPTIONAL, and
-NOT RECOMMENDED, on a schema that only ever appears inline. `title` and
-`description` (see <<Annotations>>) commonly follow `$id`, then `type` and
-the rest of the schema's constraints.
+`$schema` declares which draft the document is written against (see <<Versions>>) and is REQUIRED at the root of every
+schema document, so that validators and tooling know which keyword set to apply. `$id` declares the schema's own
+canonical URI. It is REQUIRED at the root of every schema document that is referenced from elsewhere via `$ref`, since
+`$ref` resolution is relative to the nearest enclosing `$id`; it is OPTIONAL, and NOT RECOMMENDED, on a schema that only
+ever appears inline. `title` and `description` (see <<Annotations>>) commonly follow `$id`, then `type` and the rest of
+the schema's constraints.
 
 == `$comment`
 
-`$comment` attaches a note to a schema for maintainers — for example, why a
-constraint exists, or a link to the ticket that introduced it. Unlike
-`description`, which is annotation intended for schema consumers, `$comment`
-is not surfaced to consumers and tooling MAY strip it. It is RECOMMENDED
-over an ad-hoc convention such as a `//`-prefixed property, since a
-non-standard key risks being interpreted as data by a validator that does
-not know to ignore it.
+`$comment` attaches a note to a schema for maintainers — for example, why a constraint exists, or a link to the ticket
+that introduced it. Unlike `description`, which is annotation intended for schema consumers, `$comment` is not surfaced
+to consumers and tooling MAY strip it. It is RECOMMENDED over an ad-hoc convention such as a `//`-prefixed property,
+since a non-standard key risks being interpreted as data by a validator that does not know to ignore it.
 
 == `$defs`
 
-`$defs` is a reserved location for subschemas meant to be referenced by
-`$ref`, rather than validated directly. It is RECOMMENDED for reusable
-subschemas that are only ever consumed from within the same document —
-where <<Cross-references>>' file-per-schema, `$ref`-to-sibling-file pattern
-would be excessive. Combine a `$defs` reference with `allOf` (see
-<<Boolean composition>>) to merge a shared subschema into several
-properties:
+`$defs` is a reserved location for subschemas meant to be referenced by `$ref`, rather than validated directly. It is
+RECOMMENDED for reusable subschemas that are only ever consumed from within the same document — where
+<<Cross-references>>' file-per-schema, `$ref`-to-sibling-file pattern would be excessive. Combine a `$defs` reference
+with `allOf` (see <<Boolean composition>>) to merge a shared subschema into several properties:
 
 [source,json]
 ----
@@ -73,45 +63,32 @@ properties:
 }
 ----
 
-A subschema under `$defs` is not itself applied to the instance being
-validated — only a `$ref` to it is. Prefer `$defs` over duplicating a
-subschema at each point of use, for the same reason duplicated code is
-avoided elsewhere: one definition, updated once, without the risk of a
-partial edit leaving the copies out of sync.
+A subschema under `$defs` is not itself applied to the instance being validated — only a `$ref` to it is. Prefer `$defs`
+over duplicating a subschema at each point of use, for the same reason duplicated code is avoided elsewhere: one
+definition, updated once, without the risk of a partial edit leaving the copies out of sync.
 
 == `$anchor`, `$dynamicAnchor`, and `$dynamicRef`
 
-`$anchor` names a location within a schema document so it can be targeted by
-a fragment `$ref` (`"$ref": "#anchor-name"`) without depending on the
-subschema's structural path — useful because a structural path
-(`#/$defs/address`) breaks if the subschema is moved, while a named anchor
-does not.
+`$anchor` names a location within a schema document so it can be targeted by a fragment `$ref`
+(`"$ref": "#anchor-name"`) without depending on the subschema's structural path — useful because a structural path
+(`#/$defs/address`) breaks if the subschema is moved, while a named anchor does not.
 
-`$dynamicAnchor` and `$dynamicRef` are a specialized pair for building
-extensible, recursive schemas — for example, a base "node" schema that a
-downstream schema extends with additional properties, where the recursive
-reference must resolve against the *extending* schema, not the schema that
-declared it. This is NOT RECOMMENDED for general-purpose schema reuse:
-`$dynamicRef` resolution depends on the full chain of schemas in scope at
-validation time, which is harder to reason about than a plain `$ref`, and
-most validators implement it more strictly, and with more edge-case bugs,
-than plain referencing. Reach for it only when building a schema meant to be
-extended by others, such as a shared base vocabulary; prefer plain `$ref`
-and `$anchor` otherwise.
+`$dynamicAnchor` and `$dynamicRef` are a specialized pair for building extensible, recursive schemas — for example, a
+base "node" schema that a downstream schema extends with additional properties, where the recursive reference must
+resolve against the *extending* schema, not the schema that declared it. This is NOT RECOMMENDED for general-purpose
+schema reuse: `$dynamicRef` resolution depends on the full chain of schemas in scope at validation time, which is harder
+to reason about than a plain `$ref`, and most validators implement it more strictly, and with more edge-case bugs, than
+plain referencing. Reach for it only when building a schema meant to be extended by others, such as a shared base
+vocabulary; prefer plain `$ref` and `$anchor` otherwise.
 
-A plain, non-recursive self-reference — a schema that refers to itself via
-`$ref` to validate a recursive data structure such as a tree — needs none of
-this: `$ref` to the document's own root (`"$ref": "#"`) or to a `$defs`
-entry via `$anchor` is sufficient, and is RECOMMENDED over `$dynamicRef` for
-that case.
+A plain, non-recursive self-reference — a schema that refers to itself via `$ref` to validate a recursive data structure
+such as a tree — needs none of this: `$ref` to the document's own root (`"$ref": "#"`) or to a `$defs` entry via
+`$anchor` is sufficient, and is RECOMMENDED over `$dynamicRef` for that case.
 
 == `$vocabulary`
 
-`$vocabulary` declares which sets of keywords a meta-schema requires or
-allows, and is how the Format Assertion vocabulary (see <<Format>>) is
-opted into. It is used when authoring a meta-schema — a schema that
-constrains other schemas — which is NOT RECOMMENDED for most projects. Most
-schema authors never need to write one, and existing meta-schemas such as
-Draft 2020-12's default cover ordinary use. Where a meta-schema is genuinely
-needed, `$vocabulary` MUST be declared at its root, listing each vocabulary
-URI and whether it is required (`true`) or optional (`false`).
+`$vocabulary` declares which sets of keywords a meta-schema requires or allows, and is how the Format Assertion
+vocabulary (see <<Format>>) is opted into. It is used when authoring a meta-schema — a schema that constrains other
+schemas — which is NOT RECOMMENDED for most projects. Most schema authors never need to write one, and existing
+meta-schemas such as Draft 2020-12's default cover ordinary use. Where a meta-schema is genuinely needed, `$vocabulary`
+MUST be declared at its root, listing each vocabulary URI and whether it is required (`true`) or optional (`false`).

@@ -1,50 +1,38 @@
 = Security
 
-YAML parsing untrusted input carries risks that JSON parsing does not,
-because several YAML libraries default to a permissive mode that goes beyond
-building a plain data structure.
+YAML parsing untrusted input carries risks that JSON parsing does not, because several YAML libraries default to a
+permissive mode that goes beyond building a plain data structure.
 
 == Arbitrary object construction
 
-Some YAML libraries support language-specific tags that instruct the parser
-to instantiate arbitrary objects, or even invoke code, while deserializing a
-document. PyYAML's default `yaml.load()` (prior to library defaults changing
-in newer releases) is the best-known example: a document containing a tag
-such as `!!python/object/apply` could execute arbitrary code the moment it
-was parsed. This class of vulnerability is not unique to Python — any
-language whose YAML library supports open-ended type tags is exposed.
+Some YAML libraries support language-specific tags that instruct the parser to instantiate arbitrary objects, or even
+invoke code, while deserializing a document. PyYAML's default `yaml.load()` (prior to library defaults changing in newer
+releases) is the best-known example: a document containing a tag such as `!!python/object/apply` could execute arbitrary
+code the moment it was parsed. This class of vulnerability is not unique to Python — any language whose YAML library
+supports open-ended type tags is exposed.
 
-Any YAML document that may originate from an untrusted source (an uploaded
-file, a webhook payload, a value pulled from user input) MUST be parsed with
-a "safe" loader that restricts deserialization to YAML's built-in scalar,
-sequence, and mapping types, and refuses custom or language-specific tags
-(`yaml.safe_load()` in PyYAML, and the equivalent safe/restricted mode in
-other libraries). Never use an "unsafe" or "full" loader on untrusted input.
+Any YAML document that may originate from an untrusted source (an uploaded file, a webhook payload, a value pulled from
+user input) MUST be parsed with a "safe" loader that restricts deserialization to YAML's built-in scalar, sequence, and
+mapping types, and refuses custom or language-specific tags (`yaml.safe_load()` in PyYAML, and the equivalent
+safe/restricted mode in other libraries). Never use an "unsafe" or "full" loader on untrusted input.
 
 == Denial of service via alias expansion
 
-An anchor referenced by nested aliases can expand exponentially when the
-parser resolves it — the YAML analogue of the XML "billion laughs" attack.
-A few kilobytes of source YAML, built from anchors that alias other
-anchors, can expand into gigabytes of in-memory data, exhausting memory or
-CPU before the application ever inspects the parsed value.
+An anchor referenced by nested aliases can expand exponentially when the parser resolves it — the YAML analogue of the
+XML "billion laughs" attack. A few kilobytes of source YAML, built from anchors that alias other anchors, can expand
+into gigabytes of in-memory data, exhausting memory or CPU before the application ever inspects the parsed value.
 
-A safe loader mitigates this in the same way it mitigates arbitrary object
-construction, but SHOULD be paired with an explicit resource limit (maximum
-document size, maximum nesting depth, or a parser-level alias-expansion
-limit, where the library offers one) whenever parsing YAML from an untrusted
-source. Do not rely on a safe loader alone as a complete defense against
-resource-exhaustion attacks.
+A safe loader mitigates this in the same way it mitigates arbitrary object construction, but SHOULD be paired with an
+explicit resource limit (maximum document size, maximum nesting depth, or a parser-level alias-expansion limit, where
+the library offers one) whenever parsing YAML from an untrusted source. Do not rely on a safe loader alone as a complete
+defense against resource-exhaustion attacks.
 
 == General guidance
 
-* Treat any YAML document from outside the project's own trust boundary as
-  untrusted input, and validate it against a schema (see
-  <<Schema validation>>) before acting on its contents.
-* Prefer a YAML library's safe/restricted loading mode as the default for
-  all parsing, reserving the full/unsafe mode — if the library even
-  distinguishes one — for cases where the document's origin is fully
-  trusted and the extra type-construction behavior is actually required.
-* Do not embed secrets directly in YAML files committed to version control.
-  See
+* Treat any YAML document from outside the project's own trust boundary as untrusted input, and validate it against a
+  schema (see <<Schema validation>>) before acting on its contents.
+* Prefer a YAML library's safe/restricted loading mode as the default for all parsing, reserving the full/unsafe mode —
+  if the library even distinguishes one — for cases where the document's origin is fully trusted and the extra
+  type-construction behavior is actually required.
+* Do not embed secrets directly in YAML files committed to version control. See
   xref:052.adoc[*TS-52: Security and secrets management*].

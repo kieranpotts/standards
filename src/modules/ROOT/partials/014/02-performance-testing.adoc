@@ -1,119 +1,94 @@
 = Performance testing
 
-Performance testing evaluates whether the system-under-test meets its
-non-functional requirements under normal operational conditions. Just as with
-functional requirements, non-functional requirements MUST have well-defined
-acceptance criteria — typically defined as performance metrics and thresholds
-such as response time, throughput, and resource utilization.
+Performance testing evaluates whether the system-under-test meets its non-functional requirements under normal
+operational conditions. Just as with functional requirements, non-functional requirements MUST have well-defined
+acceptance criteria — typically defined as performance metrics and thresholds such as response time, throughput, and
+resource utilization.
 
-Performance testing encompasses a range of specific techniques, several of which
-— capacity testing, scalability testing, and others — are covered in dedicated
-sections of this standard. This section addresses the general principles and
-practices that apply across all forms of performance evaluation.
+Performance testing encompasses a range of specific techniques, several of which — capacity testing, scalability
+testing, and others — are covered in dedicated sections of this standard. This section addresses the general principles
+and practices that apply across all forms of performance evaluation.
 
 The key performance metrics to evaluate include:
 
-* *Response time* — how long the system takes to respond to a request, usually
-  measured at specific percentiles (p50, p95, p99) rather than as averages,
-  since averages hide tail latency.
+* *Response time* — how long the system takes to respond to a request, usually measured at specific percentiles (p50,
+  p95, p99) rather than as averages, since averages hide tail latency.
 
-* *Throughput* — the number of transactions or requests the system can process
-  per unit of time.
+* *Throughput* — the number of transactions or requests the system can process per unit of time.
 
-* *Resource utilization* — CPU, memory, disk I/O, and network bandwidth consumed
-  during operation. High utilization under normal load may indicate capacity
-  risks.
+* *Resource utilization* — CPU, memory, disk I/O, and network bandwidth consumed during operation. High utilization
+  under normal load may indicate capacity risks.
 
-* *Error rate* — the proportion of requests that result in errors under load. A
-  system may appear fast while silently failing a percentage of requests.
+* *Error rate* — the proportion of requests that result in errors under load. A system may appear fast while silently
+  failing a percentage of requests.
 
-Performance tests serve both a *verification* and a *monitoring* function. In
-the verification role, they confirm that the system meets specific performance
-targets before release. In the monitoring role, they track performance trends
-over time, providing early warning of gradual degradation — sometimes called
-*performance drift* — that might not be caught by functional tests.
+Performance tests serve both a *verification* and a *monitoring* function. In the verification role, they confirm that
+the system meets specific performance targets before release. In the monitoring role, they track performance trends over
+time, providing early warning of gradual degradation — sometimes called *performance drift* — that might not be caught
+by functional tests.
 
-*Baseline testing* establishes reference measurements under known conditions — a
-defined number of concurrent users, a representative data set, a specific
-infrastructure configuration. All subsequent performance evaluations are
-compared against this baseline. Without baselines, it is impossible to determine
-whether performance is improving or degrading.
+*Baseline testing* establishes reference measurements under known conditions — a defined number of concurrent users, a
+representative data set, a specific infrastructure configuration. All subsequent performance evaluations are compared
+against this baseline. Without baselines, it is impossible to determine whether performance is improving or degrading.
 
-*Soak testing* (also called endurance testing) runs the system under sustained
-load for an extended period — hours or days rather than minutes. The purpose is
-to expose problems that only emerge over time, such as memory leaks, connection
+*Soak testing* (also called endurance testing) runs the system under sustained load for an extended period — hours or
+days rather than minutes. The purpose is to expose problems that only emerge over time, such as memory leaks, connection
 pool exhaustion, log file growth, and gradual resource depletion.
 
-*Spike testing* subjects the system to sudden, dramatic increases in load,
-followed by equally sudden decreases. This reveals how the system behaves when
-traffic surges unexpectedly and whether it recovers gracefully when the spike
+*Spike testing* subjects the system to sudden, dramatic increases in load, followed by equally sudden decreases. This
+reveals how the system behaves when traffic surges unexpectedly and whether it recovers gracefully when the spike
 subsides.
 
 Best practices:
 
-* Define performance requirements as specific, measurable targets — eg. "p95
-  response time under 200ms at 500 concurrent users" — not vague aspirations
-  like "the system should be fast."
+* Define performance requirements as specific, measurable targets — eg. "p95 response time under 200ms at 500 concurrent
+  users" — not vague aspirations like "the system should be fast."
 
-* Simulate realistic user behavior patterns and transaction volumes. Synthetic
-  benchmarks that do not reflect real usage patterns will give misleading
-  results.
+* Simulate realistic user behavior patterns and transaction volumes. Synthetic benchmarks that do not reflect real usage
+  patterns will give misleading results.
 
-* Conduct performance testing in environments that mirror production
-  infrastructure as closely as possible. Differences in hardware, network
-  topology, or data volume can invalidate results.
+* Conduct performance testing in environments that mirror production infrastructure as closely as possible. Differences
+  in hardware, network topology, or data volume can invalidate results.
 
-* Establish baseline performance metrics early in the project, and track them
-  over time to detect gradual degradation.
+* Establish baseline performance metrics early in the project, and track them over time to detect gradual degradation.
 
-* Automate performance tests and integrate them into the CI/CD pipeline, so
-  regressions in response time or throughput are caught early.
+* Automate performance tests and integrate them into the CI/CD pipeline, so regressions in response time or throughput
+  are caught early.
 
-* Use percentile-based metrics (p95, p99) rather than averages. A system with an
-  average response time of 100ms may have a p99 of 5 seconds — a serious problem
-  that the average conceals.
+* Use percentile-based metrics (p95, p99) rather than averages. A system with an average response time of 100ms may have
+  a p99 of 5 seconds — a serious problem that the average conceals.
 
-* Include soak tests in the regular testing cadence, not just before major
-  releases. Resource leaks often take hours to manifest.
+* Include soak tests in the regular testing cadence, not just before major releases. Resource leaks often take hours to
+  manifest.
 
-* Monitor all layers of the stack during performance tests — application,
-  database, network, infrastructure — to identify where bottlenecks occur.
+* Monitor all layers of the stack during performance tests — application, database, network, infrastructure — to
+  identify where bottlenecks occur.
 
 == Diagnosing across abstraction layers
 
-A performance test reports a symptom — a slow endpoint, a p99 spike, a
-throughput ceiling — not a cause. Finding the cause routinely requires
-reasoning about layers below the one where the symptom was observed: the
-runtime or interpreter executing the application code, the code the compiler
-or JIT actually generated, the operating system's scheduling and I/O behavior,
-and the hardware's cache and memory characteristics. A slow Python function
-may be slow because of an algorithm, because of CPython's object model, or
-because of cache misses in the C extension it calls into; the test result
-alone does not say which.
+A performance test reports a symptom — a slow endpoint, a p99 spike, a throughput ceiling — not a cause. Finding the
+cause routinely requires reasoning about layers below the one where the symptom was observed: the runtime or interpreter
+executing the application code, the code the compiler or JIT actually generated, the operating system's scheduling and
+I/O behavior, and the hardware's cache and memory characteristics. A slow Python function may be slow because of an
+algorithm, because of CPython's object model, or because of cache misses in the C extension it calls into; the test
+result alone does not say which.
 
-This is a distinct skill from writing the test itself, and it does not
-develop automatically from running tests. Engineers build it by habitually
-asking, when a result is surprising, what the next layer down would have to
-be doing to produce it — then confirming with a profiler, a debugger, or the
-layer's own instrumentation rather than guessing.
+This is a distinct skill from writing the test itself, and it does not develop automatically from running tests.
+Engineers build it by habitually asking, when a result is surprising, what the next layer down would have to be doing to
+produce it — then confirming with a profiler, a debugger, or the layer's own instrumentation rather than guessing.
 
-* *Profile before hypothesizing.* A flame graph or sampling profiler narrows
-  the search to the actual hot path before any layer-specific investigation
-  starts. Reasoning about the wrong layer wastes as much time as not
-  reasoning about layers at all.
+* *Profile before hypothesizing.* A flame graph or sampling profiler narrows the search to the actual hot path before
+  any layer-specific investigation starts. Reasoning about the wrong layer wastes as much time as not reasoning about
+  layers at all.
 
-* *Keep one mental model per layer, not one model of the whole stack.* Treat
-  the interpreter's dispatch loop, the OS scheduler, and the CPU cache
-  hierarchy as separate, composable explanations. A regression is usually
-  explained by one layer behaving unexpectedly, not by the interaction of
-  all of them at once.
+* *Keep one mental model per layer, not one model of the whole stack.* Treat the interpreter's dispatch loop, the OS
+  scheduler, and the CPU cache hierarchy as separate, composable explanations. A regression is usually explained by one
+  layer behaving unexpectedly, not by the interaction of all of them at once.
 
-* *Reproduce the symptom at the smallest layer that shows it.* A benchmark
-  that isolates the interpreter, the query planner, or the syscall in
-  question, stripped of the surrounding application, turns a vague
-  production slowdown into a reproducible, layer-scoped test case.
+* *Reproduce the symptom at the smallest layer that shows it.* A benchmark that isolates the interpreter, the query
+  planner, or the syscall in question, stripped of the surrounding application, turns a vague production slowdown into a
+  reproducible, layer-scoped test case.
 
-* *Treat this as an engineering practice to grow deliberately, not a
-  prerequisite to hire for.* Teams build this capability over time by
-  pairing on performance investigations and writing up root causes — not by
-  filtering for it up front, which needlessly narrows the hiring pool.
+* *Treat this as an engineering practice to grow deliberately, not a prerequisite to hire for.* Teams build this
+  capability over time by pairing on performance investigations and writing up root causes — not by filtering for it up
+  front, which needlessly narrows the hiring pool.

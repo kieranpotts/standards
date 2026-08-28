@@ -1,33 +1,27 @@
 = Asynchronous operations
 
-In general, synchronous operations SHOULD be preferred over asynchronous ones,
-as they simplify implementations on both the server-side and client-side. But
-there are some use cases where asynchronous operations are necessary or
+In general, synchronous operations SHOULD be preferred over asynchronous ones, as they simplify implementations on
+both the server-side and client-side. But there are some use cases where asynchronous operations are necessary or
 beneficial.
 
-Asynchronicity is particularly advantageous in long-running tasks, such as image
-processing and video transcoding. It is also useful in operations that require
-interactions with external systems, such as sending emails or SMS messages,
-where the response time of the external system is unpredictable and where the
-client requires only confirmation that the message was _sent_ and does not
-require an immediate understanding of the outcome of that operation.
+Asynchronicity is particularly advantageous in long-running tasks, such as image processing and video transcoding.
+It is also useful in operations that require interactions with external systems, such as sending emails or SMS
+messages, where the response time of the external system is unpredictable and where the client requires only
+confirmation that the message was _sent_ and does not require an immediate understanding of the outcome of that
+operation.
 
-In implementing asynchronous operations, it is RECOMMENDED to conform to the
-following best practices.
+In implementing asynchronous operations, it is RECOMMENDED to conform to the following best practices.
 
-Responses to resource creation, update, and deletion operations SHOULD return
-the `202 Accepted` status code. This indicates that the request has been
-accepted for processing, but the processing has not yet been completed.
+Responses to resource creation, update, and deletion operations SHOULD return the `202 Accepted` status code. This
+indicates that the request has been accepted for processing, but the processing has not yet been completed.
 
-The response body MAY include hypermedia links to any created or updated
-resources. There are two possible approaches to implementing this in the context
-of asynchronous operations. The first option is to include the final URL of the
-resource, from where clients can `GET` the latest representation of the resource
-in the normal way. This can be a good option in scenarios where the resource's
-ID and path are already known. If a newly-created resource is not yet ready, or
-if the resource has been deleted, the final URL SHOULD return the HTTP status
-code `404 Not Found`. Clients simply keep polling the provided endpoint until it
-is confirmed that the resource has been mutated as expected.
+The response body MAY include hypermedia links to any created or updated resources. There are two possible
+approaches to implementing this in the context of asynchronous operations. The first option is to include the
+final URL of the resource, from where clients can `GET` the latest representation of the resource in the normal
+way. This can be a good option in scenarios where the resource's ID and path are already known. If a newly-created
+resource is not yet ready, or if the resource has been deleted, the final URL SHOULD return the HTTP status code
+`404 Not Found`. Clients simply keep polling the provided endpoint until it is confirmed that the resource has been
+mutated as expected.
 
 [source,json]
 ----
@@ -38,8 +32,8 @@ is confirmed that the resource has been mutated as expected.
 }
 ----
 
-A second option is to return a temporary URL where the status of the queued
-operation may be obtained via some kind of temporary identifier.
+A second option is to return a temporary URL where the status of the queued operation may be obtained via some kind
+of temporary identifier.
 
 [source,json]
 ----
@@ -50,11 +44,10 @@ operation may be obtained via some kind of temporary identifier.
 }
 ----
 
-Where the operation resource supports more than `GET` – eg. the `DELETE`
-cancellation described in *Operations resource*, below – the response SHOULD
-include a link for each supported operation, not only `self`, so that clients
-can discover what is possible without hard-coding assumptions about which
-methods a given operation supports:
+Where the operation resource supports more than `GET` – eg. the `DELETE` cancellation described in *Operations
+resource*, below – the response SHOULD include a link for each supported operation, not only `self`, so that
+clients can discover what is possible without hard-coding assumptions about which methods a given operation
+supports:
 
 [source,json]
 ----
@@ -74,13 +67,11 @@ methods a given operation supports:
 }
 ----
 
-Where the second option is used and the operation creates a new resource, once
-the operation completes, the status endpoint SHOULD respond with
-`303 See Other` and a `Location` header pointing at the newly-created
-resource's URL, rather than continuing to return the operation's own status
-representation. This gives the client a single, explicit signal that
-processing has finished and where the result now lives, without requiring it
-to infer completion from the status body's contents.
+Where the second option is used and the operation creates a new resource, once the operation completes, the status
+endpoint SHOULD respond with `303 See Other` and a `Location` header pointing at the newly-created resource's URL,
+rather than continuing to return the operation's own status representation. This gives the client a single,
+explicit signal that processing has finished and where the result now lives, without requiring it to infer
+completion from the status body's contents.
 
 [source,http]
 ----
@@ -90,9 +81,8 @@ Location: /v1/namespace/resources/{resource_id}
 
 == Operations resource
 
-Where an API implements a substantial amount of asynchronous processing, it is
-RECOMMENDED to expose a dedicated `/operations` collection, rather than only
-ad hoc per-request status URLs, so that operation status is modelled
+Where an API implements a substantial amount of asynchronous processing, it is RECOMMENDED to expose a dedicated
+`/operations` collection, rather than only ad hoc per-request status URLs, so that operation status is modelled
 consistently and clients have one place to discover in-flight and past work.
 
 .Template
@@ -102,44 +92,33 @@ GET /v{major}/operations/{operation_id}
 DELETE /v{major}/operations/{operation_id}
 ----
 
-`GET /v\{major}/operations` SHOULD support pagination, sorting, and filtering
-per the *Collections* section. The default sort order SHOULD list operations
-by state, in the order `not_started`, `running`, `succeeded`, `failed`, and by
-creation time within each state.
+`GET /v\{major}/operations` SHOULD support pagination, sorting, and filtering per the *Collections* section. The
+default sort order SHOULD list operations by state, in the order `not_started`, `running`, `succeeded`, `failed`,
+and by creation time within each state.
 
-An individual operation resource MUST support `GET`, and its representation
-MUST include:
+An individual operation resource MUST support `GET`, and its representation MUST include:
 
 * `status`: One of `not_started`, `running`, `succeeded`, or `failed`.
 * `create_time`: When the operation was created.
 * `update_time`: When the operation's status was last changed.
-* `percent_complete`: An estimate of progress, where the underlying processing
-  can support one. This field MAY be omitted where no meaningful estimate is
-  available.
+* `percent_complete`: An estimate of progress, where the underlying processing can support one. This field MAY be
+  omitted where no meaningful estimate is available.
 
-An operation resource MAY support `DELETE`, to allow a client to request
-cancellation of an in-progress operation. Where implemented, `DELETE` MUST be
-idempotent, per the *Safeness and idempotency* section – repeating a
-cancellation request against an already-cancelled or already-completed
-operation MUST NOT be treated as an error.
+An operation resource MAY support `DELETE`, to allow a client to request cancellation of an in-progress operation.
+Where implemented, `DELETE` MUST be idempotent, per the *Safeness and idempotency* section – repeating a
+cancellation request against an already-cancelled or already-completed operation MUST NOT be treated as an error.
 
-A server MAY retain a *tombstone* – a minimal record that the operation
-existed and how it concluded – for some period after an operation completes,
-rather than deleting the record immediately, so that a client that was
-disconnected during processing can still discover the outcome. This retention
-period MUST be documented per API, since the appropriate duration depends on
-how long a client might reasonably remain disconnected.
+A server MAY retain a *tombstone* – a minimal record that the operation existed and how it concluded – for some
+period after an operation completes, rather than deleting the record immediately, so that a client that was
+disconnected during processing can still discover the outcome. This retention period MUST be documented per API,
+since the appropriate duration depends on how long a client might reasonably remain disconnected.
 
-It is RECOMMENDED that all HTTP APIs that implement asynchronous processing also
-support a single webhook that clients may optionally implement to receive push
-notifications of any asynchronously-updated resources, or the results of any
-asynchronously-processed actions. This offers a third option for clients to keep
-their state synchronized with server changes – whether triggered by asynchronous
-operations or even by other clients. See
-xref:022.adoc[*TS-22: Webhooks*] for further guidelines on
-implementing this option.
+It is RECOMMENDED that all HTTP APIs that implement asynchronous processing also support a single webhook that
+clients may optionally implement to receive push notifications of any asynchronously-updated resources, or the
+results of any asynchronously-processed actions. This offers a third option for clients to keep their state
+synchronized with server changes – whether triggered by asynchronous operations or even by other clients. See
+xref:022.adoc[*TS-22: Webhooks*] for further guidelines on implementing this option.
 
-It may be desirable to support both synchronous and asynchronous processing on
-the same endpoints. One possible design pattern is to support synchronous
-processing by default but allow clients to opt-in to asynchronous processing
-using the `Prefer=respond-async` header.
+It may be desirable to support both synchronous and asynchronous processing on the same endpoints. One possible
+design pattern is to support synchronous processing by default but allow clients to opt-in to asynchronous
+processing using the `Prefer=respond-async` header.

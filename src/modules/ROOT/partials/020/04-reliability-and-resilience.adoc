@@ -1,65 +1,53 @@
 = Reliability and resilience
 
-Building reliable and resilient APIs requires attention to error handling, rate
-limiting, and failure recovery patterns.
+Building reliable and resilient APIs requires attention to error handling, rate limiting, and failure recovery patterns.
 
 == Error handling
 
 Error responses must be standardized across all network APIs.
 
-Include actionable error messages that provide enough context for clients to
-understand what went wrong, paired with documented error codes that can be
-reliably parsed.
+Include actionable error messages that provide enough context for clients to understand what went wrong, paired with
+documented error codes that can be reliably parsed.
 
-Use consistent response status codes throughout your API. For HTTP APIs, this
-typically means using 200, 400, 401, 403, 404, 429, 500, and 503 with clear
-semantics for each.
+Use consistent response status codes throughout your API. For HTTP APIs, this typically means using 200, 400, 401, 403,
+404, 429, 500, and 503 with clear semantics for each.
 
-In batch operations, where some requests succeed and others fail, report partial
-successes so clients understand exactly which operations succeeded and which
-ones need to be retried.
+In batch operations, where some requests succeed and others fail, report partial successes so clients understand exactly
+which operations succeeded and which ones need to be retried.
 
 == Rate limiting and backoff
 
-Apply rate limiting at the appropriate level for your use case. This might be
-per client, per endpoint, or per resource depending on your needs.
+Apply rate limiting at the appropriate level for your use case. This might be per client, per endpoint, or per resource
+depending on your needs.
 
-Include rate limit information in response headers, where possible, so clients
-can see how close they are to hitting limits and adjust their behavior
-accordingly. When clients do hit rate limits or encounter transient failures,
-they should implement exponential backoff for their retry logic.
+Include rate limit information in response headers, where possible, so clients can see how close they are to hitting
+limits and adjust their behavior accordingly. When clients do hit rate limits or encounter transient failures, they
+should implement exponential backoff for their retry logic.
 
-Where a de facto standard exists, use it. `X-RateLimit-Limit`,
-`X-RateLimit-Remaining`, and `X-RateLimit-Reset` are the most widely adopted
-set of rate-limit headers, communicating respectively the maximum number of
-requests allowed in the current window, how many of that allowance remain,
-and when the window resets. Return them on every request, not only once the
-client has been throttled, so a well-behaved client can back off before
-hitting `429`. There is no single agreed unit for `X-RateLimit-Reset` across
-the industry — some APIs return relative seconds until reset, others a UTC
-epoch timestamp — so document the convention in use for your API and hold it
-consistent across every endpoint.
+Where a de facto standard exists, use it. `X-RateLimit-Limit`, `X-RateLimit-Remaining`, and `X-RateLimit-Reset` are the
+most widely adopted set of rate-limit headers, communicating respectively the maximum number of requests allowed in the
+current window, how many of that allowance remain, and when the window resets. Return them on every request, not only
+once the client has been throttled, so a well-behaved client can back off before hitting `429`. There is no single
+agreed unit for `X-RateLimit-Reset` across the industry — some APIs return relative seconds until reset, others a UTC
+epoch timestamp — so document the convention in use for your API and hold it consistent across every endpoint.
 
-It's important to distinguish between rate limits (temporary restrictions to
-protect the API) and usage quotas (permanent restrictions on what a customer is
-allowed to do), as they have different semantics and should be communicated
-differently to clients.
+It's important to distinguish between rate limits (temporary restrictions to protect the API) and usage quotas
+(permanent restrictions on what a customer is allowed to do), as they have different semantics and should be
+communicated differently to clients.
 
 == Circuit breakers
 
-The circuit breaker pattern helps prevent cascading failures when downstream
-services become unhealthy.
+The circuit breaker pattern helps prevent cascading failures when downstream services become unhealthy.
 
-Implement monitoring of downstream services to track latency, error rates, and
-other health metrics, automatically adjusting upstream behavior in response.
+Implement monitoring of downstream services to track latency, error rates, and other health metrics, automatically
+adjusting upstream behavior in response.
 
-Track the open, closed, and half-open states for each downstream dependency. An
-open circuit rejects requests immediately, a closed circuit passes them through,
-and a half-open state allows a limited number of test requests, which can be
-used to determine if the service has recovered.
+Track the open, closed, and half-open states for each downstream dependency. An open circuit rejects requests
+immediately, a closed circuit passes them through, and a half-open state allows a limited number of test requests, which
+can be used to determine if the service has recovered.
 
-Provide fallback mechanisms that degrade functionality gracefully when
-dependencies are unavailable, rather than failing completely.
+Provide fallback mechanisms that degrade functionality gracefully when dependencies are unavailable, rather than failing
+completely.
 
-Finally, test service recovery in an automated way so you know that your system
-can actually recover when a problem is fixed.
+Finally, test service recovery in an automated way so you know that your system can actually recover when a problem is
+fixed.

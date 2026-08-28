@@ -2,90 +2,71 @@
 
 // #REVIEWED 2026-08-18
 
-Feature flags (aka. feature toggles) MUST be a foundational part of the
-architecture of every non-trivial software application.
+Feature flags (aka. feature toggles) MUST be a foundational part of the architecture of every non-trivial software
+application.
 
-One of the biggest challenges in delivering software updates to users
-incrementally through continuous integration and continuous deployment is that
-_release_ is required to be decoupled from _deployment_. Changes in code and
-configuration are continuously integrated and deployed to production systems,
-but the activation of the behaviors that those changes enable happens separately.
+One of the biggest challenges in delivering software updates to users incrementally through continuous integration and
+continuous deployment is that _release_ is required to be decoupled from _deployment_. Changes in code and configuration
+are continuously integrated and deployed to production systems, but the activation of the behaviors that those changes
+enable happens separately.
 
-The ultimate aim of continuous deployment is to be able to ship, at (almost) any
-point in time all current work-in-progress without unfinished features being
-made accessible to users.
+The ultimate aim of continuous deployment is to be able to ship, at (almost) any point in time all current
+work-in-progress without unfinished features being made accessible to users.
 
-It is strongly RECOMMENDED to separate deployment from release because they are
-two distinct concerns. Deployment — how and when code moves from your repository
-to production infrastructure – is an engineering concern . Release — when
-customers gain access to new functionality — is a business concern . These are
-distinct activities with different cadences and decision-makers.
+It is strongly RECOMMENDED to separate deployment from release because they are two distinct concerns. Deployment — how
+and when code moves from your repository to production infrastructure – is an engineering concern . Release — when
+customers gain access to new functionality — is a business concern . These are distinct activities with different
+cadences and decision-makers.
 
-Decoupling release from deployment means that features are decoupled from code.
-Code can be deployed to production while a feature remains disabled for some
-or all users. This enables teams to merge frequently into a shared trunk,
-deploy continuously, and release strategically based on business readiness.
+Decoupling release from deployment means that features are decoupled from code. Code can be deployed to production while
+a feature remains disabled for some or all users. This enables teams to merge frequently into a shared trunk, deploy
+continuously, and release strategically based on business readiness.
 
-There are significant costs to _not_ decoupling release from deployment. The
-costs show up in the excessive overhead involved in planning and managing code
-integrations and deployments/releases. Different choices are made in the
-delivery process. Code is either held back until its ready for release, leading
-to long-lived feature branches, integration hell, and big-bang releases; or
-releases are delayed while you wait for a planned feature that's taking longer
-to develop than expected. Alternatively, features may be delivered to users
-before they are fully complete and before they offer real value.
+There are significant costs to _not_ decoupling release from deployment. The costs show up in the excessive overhead
+involved in planning and managing code integrations and deployments/releases. Different choices are made in the delivery
+process. Code is either held back until its ready for release, leading to long-lived feature branches, integration hell,
+and big-bang releases; or releases are delayed while you wait for a planned feature that's taking longer to develop than
+expected. Alternatively, features may be delivered to users before they are fully complete and before they offer real
+value.
 
-Decoupling releases from deployments allows for shorter, regular release
-cadences, and so a more consistent and predictable flow of value delivery
-to users. Features are also given space to be developed at the appropriate
-pace for their level of complexity, resulting in fewer corners being cut to
-catch release trains and lower accumulation of technical debt. Developers can
-work on a mix of long- and short-term projects simultaneously.
+Decoupling releases from deployments allows for shorter, regular release cadences, and so a more consistent and
+predictable flow of value delivery to users. Features are also given space to be developed at the appropriate pace for
+their level of complexity, resulting in fewer corners being cut to catch release trains and lower accumulation of
+technical debt. Developers can work on a mix of long- and short-term projects simultaneously.
 
 How do we decouple release from deployment? Broadly, there are two approaches.
 
 * Bottom-up implementation.
 * Feature flags.
 
-Bottom-up implementation involves applying changes first in the lower tiers of
-the application architecture — the infrastructure, domain, and services layers.
-Only when a new behavior is ready for release is it integrated into the
+Bottom-up implementation involves applying changes first in the lower tiers of the application architecture — the
+infrastructure, domain, and services layers. Only when a new behavior is ready for release is it integrated into the
 application's user interface.
 
-Feature flags are implemented in the UI layer, commonly through a middleware
-system. Simply, feature flags are conditional logic that checks for a condition —
-typically the existence of a configuration variable, usually an environment
-variable in hosted software — before invoking the requested service. Thus,
-operations can be toggled on and off simply by adjusting application or
-environment config.
+Feature flags are implemented in the UI layer, commonly through a middleware system. Simply, feature flags are
+conditional logic that checks for a condition — typically the existence of a configuration variable, usually an
+environment variable in hosted software — before invoking the requested service. Thus, operations can be toggled on and
+off simply by adjusting application or environment config.
 
-A combination of both bottom-up implementation and feature flags may be
-useful in some scenarios.
+A combination of both bottom-up implementation and feature flags may be useful in some scenarios.
 
-Of the two approaches, feature flags offer the greatest flexibility. Unlike
-the bottom-up integration approach, feature flags do not impose constraints on
-the sequence in which code changes are made. They afford developers more
-flexibility.
+Of the two approaches, feature flags offer the greatest flexibility. Unlike the bottom-up integration approach, feature
+flags do not impose constraints on the sequence in which code changes are made. They afford developers more flexibility.
 
-Feature flags dramatically improve development velocity. Every feature can be
-developed behind a flag, allowing small, focused pull requests that are easy to
-reason about and review. There is no need for long-lived feature branches,
-complex Git workflows, or painful rebasing. Instead, developers open small PRs,
-merge them directly into `main`, and deploy them continuously. The feature
-toggle separates the engineering cadence (daily deployments) from the release
+Feature flags dramatically improve development velocity. Every feature can be developed behind a flag, allowing small,
+focused pull requests that are easy to reason about and review. There is no need for long-lived feature branches,
+complex Git workflows, or painful rebasing. Instead, developers open small PRs, merge them directly into `main`, and
+deploy them continuously. The feature toggle separates the engineering cadence (daily deployments) from the release
 cadence (whenever the business is ready).
 
-Feature flags also support advanced devops strategies including canary channels,
-staged roll-outs, and A/B testing.
+Feature flags also support advanced devops strategies including canary channels, staged roll-outs, and A/B testing.
 
-Start simple. To implement feature flags, start with something like a
-configuration file or database table that maps feature names to the release
-state. Better, this configuration can be done in environment variables, which
-allows feature releasing to be differentiated by environment.
+Start simple. To implement feature flags, start with something like a configuration file or database table that maps
+feature names to the release state. Better, this configuration can be done in environment variables, which allows
+feature releasing to be differentiated by environment.
 
-As your needs grow — for example, if you want to use feature flags to manage
-staged roll-outs or A/B testing – you can migrate to a specialist feature flag
-system. But the fundamental pattern remains the same. Ultimately, all a feature
+As your needs grow — for example, if you want to use feature flags to manage staged roll-outs or A/B testing – you can
+migrate to a specialist feature flag system. But the fundamental pattern remains the same. Ultimately, all a feature
 flag is a piece of code written in a conditional check.
 
 ```

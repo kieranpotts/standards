@@ -1,142 +1,106 @@
 = Fonts
 
-Web fonts are part of the critical rendering path and directly affect
-performance metrics such as largest contentful paint (LCP) and cumulative layout
-shift (CLS). They MUST be treated with the same care as any other
-performance-critical asset.
+Web fonts are part of the critical rendering path and directly affect performance metrics such as largest contentful
+paint (LCP) and cumulative layout shift (CLS). They MUST be treated with the same care as any other performance-critical
+asset.
 
 == Format
 
-* *WOFF2* is the only web font format that SHOULD be served in modern web
-  applications. It has universal browser support and is the most compressed and
-  efficient web font format. Legacy formats — including WOFF, TTF, OTF, EOT, and
-  SVG fonts — SHOULD NOT be served, as they impose a performance cost on every
-  visitor with no benefit for modern browsers.
+* *WOFF2* is the only web font format that SHOULD be served in modern web applications. It has universal browser support
+  and is the most compressed and efficient web font format. Legacy formats — including WOFF, TTF, OTF, EOT, and SVG
+  fonts — SHOULD NOT be served, as they impose a performance cost on every visitor with no benefit for modern browsers.
 
 == Hosting
 
-* Fonts SHOULD be *self-hosted* rather than loaded from third-party CDNs such as
-  Google Fonts. Third-party font services add DNS lookups and network latency,
-  leak visitor data to the third party (a GDPR concern in many jurisdictions),
-  and provide no practical caching benefit (modern browsers partition caches per
-  origin, so a font fetched on one site is never reused on another).
+* Fonts SHOULD be *self-hosted* rather than loaded from third-party CDNs such as Google Fonts. Third-party font services
+  add DNS lookups and network latency, leak visitor data to the third party (a GDPR concern in many jurisdictions), and
+  provide no practical caching benefit (modern browsers partition caches per origin, so a font fetched on one site is
+  never reused on another).
 
-* Font files SHOULD be given long `Cache-Control` lifetimes (months up to a
-  year), with versioned file names used for cache-invalidation when fonts
-  change.
+* Font files SHOULD be given long `Cache-Control` lifetimes (months up to a year), with versioned file names used for
+  cache-invalidation when fonts change.
 
 == Subsetting
 
-* Fonts SHOULD be *subsetted* so that only the glyphs actually needed by the
-  application are served. A complete font family can be several hundred
-  kilobytes or more; most of those glyphs are typically never rendered. Tools
-  such as `fonttools` (`pyftsubset`), Glyphhanger, and Subfont can automate
-  subsetting.
+* Fonts SHOULD be *subsetted* so that only the glyphs actually needed by the application are served. A complete font
+  family can be several hundred kilobytes or more; most of those glyphs are typically never rendered. Tools such as
+  `fonttools` (`pyftsubset`), Glyphhanger, and Subfont can automate subsetting.
 
-* Use the `unicode-range` descriptor in `@font-face` declarations to declare
-  separate `@font-face` blocks per script (eg. Latin, Latin Extended, Cyrillic).
-  The browser will only download the subsets it needs for the characters on the
+* Use the `unicode-range` descriptor in `@font-face` declarations to declare separate `@font-face` blocks per script
+  (eg. Latin, Latin Extended, Cyrillic). The browser will only download the subsets it needs for the characters on the
   current page.
 
-* Be conservative when subsetting non-Latin scripts such as Arabic, Devanagari,
-  and CJK. These scripts rely on shaping tables (GSUB/GPOS) and contextual
-  forms, so aggressive subsetting can break word rendering entirely. Test
-  non-Latin subsets thoroughly.
+* Be conservative when subsetting non-Latin scripts such as Arabic, Devanagari, and CJK. These scripts rely on shaping
+  tables (GSUB/GPOS) and contextual forms, so aggressive subsetting can break word rendering entirely. Test non-Latin
+  subsets thoroughly.
 
 == Loading strategy
 
-* *Inline `@font-face` declarations* in a `<style>` block in the HTML `<head>`,
-  rather than placing them in an external stylesheet. Fonts declared in external
-  CSS are not discovered until that stylesheet is downloaded and parsed,
-  delaying font requests unnecessarily.
+* *Inline `@font-face` declarations* in a `<style>` block in the HTML `<head>`, rather than placing them in an external
+  stylesheet. Fonts declared in external CSS are not discovered until that stylesheet is downloaded and parsed, delaying
+  font requests unnecessarily.
 
-* *Never use `@import`* to load fonts or font stylesheets. Each `@import` adds a
-  sequential round trip before the font can be discovered, pushing font requests
-  very late in the render waterfall.
+* *Never use `@import`* to load fonts or font stylesheets. Each `@import` adds a sequential round trip before the font
+  can be discovered, pushing font requests very late in the render waterfall.
 
-* *Preload critical fonts* using
-  `<link rel="preload" as="font" type="font/woff2" crossorigin>` in the
-  `<head>`. This instructs the browser to begin fetching the font immediately,
-  rather than waiting to encounter the `@font-face` rule.
+* *Preload critical fonts* using `<link rel="preload" as="font" type="font/woff2" crossorigin>` in the `<head>`. This
+  instructs the browser to begin fetching the font immediately, rather than waiting to encounter the `@font-face` rule.
 
-* Preload only the subset(s) needed for above-the-fold content; preloading every
-  subset defeats the purpose by forcing all of them to download regardless of
-  whether they are needed.
+* Preload only the subset(s) needed for above-the-fold content; preloading every subset defeats the purpose by forcing
+  all of them to download regardless of whether they are needed.
 
-* Use the `font-display` descriptor in every `@font-face` rule to control
-  rendering during font load. `font-display: swap` is the RECOMMENDED default.
-  It renders fallback text immediately and swaps to the custom font when it
-  arrives, preventing invisible text. Consider `font-display: optional` for
-  decorative or non-critical fonts. It permits the browser to skip the custom
-  font entirely on slow connections. Without `font-display`, a browser's
-  default behavior is either *FOIT* (Flash of Invisible Text — the browser
-  hides text until the custom font arrives or a timeout expires) or *FOUT*
-  (Flash of Unstyled Text — it renders the fallback immediately and swaps in
-  the custom font later). `font-display: swap` is, in effect, a
-  browser-native way to guarantee FOUT behavior and avoid FOIT. Before
-  `font-display` existed, the same FOUT behavior was achieved manually with
-  the Font Face Observer library and a JavaScript class toggled on the
-  document root once the font's `load()` promise resolved; this pattern
-  predates `font-display` and is a legacy fallback for the rare case of
-  needing finer control than the CSS descriptor gives.
+* Use the `font-display` descriptor in every `@font-face` rule to control rendering during font load. `font-display:
+  swap` is the RECOMMENDED default. It renders fallback text immediately and swaps to the custom font when it arrives,
+  preventing invisible text. Consider `font-display: optional` for decorative or non-critical fonts. It permits the
+  browser to skip the custom font entirely on slow connections. Without `font-display`, a browser's default behavior is
+  either *FOIT* (Flash of Invisible Text — the browser hides text until the custom font arrives or a timeout expires) or
+  *FOUT* (Flash of Unstyled Text — it renders the fallback immediately and swaps in the custom font later).
+  `font-display: swap` is, in effect, a browser-native way to guarantee FOUT behavior and avoid FOIT. Before
+  `font-display` existed, the same FOUT behavior was achieved manually with the Font Face Observer library and a
+  JavaScript class toggled on the document root once the font's `load()` promise resolved; this pattern predates
+  `font-display` and is a legacy fallback for the rare case of needing finer control than the CSS descriptor gives.
 
-* When loading a whole font family (multiple weights or styles), load the
-  group together — for example, with `Promise.all()` over each face's
-  `FontFace.load()` — rather than letting each weight resolve independently.
-  Loading the family as a unit avoids showing faux-bold or faux-italic
-  fallback styles for weights that have not yet arrived, and collapses what
-  would otherwise be several separate reflows (one per weight swap) into a
-  single reflow when the whole group is ready.
+* When loading a whole font family (multiple weights or styles), load the group together — for example, with
+  `Promise.all()` over each face's `FontFace.load()` — rather than letting each weight resolve independently. Loading
+  the family as a unit avoids showing faux-bold or faux-italic fallback styles for weights that have not yet arrived,
+  and collapses what would otherwise be several separate reflows (one per weight swap) into a single reflow when the
+  whole group is ready.
 
-* Where a page loads more than one custom font, consider *prioritised
-  (sequential) loading*: load a small, critical font first — for example, a
-  body-text face — and gate the load of a larger, secondary font (eg. a
-  decorative display face) on the first one succeeding. This gets critical
-  text rendering with its intended font sooner, without making the whole
+* Where a page loads more than one custom font, consider *prioritised (sequential) loading*: load a small, critical font
+  first — for example, a body-text face — and gate the load of a larger, secondary font (eg. a decorative display face)
+  on the first one succeeding. This gets critical text rendering with its intended font sooner, without making the whole
   page wait on the largest font file.
 
-* Cache font-loaded state in `sessionStorage` once a font has successfully
-  loaded, and check it before applying `font-display: swap`'s fallback
-  behavior on subsequent page views within the same session. This lets
-  repeat views within a session render directly in the custom font — since
-  the browser's own HTTP cache already guarantees the font file itself does
-  not need re-fetching — avoiding a visible FOUT flash on every navigation
-  within one visit.
+* Cache font-loaded state in `sessionStorage` once a font has successfully loaded, and check it before applying
+  `font-display: swap`'s fallback behavior on subsequent page views within the same session. This lets repeat views
+  within a session render directly in the custom font — since the browser's own HTTP cache already guarantees the font
+  file itself does not need re-fetching — avoiding a visible FOUT flash on every navigation within one visit.
 
-* Consider using *HTTP 103 Early Hints* to push critical font preload hints
-  before the main HTML response is delivered, reducing time-to-text on the first
-  round trip.
+* Consider using *HTTP 103 Early Hints* to push critical font preload hints before the main HTML response is delivered,
+  reducing time-to-text on the first round trip.
 
 == Fallbacks
 
-* Design a robust *system font stack* as the fallback for every custom font.
-  Fonts SHOULD be treated as progressive enhancement: the page MUST be fully
-  legible and usable even if a custom font never loads.
+* Design a robust *system font stack* as the fallback for every custom font. Fonts SHOULD be treated as progressive
+  enhancement: the page MUST be fully legible and usable even if a custom font never loads.
 
-* *Tune fallback metrics* to minimize CLS when a custom font swaps in. Use the
-  `size-adjust`, `ascent-override`, `descent-override`, and `line-gap-override`
-  descriptors inside `@font-face` to align the dimensions of the custom font
-  with those of the fallback, so that text does not reflow visibly when the swap
-  occurs.
+* *Tune fallback metrics* to minimize CLS when a custom font swaps in. Use the `size-adjust`, `ascent-override`,
+  `descent-override`, and `line-gap-override` descriptors inside `@font-face` to align the dimensions of the custom font
+  with those of the fallback, so that text does not reflow visibly when the swap occurs.
 
 == Variable fonts
 
-* *Variable fonts* — which encode multiple weights, widths, and styles in a
-  single file — SHOULD be used when they genuinely reduce payload compared to
-  loading multiple static font files. They are not a universal win. If only one
-  or two weights are needed, separate static WOFF2 files subsetted to the
-  required glyphs may be smaller. Audit and measure the payload before
-  committing to a variable font.
+* *Variable fonts* — which encode multiple weights, widths, and styles in a single file — SHOULD be used when they
+  genuinely reduce payload compared to loading multiple static font files. They are not a universal win. If only one or
+  two weights are needed, separate static WOFF2 files subsetted to the required glyphs may be smaller. Audit and measure
+  the payload before committing to a variable font.
 
-* Variable fonts SHOULD be subsetted and scoped using `unicode-range` in the
-  same way as static fonts.
+* Variable fonts SHOULD be subsetted and scoped using `unicode-range` in the same way as static fonts.
 
 == Icon fonts
 
-* *Icon fonts MUST NOT be used.* They are inaccessible (screen readers announce
-  their private-use Unicode characters as gibberish), fragile if the font file
-  fails to load, and wasteful in that the entire font file must be downloaded
-  even when only a handful of icons are used. Use inline SVGs or SVG sprites
-  instead. They are semantic, accessible, styleable with CSS, and can be loaded
-  on demand — see <<1. Perceivable>> for the `<title>`/`<desc>`/ARIA markup
-  an inline SVG needs to actually be accessible.
+* *Icon fonts MUST NOT be used.* They are inaccessible (screen readers announce their private-use Unicode characters as
+  gibberish), fragile if the font file fails to load, and wasteful in that the entire font file must be downloaded even
+  when only a handful of icons are used. Use inline SVGs or SVG sprites instead. They are semantic, accessible,
+  styleable with CSS, and can be loaded on demand — see <<1. Perceivable>> for the `<title>`/`<desc>`/ARIA markup an
+  inline SVG needs to actually be accessible.

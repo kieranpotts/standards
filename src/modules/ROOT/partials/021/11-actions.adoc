@@ -1,213 +1,172 @@
 = Actions
 
-In a RESTful-style of HTTP API, endpoints are resource-oriented. CRUD-like
-operations are performed against individual resources, and collections of
-resources, of various types. Resources are typically a conceptual mapping to a
-set of entities in a domain system.
+In a RESTful-style of HTTP API, endpoints are resource-oriented. CRUD-like operations are performed against
+individual resources, and collections of resources, of various types. Resources are typically a conceptual mapping
+to a set of entities in a domain system.
 
-But some operations may not neatly fit into the RESTful model. It is sometimes
-quite difficult to model business processes in a pure RESTful service. Classic
-examples include endpoints to "login", "logout", "reset password", "charge a
-credit card", "resend a notification", and to "configure permissions and roles".
+But some operations may not neatly fit into the RESTful model. It is sometimes quite difficult to model business
+processes in a pure RESTful service. Classic examples include endpoints to "login", "logout", "reset password",
+"charge a credit card", "resend a notification", and to "configure permissions and roles".
 
-In this technical standard, these standalone operations are referred to as
-"actions". Elsewhere, they may be referred to by other names such as
-"controllers", "procedures", "operations", or simply "endpoints".
+In this technical standard, these standalone operations are referred to as "actions". Elsewhere, they may be
+referred to by other names such as "controllers", "procedures", "operations", or simply "endpoints".
 
-Actions tend to be mapped directly to specific controller methods in the
-server-side code, and for this reason they are the HTTP API equivalent of RPC
-(remote procedure call) protocols.
+Actions tend to be mapped directly to specific controller methods in the server-side code, and for this reason they
+are the HTTP API equivalent of RPC (remote procedure call) protocols.
 
-A common use case for actions is to mutate the state of multiple resources in
-the same operation. These are known as *composite actions*. There will often be
-business operations that are not scoped to any one particular entity in the
-domain model. These are candidates for modelling as composite actions. Composite
-actions are a pattern for combining multiple atomic operations in a single
-transaction, abstracting away complex, multi-step processes behind a convenient
-facade for the client, so simplifying client-server interactions.
+A common use case for actions is to mutate the state of multiple resources in the same operation. These are known
+as *composite actions*. There will often be business operations that are not scoped to any one particular entity in
+the domain model. These are candidates for modelling as composite actions. Composite actions are a pattern for
+combining multiple atomic operations in a single transaction, abstracting away complex, multi-step processes behind
+a convenient facade for the client, so simplifying client-server interactions.
 
-An example would be a "refund" action that would change the state of a payment,
-the customer's account, and the merchant's account, and the action would not be
-considered to be fulfilled until all of these changes are committed. Another
-example of a composite action would be the implementation of a search function
-that operates across multiple resource types.
+An example would be a "refund" action that would change the state of a payment, the customer's account, and the
+merchant's account, and the action would not be considered to be fulfilled until all of these changes are
+committed. Another example of a composite action would be the implementation of a search function that operates
+across multiple resource types.
 
-Composite actions may be implemented for both performance optimization and
-usability reasons.
+Composite actions may be implemented for both performance optimization and usability reasons.
 
-A composite action's response SHOULD include hypermedia links (see *Links* in
-*Payloads*) to every resource affected by the operation, not only the primary
-one, so that the client can navigate to any of them without having to know in
-advance which resources the action touches. For the refund example above, the
-response would include links such as `self` (the refund itself),
-`parent_payment`, and `capture`.
+A composite action's response SHOULD include hypermedia links (see *Links* in *Payloads*) to every resource
+affected by the operation, not only the primary one, so that the client can navigate to any of them without having
+to know in advance which resources the action touches. For the refund example above, the response would include
+links such as `self` (the refund itself), `parent_payment`, and `capture`.
 
-Another use case for actions is to implement transient operations. A transient
-operation is one that does not mutate the state of any resources, or create new
-ones. An example might be a "dry run" action that validates the input data for a
-subsequent operation, such as a payment. A transient action SHOULD only be used
-after resource-oriented alternatives have been considered and found unsuitable,
-since it is about as RPC-like as an HTTP API design gets. A transient action
-MUST return `200 OK`, with a response body containing the calculated result;
-because nothing is persisted, the same request MAY produce a different result
-if repeated, eg. where the calculation depends on live, externally-sourced
-data.
+Another use case for actions is to implement transient operations. A transient operation is one that does not
+mutate the state of any resources, or create new ones. An example might be a "dry run" action that validates the
+input data for a subsequent operation, such as a payment. A transient action SHOULD only be used after
+resource-oriented alternatives have been considered and found unsuitable, since it is about as RPC-like as an HTTP
+API design gets. A transient action MUST return `200 OK`, with a response body containing the calculated result;
+because nothing is persisted, the same request MAY produce a different result if repeated, eg. where the
+calculation depends on live, externally-sourced data.
 
-There are many other use cases for augmenting HTTP APIs, which are predominantly
-resource-oriented, with standalone RPC-like actions. You can think of actions as
-fulfilling a similar role to services in domain-driven design. In DDD, services
-are a pattern that encapsulate business logic that operates across multiple
-entities in a domain model. Similarly, actions trigger logic that doesn't
-obviously belong to any one resource and/or any one CRUD operation.
+There are many other use cases for augmenting HTTP APIs, which are predominantly resource-oriented, with standalone
+RPC-like actions. You can think of actions as fulfilling a similar role to services in domain-driven design. In
+DDD, services are a pattern that encapsulate business logic that operates across multiple entities in a domain
+model. Similarly, actions trigger logic that doesn't obviously belong to any one resource and/or any one CRUD
+operation.
 
-There are risks and benefits to using actions in HTTP APIs. Action-oriented APIs
-can be harder to scale than resource-oriented ones. The number of URLs can grow
-much more quickly, producing increased configuration complexity for routing and
-externalization, among other things. There tends also to be fewer opportunities
-to promote code reuse in automated tests (because actions tend to have greater
-variability in their inputs and outputs than operations performed on resources).
+There are risks and benefits to using actions in HTTP APIs. Action-oriented APIs can be harder to scale than
+resource-oriented ones. The number of URLs can grow much more quickly, producing increased configuration complexity
+for routing and externalization, among other things. There tends also to be fewer opportunities to promote code
+reuse in automated tests (because actions tend to have greater variability in their inputs and outputs than
+operations performed on resources).
 
-However, for most HTTP APIs, not everything fits neatly into the RESTful
-architectural style. Some operations are simply better expressed as actions.
+However, for most HTTP APIs, not everything fits neatly into the RESTful architectural style. Some operations are
+simply better expressed as actions.
 
-The preference should be to design as much of an HTTP API as possible around a
-resource-oriented model, and augment the API with actions where specific
-operations do not fit neatly into that model. We should not try to force
-everything into the resource model just for the sake of purity of the API
-design.
+The preference should be to design as much of an HTTP API as possible around a resource-oriented model, and augment
+the API with actions where specific operations do not fit neatly into that model. We should not try to force
+everything into the resource model just for the sake of purity of the API design.
 
 == Request-scoped transactions
 
-This standard requires atomicity explicitly for composite actions (above) and
-for bulk operations (see *Bulk operations* in *Collections*). But the same
-principle SHOULD be applied more generally, as a default posture for every
-idempotent request, not only the cases that obviously combine multiple
-operations: wherever practical, the whole of an idempotent request's
-server-side work SHOULD execute within a single database transaction, so that
-its effects commit or abort together as one unit.
+This standard requires atomicity explicitly for composite actions (above) and for bulk operations (see *Bulk
+operations* in *Collections*). But the same principle SHOULD be applied more generally, as a default posture for
+every idempotent request, not only the cases that obviously combine multiple operations: wherever practical, the
+whole of an idempotent request's server-side work SHOULD execute within a single database transaction, so that its
+effects commit or abort together as one unit.
 
-This 1:1 mapping between a request and a transaction gives the request
-lifecycle a natural transactional boundary. A request has a clear beginning,
-a clear end, and a single result; wrapping that lifecycle in a transaction
-means the boundary the client already experiences (it either gets a
-successful response or it doesn't) matches the boundary the database
-enforces (either everything committed or nothing did). This protects against
-the failure modes that occur regularly at any real volume of traffic – a
-client disconnecting mid-request, a bug causing the handler to fail partway
-through its work, or a request timing out – any of which would otherwise
-leave the resources touched by the request in a partially-mutated,
-inconsistent state.
+This 1:1 mapping between a request and a transaction gives the request lifecycle a natural transactional boundary.
+A request has a clear beginning, a clear end, and a single result; wrapping that lifecycle in a transaction means
+the boundary the client already experiences (it either gets a successful response or it doesn't) matches the
+boundary the database enforces (either everything committed or nothing did). This protects against the failure
+modes that occur regularly at any real volume of traffic – a client disconnecting mid-request, a bug causing the
+handler to fail partway through its work, or a request timing out – any of which would otherwise leave the
+resources touched by the request in a partially-mutated, inconsistent state.
 
-This principle applies most directly to requests whose work is entirely
-*local* – confined to the API's own database. Where a request's work also
-involves *foreign* state mutations – calls to external services, message
-queues, or other systems outside the local database's transactional
-guarantees – a single wrapping transaction is not sufficient on its own; see
-*Genuinely non-idempotent operations* in *Safeness and idempotency*.
+This principle applies most directly to requests whose work is entirely *local* – confined to the API's own
+database. Where a request's work also involves *foreign* state mutations – calls to external services, message
+queues, or other systems outside the local database's transactional guarantees – a single wrapping transaction is
+not sufficient on its own; see *Genuinely non-idempotent operations* in *Safeness and idempotency*.
 
-NOTE: The transaction-isolation mechanism this relies on (eg. `SERIALIZABLE`
-isolation to protect a check-then-insert sequence from a concurrent
-duplicate) is the scope of xref:043.adoc[*TS-43: Relational databases and
-SQL*], not this standard.
+NOTE: The transaction-isolation mechanism this relies on (eg. `SERIALIZABLE` isolation to protect a check-then-insert
+sequence from a concurrent duplicate) is the scope of xref:043.adoc[*TS-43: Relational databases and SQL*], not this
+standard.
 
 == HTTP methods
 
-Actions MUST be performed using HTTP's `POST` method, except for actions that
-retrieve read-only data such as logs or reports, in which case the `GET` method
-MUST be used – to provide opportunities for client-side caching (`POST`
+Actions MUST be performed using HTTP's `POST` method, except for actions that retrieve read-only data such as logs
+or reports, in which case the `GET` method MUST be used – to provide opportunities for client-side caching (`POST`
 responses are not cacheable.)
 
 == URLs
 
-The name of an action SHOULD suggest the type of CRUD operation to be performed,
-rather than this being baked into the semantics of the HTTP method. Because
-actions represent a processing function on the server side, it is usually more
-intuitive to express them using verbs such as "activate", "cancel", "validate",
-"accept", and "deny".
+The name of an action SHOULD suggest the type of CRUD operation to be performed, rather than this being baked into
+the semantics of the HTTP method. Because actions represent a processing function on the server side, it is usually
+more intuitive to express them using verbs such as "activate", "cancel", "validate", "accept", and "deny".
 
-Action names should be like function names. Use lowerCamelCase with the first
-segment being a verb. The rest of an action's name should, typically, be in the
-singular form: `activateAccount`, `cancelSubscription`, `validateEmail`,
+Action names should be like function names. Use lowerCamelCase with the first segment being a verb. The rest of an
+action's name should, typically, be in the singular form: `activateAccount`, `cancelSubscription`, `validateEmail`,
 `acceptInvitation`, `denyRequest`.
 
-This naming convention helps to distinguish actions from resource-oriented
-endpoints, which are named using hyphen-delimited slugs.
+This naming convention helps to distinguish actions from resource-oriented endpoints, which are named using
+hyphen-delimited slugs.
 
 == Namespaces
 
-Actions that operate on resources across multiple namespaces SHOULD be placed in
-the root namespace of the API. For example, an action that sends a notification
-to a user might be placed at `/v1/sendNotification`, rather than in either of
-the "users" or "notifications" namespaces.
+Actions that operate on resources across multiple namespaces SHOULD be placed in the root namespace of the API. For
+example, an action that sends a notification to a user might be placed at `/v1/sendNotification`, rather than in
+either of the "users" or "notifications" namespaces.
 
 .Template
 ----
 POST|GET /v{major}/{action}
 ----
 
-But it's better to scope actions to namespaces wherever possible. Actions and
-resources MAY coexist in the same namespaces. All actions within a namespace
-MUST only operate on the resources (including sub-resources) in the same
-namespace. If this design constraint cannot be achieved, better to elevate the
-actions to the API's global scope.
+But it's better to scope actions to namespaces wherever possible. Actions and resources MAY coexist in the same
+namespaces. All actions within a namespace MUST only operate on the resources (including sub-resources) in the same
+namespace. If this design constraint cannot be achieved, better to elevate the actions to the API's global scope.
 
 .Template
 ----
 POST|GET /v{major}/{namespace}/{action}
 ----
 
-A good practice is to create a collection of actions within each namespace.
-Collections of actions SHOULD be named, simply, "actions". This helps to
-distinguish actions from resources in each namespace.
+A good practice is to create a collection of actions within each namespace. Collections of actions SHOULD be named,
+simply, "actions". This helps to distinguish actions from resources in each namespace.
 
 .Template
 ----
 POST /v{major}/{namespace}/actions/{action}
 ----
 
-In addition, a `GET /v\{major}/\{namespace}/actions` endpoint MAY be provided to
-list all available actions in a namespace – similarly to how a list of available
-resources within a namespace can be retrieved.
+In addition, a `GET /v\{major}/\{namespace}/actions` endpoint MAY be provided to list all available actions in a
+namespace – similarly to how a list of available resources within a namespace can be retrieved.
 
 == Resource-scoped actions
 
-There may be use cases for attaching actions to specific individual resources or
-collections, or even to sub-resources.
+There may be use cases for attaching actions to specific individual resources or collections, or even to
+sub-resources.
 
 .Template
 ----
 POST /v{major}/{namespace}/{resource}/{resource_id}/actions/{action}
 ----
 
-Resource-scoped actions may make sense to separate operations that are
-fundamentally _business processes_ from operations that change the core state of
-the resources themselves.
+Resource-scoped actions may make sense to separate operations that are fundamentally _business processes_ from
+operations that change the core state of the resources themselves.
 
-A classic use case for resource-scoped actions is to avoid corrupting the entity
-model of a subdomain with transient data like comments. For example, for
-auditing purposes the business may require freeform comments to be attached to
-subscription cancellations. Since the comments would not be part of the model of
-a subscription resource, a resource-scoped action would be appropriate here.
-Users would post their comments to a `cancelSubscriptionComment` action, run
-subsequently to a `DELETE /subscriptions/\{id}` request. This also works around a
-technical constraint with `DELETE` requests: you can't attach payloads to the
-message body of `DELETE` requests.
+A classic use case for resource-scoped actions is to avoid corrupting the entity model of a subdomain with
+transient data like comments. For example, for auditing purposes the business may require freeform comments to be
+attached to subscription cancellations. Since the comments would not be part of the model of a subscription
+resource, a resource-scoped action would be appropriate here. Users would post their comments to a
+`cancelSubscriptionComment` action, run subsequently to a `DELETE /subscriptions/\{id}` request. This also works
+around a technical constraint with `DELETE` requests: you can't attach payloads to the message body of `DELETE`
+requests.
 
-Actions SHOULD be terminal resources within an HTTP API, which means they SHOULD
-NOT have sub-resources (including sub-actions) relative to them.
+Actions SHOULD be terminal resources within an HTTP API, which means they SHOULD NOT have sub-resources (including
+sub-actions) relative to them.
 
 == Reified actions
 
-Where clients need to see the history of actions taken against a resource, eg.
-every time a subscription was cancelled and reinstated, a plain action endpoint
-is a poor fit: actions are RPC-like calls, not resources, so they have no
-natural collection to list or paginate through.
+Where clients need to see the history of actions taken against a resource, eg. every time a subscription was
+cancelled and reinstated, a plain action endpoint is a poor fit: actions are RPC-like calls, not resources, so they
+have no natural collection to list or paginate through.
 
-In these cases, consider *reifying* the action: instead of modelling it purely
-as a verb (`cancel`), also model it as a noun – the record of the action having
-been performed – exposed as a sub-resource collection (see
-*Sub-resources and sub-collections*) using the plural form of the action's name,
-eg. `cancel` → `cancellations`.
+In these cases, consider *reifying* the action: instead of modelling it purely as a verb (`cancel`), also model it
+as a noun – the record of the action having been performed – exposed as a sub-resource collection (see
+*Sub-resources and sub-collections*) using the plural form of the action's name, eg. `cancel` → `cancellations`.
 
 .Template
 ----
@@ -221,32 +180,25 @@ POST /v1/subscriptions/{subscription_id}/cancellations
 GET /v1/subscriptions/{subscription_id}/cancellations
 ----
 
-Each `POST` to the collection both performs the action and creates a durable
-record of it, returned as an item in the collection; a subsequent `GET`
-retrieves the full history. This pattern aligns naturally with event sourcing:
-the reified collection *is* the event log for that kind of action on that
-resource, and the current state of the resource can, in principle, be derived by
-replaying it.
+Each `POST` to the collection both performs the action and creates a durable record of it, returned as an item in
+the collection; a subsequent `GET` retrieves the full history. This pattern aligns naturally with event sourcing:
+the reified collection *is* the event log for that kind of action on that resource, and the current state of the
+resource can, in principle, be derived by replaying it.
 
-Reifying every action would undermine the simplicity that actions exist to
-provide, so this pattern SHOULD be reserved for actions whose history is
-genuinely useful to clients, eg. for audit, compliance, or support purposes. A
-simple state transition that does not need a history of its own, eg. toggling a
-resource's `status` field, SHOULD continue to use a plain `PUT` or `PATCH` on
-the resource rather than being modelled as an action at all. It is entirely
-appropriate for a single resource to mix plain CRUD operations for its simple
-state transitions with one or more reified action collections for the
-transitions whose history matters – there is no need to force every state change
-on a resource through the same mechanism.
+Reifying every action would undermine the simplicity that actions exist to provide, so this pattern SHOULD be
+reserved for actions whose history is genuinely useful to clients, eg. for audit, compliance, or support purposes.
+A simple state transition that does not need a history of its own, eg. toggling a resource's `status` field, SHOULD
+continue to use a plain `PUT` or `PATCH` on the resource rather than being modelled as an action at all. It is
+entirely appropriate for a single resource to mix plain CRUD operations for its simple state transitions with one
+or more reified action collections for the transitions whose history matters – there is no need to force every
+state change on a resource through the same mechanism.
 
 == Complex search actions
 
-Simple collection filtering SHOULD use query parameters directly on the
-collection endpoint, per the *Filtering* section of *Collections*. But some
-search use cases demand a search syntax too complex to express as query
-parameters – for example, combining many optional criteria, nested boolean
-logic, or criteria whose values would run up against practical URL-length
-limits. In these cases, a `POST`-based search action MAY be used instead,
+Simple collection filtering SHOULD use query parameters directly on the collection endpoint, per the *Filtering*
+section of *Collections*. But some search use cases demand a search syntax too complex to express as query
+parameters – for example, combining many optional criteria, nested boolean logic, or criteria whose values would
+run up against practical URL-length limits. In these cases, a `POST`-based search action MAY be used instead,
 accepting the search criteria as a JSON request body.
 
 .Template
@@ -264,17 +216,14 @@ POST /v1/factory/widgetSearch
 }
 ----
 
-A search action's results SHOULD be paginated the same way as an ordinary
-collection – see the *Pagination* section of *Collections* – with one
-exception: because a search action is a `POST` and its results are not
-addressable by a `GET`-able URL of their own, the `page` and `per_page` (or
-`page_token`) parameters MUST be supplied as query parameters on the search
-action's URL, not in the request body, even though the search criteria
-themselves are in the body. This is the one case in this standard where a
-`POST` request combines a body with query parameters, and it exists
-specifically so that hypermedia pagination links (`next`, `previous`, `first`,
-`last`) can be generated as ordinary URLs that carry the paging state, without
-requiring the client to resubmit the search criteria via a link.
+A search action's results SHOULD be paginated the same way as an ordinary collection – see the *Pagination* section
+of *Collections* – with one exception: because a search action is a `POST` and its results are not addressable by
+a `GET`-able URL of their own, the `page` and `per_page` (or `page_token`) parameters MUST be supplied as query
+parameters on the search action's URL, not in the request body, even though the search criteria themselves are in
+the body. This is the one case in this standard where a `POST` request combines a body with query parameters, and
+it exists specifically so that hypermedia pagination links (`next`, `previous`, `first`, `last`) can be generated
+as ordinary URLs that carry the paging state, without requiring the client to resubmit the search criteria via a
+link.
 
 ----
 POST /v1/factory/widgetSearch?page=2&per_page=25
@@ -289,15 +238,13 @@ POST /v1/factory/widgetSearch?page=2&per_page=25
 
 The following response codes are appropriate for successful action operations:
 
-* `200` - The action was successfully executed, and the response body contains
-  the result of the action, which may included updates to affected resources.
+* `200` - The action was successfully executed, and the response body contains the result of the action, which may
+  included updates to affected resources.
 
-* `201` – The action successfully created one or more new resources. This will
-  be appropriate for composite actions that create a root entity plus all its
-  dependencies.
+* `201` – The action successfully created one or more new resources. This will be appropriate for composite
+  actions that create a root entity plus all its dependencies.
 
-* `204` – Use this instead of `200` when there is no paylad in the response
-  message. This will often be appropriate for actions that trigger out-of-band
-  processes, such as sending notifications.
+* `204` – Use this instead of `200` when there is no paylad in the response message. This will often be
+  appropriate for actions that trigger out-of-band processes, such as sending notifications.
 
 For errors, appropriate `4XX` or `5XX` error codes MAY be returned.

@@ -1,20 +1,18 @@
 = Common types
 
-Certain kinds of data – addresses, money, dates, country and currency codes –
-recur across almost every API in an organization's portfolio. Where each API
-independently invents its own representation for these concepts, clients end up
-writing bespoke parsing and validation logic for each API they integrate with,
-even where the underlying concept is identical.
+Certain kinds of data – addresses, money, dates, country and currency codes – recur across almost every API in an
+organization's portfolio. Where each API independently invents its own representation for these concepts, clients
+end up writing bespoke parsing and validation logic for each API they integrate with, even where the underlying
+concept is identical.
 
-It is RECOMMENDED that a shared library of common JSON Schema types be
-maintained for an organization's APIs to reuse, covering at least the types
-described in this section. See xref:029.adoc[*TS-29: JSON Schema*] for
-guidance on structuring and publishing such a library.
+It is RECOMMENDED that a shared library of common JSON Schema types be maintained for an organization's APIs to
+reuse, covering at least the types described in this section. See xref:029.adoc[*TS-29: JSON Schema*] for guidance
+on structuring and publishing such a library.
 
 == Money
 
-Monetary amounts MUST be represented as an object containing, at minimum, a
-currency code and a value, rather than as a bare number.
+Monetary amounts MUST be represented as an object containing, at minimum, a currency code and a value, rather than
+as a bare number.
 
 [source,json]
 ----
@@ -24,122 +22,96 @@ currency code and a value, rather than as a bare number.
 }
 ----
 
-* `currency_code` and `value` MUST both be present. A monetary amount without a
-  currency is not meaningful.
+* `currency_code` and `value` MUST both be present. A monetary amount without a currency is not meaningful.
 
-* `value` MUST be represented as a `string`, not a number, per the general
-  JSON number-precision rule in the *Payloads* section's *Primitive types*.
-  This is also true where a value is expressed in a currency's minor unit (eg.
-  cents) as an integer, rather than as a decimal major-unit amount. A 64-bit
-  floating-point representation cannot reliably preserve every value a service
-  may need to store — JavaScript's numeric type, for example, only represents
-  integers exactly up to 2^53, beyond which values silently round. An integer
-  minor-unit amount also carries an implicit scale (how many minor units make
-  a major unit) that varies by currency, forcing every client to know and
-  correctly apply the right scale for each currency it handles. A decimal
-  `string` avoids both problems. It is exact regardless of magnitude, and its
-  scale is self-describing rather than implied. Some currencies, eg. Japanese
-  yen, have no minor unit. For these, the fractional part of `value` SHOULD be
-  `0`.
+* `value` MUST be represented as a `string`, not a number, per the general JSON number-precision rule in the
+  *Payloads* section's *Primitive types*. This is also true where a value is expressed in a currency's minor unit
+  (eg. cents) as an integer, rather than as a decimal major-unit amount. A 64-bit floating-point representation
+  cannot reliably preserve every value a service may need to store — JavaScript's numeric type, for example, only
+  represents integers exactly up to 2^53, beyond which values silently round. An integer minor-unit amount also
+  carries an implicit scale (how many minor units make a major unit) that varies by currency, forcing every client
+  to know and correctly apply the right scale for each currency it handles. A decimal `string` avoids both problems.
+  It is exact regardless of magnitude, and its scale is self-describing rather than implied. Some currencies, eg.
+  Japanese yen, have no minor unit. For these, the fractional part of `value` SHOULD be `0`.
 
-* A monetary amount SHOULD NOT be negative. Whether a particular amount
-  represents a debit or a credit is a property of the transaction or account
-  context it appears in, not of the amount itself.
+* A monetary amount SHOULD NOT be negative. Whether a particular amount represents a debit or a credit is a property
+  of the transaction or account context it appears in, not of the amount itself.
 
 == Percentages and rates
 
-Percentages, interest rates, and similar proportional values SHOULD be
-represented as a fixed-point decimal `string`, expressed as a percentage rather
-than a fraction. For example, an interest rate of 19.99% MUST be serialized as
-the string `"19.99", not "0.1999"`. The field's description SHOULD state
-explicitly that the value is a percentage.
+Percentages, interest rates, and similar proportional values SHOULD be represented as a fixed-point decimal
+`string`, expressed as a percentage rather than a fraction. For example, an interest rate of 19.99% MUST be
+serialized as the string `"19.99", not "0.1999"`. The field's description SHOULD state explicitly that the value is
+a percentage.
 
-Formatting a percentage for display – including locale-specific decisions such
-as which character is used as the decimal separator – is the responsibility of
-the client. Services MUST NOT vary the representation of a value based on
-end-user display concerns.
+Formatting a percentage for display – including locale-specific decisions such as which character is used as the
+decimal separator – is the responsibility of the client. Services MUST NOT vary the representation of a value based
+on end-user display concerns.
 
 == Country, currency, and language codes
 
-Consistent use of established international standards, rather than
-organization-specific codes, avoids ambiguity and allows values to be validated
-against well-known reference lists.
+Consistent use of established international standards, rather than organization-specific codes, avoids ambiguity
+and allows values to be validated against well-known reference lists.
 
-* Country codes MUST use the two-letter
-  https://www.iso.org/iso-3166-country-codes.html[ISO 3166-1 alpha-2] standard.
+* Country codes MUST use the two-letter https://www.iso.org/iso-3166-country-codes.html[ISO 3166-1 alpha-2]
+  standard.
 
-* Currency codes MUST use the three-letter
-  https://www.iso.org/iso-4217-currency-codes.html[ISO 4217] standard.
+* Currency codes MUST use the three-letter https://www.iso.org/iso-4217-currency-codes.html[ISO 4217] standard.
 
-* Language codes MUST use an https://tools.ietf.org/html/bcp47[IETF BCP 47]
-  language tag.
+* Language codes MUST use an https://tools.ietf.org/html/bcp47[IETF BCP 47] language tag.
 
-* Where a locale needs to be expressed as a single value, it SHOULD be composed
-  from a language code and a country code (eg. `en-US`), optionally extended
-  with an IANA timezone identifier where the time zone also needs to be
+* Where a locale needs to be expressed as a single value, it SHOULD be composed from a language code and a country
+  code (eg. `en-US`), optionally extended with an IANA timezone identifier where the time zone also needs to be
   conveyed.
 
 == Addresses
 
-A common `address` type SHOULD be shared across all APIs that need to represent
-a postal address, decomposed into fields such as address lines, locality,
-administrative area (state or province), postal code, and country code (using
-the country code type, above).
+A common `address` type SHOULD be shared across all APIs that need to represent a postal address, decomposed into
+fields such as address lines, locality, administrative area (state or province), postal code, and country code
+(using the country code type, above).
 
-Address formats vary significantly between countries, so a common address type
-SHOULD avoid assuming any single country's conventions, eg. by using generic
-field names like `admin_area` rather than country-specific ones like `state`.
-Where the `admin_area` value needs to be validated or compared programmatically
-rather than only displayed, it SHOULD be represented using the subdivision code
-from https://en.wikipedia.org/wiki/ISO_3166-2[ISO 3166-2] (eg. `US-CA` for
-California), rather than a free-text name.
+Address formats vary significantly between countries, so a common address type SHOULD avoid assuming any single
+country's conventions, eg. by using generic field names like `admin_area` rather than country-specific ones like
+`state`. Where the `admin_area` value needs to be validated or compared programmatically rather than only displayed,
+it SHOULD be represented using the subdivision code from https://en.wikipedia.org/wiki/ISO_3166-2[ISO 3166-2] (eg.
+`US-CA` for California), rather than a free-text name.
 
 == Dates, times, and time zones
 
-* All date-time values MUST conform to the `date-time` format defined by
-  https://www.ietf.org/rfc/rfc3339.txt[RFC 3339]. Where only a date, or only a
-  time, is meaningful, use the corresponding `full-date` or `full-time` subset
+* All date-time values MUST conform to the `date-time` format defined by https://www.ietf.org/rfc/rfc3339.txt[RFC
+  3339]. Where only a date, or only a time, is meaningful, use the corresponding `full-date` or `full-time` subset
   of the same standard, rather than a bespoke format.
 
-* Responses MUST express date-time values in UTC. Services SHOULD accept
-  date-time values with a non-UTC offset in requests, normalizing them to UTC on
-  receipt, for compatibility with clients that cannot normalize times
+* Responses MUST express date-time values in UTC. Services SHOULD accept date-time values with a non-UTC offset in
+  requests, normalizing them to UTC on receipt, for compatibility with clients that cannot normalize times
   themselves.
 
-* A UTC offset alone MUST NOT be used to derive a time zone. The same offset
-  corresponds to different time zones depending on location and time of year
-  (eg. daylight saving). If the business logic genuinely needs to know the time
-  zone of an event, capture it explicitly in a separate field, using an
-  https://www.iana.org/time-zones[IANA time zone database] identifier (eg.
-  `Europe/London`), not a fixed offset.
+* A UTC offset alone MUST NOT be used to derive a time zone. The same offset corresponds to different time zones
+  depending on location and time of year (eg. daylight saving). If the business logic genuinely needs to know the
+  time zone of an event, capture it explicitly in a separate field, using an
+  https://www.iana.org/time-zones[IANA time zone database] identifier (eg. `Europe/London`), not a fixed offset.
 
-* Some date or date-time values are inherently "floating", ie. not associated
-  with any particular time zone, eg. a date of birth, or a card expiry date.
-  These values SHOULD be represented without any time zone or offset information
-  at all, since attaching one would misrepresent the value as referring to a
-  specific instant, when it does not.
+* Some date or date-time values are inherently "floating", ie. not associated with any particular time zone, eg. a
+  date of birth, or a card expiry date. These values SHOULD be represented without any time zone or offset
+  information at all, since attaching one would misrepresent the value as referring to a specific instant, when it
+  does not.
 
-* Some floating values carry only a year and month, eg. a card's expiry date.
-  These SHOULD be represented as a `year_month` string in `YYYY-MM` format
-  (the same ordering as RFC 3339's `full-date`, with the day omitted), eg.
-  `"2028-11"`, rather than as a full `full-date` with a fabricated day-of-month
-  value.
+* Some floating values carry only a year and month, eg. a card's expiry date. These SHOULD be represented as a
+  `year_month` string in `YYYY-MM` format (the same ordering as RFC 3339's `full-date`, with the day omitted), eg.
+  `"2028-11"`, rather than as a full `full-date` with a fabricated day-of-month value.
 
 == Durations and intervals
 
-* A span of time not anchored to a specific start or end, eg. "renew every 30
-  days", SHOULD be represented as an ISO 8601 duration string, in the form
-  `P[n]Y[n]M[n]DT[n]H[n]M[n]S`. For example, `P3Y6M4DT12H30M5S` represents
-  three years, six months, four days, twelve hours, thirty minutes, and five
-  seconds. Only the components that are non-zero need be present.
+* A span of time not anchored to a specific start or end, eg. "renew every 30 days", SHOULD be represented as an ISO
+  8601 duration string, in the form `P[n]Y[n]M[n]DT[n]H[n]M[n]S`. For example, `P3Y6M4DT12H30M5S` represents three
+  years, six months, four days, twelve hours, thirty minutes, and five seconds. Only the components that are
+  non-zero need be present.
 
-* A span of time anchored to specific points, eg. a booking's occupancy
-  period, SHOULD be represented as an ISO 8601 interval string, in one of
-  three forms: start and end (`2007-03-01T13:00:00Z/2008-05-11T15:30:00Z`),
-  start and duration (`2007-03-01T13:00:00Z/P1Y2M10DT2H30M`), or duration and
-  end (`P1Y2M10DT2H30M/2008-05-11T15:30:00Z`).
+* A span of time anchored to specific points, eg. a booking's occupancy period, SHOULD be represented as an ISO 8601
+  interval string, in one of three forms: start and end (`2007-03-01T13:00:00Z/2008-05-11T15:30:00Z`), start and
+  duration (`2007-03-01T13:00:00Z/P1Y2M10DT2H30M`), or duration and end
+  (`P1Y2M10DT2H30M/2008-05-11T15:30:00Z`).
 
-* A recurring schedule, eg. "every week for the next five occurrences", SHOULD
-  be represented as an ISO 8601 repeating interval, formed by prefixing an
-  interval expression with `R[n]/`, where `[n]` is the repetition count, eg.
-  `R5/2008-03-01T13:00:00Z/P1Y2M10DT2H30M`.
+* A recurring schedule, eg. "every week for the next five occurrences", SHOULD be represented as an ISO 8601
+  repeating interval, formed by prefixing an interval expression with `R[n]/`, where `[n]` is the repetition count,
+  eg. `R5/2008-03-01T13:00:00Z/P1Y2M10DT2H30M`.

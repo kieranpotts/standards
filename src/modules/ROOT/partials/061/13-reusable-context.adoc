@@ -1,89 +1,68 @@
 = Reusable context
 
-Most AI coding tools provide mechanisms to reuse context across sessions. The
-naming varies between tools: *instructions*, *rules*, *skills*, *commands*,
-*custom prompts*. Whatever the name, all these systems serve the same purpose.
-They load reusable bundles of context, either at the start of a session
-(statically) or on demand under predefined conditions (dynamically,
-just-in-time).
+Most AI coding tools provide mechanisms to reuse context across sessions. The naming varies between tools:
+*instructions*, *rules*, *skills*, *commands*, *custom prompts*. Whatever the name, all these systems serve the same
+purpose. They load reusable bundles of context, either at the start of a session (statically) or on demand under
+predefined conditions (dynamically, just-in-time).
 
-Reusable context improves consistency in AI-assisted and agentic workflows. It
-encodes programming conventions, architectural decisions, and domain knowledge
-into artifacts that reload automatically in fresh sessions.
+Reusable context improves consistency in AI-assisted and agentic workflows. It encodes programming conventions,
+architectural decisions, and domain knowledge into artifacts that reload automatically in fresh sessions.
 
 == General best practices
 
-Reusable context consumes tokens, depleting a model's attention budget and
-competing with the user's actual prompt. The same core principles of <<Context
-engineering,context engineering>> therefore apply:
+Reusable context consumes tokens, depleting a model's attention budget and competing with the user's actual prompt. The
+same core principles of <<Context engineering,context engineering>> therefore apply:
 
-* Reusable context MUST be token-efficient. Start with the minimum content
-  needed to elicit the desired behavior, and grow it only in response to
-  observed failure modes.
+* Reusable context MUST be token-efficient. Start with the minimum content needed to elicit the desired behavior, and
+  grow it only in response to observed failure modes.
 
-* A bundle of reusable context SHOULD be narrowly scoped. Where an agent harness
-  supports it, use scoping mechanisms such as directory-specific or
-  pattern-matching rules, to load content only when it is relevant to the task
-  at hand.
+* A bundle of reusable context SHOULD be narrowly scoped. Where an agent harness supports it, use scoping mechanisms
+  such as directory-specific or pattern-matching rules, to load content only when it is relevant to the task at hand.
 
-* Prefer <<Just-in-time retrieval,just-in-time retrieval>> over always-on
-  loading. For example, rather than embedding a full coding standard in a
-  context bundle, instead provide a pointer to it and let the agent load it when
-  it needs it.
+* Prefer <<Just-in-time retrieval,just-in-time retrieval>> over always-on loading. For example, rather than embedding a
+  full coding standard in a context bundle, instead provide a pointer to it and let the agent load it when it needs it.
 
-* Reusable units of context SHOULD be reviewed and pruned regularly.
-  Instructions that were once useful can become stale, redundant, or
-  contradictory as projects evolve. Stale context is worse than no context,
-  because it actively misleads the model.
+* Reusable units of context SHOULD be reviewed and pruned regularly. Instructions that were once useful can become
+  stale, redundant, or contradictory as projects evolve. Stale context is worse than no context, because it actively
+  misleads the model.
 
-* Capable, frontier coding models get little value from context bundles that
-  specify universal best practices, like "never commit secrets" or "match the
-  prevailing code style". That knowledge is already embedded in the model. Use
-  context bundles instead to capture guidelines, standards, and requirements
-  specific to your project, such as "minimum 75% unit test coverage" and
-  "conforms to neostandard linter defaults".
+* Capable, frontier coding models get little value from context bundles that specify universal best practices, like
+  "never commit secrets" or "match the prevailing code style". That knowledge is already embedded in the model. Use
+  context bundles instead to capture guidelines, standards, and requirements specific to your project, such as "minimum
+  75% unit test coverage" and "conforms to neostandard linter defaults".
 
 == Competing conventions
 
-As of 2026, AI tool makers have not reached a consensus on where reusable
-context should live, what to call it, how to structure it, or how to load it. So
-different agent harnesses have different conventions for discovering and loading
-it.
+As of 2026, AI tool makers have not reached a consensus on where reusable context should live, what to call it, how to
+structure it, or how to load it. So different agent harnesses have different conventions for discovering and loading it.
 
-If you or your team use multiple agent harnesses, or expect to switch between
-them over time, you may find yourself maintaining the same bundles of context in
-artifacts like `CLAUDE.md`, `.cursorrules`, and
-`.github/copilot-instructions.md`. This quickly becomes unsustainable.
-Duplication leads to drift, and drift leads to subtle inconsistencies in
-behavior between agents.
+If you or your team use multiple agent harnesses, or expect to switch between them over time, you may find yourself
+maintaining the same bundles of context in artifacts like `CLAUDE.md`, `.cursorrules`, and
+`.github/copilot-instructions.md`. This quickly becomes unsustainable. Duplication leads to drift, and drift leads to
+subtle inconsistencies in behavior between agents.
 
-It is RECOMMENDED, therefore, to maintain a single source-of-truth collection of
-reusable context bundles, and to transform that source material into
-distributable artifacts in formats tailored to the agent harnesses you use.
+It is RECOMMENDED, therefore, to maintain a single source-of-truth collection of reusable context bundles, and to
+transform that source material into distributable artifacts in formats tailored to the agent harnesses you use.
 
-Despite the current proliferation of conventions, the industry is slowly
-converging on two standards: `AGENTS.md` and skills files. It is RECOMMENDED to
-adopt both for your source files, and to compile and distribute artifacts for
+Despite the current proliferation of conventions, the industry is slowly converging on two standards: `AGENTS.md` and
+skills files. It is RECOMMENDED to adopt both for your source files, and to compile and distribute artifacts for
 different harnesses from them.
 
 == The AGENTS.md standard
 
-`AGENTS.md` is an open convention designed to give coding agents a predictable
-way to understand and operate on software projects. It was jointly launched by
-Google, OpenAI, Factory, Sourcegraph, and Cursor to replace the fragmentation of
+`AGENTS.md` is an open convention designed to give coding agents a predictable way to understand and operate on software
+projects. It was jointly launched by Google, OpenAI, Factory, Sourcegraph, and Cursor to replace the fragmentation of
 tool-specific instructions.
 
 The canonical specification lives at https://agents.md.
 
-`AGENTS.md` is a loose convention rather than a strict standard. Any Markdown is
-supported. The specification suggests common sections — project overview, dev
-environment, build/test commands, code style, security — but none are required.
-Agents are required only to parse `AGENTS.md` if it exists in the current
-working directory, or else in the nearest parent directory.
+`AGENTS.md` is a loose convention rather than a strict standard. Any Markdown is supported. The specification suggests
+common sections — project overview, dev environment, build/test commands, code style, security — but none are required.
+Agents are required only to parse `AGENTS.md` if it exists in the current working directory, or else in the nearest
+parent directory.
 
-`AGENTS.md` is widely supported, including by tools such as Cursor, Aider,
-Gemini CLI, Google Jules, OpenAI Codex, Zed, Factory's Droids, Kilo Code, and
-Windsurf. (Some of these tools require opt-in via a configuration option or
+`AGENTS.md` is widely supported, including by tools such as Cursor, Aider, Gemini CLI, Google Jules, OpenAI Codex, Zed,
+Factory's Droids, Kilo Code, and Windsurf. (Some of these tools require opt-in via a configuration option or
 command-line flag). Claude Code also supports it alongside `CLAUDE.md`.
 
 The following Markdown template illustrates a minimal `AGENTS.md` file.
@@ -150,17 +129,14 @@ SHOULD NOT, OPTIONAL, and MAY are to be interpreted as described in
 
 ----
 
-The "project structure" section is RECOMMENDED. It is one of the
-highest-leverage things you can give an agent, sparing it from wasting tokens
-grepping around the project's directory tree.
+The "project structure" section is RECOMMENDED. It is one of the highest-leverage things you can give an agent, sparing
+it from wasting tokens grepping around the project's directory tree.
 
-Other sections worth considering include code formatting conventions, design
-patterns, testing instructions, pull request creation, and security standards.
+Other sections worth considering include code formatting conventions, design patterns, testing instructions, pull
+request creation, and security standards.
 
-Start with a minimum baseline, then extend your agent instructions incrementally
-to improve output.
+Start with a minimum baseline, then extend your agent instructions incrementally to improve output.
 
-`AGENTS.md` covers the static half of reusable context — what every session
-needs to know up front. The dynamic half, loaded on demand as a task requires
-it, is covered in the section on <<Agent skills,agent skills>>.
+`AGENTS.md` covers the static half of reusable context — what every session needs to know up front. The dynamic half,
+loaded on demand as a task requires it, is covered in the section on <<Agent skills,agent skills>>.
 

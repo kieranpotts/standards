@@ -1,148 +1,114 @@
 = AI-assisted development workflows
 
-This section covers the second of the <<Ways of working with AI,three ways of
-working with AI>>: the synchronous one, in which the human developer drives, the
-AI assists, and every change is reviewed by hand. Agentic workflows are covered
-in the <<Agentic workflows,next section>>.
+This section covers the second of the <<Ways of working with AI,three ways of working with AI>>: the synchronous one, in
+which the human developer drives, the AI assists, and every change is reviewed by hand. Agentic workflows are covered in
+the <<Agentic workflows,next section>>.
 
-The most effective approach to AI-assisted development is to split complex tasks
-into distinct planning and implementation phases, matching <<Capability
-tiers,model capabilities>> to the requirements of each. Premium, specialist
-models tend to plan code changes better than cheaper, general-purpose models,
-but the cheaper models are often perfectly capable of executing those plans.
-This optimizes output quality while reducing subscription costs.
+The most effective approach to AI-assisted development is to split complex tasks into distinct planning and
+implementation phases, matching <<Capability tiers,model capabilities>> to the requirements of each. Premium, specialist
+models tend to plan code changes better than cheaper, general-purpose models, but the cheaper models are often perfectly
+capable of executing those plans. This optimizes output quality while reducing subscription costs.
 
-In short: use premium, frontier models for planning and architecture decisions,
-complex problem-solving, security analysis, and architectural compliance. Use
-cheap, efficient models for code construction from pre-approved plans,
+In short: use premium, frontier models for planning and architecture decisions, complex problem-solving, security
+analysis, and architectural compliance. Use cheap, efficient models for code construction from pre-approved plans,
 small-scale refactoring, and routine chores.
 
-It is RECOMMENDED to follow this planning-implementation cycle for all but the
-simplest and quickest of tasks.
+It is RECOMMENDED to follow this planning-implementation cycle for all but the simplest and quickest of tasks.
 
 == Planning phase
 
-When using AI tools to plan code changes, provide comprehensive context —
-requirements, constraints, and existing architectural patterns. Request
-structured, verifiable outputs, such as diagrams, pseudocode, or API
-specifications.
+When using AI tools to plan code changes, provide comprehensive context — requirements, constraints, and existing
+architectural patterns. Request structured, verifiable outputs, such as diagrams, pseudocode, or API specifications.
 
-Put enough context in the initial prompt to minimize rounds of clarification.
-Include code examples, which improve output quality.
+Put enough context in the initial prompt to minimize rounds of clarification. Include code examples, which improve
+output quality.
 
-Validate AI-proposed architectural decisions against project standards _before_
-implementing them.
+Validate AI-proposed architectural decisions against project standards _before_ implementing them.
 
-For large-scale or complex changes, document AI-assisted design decisions for
-team review before proceeding with the implementation.
+For large-scale or complex changes, document AI-assisted design decisions for team review before proceeding with the
+implementation.
 
 == Implementation phase
 
-When using AI for code generation, provide clear, specific prompts based on
-pre-approved execution plans.
+When using AI for code generation, provide clear, specific prompts based on pre-approved execution plans.
 
-Define coding standards, style guides, and architectural conventions as concise,
-reusable prompt inputs. See the section on <<Reusable context,reusable context>>
-for guidelines.
+Define coding standards, style guides, and architectural conventions as concise, reusable prompt inputs. See the section
+on <<Reusable context,reusable context>> for guidelines.
 
-Ask the AI to implement execution plans incrementally, generating code in small,
-stable, independently-deployable increments. Incremental changes are easier to
-review and test than a single "big bang" changeset.
+Ask the AI to implement execution plans incrementally, generating code in small, stable, independently-deployable
+increments. Incremental changes are easier to review and test than a single "big bang" changeset.
 
-Small increments serve a second purpose beyond reducing delivery risk. They
-bound the context window. A session asked to plan, implement, and verify a large
-feature end-to-end will eventually be reasoning with a context window dominated
-by its own accumulated thinking, rather than by the task at hand. This causes
-*context rot* (see <<Context engineering,context engineering>>), which reduces
-the effectiveness of the underlying model.
+Small increments serve a second purpose beyond reducing delivery risk. They bound the context window. A session asked to
+plan, implement, and verify a large feature end-to-end will eventually be reasoning with a context window dominated by
+its own accumulated thinking, rather than by the task at hand. This causes *context rot* (see
+<<Context engineering,context engineering>>), which reduces the effectiveness of the underlying model.
 
-A session scoped to one small increment, by contrast, starts with a clean
-context window and loads only what that increment needs. This keeps the model's
-reasoning reliable for longer.
+A session scoped to one small increment, by contrast, starts with a clean context window and loads only what that
+increment needs. This keeps the model's reasoning reliable for longer.
 
-Incremental delivery has a cost. It depends on a complete specification being in
-place from the start, so the plan can be decomposed into increments up front. In
-exchange, mistakes are caught earlier, while course-correction is still cheap,
-and the risk inherent in AI-assisted delivery drops substantially.
+Incremental delivery has a cost. It depends on a complete specification being in place from the start, so the plan can
+be decomposed into increments up front. In exchange, mistakes are caught earlier, while course-correction is still
+cheap, and the risk inherent in AI-assisted delivery drops substantially.
 
-This up-front investment does not make the process rigid. Delivery stays
-_iterative_ as well as incremental: each increment produces real, working
-software, so the design can be refined in response to what using, reviewing,
-debugging, and maintaining that software actually reveals. What is fixed up
-front is the specification, not every design decision downstream of it.
-Delivering a large change in a single pass forfeits that feedback — it collapses
-back into a waterfall, in which the whole design lands at once and its flaws
-surface only after everything is built, when they are most expensive to correct.
+This up-front investment does not make the process rigid. Delivery stays _iterative_ as well as incremental: each
+increment produces real, working software, so the design can be refined in response to what using, reviewing, debugging,
+and maintaining that software actually reveals. What is fixed up front is the specification, not every design decision
+downstream of it. Delivering a large change in a single pass forfeits that feedback — it collapses back into a
+waterfall, in which the whole design lands at once and its flaws surface only after everything is built, when they are
+most expensive to correct.
 
-Batching similar tasks together can reduce token consumption. But do this
-sparingly. Better a few small changesets than one large one to review.
+Batching similar tasks together can reduce token consumption. But do this sparingly. Better a few small changesets than
+one large one to review.
 
-Use version control to track changes to AI-generated code, and to provide a
-robust "undo" operation. Avoid making manual and automated changes to code in
-the same revision.
+Use version control to track changes to AI-generated code, and to provide a robust "undo" operation. Avoid making manual
+and automated changes to code in the same revision.
 
-When an agent gets stuck, avoid contaminating the context with irrelevant
-information. Instead, ask directly: "What information do you need that would let
-you implement this perfectly right now?" This forces the agent to identify its
+When an agent gets stuck, avoid contaminating the context with irrelevant information. Instead, ask directly: "What
+information do you need that would let you implement this perfectly right now?" This forces the agent to identify its
 own knowledge gaps rather than flailing blindly.
 
-Before implementation begins, it is often worth asking the agent to restate
-the task in its own words — what it understands the requirement to be, and how
-it plans to satisfy it — before it writes any code. This costs a small amount
-of context and catches a misunderstanding while it is still cheap to correct,
-rather than after a wrong implementation has been produced and must be
-reviewed, rejected, and re-explained.
+Before implementation begins, it is often worth asking the agent to restate the task in its own words — what it
+understands the requirement to be, and how it plans to satisfy it — before it writes any code. This costs a small amount
+of context and catches a misunderstanding while it is still cheap to correct, rather than after a wrong implementation
+has been produced and must be reviewed, rejected, and re-explained.
 
-Where an agent remains stuck after repeated correction, the better move is
-often not to keep correcting it in the same session. A conversation that has
-accumulated several rounds of misunderstanding carries that history forward as
-context the agent keeps re-consulting, which is a different failure from
-<<Context engineering,context rot>> but has a similar effect: the earlier
-confusion pollutes every subsequent attempt. Start a fresh session, with a
-single prompt informed by what the failed attempts revealed was missing,
-rather than layering further corrections onto a conversation that has already
-gone wrong.
+Where an agent remains stuck after repeated correction, the better move is often not to keep correcting it in the same
+session. A conversation that has accumulated several rounds of misunderstanding carries that history forward as context
+the agent keeps re-consulting, which is a different failure from <<Context engineering,context rot>> but has a similar
+effect: the earlier confusion pollutes every subsequent attempt. Start a fresh session, with a single prompt informed by
+what the failed attempts revealed was missing, rather than layering further corrections onto a conversation that has
+already gone wrong.
 
 == Testing phase
 
-All normal developer review and approval processes MUST remain in place for
-AI-generated code.
+All normal developer review and approval processes MUST remain in place for AI-generated code.
 
-For every incremental step, review the AI-generated code manually and verify
-that it adheres to coding standards and style guides. Test it by hand as well as
-running automated tests and static analysis tools, before committing.
+For every incremental step, review the AI-generated code manually and verify that it adheres to coding standards and
+style guides. Test it by hand as well as running automated tests and static analysis tools, before committing.
 
-Do not rely on AI-generated tests to verify the correctness of AI-generated
-code. Review all AI-generated tests — this is more important than reviewing
-AI-generated code.
+Do not rely on AI-generated tests to verify the correctness of AI-generated code. Review all AI-generated tests — this
+is more important than reviewing AI-generated code.
 
-Do not allow AI agents to modify your existing test suite without your explicit
-prompt and oversight.
+Do not allow AI agents to modify your existing test suite without your explicit prompt and oversight.
 
-Taking a test-driven approach to AI-assisted development is RECOMMENDED where
-feasible. Write your own tests, and then ask the AI to implement the changes
-necessary to make the tests pass.
+Taking a test-driven approach to AI-assisted development is RECOMMENDED where feasible. Write your own tests, and then
+ask the AI to implement the changes necessary to make the tests pass.
 
-Prefer high-level tests such as end-to-end system tests and integration tests.
-This approach is more robust and supports AI-assisted refactoring better than
-unit tests alone.
+Prefer high-level tests such as end-to-end system tests and integration tests. This approach is more robust and supports
+AI-assisted refactoring better than unit tests alone.
 
 == Retrospective phase
 
-After implementing a new feature or fixing a bug, ask the AI to update its own
-knowledgebase with what changed. The purpose is to maintain context for future
-sessions.
+After implementing a new feature or fixing a bug, ask the AI to update its own knowledgebase with what changed. The
+purpose is to maintain context for future sessions.
 
-Agents, like humans, have a limited working memory. They cannot reliably learn
-from experience across sessions unless that learning is explicitly documented.
-And when an agent gets stuck, context matters greatly in finding a way forward.
-So it helps to give agents a log of how past bugs were fixed and features
-implemented. Future instances can then reference those solutions instead of
-reinventing them every time.
+Agents, like humans, have a limited working memory. They cannot reliably learn from experience across sessions unless
+that learning is explicitly documented. And when an agent gets stuck, context matters greatly in finding a way forward.
+So it helps to give agents a log of how past bugs were fixed and features implemented. Future instances can then
+reference those solutions instead of reinventing them every time.
 
-Best practice is to keep an <<The AGENTS.md standard,`AGENTS.md`>> file in the
-root directory of your project, linking from it every file documenting context
-the agent should have access to, including but not limited to:
+Best practice is to keep an <<The AGENTS.md standard,`AGENTS.md`>> file in the root directory of your project, linking
+from it every file documenting context the agent should have access to, including but not limited to:
 
 * Solutions to problems the agent previously encountered.
 * Technical decisions and their rationale.

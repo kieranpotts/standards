@@ -1,72 +1,59 @@
 = Concurrency control
 
-A common issue in network API design is how to manage concurrent operations.
-There is always the potential for multiple clients to attempt to modify the same
-resource at the same time. This can lead to data corruption or lost updates.
+A common issue in network API design is how to manage concurrent operations. There is always the potential for
+multiple clients to attempt to modify the same resource at the same time. This can lead to data corruption or lost
+updates.
 
-These are not always issues, but where they are, APIs will need to implement
-concurrency control mechanisms. The appropriate mechanism will depend on the
-specific use case. But common patterns typically involve the use of ETags.
+These are not always issues, but where they are, APIs will need to implement concurrency control mechanisms. The
+appropriate mechanism will depend on the specific use case. But common patterns typically involve the use of ETags.
 
-ETags (Entity Tags) are used to implement a strategy known as
-*optimistic concurrency control*. They are used to prevent accidental overwrites
-– the "lost update" problem, in which the most recent update always wins – by
-allowing clients to check if a resource has already been modified before
-requesting further mutations to that resource.
+ETags (Entity Tags) are used to implement a strategy known as *optimistic concurrency control*. They are used to
+prevent accidental overwrites – the "lost update" problem, in which the most recent update always wins – by allowing
+clients to check if a resource has already been modified before requesting further mutations to that resource.
 
-ETags themselves are unique identifiers assigned by a web server to a
-_specific version_ of a resource. When a resource changes, its ETag changes.
-ETags are returned in HTTP headers, allowing clients to detect changes to
+ETags themselves are unique identifiers assigned by a web server to a _specific version_ of a resource. When a
+resource changes, its ETag changes. ETags are returned in HTTP headers, allowing clients to detect changes to
 resources that originated from other clients.
 
-When a client requests a resource, it receives an `ETag` header with a value
-that represents the current version of the resource represented in the message
-body. This may be any arbitrary value, but it is typically implemented as a hash
-of the resource's content.
+When a client requests a resource, it receives an `ETag` header with a value that represents the current version of
+the resource represented in the message body. This may be any arbitrary value, but it is typically implemented as a
+hash of the resource's content.
 
 ----
 ETag: "<etag_value>"
 ----
 
-When the client subsequently requests an update to the resource, it includes in
-the request the ETag of the last version of the resource that it has. This is
-sent in the `If-Match` header.
+When the client subsequently requests an update to the resource, it includes in the request the ETag of the last
+version of the resource that it has. This is sent in the `If-Match` header.
 
-The server then checks if the ETag in the request matches the current version of
-the resource known to the server. If they match, the update proceeds. If they do
-not match, it means another client has updated the resource in the meantime, and
-the update fails with a `412 Precondition Failed` status code.
+The server then checks if the ETag in the request matches the current version of the resource known to the server.
+If they match, the update proceeds. If they do not match, it means another client has updated the resource in the
+meantime, and the update fails with a `412 Precondition Failed` status code.
 
-An API SHOULD document its policy for a conditional update request that omits
-`If-Match` entirely: either the update proceeds unconditionally (last write
-wins), or it is rejected as a client error. Which is appropriate depends on
-the resource; there is no single correct default.
+An API SHOULD document its policy for a conditional update request that omits `If-Match` entirely: either the update
+proceeds unconditionally (last write wins), or it is rejected as a client error. Which is appropriate depends on the
+resource; there is no single correct default.
 
 == Client retry pattern
 
-A client performing a conditional update SHOULD implement a bounded retry
-loop, rather than surfacing a single `412` directly to the end user:
+A client performing a conditional update SHOULD implement a bounded retry loop, rather than surfacing a single
+`412` directly to the end user:
 
 1. `GET` the resource, noting its current `ETag`.
 2. Apply the intended change to the retrieved representation, locally.
 3. Attempt the update with `If-Match` set to the noted `ETag`.
-4. On `412 Precondition Failed`, another client updated the resource in the
-   interim; return to step 1 and retry, up to a small, documented maximum
-   number of attempts.
+4. On `412 Precondition Failed`, another client updated the resource in the interim; return to step 1 and retry, up
+   to a small, documented maximum number of attempts.
 
-This gives the client a chance to reconcile its change against a concurrent
-update automatically, rather than requiring the end user to retry the entire
-operation by hand.
+This gives the client a chance to reconcile its change against a concurrent update automatically, rather than
+requiring the end user to retry the entire operation by hand.
 
 == Cache validation
 
-ETags also support a second, distinct use: letting a client avoid re-fetching
-a representation it already has, when it has not changed. Where a resource
-supports this, the server MUST honor the `If-None-Match` request header: if
-the ETag supplied by the client matches the resource's current ETag, the
-server MUST respond with `304 Not Modified` and an empty body, rather than
-re-sending the full representation.
+ETags also support a second, distinct use: letting a client avoid re-fetching a representation it already has, when
+it has not changed. Where a resource supports this, the server MUST honor the `If-None-Match` request header: if the
+ETag supplied by the client matches the resource's current ETag, the server MUST respond with `304 Not Modified` and
+an empty body, rather than re-sending the full representation.
 
-Unlike `If-Match`, which is used to guard a *mutating* request against a lost
-update, `If-None-Match` is used on a `GET` request to let the *client* decide
-whether a refetch is necessary. See also *Response caching* in *Headers*.
+Unlike `If-Match`, which is used to guard a *mutating* request against a lost update, `If-None-Match` is used on a
+`GET` request to let the *client* decide whether a refetch is necessary. See also *Response caching* in *Headers*.

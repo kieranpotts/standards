@@ -1,46 +1,32 @@
 = Stateless scaling
 
-Node.js runs JavaScript on a single thread. A CPU-bound operation — parsing a
-large payload, running a cryptographic hash, rendering a large template —
-blocks that thread for its entire duration, during which the process cannot
-service any other request. An application MUST NOT rely on multi-threading
-*within* a single Node.js process to scale CPU-bound work; the platform has
-no shared-memory threading model comparable to the JVM's or a
-multi-process web server's built-in worker pool. `worker_threads` exists for
-offloading a specific CPU-bound task, but it MUST NOT be treated as a general
-concurrency mechanism — it is for isolating one expensive computation off the
-event loop, not for running the application's request-handling logic on
-multiple threads.
+Node.js runs JavaScript on a single thread. A CPU-bound operation — parsing a large payload, running a
+cryptographic hash, rendering a large template — blocks that thread for its entire duration, during which the
+process cannot service any other request. An application MUST NOT rely on multi-threading *within* a single
+Node.js process to scale CPU-bound work; the platform has no shared-memory threading model comparable to the JVM's
+or a multi-process web server's built-in worker pool. `worker_threads` exists for offloading a specific CPU-bound
+task, but it MUST NOT be treated as a general concurrency mechanism — it is for isolating one expensive computation
+off the event loop, not for running the application's request-handling logic on multiple threads.
 
-The standard scaling pattern is instead **horizontal**: an application MUST
-be designed to run as many identical, independent processes behind a load
-balancer, each handling a share of the traffic on its own single thread. This
-is the pattern Bluesky's engineering team uses in production for its
-TypeScript backend on Node.js, running approximately 192 Node processes
-behind HAProxy, each at roughly 1% CPU utilization — trading per-process
-efficiency for a scaling model that is simple to reason about and cheap to
-operate (Pragmatic Engineer 2024).
+The standard scaling pattern is instead **horizontal**: an application MUST be designed to run as many identical,
+independent processes behind a load balancer, each handling a share of the traffic on its own single thread. This
+is the pattern Bluesky's engineering team uses in production for its TypeScript backend on Node.js, running
+approximately 192 Node processes behind HAProxy, each at roughly 1% CPU utilization — trading per-process
+efficiency for a scaling model that is simple to reason about and cheap to operate (Pragmatic Engineer 2024).
 
-For horizontal scaling to work, each process MUST be stateless: it MUST NOT
-hold request-relevant state in memory (an in-process session store, an
-in-memory cache the response depends on, a rate-limit counter) that a
-different process, handling a later request from the same client, would not
-also have. Any state a request depends on belongs in a shared, external
-store — a database, a distributed cache such as Redis — reachable by every
-process alike, so that a load balancer is free to route any request to any
-process without regard to which instance handled the client's previous
-request. See xref:006.adoc[*TS-6: Distributed system design*] for the
-broader statelessness and idempotency principles this rests on, and
-xref:049.adoc[*TS-49: Cloud platform engineering*] for the orchestration
-platform's role in running and load-balancing the resulting process fleet.
+For horizontal scaling to work, each process MUST be stateless: it MUST NOT hold request-relevant state in memory
+(an in-process session store, an in-memory cache the response depends on, a rate-limit counter) that a different
+process, handling a later request from the same client, would not also have. Any state a request depends on
+belongs in a shared, external store — a database, a distributed cache such as Redis — reachable by every process
+alike, so that a load balancer is free to route any request to any process without regard to which instance
+handled the client's previous request. See xref:006.adoc[*TS-6: Distributed system design*] for the broader
+statelessness and idempotency principles this rests on, and xref:049.adoc[*TS-49: Cloud platform engineering*] for
+the orchestration platform's role in running and load-balancing the resulting process fleet.
 
-Node.js's built-in `cluster` module — which forks multiple worker processes
-from a single parent and shares a listening socket between them — MAY be
-used to make use of every CPU core on a single machine, but SHOULD NOT be
-treated as a substitute for scaling across machines: a process orchestrator
-(Kubernetes, or an equivalent) already provides multi-process scheduling,
-health-checked restarts, and load balancing across hosts, and duplicating
-that logic with `cluster` inside the application adds an operational layer
-the platform already owns. Where an application is deployed to such a
-platform, one Node.js process per container SHOULD be run, and horizontal
+Node.js's built-in `cluster` module — which forks multiple worker processes from a single parent and shares a
+listening socket between them — MAY be used to make use of every CPU core on a single machine, but SHOULD NOT be
+treated as a substitute for scaling across machines: a process orchestrator (Kubernetes, or an equivalent) already
+provides multi-process scheduling, health-checked restarts, and load balancing across hosts, and duplicating that
+logic with `cluster` inside the application adds an operational layer the platform already owns. Where an
+application is deployed to such a platform, one Node.js process per container SHOULD be run, and horizontal
 scaling SHOULD be delegated entirely to the platform's own replica count.

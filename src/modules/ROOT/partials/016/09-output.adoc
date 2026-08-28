@@ -2,33 +2,25 @@
 
 == Standard output
 
-In Unix-like environments, the primary output from most CLI programs goes to
-stdout. For most commands, this should be a human-readable text stream. In most
-cases, output should be in a human-readable format by default.
+In Unix-like environments, the primary output from most CLI programs goes to stdout. For most commands, this should be a
+human-readable text stream. In most cases, output should be in a human-readable format by default.
 
-Since stdout is what is piped to the next command, it is RECOMMENDED to support
-flags that allow the user to toggle the output into alternative machine-readable
-formats. For example, use `--plain` to support piping into tools such as `grep`
+Since stdout is what is piped to the next command, it is RECOMMENDED to support flags that allow the user to toggle the
+output into alternative machine-readable formats. For example, use `--plain` to support piping into tools such as `grep`
 or `awk`, and `--json` for use with `jq`.
 
-Human-readable output is not a stable interface, and it is fine to iterate on
-its wording and layout between releases. Machine-readable output
-(`--plain`/`--json`) is different: once a script depends on it, changing its
-shape is a breaking change (see <<Future proofing>>). Encourage users to build
-scripts against `--plain`/`--json` rather than parsing the human-readable
-default, and treat the human-readable format as free to evolve.
+Human-readable output is not a stable interface, and it is fine to iterate on its wording and layout between releases.
+Machine-readable output (`--plain`/`--json`) is different: once a script depends on it, changing its shape is a
+breaking change (see <<Future proofing>>). Encourage users to build scripts against `--plain`/`--json` rather than
+parsing the human-readable default, and treat the human-readable format as free to evolve.
 
-Keep human-readable output grep-parseable: aim for one record per line, so a
-user can filter it with `grep` and count matches with `wc` without your output
-format getting in the way. Avoid multi-section, grouped-header formats – a
-single tabular row per item, as described in <<Tables>>, is easier to filter
-than output broken up under several headings.
+Keep human-readable output grep-parseable: aim for one record per line, so a user can filter it with `grep` and count
+matches with `wc` without your output format getting in the way. Avoid multi-section, grouped-header formats – a single
+tabular row per item, as described in <<Tables>>, is easier to filter than output broken up under several headings.
 
-If your program or command is expected to be used mostly in automation
-scenarios, it may make more sense for the default output format to be
-machine-readable. If so, you can still have your program automatically switch to
-a human-readable format by checking if the standard output stream is a terminal
-(TTY).
+If your program or command is expected to be used mostly in automation scenarios, it may make more sense for the default
+output format to be machine-readable. If so, you can still have your program automatically switch to a human-readable
+format by checking if the standard output stream is a terminal (TTY).
 
 [source,sh]
 ----
@@ -42,29 +34,25 @@ else
 fi
 ----
 
-In most cases, something SHOULD be sent to stdout on success, even if it is just
-a simple confirmation message that the operation has finished successfully. Some
-commands such as `cp` don't print anything, which has come to be regarded as bad
-practice. The user SHOULD be given explicit feedback on all operations, and
-there should be something to pipe into the next program.
+In most cases, something SHOULD be sent to stdout on success, even if it is just a simple confirmation message that the
+operation has finished successfully. Some commands such as `cp` don't print anything, which has come to be regarded as
+bad practice. The user SHOULD be given explicit feedback on all operations, and there should be something to pipe into
+the next program.
 
 [quote, Doug McIlroy, cite title]
 ____
-Expect the output of every program to become the input to another, as yet
-unknown, program.
+Expect the output of every program to become the input to another, as yet unknown, program.
 ____
 
-To support commands being used in an automated way via scripts, and to avoid
-clumsy redirection to `/dev/null`, provide a `--quiet`/`-q` flag to run your
-program in "quiet mode", which will suppress all non-essential output and help
+To support commands being used in an automated way via scripts, and to avoid clumsy redirection to `/dev/null`, provide
+a `--quiet`/`-q` flag to run your program in "quiet mode", which will suppress all non-essential output and help
 declutter log files.
 
 == Tables
 
-When output is naturally tabular – a list of resources, for example – emit one
-record per row, so the output stays grep-parseable (see <<Standard output>>).
-Never emit table borders or box-drawing characters in the default output;
-they add visual noise and break `grep`/`awk` filtering.
+When output is naturally tabular – a list of resources, for example – emit one record per row, so the output stays
+grep-parseable (see <<Standard output>>). Never emit table borders or box-drawing characters in the default output; they
+add visual noise and break `grep`/`awk` filtering.
 
 It is RECOMMENDED to support conventional flags for tabular output:
 
@@ -77,50 +65,40 @@ It is RECOMMENDED to support conventional flags for tabular output:
 
 == Pagers
 
-If you are outputting a lot of text, use a pager like `less`. `git diff` does
-this behind the scenes.
+If you are outputting a lot of text, use a pager like `less`. `git diff` does this behind the scenes.
 
-Be careful with your implementation. Pagers can cause unexpected behaviors and,
-implemented badly, can make the user experience worse. You MUST NOT use a pager
-if stdin or stdout is not an interactive terminal.
+Be careful with your implementation. Pagers can cause unexpected behaviors and, implemented badly, can make the user
+experience worse. You MUST NOT use a pager if stdin or stdout is not an interactive terminal.
 
-A sensible set of options for `less` is `-FIRX`, which does not page if the
-output fits within one screen, leaves the output on screen when the user quits
-`less`, ignores case when the user searches the output, and enables colors and
+A sensible set of options for `less` is `-FIRX`, which does not page if the output fits within one screen, leaves the
+output on screen when the user quits `less`, ignores case when the user searches the output, and enables colors and
 formatting.
 
 == Formatting
 
-Do make use of color and symbols in your programs' output. But don't overdo it.
-If _everything_ is colorful, the benefits are lost. And
-https://no-color.org/[not everyone likes colorful output].
+Do make use of color and symbols in your programs' output. But don't overdo it. If _everything_ is colorful, the
+benefits are lost. And https://no-color.org/[not everyone likes colorful output].
 
-You SHOULD provide a flag for the user to disable color formatting (`--no-color`
-is recommended), and color formatting SHOULD be disabled by default in the
-following circumstances:
+You SHOULD provide a flag for the user to disable color formatting (`--no-color` is recommended), and color formatting
+SHOULD be disabled by default in the following circumstances:
 
 * When stdout is not an interactive terminal (a TTY).
 * When an environment variable named `NO_COLOR` exists.
-* When an environment variable named `[APP]_NO_COLOR` exists, where `[APP]` is a
-  prefix identifying your program.
-* When the `TERM` environment variable is set to `dumb`, which signals a
-  terminal with no color or escape-sequence support.
+* When an environment variable named `[APP]_NO_COLOR` exists, where `[APP]` is a prefix identifying your program.
+* When the `TERM` environment variable is set to `dumb`, which signals a terminal with no color or escape-sequence
+  support.
 
-Conversely, it is RECOMMENDED to support `FORCE_COLOR` as the counterpart to
-`NO_COLOR`: when set, it forces color output on even where TTY detection would
-otherwise disable it – for example, when output is being piped into another
+Conversely, it is RECOMMENDED to support `FORCE_COLOR` as the counterpart to `NO_COLOR`: when set, it forces color
+output on even where TTY detection would otherwise disable it – for example, when output is being piped into another
 program that itself renders color, such as a pager.
 
-Restrained use of symbols and emoji can be beneficial. Characters such as ✅ and
-❌ can be useful to draw the user's attention to successes and failures
-respectively.
+Restrained use of symbols and emoji can be beneficial. Characters such as ✅ and ❌ can be useful to draw the user's
+attention to successes and failures respectively.
 
-Focus on good formatting over symbols and colors. Work to increase information
-density while decreasing visual noise and making judicious use of space to
-improve readability. The output from `ls` is a good example of this. An awful
-lot of information is communicated in a very compact way, and consistent
-patterns in the output allow you to quickly pick out the information you need
-and ignore the rest.
+Focus on good formatting over symbols and colors. Work to increase information density while decreasing visual noise and
+making judicious use of space to improve readability. The output from `ls` is a good example of this. An awful lot of
+information is communicated in a very compact way, and consistent patterns in the output allow you to quickly pick out
+the information you need and ignore the rest.
 
 ----
 -rw-r--r-- 1 root root     68 Aug 22 23:20 resolv.conf
@@ -136,33 +114,25 @@ drwxr-xr-x 2 root root   4.0K Jul 20 14:57 skel
 
 == Animations
 
-If stdout is not an interactive terminal, do not display any animations. This
-will stop progress bars turning into Christmas trees in log files.
+If stdout is not an interactive terminal, do not display any animations. This will stop progress bars turning into
+Christmas trees in log files.
 
-Progress bars, spinners, and other "action" output are out-of-band information
-about what the program is doing, not the program's actual result. Send this
-output to stderr, not stdout, so that stdout can still be redirected or piped
-while the user continues to see progress. `curl` follows this convention –
-its progress meter goes to stderr, leaving stdout free for the downloaded
-content.
+Progress bars, spinners, and other "action" output are out-of-band information about what the program is doing, not the
+program's actual result. Send this output to stderr, not stdout, so that stdout can still be redirected or piped while
+the user continues to see progress. `curl` follows this convention – its progress meter goes to stderr, leaving stdout
+free for the downloaded content.
 
-If a progress bar gets stuck in the same place for a long time, the user
-cannot tell whether work is still happening or the program has crashed or
-hung. Show an estimated time remaining, or keep some part of the display
-animated (a spinner character, a pulsing bar), so the user has continuous
-evidence that the program is still alive.
+If a progress bar gets stuck in the same place for a long time, the user cannot tell whether work is still happening or
+the program has crashed or hung. Show an estimated time remaining, or keep some part of the display animated (a spinner
+character, a pulsing bar), so the user has continuous evidence that the program is still alive.
 
-Reporting progress for work done in parallel is harder than for sequential
-work: naively interleaved output from multiple concurrent tasks is
-confusing and hard to read. Use a library designed for parallel progress
-reporting where one is available, rather than writing raw progress lines from
-multiple workers directly to the terminal.
+Reporting progress for work done in parallel is harder than for sequential work: naively interleaved output from
+multiple concurrent tasks is confusing and hard to read. Use a library designed for parallel progress reporting where
+one is available, rather than writing raw progress lines from multiple workers directly to the terminal.
 
-Hiding detailed logs behind a progress bar or spinner, while things are going
-well, keeps output easy to follow. But if an error occurs, print the hidden
-logs – otherwise the failure is very hard to debug, because the information
-the user needs was suppressed exactly when they needed it most.
+Hiding detailed logs behind a progress bar or spinner, while things are going well, keeps output easy to follow. But if
+an error occurs, print the hidden logs – otherwise the failure is very hard to debug, because the information the user
+needs was suppressed exactly when they needed it most.
 
-For a task that runs long enough that the user is likely to switch away to
-another window, consider triggering an OS-level desktop notification when it
-completes, in addition to the terminal output.
+For a task that runs long enough that the user is likely to switch away to another window, consider triggering an
+OS-level desktop notification when it completes, in addition to the terminal output.

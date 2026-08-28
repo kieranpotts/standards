@@ -1,156 +1,130 @@
 = Agent skills
 
-Skills are a complementary open convention for packaging reusable bundles of
-context that agents load on demand.
+Skills are a complementary open convention for packaging reusable bundles of context that agents load on demand.
 
-Whereas `AGENTS.md` provides a static, always-loaded orientation to the project
-as a whole, skills encapsulate specific procedures, standards, runbooks, and
-playbooks. They are loaded dynamically, when they become relevant to the task an
+Whereas `AGENTS.md` provides a static, always-loaded orientation to the project as a whole, skills encapsulate specific
+procedures, standards, runbooks, and playbooks. They are loaded dynamically, when they become relevant to the task an
 agent is undertaking.
 
 The canonical specification lives at https://agentskills.io/specification.
 
 == Scope
 
-An emerging best practice is to use skills to define a small set of common
-workflow steps, and to keep knowledge — standards, policies, constraints, domain
-models — in separate reference documents that are loaded on demand from other
+An emerging best practice is to use skills to define a small set of common workflow steps, and to keep knowledge —
+standards, policies, constraints, domain models — in separate reference documents that are loaded on demand from other
 sources.
 
-Workflow skills, such as "planning", "coding", "testing", "deploying", and
-"releasing", should be step-by-step, deterministic instructions, free of
-domain-specific facts. They then rarely change between projects and domains.
+Workflow skills, such as "planning", "coding", "testing", "deploying", and "releasing", should be step-by-step,
+deterministic instructions, free of domain-specific facts. They then rarely change between projects and domains.
 Reference materials, by comparison, are dynamic and volatile.
 
-This separation makes workflow skills more reusable. A skill that says only
-_how_ to look something up and what to do with it, rather than hard-coding the
-answer, stays technology-agnostic and domain-agnostic. It runs unmodified
-against any project that supplies its own reference material on demand.
+This separation makes workflow skills more reusable. A skill that says only _how_ to look something up and what to do
+with it, rather than hard-coding the answer, stays technology-agnostic and domain-agnostic. It runs unmodified against
+any project that supplies its own reference material on demand.
 
-If a piece of knowledge genuinely belongs to only one project, keep it local to
-that project rather than baking it into a shared workflow skill.
+If a piece of knowledge genuinely belongs to only one project, keep it local to that project rather than baking it into
+a shared workflow skill.
 
-Pulling knowledge dynamically also keeps agentic workflows evergreen. And the
-separation of concerns makes agents easier to debug, because when something goes
-wrong you can ask:
+Pulling knowledge dynamically also keeps agentic workflows evergreen. And the separation of concerns makes agents easier
+to debug, because when something goes wrong you can ask:
 
 * "Did the workflow break?" → Skill issue.
 * "Did the knowledge change?" → Retrieval issue.
 
 == Single responsibility
 
-A skill SHOULD have exactly one responsibility — a single step in a workflow —
-and stop at a well-defined boundary, rather than reaching into adjacent work
-even where doing so would be convenient.
+A skill SHOULD have exactly one responsibility — a single step in a workflow — and stop at a well-defined boundary,
+rather than reaching into adjacent work even where doing so would be convenient.
 
-In particular, a skill SHOULD NOT combine _evaluation_ and _implementation_. A
-skill that analyzes and reports findings — a review, an audit, a proofread —
-SHOULD be distinct from a skill that enacts a change — a fix, a migration, a
-refactor. A skill that reviews a pull request SHOULD NOT also apply the fixes it
-recommends.
+In particular, a skill SHOULD NOT combine _evaluation_ and _implementation_. A skill that analyzes and reports findings
+— a review, an audit, a proofread — SHOULD be distinct from a skill that enacts a change — a fix, a migration, a
+refactor. A skill that reviews a pull request SHOULD NOT also apply the fixes it recommends.
 
-The decision of whether, when, and how to act on findings belongs to whoever is
-orchestrating the workflow, not to the skill that produced the findings.
+The decision of whether, when, and how to act on findings belongs to whoever is orchestrating the workflow, not to the
+skill that produced the findings.
 
-Keeping evaluation and implementation apart has practical benefits, too. An
-orchestrator can review findings before any change is applied. Each skill gets a
-single, unambiguous trigger condition. And an evaluation skill becomes reusable
-in contexts its author did not anticipate. The same review skill that supports a
-human pull request can be wired into a CI gate, for example.
+Keeping evaluation and implementation apart has practical benefits, too. An orchestrator can review findings before any
+change is applied. Each skill gets a single, unambiguous trigger condition. And an evaluation skill becomes reusable in
+contexts its author did not anticipate. The same review skill that supports a human pull request can be wired into a CI
+gate, for example.
 
 == Loose coupling
 
-Where multiple skills are composed into a workflow, they SHOULD be loosely
-coupled to one another.
+Where multiple skills are composed into a workflow, they SHOULD be loosely coupled to one another.
 
-A skill SHOULD NOT directly invoke, refer to, or hand off to another skill by
-name. Each skill does its one job, reports its result, and stops.
+A skill SHOULD NOT directly invoke, refer to, or hand off to another skill by name. Each skill does its one job, reports
+its result, and stops.
 
-The composition of skills into a sequence is the responsibility of whatever is
-orchestrating the workflow — a human, a script, or another agent — not of the
-skills themselves.
+The composition of skills into a sequence is the responsibility of whatever is orchestrating the workflow — a human, a
+script, or another agent — not of the skills themselves.
 
-This means a skill's output should be usable as the input to whichever skill
-runs next, without either skill being aware of the other's existence. Coupling
-skills through their inputs and outputs rather than through direct references
-keeps each skill independently maintainable, and lets the same skill be reused
-in different workflows.
+This means a skill's output should be usable as the input to whichever skill runs next, without either skill being aware
+of the other's existence. Coupling skills through their inputs and outputs rather than through direct references keeps
+each skill independently maintainable, and lets the same skill be reused in different workflows.
 
 == Interface definition
 
-A skill SHOULD be explicit about its inputs and outputs, in the same way a
-well-designed function is explicit about its parameters and return value. A
-skill file SHOULD define the following:
+A skill SHOULD be explicit about its inputs and outputs, in the same way a well-designed function is explicit about its
+parameters and return value. A skill file SHOULD define the following:
 
 * What input it consumes, and whether that input is OPTIONAL or REQUIRED.
 
-* Whether the skill can run non-interactively to completion, or is necessarily
-  interactive — blocking to ask questions, present options, and wait for
-  answers.
+* Whether the skill can run non-interactively to completion, or is necessarily interactive — blocking to ask questions,
+  present options, and wait for answers.
 
-* What output it produces, in what format, and where that output is written (a
-  file, a comment, a commit, the conversation itself).
+* What output it produces, in what format, and where that output is written (a file, a comment, a commit, the
+  conversation itself).
 
 * What success criteria the output should be checked against.
 
-Documenting this contract is what lets a skill function as a discrete,
-composable step in an <<Composable pipelines,agentic workflow>>. A human or an
-orchestrating script can decide where it fits, wire its output into the next
-step, and validate what it produced, without needing to inspect the skill's
-internals.
+Documenting this contract is what lets a skill function as a discrete, composable step in an
+<<Composable pipelines,agentic workflow>>. A human or an orchestrating script can decide where it fits, wire its output
+into the next step, and validate what it produced, without needing to inspect the skill's internals.
 
 == Interactivity
 
-Non-interactive skills can be run unattended, including by parallel sub-agents.
-They are inherently more reusable, and SHOULD be preferred by default.
+Non-interactive skills can be run unattended, including by parallel sub-agents. They are inherently more reusable, and
+SHOULD be preferred by default.
 
-Reserve interactive skills for cases where human interaction _is_ the value the
-skill provides — a structured discovery interview, for example, where the
-dialogue itself is the point.
+Reserve interactive skills for cases where human interaction _is_ the value the skill provides — a structured discovery
+interview, for example, where the dialogue itself is the point.
 
-This preference reflects a broader industry trend, sometimes called the
-_specs-to-code_ movement. It pushes interactive, human-in-the-loop work upstream
-into requirements-gathering and specification, so that downstream delivery can
-run non-interactively from executable acceptance criteria.
+This preference reflects a broader industry trend, sometimes called the _specs-to-code_ movement. It pushes interactive,
+human-in-the-loop work upstream into requirements-gathering and specification, so that downstream delivery can run
+non-interactively from executable acceptance criteria.
 
 == Discovery
 
-As noted under <<Competing conventions,reusable context>>, agent harnesses are
-inconsistent in how they discover and load reusable context bundles. Most will
-load project-specific skills, but the expected location and naming of the files
-varies. The formal specification defines the discovery path as
-`.agents/skills/`, relative to the root of the project repository, but not all
-harnesses support this out-of-the-box.
+As noted under <<Competing conventions,reusable context>>, agent harnesses are inconsistent in how they discover and
+load reusable context bundles. Most will load project-specific skills, but the expected location and naming of the files
+varies. The formal specification defines the discovery path as `.agents/skills/`, relative to the root of the project
+repository, but not all harnesses support this out-of-the-box.
 
-Some harnesses also look for global skills in the user's home directory. This is
-useful for sharing common workflow skills across multiple projects, but support
-is patchy. As of 2026, only a few harnesses, such as Pi, discover global skills
-automatically.
+Some harnesses also look for global skills in the user's home directory. This is useful for sharing common workflow
+skills across multiple projects, but support is patchy. As of 2026, only a few harnesses, such as Pi, discover global
+skills automatically.
 
-Until the industry converges on universal standards, the location and naming of
-skills must be tailored to the conventions of the harnesses you use. See the
-https://github.com/JuliusBrussee/caveman/[Caveman] project for an example of how
-to install one set of source skills into the locations and formats that several
-mainstream harnesses auto-discover.
+Until the industry converges on universal standards, the location and naming of skills must be tailored to the
+conventions of the harnesses you use. See the https://github.com/JuliusBrussee/caveman/[Caveman] project for an example
+of how to install one set of source skills into the locations and formats that several mainstream harnesses
+auto-discover.
 
-One option is to use `AGENTS.md` to reference the location of your skills files,
-and to instruct agents to load them into context just-in-time, when certain
-conditions are met. The <<The AGENTS.md standard,`AGENTS.md` template>> shows
-how to list local skills (via relative paths, unique to the project) alongside
-global skills (via absolute URLs, reused across projects).
+One option is to use `AGENTS.md` to reference the location of your skills files, and to instruct agents to load them
+into context just-in-time, when certain conditions are met. The <<The AGENTS.md standard,`AGENTS.md` template>> shows
+how to list local skills (via relative paths, unique to the project) alongside global skills (via absolute URLs, reused
+across projects).
 
 == Structure
 
-A skill is a directory containing, at a minimum, a `SKILL.md` file. The
-directory MAY also contain `scripts/`, `references/`, and `assets/`
-subdirectories — for executable code, supplementary documentation, and static
-resources, respectively.
+A skill is a directory containing, at a minimum, a `SKILL.md` file. The directory MAY also contain `scripts/`,
+`references/`, and `assets/` subdirectories — for executable code, supplementary documentation, and static resources,
+respectively.
 
-Nothing stops you including other artifacts not defined by the Agent Skills
-specification, as long as they are referenced from the `SKILL.md` entry point.
+Nothing stops you including other artifacts not defined by the Agent Skills specification, as long as they are
+referenced from the `SKILL.md` entry point.
 
-This technical standard RECOMMENDS including a `README.md`, documenting the
-skill's use for the benefit of its human maintainers.
+This technical standard RECOMMENDS including a `README.md`, documenting the skill's use for the benefit of its human
+maintainers.
 
 ----
 skill-name/
@@ -164,15 +138,13 @@ skill-name/
 
 == Front-matter
 
-The `SKILL.md` file MUST contain YAML front-matter followed by a Markdown body.
-Two front-matter fields are REQUIRED:
+The `SKILL.md` file MUST contain YAML front-matter followed by a Markdown body. Two front-matter fields are REQUIRED:
 
-* `name`: 1-64 characters of lowercase alphanumerics and hyphens (no spaces or
-  punctuation). SHOULD match the parent directory name, though the standard does
-  not require it.
+* `name`: 1-64 characters of lowercase alphanumerics and hyphens (no spaces or punctuation). SHOULD match the parent
+  directory name, though the standard does not require it.
 
-* `description`: 1-1024 characters describing both _what_ the skill does and
-  _when_ to use it. See <<Loading mechanisms>> for more on this field.
+* `description`: 1-1024 characters describing both _what_ the skill does and _when_ to use it. See
+  <<Loading mechanisms>> for more on this field.
 
 OPTIONAL fields include:
 
@@ -182,14 +154,12 @@ OPTIONAL fields include:
 
 * `metadata`: Arbitrary key-value pairs.
 
-* `allowed-tools`: A space-separated list of tools that are pre-approved to be
-  run by the agent — currently experimental.
+* `allowed-tools`: A space-separated list of tools that are pre-approved to be run by the agent — currently
+  experimental.
 
-Individual tools support additional proprietary fields, too. You may wish to
-optimize your skills metadata for the capabilities of your chosen harness — see,
-for example, https://github.com/anthropics/skills/[Anthropic's] and
-https://code.visualstudio.com/docs/copilot/customization/agent-skills[VS Code's]
-documentation for agent skills.
+Individual tools support additional proprietary fields, too. You may wish to optimize your skills metadata for the
+capabilities of your chosen harness — see, for example, https://github.com/anthropics/skills/[Anthropic's] and
+https://code.visualstudio.com/docs/copilot/customization/agent-skills[VS Code's] documentation for agent skills.
 
 .Example
 [source,markdown]
@@ -215,264 +185,199 @@ Agent instructions...
 
 == Loading mechanisms
 
-The `description` metadata field is the most important part of a skill. When an
-agent auto-discovers skills, it typically loads only the `name` and
-`description` fields into its context. The `name` field defines how users may
-explicitly invoke a skill. The `description` field defines the conditions under
-which agents should load the rest of that skill into context themselves.
+The `description` metadata field is the most important part of a skill. When an agent auto-discovers skills, it
+typically loads only the `name` and `description` fields into its context. The `name` field defines how users may
+explicitly invoke a skill. The `description` field defines the conditions under which agents should load the rest of
+that skill into context themselves.
 
-The following principles help to produce descriptions that get the right skills
-loaded in the expected scenarios:
+The following principles help to produce descriptions that get the right skills loaded in the expected scenarios:
 
-* Use imperative phrasing. "Use this skill when…" rather than "This skill
-  does…".
+* Use imperative phrasing. "Use this skill when…" rather than "This skill does…".
 
 * Focus on user intent, not implementation detail.
 
-* Err on the side of explicitness. List every context where the skill applies,
-  including cases where the user may not name the domain directly.
+* Err on the side of explicitness. List every context where the skill applies, including cases where the user may not
+  name the domain directly.
 
-* Stay under the 1024-character hard limit (content beyond it may be silently
-  truncated).
+* Stay under the 1024-character hard limit (content beyond it may be silently truncated).
 
-Different agent harnesses handle skill loading in different ways. The Agent
-Skills specification targets _on-demand_ activation, where conforming agents
-read each skill's `description` field and decide whether to load it based on the
-current task. But some harnesses also support _always-on_ loading, where the
-skill is injected at the start of every session, and _manual_ loading, where the
-user triggers the skill with a slash command.
+Different agent harnesses handle skill loading in different ways. The Agent Skills specification targets _on-demand_
+activation, where conforming agents read each skill's `description` field and decide whether to load it based on the
+current task. But some harnesses also support _always-on_ loading, where the skill is injected at the start of every
+session, and _manual_ loading, where the user triggers the skill with a slash command.
 
-When writing a skill for deployment across multiple harnesses, check how each
-one resolves and activates skills. If a harness keeps every auto-discovered
-skill in context, you will need to be especially vigilant about token
-efficiency.
+When writing a skill for deployment across multiple harnesses, check how each one resolves and activates skills. If a
+harness keeps every auto-discovered skill in context, you will need to be especially vigilant about token efficiency.
 
-Remember that skills are guidelines, not guarantees. An agent may activate a
-skill only for tasks that genuinely require specialized knowledge, such as
-domain-specific workflows or proprietary APIs. It may ignore a skill for simple
-requests it can handle unaided — even where the description matches semantically
-— unless you invoke that skill explicitly.
+Remember that skills are guidelines, not guarantees. An agent may activate a skill only for tasks that genuinely require
+specialized knowledge, such as domain-specific workflows or proprietary APIs. It may ignore a skill for simple requests
+it can handle unaided — even where the description matches semantically — unless you invoke that skill explicitly.
 
 == Content
 
-The Markdown body after the front-matter contains the agent's actual
-instructions. This is the context passed to the model when the agent decides to
-include the skill in the next inference call.
+The Markdown body after the front-matter contains the agent's actual instructions. This is the context passed to the
+model when the agent decides to include the skill in the next inference call.
 
-As with `AGENTS.md`, no particular structure is required. Any freeform Markdown
-will do. Design the information architecture of each skill case-by-case, to
-optimize knowledge transfer to the AI.
+As with `AGENTS.md`, no particular structure is required. Any freeform Markdown will do. Design the information
+architecture of each skill case-by-case, to optimize knowledge transfer to the AI.
 
-A common pitfall is asking an LLM to auto-generate a skill without giving it any
-domain-specific context, relying instead on the model's general training
-knowledge. The result is vague, generic advice — "handle errors appropriately",
-"follow best practices for authentication" — in place of the specific patterns,
-edge cases, and conventions that actually matter. A skill earns its place only
-when it supplies knowledge the models you use do not already hold.
+A common pitfall is asking an LLM to auto-generate a skill without giving it any domain-specific context, relying
+instead on the model's general training knowledge. The result is vague, generic advice — "handle errors appropriately",
+"follow best practices for authentication" — in place of the specific patterns, edge cases, and conventions that
+actually matter. A skill earns its place only when it supplies knowledge the models you use do not already hold.
 
-A useful concrete test for every instruction in a skill is the question: "Would
-the agent get this wrong without this instruction?" If not, cut it.
+A useful concrete test for every instruction in a skill is the question: "Would the agent get this wrong without this
+instruction?" If not, cut it.
 
-Think of a well-crafted skill as the onboarding document you would write for a
-qualified new employee. Include only what they cannot independently discover:
-domain knowledge, edge cases, internal conventions, and product philosophy.
-Universal best practices that a capable agent already knows add token cost
-without adding value.
+Think of a well-crafted skill as the onboarding document you would write for a qualified new employee. Include only what
+they cannot independently discover: domain knowledge, edge cases, internal conventions, and product philosophy.
+Universal best practices that a capable agent already knows add token cost without adding value.
 
-When scoping a skill, aim for a coherent unit of work — analogous to how you
-would scope a well-designed function. Too narrow a scope forces the agent to
-load multiple skills for a single task, increasing overhead and the risk of
-conflicting instructions. Too broad a scope makes precise activation harder and
-dilutes the signal-to-noise ratio of the content. A skill that queries a
-database and formats results is likely a coherent unit. One that also covers
-database administration is probably too broad.
+When scoping a skill, aim for a coherent unit of work — analogous to how you would scope a well-designed function. Too
+narrow a scope forces the agent to load multiple skills for a single task, increasing overhead and the risk of
+conflicting instructions. Too broad a scope makes precise activation harder and dilutes the signal-to-noise ratio of the
+content. A skill that queries a database and formats results is likely a coherent unit. One that also covers database
+administration is probably too broad.
 
-Aim for moderate detail rather than exhaustive coverage. Overly comprehensive
-skills hurt more than they help, because the agent struggles to extract what is
-relevant and may pursue unproductive paths. Concise stepwise guidance with a
-working example tends to outperform exhaustive documentation. When you find
-yourself wanting to cover every edge case, consider whether most are better left
-to model judgment.
+Aim for moderate detail rather than exhaustive coverage. Overly comprehensive skills hurt more than they help, because
+the agent struggles to extract what is relevant and may pursue unproductive paths. Concise stepwise guidance with a
+working example tends to outperform exhaustive documentation. When you find yourself wanting to cover every edge case,
+consider whether most are better left to model judgment.
 
 == Creating skills
 
-Effective skills are grounded in real expertise. Three approaches are
-RECOMMENDED.
+Effective skills are grounded in real expertise. Three approaches are RECOMMENDED.
 
-*Extract knowledge from a hands-on task.* Complete a real task in conversation
-with an agent, providing context, corrections, and preferences along the way.
-Pay attention to the sequence of actions that led to success, the corrections
-you made, the input and output formats, and the project-specific context you had
-to supply that the agent didn't already know. Then crystallize that experience
-into a new skill, for reuse next time you tackle the same problem.
+*Extract knowledge from a hands-on task.* Complete a real task in conversation with an agent, providing context,
+corrections, and preferences along the way. Pay attention to the sequence of actions that led to success, the
+corrections you made, the input and output formats, and the project-specific context you had to supply that the agent
+didn't already know. Then crystallize that experience into a new skill, for reuse next time you tackle the same problem.
 
-*Synthesize from project artifacts.* When you have a body of existing knowledge,
-feed it into an LLM and ask it to synthesize a skill. Effective source material
-includes internal documentation, runbooks, and style guides; API specifications
-and configuration files; code review comments and issue trackers; version
-control history, especially patches and fixes; and real-world failure cases and
-their resolutions.
+*Synthesize from project artifacts.* When you have a body of existing knowledge, feed it into an LLM and ask it to
+synthesize a skill. Effective source material includes internal documentation, runbooks, and style guides; API
+specifications and configuration files; code review comments and issue trackers; version control history, especially
+patches and fixes; and real-world failure cases and their resolutions.
 
-A skill synthesized from your team's actual incident reports will outperform one
-generated from a generic "best practices" article, because it captures your
-specific failure modes and recovery procedures.
+A skill synthesized from your team's actual incident reports will outperform one generated from a generic "best
+practices" article, because it captures your specific failure modes and recovery procedures.
 
-*Have the agent draft its own skill.* An agent can be instructed, at the end of
-a session, to distill what it just learned into a new or updated skill — a
-workflow it worked out, corrections it received, project-specific facts it had
-to be told. This captures reusable context that would otherwise be lost when the
-session ends. It complements the two approaches above rather than replacing
-them, because the agent has direct access to the session's corrections and
+*Have the agent draft its own skill.* An agent can be instructed, at the end of a session, to distill what it just
+learned into a new or updated skill — a workflow it worked out, corrections it received, project-specific facts it had
+to be told. This captures reusable context that would otherwise be lost when the session ends. It complements the two
+approaches above rather than replacing them, because the agent has direct access to the session's corrections and
 context in a way that a human reconstructing it from memory does not.
 
-Models tend to over-specify when drafting skills this way, producing verbose
-output that hedges, restates the obvious, and covers edge cases that will never
-occur. Treat an agent-drafted skill as a first draft, not a finished artifact.
+Models tend to over-specify when drafting skills this way, producing verbose output that hedges, restates the obvious,
+and covers edge cases that will never occur. Treat an agent-drafted skill as a first draft, not a finished artifact.
 
-Editing that draft down — cutting anything that fails the "would the agent get
-this wrong without this instruction?" test — is a key skill in its own right. It
-is where most of the value is added, once the agent has done the initial
+Editing that draft down — cutting anything that fails the "would the agent get this wrong without this instruction?"
+test — is a key skill in its own right. It is where most of the value is added, once the agent has done the initial
 extraction.
 
 == Effective instruction patterns
 
-Not every part of a skill needs the same level of prescriptiveness. Match the
-specificity of instructions to the fragility of the task. The following patterns
-have proven consistently effective across multiple agents and models:
+Not every part of a skill needs the same level of prescriptiveness. Match the specificity of instructions to the
+fragility of the task. The following patterns have proven consistently effective across multiple agents and models:
 
-*Give the agent freedom* when multiple approaches are valid and the task
-tolerates variation. In these cases, explaining _why_ is often more effective
-than specifying exact steps. An agent that understands the purpose behind an
-instruction makes better context-dependent decisions.
+*Give the agent freedom* when multiple approaches are valid and the task tolerates variation. In these cases, explaining
+_why_ is often more effective than specifying exact steps. An agent that understands the purpose behind an instruction
+makes better context-dependent decisions.
 
-*Be prescriptive* when operations are fragile, consistency is critical, or a
-specific sequence must be followed. If a script must be run with exact flags,
-say so explicitly.
+*Be prescriptive* when operations are fragile, consistency is critical, or a specific sequence must be followed. If a
+script must be run with exact flags, say so explicitly.
 
-*Provide defaults, not menus.* When multiple tools or approaches could work,
-pick one as the default and mention alternatives as escape hatches, rather than
-presenting them as equal options. The agent should follow the default unless
+*Provide defaults, not menus.* When multiple tools or approaches could work, pick one as the default and mention
+alternatives as escape hatches, rather than presenting them as equal options. The agent should follow the default unless
 there is a specific reason not to.
 
-*Favor procedures over declarations.* A skill should teach the agent
-_how to approach_ a class of problems, not what to produce for a specific
-instance. A reusable method that generalizes across tasks is more valuable than
-a hardcoded answer to a single question. Specific details — output templates,
-tool flags, constraints — can still be included where they are stable.
+*Favor procedures over declarations.* A skill should teach the agent _how to approach_ a class of problems, not what to
+produce for a specific instance. A reusable method that generalizes across tasks is more valuable than a hardcoded
+answer to a single question. Specific details — output templates, tool flags, constraints — can still be included where
+they are stable.
 
-*Step-by-step instructions.* For multi-step workflows, an explicit
-`- [ ] Step N` checklist helps the agent track progress and avoid skipping steps
-that have dependencies or validation gates.
+*Step-by-step instructions.* For multi-step workflows, an explicit `- [ ] Step N` checklist helps the agent track
+progress and avoid skipping steps that have dependencies or validation gates.
 
-*Output format templates.* When you need the agent to produce output in a
-specific format, provide a concrete template rather than a prose description.
-Agents pattern-match against structure more reliably than they interpret
-descriptions. Short templates can live inline in `SKILL.md`. Longer or
-conditionally-needed templates belong in `assets/`.
+*Output format templates.* When you need the agent to produce output in a specific format, provide a concrete template
+rather than a prose description. Agents pattern-match against structure more reliably than they interpret descriptions.
+Short templates can live inline in `SKILL.md`. Longer or conditionally-needed templates belong in `assets/`.
 
-*Validation loops.* Instruct the agent to run a validator after completing work,
-fix any failures, and repeat until validation passes before moving on. The
-validator may be a script, a reference checklist, or a self-check against stated
+*Validation loops.* Instruct the agent to run a validator after completing work, fix any failures, and repeat until
+validation passes before moving on. The validator may be a script, a reference checklist, or a self-check against stated
 criteria.
 
-*Plan-validate-execute.* For batch or destructive operations, have the agent
-produce an intermediate plan in a structured format, validate it against a
-source of truth, and only then execute. The key ingredient is a validation step
-that produces error messages specific enough for the agent to self-correct
-without human intervention.
+*Plan-validate-execute.* For batch or destructive operations, have the agent produce an intermediate plan in a
+structured format, validate it against a source of truth, and only then execute. The key ingredient is a validation step
+that produces error messages specific enough for the agent to self-correct without human intervention.
 
-*Bundle reusable scripts.* If you notice the agent reinventing the same logic
-across runs — building a chart, parsing a format, validating output — write it
-once as a tested script in `scripts/` and reference it from the skill.
+*Bundle reusable scripts.* If you notice the agent reinventing the same logic across runs — building a chart, parsing a
+format, validating output — write it once as a tested script in `scripts/` and reference it from the skill.
 
-*Gotchas.* A dedicated section — named "edge cases", for example — that lists
-environment-specific facts that defy reasonable assumptions is often the
-highest-value content in a skill. These are not general advice but concrete
-corrections to mistakes the agent will make without being told otherwise: wrong
-field names, soft-delete filters, misleading health-check endpoints, non-obvious
-API constraints. Keep gotchas in `SKILL.md` itself — not a reference file —
-because the agent needs them before it encounters the situation. When an agent
-makes a mistake you have to correct, add the correction to the edge cases
-section.
+*Gotchas.* A dedicated section — named "edge cases", for example — that lists environment-specific facts that defy
+reasonable assumptions is often the highest-value content in a skill. These are not general advice but concrete
+corrections to mistakes the agent will make without being told otherwise: wrong field names, soft-delete filters,
+misleading health-check endpoints, non-obvious API constraints. Keep gotchas in `SKILL.md` itself — not a reference file
+— because the agent needs them before it encounters the situation. When an agent makes a mistake you have to correct,
+add the correction to the edge cases section.
 
-Reliability in <<Agentic workflows,agentic workflows>> comes primarily from the
-quality of these constraints, and only secondarily from the size or intelligence
-of the underlying model. A frontier model given vague guidance behaves less
-predictably than a smaller model given a tightly specified skill and a
-deterministic gate to pass. Tightening constraints is a more reliable lever than
-swapping in a stronger model.
+Reliability in <<Agentic workflows,agentic workflows>> comes primarily from the quality of these constraints, and only
+secondarily from the size or intelligence of the underlying model. A frontier model given vague guidance behaves less
+predictably than a smaller model given a tightly specified skill and a deterministic gate to pass. Tightening
+constraints is a more reliable lever than swapping in a stronger model.
 
 == Progressive disclosure
 
-Once an agent activates a skill, the full body of `SKILL.md` loads into context.
-Keep `SKILL.md` under 500 lines, and push extended material into three OPTIONAL
-directories, which MUST be siblings of `SKILL.md`: `references/`, `assets/`, and
-`scripts/`.
+Once an agent activates a skill, the full body of `SKILL.md` loads into context. Keep `SKILL.md` under 500 lines, and
+push extended material into three OPTIONAL directories, which MUST be siblings of `SKILL.md`: `references/`, `assets/`,
+and `scripts/`.
 
-*References.* The `references/` directory holds documentation the agent reads
-only when needed. Keep each file focused on a single topic, and link to it with
-an explicit trigger condition rather than a generic pointer. "Read
-`references/api-errors.md` if the API returns a non-200 status code" beats "See
-`references/` for details." This stops agents from loading reference material
-speculatively and burning context.
+*References.* The `references/` directory holds documentation the agent reads only when needed. Keep each file focused
+on a single topic, and link to it with an explicit trigger condition rather than a generic pointer. "Read
+`references/api-errors.md` if the API returns a non-200 status code" beats "See `references/` for details." This stops
+agents from loading reference material speculatively and burning context.
 
-*Assets.* The `assets/` directory holds static resources: templates, images,
-data files.
+*Assets.* The `assets/` directory holds static resources: templates, images, data files.
 
-*Scripts.* The `scripts/` directory holds executable code the agent is allowed
-to run. Follow these guidelines:
+*Scripts.* The `scripts/` directory holds executable code the agent is allowed to run. Follow these guidelines:
 
-- **No interactive prompts.** Assume the agent runs in a non-interactive shell
-  that cannot respond to TTY prompts, password dialogs, or confirmation menus.
-  Therefore, all input MUST be supplied via CLI flags, environment variables, or
-  stdin — never an interactive prompt — or a script that blocks on input will
-  hang indefinitely.
+- **No interactive prompts.** Assume the agent runs in a non-interactive shell that cannot respond to TTY prompts,
+  password dialogs, or confirmation menus. Therefore, all input MUST be supplied via CLI flags, environment variables,
+  or stdin — never an interactive prompt — or a script that blocks on input will hang indefinitely.
 
-- **`--help` as the interface.** `--help` output is how the agent learns a
-  script's interface before running it. Keep it concise (it enters the context
-  window) and cover the description, all flags, and a usage example.
+- **`--help` as the interface.** `--help` output is how the agent learns a script's interface before running it. Keep it
+  concise (it enters the context window) and cover the description, all flags, and a usage example.
 
-- **Self-contained dependencies.** Scripts SHOULD be self-contained. PEP 723
-  inline metadata (with `uv run`) lets Python scripts declare their own
-  dependencies without a separate manifest; Deno and Bun support similar inline
-  specifiers. Where a script can't be self-contained, document its dependencies
-  at the top of the file.
+- **Self-contained dependencies.** Scripts SHOULD be self-contained. PEP 723 inline metadata (with `uv run`) lets Python
+  scripts declare their own dependencies without a separate manifest; Deno and Bun support similar inline specifiers.
+  Where a script can't be self-contained, document its dependencies at the top of the file.
 
-- **One-off commands.** For simple tasks, `uvx`, `npx`, and `bunx` can invoke
-  packages directly from `SKILL.md` instructions without a `scripts/` directory
-  at all. Pin versions for reproducibility, eg. `npx eslint@9.0.0`.
+- **One-off commands.** For simple tasks, `uvx`, `npx`, and `bunx` can invoke packages directly from `SKILL.md`
+  instructions without a `scripts/` directory at all. Pin versions for reproducibility, eg. `npx eslint@9.0.0`.
 
-- **Stdout/stderr separation.** Structured output goes to stdout; progress
-  messages, diagnostics, and warnings go to stderr. This lets the agent capture
-  clean output while still seeing what happened.
+- **Stdout/stderr separation.** Structured output goes to stdout; progress messages, diagnostics, and warnings go to
+  stderr. This lets the agent capture clean output while still seeing what happened.
 
-- **Idempotency.** Agents may retry failed commands, so scripts SHOULD be
-  idempotent — a "create if not exists" pattern is safer than "create and fail
-  on duplicate."
+- **Idempotency.** Agents may retry failed commands, so scripts SHOULD be idempotent — a "create if not exists" pattern
+  is safer than "create and fail on duplicate."
 
-- **Output size management.** Harnesses often truncate tool output past 10–30K
-  characters. Scripts with large output SHOULD default to a summary view and
-  support a `--limit`/`--offset` flag, or an `--output FILE` flag to write to a
+- **Output size management.** Harnesses often truncate tool output past 10–30K characters. Scripts with large output
+  SHOULD default to a summary view and support a `--limit`/`--offset` flag, or an `--output FILE` flag to write to a
   file instead of stdout.
 
-Scripts SHOULD give usable error and success feedback, and MUST handle edge
-cases gracefully. Prefer a widely-supported language — Bash, Python, or
-JavaScript.
+Scripts SHOULD give usable error and success feedback, and MUST handle edge cases gracefully. Prefer a widely-supported
+language — Bash, Python, or JavaScript.
 
 == Template
 
-The following is a baseline template for a `SKILL.md` file. The two most
-important sections are:
+The following is a baseline template for a `SKILL.md` file. The two most important sections are:
 
 * *Instructions*: Step-by-step procedural implementation workflows.
 
 * *Rules*: An unordered list of guidelines, recommendations, and best practices.
 
-Every skill MUST have at least one of these two sections — this is the essence
-of the skill.
+Every skill MUST have at least one of these two sections — this is the essence of the skill.
 
-This template also includes examples of proprietary metadata for custom agent
-harnesses.
+This template also includes examples of proprietary metadata for custom agent harnesses.
 
 .Template
 [source,markdown]
@@ -584,28 +489,21 @@ Include a list of links with extended and related information. For each, include
 
 == Sharing skills publicly
 
-The https://www.skills.sh/[Agent Skills Directory] (skills.sh) is the primary
-public registry for discoverable, installable skills. Skills listed there can be
-installed into any project via `npx skillsadd <owner/repo>`.
+The https://www.skills.sh/[Agent Skills Directory] (skills.sh) is the primary public registry for discoverable,
+installable skills. Skills listed there can be installed into any project via `npx skillsadd <owner/repo>`.
 
-Additional considerations apply when designing a skill for public sharing rather
-than internal project use:
+Additional considerations apply when designing a skill for public sharing rather than internal project use:
 
-* *Avoid project-specific assumptions.* Internal skills can reference your
-  schemas, tools, and conventions directly. Shared skills must instead teach a
-  pattern that transfers across projects and environments.
+* *Avoid project-specific assumptions.* Internal skills can reference your schemas, tools, and conventions directly.
+  Shared skills must instead teach a pattern that transfers across projects and environments.
 
-* *Document prerequisites clearly.* Use the `compatibility` field to specify
-  runtime requirements.
+* *Document prerequisites clearly.* Use the `compatibility` field to specify runtime requirements.
 
-* *Provide working examples.* Public audiences have less context than your
-  internal team. A small set of concrete input/output examples significantly
-  reduces the friction of adoption.
+* *Provide working examples.* Public audiences have less context than your internal team. A small set of concrete
+  input/output examples significantly reduces the friction of adoption.
 
-* *Keep skills current.* Use the `metadata` field to record a `last_updated`
-  date, and review shared skills whenever the underlying tools or APIs change. A
-  widely-referenced skill that goes stale can cause failures across many
-  projects.
+* *Keep skills current.* Use the `metadata` field to record a `last_updated` date, and review shared skills whenever the
+  underlying tools or APIs change. A widely-referenced skill that goes stale can cause failures across many projects.
 
-Before publishing a skill, validate its configuration with the `skills-ref`
-package: https://github.com/agentskills/agentskills/tree/main/skills-ref
+Before publishing a skill, validate its configuration with the `skills-ref` package:
+https://github.com/agentskills/agentskills/tree/main/skills-ref

@@ -1,36 +1,27 @@
 = Distributed writes
 
-Distributed writes mean several clients may try to update the same data at the
-same time. There are three ways databases can be designed to handle this:
+Distributed writes mean several clients may try to update the same data at the same time. There are three ways
+databases can be designed to handle this:
 
-1. **Write-ahead logging (WAL)**: Used by PostgreSQL and MySQL. The change is
-   written ahead to a log, before being applied to the database. This approach
-   is safe and durable, but it doesn't properly handle concurrent write
-   conflicts, because updates are simply applied in the order in which the write
-   logs are written. Another downside of this design is the overhead of
-   monitoring the logs. The main upside, however, is that it is non-blocking –
-   no ongoing write will block another one from being performed.
+1. **Write-ahead logging (WAL)**: Used by PostgreSQL and MySQL. The change is written ahead to a log, before being
+   applied to the database. This approach is safe and durable, but it doesn't properly handle concurrent write
+   conflicts, because updates are simply applied in the order in which the write logs are written. Another downside
+   of this design is the overhead of monitoring the logs. The main upside, however, is that it is non-blocking – no
+   ongoing write will block another one from being performed.
 
-2. **Locking (aka. pessimistic concurrency)**: Used by traditional RDBMS. The
-   writer acquires a lock on the record and, while that lock is in place, other
-   writers are blocked until the lock is released. The initial writer update the
-   data and releases the lock. This prevents conflicting updates, but it does
-   not scale well because of blocking operations – so it's a poor fit for
-   high-throughput distributed systems. The main downside are risk of deadlocks,
-   high latency, and poor scalability. But the upsides are strong consistency,
-   and the system is easy to reason about.
+2. **Locking (aka. pessimistic concurrency)**: Used by traditional RDBMS. The writer acquires a lock on the record
+   and, while that lock is in place, other writers are blocked until the lock is released. The initial writer
+   update the data and releases the lock. This prevents conflicting updates, but it does not scale well because of
+   blocking operations – so it's a poor fit for high-throughput distributed systems. The main downside are risk of
+   deadlocks, high latency, and poor scalability. But the upsides are strong consistency, and the system is easy to
+   reason about.
 
-3. **Versioning (aka. optimistic concurrency)**: Used by Dynamo DB, Cassandra,
-   and the Event Sourcing pattern. Locks are replaced with version checks. Then
-   client reads version N, and the client then writes with condition "version =
-   n"
-- known as a **conditional write**. The write succeeds only if the version still
-  matches. Writes may still fail, and the client is responsible for dealing with
-  merge conflicts and data retries, but at least there's no blocking of new
-  connections, so this scales very well and supports high throughput. Clients
-  assume no conflicts by default, but handle them gracefully when they occur.
-  This prevents silent overwrites - only one writer succeeds per version,
-  eliminating the "last write wins" chaos. The main downsides are on the
-  client-side: conflicts are made visible for clients, who require more logic to
-  deal with them. The trade-offs are there's no lock contention, and there's no
-  centralized locking so it scales very well.
+3. **Versioning (aka. optimistic concurrency)**: Used by Dynamo DB, Cassandra, and the Event Sourcing pattern.
+   Locks are replaced with version checks. Then client reads version N, and the client then writes with condition
+   "version = n" - known as a **conditional write**. The write succeeds only if the version still matches. Writes
+   may still fail, and the client is responsible for dealing with merge conflicts and data retries, but at least
+   there's no blocking of new connections, so this scales very well and supports high throughput. Clients assume no
+   conflicts by default, but handle them gracefully when they occur. This prevents silent overwrites - only one
+   writer succeeds per version, eliminating the "last write wins" chaos. The main downsides are on the client-side:
+   conflicts are made visible for clients, who require more logic to deal with them. The trade-offs are there's no
+   lock contention, and there's no centralized locking so it scales very well.

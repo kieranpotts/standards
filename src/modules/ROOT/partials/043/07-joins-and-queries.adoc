@@ -1,24 +1,19 @@
 = Joins and queries
 
-This section covers joining data across tables, and general query-writing
-patterns.
+This section covers joining data across tables, and general query-writing patterns.
 
 == Join fundamentals
 
-A relational database links tables through foreign-key columns. A join
-combines rows from two or more tables based on matching values in those
-common columns. The mainstream join types — inner, left, right, and cross —
-are supported across virtually every relational database engine; a full
-outer join is notably absent from some engines, including MySQL, and must be
-emulated with a `UNION` of a left and a right join where it is not natively
-supported. A `JOIN` clause appears after the `FROM` clause in a `SELECT`
-statement. See <<Formatting joins>> for how to lay out a join across
-multiple lines.
+A relational database links tables through foreign-key columns. A join combines rows from two or more tables
+based on matching values in those common columns. The mainstream join types — inner, left, right, and cross —
+are supported across virtually every relational database engine; a full outer join is notably absent from some
+engines, including MySQL, and must be emulated with a `UNION` of a left and a right join where it is not
+natively supported. A `JOIN` clause appears after the `FROM` clause in a `SELECT` statement. See
+<<Formatting joins>> for how to lay out a join across multiple lines.
 
 == Inner joins
 
-An inner join returns only the rows that have a match in both joined
-tables.
+An inner join returns only the rows that have a match in both joined tables.
 
 [source,sql]
 ----
@@ -27,8 +22,8 @@ SELECT o.id, o.total, c.email
  INNER JOIN customers AS c ON o.customer_id = c.id;
 ----
 
-Where the matching column has the same name in both tables, the `USING`
-clause is a more concise alternative to `ON`:
+Where the matching column has the same name in both tables, the `USING` clause is a more concise alternative to
+`ON`:
 
 [source,sql]
 ----
@@ -39,9 +34,8 @@ SELECT o.id, o.total, c.email
 
 == Left and right joins
 
-A left join returns every row from the left-hand table, whether or not a
-matching row exists in the right-hand table. Where no match exists, the
-right-hand table's columns are `NULL` in the result.
+A left join returns every row from the left-hand table, whether or not a matching row exists in the right-hand
+table. Where no match exists, the right-hand table's columns are `NULL` in the result.
 
 [source,sql]
 ----
@@ -50,9 +44,8 @@ SELECT c.id, c.email, o.id AS order_id
   LEFT JOIN orders AS o ON o.customer_id = c.id;
 ----
 
-Combined with a `WHERE ... IS NULL` clause, a left join finds rows in the
-left table that have no match in the right table — for example, customers
-who have never placed an order:
+Combined with a `WHERE ... IS NULL` clause, a left join finds rows in the left table that have no match in the
+right table — for example, customers who have never placed an order:
 
 [source,sql]
 ----
@@ -62,19 +55,16 @@ SELECT c.id, c.email
  WHERE o.id IS NULL;
 ----
 
-A right join is the mirror of a left join: it returns every row from the
-right-hand table, with `NULL` for unmatched left-table columns. The same
-`USING` syntax and the same `WHERE ... IS NULL` pattern for finding
+A right join is the mirror of a left join: it returns every row from the right-hand table, with `NULL` for
+unmatched left-table columns. The same `USING` syntax and the same `WHERE ... IS NULL` pattern for finding
 unmatched rows apply, with the tables' roles reversed.
 
 == Cross joins
 
-A cross join produces the Cartesian product of the two joined tables — every
-row from the first table paired with every row from the second, giving
-`n × m` rows in the result. A cross join has no join condition. It is rarely
-useful for combining related data, but it is a convenient way to generate
-planning or scheduling data — for example, every combination of a set of
-dates and a set of resources.
+A cross join produces the Cartesian product of the two joined tables — every row from the first table paired
+with every row from the second, giving `n × m` rows in the result. A cross join has no join condition. It is
+rarely useful for combining related data, but it is a convenient way to generate planning or scheduling data —
+for example, every combination of a set of dates and a set of resources.
 
 [source,sql]
 ----
@@ -85,11 +75,10 @@ SELECT d.calendar_date, r.resource_name
 
 == Many-to-many relationships
 
-Model a many-to-many relationship with a joining table that holds a foreign
-key to each side of the relationship. Use a composite key of the two
-foreign-key columns, rather than a separate surrogate `id` column, as the
-joining table's primary key. This guarantees that a given pairing can only
-be recorded once, which a surrogate `id` alone would not enforce.
+Model a many-to-many relationship with a joining table that holds a foreign key to each side of the
+relationship. Use a composite key of the two foreign-key columns, rather than a separate surrogate `id`
+column, as the joining table's primary key. This guarantees that a given pairing can only be recorded once,
+which a surrogate `id` alone would not enforce.
 
 [source,sql]
 ----
@@ -101,25 +90,21 @@ CREATE TABLE car_mechanics (
 );
 ----
 
-See also <<Table names>> for guidance on naming the joining table itself —
-prefer a name that describes the relationship over a concatenation of the
-two related table names, where a suitable name exists.
+See also <<Table names>> for guidance on naming the joining table itself — prefer a name that describes the
+relationship over a concatenation of the two related table names, where a suitable name exists.
 
 == Joins vs subqueries
 
-A `JOIN` and an equivalent subquery (a sub-`SELECT` nested inside another
-query) can often produce the same result. They are not, however,
-interchangeable in performance: a subquery can be significantly slower than
-the equivalent join, depending on the query planner's ability to optimize
-it. Where a query's performance matters, benchmark alternative formulations
-— a join, a subquery, and a common table expression, where applicable —
-against the actual data volumes the query will run against, rather than
-assuming one form is faster.
+A `JOIN` and an equivalent subquery (a sub-`SELECT` nested inside another query) can often produce the same
+result. They are not, however, interchangeable in performance: a subquery can be significantly slower than the
+equivalent join, depending on the query planner's ability to optimize it. Where a query's performance matters,
+benchmark alternative formulations — a join, a subquery, and a common table expression, where applicable —
+against the actual data volumes the query will run against, rather than assuming one form is faster.
 
 == Paginated search
 
-Paginate a result set with `LIMIT offset, count` (or the equivalent
-`OFFSET`/`FETCH` syntax on engines that use it).
+Paginate a result set with `LIMIT offset, count` (or the equivalent `OFFSET`/`FETCH` syntax on engines that
+use it).
 
 [source,sql]
 ----
@@ -129,46 +114,36 @@ SELECT id, name
  LIMIT 20 OFFSET 40;
 ----
 
-A paginated UI typically also needs the total number of matching rows, to
-render page counts or a "showing X of Y" indicator. There are three common
-ways to obtain it:
+A paginated UI typically also needs the total number of matching rows, to render page counts or a "showing X of
+Y" indicator. There are three common ways to obtain it:
 
-1. *A separate, un-`LIMIT`ed count query.* Run `SELECT COUNT(*) FROM ...`
-   with the same `WHERE` clause as the paginated query. Simple and portable,
-   at the cost of a second query per page request.
-2. *Cache the count.* Where the underlying data does not change on every
-   request, compute the count once and cache it, invalidating the cache when
-   the underlying data changes.
-3. *A vendor-specific mechanism.* MySQL, for example, offers
-   `SQL_CALC_FOUND_ROWS` in the paginated query combined with a subsequent
-   `SELECT FOUND_ROWS()` call, avoiding a second full table scan. This
-   sacrifices portability for a performance gain specific to one engine —
-   weigh that trade-off per <<SQL style and formatting>>'s general guidance
-   on vendor-specific features.
+1. *A separate, un-`LIMIT`ed count query.* Run `SELECT COUNT(*) FROM ...` with the same `WHERE` clause as the
+   paginated query. Simple and portable, at the cost of a second query per page request.
+2. *Cache the count.* Where the underlying data does not change on every request, compute the count once and
+   cache it, invalidating the cache when the underlying data changes.
+3. *A vendor-specific mechanism.* MySQL, for example, offers `SQL_CALC_FOUND_ROWS` in the paginated query
+   combined with a subsequent `SELECT FOUND_ROWS()` call, avoiding a second full table scan. This sacrifices
+   portability for a performance gain specific to one engine — weigh that trade-off per
+   <<SQL style and formatting>>'s general guidance on vendor-specific features.
 
-Where a user pages through the same result set repeatedly, consider storing
-the total count in a session variable after the first page request, rather
-than recomputing or re-fetching it on every subsequent page.
+Where a user pages through the same result set repeatedly, consider storing the total count in a session
+variable after the first page request, rather than recomputing or re-fetching it on every subsequent page.
 
 == Query formalisms
 
-* Prefer `BETWEEN` over a chained pair of `AND`-joined comparisons
-  (`value BETWEEN 10 AND 20` rather than `value >= 10 AND value <= 20`).
-* Prefer `IN (...)` over a chain of `OR`-joined equality comparisons
-  (`status IN ('pending', 'paid')` rather than
-  `status = 'pending' OR status = 'paid'`).
-* Use `CASE` to interpret or transform a value based on conditions. `CASE`
-  expressions may be nested where a single level of conditions is not
-  sufficient.
-* Avoid `UNION` and temporary tables where the underlying schema can
-  instead be optimized to remove the need for them — both are frequently a
-  workaround for a schema design that does not fit the query being written,
+* Prefer `BETWEEN` over a chained pair of `AND`-joined comparisons (`value BETWEEN 10 AND 20` rather than
+  `value >= 10 AND value <= 20`).
+* Prefer `IN (...)` over a chain of `OR`-joined equality comparisons (`status IN ('pending', 'paid')` rather
+  than `status = 'pending' OR status = 'paid'`).
+* Use `CASE` to interpret or transform a value based on conditions. `CASE` expressions may be nested where a
+  single level of conditions is not sufficient.
+* Avoid `UNION` and temporary tables where the underlying schema can instead be optimized to remove the need
+  for them — both are frequently a workaround for a schema design that does not fit the query being written,
   rather than a first-choice tool.
 
 == Functions
 
-Prefer standard SQL functions over vendor-specific ones, for the same
-portability reasons as vendor-specific data types and keywords (see
-<<SQL style and formatting>> and <<Data types>>). Use a vendor-specific
-function where it offers a significant, concrete advantage — most often
-performance — that outweighs the portability cost of depending on it.
+Prefer standard SQL functions over vendor-specific ones, for the same portability reasons as vendor-specific
+data types and keywords (see <<SQL style and formatting>> and <<Data types>>). Use a vendor-specific function
+where it offers a significant, concrete advantage — most often performance — that outweighs the portability
+cost of depending on it.

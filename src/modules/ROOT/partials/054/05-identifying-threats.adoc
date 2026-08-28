@@ -1,22 +1,19 @@
 = Identifying threats
 
-The most important part of the threat modeling process is the identification of
-potential threats. This is done by systematically analyzing each component and
-data flow within a system against various categories of known threats and
-vulnerabilities.
+The most important part of the threat modeling process is the identification of potential threats. This is
+done by systematically analyzing each component and data flow within a system against various categories of
+known threats and vulnerabilities.
 
 It is RECOMMENDED to use a structured framework for this part of the process.
 
-STRIDE is a RECOMMENDED minimal framework for threat identification. For complex
-applications, this framework SHOULD be augmented with other frameworks as well
-as analysis of public vulnerability databases and other sources of information
-about security and privacy threats.
+STRIDE is a RECOMMENDED minimal framework for threat identification. For complex applications, this framework
+SHOULD be augmented with other frameworks as well as analysis of public vulnerability databases and other
+sources of information about security and privacy threats.
 
 == Vulnerability databases
 
-Another approach is to assess the system against common vulnerabilities. Public
-vulnerability databases are a useful resource for this purpose. Public
-vulnerability databases include:
+Another approach is to assess the system against common vulnerabilities. Public vulnerability databases are a
+useful resource for this purpose. Public vulnerability databases include:
 
 * The https://www.cve.org/[Common Vulnerabilities and Exposures (CVE)] database
 
@@ -33,64 +30,52 @@ vulnerability databases include:
 
 == Systems-level threats
 
-STRIDE and the OWASP categories frame threats at the application layer. Where a
-system includes code written in a memory-unsafe language – C, C++, or any
-component compiled to native code, including runtime extensions and third-party
-binary dependencies – the threat model MUST also reach the layers beneath the
-application: the language's semantics, the compiler, the runtime library, the
-operating system, and the hardware.
+STRIDE and the OWASP categories frame threats at the application layer. Where a system includes code written
+in a memory-unsafe language – C, C++, or any component compiled to native code, including runtime extensions
+and third-party binary dependencies – the threat model MUST also reach the layers beneath the application: the
+language's semantics, the compiler, the runtime library, the operating system, and the hardware.
 
-The reason is that an attacker is not bound by the abstraction the developers
-reason in. The C standard classifies a buffer overflow only as undefined
-behavior, and says nothing further about it. Whether that undefined behavior
-produces a crash, an information leak, or remote code execution is decided by
-the compiler's code generation, the memory allocator, the C library, and the
-hardware. A threat model that stops at the specification level therefore cannot
-rate the threat. It can establish that the defect exists, but not how
-exploitable it is.
+The reason is that an attacker is not bound by the abstraction the developers reason in. The C standard
+classifies a buffer overflow only as undefined behavior, and says nothing further about it. Whether that
+undefined behavior produces a crash, an information leak, or remote code execution is decided by the
+compiler's code generation, the memory allocator, the C library, and the hardware. A threat model that stops
+at the specification level therefore cannot rate the threat. It can establish that the defect exists, but not
+how exploitable it is.
 
 Two rules follow.
 
-1. *Rate exploitability against the implementation, not the specification.*
-   Where the workshop has the expertise to reason about the compiled artifact
-   and its runtime, it SHOULD do so, and record that reasoning against the
-   threat. Where it does not, the threat MUST be rated as exploitable rather
-   than as a mere correctness defect. Undefined behavior of unknown consequence
-   is not evidence of low likelihood.
+1. *Rate exploitability against the implementation, not the specification.* Where the workshop has the
+   expertise to reason about the compiled artifact and its runtime, it SHOULD do so, and record that reasoning
+   against the threat. Where it does not, the threat MUST be rated as exploitable rather than as a mere
+   correctness defect. Undefined behavior of unknown consequence is not evidence of low likelihood.
 
-2. *Record exploit mitigations as countermeasures, not as remediation.*
-   Address space layout randomization (ASLR), data execution prevention
-   (DEP/NX), stack canaries, control-flow integrity (CFI), hardened allocators,
-   and position-independent executables raise the cost of exploitation. None of
-   them removes the underlying defect, and each has a known bypass – ASLR falls
-   to an address leak, DEP to return-oriented programming – so the residual
-   risk after such a mitigation is never zero. In the risk register (see
-   <<Risk register>>) they belong in the countermeasures column, with the
-   memory-safety defect itself left open until it is fixed or the code is
-   replaced.
+2. *Record exploit mitigations as countermeasures, not as remediation.* Address space layout randomization
+   (ASLR), data execution prevention (DEP/NX), stack canaries, control-flow integrity (CFI), hardened
+   allocators, and position-independent executables raise the cost of exploitation. None of them removes the
+   underlying defect, and each has a known bypass – ASLR falls to an address leak, DEP to return-oriented
+   programming – so the residual risk after such a mitigation is never zero. In the risk register (see
+   <<Risk register>>) they belong in the countermeasures column, with the memory-safety defect itself left
+   open until it is fixed or the code is replaced.
 
-The only mitigation that removes the threat class is elimination: writing new
-components in a memory-safe language, and isolating native code that cannot be
-replaced behind a process or sandbox boundary, so that a successful exploit
-gains the attacker the least possible authority.
+The only mitigation that removes the threat class is elimination: writing new components in a memory-safe
+language, and isolating native code that cannot be replaced behind a process or sandbox boundary, so that a
+successful exploit gains the attacker the least possible authority.
 
-Where a system contains no native code at all, the workshop SHOULD record that
-finding explicitly in its technical scope, rather than passing over the category
-in silence. The finding is rarely absolute: language runtimes, interpreters,
-image and document parsers, and compression libraries are native code that the
-application inherits through its dependencies, and they carry the supply-chain
-concerns covered in xref:052.adoc[*TS-52: Security and secrets management*].
+Where a system contains no native code at all, the workshop SHOULD record that finding explicitly in its
+technical scope, rather than passing over the category in silence. The finding is rarely absolute: language
+runtimes, interpreters, image and document parsers, and compression libraries are native code that the
+application inherits through its dependencies, and they carry the supply-chain concerns covered in
+xref:052.adoc[*TS-52: Security and secrets management*].
 
 == Prompt questions
 
-It is useful to prepare a list of questions to guide threat modeling workshops.
-These prompts help systematically interrogate system design against common
-vulnerabilities.
+It is useful to prepare a list of questions to guide threat modeling workshops. These prompts help
+systematically interrogate system design against common vulnerabilities.
 
 === STRIDE framework
 
-The STRIDE framework provides structured categories for threat assessment. Here
-are some example questions to consider for each STRIDE category.
+The STRIDE framework provides structured categories for threat assessment. Here are some example questions to
+consider for each STRIDE category.
 
 *Spoofing:*
 
@@ -120,8 +105,7 @@ are some example questions to consider for each STRIDE category.
 
 *Information disclosure:*
 
-* Could sensitive data be unintentionally exposed via error messages, logs, or
-  debug information?
+* Could sensitive data be unintentionally exposed via error messages, logs, or debug information?
 
 * Is sensitive data encrypted at rest? Is it access-controlled?
 
@@ -151,8 +135,7 @@ are some example questions to consider for each STRIDE category.
 
 === OWASP vulnerability categories
 
-Alternatively, you could choose to assess the system against common
-vulnerability categories.
+Alternatively, you could choose to assess the system against common vulnerability categories.
 
 *Authentication failures:*
 
@@ -168,11 +151,9 @@ vulnerability categories.
 
 * Is all access "deny by default" with explicit allow rules?
 
-* Can the authorization system (eg. role-based) be bypassed or manipulated to
-  allow privilege escalation?
+* Can the authorization system (eg. role-based) be bypassed or manipulated to allow privilege escalation?
 
-* Are session identifiers secure (random, transferred over HTTPS, invalidated on
-  logout)?
+* Are session identifiers secure (random, transferred over HTTPS, invalidated on logout)?
 
 * Are authorization checks enforced consistently across all entry points?
 
@@ -190,12 +171,10 @@ vulnerability categories.
 
 *Cryptographic failures:*
 
-* Is all network traffic encrypted (HTTPS, TLS)? This includes traffic between
-  load balancers and application servers, between application servers and
-  databases, and so on.
+* Is all network traffic encrypted (HTTPS, TLS)? This includes traffic between load balancers and application
+  servers, between application servers and databases, and so on.
 
-* Are there any open ports which are not currently encrypted (even if not in
-  use)?
+* Are there any open ports which are not currently encrypted (even if not in use)?
 
 * Are any self-signed certificates used?
 
@@ -203,15 +182,14 @@ vulnerability categories.
 
 * Are certificates and their trust chain properly validated?
 
-* Are current, strong algorithms used (SHA-256+, bcrypt, TLS 1.2+)? Are any
-  deprecated hash functions used (eg. MD5 or SHA-1)?
+* Are current, strong algorithms used (SHA-256+, bcrypt, TLS 1.2+)? Are any deprecated hash functions used
+  (eg. MD5 or SHA-1)?
 
 * Are strong cryptographic keys used?
 
 * Are any randomness functions used suitable for cryptographic purposes?
 
-* Are cryptographic keys managed securely (not hardcoded, not in version
-  control)?
+* Are cryptographic keys managed securely (not hardcoded, not in version control)?
 
 * Are key invalidation and rotation processes in place?
 
@@ -225,14 +203,13 @@ vulnerability categories.
 
 * Are all client-supplied URLs validated (schema, port, destination)?
 
-* Are all inputs (parameters, headers, cookies, JSON/XML) validated? Are
-  allow-lists (not deny-lists) used for validation purposes?
+* Are all inputs (parameters, headers, cookies, JSON/XML) validated? Are allow-lists (not deny-lists) used for
+  validation purposes?
 
-* Does a parameterized interface ensure that only valid commands are executed,
-  and that only expected parameters are processed?
+* Does a parameterized interface ensure that only valid commands are executed, and that only expected
+  parameters are processed?
 
-* Are user-provided values properly escaped before rendering in HTML or
-  executing in interpreters?
+* Are user-provided values properly escaped before rendering in HTML or executing in interpreters?
 
 * Is any other user-provided data stored, processed, or outputted verbatim?
 
@@ -240,8 +217,7 @@ vulnerability categories.
 
 *Deployment pipelines:*
 
-* Are all code and configuration changes reviewed and approved before
-  deployment?
+* Are all code and configuration changes reviewed and approved before deployment?
 
 * Are applications securely deployed to their host systems?
 
@@ -249,11 +225,9 @@ vulnerability categories.
 
 * Are deployments and rollbacks highly automated?
 
-* Are applications deployed to minimal platforms, with only necessary features
-  enabled?
+* Are applications deployed to minimal platforms, with only necessary features enabled?
 
-* Are development, test, and production environments configured identically
-  (except credentials)?
+* Are development, test, and production environments configured identically (except credentials)?
 
 * Are cloud storage permissions regularly audited?
 
@@ -261,27 +235,21 @@ vulnerability categories.
 
 * Are library and dependency versions inventoried and tracked?
 
-* Is there continuous monitoring and automated alerting for known
-  vulnerabilities?
+* Is there continuous monitoring and automated alerting for known vulnerabilities?
 
-* Is there continuous monitoring that identifies outdated and unmaintained
-  dependencies?
+* Is there continuous monitoring that identifies outdated and unmaintained dependencies?
 
 * Are components obtained only from official, secure sources?
 
-* Are only signed packages used, to reduce the chances of including maliciously
-  modified components?
+* Are only signed packages used, to reduce the chances of including maliciously modified components?
 
-* Are unmaintained or unsupported dependencies identified and replaced at
-  regular intervals?
+* Are unmaintained or unsupported dependencies identified and replaced at regular intervals?
 
 *Logging and monitoring:*
 
-* Are authentication, authorization, and input validation failures logged with
-  attack context?
+* Are authentication, authorization, and input validation failures logged with attack context?
 
-* But are error messages also generic enough to not reveal unnecessary
-  implementation details?
+* But are error messages also generic enough to not reveal unnecessary implementation details?
 
 * Are logs monitored for suspicious patterns?
 
@@ -289,11 +257,10 @@ vulnerability categories.
 
 * Are logs protected from modification and deletion?
 
-* Is there an incident response plan (documented and tested, with escalation
-  procedures)?
+* Is there an incident response plan (documented and tested, with escalation procedures)?
 
-* What happens when an attack is detected? Are there automated responses (eg.
-  blocking IPs, rate-limiting, alerting admins)?
+* What happens when an attack is detected? Are there automated responses (eg. blocking IPs, rate-limiting,
+  alerting admins)?
 
 * Can attacks be detected, alerted, and mitigated in real-time?
 
@@ -309,8 +276,8 @@ Other *secure-by-design* questions
 
 * Are remote resource requests isolated to separate networks?
 
-* Is "deny by default" enforced for network access via firewall policies, or are
-  network access controls configured to block all but essential traffic?
+* Is "deny by default" enforced for network access via firewall policies, or are network access controls
+  configured to block all but essential traffic?
 
 * Are all blocked network requests logged for suspicious activity?
 
@@ -318,35 +285,32 @@ Other *secure-by-design* questions
 
 === Memory safety and exploit mitigations
 
-Where the system includes native code, add the following prompts to those
-above. See <<Systems-level threats>> for how to rate what they turn up.
+Where the system includes native code, add the following prompts to those above. See <<Systems-level threats>>
+for how to rate what they turn up.
 
 *Memory safety:*
 
-* Which components are written in a memory-unsafe language, and which of those
-  parse input that originates outside a trust boundary?
+* Which components are written in a memory-unsafe language, and which of those parse input that originates
+  outside a trust boundary?
 
-* Are the classic defect classes tested for – out-of-bounds reads and writes,
-  use-after-free, double free, integer overflow feeding an allocation size,
-  type confusion, and disclosure of uninitialized memory?
+* Are the classic defect classes tested for – out-of-bounds reads and writes, use-after-free, double free,
+  integer overflow feeding an allocation size, type confusion, and disclosure of uninitialized memory?
 
-* Are inputs fuzzed? Are sanitizers (address, memory, undefined behavior,
-  thread) enabled in a build that the test suite is run against?
+* Are inputs fuzzed? Are sanitizers (address, memory, undefined behavior, thread) enabled in a build that the
+  test suite is run against?
 
-* Are there time-of-check-to-time-of-use races between validating a resource
-  and acting on it?
+* Are there time-of-check-to-time-of-use races between validating a resource and acting on it?
 
 *Exploit mitigations:*
 
-* Are ASLR, DEP/NX, stack canaries, RELRO, and position-independent executables
-  enabled on every deployed binary? Is that verified in the build pipeline,
-  rather than assumed from the toolchain's defaults?
+* Are ASLR, DEP/NX, stack canaries, RELRO, and position-independent executables enabled on every deployed
+  binary? Is that verified in the build pipeline, rather than assumed from the toolchain's defaults?
 
 * Is control-flow integrity or a hardened allocator available on the target
   platform, and if so, why is it not enabled?
 
-* What does each mitigation actually cost an attacker here, and what single
-  additional primitive – an address leak, an arbitrary write – would defeat it?
+* What does each mitigation actually cost an attacker here, and what single additional primitive – an address
+  leak, an arbitrary write – would defeat it?
 
-* Is native code isolated behind a process, container, or sandbox boundary that
-  limits what a successful exploit can reach?
+* Is native code isolated behind a process, container, or sandbox boundary that limits what a successful
+  exploit can reach?

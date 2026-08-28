@@ -1,19 +1,15 @@
 = Organizing Terraform code
 
-How you organize your Terraform code is important for maintainability. It should
-be immediately clear, from the filesystem design, where a maintainer can find a
-specific resource or data source definition.
+How you organize your Terraform code is important for maintainability. It should be immediately clear, from the
+filesystem design, where a maintainer can find a specific resource or data source definition.
 
 == Filesystem design
 
-As per the
-https://developer.hashicorp.com/terraform/language/style#file-names[Terraform style guide],
-the following files are RECOMMENDED as a starting point for organizing a new
-infrastructure-as-code project:
+As per the https://developer.hashicorp.com/terraform/language/style#file-names[Terraform style guide], the following
+files are RECOMMENDED as a starting point for organizing a new infrastructure-as-code project:
 
-* `terraform.tf` — Contains a single `terraform` block that defines Terraform
-  version constraints (`required_version`) and provider version requirements
-  (`required_providers`).
+* `terraform.tf` — Contains a single `terraform` block that defines Terraform version constraints (`required_version`)
+  and provider version requirements (`required_providers`).
 
 * `backend.tf` — Back-end configuration for remote state storage.
 
@@ -29,12 +25,10 @@ infrastructure-as-code project:
 
 * `override.tf` or `*_override.tf` files — Override definitions.
 
-However, as the IaC code grows in size and complexity, it is necessary to
-incrementally refactor the filesystem to represent a model of the infrastructure
-configuration at a higher level of granularity.
+However, as the IaC code grows in size and complexity, it is necessary to incrementally refactor the filesystem to
+represent a model of the infrastructure configuration at a higher level of granularity.
 
-The following is a RECOMMENDED baseline directory structure for large-scale
-Terraform projects.
+The following is a RECOMMENDED baseline directory structure for large-scale Terraform projects.
 
 ----
 .
@@ -110,22 +104,18 @@ Terraform projects.
 └── files/
 ----
 
-This directory structure supports multiple Terraform projects. Within each
-project, the infrastructure configuration files are organized by deployment
-environment, eg. development, staging, production. Each project's environment is
-managed and deployed independently – thus, each environment subdirectory is a
-root Terraform module, with its own state files and back-end configuration.
+This directory structure supports multiple Terraform projects. Within each project, the infrastructure configuration
+files are organized by deployment environment, eg. development, staging, production. Each project's environment is
+managed and deployed independently – thus, each environment subdirectory is a root Terraform module, with its own state
+files and back-end configuration.
 
-If necessary, state can be shared between projects using the
-`terraform_remote_state` data source.
+If necessary, state can be shared between projects using the `terraform_remote_state` data source.
 
-Within each environment, resources MAY be further organized by resource type,
-with one subdirectory for each major resource type. The resources/services names
-may be adjusted as appropriate to match the brands of the cloud service
+Within each environment, resources MAY be further organized by resource type, with one subdirectory for each major
+resource type. The resources/services names may be adjusted as appropriate to match the brands of the cloud service
 provider.
 
-An environment's `main.tf` file imports configurations from the resource
-subdirectories using module declarations:
+An environment's `main.tf` file imports configurations from the resource subdirectories using module declarations:
 
 .<project>/<environment>/main.tf
 [source,hcl]
@@ -149,21 +139,17 @@ module "vpc" {
 # ...
 ----
 
-Then, within the resources directories, the resources are defined by composing
-modules with environment-specific variables, rather than declaring resources
-directly.
+Then, within the resources directories, the resources are defined by composing modules with environment-specific
+variables, rather than declaring resources directly.
 
-All the components of the infrastructure configuration are abstracted into
-environment-agnostic, reusable modules. These modules should accept input
-variables for environment-specific customization.
+All the components of the infrastructure configuration are abstracted into environment-agnostic, reusable modules. These
+modules should accept input variables for environment-specific customization.
 
-A module may be scoped to a particular project, or shared across multiple
-projects – as represented by the placement of the module in the filesystem. See
-below for more guidance on designing modules.
+A module may be scoped to a particular project, or shared across multiple projects – as represented by the placement of
+the module in the filesystem. See below for more guidance on designing modules.
 
-Environment-specific `.tfvars` files may be included within projects for easy
-environment-specific customization. Complex variable types may be used to manage
-environment differences, eg.:
+Environment-specific `.tfvars` files may be included within projects for easy environment-specific customization.
+Complex variable types may be used to manage environment differences, eg.:
 
 [source,hcl]
 ----
@@ -204,8 +190,7 @@ dynamic "tag" {
 }
 ----
 
-Use variable validation to enforce environment-specific variables being set
-correctly
+Use variable validation to enforce environment-specific variables being set correctly
 
 [source,hcl]
 ----
@@ -218,44 +203,34 @@ variable "environment" {
 }
 ----
 
-Terraform-specific code SHOULD be kept isolated from other scripts, binaries,
-and other files that are not directly related to the infrastructure
-configuration or which are not executed or managed by Terraform. Scripts
-executed by the `local-exec` or `remote-exec` provisioners SHOULD be placed in a
-`scripts/` directory. Any custom helper scripts, run independently of Terraform,
-SHOULD be put in a `helpers/` directory. Finally, any static files, such as
-those referenced by the `file()` or `templatefile()` functions, SHOULD be put in
-a `files/` directory. These too may be project-specific or global (shared across
-multiple projects).
+Terraform-specific code SHOULD be kept isolated from other scripts, binaries, and other files that are not directly
+related to the infrastructure configuration or which are not executed or managed by Terraform. Scripts executed by the
+`local-exec` or `remote-exec` provisioners SHOULD be placed in a `scripts/` directory. Any custom helper scripts, run
+independently of Terraform, SHOULD be put in a `helpers/` directory. Finally, any static files, such as those referenced
+by the `file()` or `templatefile()` functions, SHOULD be put in a `files/` directory. These too may be project-specific
+or global (shared across multiple projects).
 
-This filesystem design represents best practice for organizing Terraform code.
-It should be tailored to the needs of each project. For example, it may be
-beneficial to organize configurations by region, too.
+This filesystem design represents best practice for organizing Terraform code. It should be tailored to the needs of
+each project. For example, it may be beneficial to organize configurations by region, too.
 
 There are alternative approaches to managing multi-environment configurations.
-https://developer.hashicorp.com/terraform/language/state/workspaces[Terraform workspaces],
-for example, allow for multiple states (one per environment) to be associated
-with a single infrastructure configuration. However, this approach does not
-allow for variation in the configuration of each environment. For example, you
-can't define a VPN and load balancer only for production environments, but not
-for development or staging environments. Terraform workspaces are meant only for
-testing production configurations by pre-deploying to isolated, ephemeral
-environments.
+https://developer.hashicorp.com/terraform/language/state/workspaces[Terraform workspaces], for example, allow for
+multiple states (one per environment) to be associated with a single infrastructure configuration. However, this
+approach does not allow for variation in the configuration of each environment. For example, you can't define a VPN and
+load balancer only for production environments, but not for development or staging environments. Terraform workspaces
+are meant only for testing production configurations by pre-deploying to isolated, ephemeral environments.
 
-https://terragrunt.gruntwork.io/[Terragrunt], which is a thin wrapper that
-enhances Terraform's capabilities, simplifies the way that multiple environments
-can be configured. It enforces more opinions about how to structure your IaC
-code, so you forfeit some of the flexibility that raw Terraform provides. Still,
-this may be worth considering if you want to get up-and-running with
-multi-environment configurations quickly.
+https://terragrunt.gruntwork.io/[Terragrunt], which is a thin wrapper that enhances Terraform's capabilities, simplifies
+the way that multiple environments can be configured. It enforces more opinions about how to structure your IaC code, so
+you forfeit some of the flexibility that raw Terraform provides. Still, this may be worth considering if you want to get
+up-and-running with multi-environment configurations quickly.
 
-Other meta frameworks for Terraform include
-https://terraspace.cloud/[Terraspace] and https://terramate.io/[Terramate].
+Other meta frameworks for Terraform include https://terraspace.cloud/[Terraspace] and https://terramate.io/[Terramate].
 
 == Providers
 
-A single default provider configuration MUST be included for every project. The
-default provider is the block that does not have an `alias` argument.
+A single default provider configuration MUST be included for every project. The default provider is the block that does
+not have an `alias` argument.
 
 [source,hcl]
 ----
@@ -277,48 +252,40 @@ provider "aws" {
 
 == Logical grouping of resources
 
-Avoid giving each resource its own file. Instead, create logical groupings of
-resources within their own files with descriptive names. For example, all
-resources related to DNS configurations should be defined in a single file, such
-as `route53.tf` for Amazon, or a group of `.tf` files under a directory named,
-say, `dns`.
+Avoid giving each resource its own file. Instead, create logical groupings of resources within their own files with
+descriptive names. For example, all resources related to DNS configurations should be defined in a single file, such as
+`route53.tf` for Amazon, or a group of `.tf` files under a directory named, say, `dns`.
 
-Avoid grouping multiple blocks of the same type with other blocks of different
-types, unless the mixed block types form a semantic family – for example,
-`root_block_device`, `ebs_block_device`, and `ephemeral_block_device` on
-`aws_instance` form a family of resources that describe AWS block services.
+Avoid grouping multiple blocks of the same type with other blocks of different types, unless the mixed block types form
+a semantic family – for example, `root_block_device`, `ebs_block_device`, and `ephemeral_block_device` on `aws_instance`
+form a family of resources that describe AWS block services.
 
-In any one `.tf` file, the configuration SHOULD build on itself, from top to
-bottom. Thus, dependent resources SHOULD be defined _after_ the resources they
-reference.
+In any one `.tf` file, the configuration SHOULD build on itself, from top to bottom. Thus, dependent resources SHOULD be
+defined _after_ the resources they reference.
 
 == Loops
 
 Use `count` and `for_each` sparingly.
 
-Use loops to define resources that are _genuine_ replicas (eg. for the purpose
-of redundancy). Resources that _coincidentally_ share the same configuration
-SHOULD be defined separately. Remember, the objective is to be able to change
-configuration easily. Sometimes reducing duplication helps to achieve this, but
-sometimes duplication actually makes it easier to maintain things.
+Use loops to define resources that are _genuine_ replicas (eg. for the purpose of redundancy). Resources that
+_coincidentally_ share the same configuration SHOULD be defined separately. Remember, the objective is to be able to
+change configuration easily. Sometimes reducing duplication helps to achieve this, but sometimes duplication actually
+makes it easier to maintain things.
 
 == Data sources
 
-(https://developer.hashicorp.com/terraform/language/data-sources[Data sources]
-SHOULD be declared next to the resources that reference them. For example, if
-you are fetching an image to be used in launching an instance, place it
-alongside the instance instead of collecting data resources in their own file.
+(https://developer.hashicorp.com/terraform/language/data-sources[Data sources] SHOULD be declared next to the resources
+that reference them. For example, if you are fetching an image to be used in launching an instance, place it alongside
+the instance instead of collecting data resources in their own file.
 
-However, if the number of data sources becomes large, they MAY be extracted to a
-dedicated `data.tf` file.
+However, if the number of data sources becomes large, they MAY be extracted to a dedicated `data.tf` file.
 
 == Descriptions
 
-It is RECOMMENDED to provide descriptions for all resources, all variables, all
-outputs, and all other block types thats support descriptions. This reduces the
-need for inline comments, and the descriptions will be displayed alongside the
-Terraform-controlled resources in the web console of the cloud provider.
-Descriptions can be useful for auditing purposes, too.
+It is RECOMMENDED to provide descriptions for all resources, all variables, all outputs, and all other block types thats
+support descriptions. This reduces the need for inline comments, and the descriptions will be displayed alongside the
+Terraform-controlled resources in the web console of the cloud provider. Descriptions can be useful for auditing
+purposes, too.
 
 .main.tf
 [source,hcl]
@@ -357,8 +324,8 @@ resource "aws_security_group" "web_sg" {
 
 == Variables
 
-It is RECOMMENDED to define variables for all values that are likely to change
-between environments, or between deployments to the same environment.
+It is RECOMMENDED to define variables for all values that are likely to change between environments, or between
+deployments to the same environment.
 
 Good candidates for values to be extracted to variables include:
 
@@ -370,42 +337,35 @@ Good candidates for values to be extracted to variables include:
 * Environment names
 * Environment variables
 
-All variables MUST be declared in `variables.tf`. Include a type and a
-description for every variable.
+All variables MUST be declared in `variables.tf`. Include a type and a description for every variable.
 
 Give variables descriptive names that are relevant to their usage or purpose.
 
-Inputs, local variables, and outputs representing numeric values – such as disk
-sizes or RAM size – must be named with units, such as `ram_size_gb`. To simplify
-conditional logic, give boolean variables positive names, eg.
+Inputs, local variables, and outputs representing numeric values – such as disk sizes or RAM size – must be named with
+units, such as `ram_size_gb`. To simplify conditional logic, give boolean variables positive names, eg.
 `enable_external_access`.
 
-Variables must have descriptions. Descriptions are automatically included in a
-published module's auto-generated documentation. Descriptions add additional
-context for new developers that descriptive names cannot provide.
+Variables must have descriptions. Descriptions are automatically included in a published module's auto-generated
+documentation. Descriptions add additional context for new developers that descriptive names cannot provide.
 
-See the section on *modules*, below, for guidance on using variables within
-modules.
+See the section on *modules*, below, for guidance on using variables within modules.
 
 === Default values
 
-If a variable does not have a default value, and if no value is assigned to it
-in `terraform.tfvars`, Terraform will prompt for a value when the configuration
-is applied using `terraform apply`.
+If a variable does not have a default value, and if no value is assigned to it in `terraform.tfvars`, Terraform will
+prompt for a value when the configuration is applied using `terraform apply`.
 
-For root projects, it is RECOMMENDED that all variables have default values.
-This allows a Terraform configuration to be applied without requiring any input
-from the user, which in turn support automation of infrastructure configuration,
-eg. via CI/CD workflows.
+For root projects, it is RECOMMENDED that all variables have default values. This allows a Terraform configuration to be
+applied without requiring any input from the user, which in turn support automation of infrastructure configuration, eg.
+via CI/CD workflows.
 
-For modules, some input variables may omit default values. This way, calling
-code is required to provide meaningful values.
+For modules, some input variables may omit default values. This way, calling code is required to provide meaningful
+values.
 
 === Validation
 
-Validation blocks can be nested in variable blocks. Each validation block
-defines a condition that assigned values must meet. If the condition is not met,
-an error message is displayed and `terraform apply` will not run.
+Validation blocks can be nested in variable blocks. Each validation block defines a condition that assigned values must
+meet. If the condition is not met, an error message is displayed and `terraform apply` will not run.
 
 It is RECOMMENDED to use validation blocks, wherever practical.
 
@@ -424,11 +384,10 @@ variable "password" {
 
 == Local values
 
-Local values are a way to assign a value to a variable that is only used within
-the scope of the module it is defined in. This is useful for creating temporary
-values that are not intended to be passed to other modules or resources. Local
-values are particularly useful for generating values from an expression, which
-is then subsequently referenced from multiple points in the configuration.
+Local values are a way to assign a value to a variable that is only used within the scope of the module it is defined
+in. This is useful for creating temporary values that are not intended to be passed to other modules or resources. Local
+values are particularly useful for generating values from an expression, which is then subsequently referenced from
+multiple points in the configuration.
 
 [source,hcl]
 ----
@@ -446,13 +405,11 @@ resource "aws_instance" "web" {
 }
 ----
 
-If you reference the local value in multiple files, define it in a file named
-`locals.tf` within the root project or module. If the local value is specific to
-a particular file, define it at the top of that file.
+If you reference the local value in multiple files, define it in a file named `locals.tf` within the root project or
+module. If the local value is specific to a particular file, define it at the top of that file.
 
-Avoid overuse of local values. They increase the cognitive overhead required to
-understand a configuration. Oftentimes it is better to just repeat an expression
-wherever it is needed.
+Avoid overuse of local values. They increase the cognitive overhead required to understand a configuration. Oftentimes
+it is better to just repeat an expression wherever it is needed.
 
 .See also
 ****
@@ -462,42 +419,36 @@ wherever it is needed.
 
 == Overrides
 
-Overrides are specially-named Terraform files that are loaded last, and are used
-to override configurations defined elsewhere in the Terraform files.
+Overrides are specially-named Terraform files that are loaded last, and are used to override configurations defined
+elsewhere in the Terraform files.
 
-Use overrides sparingly. They make it harder to reason about the configuration –
-it becomes less clear where changes in configuration should be made.
+Use overrides sparingly. They make it harder to reason about the configuration – it becomes less clear where changes in
+configuration should be made.
 
-Where overrides are used, there MUST be prominent comments adjacent to the
-original resource definitions that declare that overrides exist for those
-definitions.
+Where overrides are used, there MUST be prominent comments adjacent to the original resource definitions that declare
+that overrides exist for those definitions.
 
-For small projects, all overrides may be grouped together into a single
-root-level `overrides.tf` file. For large projects, it is RECOMMENDED to add
-overrides in files named `[file]_override.tf`, where `[file]` is the name of the
-file (in the same directory) that contains the original definitions. This makes
-it very clear if a file has overrides, and where those overrides exist.
+For small projects, all overrides may be grouped together into a single root-level `overrides.tf` file. For large
+projects, it is RECOMMENDED to add overrides in files named `[file]_override.tf`, where `[file]` is the name of the file
+(in the same directory) that contains the original definitions. This makes it very clear if a file has overrides, and
+where those overrides exist.
 
 == Modules
 
-A good module should raise the level of abstraction by introducing a new concept
-to your architecture - such as the idea of a "web server" or a "document store",
-hiding the particular resources types and their configuration details that are
+A good module should raise the level of abstraction by introducing a new concept to your architecture - such as the idea
+of a "web server" or a "document store", hiding the particular resources types and their configuration details that are
 used to implement those concepts.
 
-Avoid writing modules that are merely thin wrappers around existing resource
-types. If you want some low-level modules like that, there probably already
-exist some public open-source ones that you can reuse. For AWS, check out the
+Avoid writing modules that are merely thin wrappers around existing resource types. If you want some low-level modules
+like that, there probably already exist some public open-source ones that you can reuse. For AWS, check out the
 https://github.com/terraform-aws-modules[Terraform AWS modules] project.
 
-Typically, modules will be developed initially as local modules to a particular
-root Terraform project. It is RECOMMENDED to maintain a flat module tree, rather
-than a hierarchy of nested modules. This design constraint emphasizes
+Typically, modules will be developed initially as local modules to a particular root Terraform project. It is
+RECOMMENDED to maintain a flat module tree, rather than a hierarchy of nested modules. This design constraint emphasizes
 composition of infrastructure from loosely-coupled, highly-reusable components.
 
-If the modules are sufficiently generic to be reusable in different projects,
-the modules MAY be extracted to shared upstream code repositories or module
-registries.
+If the modules are sufficiently generic to be reusable in different projects, the modules MAY be extracted to shared
+upstream code repositories or module registries.
 
 [source,hcl]
 ----
@@ -521,25 +472,22 @@ module "server_standalone" {
 
 As a minimum, a module MUST have the following files:
 
-* `README`: Basic documentation about the module. Include details of the
-  module's inputs, which are required and which are optional, and what outputs
-  the module provides.
+* `README`: Basic documentation about the module. Include details of the module's inputs, which are required and which
+  are optional, and what outputs the module provides.
 
-* `variables.tf`: Defines the module's input variables, which can be used to
-  parameterize the module's behavior and configuration.
+* `variables.tf`: Defines the module's input variables, which can be used to parameterize the module's behavior and
+  configuration.
 
 * `main.tf`: Defines the module's main resources and data sources.
 
-* `outputs.tf`: Defines the outputs of the module, which the calling module can
-  then capture and use in its own configuration or pass on to other modules.
+* `outputs.tf`: Defines the outputs of the module, which the calling module can then capture and use in its own
+  configuration or pass on to other modules.
 
-Complex modules SHOULD include an `examples/` directory, with a separate
-sub-directory for each example. Include a `README` for each example. Each
-example should be a self-contained Terraform project that uses the module.
+Complex modules SHOULD include an `examples/` directory, with a separate sub-directory for each example. Include a
+`README` for each example. Each example should be a self-contained Terraform project that uses the module.
 
-The filesystem for a repository that encapsulates multiple modules may look
-something like this. Each module SHOULD be entirely self-contained; there SHOULD
-NOT be any shared globals, such as local values or data sources.
+The filesystem for a repository that encapsulates multiple modules may look something like this. Each module SHOULD be
+entirely self-contained; there SHOULD NOT be any shared globals, such as local values or data sources.
 
 ----
 .
@@ -565,25 +513,21 @@ NOT be any shared globals, such as local values or data sources.
 └── README.adoc
 ----
 
-Each module MUST have its own `README`. In large organizations in which multiple
-teams are responsible for maintaining a shared pool of modules, and `OWNERS`
-file (or `CODEOWNERS` for GitHub) SHOULD document the teams or individuals
+Each module MUST have its own `README`. In large organizations in which multiple teams are responsible for maintaining a
+shared pool of modules, and `OWNERS` file (or `CODEOWNERS` for GitHub) SHOULD document the teams or individuals
 responsible for maintaining the module.
 
 === Module input variables
 
-Choosing which input variables a module will accept is an important
-consideration in a module's design. This is what allows a module to be reused in
-different contexts, with different configurations.
+Choosing which input variables a module will accept is an important consideration in a module's design. This is what
+allows a module to be reused in different contexts, with different configurations.
 
-For modules, input variables MAY omit default values. This way, calling code is
-required to provide meaningful values. This constraint is particularly useful
-for environment-specific values. By comparison, root projects SHOULD try to have
+For modules, input variables MAY omit default values. This way, calling code is required to provide meaningful values.
+This constraint is particularly useful for environment-specific values. By comparison, root projects SHOULD try to have
 default values for all their variables.
 
-Modules SHOULD allow their consumers to fully configure the labels and tags
-applied to all resources that the module creates. Consider providing a labels
-variable with a default value of an empty map, as follows:
+Modules SHOULD allow their consumers to fully configure the labels and tags applied to all resources that the module
+creates. Consider providing a labels variable with a default value of an empty map, as follows:
 
 [source,hcl]
 ----
@@ -594,19 +538,16 @@ variable "labels" {
 }
 ----
 
-Be judicious in your use of input variables within modules. Only parameterize
-values that must vary for each instance or environment. When deciding whether to
-expose a variable, ensure that you have a concrete use case for changing that
+Be judicious in your use of input variables within modules. Only parameterize values that must vary for each instance or
+environment. When deciding whether to expose a variable, ensure that you have a concrete use case for changing that
 variable.
 
-Be careful about adding and removing input variables from modules. Adding a
-variable with a default value is backwards-compatible. Removing a module
-variable is not, so do this only if you can update all the calling code
+Be careful about adding and removing input variables from modules. Adding a variable with a default value is
+backwards-compatible. Removing a module variable is not, so do this only if you can update all the calling code
 simultaneously.
 
-For the same reason, it is RECOMMENDED that projects always import external
-modules at a fixed revision, preferably a release tag. This protects projects
-against unexpected breaking changes in imported modules.
+For the same reason, it is RECOMMENDED that projects always import external modules at a fixed revision, preferably a
+release tag. This protects projects against unexpected breaking changes in imported modules.
 
 [source,hcl]
 ----
@@ -619,16 +560,15 @@ module "server_standalone" {
 
 === Module outputs
 
-Organize all of a module's outputs in the `outputs.tf` file. Provide meaningful
-descriptions for all outputs, and document all of them in the module's `README`.
+Organize all of a module's outputs in the `outputs.tf` file. Provide meaningful descriptions for all outputs, and
+document all of them in the module's `README`.
 
-Expose outputs for all resources created by the module. Variables and outputs
-let you infer dependencies between modules and resources; so, without any
-outputs, users cannot properly order your module in relation to their Terraform
+Expose outputs for all resources created by the module. Variables and outputs let you infer dependencies between modules
+and resources; so, without any outputs, users cannot properly order your module in relation to their Terraform
 configurations.
 
-Don't pass outputs directly through input variables, because doing so prevents
-them from being properly added to the dependency graph.
+Don't pass outputs directly through input variables, because doing so prevents them from being properly added to the
+dependency graph.
 
 [source,hcl]
 ----
@@ -639,8 +579,7 @@ output "name" {
 }
 ----
 
-To ensure that implicit dependencies are created, have all outputs reference
-attributes from resources.
+To ensure that implicit dependencies are created, have all outputs reference attributes from resources.
 
 [source,hcl]
 ----
@@ -652,12 +591,10 @@ output "name" {
 
 === Providers and back-ends
 
-Modules MUST NOT configure providers or back-ends. These MUST be configured in a
-Terraform project root.
+Modules MUST NOT configure providers or back-ends. These MUST be configured in a Terraform project root.
 
-However, modules SHOULD define their minimum required provider versions, which
-is done via a `terraform.required_providers` block. This should be written in a
-file named `terraform.tf`.
+However, modules SHOULD define their minimum required provider versions, which is done via a
+`terraform.required_providers` block. This should be written in a file named `terraform.tf`.
 
 [source,hcl]
 ----
@@ -673,19 +610,15 @@ terraform {
 
 === Module documentation
 
-While a module's `README` should provide an at-a-glance reference of a module's
-purpose, inputs, and outputs, more extensive documentation is RECOMMENDED for
-complex modules.
+While a module's `README` should provide an at-a-glance reference of a module's purpose, inputs, and outputs, more
+extensive documentation is RECOMMENDED for complex modules.
 
-Authors MAY choose to use tools such as
-https://github.com/terraform-docs/terraform-docs[terraform-docs] to
-auto-generate module documentation. Otherwise, documentation may be manually
-maintained in a `docs/` directory.
+Authors MAY choose to use tools such as https://github.com/terraform-docs/terraform-docs[terraform-docs] to
+auto-generate module documentation. Otherwise, documentation may be manually maintained in a `docs/` directory.
 
 === Refactoring code into modules
 
-Terraform doesn't track refactored resources. If you start with several
-resources in the top-level module and then push them into submodules, Terraform
-will try to recreate all the refactored resources on the next `apply`.
+Terraform doesn't track refactored resources. If you start with several resources in the top-level module and then push
+them into submodules, Terraform will try to recreate all the refactored resources on the next `apply`.
 
 To mitigate this behavior, use `moved` blocks when refactoring.

@@ -66,7 +66,7 @@ for new standards.
 
 - A link MUST NOT be broken across lines. The whole macro — target, brackets,
   and link text — MUST sit on one source line, even where that puts the line
-  over 80 characters. This overrides the line-length convention.
+  over 120 characters. This overrides the line-length convention.
 
 - Code blocks MUST specify the language where applicable: `[source,bash]`,
   `[source,sh]`, `[source,json]`, etc.

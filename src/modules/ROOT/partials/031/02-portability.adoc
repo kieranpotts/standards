@@ -1,45 +1,38 @@
 = Portability
 
-When writing shell scripts it is important to consider the target environment
-and the particular Unix shell(s) that will be available to execute the script in
-that environment.
+When writing shell scripts it is important to consider the target environment and the particular Unix shell(s) that will
+be available to execute the script in that environment.
 
-If in doubt, Bash – the "Bourne Again Shell" – is a good choice. It is widely
-available: it is the most common shell implementation in Linux; it's bundled
-with macOS (though it's no longer the default shell there); and versions are
-even available for Windows (Git Bash, WSL, etc.). In addition, Bash has many
-customizations that make it particularly suitable for complex scripting – things
-like `local` variables.
+If in doubt, Bash – the "Bourne Again Shell" – is a good choice. It is widely available: it is the most common shell
+implementation in Linux; it's bundled with macOS (though it's no longer the default shell there); and versions are even
+available for Windows (Git Bash, WSL, etc.). In addition, Bash has many customizations that make it particularly
+suitable for complex scripting – things like `local` variables.
 
-But, if portability between different Unix shells is a requirement – for
-example, if you do not control the environments in which your scripts will be
-run – then it is best to stick to POSIX-compliant features and avoid
-shell-specific extensions.
+But, if portability between different Unix shells is a requirement – for example, if you do not control the environments
+in which your scripts will be run – then it is best to stick to POSIX-compliant features and avoid shell-specific
+extensions.
 
-Many Unix shells have a "POSIX mode" that allows you to test a script's POSIX
-compliance by disabling the shell's non-POSIX features when a script is run. For
-example, Bash can be run in POSIX-mode using the commands `sh` or
-`bash --posix`. Alternatively, the following shebang can be added to the top of
-scripts to trip Bash into running them in POSIX-mode:
+Many Unix shells have a "POSIX mode" that allows you to test a script's POSIX compliance by disabling the shell's
+non-POSIX features when a script is run. For example, Bash can be run in POSIX-mode using the commands `sh` or
+`bash --posix`. Alternatively, the following shebang can be added to the top of scripts to trip Bash into running them
+in POSIX-mode:
 
 ----
 #!/usr/bin/env sh
 ----
 
-The following shebang will also tell Bash (and other shells) to run in
-POSIX-mode. However, this version is a little less portable, because it depends
-on the path to the `sh` executable being consistent across runtime environments.
-The version above will instead lookup the `sh` executable in a wider range of
-paths (as configured in the `PATH` environment variable).
+The following shebang will also tell Bash (and other shells) to run in POSIX-mode. However, this version is a little
+less portable, because it depends on the path to the `sh` executable being consistent across runtime environments. The
+version above will instead lookup the `sh` executable in a wider range of paths (as configured in the `PATH` environment
+variable).
 
 ----
 #!/bin/sh
 ----
 
-Scripts that use either of these shebangs MUST NOT contain Bashisms – like
-`local` variables – or other shell-specific syntax or built-ins. A linter MUST
-be used to identify POSIX compliance issues;
-https://www.shellcheck.net/[ShellCheck] IS RECOMMENDED for this purpose.
+Scripts that use either of these shebangs MUST NOT contain Bashisms – like `local` variables – or other shell-specific
+syntax or built-ins. A linter MUST be used to identify POSIX compliance issues; https://www.shellcheck.net/[ShellCheck]
+IS RECOMMENDED for this purpose.
 
 [TIP]
 ======
@@ -49,22 +42,18 @@ invaluable reference resource for writing POSIX-compliant shell scripts.
 
 == Built-ins versus external commands
 
-Whatever the choice of target shell, prefer to write scripts that invoke the
-shell's built-ins rather than external commands. For example, for simple text
-manipulation prefer to use the shell's built-in parameter expansion functions
+Whatever the choice of target shell, prefer to write scripts that invoke the shell's built-ins rather than external
+commands. For example, for simple text manipulation prefer to use the shell's built-in parameter expansion functions
 rather than external commands like `sed` or `awk`.
 
-Scripts that rely on external commands are less portable, because those commands
-may not be available in all deployment environments. Scripts that call external
-commands _may_ be slower too, because external utility programs are executed as
+Scripts that rely on external commands are less portable, because those commands may not be available in all deployment
+environments. Scripts that call external commands _may_ be slower too, because external utility programs are executed as
 separate processes (whereas built-in commands are run in the shell's process).
 
-But often the use of external commands is unavoidable, especially for more
-complex tasks that require, for example, advanced text processing or system
-interaction. Where external commands are needed, prefer to use commands that are
-specified by the POSIX standard; these commands are (almost) guaranteed to be
-available in all Unix and Unix-like systems. Standard Unix utilities are listed
-in the
+But often the use of external commands is unavoidable, especially for more complex tasks that require, for example,
+advanced text processing or system interaction. Where external commands are needed, prefer to use commands that are
+specified by the POSIX standard; these commands are (almost) guaranteed to be available in all Unix and Unix-like
+systems. Standard Unix utilities are listed in the
 https://pubs.opengroup.org/onlinepubs/9699919799/utilities/[POSIX Shell and Utilities specification].
 
 [TIP]
@@ -86,15 +75,13 @@ rm is /bin/rm
 This output shows that `rm` is an external command, not a shell built-in.
 ======
 
-All other dependencies – where a "dependency" is anything that is not part of
-the target shell language – SHOULD be documented, either in a file-level comment
-at the top of the script, or in an accompanying README.
+All other dependencies – where a "dependency" is anything that is not part of the target shell language – SHOULD be
+documented, either in a file-level comment at the top of the script, or in an accompanying README.
 
 == Options
 
-It is RECOMMENDED to use `set` at the top of scripts to set shell options, so
-that calling the script using `sh <script-name>` does not break its
-functionality.
+It is RECOMMENDED to use `set` at the top of scripts to set shell options, so that calling the script using
+`sh <script-name>` does not break its functionality.
 
 The following options are all POSIX-standard and work in any POSIX shell:
 
@@ -106,24 +93,19 @@ The following options are all POSIX-standard and work in any POSIX shell:
 * `set -n`: Read commands but don't execute (syntax check)
 * `set -C`: Prevent output redirection from overwriting files (noclobber)
 
-Exit on error (errexit) with `set -e` is especially useful for improving the
-robustness of scripts. It prevents scripts from continuing to run after an error
-has occurred – ie. in the event that any command returns a non-zero exit status
-– which could otherwise lead to unintended side effects and cascading failures
-downstream. The downside is this setting makes it harder to handle errors
-gracefully within the script itself, and it can have some surprising behavior
-with pipelines and conditionals.
+Exit on error (errexit) with `set -e` is especially useful for improving the robustness of scripts. It prevents scripts
+from continuing to run after an error has occurred – ie. in the event that any command returns a non-zero exit status –
+which could otherwise lead to unintended side effects and cascading failures downstream. The downside is this setting
+makes it harder to handle errors gracefully within the script itself, and it can have some surprising behavior with
+pipelines and conditionals.
 
-The `set -x` option MUST NOT be used in production scripts. It produces verbose
-output that is intended only for debugging. It MAY be enabled temporarily while
-debugging scripts.
+The `set -x` option MUST NOT be used in production scripts. It produces verbose output that is intended only for
+debugging. It MAY be enabled temporarily while debugging scripts.
 
-Different shells support extended non-POSIX options. For example, Bash supports
-`set -o pipefail`, which causes scripts to exit when any command within a
-pipeline fails. Without this option, `set -e` would exit only if the last
-command in the pipeline fails. This Bash option tends to be used as an
-enhancement to the POSIX-compliant `-e` and `-u` options to run scripts in
-"strict mode":
+Different shells support extended non-POSIX options. For example, Bash supports `set -o pipefail`, which causes scripts
+to exit when any command within a pipeline fails. Without this option, `set -e` would exit only if the last command in
+the pipeline fails. This Bash option tends to be used as an enhancement to the POSIX-compliant `-e` and `-u` options to
+run scripts in "strict mode":
 
 .POSIX sh
 [source,sh]

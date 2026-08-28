@@ -1,15 +1,12 @@
 = Collections
 
-A collection is a list of multiple resources of the same type, plus any related
-metadata.
+A collection is a list of multiple resources of the same type, plus any related metadata.
 
-Collections, and the resources they encapsulate, SHOULD be named consistently
-across different endpoints. This allows clients to implement generic data access
-handling.
+Collections, and the resources they encapsulate, SHOULD be named consistently across different endpoints. This allows
+clients to implement generic data access handling.
 
-The resource representations returned in collections MAY be only partial
-representations of the full resources. It MAY be necessary for clients to
-subsequently fetch individual resources to retrieve their full representations.
+The resource representations returned in collections MAY be only partial representations of the full resources. It MAY
+be necessary for clients to subsequently fetch individual resources to retrieve their full representations.
 
 .Template
 ----
@@ -55,169 +52,137 @@ GET /v1/vault/credit-cards
 
 == Pagination
 
-Any collection that could contain a large, potentially unbounded list of
-resources SHOULD implement pagination. The following design patterns are
-RECOMMENDED.
+Any collection that could contain a large, potentially unbounded list of resources SHOULD implement pagination. The
+following design patterns are RECOMMENDED.
 
-Pages of results SHOULD be referred to consistently by the query parameters
-`page` and `per_page`, where `per_page` is a non-zero positive integer
-representing the number of results per paginated response, and `page` is a
-number of 1 or more that represents the current page of results requested.
+Pages of results SHOULD be referred to consistently by the query parameters `page` and `per_page`, where `per_page` is a
+non-zero positive integer representing the number of results per paginated response, and `page` is a number of 1 or more
+that represents the current page of results requested.
 
 ----
 /accounts?page={page}&per_page={per_page}
 ----
 
-The `per_page` query parameter SHOULD be optional. If not provided by the
-client, the server should fallback to a sensible, specified default.
+The `per_page` query parameter SHOULD be optional. If not provided by the client, the server should fallback to a
+sensible, specified default.
 
-The `page` query parameter SHOULD also be optional. If not provided by the
-client, the server MUST return the first page of results (ie. the default value
-for `page` MUST be 1).
+The `page` query parameter SHOULD also be optional. If not provided by the client, the server MUST return the first page
+of results (ie. the default value for `page` MUST be 1).
 
-The values of both `page` and `per_page` MUST be validated by the server. A
-`400 Bad Request` SHOULD be returned for semantically invalid values. However,
-if the requested range is outside of the available range of results (eg.
-`page=2&per_page=100` is requested but there are only 50 results) a `200 OK`
-response SHOULD be returned with an empty result list, not a `404 Not Found`.
+The values of both `page` and `per_page` MUST be validated by the server. A `400 Bad Request` SHOULD be returned for
+semantically invalid values. However, if the requested range is outside of the available range of results (eg.
+`page=2&per_page=100` is requested but there are only 50 results) a `200 OK` response SHOULD be returned with an empty
+result list, not a `404 Not Found`.
 
-In certain cases, such as querying on a large data set, in order to optimize the
-query execution with pagination, it may be appropriate to retrieve the data
-based on the result set of the previous page. A `page_token` parameter MAY be
-used for this purpose. This could be, for example, an encrypted value of primary
-keys to navigate to the next and previous pages, along with directions.
+In certain cases, such as querying on a large data set, in order to optimize the query execution with pagination, it may
+be appropriate to retrieve the data based on the result set of the previous page. A `page_token` parameter MAY be used
+for this purpose. This could be, for example, an encrypted value of primary keys to navigate to the next and previous
+pages, along with directions.
 
-Additionally, responses MAY include `total_items` and `total_pages` metadata
-fields. `total_items` indicates the total number of items in the collection, and
-`total_pages` is the number of pages (interpolated from
-`total_items`/`per_page`). This will help clients to implement better user
-experiences, for example by disabling navigation to pages that are outside of
-the available range. Where providing the `total_items` and `total_pages`
-requires expensive queries on the server-side, the client SHOULD be able to
-opt-in to receiving this information using a query parameter, for example
-`?include_totals=true`.
+Additionally, responses MAY include `total_items` and `total_pages` metadata fields. `total_items` indicates the total
+number of items in the collection, and `total_pages` is the number of pages (interpolated from
+`total_items`/`per_page`). This will help clients to implement better user experiences, for example by disabling
+navigation to pages that are outside of the available range. Where providing the `total_items` and `total_pages`
+requires expensive queries on the server-side, the client SHOULD be able to opt-in to receiving this information using a
+query parameter, for example `?include_totals=true`.
 
-Hypermedia links with `rel` attributes for "next", "previous", "first", and
-"last" pages SHOULD be included in paginated collections, to make it easier for
-clients to navigate through collections. The `page` and `per_page` query
-parameters, inputted by the client, MUST be maintained for each link, to ensure
-consistent client behavior. See the section on *Hypermedia* for further details
-and examples.
+Hypermedia links with `rel` attributes for "next", "previous", "first", and "last" pages SHOULD be included in paginated
+collections, to make it easier for clients to navigate through collections. The `page` and `per_page` query parameters,
+inputted by the client, MUST be maintained for each link, to ensure consistent client behavior. See the section on
+*Hypermedia* for further details and examples.
 
 == Filtering
 
-Collections MAY be filtered by default. For example, resources to which a user
-is not authorized to access MUST NOT be included in a collection. If all
-resources in a collection are not authorized, returning a `403 Forbidden`
-response would be appropriate.
+Collections MAY be filtered by default. For example, resources to which a user is not authorized to access MUST NOT be
+included in a collection. If all resources in a collection are not authorized, returning a `403 Forbidden` response
+would be appropriate.
 
-Query parameters SHOULD be used only to restrict, search, or filter a
-collection. A resource identifier SHOULD NOT be used as a query parameter
-value to select a single resource out of a collection; the identifier belongs
-in the URL path instead, per the *Resources and collections* section of the
-*URLs* section, above.
+Query parameters SHOULD be used only to restrict, search, or filter a collection. A resource identifier SHOULD NOT be
+used as a query parameter value to select a single resource out of a collection; the identifier belongs in the URL path
+instead, per the *Resources and collections* section of the *URLs* section, above.
 
-Additional, optional filtering may be applied by clients using query parameters.
-For example, the following query parameters MAY be available for clients to
-filter collections by a time range:
+Additional, optional filtering may be applied by clients using query parameters. For example, the following query
+parameters MAY be available for clients to filter collections by a time range:
 
-* `start_time` or `\{property_name}_after`: An ISO-8601 date and time string that
-  represents the start of a temporal range. `start_time` may be used when there
-  is only one unambiguous time dimension, otherwise the property name should be
-  used, eg, `processed_after`, `uploaded_after`. The property SHOULD map to a
-  time field in the representation.
+* `start_time` or `\{property_name}_after`: An ISO-8601 date and time string that represents the start of a temporal
+  range. `start_time` may be used when there is only one unambiguous time dimension, otherwise the property name should
+  be used, eg, `processed_after`, `uploaded_after`. The property SHOULD map to a time field in the representation.
 
-* `end_time` or `\{property_name}_before`: An ISO-8601 date and time string
-  indicating the end of a temporal range. `end_time` may be used when there is
-  only one unambiguous time dimension, otherwise the property name should be
-  used, eg. `processed_before`, `uploaded_before`. The property SHOULD map to a
-  time field in the representation.
+* `end_time` or `\{property_name}_before`: An ISO-8601 date and time string indicating the end of a temporal range.
+  `end_time` may be used when there is only one unambiguous time dimension, otherwise the property name should be used,
+  eg. `processed_before`, `uploaded_before`. The property SHOULD map to a time field in the representation.
 
-These query parameters SHOULD be used consistently across all endpoints that
-support time-based filtering.
+These query parameters SHOULD be used consistently across all endpoints that support time-based filtering.
 
 === Filtering by multiple values
 
-It is often necessary for a client to filter a collection by more than one value
-of the same field, eg. to request resources whose `status` is either `open` or
-`closed`. Two patterns are RECOMMENDED for this, depending on context.
+It is often necessary for a client to filter a collection by more than one value of the same field, eg. to request
+resources whose `status` is either `open` or `closed`. Two patterns are RECOMMENDED for this, depending on context.
 
-The default approach is to repeat the query parameter once for each value. This
-is natively supported by the HTTP standards and by most client and server
-libraries, without any special-case parsing logic.
+The default approach is to repeat the query parameter once for each value. This is natively supported by the HTTP
+standards and by most client and server libraries, without any special-case parsing logic.
 
 ----
 GET /v1/{namespace}/{resource}?status=open&status=closed
 ----
 
-Where this pattern is used, the query parameter's documented name SHOULD be
-singular (`status`, not `statuses`), since each occurrence carries a single
-value.
+Where this pattern is used, the query parameter's documented name SHOULD be singular (`status`, not `statuses`), since
+each occurrence carries a single value.
 
-Alternatively, a single query parameter MAY accept a comma-separated list of
-values, eg. `?statuses=open,closed`. This can be preferable where the number of
-values is potentially large and the 2,000-character practical limit on URL
-length is a concern. However, this pattern is NOT RECOMMENDED unless justified,
-because it requires bespoke parsing logic on both the client and server, and it
-is not universally supported by API tooling. Where this pattern is used:
+Alternatively, a single query parameter MAY accept a comma-separated list of values, eg. `?statuses=open,closed`. This
+can be preferable where the number of values is potentially large and the 2,000-character practical limit on URL length
+is a concern. However, this pattern is NOT RECOMMENDED unless justified, because it requires bespoke parsing logic on
+both the client and server, and it is not universally supported by API tooling. Where this pattern is used:
 
-* The query parameter's documented name SHOULD be plural (`statuses`), to signal
-  to clients that comma-separated values are accepted.
+* The query parameter's documented name SHOULD be plural (`statuses`), to signal to clients that comma-separated values
+  are accepted.
 
 * The comma character MUST be used as the separator between values.
 
-* The API's documentation MUST specify how a client should escape a literal
-  comma character within a value, if this is possible for the field in question.
+* The API's documentation MUST specify how a client should escape a literal comma character within a value, if this is
+  possible for the field in question.
 
-A collection endpoint SHOULD implement only one of these two patterns for any
-given query parameter, not both.
+A collection endpoint SHOULD implement only one of these two patterns for any given query parameter, not both.
 
 == Searching
 
-Search query parameters MAY be supported on collections, to allow clients to
-filter collection lists based on freeform input.
+Search query parameters MAY be supported on collections, to allow clients to filter collection lists based on freeform
+input.
 
 The query parameter SHOULD be named `q`.
 
-A single query parameters MAY be used to search across multiple fields of the
-resources.
+A single query parameters MAY be used to search across multiple fields of the resources.
 
 == Sorting
 
-Results could be ordered according to sorting-related instructions given by the
-client. This includes sorting by a specific field's value, and sorting order.
+Results could be ordered according to sorting-related instructions given by the client. This includes sorting by a
+specific field's value, and sorting order.
 
 The following URL parameters SHOULD be used for this purpose:
 
-* `sort_by`: A dimension by which items should be sorted. The dimension SHOULD
-  map directly to an attribute in the item's representation.
+* `sort_by`: A dimension by which items should be sorted. The dimension SHOULD map directly to an attribute in the
+  item's representation.
 
-* `sort_order`: The order, one of "asc" or "desc", indicating ascending or
-  descending order respectively.
+* `sort_order`: The order, one of "asc" or "desc", indicating ascending or descending order respectively.
 
-The default sort field and sort order MUST be documented for each collection.
-All collections have a default sorting, except in use cases where the order is
-deliberately randomized (if so, this still needs to be specified).
+The default sort field and sort order MUST be documented for each collection. All collections have a default sorting,
+except in use cases where the order is deliberately randomized (if so, this still needs to be specified).
 
 == Bulk operations
 
-Where a client needs to create, update, or delete a large number of resources in
-a single call, rather than issuing one request per resource, a collection MAY
-support bulk operations. Bulk operations trade off some of the simplicity of
-single-resource CRUD for a significant reduction in the number of round trips
-required.
+Where a client needs to create, update, or delete a large number of resources in a single call, rather than issuing one
+request per resource, a collection MAY support bulk operations. Bulk operations trade off some of the simplicity of
+single-resource CRUD for a significant reduction in the number of round trips required.
 
-*Homogeneous bulk operations* – applying the same operation (eg. `create`) to
-many resources of the same type – are RECOMMENDED where this trade-off is
-worthwhile. *Heterogeneous bulk operations* – combining different operations, or
-different resource types, in a single call – are NOT RECOMMENDED, because they
-are difficult to make atomic, difficult to report errors for consistently, and
-difficult for clients to reason about. Where heterogeneous batching is genuinely
-required, consider adopting an established standard such as the OData Batch
-specification, rather than inventing a bespoke format.
+*Homogeneous bulk operations* – applying the same operation (eg. `create`) to many resources of the same type – are
+RECOMMENDED where this trade-off is worthwhile. *Heterogeneous bulk operations* – combining different operations, or
+different resource types, in a single call – are NOT RECOMMENDED, because they are difficult to make atomic, difficult
+to report errors for consistently, and difficult for clients to reason about. Where heterogeneous batching is genuinely
+required, consider adopting an established standard such as the OData Batch specification, rather than inventing a
+bespoke format.
 
-A homogeneous bulk operation SHOULD be modelled as an action on the collection,
-accepting an `items` array in its request body:
+A homogeneous bulk operation SHOULD be modelled as an action on the collection, accepting an `items` array in its
+request body:
 
 [source,json]
 ----
@@ -231,9 +196,8 @@ POST /v1/{namespace}/{resource}/actions/bulkCreate
 }
 ----
 
-The response SHOULD echo back one result per input item, in the same order, so
-that clients can correlate each result with its corresponding request item by
-index:
+The response SHOULD echo back one result per input item, in the same order, so that clients can correlate each result
+with its corresponding request item by index:
 
 [source,json]
 ----
@@ -254,39 +218,31 @@ index:
 }
 ----
 
-Where an error needs to reference a specific field within a specific item of the
-request, the error's `field` JSON Pointer SHOULD include the item's index, eg.
-`/items/1/currency_code`. Where the request items do not have a stable index –
-for example, where a client-supplied identifying attribute is more meaningful
-to the client than positional order – an attribute-filter form MAY be used
-instead, eg. `/items/@account_number=='2097094104180012047'/address_id`. An API
-MUST document which of the two forms it uses, and MUST use that form
-consistently across all of its bulk operations.
+Where an error needs to reference a specific field within a specific item of the request, the error's `field` JSON
+Pointer SHOULD include the item's index, eg. `/items/1/currency_code`. Where the request items do not have a stable
+index – for example, where a client-supplied identifying attribute is more meaningful to the client than positional
+order – an attribute-filter form MAY be used instead, eg. `/items/@account_number=='2097094104180012047'/address_id`. An
+API MUST document which of the two forms it uses, and MUST use that form consistently across all of its bulk operations.
 
-A bulk operation MUST document whether it is *atomic* (all items succeed, or
-none are applied) or *partial* (each item succeeds or fails independently). An
-atomic bulk operation SHOULD use the normal single-resource status codes, since
-the whole operation either succeeds or fails as one. A partial bulk operation
-SHOULD normally respond with `200 OK` for the operation as a whole, with the
-per-item outcomes conveyed in the response body as shown above, since no single
-top-level status code can represent a mix of per-item successes and failures.
-Where a bulk operation is processed asynchronously, `202 Accepted` SHOULD be
-used instead.
+A bulk operation MUST document whether it is *atomic* (all items succeed, or none are applied) or *partial* (each item
+succeeds or fails independently). An atomic bulk operation SHOULD use the normal single-resource status codes, since the
+whole operation either succeeds or fails as one. A partial bulk operation SHOULD normally respond with `200 OK` for the
+operation as a whole, with the per-item outcomes conveyed in the response body as shown above, since no single top-level
+status code can represent a mix of per-item successes and failures. Where a bulk operation is processed asynchronously,
+`202 Accepted` SHOULD be used instead.
 
-Bulk operations SHOULD be atomic wherever this is practical for the underlying
-system to implement. Where an operation is not atomic, this MUST be documented,
-so that clients know to check the per-item results rather than assuming a `2xx`
+Bulk operations SHOULD be atomic wherever this is practical for the underlying system to implement. Where an operation
+is not atomic, this MUST be documented, so that clients know to check the per-item results rather than assuming a `2xx`
 response means every item succeeded.
 
 === Bulk update and replace
 
-Where a client needs to `PUT` or `PATCH` many resources in a single call, the
-`bulkCreate`-style action described above is not directly reusable, because
-there is no single collection URL to target the update at. Instead, model the
-bulk request itself as a first-class, uniquely identifiable *batch resource*.
+Where a client needs to `PUT` or `PATCH` many resources in a single call, the `bulkCreate`-style action described above
+is not directly reusable, because there is no single collection URL to target the update at. Instead, model the bulk
+request itself as a first-class, uniquely identifiable *batch resource*.
 
-A bulk-create action MAY return the identifier of the batch it created, in
-addition to the created resources' own identifiers:
+A bulk-create action MAY return the identifier of the batch it created, in addition to the created resources' own
+identifiers:
 
 [source,json]
 ----
@@ -298,24 +254,21 @@ addition to the created resources' own identifiers:
 }
 ----
 
-Subsequent bulk updates or replacements are then addressed to that batch, and
-act on its constituent items the same way a single-resource `PUT` or `PATCH`
-acts on one resource:
+Subsequent bulk updates or replacements are then addressed to that batch, and act on its constituent items the same way
+a single-resource `PUT` or `PATCH` acts on one resource:
 
 .Template
 ----
 PUT|PATCH /v{major}/{namespace}/{resource}/actions/bulkUpdate/{batch_id}
 ----
 
-As with bulk create, every effort SHOULD be made to make a bulk update or
-replace atomic. Where atomicity is not practical, the response SHOULD follow
-the same partial-response shape as bulk create, described above.
+As with bulk create, every effort SHOULD be made to make a bulk update or replace atomic. Where atomicity is not
+practical, the response SHOULD follow the same partial-response shape as bulk create, described above.
 
 == HTTP statuses
 
-If a collection is empty (ie. it has zero items), returning `404 Not Found` is
-not appropriate. It was the collection that was requested, not a specific item
-in the collection. And the collection exists – it is just empty. So logically it
+If a collection is empty (ie. it has zero items), returning `404 Not Found` is not appropriate. It was the collection
+that was requested, not a specific item in the collection. And the collection exists – it is just empty. So logically it
 makes sense to return a `200 OK` response with an empty `items` array.
 
 Invalid query parameters SHOULD be signalled with a `404 Bad Request` response.

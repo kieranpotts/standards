@@ -1,205 +1,158 @@
 = Inter-service communication patterns
 
-In general, there are three ways to implement inter-service communication in
-distributed systems:
+In general, there are three ways to implement inter-service communication in distributed systems:
 
 * Commands
 * Messages
 * Events
 
-Each approach trades off coupling and decoupling. Command-driven systems are
-tightly coupled but simple, while event-driven systems achieve the greatest
-decoupling at the cost of added complexity.
+Each approach trades off coupling and decoupling. Command-driven systems are tightly coupled but simple, while
+event-driven systems achieve the greatest decoupling at the cost of added complexity.
 
-In practice, most distributed systems use a mix of all three styles. You will
-see commands used for synchronous request-response patterns (especially at
-system boundaries), and events for asynchronous fire-and-forget patterns.
-Communication from the outside world tends to be RPC-style, and gateway services
-typically make blocking RPC-style requests to core services.
+In practice, most distributed systems use a mix of all three styles. You will see commands used for synchronous
+request-response patterns (especially at system boundaries), and events for asynchronous fire-and-forget patterns.
+Communication from the outside world tends to be RPC-style, and gateway services typically make blocking RPC-style
+requests to core services.
 
 == RPC-style communication
 
-RPC-style communication involves direct, synchronous calls from one service to
-another. The calling service initiates a request, waits for a response, and then
-continues execution.
+RPC-style communication involves direct, synchronous calls from one service to another. The calling service initiates a
+request, waits for a response, and then continues execution.
 
-This is the most straightforward approach to inter-service communication, and it
-is familiar to most developers – it mirrors typical function calls within a
-single process.
+This is the most straightforward approach to inter-service communication, and it is familiar to most developers – it
+mirrors typical function calls within a single process.
 
-RPC-style communication is appropriate for request-response interactions where
-the calling service needs an immediate answer. It is commonly used at system
-boundaries (between client and API gateway) and for operations that are
-inherently synchronous in nature.
+RPC-style communication is appropriate for request-response interactions where the calling service needs an immediate
+answer. It is commonly used at system boundaries (between client and API gateway) and for operations that are inherently
+synchronous in nature.
 
-The big advantage of this communication pattern is its simplicity. The control
-flow is explicit and easy to understand.
+The big advantage of this communication pattern is its simplicity. The control flow is explicit and easy to understand.
 
-The trade-off is that RPC-style communication creates tight coupling between
-services. The calling service depends on the availability of the called service,
-and failures propagate directly. Network latency is exposed to the caller, and
+The trade-off is that RPC-style communication creates tight coupling between services. The calling service depends on
+the availability of the called service, and failures propagate directly. Network latency is exposed to the caller, and
 the blocking nature means resources are held while waiting for responses.
 
-For these reasons, RPC-style communication should be used judiciously in
-internal inter-service communication, reserved primarily for gateway-to-service
-boundaries and where the coupling is acceptable.
+For these reasons, RPC-style communication should be used judiciously in internal inter-service communication, reserved
+primarily for gateway-to-service boundaries and where the coupling is acceptable.
 
-RPC communication can also be asynchronous, where the calling service does not
-wait for a response. This is suitable where the caller does not require an
-immediate answer (or needs no response at all).Asynchronous RPC improves
-decoupling compared to synchronous RPC, since the caller is no longer blocked
-waiting for a response.
+RPC communication can also be asynchronous, where the calling service does not wait for a response. This is suitable
+where the caller does not require an immediate answer (or needs no response at all).Asynchronous RPC improves decoupling
+compared to synchronous RPC, since the caller is no longer blocked waiting for a response.
 
-However, asynchrmonous RPC patterns introduce accidental complexity into the
-calling service. The caller must now handle concerns like retries, timeouts, and
-error handling for operations that may fail.
+However, asynchrmonous RPC patterns introduce accidental complexity into the calling service. The caller must now handle
+concerns like retries, timeouts, and error handling for operations that may fail.
 
-An improvement on this design is to redirect asynchronous requests through a
-message broker. The calling service sends the request to the intermediate
-component, the broker, which takes responsibility for reliable delivery,
-retries, and error handling. This extracts all that non-essential complexity
-from the application code and moves it to dedicated infrastructure. This is the
-essence of message-driven communication...
+An improvement on this design is to redirect asynchronous requests through a message broker. The calling service sends
+the request to the intermediate component, the broker, which takes responsibility for reliable delivery, retries, and
+error handling. This extracts all that non-essential complexity from the application code and moves it to dedicated
+infrastructure. This is the essence of message-driven communication...
 
 == Message-driven communication
 
-Message-driven communication is similar to RPC-style in intent – one service
-instructs another to perform a specific action – but the communication is now
-asynchronous and indirect. Instead of making direct calls, services send
-commands to a central message broker, which routes those messages to the
-appropriate consumers.
+Message-driven communication is similar to RPC-style in intent – one service instructs another to perform a specific
+action – but the communication is now asynchronous and indirect. Instead of making direct calls, services send commands
+to a central message broker, which routes those messages to the appropriate consumers.
 
-This decoupling of direct dependencies is a key advantage over RPC-style
-communication. Because the calling service doesn't call the target service
-directly, the target service can be temporarily unavailable without immediately
-failing the caller. The message is persisted in the broker, and the broker can
-keep retrying delivery to the target service until the message is successfully
-accepted. This improves resilience compared to synchronous RPC calls.
+This decoupling of direct dependencies is a key advantage over RPC-style communication. Because the calling service
+doesn't call the target service directly, the target service can be temporarily unavailable without immediately failing
+the caller. The message is persisted in the broker, and the broker can keep retrying delivery to the target service
+until the message is successfully accepted. This improves resilience compared to synchronous RPC calls.
 
-Message-driven systems are also inherently asynchronous. The sending service
-doesn't wait for the target service to complete. This allows better resource
-utilization and higher throughput compared to blocking synchronous RPC requests.
+Message-driven systems are also inherently asynchronous. The sending service doesn't wait for the target service to
+complete. This allows better resource utilization and higher throughput compared to blocking synchronous RPC requests.
 
-However, message-driven communication remains fundamentally imperative. One
-service is commanding another to do something. The sender has a specific intent
-about what the receiver should do, which means services remain semantically
+However, message-driven communication remains fundamentally imperative. One service is commanding another to do
+something. The sender has a specific intent about what the receiver should do, which means services remain semantically
 coupled, even if they are decoupled in location and availability.
 
-Message-driven communication sits between RPC-style and event-driven on the
-coupling spectrum. It is useful for scenarios where you need the resilience and
-asynchronous benefits of a message broker, but the communication is still
+Message-driven communication sits between RPC-style and event-driven on the coupling spectrum. It is useful for
+scenarios where you need the resilience and asynchronous benefits of a message broker, but the communication is still
 inherently command-oriented.
 
-However, we should prefer event-driven patterns where possible, as they provide
-the ultimate decoupling and the greatest flexibility for system evolution.
+However, we should prefer event-driven patterns where possible, as they provide the ultimate decoupling and the greatest
+flexibility for system evolution.
 
 == Event-driven communication
 
-In event-driven architectures, instead of one piece of code commanding another
-to do something, it tells other parts of the system about interesting things
-that have happened. Other parts of the code may or may not be listening for
-those event notifications, and they can choose to act on them or ignore them.
+In event-driven architectures, instead of one piece of code commanding another to do something, it tells other parts of
+the system about interesting things that have happened. Other parts of the code may or may not be listening for those
+event notifications, and they can choose to act on them or ignore them.
 
 The event publisher does not expect responses from any other part of the system.
 
-This is the fundamental pattern used in all modern GUI systems, and also in
-JavaScript event loops. The pattern scales to distributed systems through
-messaging infrastructure.
+This is the fundamental pattern used in all modern GUI systems, and also in JavaScript event loops. The pattern scales
+to distributed systems through messaging infrastructure.
 
-In distributed systems, event broadcasts are self-contained, atomic messages.
-The routing and lifecycle management of those event messages is delegated to
-dedicated infrastructure components, such as an event bus or a message broker,
-which take care of infrastructure concerns like scaling, resilience, and
-persistence. This leaves application code (the services) free to specialize in
-the problem domain.
+In distributed systems, event broadcasts are self-contained, atomic messages. The routing and lifecycle management of
+those event messages is delegated to dedicated infrastructure components, such as an event bus or a message broker,
+which take care of infrastructure concerns like scaling, resilience, and persistence. This leaves application code (the
+services) free to specialize in the problem domain.
 
-The secret to well-designed event-driven systems is for services to model the
-problem domain, not technical concerns. Services should model the essential
-complexity of the domain, while the events infrastructure removes much of the
+The secret to well-designed event-driven systems is for services to model the problem domain, not technical concerns.
+Services should model the essential complexity of the domain, while the events infrastructure removes much of the
 accidental complexity that would otherwise exist in the those services.
 
-The sign of a well-designed distributed system is when all accidental complexity
-is moved into the infrastructure, leaving service code to focus purely on domain
-modeling.
+The sign of a well-designed distributed system is when all accidental complexity is moved into the infrastructure,
+leaving service code to focus purely on domain modeling.
 
-The messaging system also provides a convenient, centralized place to monitor
-inter-service communication, inject observability, and implement cross-cutting
-concerns.
+The messaging system also provides a convenient, centralized place to monitor inter-service communication, inject
+observability, and implement cross-cutting concerns.
 
-The event objects themselves should model real-world processes and carry
-business meaning: orders placed, subscriptions cancelled, etc. Be wary of having
-too many technical or tactical events.
+The event objects themselves should model real-world processes and carry business meaning: orders placed, subscriptions
+cancelled, etc. Be wary of having too many technical or tactical events.
 
-When designed this way, event-driven architecture gives systems more flexibility
-to grow in unforeseen ways. For example, to add new processing on customer
-orders, you can simply add a new service and have it listen to the relevant
-"order" events, without modifying existing services. This isolates change and
-allows systems to grow incrementally, sometimes in unplanned ways.
+When designed this way, event-driven architecture gives systems more flexibility to grow in unforeseen ways. For
+example, to add new processing on customer orders, you can simply add a new service and have it listen to the relevant
+"order" events, without modifying existing services. This isolates change and allows systems to grow incrementally,
+sometimes in unplanned ways.
 
-Event-driven architecture, done well, can significantly reduce the complexity of
-otherwise very complex systems.
+Event-driven architecture, done well, can significantly reduce the complexity of otherwise very complex systems.
 
 == Schema-driven contracts
 
-Whichever of the three patterns is used, the contract between the two sides –
-the operations exposed, the message types exchanged, and the shape of every
-payload – MUST be defined in a machine-readable schema, and that schema MUST be
-the single source of truth for both producer and consumer.
+Whichever of the three patterns is used, the contract between the two sides – the operations exposed, the message types
+exchanged, and the shape of every payload – MUST be defined in a machine-readable schema, and that schema MUST be the
+single source of truth for both producer and consumer.
 
-Within a single deployable, the compiler or the runtime enforces the interface
-between one module and another. Across a network boundary that enforcement
-disappears, and nothing but convention stops a producer and a consumer from
-disagreeing about the data passing between them. An interface definition
-language (IDL), and the tooling built on it, is what replaces the compiler.
-This is why schema-first design matters far more in a distributed system than
-in a monolith, and why it becomes essential as the number of independently
-deployed – and, in a decentralized network, independently operated – services
-grows.
+Within a single deployable, the compiler or the runtime enforces the interface between one module and another. Across a
+network boundary that enforcement disappears, and nothing but convention stops a producer and a consumer from
+disagreeing about the data passing between them. An interface definition language (IDL), and the tooling built on it, is
+what replaces the compiler. This is why schema-first design matters far more in a distributed system than in a monolith,
+and why it becomes essential as the number of independently deployed – and, in a decentralized network, independently
+operated – services grows.
 
 Choose an IDL appropriate to the transport:
 
-* *RPC-style communication.* Protocol Buffers for gRPC, and OpenAPI for HTTP
-  request-response APIs.
+* *RPC-style communication.* Protocol Buffers for gRPC, and OpenAPI for HTTP request-response APIs.
 
-* *Message- and event-driven communication.* JSON Schema, Avro, or Protocol
-  Buffers for the payloads themselves, with AsyncAPI describing the channels
-  and operations that carry them.
+* *Message- and event-driven communication.* JSON Schema, Avro, or Protocol Buffers for the payloads themselves, with
+  AsyncAPI describing the channels and operations that carry them.
 
-A bespoke schema language is legitimate where no standard one fits the domain.
-The AT Protocol's Lexicon, which describes both the HTTP endpoints and every
-record type in the Bluesky network, is an example. What matters is not which
-language is chosen, but that exactly one definition of each contract exists,
-published where every party can read it.
+A bespoke schema language is legitimate where no standard one fits the domain. The AT Protocol's Lexicon, which
+describes both the HTTP endpoints and every record type in the Bluesky network, is an example. What matters is not which
+language is chosen, but that exactly one definition of each contract exists, published where every party can read it.
 
-Schemas SHOULD be authored before the implementation, and both the server stubs
-and the client libraries SHOULD be generated from them. Where the two sides of
-a contract are hand-written from a prose description, they will drift, and the
-divergence will not be detected until a request fails in production.
+Schemas SHOULD be authored before the implementation, and both the server stubs and the client libraries SHOULD be
+generated from them. Where the two sides of a contract are hand-written from a prose description, they will drift, and
+the divergence will not be detected until a request fails in production.
 
-Schemas MUST be versioned and published to a location that consumers can
-resolve at build time – a schema registry, or a versioned package. A schema
-that lives only in the producer's repository is not a contract; it is an
-implementation detail that consumers have copied.
+Schemas MUST be versioned and published to a location that consumers can resolve at build time – a schema registry, or a
+versioned package. A schema that lives only in the producer's repository is not a contract; it is an implementation
+detail that consumers have copied.
 
-A change to a published schema is a change to the API, and is governed by the
-compatibility rules in <<Version management>>. Additive changes – new optional
-fields, new message types – are backward compatible. Removing a field,
-narrowing a type, or promoting an optional field to a required one is a
-breaking change, and requires a new major version. Compatibility SHOULD be
-checked automatically in the CI pipeline, by comparing the proposed schema
-against the last published version, so that a breaking change is caught before
-release rather than by a consumer after it.
+A change to a published schema is a change to the API, and is governed by the compatibility rules in
+<<Version management>>. Additive changes – new optional fields, new message types – are backward compatible. Removing a
+field, narrowing a type, or promoting an optional field to a required one is a breaking change, and requires a new major
+version. Compatibility SHOULD be checked automatically in the CI pipeline, by comparing the proposed schema against the
+last published version, so that a breaking change is caught before release rather than by a consumer after it.
 
-Consumers SHOULD validate inbound payloads against the schema at the service
-boundary, and SHOULD ignore fields they do not recognize rather than rejecting
-the message. This tolerant reader behavior is what allows a producer to make
+Consumers SHOULD validate inbound payloads against the schema at the service boundary, and SHOULD ignore fields they do
+not recognize rather than rejecting the message. This tolerant reader behavior is what allows a producer to make
 additive changes without coordinating a simultaneous release of every consumer.
 
-Validation in the other direction is comparatively expensive, since it adds
-latency to every outbound call. Producers SHOULD validate their own output in
-development, test, and staging environments, and MAY disable that validation in
+Validation in the other direction is comparatively expensive, since it adds latency to every outbound call. Producers
+SHOULD validate their own output in development, test, and staging environments, and MAY disable that validation in
 production where generated code already guarantees the shape.
 
-See xref:029.adoc[*TS-29: JSON Schema*] for the schema language itself, and
-xref:023.adoc[*TS-23: Messages and events*] for the design of the message and
-event payloads that a schema describes.
+See xref:029.adoc[*TS-29: JSON Schema*] for the schema language itself, and xref:023.adoc[*TS-23: Messages and events*]
+for the design of the message and event payloads that a schema describes.

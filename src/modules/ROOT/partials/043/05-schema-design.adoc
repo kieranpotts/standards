@@ -1,113 +1,91 @@
 = Columns, keys, and schema definition
 
-This section covers the design of table schemas: column ordering, primary
-keys, constraints, and the formatting of `CREATE`/`ALTER` statements.
+This section covers the design of table schemas: column ordering, primary keys, constraints, and the formatting
+of `CREATE`/`ALTER` statements.
 
 == Column ordering
 
-Order a table's columns consistently, so that any table in the schema reads
-the same way:
+Order a table's columns consistently, so that any table in the schema reads the same way:
 
 1. The primary key (`id`), first.
 2. A `uuid` column, where the table has one.
 3. A `logged_at` column, for tables that record log or event data.
 4. Foreign-key columns, in alphabetical order.
-5. All other columns, grouped logically by what they represent; alphabetical
-   order within a group where there is no other natural grouping.
+5. All other columns, grouped logically by what they represent; alphabetical order within a group where there
+   is no other natural grouping.
 6. `created_at`, `updated_at`, and `deleted_at`, last, in that order.
 
 == Primary keys
 
-Not every table needs a primary key. Do not add one by default — every
-column and constraint on a table must serve a purpose, and a primary key
-that nothing depends on is unjustified schema weight.
+Not every table needs a primary key. Do not add one by default — every column and constraint on a table must
+serve a purpose, and a primary key that nothing depends on is unjustified schema weight.
 
 === UUID vs auto-incrementing integer
 
-Where a table does need a primary key, choose between a UUID and an
-auto-incrementing integer based on the table's access pattern, not by
-default:
+Where a table does need a primary key, choose between a UUID and an auto-incrementing integer based on the
+table's access pattern, not by default:
 
-* *UUIDs* are 16 bytes, larger than an integer key, but they can be
-  generated anywhere — including client-side, before a row is persisted —
-  are globally unique across tables and databases, and are well suited to
-  offline-first clients, data merging, horizontal distribution, and
-  replication, none of which cope well with a centrally-issued sequential
-  integer.
-* *Auto-incrementing integers* are smaller and more convenient at small
-  scale, and they are generally the better choice for foreign-key columns
-  that reference the primary key, since a smaller key keeps indexes on the
-  referencing table more compact.
+* *UUIDs* are 16 bytes, larger than an integer key, but they can be generated anywhere — including client-side,
+  before a row is persisted — are globally unique across tables and databases, and are well suited to
+  offline-first clients, data merging, horizontal distribution, and replication, none of which cope well with a
+  centrally-issued sequential integer.
+* *Auto-incrementing integers* are smaller and more convenient at small scale, and they are generally the
+  better choice for foreign-key columns that reference the primary key, since a smaller key keeps indexes on
+  the referencing table more compact.
 
-Default to UUID primary keys, and mix in auto-incrementing integer keys
-where a specific table's access pattern favors them — most often for
-foreign-key targets, per the trade-off above.
+Default to UUID primary keys, and mix in auto-incrementing integer keys where a specific table's access pattern
+favors them — most often for foreign-key targets, per the trade-off above.
 
 === Naming the primary key column
 
-Two conventions compete for a primary key's column name: a bare `id`, or a
-table-qualified `<table>_id` (for example, `user_id` on the `users` table).
-Arguments exist for both — `<table>_id` is unambiguous in a joined query
-without aliasing, and searches more predictably across a codebase; a bare
-`id` is shorter, matches the default column ORMs such as ActiveRecord
-expect, and reads naturally as "the identifier of this row" from within the
-table's own context.
+Two conventions compete for a primary key's column name: a bare `id`, or a table-qualified `<table>_id` (for
+example, `user_id` on the `users` table). Arguments exist for both — `<table>_id` is unambiguous in a joined
+query without aliasing, and searches more predictably across a codebase; a bare `id` is shorter, matches the
+default column ORMs such as ActiveRecord expect, and reads naturally as "the identifier of this row" from
+within the table's own context.
 
-This standard's house style is the bare `id`, for consistency with the
-common ORM convention. `<table>_id` is a valid exception for a composite or
-aggregate key, where the plain `id` no longer identifies which part of the
+This standard's house style is the bare `id`, for consistency with the common ORM convention. `<table>_id` is a
+valid exception for a composite or aggregate key, where the plain `id` no longer identifies which part of the
 key a given column represents.
 
-This is the definitive rule for the primary-key column specifically. It
-takes precedence over the general column-naming guidance in
-<<Naming conventions>>, which advises avoiding a bare `id` for
-non-primary-key identifier columns — the two are not in tension: `id` is
-reserved for the primary key alone, and every other identifier column
-should be more specific (`author_id`, `parent_category_id`).
+This is the definitive rule for the primary-key column specifically. It takes precedence over the general
+column-naming guidance in <<Naming conventions>>, which advises avoiding a bare `id` for non-primary-key
+identifier columns — the two are not in tension: `id` is reserved for the primary key alone, and every other
+identifier column should be more specific (`author_id`, `parent_category_id`).
 
 == Modeling data as relations
 
-Two anti-patterns tend to appear when a schema is designed by analogy to
-something other than the relational model itself, rather than around the
-relations it actually needs to represent.
+Two anti-patterns tend to appear when a schema is designed by analogy to something other than the relational
+model itself, rather than around the relations it actually needs to represent.
 
-Avoid an Entity-Attribute-Value (EAV) schema — a generic
-`(entity_id, attribute_name, attribute_value)` table used to store
-arbitrary attributes for arbitrary entity types. EAV trades away the type
-safety, `NOT NULL`/`CHECK` constraints, and query performance that a
-relational schema exists to provide: every attribute value is stored as an
-untyped string or variant column, a query that needs several attributes at
-once requires a self-join per attribute, and the database engine can no
-longer enforce that a given attribute is present, correctly typed, or
-within a valid range. Where the set of possible attributes is genuinely
-unbounded and schema changes are genuinely impractical, prefer a
-schema-less store — see xref:044.adoc[*TS-44: Non-relational (NoSQL)
-databases*] — over simulating one inside a relational schema.
+Avoid an Entity-Attribute-Value (EAV) schema — a generic `(entity_id, attribute_name, attribute_value)` table
+used to store arbitrary attributes for arbitrary entity types. EAV trades away the type safety,
+`NOT NULL`/`CHECK` constraints, and query performance that a relational schema exists to provide: every
+attribute value is stored as an untyped string or variant column, a query that needs several attributes at once
+requires a self-join per attribute, and the database engine can no longer enforce that a given attribute is
+present, correctly typed, or within a valid range. Where the set of possible attributes is genuinely unbounded
+and schema changes are genuinely impractical, prefer a schema-less store — see xref:044.adoc[*TS-44: Non-relational (NoSQL) databases*] — over simulating one inside a relational schema.
 
-Avoid applying object-oriented design principles, such as inheritance
-hierarchies, directly to a relational schema. A table models a relation,
-not a class, and forcing an OOP mental model onto schema design tends to
-produce the same problems as EAV by another route — either an
-over-normalized hierarchy of tables mirroring a class hierarchy that has no
-query-time benefit, or an EAV-like structure used to simulate polymorphism.
-Design each table around the data it needs to hold and the queries it needs
-to answer, not around an application-layer class model.
+Avoid applying object-oriented design principles, such as inheritance hierarchies, directly to a relational
+schema. A table models a relation, not a class, and forcing an OOP mental model onto schema design tends to
+produce the same problems as EAV by another route — either an over-normalized hierarchy of tables mirroring a
+class hierarchy that has no query-time benefit, or an EAV-like structure used to simulate polymorphism. Design
+each table around the data it needs to hold and the queries it needs to answer, not around an application-layer
+class model.
 
 == Defining schemas
 
 === Readability
 
-Order and group column definitions within a `CREATE TABLE` statement so the
-grouping makes sense to a reader — following the column-ordering convention
-above is a reasonable default. Indent column definitions by four spaces
-within the `CREATE TABLE` block.
+Order and group column definitions within a `CREATE TABLE` statement so the grouping makes sense to a reader —
+following the column-ordering convention above is a reasonable default. Indent column definitions by four
+spaces within the `CREATE TABLE` block.
 
 === Default values
 
-A column's default value MUST be the same type as the column itself — a
-`DECIMAL` column must not take an `INTEGER` literal as its default, for
-example. Within a column definition, the default value follows the data-type
-declaration and comes before any `NOT NULL` constraint.
+A column's default value MUST be the same type as the column itself — a `DECIMAL` column must not take an
+`INTEGER` literal as its default, for example. Within a column definition, the default value follows the
+data-type declaration and comes before any `NOT NULL` constraint.
 
 [source,sql]
 ----
@@ -116,69 +94,52 @@ CREATE TABLE orders (
 );
 ----
 
-Do not encode business logic into a `DEFAULT` or `CHECK` constraint. A
-default of `now()` on an `order_date` column looks convenient, but it
-buries a business rule — when an order is considered "placed" — inside the
-schema, invisible to and disconnected from the application-layer code that
-actually owns that rule; a later change to the rule (for example, an order
-is placed only once it is approved) requires finding and editing a default
-hidden in `CREATE TABLE`/`ALTER TABLE`, rather than in the application code
-a reader would expect to find it in. This does not rule out every use of
-`DEFAULT now()`: a `logged_at` column on a log or audit table defaulting to
-`now()` is a reasonable use, because "when was this row written" is a
-database-level fact, not a business rule the application layer owns.
+Do not encode business logic into a `DEFAULT` or `CHECK` constraint. A default of `now()` on an `order_date`
+column looks convenient, but it buries a business rule — when an order is considered "placed" — inside the
+schema, invisible to and disconnected from the application-layer code that actually owns that rule; a later
+change to the rule (for example, an order is placed only once it is approved) requires finding and editing a
+default hidden in `CREATE TABLE`/`ALTER TABLE`, rather than in the application code a reader would expect to
+find it in. This does not rule out every use of `DEFAULT now()`: a `logged_at` column on a log or audit table
+defaulting to `now()` is a reasonable use, because "when was this row written" is a database-level fact, not a
+business rule the application layer owns.
 
 === Choosing keys
 
-Whether a primary key or a unique key on some other column, a key's
-underlying value should be:
+Whether a primary key or a unique key on some other column, a key's underlying value should be:
 
 * Unique, by definition.
-* Consistent in data type across the schema, and unlikely to change over
-  the life of the system — a key that changes type or format forces a
-  migration of every table that references it.
-* Validatable against a standard, well-known format where one exists (an
-  ISO country code, for example), rather than an ad hoc format specific to
-  this schema.
+* Consistent in data type across the schema, and unlikely to change over the life of the system — a key that
+  changes type or format forces a migration of every table that references it.
+* Validatable against a standard, well-known format where one exists (an ISO country code, for example),
+  rather than an ad hoc format specific to this schema.
 
-Keep keys as simple as possible, but use a compound key where the data
-genuinely requires one — for example, a joining table's composite key of
-its two foreign-key columns (see <<Many-to-many relationships>>).
+Keep keys as simple as possible, but use a compound key where the data genuinely requires one — for example, a
+joining table's composite key of its two foreign-key columns (see <<Many-to-many relationships>>).
 
-Prefer a `UNIQUE` *constraint* over an equivalent `UNIQUE` *index* to
-enforce a uniqueness guarantee, even though most database engines implement
-a `UNIQUE` constraint as a unique index under the hood. A constraint is
-easier to toggle — temporarily dropped and re-added — than an index, which
-must be dropped and recreated outright; on a large table, recreating an
-index is an expensive operation, while toggling a constraint is not.
+Prefer a `UNIQUE` *constraint* over an equivalent `UNIQUE` *index* to enforce a uniqueness guarantee, even
+though most database engines implement a `UNIQUE` constraint as a unique index under the hood. A constraint is
+easier to toggle — temporarily dropped and re-added — than an index, which must be dropped and recreated
+outright; on a large table, recreating an index is an expensive operation, while toggling a constraint is not.
 
 === Defining constraints
 
 * Every table MUST have at least one key.
-* Give constraints custom, descriptive names, except `UNIQUE`, `PRIMARY
-  KEY`, and `FOREIGN KEY` constraints, where the database engine's default
-  generated name is usually intelligible enough on its own.
-* Specify the primary key constraint first, immediately after
-  `CREATE TABLE`.
-* Place a single-column constraint directly beneath its corresponding
-  column definition, indented to the right of the column name, so the
-  constraint reads as an attribute of that column.
-* Place a multi-column constraint near the columns it covers, or at the end
-  of the table definition if it does not naturally belong near any one of
-  them.
-* Place table-level constraints at the end of the `CREATE TABLE` block,
-  after all column definitions.
-* Where both are specified on a foreign key, order `ON DELETE` before
-  `ON UPDATE` — this also happens to be alphabetical order, which makes it
-  easy to remember.
-* Use `LIKE` or `SIMILAR TO` constraints to enforce string format
-  integrity, where the format is simple enough to express as a pattern.
-* Use `CHECK()` constraints to bound numeric values to a valid range — at
-  minimum, `CHECK (value > 0)` for a value that must never be zero or
-  negative.
-* Keep each `CHECK()` constraint in its own clause, rather than combining
-  multiple conditions into one, so a constraint violation is easy to
-  attribute to a specific rule when debugging.
+* Give constraints custom, descriptive names, except `UNIQUE`, `PRIMARY KEY`, and `FOREIGN KEY` constraints,
+  where the database engine's default generated name is usually intelligible enough on its own.
+* Specify the primary key constraint first, immediately after `CREATE TABLE`.
+* Place a single-column constraint directly beneath its corresponding column definition, indented to the right
+  of the column name, so the constraint reads as an attribute of that column.
+* Place a multi-column constraint near the columns it covers, or at the end of the table definition if it does
+  not naturally belong near any one of them.
+* Place table-level constraints at the end of the `CREATE TABLE` block, after all column definitions.
+* Where both are specified on a foreign key, order `ON DELETE` before `ON UPDATE` — this also happens to be
+  alphabetical order, which makes it easy to remember.
+* Use `LIKE` or `SIMILAR TO` constraints to enforce string format integrity, where the format is simple enough
+  to express as a pattern.
+* Use `CHECK()` constraints to bound numeric values to a valid range — at minimum, `CHECK (value > 0)` for a
+  value that must never be zero or negative.
+* Keep each `CHECK()` constraint in its own clause, rather than combining multiple conditions into one, so a
+  constraint violation is easy to attribute to a specific rule when debugging.
 
 .Example
 [source,sql]
@@ -201,41 +162,32 @@ CREATE TABLE orders (
 [#choosing-a-foreign-keys-on-delete-action]
 === Choosing a foreign key's `ON DELETE` action
 
-Choose a foreign key's `ON DELETE` action based on the semantics of the
-relationship it enforces, not by reflex or by leaving it at the engine's
-default:
+Choose a foreign key's `ON DELETE` action based on the semantics of the relationship it enforces, not by
+reflex or by leaving it at the engine's default:
 
-* `NO ACTION` or `RESTRICT` — where the referenced row models an
-  independent entity that can exist without the referencing row. A
-  `products.category_id` reference to `categories` should block deletion of
-  a category that still has products in it, rather than silently deleting
-  or orphaning those products.
-* `CASCADE` — where the referencing row cannot meaningfully exist without
-  its parent. An order's line items referencing their order should be
-  deleted along with the order; a line item with no order to belong to is
+* `NO ACTION` or `RESTRICT` — where the referenced row models an independent entity that can exist without the
+  referencing row. A `products.category_id` reference to `categories` should block deletion of a category that
+  still has products in it, rather than silently deleting or orphaning those products.
+* `CASCADE` — where the referencing row cannot meaningfully exist without its parent. An order's line items
+  referencing their order should be deleted along with the order; a line item with no order to belong to is
   not a meaningful row.
-* `SET NULL` — for an optional, nullable reference where the parent's
-  removal should orphan the referencing row rather than delete it or block
-  the parent's deletion. An employee's `manager_id` should be set to `NULL`
-  when the manager leaves, rather than deleting the employee or preventing
-  the manager's removal.
-* `SET DEFAULT` — a rarely-needed fallback, for the uncommon case where a
-  referencing column should revert to a specific non-`NULL` default rather
-  than being nulled out or cascaded.
+* `SET NULL` — for an optional, nullable reference where the parent's removal should orphan the referencing row
+  rather than delete it or block the parent's deletion. An employee's `manager_id` should be set to `NULL` when
+  the manager leaves, rather than deleting the employee or preventing the manager's removal.
+* `SET DEFAULT` — a rarely-needed fallback, for the uncommon case where a referencing column should revert to a
+  specific non-`NULL` default rather than being nulled out or cascaded.
 
-Do not use a sentinel value — `0` or `-1`, for example — in a foreign-key or
-identifier column to represent "no value" where the column could instead be
-made nullable. The `manager_id` example above is the canonical case: not
-every employee has a manager, so `manager_id` should be a nullable foreign
-key with `SET NULL` on delete, not a `NOT NULL` column defaulting to a
-sentinel `0` that does not reference any real row. A sentinel value forces
-every query against the column to special-case it, and it is not enforced
-by the foreign-key constraint the way a genuine `NULL` is.
+Do not use a sentinel value — `0` or `-1`, for example — in a foreign-key or identifier column to represent "no
+value" where the column could instead be made nullable. The `manager_id` example above is the canonical case:
+not every employee has a manager, so `manager_id` should be a nullable foreign key with `SET NULL` on delete,
+not a `NOT NULL` column defaulting to a sentinel `0` that does not reference any real row. A sentinel value
+forces every query against the column to special-case it, and it is not enforced by the foreign-key constraint
+the way a genuine `NULL` is.
 
 === Adding and removing constraints on existing tables
 
-Add a constraint to an existing table with `ALTER TABLE`, following the
-same naming guidance as a constraint defined at table-creation time:
+Add a constraint to an existing table with `ALTER TABLE`, following the same naming guidance as a constraint
+defined at table-creation time:
 
 [source,sql]
 ----

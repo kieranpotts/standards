@@ -1,8 +1,7 @@
 = JSON Type Definition (JTD)
 
-https://datatracker.ietf.org/doc/rfc8927/[JSON Type Definition (JTD)] is an
-alternative schema language for JSON documents. It was created in response to
-JSON Schema and is designed to be simpler, focusing on structural and type
+https://datatracker.ietf.org/doc/rfc8927/[JSON Type Definition (JTD)] is an alternative schema language for JSON
+documents. It was created in response to JSON Schema and is designed to be simpler, focusing on structural and type
 validation, with a lighter weight vocabulary and fewer constraints.
 
 .Example
@@ -36,56 +35,42 @@ validation, with a lighter weight vocabulary and fewer constraints.
 }
 ----
 
-JSON Schema is the _de facto_ standard for JSON schema, and it is RECOMMENDED
-for its expressive power and readily-available libraries and tooling. However,
-JTD is a good alternative for simple use cases, especially where type safety is
-the primary concern (rather than full schema validation), and it is mentioned
-here for completeness.
+JSON Schema is the _de facto_ standard for JSON schema, and it is RECOMMENDED for its expressive power and
+readily-available libraries and tooling. However, JTD is a good alternative for simple use cases, especially where type
+safety is the primary concern (rather than full schema validation), and it is mentioned here for completeness.
 
 == Schema forms
 
-Every JTD schema is one of eight forms, distinguished by which keyword it
-uses: empty (`{}`, matches any instance), `type` (a primitive), `enum`, an
-`elements` array, `properties`/`optionalProperties` (an object), `values`
-(a map with a uniform value type), `discriminator` (a tagged union), or
-`ref` (a reference into `definitions`). A schema MUST use exactly one of
-these keywords (aside from `nullable` and `metadata`, below); combining two
-forms, such as `properties` and `elements`, in the same schema object is
-invalid.
+Every JTD schema is one of eight forms, distinguished by which keyword it uses: empty (`{}`, matches any instance),
+`type` (a primitive), `enum`, an `elements` array, `properties`/`optionalProperties` (an object), `values` (a map with a
+uniform value type), `discriminator` (a tagged union), or `ref` (a reference into `definitions`). A schema MUST use
+exactly one of these keywords (aside from `nullable` and `metadata`, below); combining two forms, such as `properties`
+and `elements`, in the same schema object is invalid.
 
-The `properties` form defaults to rejecting any instance property not
-explicitly listed — the equivalent of JSON Schema's
-`additionalProperties: false` (see <<Applicator keywords>>) — with no
-per-schema way to opt out. This is a sharper default than JSON Schema's,
-where `additionalProperties` defaults to permissive.
+The `properties` form defaults to rejecting any instance property not explicitly listed — the equivalent of JSON
+Schema's `additionalProperties: false` (see <<Applicator keywords>>) — with no per-schema way to opt out. This is a
+sharper default than JSON Schema's, where `additionalProperties` defaults to permissive.
 
 == `nullable` and `metadata`
 
-Every JTD form accepts two further members alongside its form-defining
-keyword: `nullable`, a boolean that, if `true`, permits the instance to be
-`null` in addition to the form's own type; and `metadata`, a
-free-form object for documentation and tooling — the JTD analogue of
-`$comment` and the annotation keywords (see <<Schema identification>> and
-<<Annotations>>), with the same non-enforcing status.
+Every JTD form accepts two further members alongside its form-defining keyword: `nullable`, a boolean that, if `true`,
+permits the instance to be `null` in addition to the form's own type; and `metadata`, a free-form object for
+documentation and tooling — the JTD analogue of `$comment` and the annotation keywords (see <<Schema identification>>
+and <<Annotations>>), with the same non-enforcing status.
 
 == `definitions` and referencing
 
-The `ref` form and its accompanying root-level `definitions` dictionary are
-JTD's equivalent of `$ref`/`$defs` (see <<Schema identification>>), but
-narrower: `ref` MUST target an entry in `definitions` and cannot reference a
-non-root subschema, and `definitions` cannot reference another JSON
-document — there is no JTD equivalent of a cross-file `$ref` (see
-<<Cross-references>>). A JTD schema that needs to share structure across
-files has no direct mechanism for it, unlike JSON Schema.
+The `ref` form and its accompanying root-level `definitions` dictionary are JTD's equivalent of `$ref`/`$defs` (see
+<<Schema identification>>), but narrower: `ref` MUST target an entry in `definitions` and cannot reference a non-root
+subschema, and `definitions` cannot reference another JSON document — there is no JTD equivalent of a cross-file `$ref`
+(see <<Cross-references>>). A JTD schema that needs to share structure across files has no direct mechanism for it,
+unlike JSON Schema.
 
 == Migrating from JSON Schema
 
-Because JTD's vocabulary is a deliberate subset, migrating a JSON Schema
-document to JTD is lossy wherever the source schema uses a keyword with no
-JTD equivalent — `pattern`, numeric range constraints, `oneOf` (JTD's
-`discriminator` form covers only the tagged-union case, not general
-exclusive-or composition), or `$dynamicRef` (see
-<<Schema identification>>) all have no JTD counterpart. It is RECOMMENDED to
-migrate to JTD only where the source schema's constraints already fit
-within JTD's eight forms, and to stay on JSON Schema otherwise rather than
-silently dropping constraints in the conversion.
+Because JTD's vocabulary is a deliberate subset, migrating a JSON Schema document to JTD is lossy wherever the source
+schema uses a keyword with no JTD equivalent — `pattern`, numeric range constraints, `oneOf` (JTD's `discriminator` form
+covers only the tagged-union case, not general exclusive-or composition), or `$dynamicRef` (see
+<<Schema identification>>) all have no JTD counterpart. It is RECOMMENDED to migrate to JTD only where the source
+schema's constraints already fit within JTD's eight forms, and to stay on JSON Schema otherwise rather than silently
+dropping constraints in the conversion.

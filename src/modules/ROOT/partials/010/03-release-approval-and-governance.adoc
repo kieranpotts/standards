@@ -1,94 +1,72 @@
 = Release approval and governance
 
-Some contexts require formal sign-off before a release reaches production.
-Common drivers include regulatory compliance (financial services, healthcare,
-aviation, defense), contractual obligations to customers, internal
-change-management policies, and externally-imposed change windows. In these
-contexts, an _intentional_ manual gate is required, even where the rest of the
-pipeline is fully automated.
+Some contexts require formal sign-off before a release reaches production. Common drivers include regulatory compliance
+(financial services, healthcare, aviation, defense), contractual obligations to customers, internal change-management
+policies, and externally-imposed change windows. In these contexts, an _intentional_ manual gate is required, even where
+the rest of the pipeline is fully automated.
 
-The approval gate belongs at the `ready` → `release` boundary, not earlier.
-Earlier gates (eg. on commits to `dev`, or on the promotion to `ready`)
-interfere with continuous integration and the principle that the tip of `ready`
-is always shippable. Putting the gate at the release step preserves the ability
-to maintain a continuously-deliverable codebase while still controlling _when_
-changes actually reach production.
+The approval gate belongs at the `ready` → `release` boundary, not earlier. Earlier gates (eg. on commits to `dev`, or
+on the promotion to `ready`) interfere with continuous integration and the principle that the tip of `ready` is always
+shippable. Putting the gate at the release step preserves the ability to maintain a continuously-deliverable codebase
+while still controlling _when_ changes actually reach production.
 
 == Approval mechanisms
 
-Different organizations implement release approval through different mechanisms.
-The choice depends on the regulatory environment, the team's tooling, and the
-desired trade-off between rigor and friction. Common patterns include:
+Different organizations implement release approval through different mechanisms. The choice depends on the regulatory
+environment, the team's tooling, and the desired trade-off between rigor and friction. Common patterns include:
 
-* *Pull-request approval* — A pull request to the `release` branch, or a
-  tag-promotion PR, is reviewed and approved by named approvers. The PR system
-  provides an immediate, version-controlled audit trail.
+* *Pull-request approval* — A pull request to the `release` branch, or a tag-promotion PR, is reviewed and approved by
+  named approvers. The PR system provides an immediate, version-controlled audit trail.
 
-* *Change-management tickets* — A ticket in a separate change-management system
-  (eg. ServiceNow, Jira Service Management) is linked to the release. Approvals
-  are recorded in the ticket; the deployment pipeline checks ticket state before
-  promoting.
+* *Change-management tickets* — A ticket in a separate change-management system (eg. ServiceNow, Jira Service
+  Management) is linked to the release. Approvals are recorded in the ticket; the deployment pipeline checks ticket
+  state before promoting.
 
-* *Change-advisory-board (CAB) sign-off* — A scheduled review by a board of
-  stakeholders. Common in larger or more regulated organizations, but can
-  introduce significant latency and is poorly suited to high-cadence releases.
+* *Change-advisory-board (CAB) sign-off* — A scheduled review by a board of stakeholders. Common in larger or more
+  regulated organizations, but can introduce significant latency and is poorly suited to high-cadence releases.
 
-* *Automated policy gates* — Rules-based gates that check predefined conditions
-  (eg. test coverage thresholds, security-scan results, the absence of critical
-  open incidents) and block release automatically if violated. These complement,
-  rather than replace, human approval where governance demands it, and are
-  essential where release cadence is too high for human-in-the-loop review.
+* *Automated policy gates* — Rules-based gates that check predefined conditions (eg. test coverage thresholds,
+  security-scan results, the absence of critical open incidents) and block release automatically if violated. These
+  complement, rather than replace, human approval where governance demands it, and are essential where release cadence
+  is too high for human-in-the-loop review.
 
 == Approval roles
 
-Approvals SHOULD be tied to _roles_ rather than to specific individuals, so the
-workflow does not break when a single person is unavailable. A named individual
-MAY hold the role at any moment, but the underlying authority is the role.
-Common roles include the on-call engineer, the release manager, the product
-owner, the security or compliance officer, and (for high-impact changes) an
-executive sponsor.
+Approvals SHOULD be tied to _roles_ rather than to specific individuals, so the workflow does not break when a single
+person is unavailable. A named individual MAY hold the role at any moment, but the underlying authority is the role.
+Common roles include the on-call engineer, the release manager, the product owner, the security or compliance officer,
+and (for high-impact changes) an executive sponsor.
 
 For each role granted approval authority, the organization SHOULD document:
 
-* The scope of changes the role can approve (eg. all releases, hotfixes only,
-  releases below a certain risk threshold).
-* Any required sequencing — for example, security review MUST precede production
-  approval.
+* The scope of changes the role can approve (eg. all releases, hotfixes only, releases below a certain risk threshold).
+* Any required sequencing — for example, security review MUST precede production approval.
 * Delegation rules — who acts when the primary approver is unavailable.
 
 == Audit trail
 
-Whatever the mechanism, the approval record MUST be auditable and traceable. At
-minimum, the following SHOULD be captured for each release:
+Whatever the mechanism, the approval record MUST be auditable and traceable. At minimum, the following SHOULD be
+captured for each release:
 
-* The version being released, with a reference to the source-control tag or
-  commit.
-* The identity of each approver, the role under which they approved, and the
-  timestamp.
-* The artifacts being deployed, with references to the artifact repository (see
-  xref:009.adoc[*TS-9: Version control*]).
-* Any exceptions or deviations from the standard approval process, with
-  justification.
+* The version being released, with a reference to the source-control tag or commit.
+* The identity of each approver, the role under which they approved, and the timestamp.
+* The artifacts being deployed, with references to the artifact repository (see xref:009.adoc[*TS-9: Version control*]).
+* Any exceptions or deviations from the standard approval process, with justification.
 
-The audit trail SHOULD be retained for the period required by regulatory or
-organizational policy.
+The audit trail SHOULD be retained for the period required by regulatory or organizational policy.
 
 == Break-glass procedures
 
-A formal approval process MUST NOT prevent rapid response to production
-incidents. Even the strictest governance regime SHOULD include a documented
-break-glass procedure for emergency releases — typically hotfixes for security
+A formal approval process MUST NOT prevent rapid response to production incidents. Even the strictest governance regime
+SHOULD include a documented break-glass procedure for emergency releases — typically hotfixes for security
 vulnerabilities, critical bugs, or active incidents.
 
 A break-glass procedure SHOULD:
 
-* Reduce the approval requirement to a minimum (eg. a single on-call engineer,
-  or a two-person review including the on-call engineer and a senior reviewer).
-* Require post-hoc review and full audit-trail backfill once the incident is
-  resolved.
-* Be tested periodically, like other disaster-recovery procedures, so the team
-  is fluent in invoking it under pressure.
+* Reduce the approval requirement to a minimum (eg. a single on-call engineer, or a two-person review including the
+  on-call engineer and a senior reviewer).
+* Require post-hoc review and full audit-trail backfill once the incident is resolved.
+* Be tested periodically, like other disaster-recovery procedures, so the team is fluent in invoking it under pressure.
 
-The existence of a break-glass procedure is not a license to bypass normal
-governance — invocations SHOULD be tracked, and frequent invocations SHOULD
-prompt review of whether the standard process is too restrictive.
+The existence of a break-glass procedure is not a license to bypass normal governance — invocations SHOULD be tracked,
+and frequent invocations SHOULD prompt review of whether the standard process is too restrictive.

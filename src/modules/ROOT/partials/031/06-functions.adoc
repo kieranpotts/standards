@@ -2,8 +2,7 @@
 
 == Function declarations
 
-For POSIX-compliant scripts, the `function` keyword cannot be used in function
-declarations.
+For POSIX-compliant scripts, the `function` keyword cannot be used in function declarations.
 
 [source,sh]
 ----
@@ -18,24 +17,21 @@ function my_func() {
 }
 ----
 
-It is RECOMMENDED to exclude the `function` keyword even where it is supported
-by the target shell. It does not add any value, only clutter.
+It is RECOMMENDED to exclude the `function` keyword even where it is supported by the target shell. It does not add any
+value, only clutter.
 
-Parentheses MUST be on the same line as the function name, with no space between
-the function name and the opening parentheses, and with no space between the
-opening and closing parentheses.
+Parentheses MUST be on the same line as the function name, with no space between the function name and the opening
+parentheses, and with no space between the opening and closing parentheses.
 
-The opening curly brace SHOULD also be on the declaration line, preceded by a
-single space character. The closing curly brace SHOULD be on a new line at the
-same level of indentation as the opening of the function declaration.
+The opening curly brace SHOULD also be on the declaration line, preceded by a single space character. The closing curly
+brace SHOULD be on a new line at the same level of indentation as the opening of the function declaration.
 
 == Arguments over globals
 
-Functions SHOULD receive the data they operate on as arguments (positional
-parameters), rather than reading it from global variables. A function that
-depends only on its arguments is reusable and predictable: its behavior does
-not change based on state set elsewhere in the script, and it can be reasoned
-about, tested, and moved to another script without modification.
+Functions SHOULD receive the data they operate on as arguments (positional parameters), rather than reading it from
+global variables. A function that depends only on its arguments is reusable and predictable: its behavior does not
+change based on state set elsewhere in the script, and it can be reasoned about, tested, and moved to another script
+without modification.
 
 [source,sh]
 ----
@@ -52,20 +48,16 @@ create_backup() {
 }
 ----
 
-Assign positional parameters to descriptively-named variables at the top of the
-function body, rather than referring to `$1`, `$2`, etc. throughout. This
-documents what each argument represents and makes the function body easier to
-read.
+Assign positional parameters to descriptively-named variables at the top of the function body, rather than referring to
+`$1`, `$2`, etc. throughout. This documents what each argument represents and makes the function body easier to read.
 
 == Local variables
 
-Shells that support it – Bash and most other modern shells, though this is not
-POSIX – provide a `local` keyword for scoping variables to the function they
-are declared in. Use `local` for all variables that are internal to a
-function's implementation, unless the variable is intentionally being used to
-return a value to the caller (see below). This prevents function-internal
-variables from polluting the global namespace, and prevents accidental
-overwriting of global variables that happen to share the same name.
+Shells that support it – Bash and most other modern shells, though this is not POSIX – provide a `local` keyword for
+scoping variables to the function they are declared in. Use `local` for all variables that are internal to a function's
+implementation, unless the variable is intentionally being used to return a value to the caller (see below). This
+prevents function-internal variables from polluting the global namespace, and prevents accidental overwriting of global
+variables that happen to share the same name.
 
 [source,sh]
 ----
@@ -81,17 +73,15 @@ echo "$(increment 5)" # → 6
 echo "${count}"        # → 1 (unchanged)
 ----
 
-For scripts that must remain strictly POSIX-compliant, and therefore cannot
-rely on `local`, prefer passing values through arguments and return values
-(see below) rather than through shared global state, to minimize the risk of
-name collisions.
+For scripts that must remain strictly POSIX-compliant, and therefore cannot rely on `local`, prefer passing values
+through arguments and return values (see below) rather than through shared global state, to minimize the risk of name
+collisions.
 
 == Command/query separation
 
-Prefer writing functions that either perform an action (a "command") or
-compute and return a value (a "query"), but not both. A function that mutates
-state _and_ hands back a result is harder to reuse and to reason about, because
-callers cannot invoke it for one purpose without triggering the other.
+Prefer writing functions that either perform an action (a "command") or compute and return a value (a "query"), but not
+both. A function that mutates state _and_ hands back a result is harder to reuse and to reason about, because callers
+cannot invoke it for one purpose without triggering the other.
 
 [source,sh]
 ----
@@ -115,14 +105,12 @@ create_dir() {
 
 == Return values
 
-The `return` built-in only accepts an integer between 0 and 255, so it is
-suitable for exit-code-style results (see the *Exit codes* section) but not for
-returning strings or other data.
+The `return` built-in only accepts an integer between 0 and 255, so it is suitable for exit-code-style results (see the
+*Exit codes* section) but not for returning strings or other data.
 
-To return non-integer data from a function, have the function write the value
-to stdout, and have the caller capture it using command substitution,
-`$( … )`. This mirrors the `return` semantics of higher-level programming
-languages, and is the RECOMMENDED approach for most cases:
+To return non-integer data from a function, have the function write the value to stdout, and have the caller capture it
+using command substitution, `$( … )`. This mirrors the `return` semantics of higher-level programming languages, and is
+the RECOMMENDED approach for most cases:
 
 [source,sh]
 ----
@@ -133,9 +121,7 @@ temp_dir_name() {
 dir="$(temp_dir_name)"
 ----
 
-Because command substitution runs the function in a subshell, this approach has
-some overhead, and any variables set inside the function (other than via
-`echo`) do not persist to the caller. For performance-sensitive code, or where
-a function needs to set a variable in the caller's scope directly, see the
-nameref technique in
+Because command substitution runs the function in a subshell, this approach has some overhead, and any variables set
+inside the function (other than via `echo`) do not persist to the caller. For performance-sensitive code, or where a
+function needs to set a variable in the caller's scope directly, see the nameref technique in
 xref:032.adoc[*TS-32: Bash*].

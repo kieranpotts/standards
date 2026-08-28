@@ -1,9 +1,8 @@
 = Cache freshness
 
-Keeping copies consistent is the central problem of all distributed data. For a
-cache – a read-optimized copy – that problem takes a specific form: freshness.
-Once you've decided to cache something, the next question is: how do you keep it
-fresh?
+Keeping copies consistent is the central problem of all distributed data. For a cache – a read-optimized copy – that
+problem takes a specific form: freshness. Once you've decided to cache something, the next question is: how do you
+keep it fresh?
 
 You have two main options:
 
@@ -22,36 +21,28 @@ Each option has trade-offs. As a guide:
 
 == Cache write-back anti-pattern
 
-Everything above treats the cache as a read-optimized copy: data flows from
-the authoritative store into the cache, never the other way round. That
-direction MUST NOT be reversed. A cache MUST NOT be a source of writes to the
+Everything above treats the cache as a read-optimized copy: data flows from the authoritative store into the cache,
+never the other way round. That direction MUST NOT be reversed. A cache MUST NOT be a source of writes to the
 persistent store.
 
-The anti-pattern is subtle because it rarely looks like a design decision. It
-creeps in through code that reads a value from the cache, mutates part of it,
-and writes the whole object back to the database – treating the cache as
-though it were as current as the store it was copied from. If the cached copy
-is stale at the moment of that read, the write-back silently overwrites
-newer authoritative data with older cached data. Nothing errors. The
-persistent store simply reverts to a previous state, and the only symptom is
-a user noticing their own data changed back – a screen name, an email
-address, a hashed password reverting to a value they replaced days earlier.
+The anti-pattern is subtle because it rarely looks like a design decision. It creeps in through code that reads a
+value from the cache, mutates part of it, and writes the whole object back to the database – treating the cache as
+though it were as current as the store it was copied from. If the cached copy is stale at the moment of that read,
+the write-back silently overwrites newer authoritative data with older cached data. Nothing errors. The persistent
+store simply reverts to a previous state, and the only symptom is a user noticing their own data changed back – a
+screen name, an email address, a hashed password reverting to a value they replaced days earlier.
 
-The risk compounds with multi-layer ("Russian-doll") caching, where a cache
-sits in front of another cache in front of the store. The more layers between
-a read and the authoritative write path, the more likely one of them is
-serving a stale value at the moment something reads through it intending to
-write back, and the harder the eventual revert is to trace to its cause.
+The risk compounds with multi-layer ("Russian-doll") caching, where a cache sits in front of another cache in front
+of the store. The more layers between a read and the authoritative write path, the more likely one of them is
+serving a stale value at the moment something reads through it intending to write back, and the harder the eventual
+revert is to trace to its cause.
 
 To avoid this:
 
-* Treat the cache as read-only from the application's point of view. Writes
-  MUST go to the authoritative store first; the cache is updated or
-  invalidated as a consequence of that write (see <<Distributed writes>>), not
-  as a substitute for it.
-* Never read-modify-write through a cache. If a code path needs to mutate a
-  record, it MUST read the current value from the authoritative store, not
-  from a cache, before writing the mutation back.
-* Where a multi-layer cache is unavoidable, keep the write path clearly
-  separate from every layer of the read path, so no layer can be mistaken for
-  the source of truth.
+* Treat the cache as read-only from the application's point of view. Writes MUST go to the authoritative store
+  first; the cache is updated or invalidated as a consequence of that write (see <<Distributed writes>>), not as a
+  substitute for it.
+* Never read-modify-write through a cache. If a code path needs to mutate a record, it MUST read the current value
+  from the authoritative store, not from a cache, before writing the mutation back.
+* Where a multi-layer cache is unavoidable, keep the write path clearly separate from every layer of the read path,
+  so no layer can be mistaken for the source of truth.

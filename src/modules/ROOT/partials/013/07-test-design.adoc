@@ -1,81 +1,65 @@
 = Test design
 
-Writing tests is not enough. The tests themselves must be well-designed. Poorly
-written tests are slow, fragile, hard to understand, and difficult to maintain.
-Over time they become a burden rather than an asset, and teams stop trusting or
+Writing tests is not enough. The tests themselves must be well-designed. Poorly written tests are slow, fragile, hard to
+understand, and difficult to maintain. Over time they become a burden rather than an asset, and teams stop trusting or
 running them.
 
-Good test design is governed by the same principles as good application code
-design: expressiveness, simplicity, and maintainability. The guidelines in this
-section apply to individual test cases regardless of their type or level.
+Good test design is governed by the same principles as good application code design: expressiveness, simplicity, and
+maintainability. The guidelines in this section apply to individual test cases regardless of their type or level.
 
 == FIRST principles
 
-The FIRST acronym summarizes five properties that every well-designed test
-should have.
+The FIRST acronym summarizes five properties that every well-designed test should have.
 
-*Fast.* Functional tests should run quickly. A functional test suite that takes
-a long time to execute will be run less frequently, reducing its value as a
-feedback mechanism. Unit tests in particular should run in milliseconds. Slow
-tests are usually a sign of unnecessary I/O, real network calls, or excessive
-setup — all of which should be replaced with test doubles or eliminated through
-better design.
+*Fast.* Functional tests should run quickly. A functional test suite that takes a long time to execute will be run less
+frequently, reducing its value as a feedback mechanism. Unit tests in particular should run in milliseconds. Slow tests
+are usually a sign of unnecessary I/O, real network calls, or excessive setup — all of which should be replaced with
+test doubles or eliminated through better design.
 
-*Independent.* Each test should be independent of all others. Tests must not
-rely on shared mutable state or on a specific execution order. A test that
-passes only when run after another test, or that fails when run in isolation,
-indicates hidden coupling. Independence makes it possible to run any subset of
-tests in any order, to parallelize execution, and to diagnose failures in
-isolation.
+*Independent.* Each test should be independent of all others. Tests must not rely on shared mutable state or on a
+specific execution order. A test that passes only when run after another test, or that fails when run in isolation,
+indicates hidden coupling. Independence makes it possible to run any subset of tests in any order, to parallelize
+execution, and to diagnose failures in isolation.
 
-*Repeatable.* A test should produce the same result every time it is run, in any
-environment. Tests that pass on one machine and fail on another — or that fail
-intermittently due to timing, randomness, or external dependencies — undermine
-confidence in the test suite. Eliminate non-determinism by controlling time,
-seeding randomness, and replacing external dependencies with test doubles.
+*Repeatable.* A test should produce the same result every time it is run, in any environment. Tests that pass on one
+machine and fail on another — or that fail intermittently due to timing, randomness, or external dependencies —
+undermine confidence in the test suite. Eliminate non-determinism by controlling time, seeding randomness, and replacing
+external dependencies with test doubles.
 
-*Self-validating.* A test must have a clear, automated pass/fail outcome. It
-should not require a developer to manually inspect output, logs, or a database
-to determine whether the test passed. The assertion within the test is the
-declaration of expected behavior; if it passes, the test passes; if it fails,
-the test fails. No human interpretation should be necessary.
+*Self-validating.* A test must have a clear, automated pass/fail outcome. It should not require a developer to manually
+inspect output, logs, or a database to determine whether the test passed. The assertion within the test is the
+declaration of expected behavior; if it passes, the test passes; if it fails, the test fails. No human interpretation
+should be necessary.
 
-*Timely.* Tests should be written at the same time as — or before — the code
-they verify. Tests written long after the fact are harder to write well, because
-the code may not have been designed with testability in mind. Writing tests
-early (or first, as in test-driven development) keeps code testable and ensures
-that tests actually reflect the intended behavior.
+*Timely.* Tests should be written at the same time as — or before — the code they verify. Tests written long after the
+fact are harder to write well, because the code may not have been designed with testability in mind. Writing tests early
+(or first, as in test-driven development) keeps code testable and ensures that tests actually reflect the intended
+behavior.
 
 == Readability
 
-A test case is also a specification. It documents the expected behavior of the
-code under test. For this documentation to be useful, tests must be as readable
-as any other form of documentation.
+A test case is also a specification. It documents the expected behavior of the code under test. For this documentation
+to be useful, tests must be as readable as any other form of documentation.
 
 Give tests descriptive names that read as a statement of expected behavior:
-`calculatesTaxAtStandardRateForDomesticOrders`, not `testCalc`. The name should
-make the intent immediately clear without reading the test body.
+`calculatesTaxAtStandardRateForDomesticOrders`, not `testCalc`. The name should make the intent immediately clear
+without reading the test body.
 
 === The Given/When/Then pattern
 
 Structure each test consistently around three phases, in order:
 
-1. *Given* — establish the preconditions. Create or configure the component
-   under test and its dependencies, including any test doubles and their
-   canned responses.
-2. *When* — invoke the single behavior under test. This phase should be a
-   single statement or a small block of calls that exercises the one action
-   the test is verifying.
-3. *Then* — verify the expected outcomes. Assert the returned values, the
-   state changes, and the interactions that should (or should not) have
-   occurred with any test doubles.
+1. *Given* — establish the preconditions. Create or configure the component under test and its dependencies, including
+   any test doubles and their canned responses.
+2. *When* — invoke the single behavior under test. This phase should be a single statement or a small block of calls
+   that exercises the one action the test is verifying.
+3. *Then* — verify the expected outcomes. Assert the returned values, the state changes, and the interactions that
+   should (or should not) have occurred with any test doubles.
 
-This is the same pattern as *arrange–act–assert (AAA)*; the Given/When/Then
-labels originate from behavior-driven development (BDD) and read more naturally
-as prose. Keep each phase visually distinct, using blank lines or comments to
-separate them if the test body is more than a few lines long. A test that
-follows this structure reads top-to-bottom as a short narrative: here is the
-starting state, here is what happened, here is what we expect.
+This is the same pattern as *arrange–act–assert (AAA)*; the Given/When/Then labels originate from behavior-driven
+development (BDD) and read more naturally as prose. Keep each phase visually distinct, using blank lines or comments to
+separate them if the test body is more than a few lines long. A test that follows this structure reads top-to-bottom as
+a short narrative: here is the starting state, here is what happened, here is what we expect.
 
 [source,php]
 ----
@@ -95,28 +79,22 @@ public function testCannotReadReport(): void
 }
 ----
 
-The *When* phase SHOULD contain exactly one action. A test with multiple
-actions in its *When* phase is testing more than one behavior and should be
-split. The *Given* phase SHOULD contain only the setup that the test genuinely
-needs; shared, reusable setup belongs in a fixture or factory, not repeated in
-every test.
+The *When* phase SHOULD contain exactly one action. A test with multiple actions in its *When* phase is testing more
+than one behavior and should be split. The *Given* phase SHOULD contain only the setup that the test genuinely needs;
+shared, reusable setup belongs in a fixture or factory, not repeated in every test.
 
-Avoid introducing logic into tests — conditionals, loops, and helper
-computations make tests harder to read and introduce the risk of bugs in the
-test code itself. If a test requires complex setup, extract it into a clearly
-named fixture or factory rather than embedding it inline.
+Avoid introducing logic into tests — conditionals, loops, and helper computations make tests harder to read and
+introduce the risk of bugs in the test code itself. If a test requires complex setup, extract it into a clearly named
+fixture or factory rather than embedding it inline.
 
 == One assertion per test (as a guideline)
 
-Tests should be focused. A test that asserts many things at once is hard to
-read, and when it fails, it is not immediately clear which assertion failed or
-which behavior is broken.
+Tests should be focused. A test that asserts many things at once is hard to read, and when it fails, it is not
+immediately clear which assertion failed or which behavior is broken.
 
-As a guideline, aim for one logical assertion per test case. This does not mean
-exactly one `assert` call — a single logical assertion may require several
-related checks — but it does mean that each test should verify one distinct
-aspect of behavior.
+As a guideline, aim for one logical assertion per test case. This does not mean exactly one `assert` call — a single
+logical assertion may require several related checks — but it does mean that each test should verify one distinct aspect
+of behavior.
 
-Where a single piece of behavior genuinely produces multiple observable
-outcomes, it is acceptable to assert all of them in one test. The spirit of this
-guideline is focus and clarity, not mechanical adherence to a line count.
+Where a single piece of behavior genuinely produces multiple observable outcomes, it is acceptable to assert all of them
+in one test. The spirit of this guideline is focus and clarity, not mechanical adherence to a line count.

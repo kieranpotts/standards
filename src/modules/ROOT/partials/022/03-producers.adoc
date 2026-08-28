@@ -1,49 +1,38 @@
 = Producers
 
-Producers are web services that push event notifications to the webhook
-endpoints of consumer systems. These event notifications are very much part of
-the API of the service from which they are emitted.
+Producers are web services that push event notifications to the webhook endpoints of consumer systems. These event
+notifications are very much part of the API of the service from which they are emitted.
 
-This technical standard RECOMMENDS that producers follow the
-https://www.standardwebhooks.com/[Standard Webhooks] specification in their
-webhooks implementations. Standard Webhooks is a community-driven initiative to
-standardize around industry best practices for webhook design. The specification
-is based on common patterns and prevailing conventions for event naming, payload
-structure, security and authentication, and delivery patterns.
+This technical standard RECOMMENDS that producers follow the https://www.standardwebhooks.com/[Standard Webhooks]
+specification in their webhooks implementations. Standard Webhooks is a community-driven initiative to standardize
+around industry best practices for webhook design. The specification is based on common patterns and prevailing
+conventions for event naming, payload structure, security and authentication, and delivery patterns.
 
-The webhook ecosystem is highly fragmented, with each producer implementing
-webhooks differently. This makes it hard for producers and consumers to
-integrate with each other. Converging on a common standard for webhooks will
-make it easier for service providers to offer webhook notifications to their
-customers, and easier for their customers to integrate with them. It will also
-enable the development of shared tools and services that can be reused across
-multiple webhook implementations. The Standard Webhooks project already has a
-number of open source libraries, for multiple mainstream programming languages,
-to facilitate the implementation of webhooks in both producer and consumer
-systems.
+The webhook ecosystem is highly fragmented, with each producer implementing webhooks differently. This makes it hard
+for producers and consumers to integrate with each other. Converging on a common standard for webhooks will make it
+easier for service providers to offer webhook notifications to their customers, and easier for their customers to
+integrate with them. It will also enable the development of shared tools and services that can be reused across
+multiple webhook implementations. The Standard Webhooks project already has a number of open source libraries, for
+multiple mainstream programming languages, to facilitate the implementation of webhooks in both producer and
+consumer systems.
 
-Besides interoperability, the Standard Webhooks specification also promotes best
-security practices, offering solutions for attack vectors such as SSRF,
-spoofing, and replay attacks.
+Besides interoperability, the Standard Webhooks specification also promotes best security practices, offering
+solutions for attack vectors such as SSRF, spoofing, and replay attacks.
 
-See the
-https://github.com/standard-webhooks/standard-webhooks[Standard Webhooks README]
-for more information about the project and specification, and links to open
-source libraries and reference implementations. Alternatives to Standard
-Webhooks are listed in the References section at the end of this technical
-standard, but Standard Webhooks is RECOMMENDED for the majority of use cases.
+See the https://github.com/standard-webhooks/standard-webhooks[Standard Webhooks README] for more information about
+the project and specification, and links to open source libraries and reference implementations. Alternatives to
+Standard Webhooks are listed in the References section at the end of this technical standard, but Standard Webhooks
+is RECOMMENDED for the majority of use cases.
 
-The rest of this section specifies an extended subset of Standard Webhooks.
-These guidelines are fully compliant with Standard Webhooks, but they narrow
-some choices while extending guidance in other areas.
+The rest of this section specifies an extended subset of Standard Webhooks. These guidelines are fully compliant
+with Standard Webhooks, but they narrow some choices while extending guidance in other areas.
 
 == Secure protocol
 
 Webhook event messages MUST be delivered over HTTPS.
 
-Although digital signatures (see below) guarantee the authenticity and integrity
-of messages in transit, they do not provide confidentiality. Messages delivered
-over public networks using insecure transport protocols can be easily
+Although digital signatures (see below) guarantee the authenticity and integrity of messages in transit, they do not
+provide confidentiality. Messages delivered over public networks using insecure transport protocols can be easily
 intercepted, risking leakage of sensitive data.
 
 == HTTP methods
@@ -53,68 +42,52 @@ method.
 
 == HTTP headers
 
-As per Standard Webhooks, the following three HTTP headers are REQUIRED to be
-sent with every webhook message:
+As per Standard Webhooks, the following three HTTP headers are REQUIRED to be sent with every webhook message:
 
-* `Webhook-ID`: A unique identifier for each discrete webhook message. It is
-  RECOMMENDED to be a UUID. It MUST remain the same for every attempted delivery
-  of the same message, eg. when a message is retried after a failed delivery.
-  Consumers can use this an an idempotency key, so they process each message
-  once only. The webhook ID also plays a role in the security scheme.
+* `Webhook-ID`: A unique identifier for each discrete webhook message. It is RECOMMENDED to be a UUID. It MUST
+  remain the same for every attempted delivery of the same message, eg. when a message is retried after a failed
+  delivery. Consumers can use this an an idempotency key, so they process each message once only. The webhook ID
+  also plays a role in the security scheme.
 
-* `Webhook-Timestamp`: Unix timestamp of the time when the message was sent from
-  the producer's servers. For compliance with Standard Webhooks, the value MUST
-  be an integer representing the number of seconds since the Unix epoch; other
-  date-time formats are not supported. If delivery is attempted multiple times,
-  eg. due to an automated retry mechanism, the timestamp MUST be updated for
-  each attempt.
+* `Webhook-Timestamp`: Unix timestamp of the time when the message was sent from the producer's servers. For
+  compliance with Standard Webhooks, the value MUST be an integer representing the number of seconds since the Unix
+  epoch; other date-time formats are not supported. If delivery is attempted multiple times, eg. due to an automated
+  retry mechanism, the timestamp MUST be updated for each attempt.
 
-* `Webhook-Signature`: A space-delimited list of HTTP message signatures, which
-  can be used by consumers to verify the message's authenticity and integrity.
-  The reason it is a list, and not just one signature, is to support
-  zero-downtime secret rotation. See the section on security and authenticity
-  for more details about how this works.
+* `Webhook-Signature`: A space-delimited list of HTTP message signatures, which can be used by consumers to verify
+  the message's authenticity and integrity. The reason it is a list, and not just one signature, is to support
+  zero-downtime secret rotation. See the section on security and authenticity for more details about how this works.
 
-The values of all three headers – `Webhook-ID`, `Webhook-Timestamp`, and
-`Webhook-Signature` – MUST be generated by the producer and MUST NOT be
-configurable by the consumer. This constraint is necessary to achieve a full
-security profile.
+The values of all three headers – `Webhook-ID`, `Webhook-Timestamp`, and `Webhook-Signature` – MUST be generated by
+the producer and MUST NOT be configurable by the consumer. This constraint is necessary to achieve a full security
+profile.
 
 [NOTE]
 ======
-Standard Webhooks specifies the header field names using lowercase letters, eg.
-`webhook-id`. This technical standard RECOMMENDS the more commonplace Title-Case
-naming convention, eg. `Webhook-Id`. This is compliant with Standard Webhooks
-because HTTP header field names are case-insensitive.
-https://datatracker.ietf.org/doc/html/rfc7230#section-3.2[RFC 7230] specifies
-that HTTP header fields be processed in a case-insensitive manner by both
-clients and servers.
+Standard Webhooks specifies the header field names using lowercase letters, eg. `webhook-id`. This technical
+standard RECOMMENDS the more commonplace Title-Case naming convention, eg. `Webhook-Id`. This is compliant with
+Standard Webhooks because HTTP header field names are case-insensitive.
+https://datatracker.ietf.org/doc/html/rfc7230#section-3.2[RFC 7230] specifies that HTTP header fields be processed
+in a case-insensitive manner by both clients and servers.
 
-The `Webhook-ID`, `Webhook-Timestamp`, and `Webhook-Signature` fields are not
-standard HTTP headers. xref:021.adoc[*TS-21: HTTP APIs*] specifies
-that custom headers be prefixed with `X-`, to avoid potential conflicts with
-future standard headers. To maintain compliance with Standard Webhooks, this
-technical standard RECOMMENDS these three headers be an exception to this rule,
-and not be prefixed with `X-`.
+The `Webhook-ID`, `Webhook-Timestamp`, and `Webhook-Signature` fields are not standard HTTP headers.
+xref:021.adoc[*TS-21: HTTP APIs*] specifies that custom headers be prefixed with `X-`, to avoid potential conflicts
+with future standard headers. To maintain compliance with Standard Webhooks, this technical standard RECOMMENDS
+these three headers be an exception to this rule, and not be prefixed with `X-`.
 ======
 
 == Payload schema
 
-The payload schema defines the structure and format of the data that will be
-sent to the webhook endpoints of consumer systems. The payload schema is
-specified by producers. A well-defined payload schema is crucial for ensuring
-that webhook consumers can correctly interpret and process the events they
-receive.
+The payload schema defines the structure and format of the data that will be sent to the webhook endpoints of
+consumer systems. The payload schema is specified by producers. A well-defined payload schema is crucial for
+ensuring that webhook consumers can correctly interpret and process the events they receive.
 
-The payload MUST be encoded in the body of HTTP messages. HTTP headers MUST NOT
-be used to transmit any part of the payload. HTTP headers are reserved for
-metadata about each message instance.
+The payload MUST be encoded in the body of HTTP messages. HTTP headers MUST NOT be used to transmit any part of the
+payload. HTTP headers are reserved for metadata about each message instance.
 
-The payload SHOULD be in the JSON format, with a `Content-Type` header of
-`application/json`. In rare cases, other formats such as XML or form-encoded
-data MAY be used if there is a specific requirement for it. But JSON is by far
-the most widely used format for webhooks and it offers the best
-interoperability.
+The payload SHOULD be in the JSON format, with a `Content-Type` header of `application/json`. In rare cases, other
+formats such as XML or form-encoded data MAY be used if there is a specific requirement for it. But JSON is by far
+the most widely used format for webhooks and it offers the best interoperability.
 
 The payload structure is an object with the following top-level properties:
 
@@ -124,11 +97,9 @@ The payload structure is an object with the following top-level properties:
 * `metadata`: Optional metadata about the event.
 * `links`: A list of related web resources and HTTP API operations.
 
-The `type`, `timestamp` and `data` properties are REQUIRED for compliance with
-Standard Webhooks. The `metadata` and `links` properties are suggested by this
-technical standard as OPTIONAL extensions to the Standard Webhooks payload
-schema. Producers MAY further extend this schema with additional properties
-specific to their use cases.
+The `type`, `timestamp` and `data` properties are REQUIRED for compliance with Standard Webhooks. The `metadata` and
+`links` properties are suggested by this technical standard as OPTIONAL extensions to the Standard Webhooks payload
+schema. Producers MAY further extend this schema with additional properties specific to their use cases.
 
 Example:
 
@@ -159,55 +130,44 @@ Example:
 
 The value of the `type` field identifies the type of event being sent.
 
-It is RECOMMENDED that event types be organized into a hierarchy using
-dot-notation, eg.
-`"user.created", "user.updated", "user.deleted", "invoice.created", "invoice.paid"`,
-etc. The components of the event type identifiers SHOULD be restricted to a
-small set of ASCII characters – Standard Webhooks recommends `[a-zA-Z0-9_]`.
+It is RECOMMENDED that event types be organized into a hierarchy using dot-notation, eg.
+`"user.created", "user.updated", "user.deleted", "invoice.created", "invoice.paid"`, etc. The components of the
+event type identifiers SHOULD be restricted to a small set of ASCII characters – Standard Webhooks recommends
+`[a-zA-Z0-9_]`.
 
-The schema of the `data` object MAY differ between event types. The only
-requirement is that each discrete event type has a single consistent `data`
-schema for every message of that type.
+The schema of the `data` object MAY differ between event types. The only requirement is that each discrete event
+type has a single consistent `data` schema for every message of that type.
 
-A key design consideration when defining event types is to ensure they are
-granular enough to allow consumers to filter events effectively. Consumers may
-want to subscribe to only certain types of events.
+A key design consideration when defining event types is to ensure they are granular enough to allow consumers to
+filter events effectively. Consumers may want to subscribe to only certain types of events.
 
-Best practice is for events to map to meaningful business-relevant state changes
-that are likely to each require differential processing by consumers.
-Fine-grained, business-relevant events tend to be the most future-proof. Since
-payload structures are tied to event types, having coarse-grained event types
-can lead to bloated payloads that try to accommodate multiple scenarios, making
-it harder to evolve the schema without breaking backwards compatibility.
+Best practice is for events to map to meaningful business-relevant state changes that are likely to each require
+differential processing by consumers. Fine-grained, business-relevant events tend to be the most future-proof. Since
+payload structures are tied to event types, having coarse-grained event types can lead to bloated payloads that try
+to accommodate multiple scenarios, making it harder to evolve the schema without breaking backwards compatibility.
 
-Coarser event types, such as ones that represents _all_ possible state changes
-in a particular entity type, may be appropriate where the changes in state are
-not likely to require differential processing on the consumer side. In this
-scenario, it would be expected that all state changes would be broadcast, and
-clients would be expected to process them all in the same way.
+Coarser event types, such as ones that represents _all_ possible state changes in a particular entity type, may be
+appropriate where the changes in state are not likely to require differential processing on the consumer side. In
+this scenario, it would be expected that all state changes would be broadcast, and clients would be expected to
+process them all in the same way.
 
-As a general rule, consumers should want to implement different handlers
-(listeners) for each event type they subscribe to. If two or more events can be
-processed in much the same way, this is a design smell – the events may be too
-fine-grained and could be merged into a single event type.
+As a general rule, consumers should want to implement different handlers (listeners) for each event type they
+subscribe to. If two or more events can be processed in much the same way, this is a design smell – the events may
+be too fine-grained and could be merged into a single event type.
 
 === Timestamp
 
-The value of the `timestamp` property is not actually a timestamp but an ISO
-8601-formatted date-time string, as specified by Standard Webhooks. The format
-differs from the `Webhook-Timestamp` field, which is an actual timestamp. This
-inconsistency is unfortunate, but it is REQUIRED to maintain compliance with
-Standard Webhooks.
+The value of the `timestamp` property is not actually a timestamp but an ISO 8601-formatted date-time string, as
+specified by Standard Webhooks. The format differs from the `Webhook-Timestamp` field, which is an actual timestamp.
+This inconsistency is unfortunate, but it is REQUIRED to maintain compliance with Standard Webhooks.
 
-The value represents the time when the event occurred. This is not necessarily
-the same time when the event message was sent – it is expected to be a bit
-earlier.
+The value represents the time when the event occurred. This is not necessarily the same time when the event message
+was sent – it is expected to be a bit earlier.
 
-The `timestamp` value of an event MUST NOT change, even if the message is resent
-to consumers. By contrast, the value of the `Webhook-Timestamp` header field
-MUST change every time the same message is retried or replayed. Semantically,
-the two date-time values refer to different events (event creation versus
-message delivery) and they serve different purposes.
+The `timestamp` value of an event MUST NOT change, even if the message is resent to consumers. By contrast, the
+value of the `Webhook-Timestamp` header field MUST change every time the same message is retried or replayed.
+Semantically, the two date-time values refer to different events (event creation versus message delivery) and they
+serve different purposes.
 
 .Replay attacks
 ****
@@ -228,21 +188,17 @@ accommodate latency and clock-drift between different systems.
 
 === Data
 
-The value of the `data` property MUST be an object with at least one property
-(ie. it MUST NOT be an empty object).
+The value of the `data` property MUST be an object with at least one property (ie. it MUST NOT be an empty object).
 
-The `data` object is the actual event data that is communicated with the
-consumer.
+The `data` object is the actual event data that is communicated with the consumer.
 
-Each event type MUST have a well-defined schema for its associated data object.
-This is the main design consideration when implementing webhook events. Standard
-Webhooks specifies everything else about the HTTP messages used to package
-webhook events. All that producers have left to decide is what information they
-want to send to their consumers.
+Each event type MUST have a well-defined schema for its associated data object. This is the main design
+consideration when implementing webhook events. Standard Webhooks specifies everything else about the HTTP messages
+used to package webhook events. All that producers have left to decide is what information they want to send to
+their consumers.
 
-In designing your event data schema, err on the side of "thin" objects that
-communicate just the minimal data that a consumer may need to sync its state.
-Example:
+In designing your event data schema, err on the side of "thin" objects that communicate just the minimal data that a
+consumer may need to sync its state. Example:
 
 [source,json]
 ----
@@ -258,11 +214,10 @@ Example:
 }
 ----
 
-An extreme implementation of thin data schema would see no state being
-communicated via webhook events at all. In the following example, the event
-informs us that a contact resource has been updated, but that's all. We're given
-only just enough information to be able to retrieve the updated state, if we
-want it, via a follow-up request to the service's regular HTTP API endpoints.
+An extreme implementation of thin data schema would see no state being communicated via webhook events at all. In
+the following example, the event informs us that a contact resource has been updated, but that's all. We're given
+only just enough information to be able to retrieve the updated state, if we want it, via a follow-up request to the
+service's regular HTTP API endpoints.
 
 [source,json]
 ----
@@ -309,59 +264,47 @@ make any further API calls to the producer service. Example:
 }
 ----
 
-There are pros and cons to both approaches. The main advantage of full data
-objects is that consumers will immediately have all the information they need to
-update their state, and load will therefore be reduced on the producer due to
-fewer API calls being required from consumers. On the other hand, thin payloads
-may offer better performance (due to smaller message sizes, faster database
-queries, and less server-side processing overall) and better future proofing
-(you can make a thin object full, but not the other way around, without breaking
-backwards compatibility).
+There are pros and cons to both approaches. The main advantage of full data objects is that consumers will
+immediately have all the information they need to update their state, and load will therefore be reduced on the
+producer due to fewer API calls being required from consumers. On the other hand, thin payloads may offer better
+performance (due to smaller message sizes, faster database queries, and less server-side processing overall) and
+better future proofing (you can make a thin object full, but not the other way around, without breaking backwards
+compatibility).
 
-The main advantage of very thin payloads is that the HTTP API is preserved as
-the source of truth for the application's state. There is less likelihood of
-clients ending up in invalid state, due to event messages being received and
-processed out-of-order, for example. Data access audit trails are simpler to
-maintain, too, since all data is accessed through the HTTP API. Thin messages
-also have a better security profile, as there are inherently fewer risks with
-things like replay attacks and PII leakage.
+The main advantage of very thin payloads is that the HTTP API is preserved as the source of truth for the
+application's state. There is less likelihood of clients ending up in invalid state, due to event messages being
+received and processed out-of-order, for example. Data access audit trails are simpler to maintain, too, since all
+data is accessed through the HTTP API. Thin messages also have a better security profile, as there are inherently
+fewer risks with things like replay attacks and PII leakage.
 
-Thin and full data objects are not a binary decision. Often, the optimum design
-will be somewhere in the middle.
+Thin and full data objects are not a binary decision. Often, the optimum design will be somewhere in the middle.
 
-This technical standard does not impose a limit on the size of webhook messages,
-and therefore the size of data objects is uncapped. But there are some
-recommended soft limits, which are described in the section on payload size and
-compression, below.
+This technical standard does not impose a limit on the size of webhook messages, and therefore the size of data
+objects is uncapped. But there are some recommended soft limits, which are described in the section on payload size
+and compression, below.
 
 === Metadata
 
-The `metadata` property is OPTIONAL. It is not part of the Standard Webhooks
-specification, so there is extra cost to consumers to process this. For this
-reason, event metadata SHOULD NOT include any data that is essential for
+The `metadata` property is OPTIONAL. It is not part of the Standard Webhooks specification, so there is extra cost
+to consumers to process this. For this reason, event metadata SHOULD NOT include any data that is essential for
 consumers to process the events.
 
-Metadata is data that is not part of the resources represented in the `data`
-object, but which provides additional information about those resources an/or
-the event that occurred on those resources.
+Metadata is data that is not part of the resources represented in the `data` object, but which provides additional
+information about those resources an/or the event that occurred on those resources.
 
-A good use case for the `metadata` object is to communicate machine-generated
-data, which can be read but not written by clients, such as `created_at` and
-`updated_at` fields. Other use cases include communicating things like event IDs
-and source information (the name of the service from where the event
-originated), and other information that would be useful to log to support
-debugging.
+A good use case for the `metadata` object is to communicate machine-generated data, which can be read but not
+written by clients, such as `created_at` and `updated_at` fields. Other use cases include communicating things like
+event IDs and source information (the name of the service from where the event originated), and other information
+that would be useful to log to support debugging.
 
-The `metadata` object MUST be used only to communicate metadata about
-_resources_ represented in the `data` object and the _event_ that occurred on
-those resources. It MUST NOT be used to communicate metadata about the HTTP
-message that transports the event representation – that's the role of the
-message's HTTP headers.
+The `metadata` object MUST be used only to communicate metadata about _resources_ represented in the `data` object
+and the _event_ that occurred on those resources. It MUST NOT be used to communicate metadata about the HTTP message
+that transports the event representation – that's the role of the message's HTTP headers.
 
 === Links
 
-The `links` property is OPTIONAL. If included, its value MUST be an array with
-one or more objects that conform to the following schema:
+The `links` property is OPTIONAL. If included, its value MUST be an array with one or more objects that conform to
+the following schema:
 
 [source,json]
 ----
@@ -403,29 +346,26 @@ Example:
 }
 ----
 
-The link objects encode information about how consumers can fetch related data,
-and perform related operations, via the producer's regular HTTP API endpoints.
-See xref:021.adoc[*TS-21: HTTP APIs*] for more information about this
+The link objects encode information about how consumers can fetch related data, and perform related operations, via
+the producer's regular HTTP API endpoints. See xref:021.adoc[*TS-21: HTTP APIs*] for more information about this
 convention for embedding hypermedia controls in JSON payloads.
 
-The `links` object is another extension to Standard Webhooks, RECOMMENDED by
-this technical standard. The purpose of this object is to provide in-band API
-documentation – information that SHOULD be readily available to developers of
+The `links` object is another extension to Standard Webhooks, RECOMMENDED by this technical standard. The purpose of
+this object is to provide in-band API documentation – information that SHOULD be readily available to developers of
 consumers systems via other channels.
 
 === Payload size and compression
 
-It is RECOMMENDED to keep overall payloads smaller than 20kb. Larger payloads
-may impose burdensome load on webhook consumers.
+It is RECOMMENDED to keep overall payloads smaller than 20kb. Larger payloads may impose burdensome load on webhook
+consumers.
 
-If you need to transfer large amounts of data, such as images or other media
-files, then consider making those available via `GET` endpoints in a regular
-HTTP API or other web location, and use webhook messages to communicate the
-links from which consumers can fetch those resources.
+If you need to transfer large amounts of data, such as images or other media files, then consider making those
+available via `GET` endpoints in a regular HTTP API or other web location, and use webhook messages to communicate
+the links from which consumers can fetch those resources.
 
-Payloads MAY be minimized. This is more beneficial for large payloads than small
-ones. Minimization, if done, SHOULD be applied across all messages sent from the
-producer service, to ensure consistent processing on the consumer side.
+Payloads MAY be minimized. This is more beneficial for large payloads than small ones. Minimization, if done, SHOULD
+be applied across all messages sent from the producer service, to ensure consistent processing on the consumer
+side.
 
 == Versioning
 

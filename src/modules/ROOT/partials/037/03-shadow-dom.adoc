@@ -1,35 +1,29 @@
 = Shadow DOM
 
-Shadow DOM attaches an encapsulated DOM subtree to an element, with its own
-style scope: styles defined inside the shadow root do not leak out to the
-page, and (with rare exceptions, such as inherited properties) page styles do
-not leak in. It is a powerful tool, but it is also the biggest source of
-web components' complexity and rough edges, so this standard treats it as
-something to reach for deliberately rather than by default.
+Shadow DOM attaches an encapsulated DOM subtree to an element, with its own style scope: styles defined inside the
+shadow root do not leak out to the page, and (with rare exceptions, such as inherited properties) page styles do
+not leak in. It is a powerful tool, but it is also the biggest source of web components' complexity and rough
+edges, so this standard treats it as something to reach for deliberately rather than by default.
 
 == Shadow DOM as a last resort
 
-Prefer Light DOM — regular, unencapsulated markup — for as long as it solves
-the problem. Attach a shadow root only once encapsulation is solving a real
-problem: a genuine style-collision risk, or a component that MUST be
-portable into pages whose styles cannot be predicted or controlled. Most
-in-application components, including the HTML web components described in
-<<HTML web components vs. JavaScript web components>>, do not need it.
+Prefer Light DOM — regular, unencapsulated markup — for as long as it solves the problem. Attach a shadow root only
+once encapsulation is solving a real problem: a genuine style-collision risk, or a component that MUST be portable
+into pages whose styles cannot be predicted or controlled. Most in-application components, including the HTML web
+components described in <<HTML web components vs. JavaScript web components>>, do not need it.
 
 [IMPORTANT]
 ======
-Shadow DOM has a real learning curve, and teams routinely hit "gotcha"
-moments the first time they use it in earnest — for example, the `:root`
-leak described below, or discovering that a global stylesheet no longer
-reaches into a component. Budget time for the team to get past that curve
-before adopting Shadow DOM on a deadline-sensitive project.
+Shadow DOM has a real learning curve, and teams routinely hit "gotcha" moments the first time they use it in
+earnest — for example, the `:root` leak described below, or discovering that a global stylesheet no longer reaches
+into a component. Budget time for the team to get past that curve before adopting Shadow DOM on a
+deadline-sensitive project.
 ======
 
 == Choosing an encapsulation strategy
 
-Before attaching a shadow root, weigh it against the two other ways to
-achieve style isolation for a portable, embeddable widget — a signup form or
-a chat launcher that MUST render correctly on an arbitrary third-party page:
+Before attaching a shadow root, weigh it against the two other ways to achieve style isolation for a portable,
+embeddable widget — a signup form or a chat launcher that MUST render correctly on an arbitrary third-party page:
 
 [cols="1,2,2"]
 |===
@@ -51,42 +45,31 @@ a chat launcher that MUST render correctly on an arbitrary third-party page:
   element>>); the `:root` leak below.
 |===
 
-A web component with Shadow DOM is usually the right choice for this
-specific problem: it is portable like ordinary HTML, and the shadow root
-prevents the page's styles from leaking in and the component's styles from
-leaking out, without the resizing and form-submission problems that come
-with an `<iframe>`.
+A web component with Shadow DOM is usually the right choice for this specific problem: it is portable like
+ordinary HTML, and the shadow root prevents the page's styles from leaking in and the component's styles from
+leaking out, without the resizing and form-submission problems that come with an `<iframe>`.
 
 == The `:root` leak
 
-A shadow root does not establish its own `:root` element — `:root` always
-refers to the host document's root. Any `rem` unit used inside a shadow
-root's stylesheet therefore resolves against the *host page's* root
-font-size, not against any local baseline the component defines. A page that
-changes its root font-size — deliberately, or via a user's browser
-zoom/accessibility settings — will scale an embedded component's `rem`-based
-sizing along with it, which is not always the intended effect for a
-supposedly self-contained widget.
+A shadow root does not establish its own `:root` element — `:root` always refers to the host document's root. Any
+`rem` unit used inside a shadow root's stylesheet therefore resolves against the *host page's* root font-size, not
+against any local baseline the component defines. A page that changes its root font-size — deliberately, or via a
+user's browser zoom/accessibility settings — will scale an embedded component's `rem`-based sizing along with it,
+which is not always the intended effect for a supposedly self-contained widget.
 
-Where a component's internal sizing MUST stay independent of the host page,
-use a local baseline instead of `rem` — for example, set a `font-size` on the
-shadow root's own top-level element and size internally with `em`, or use
+Where a component's internal sizing MUST stay independent of the host page, use a local baseline instead of `rem`
+— for example, set a `font-size` on the shadow root's own top-level element and size internally with `em`, or use
 absolute units where scaling truly should not follow the host page.
 
 == Cross-root accessibility
 
-Associating a `<label>` in the document with an `<input>` inside a shadow
-root — or, more generally, any ARIA relationship (`aria-labelledby`,
-`aria-describedby`, `aria-controls`) that needs to reach across a shadow
-boundary — has historically not worked, because the `id` references those
-attributes rely on do not resolve across shadow roots. This is a
-long-standing accessibility gap in Shadow DOM, and it MUST be accounted for
-when a component's shadow root contains form controls or other elements that
-need to be described or labeled from outside it.
+Associating a `<label>` in the document with an `<input>` inside a shadow root — or, more generally, any ARIA
+relationship (`aria-labelledby`, `aria-describedby`, `aria-controls`) that needs to reach across a shadow boundary
+— has historically not worked, because the `id` references those attributes rely on do not resolve across shadow
+roots. This is a long-standing accessibility gap in Shadow DOM, and it MUST be accounted for when a component's
+shadow root contains form controls or other elements that need to be described or labeled from outside it.
 
-The `referencetarget` attribute is rolling out in Chromium to address this
-gap directly, letting a cross-root ARIA reference resolve into a shadow
-root's internals. Until it has broad support, treat cross-root ARIA
-relationships as a known risk: test with a screen reader, and prefer keeping
-a shadow root's own labeling self-contained (label the control from inside
-the same shadow root) over relying on a reference that crosses the boundary.
+The `referencetarget` attribute is rolling out in Chromium to address this gap directly, letting a cross-root ARIA
+reference resolve into a shadow root's internals. Until it has broad support, treat cross-root ARIA relationships
+as a known risk: test with a screen reader, and prefer keeping a shadow root's own labeling self-contained (label
+the control from inside the same shadow root) over relying on a reference that crosses the boundary.

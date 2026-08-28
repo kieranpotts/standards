@@ -1,93 +1,73 @@
 = Consistency and availability
 
-Once data or state exists in more than one place — which is the normal
-condition in a distributed system — a system MUST make an explicit,
-documented choice about what happens when the copies cannot communicate. This
-section covers the theory behind that choice. For the mechanics of
-implementing a specific consistency guarantee (write-ahead logging, locking,
-versioning), see
-xref:046.adoc[*TS-46: Distributed data and caching*].
+Once data or state exists in more than one place — which is the normal condition in a distributed system — a system MUST
+make an explicit, documented choice about what happens when the copies cannot communicate. This section covers the
+theory behind that choice. For the mechanics of implementing a specific consistency guarantee (write-ahead logging,
+locking, versioning), see xref:046.adoc[*TS-46: Distributed data and caching*].
 
 == The CAP theorem
 
-Eric Brewer's CAP theorem states that a distributed data store can provide at
-most two of the following three guarantees simultaneously:
+Eric Brewer's CAP theorem states that a distributed data store can provide at most two of the following three guarantees
+simultaneously:
 
-- *Consistency.* Every read receives the most recent write, or an error — never
-  stale data.
-- *Availability.* Every request receives a non-error response, though not
-  necessarily containing the most recent write.
-- *Partition tolerance.* The system continues to operate despite an arbitrary
-  number of messages being dropped or delayed between nodes.
+- *Consistency.* Every read receives the most recent write, or an error — never stale data.
+- *Availability.* Every request receives a non-error response, though not necessarily containing the most recent write.
+- *Partition tolerance.* The system continues to operate despite an arbitrary number of messages being dropped or
+  delayed between nodes.
 
-Network partitions are a fact of distributed systems, not an edge case to be
-designed around, so partition tolerance is not optional for a system with more
-than one node — the real choice CAP presents is between consistency and
-availability *during* a partition:
+Network partitions are a fact of distributed systems, not an edge case to be designed around, so partition tolerance is
+not optional for a system with more than one node — the real choice CAP presents is between consistency and availability
+*during* a partition:
 
-- *CP (consistent, partition-tolerant).* The system refuses to serve requests
-  it cannot guarantee are consistent, sacrificing availability during a
-  partition. Appropriate where serving stale or conflicting data is worse than
-  serving an error — financial ledgers, inventory counts, distributed locks.
+- *CP (consistent, partition-tolerant).* The system refuses to serve requests it cannot guarantee are consistent,
+  sacrificing availability during a partition. Appropriate where serving stale or conflicting data is worse than serving
+  an error — financial ledgers, inventory counts, distributed locks.
 
-- *AP (available, partition-tolerant).* The system keeps serving requests
-  during a partition, accepting that some responses may be stale, sacrificing
-  strong consistency. Appropriate where availability matters more than
-  strict correctness — product catalogs, social feeds, most read-heavy
-  consumer-facing systems.
+- *AP (available, partition-tolerant).* The system keeps serving requests during a partition, accepting that some
+  responses may be stale, sacrificing strong consistency. Appropriate where availability matters more than strict
+  correctness — product catalogs, social feeds, most read-heavy consumer-facing systems.
 
-This choice MUST be made explicitly and per data set, not implicitly by
-whichever database happened to be selected. A single system commonly needs
-both: CP for a payments ledger, AP for the product catalog displayed alongside
-it.
+This choice MUST be made explicitly and per data set, not implicitly by whichever database happened to be selected. A
+single system commonly needs both: CP for a payments ledger, AP for the product catalog displayed alongside it.
 
 == PACELC: the trade-off that exists even without a partition
 
-CAP only describes behavior *during* a partition, which is a relatively rare
-event. PACELC extends it with the trade-off that exists at all other times: if
-there is a *P*artition, choose between *A*vailability and *C*onsistency
-(as in CAP); *E*lse, in normal operation, choose between *L*atency and
-*C*onsistency.
+CAP only describes behavior *during* a partition, which is a relatively rare event. PACELC extends it with the trade-off
+that exists at all other times: if there is a *P*artition, choose between *A*vailability and *C*onsistency (as in CAP);
+*E*lse, in normal operation, choose between *L*atency and *C*onsistency.
 
-Even when the network is healthy, a system that wants strong consistency
-across replicas MUST coordinate between them before acknowledging a write,
-which adds latency proportional to the number of replicas and their physical
-distance from each other. A system that wants the lowest possible latency
-MUST relax that coordination and accept that replicas may briefly diverge.
-PACELC is the more complete framework for evaluating a distributed data store
-or consensus system, because the latency/consistency trade-off applies during
-the overwhelming majority of a system's uptime, not just during partitions.
+Even when the network is healthy, a system that wants strong consistency across replicas MUST coordinate between them
+before acknowledging a write, which adds latency proportional to the number of replicas and their physical distance from
+each other. A system that wants the lowest possible latency MUST relax that coordination and accept that replicas may
+briefly diverge. PACELC is the more complete framework for evaluating a distributed data store or consensus system,
+because the latency/consistency trade-off applies during the overwhelming majority of a system's uptime, not just during
+partitions.
 
 == Consistency models
 
 "Consistency" is not binary. In descending order of strength:
 
-1. *Strict/linearizable consistency.* Every operation appears to take effect
-   instantaneously at some point between its invocation and its response, and
-   all nodes agree on that single global order. The strongest, most expensive
-   guarantee; typically reserved for a small amount of coordination state
-   (leader election, distributed locks), not for application data at scale.
+1. *Strict/linearizable consistency.* Every operation appears to take effect instantaneously at some point between its
+   invocation and its response, and all nodes agree on that single global order. The strongest, most expensive
+   guarantee; typically reserved for a small amount of coordination state (leader election, distributed locks), not for
+   application data at scale.
 
-2. *Sequential consistency.* All nodes see operations in the same order, but
-   that order is not required to match real-time invocation order.
+2. *Sequential consistency.* All nodes see operations in the same order, but that order is not required to match
+   real-time invocation order.
 
-3. *Causal consistency.* Operations that are causally related (a write that
-   happens after a read that observed a prior write) are seen in that order by
-   every node; unrelated operations may be seen in different orders on
-   different nodes. Strong enough to prevent a user from seeing a reply before
-   the comment it replies to, at a fraction of the cost of linearizability.
+3. *Causal consistency.* Operations that are causally related (a write that happens after a read that observed a prior
+   write) are seen in that order by every node; unrelated operations may be seen in different orders on different nodes.
+   Strong enough to prevent a user from seeing a reply before the comment it replies to, at a fraction of the cost of
+   linearizability.
 
-4. *Eventual consistency.* Given no new writes, all replicas will *eventually*
-   converge on the same value, with no bound on how long convergence takes and
-   no guarantee about the order in which intermediate states are observed. The
-   weakest and cheapest guarantee, and the default for AP systems.
+4. *Eventual consistency.* Given no new writes, all replicas will *eventually* converge on the same value, with no bound
+   on how long convergence takes and no guarantee about the order in which intermediate states are observed. The weakest
+   and cheapest guarantee, and the default for AP systems.
 
-A system SHOULD choose the weakest consistency model that its use case can
-tolerate, and no weaker. Defaulting every data set to strong consistency pays
-an availability and latency cost that most data does not need; defaulting
-every data set to eventual consistency pushes reasoning about staleness into
-every consumer of that data, which is rarely what a system designer actually
-intended.
+A system SHOULD choose the weakest consistency model that its use case can tolerate, and no weaker. Defaulting every
+data set to strong consistency pays an availability and latency cost that most data does not need; defaulting every data
+set to eventual consistency pushes reasoning about staleness into every consumer of that data, which is rarely what a
+system designer actually intended.
 
 [IMPORTANT]
 ======

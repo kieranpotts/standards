@@ -2,188 +2,137 @@
 
 .TL;DR
 ****
-* Be judicious about external dependencies. Perform cost/benefit analysis before
-  adopting them.
+* Be judicious about external dependencies. Perform cost/benefit analysis before adopting them.
 * Wrap all external dependencies in good abstractions (facade pattern).
-* Manage dependencies explicitly: either vendor them or pin versions in
-  configuration.
-* Understand that dependencies carry real risks: maintenance, security, supply
-  chain, and opacity.
-* Building things yourself, where reasonable, improves your understanding and
-  control.
-* Use dependency injection to make internal dependencies explicit and
-  replaceable.
+* Manage dependencies explicitly: either vendor them or pin versions in configuration.
+* Understand that dependencies carry real risks: maintenance, security, supply chain, and opacity.
+* Building things yourself, where reasonable, improves your understanding and control.
+* Use dependency injection to make internal dependencies explicit and replaceable.
 * Keep a local checkout of dependency source and read it when docs fall short.
-* Beware Not-Invented-Here syndrome – don't default to rebuilding what a good,
-  maintained dependency already solves.
-* Keep configurable values high in the call stack; don't hardcode them into
-  implementations.
+* Beware Not-Invented-Here syndrome – don't default to rebuilding what a good, maintained dependency already solves.
+* Keep configurable values high in the call stack; don't hardcode them into implementations.
 ****
 
-Libraries are the ultimate abstractions. They are extracted such that they can
-be reused between software systems, let alone in the same system.
+Libraries are the ultimate abstractions. They are extracted such that they can be reused between software systems, let
+alone in the same system.
 
-Managing external dependencies is a key skill in modern software development.
-The success of open source licensing has substantially reduced the cost of
-developing software by abstracting common problems to globally-shared libraries.
-It's an incredible ecosystem.
+Managing external dependencies is a key skill in modern software development. The success of open source licensing has
+substantially reduced the cost of developing software by abstracting common problems to globally-shared libraries. It's
+an incredible ecosystem.
 
-Libraries and frameworks solve common problems much faster than building from
-scratch. But dependencies are not free. They carry tangible costs that need to
-be weighed against their benefits.
+Libraries and frameworks solve common problems much faster than building from scratch. But dependencies are not free.
+They carry tangible costs that need to be weighed against their benefits.
 
 Using external dependencies involves several trade-offs:
 
-* *Maintenance and security risk*: You are responsible for understanding and
-  vetting all code shipped to production, including code in your dependencies.
-  When you update a dependency, you inherit not just bug fixes but also the risk
-  of newly introduced vulnerabilities or performance regressions. Worse, supply
-  chain attacks specifically target popular packages. Attackers develop useful
-  libraries, build up popularity and trust, then inject malicious code via a
-  patch. You need a strategy for monitoring and updating dependencies safely.
+* *Maintenance and security risk*: You are responsible for understanding and vetting all code shipped to production,
+  including code in your dependencies. When you update a dependency, you inherit not just bug fixes but also the risk of
+  newly introduced vulnerabilities or performance regressions. Worse, supply chain attacks specifically target popular
+  packages. Attackers develop useful libraries, build up popularity and trust, then inject malicious code via a patch.
+  You need a strategy for monitoring and updating dependencies safely.
 
-* *Size and compilation overhead*: Libraries and frameworks increase your
-  codebase size, which affects startup time, compilation time, and deployment
-  size. In some contexts – mobile apps, embedded systems, or
-  performance-critical services – this overhead can be significant.
+* *Size and compilation overhead*: Libraries and frameworks increase your codebase size, which affects startup time,
+  compilation time, and deployment size. In some contexts – mobile apps, embedded systems, or performance-critical
+  services – this overhead can be significant.
 
-* *Opacity and loss of control*: External libraries hide design trade-offs,
-  failure modes, and potential security attack vectors. When you implement a
-  feature yourself, you understand exactly how it works, what could go wrong,
-  and how to debug it. A black-box dependency obscures this knowledge.
+* *Opacity and loss of control*: External libraries hide design trade-offs, failure modes, and potential security attack
+  vectors. When you implement a feature yourself, you understand exactly how it works, what could go wrong, and how to
+  debug it. A black-box dependency obscures this knowledge.
 
-* *Learning opportunity*: Building core functionality yourself, even when
-  libraries exist for it, deepens your understanding of your system and
-  strengthens your craft. It's often more rewarding than assembling pre-built
+* *Learning opportunity*: Building core functionality yourself, even when libraries exist for it, deepens your
+  understanding of your system and strengthens your craft. It's often more rewarding than assembling pre-built
   components.
 
-So, be selective in what dependencies you introduce. Evaluate each dependency
-carefully. Ask, what problem does this solve, could we solve it ourselves,
-what's the maintenance burden, how stable is the project, and how large is the
-dependency tree it brings with it? Make this analysis explicit and document your
-decisions.
+So, be selective in what dependencies you introduce. Evaluate each dependency carefully. Ask, what problem does this
+solve, could we solve it ourselves, what's the maintenance burden, how stable is the project, and how large is the
+dependency tree it brings with it? Make this analysis explicit and document your decisions.
 
-Once you adopt a dependency, isolate it. Create good abstractions (using the
-facade pattern) for all external dependencies, including infrastructure-level
-ones like database access, file system I/O, remote services, and external APIs.
-This shields your application code from changes in the dependency and makes it
-easier to swap implementations or remove dependencies later.
+Once you adopt a dependency, isolate it. Create good abstractions (using the facade pattern) for all external
+dependencies, including infrastructure-level ones like database access, file system I/O, remote services, and external
+APIs. This shields your application code from changes in the dependency and makes it easier to swap implementations or
+remove dependencies later.
 
-Manage your dependencies explicitly. Pin specific versions in your vendor
-configuration files. Never rely on floating version constraints that could pull
-in unexpected changes during installation. Better still, consider _not_ using a
-package manager, and instead add third-party libraries directly to your codebase
-(usually in a `vendors` or similar directory). This is more work, but it has
-numerous advantages:
+Manage your dependencies explicitly. Pin specific versions in your vendor configuration files. Never rely on floating
+version constraints that could pull in unexpected changes during installation. Better still, consider _not_ using a
+package manager, and instead add third-party libraries directly to your codebase (usually in a `vendors` or similar
+directory). This is more work, but it has numerous advantages:
 
-* It's easier to audit your application's dependencies. You get clearer
-  visibility of the dependency tree.
+* It's easier to audit your application's dependencies. You get clearer visibility of the dependency tree.
 
-* You will be forced to maintain shallow dependency trees, which in turn reduces
-  the risk of supply chain attacks.
+* You will be forced to maintain shallow dependency trees, which in turn reduces the risk of supply chain attacks.
 
-* You are forced to introduce your own tests for each dependency – which is good
-  practice but often overlooked.
+* You are forced to introduce your own tests for each dependency – which is good practice but often overlooked.
 
-* You'll be able to reproduce builds for any prior version of your software.
-  There's no risk that earlier versions of dependencies will no longer be
-  available from public code registries. This is a requirement if you want to
-  implement a deployment strategy with automated rollback.
+* You'll be able to reproduce builds for any prior version of your software. There's no risk that earlier versions of
+  dependencies will no longer be available from public code registries. This is a requirement if you want to implement a
+  deployment strategy with automated rollback.
 
-* Your code repository has everything you need to build and run your
-  application. New developers can onboard more quickly. CI/CD pipelines run more
-  quickly, too.
+* Your code repository has everything you need to build and run your application. New developers can onboard more
+  quickly. CI/CD pipelines run more quickly, too.
 
 == Dependency injection
 
-Dependency injection is a design pattern in which a component's dependencies are
-supplied to it from outside, rather than constructed inside it. Instead of a
-class instantiating its own collaborators with `new`, it receives them as
+Dependency injection is a design pattern in which a component's dependencies are supplied to it from outside, rather
+than constructed inside it. Instead of a class instantiating its own collaborators with `new`, it receives them as
 constructor arguments or method parameters.
 
-This pattern makes dependencies explicit – there is no hidden coupling buried in
-the implementation. It also makes components easier to test, because
-dependencies can be replaced with test doubles without modifying the component
-under test. And it makes it straightforward to swap implementations, which
-aligns directly with the principle of wrapping external dependencies in good
-abstractions.
+This pattern makes dependencies explicit – there is no hidden coupling buried in the implementation. It also makes
+components easier to test, because dependencies can be replaced with test doubles without modifying the component under
+test. And it makes it straightforward to swap implementations, which aligns directly with the principle of wrapping
+external dependencies in good abstractions.
 
-At a higher level, dependency injection is an application of the Dependency
-Inversion Principle (DIP) – one of the five SOLID principles, see <<SOLID>>
-for the other four. DIP states that high-level modules should not depend on
-low-level modules directly; both should depend on abstractions, and the
-abstraction should be owned by the high-level, policy-setting module, not by
-the low-level implementation. A payment service defines the `PaymentGateway`
-interface it needs; a specific gateway implementation depends on that
-interface, not the other way around. This ownership direction is what
-allows the high-level module to remain unaware of which concrete
-implementation it is using.
+At a higher level, dependency injection is an application of the Dependency Inversion Principle (DIP) – one of the five
+SOLID principles, see <<SOLID>> for the other four. DIP states that high-level modules should not depend on low-level
+modules directly; both should depend on abstractions, and the abstraction should be owned by the high-level,
+policy-setting module, not by the low-level implementation. A payment service defines the `PaymentGateway` interface it
+needs; a specific gateway implementation depends on that interface, not the other way around. This ownership direction
+is what allows the high-level module to remain unaware of which concrete implementation it is using.
 
-At the service level, the same principle argues for replacing direct
-service-to-service calls with an abstraction such as a message bus or an
-event stream, rather than one service depending directly on another
-service's API. The adapter pattern is the DIP applied at an integration
-boundary: rather than the application depending directly on a specific
-external API or library, define an interface the application owns, and
-implement an adapter that translates between that interface and the
-external dependency's actual API. This is the same shielding function as
-the facade pattern described above, applied specifically to keep the
-dependency's own interface out of the application's high-level code.
+At the service level, the same principle argues for replacing direct service-to-service calls with an abstraction such
+as a message bus or an event stream, rather than one service depending directly on another service's API. The adapter
+pattern is the DIP applied at an integration boundary: rather than the application depending directly on a specific
+external API or library, define an interface the application owns, and implement an adapter that translates between that
+interface and the external dependency's actual API. This is the same shielding function as the facade pattern described
+above, applied specifically to keep the dependency's own interface out of the application's high-level code.
 
 == Reading dependency source
 
-Isolating dependencies behind abstractions guards against the risk of
-depending on them too tightly. It should not be mistaken for a reason to
-treat dependencies as opaque black boxes. Where documentation is thin or a
-dependency behaves unexpectedly, keep a local checkout of its source and
-read it. Understanding how a library or framework actually works – not just
-its documented interface, but its internal design and its failure modes –
-is often the fastest way to debug a strange interaction, and it builds
-confidence that carries over to future problems with the same dependency.
+Isolating dependencies behind abstractions guards against the risk of depending on them too tightly. It should not be
+mistaken for a reason to treat dependencies as opaque black boxes. Where documentation is thin or a dependency behaves
+unexpectedly, keep a local checkout of its source and read it. Understanding how a library or framework actually works –
+not just its documented interface, but its internal design and its failure modes – is often the fastest way to debug a
+strange interaction, and it builds confidence that carries over to future problems with the same dependency.
 
-This applies as much to languages and runtimes as it does to libraries. Most
-languages and standard libraries are themselves open source. Reading how a
-language's core data structures or a runtime's scheduler are implemented is
-a normal and valuable engineering habit, not a distraction from application
-work.
+This applies as much to languages and runtimes as it does to libraries. Most languages and standard libraries are
+themselves open source. Reading how a language's core data structures or a runtime's scheduler are implemented is a
+normal and valuable engineering habit, not a distraction from application work.
 
 == Not-Invented-Here syndrome
 
-The trade-offs above argue for being selective about dependencies, and for
-understanding the ones you take on. They are not an argument for defaulting
-to building things yourself. Not-Invented-Here (NIH) syndrome is the
-tendency to reinvent functionality that a well-maintained, widely-used
-dependency already provides, out of an unexamined preference for
+The trade-offs above argue for being selective about dependencies, and for understanding the ones you take on. They are
+not an argument for defaulting to building things yourself. Not-Invented-Here (NIH) syndrome is the tendency to reinvent
+functionality that a well-maintained, widely-used dependency already provides, out of an unexamined preference for
 first-party code.
 
-NIH syndrome carries real costs. A hand-rolled replacement for a mature
-library rarely covers the same breadth of edge cases on day one, and the
-team now owns its ongoing maintenance – bug fixes, security patches, and
-feature gaps that the original dependency's maintainers would otherwise have
-absorbed. Where a dependency solves a well-understood problem, is
-actively maintained, and has a stable track record, reusing it is usually
-the better choice, even though building it yourself would deepen the
-team's understanding of the problem.
+NIH syndrome carries real costs. A hand-rolled replacement for a mature library rarely covers the same breadth of edge
+cases on day one, and the team now owns its ongoing maintenance – bug fixes, security patches, and feature gaps that the
+original dependency's maintainers would otherwise have absorbed. Where a dependency solves a well-understood problem, is
+actively maintained, and has a stable track record, reusing it is usually the better choice, even though building it
+yourself would deepen the team's understanding of the problem.
 
-Weigh this against the dependency risks discussed above, on a case-by-case
-basis. The learning opportunity of building something yourself is a genuine
-benefit, and for problems that are central to a system's competitive
-advantage, or where no dependency fits well, building it yourself remains
-the right call. The caution here is against reaching for that option by
-default, without first asking whether a good, maintained solution already
-exists.
+Weigh this against the dependency risks discussed above, on a case-by-case basis. The learning opportunity of building
+something yourself is a genuine benefit, and for problems that are central to a system's competitive advantage, or where
+no dependency fits well, building it yourself remains the right call. The caution here is against reaching for that
+option by default, without first asking whether a good, maintained solution already exists.
 
 == Configuration and hardcoded values
 
-Consistent with the dependency injection principle, keep configurable values –
-environment-specific settings, thresholds, timeouts, feature flags, format
-strings – as high in the call stack as possible. Do not hardcode such values
-into low-level implementation logic, where they are difficult to find, change,
-and test. Instead, inject them where needed.
+Consistent with the dependency injection principle, keep configurable values – environment-specific settings,
+thresholds, timeouts, feature flags, format strings – as high in the call stack as possible. Do not hardcode such values
+into low-level implementation logic, where they are difficult to find, change, and test. Instead, inject them where
+needed.
 
-Configurable values buried deep inside implementation code are not obvious to
-callers. It is unclear that they exist, where to change them, or whether
-changing them in one place would affect other parts of the system. Lifting
-configurable values to the top level – into configuration objects, constructor
-parameters, or environment variables read at startup – makes the configuration
-surface of the system visible and easy to manage.
+Configurable values buried deep inside implementation code are not obvious to callers. It is unclear that they exist,
+where to change them, or whether changing them in one place would affect other parts of the system. Lifting configurable
+values to the top level – into configuration objects, constructor parameters, or environment variables read at startup –
+makes the configuration surface of the system visible and easy to manage.

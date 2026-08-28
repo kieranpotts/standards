@@ -1,55 +1,47 @@
 = Dependency management
 
-The following rules apply to the management of third-party ("vendor") libraries
-and packages, which may or may not be managed using a package manager tool.
+The following rules apply to the management of third-party ("vendor") libraries and packages, which may or may not be
+managed using a package manager tool.
 
 == Updating MAJOR versions
 
-It is RECOMMENDED to use static analysis tools to detect libraries that have new
-major versions available, and to automatically raise issues in the project's
-issue tracker for these updates.
+It is RECOMMENDED to use static analysis tools to detect libraries that have new major versions available, and to
+automatically raise issues in the project's issue tracker for these updates.
 
-LTS releases of dependencies SHOULD be chosen over non-LTS releases wherever
-possible.
+LTS releases of dependencies SHOULD be chosen over non-LTS releases wherever possible.
 
-For libraries that have Service Level Agreements (SLAs), major versions MUST be
-updated before their End of Life (EOL) date.
+For libraries that have Service Level Agreements (SLAs), major versions MUST be updated before their End of Life (EOL)
+date.
 
 == Updating MINOR and PATCH versions
 
-Dependencies with MINOR/PATCH updates SHOULD be updated regularly – best
-practice is to have recurring tasks in the project's issue tracker to cover this
-routine maintenance work.
+Dependencies with MINOR/PATCH updates SHOULD be updated regularly – best practice is to have recurring tasks in the
+project's issue tracker to cover this routine maintenance work.
 
-It is RECOMMENDED to do MINOR/PATCH version updates at the start of a new
-release cycle. This means that dependency updates are not done close to release,
-leaving minimal time to reveal breaking changes and regressions caused by the
+It is RECOMMENDED to do MINOR/PATCH version updates at the start of a new release cycle. This means that dependency
+updates are not done close to release, leaving minimal time to reveal breaking changes and regressions caused by the
 dependency updates.
 
-Dependencies MAY be updated as part of other development work, but it is
-RECOMMENDED to have dedicated issues assigned to these tasks.
+Dependencies MAY be updated as part of other development work, but it is RECOMMENDED to have dedicated issues assigned
+to these tasks.
 
 == Third-party packages
 
-Vendor libraries SHOULD be used to solve specific problems in an application.
-Authors SHOULD NOT reinvent the wheel, solving problems that have already
-been solved by others.
+Vendor libraries SHOULD be used to solve specific problems in an application. Authors SHOULD NOT reinvent the wheel,
+solving problems that have already been solved by others.
 
-At the same time, the number of dependencies in a codebase SHOULD be
-minimized. Too many dependencies can make it harder to maintain an
-application. Even when using package managers, authors SHOULD be careful to
-choose libraries that are well-maintained and have a good reputation.
+At the same time, the number of dependencies in a codebase SHOULD be minimized. Too many dependencies can make it harder
+to maintain an application. Even when using package managers, authors SHOULD be careful to choose libraries that are
+well-maintained and have a good reputation.
 
 == Dependency injection
 
 Dependency injection SHOULD be used whenever practical.
 
-Dependency injection (DI) is a design pattern in which a component's
-dependencies are provided to it by an external service that the component is not
-aware of. A component that needs to use a particular dependency does not also
-need to know how to create that dependency, separating the concerns of
-construction and use. DI also makes components easier to test, because it is
-easier to replace dependencies with fakes.
+Dependency injection (DI) is a design pattern in which a component's dependencies are provided to it by an external
+service that the component is not aware of. A component that needs to use a particular dependency does not also need to
+know how to create that dependency, separating the concerns of construction and use. DI also makes components easier to
+test, because it is easier to replace dependencies with fakes.
 
 In JavaScript, an example of a class _without_ dependency injection:
 
@@ -87,69 +79,52 @@ class MyClass {
 }
 ----
 
-The DI pattern is complemented by the factory pattern. A factory is a function
-that creates objects. In the example above, a `DatabaseFactory` class could be
-created to assume responsibility for creating the database objects that are
+The DI pattern is complemented by the factory pattern. A factory is a function that creates objects. In the example
+above, a `DatabaseFactory` class could be created to assume responsibility for creating the database objects that are
 injected into the components that depend on them, like `MyClass`.
 
 == Version number constraints
 
-JavaScript packages are versioned using a numbering system extended from the
-https://semver.org/[Semantic Versioning] convention. A semantic version number
-consists of three parts:
+JavaScript packages are versioned using a numbering system extended from the https://semver.org/[Semantic Versioning]
+convention. A semantic version number consists of three parts:
 
 * *Major version.* Incremented when breaking API changes are made.
 
-* *Minor version.* Incremented when functionality is added in a
-  backward-compatible manner.
+* *Minor version.* Incremented when functionality is added in a backward-compatible manner.
 
 * *Patch version.* Incremented when backward-compatible fixes are made.
 
-NPM/Yarn's default behavior is to apply the `^` constraint on version numbers
-defined for installed dependencies. When you `(yarn|npm) upgrade` your
-dependencies, this constraint gets you the latest minor and patch versions, but
-never a higher major version. So `^2.3.4` automatically upgrades to all releases
-from `2.3.4` to `<3.0.0`.
+NPM/Yarn's default behavior is to apply the `^` constraint on version numbers defined for installed dependencies. When
+you `(yarn|npm) upgrade` your dependencies, this constraint gets you the latest minor and patch versions, but never a
+higher major version. So `^2.3.4` automatically upgrades to all releases from `2.3.4` to `<3.0.0`.
 
-If you want only the latest patch releases, prefix the version numbers with the
-tilde `~` character instead. `~1.2.3` constrains releases from `1.2.3` to
-`<1.3.0`.
+If you want only the latest patch releases, prefix the version numbers with the tilde `~` character instead. `~1.2.3`
+constrains releases from `1.2.3` to `<1.3.0`.
 
-Using either the `^` or `~` constraints increases demand for testing resources.
-End-to-end testing MUST be repeated whenever `(yarn|npm) upgrade` generates a new
-dependency lock file (`yarn.lock` or NPM's `package-lock.json`). Using `^` or
-`~` places trust in the authors of the minor and patch releases of a
-dependency. For consumers of a publicly-distributed library to have the same
-trust in its authors, _any_ update (not even patches) MUST NOT be blindly
+Using either the `^` or `~` constraints increases demand for testing resources. End-to-end testing MUST be repeated
+whenever `(yarn|npm) upgrade` generates a new dependency lock file (`yarn.lock` or NPM's `package-lock.json`). Using `^`
+or `~` places trust in the authors of the minor and patch releases of a dependency. For consumers of a
+publicly-distributed library to have the same trust in its authors, _any_ update (not even patches) MUST NOT be blindly
 accepted into the production dependencies of a publicly-distributed package.
 
-A bad dot release, deep within a dependency tree, can easily cause a chain
-reaction and introduce regressions in unexpected places. It is not enough to
-rely on automated unit tests to verify the correctness of dependency upgrades;
-extensive and manual end-to-end testing MUST be undertaken whenever dependencies
-are upgraded, even patch releases.
+A bad dot release, deep within a dependency tree, can easily cause a chain reaction and introduce regressions in
+unexpected places. It is not enough to rely on automated unit tests to verify the correctness of dependency upgrades;
+extensive and manual end-to-end testing MUST be undertaken whenever dependencies are upgraded, even patch releases.
 
-For this reason, it is RECOMMENDED to use the patch constraint (`~1.2.3`) rather
-than the minor constraint (`^1.2.3`) for production dependencies. The minor
-(and major) versions of production dependencies SHOULD be upgraded manually,
-only when there is a need to tap into new features of those dependencies.
-Minor version
-constraints (`^`) MAY be used for development dependencies (`devDependencies`),
-however.
+For this reason, it is RECOMMENDED to use the patch constraint (`~1.2.3`) rather than the minor constraint (`^1.2.3`)
+for production dependencies. The minor (and major) versions of production dependencies SHOULD be upgraded manually, only
+when there is a need to tap into new features of those dependencies. Minor version constraints (`^`) MAY be used for
+development dependencies (`devDependencies`), however.
 
 == Production dependencies and source control
 
-As a general rule, package managers are used for installation of development
-dependencies, but production dependencies in JavaScript applications SHOULD be
-committed to source control rather than fetched from remote registries via
-package managers.
+As a general rule, package managers are used for installation of development dependencies, but production dependencies
+in JavaScript applications SHOULD be committed to source control rather than fetched from remote registries via package
+managers.
 
-Wherever practical, all dependencies that application software needs to run
-SHOULD be committed to its source control repository. This guarantees that the
-application can be rebuilt at any point in its history to produce exactly the
-same build artifact. (This aim could also be achieved with package managers,
-for example via Yarn's https://yarnpkg.com/features/zero-installs[zero installs]
-feature.) A second reason to avoid package managers for production dependencies
-is that installing dependencies manually makes engineers think twice about what
-they add, leading to a fuller understanding of the application's dependency
-tree.
+Wherever practical, all dependencies that application software needs to run SHOULD be committed to its source control
+repository. This guarantees that the application can be rebuilt at any point in its history to produce exactly the same
+build artifact. (This aim could also be achieved with package managers, for example via Yarn's
+https://yarnpkg.com/features/zero-installs[zero installs] feature.) A second reason to avoid package managers for
+production dependencies is that installing dependencies manually makes engineers think twice about what they add,
+leading to a fuller understanding of the application's dependency tree.

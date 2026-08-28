@@ -1,152 +1,117 @@
 = Payloads
 
-The content, or payload, of HTTP request and response messages SHOULD be in the
-JSON format, for the majority of regular use cases. JSON is natively supported
-by most modern programming languages, it is human-readable as well as machine
-parsable, and has become the _de facto_ standard for encoding data in HTTP APIs.
+The content, or payload, of HTTP request and response messages SHOULD be in the JSON format, for the majority of
+regular use cases. JSON is natively supported by most modern programming languages, it is human-readable as well
+as machine parsable, and has become the _de facto_ standard for encoding data in HTTP APIs.
 
-It is RECOMMENDED to _always_ return some kind of content to the client, except
-for `204 No Content` statuses. Even if the content is just a message that
-doesn't add any more semantic meaning than is conveyed through the status code,
-it can still be useful for the purpose of testing (eg. using tools like
-Postman). A little bit of redundancy between payload content, headers, and
-status codes is okay.
+It is RECOMMENDED to _always_ return some kind of content to the client, except for `204 No Content` statuses.
+Even if the content is just a message that doesn't add any more semantic meaning than is conveyed through the
+status code, it can still be useful for the purpose of testing (eg. using tools like Postman). A little bit of
+redundancy between payload content, headers, and status codes is okay.
 
 == Naming conventions
 
-Consistent naming – both within a single API and across an organization's whole
-portfolio of APIs – reduces the learning curve for developers integrating with
-more than one of them, and allows client tooling to make reliable assumptions
-about field shapes. The following conventions SHOULD be applied to JSON field
-names.
+Consistent naming – both within a single API and across an organization's whole portfolio of APIs – reduces the
+learning curve for developers integrating with more than one of them, and allows client tooling to make reliable
+assumptions about field shapes. The following conventions SHOULD be applied to JSON field names.
 
-* Field names SHOULD be lower_snake_case, consistent with the envelope fields
-  described later in this document (`create_time`, `total_items`, and so on).
-  Where a resource's `attributes` are sourced from a domain model that uses a
-  different convention, eg. lowerCamelCase, that convention MAY be preserved
-  within `attributes` for consistency with the domain model, but SHOULD NOT be
-  mixed with lower_snake_case within the same object.
+* Field names SHOULD be lower_snake_case, consistent with the envelope fields described later in this document
+  (`create_time`, `total_items`, and so on). Where a resource's `attributes` are sourced from a domain model that
+  uses a different convention, eg. lowerCamelCase, that convention MAY be preserved within `attributes` for
+  consistency with the domain model, but SHOULD NOT be mixed with lower_snake_case within the same object.
 
-* Boolean fields SHOULD NOT be prefixed with `is_` or `has_`. The field's name
-  alone, combined with its `boolean` type and description, SHOULD make its
-  meaning clear, eg. `active` rather than `is_active`.
+* Boolean fields SHOULD NOT be prefixed with `is_` or `has_`. The field's name alone, combined with its
+  `boolean` type and description, SHOULD make its meaning clear, eg. `active` rather than `is_active`.
 
-* Fields whose value is an array SHOULD be named using a plural noun, eg.
-  `authenticators`, `products`, so that a reader can tell from the name alone,
-  without consulting the schema, that more than one value may be present.
+* Fields whose value is an array SHOULD be named using a plural noun, eg. `authenticators`, `products`, so that
+  a reader can tell from the name alone, without consulting the schema, that more than one value may be present.
 
-* Enum values SHOULD be composed of upper-case alphanumeric characters and the
-  underscore character only, eg. `FIELD_TEN`, `NOT_EQUAL`.
+* Enum values SHOULD be composed of upper-case alphanumeric characters and the underscore character only, eg.
+  `FIELD_TEN`, `NOT_EQUAL`.
 
 * Hypermedia link relation names (the `rel` field) MUST be lower-case.
 
-Clients MUST NOT rely on the order in which fields appear within a JSON
-object in a request or response body. JSON object member order is not
-semantically significant, and servers, intermediaries, and serialization
-libraries are all free to reorder fields. Where an explicit, meaningful order
-is required, eg. the order of items in an array returned from a sorted
-collection (see the *Sorting* section of *Collections*), that ordering MUST be
-conveyed structurally, such as by array position, rather than by relying on
-object field order.
+Clients MUST NOT rely on the order in which fields appear within a JSON object in a request or response body.
+JSON object member order is not semantically significant, and servers, intermediaries, and serialization
+libraries are all free to reorder fields. Where an explicit, meaningful order is required, eg. the order of
+items in an array returned from a sorted collection (see the *Sorting* section of *Collections*), that ordering
+MUST be conveyed structurally, such as by array position, rather than by relying on object field order.
 
 == Primitive types
 
-JSON's own type system is looser than most programming languages assume, and
-several of its primitives have known cross-language interoperability problems.
-Where JSON Schema is used to describe request and response payloads (see
-xref:029.adoc[*TS-29: JSON Schema*]), the following constraints SHOULD
-be applied to each of the JSON primitive types.
+JSON's own type system is looser than most programming languages assume, and several of its primitives have
+known cross-language interoperability problems. Where JSON Schema is used to describe request and response
+payloads (see xref:029.adoc[*TS-29: JSON Schema*]), the following constraints SHOULD be applied to each of the
+JSON primitive types.
 
-*Strings.* A `string` field SHOULD always declare an explicit `minLength` and
-`maxLength`. Without a `maxLength`, it is not possible to reliably size a
-database column to store the value, nor to know in advance whether a future
-change to the value's length would be a breaking change. Without a `minLength`,
-clients are typically able to submit an empty string in a field that should
-never be empty. `pattern` SHOULD be used to further constrain a string's format
-where appropriate, eg. for structured identifiers, but fields SHOULD NOT be
+*Strings.* A `string` field SHOULD always declare an explicit `minLength` and `maxLength`. Without a
+`maxLength`, it is not possible to reliably size a database column to store the value, nor to know in advance
+whether a future change to the value's length would be a breaking change. Without a `minLength`, clients are
+typically able to submit an empty string in a field that should never be empty. `pattern` SHOULD be used to
+further constrain a string's format where appropriate, eg. for structured identifiers, but fields SHOULD NOT be
 over-constrained without a good technical reason to do so.
 
-*Numbers.* JSON defines only one numeric type, an unbounded fixed-point value;
-the distinction between `number` and `integer` exists only in JSON Schema, for
-validation purposes. Many languages and runtimes, notably JavaScript, cannot
-safely represent every value permitted by this type – for example, any integer
-larger than 2^53 loses precision when parsed by a JavaScript JSON deserializer.
-For this reason:
+*Numbers.* JSON defines only one numeric type, an unbounded fixed-point value; the distinction between `number`
+and `integer` exists only in JSON Schema, for validation purposes. Many languages and runtimes, notably
+JavaScript, cannot safely represent every value permitted by this type – for example, any integer larger than
+2^53 loses precision when parsed by a JavaScript JSON deserializer. For this reason:
 
-* The JSON Schema `number` type SHOULD NOT be used. Depending on the receiving
-  language, its values may be interpreted as either fixed-point or
-  floating-point, which is a common source of rounding bugs. Decimal and
-  monetary values SHOULD instead be represented as a `string`, constrained with
-  `pattern`, `minLength`, and `maxLength`. This applies to any value that may
-  exceed 2^53 or otherwise exceed IEEE 754 double-precision range, not only
-  monetary amounts, eg. a 64-bit database identifier exposed in a response.
-  (An API MAY instead adopt a convention such as OData's `IEEE754Compatible`
-  mode, in which large integers are serialized as JSON strings only when a
-  client opts in via a request header, but this standard's simpler default is
-  to always use a `string` for such values.)
+* The JSON Schema `number` type SHOULD NOT be used. Depending on the receiving language, its values may be
+  interpreted as either fixed-point or floating-point, which is a common source of rounding bugs. Decimal and
+  monetary values SHOULD instead be represented as a `string`, constrained with `pattern`, `minLength`, and
+  `maxLength`. This applies to any value that may exceed 2^53 or otherwise exceed IEEE 754 double-precision
+  range, not only monetary amounts, eg. a 64-bit database identifier exposed in a response. (An API MAY instead
+  adopt a convention such as OData's `IEEE754Compatible` mode, in which large integers are serialized as JSON
+  strings only when a client opts in via a request header, but this standard's simpler default is to always use
+  a `string` for such values.)
 
-* The `integer` type SHOULD be used only for values that fit within a 32-bit
-  signed integer (`-2147483648` to `2147483647`), and an explicit `minimum` and
-  `maximum` SHOULD always be declared. If a value could plausibly grow beyond
-  this range in the future, use a `string` instead.
+* The `integer` type SHOULD be used only for values that fit within a 32-bit signed integer (`-2147483648` to
+  `2147483647`), and an explicit `minimum` and `maximum` SHOULD always be declared. If a value could plausibly
+  grow beyond this range in the future, use a `string` instead.
 
-*Arrays.* An `array` field SHOULD declare a `maxItems`, both to protect against
-unbounded response sizes and because several languages and runtimes place their
-own hard limits on array length. Unless there is a specific reason to choose a
-smaller limit, `32767` (`(2^15) - 1`) is a reasonable default upper bound.
-`maxItems` SHOULD NOT be used to communicate the page size of a paginated
-collection – that is a separate, independently-evolving concern (see the
-*Pagination* section of *Collections*). `minItems` SHOULD also be declared, and
-will typically be `0` or `1`.
+*Arrays.* An `array` field SHOULD declare a `maxItems`, both to protect against unbounded response sizes and
+because several languages and runtimes place their own hard limits on array length. Unless there is a specific
+reason to choose a smaller limit, `32767` (`(2^15) - 1`) is a reasonable default upper bound. `maxItems` SHOULD
+NOT be used to communicate the page size of a paginated collection – that is a separate, independently-evolving
+concern (see the *Pagination* section of *Collections*). `minItems` SHOULD also be declared, and will typically
+be `0` or `1`.
 
-*Enumerations.* The JSON Schema `enum` keyword is difficult to extend safely:
-adding a new value to an `enum` is a breaking change for any client that
-validates responses against a previously-obtained copy of the schema, even
+*Enumerations.* The JSON Schema `enum` keyword is difficult to extend safely: adding a new value to an `enum` is
+a breaking change for any client that validates responses against a previously-obtained copy of the schema, even
 though the API's own major version has not changed. For this reason:
 
-* `enum` SHOULD be used only where the complete set of valid values is fixed and
-  genuinely will never need to grow.
+* `enum` SHOULD be used only where the complete set of valid values is fixed and genuinely will never need to
+  grow.
 
-* Where new values might plausibly be added over time, use a `string` type
-  instead, constrained by `pattern` to the naming convention for enumerated
-  values (see the section on naming conventions, below), and document the
-  currently-known set of values in prose rather than enforcing it in the schema.
-  Clients consuming such a field MUST be built to tolerate unrecognized values
-  gracefully.
+* Where new values might plausibly be added over time, use a `string` type instead, constrained by `pattern` to
+  the naming convention for enumerated values (see the section on naming conventions, below), and document the
+  currently-known set of values in prose rather than enforcing it in the schema. Clients consuming such a field
+  MUST be built to tolerate unrecognized values gracefully.
 
-*Null values.* APIs SHOULD NOT produce or consume `null` values. A field that
-has no value SHOULD simply be omitted from the JSON object, rather than being
-present with a value of `null`. This distinction between "absent" and "defined
-as null" is a frequent source of confusion in strongly-typed client languages,
-where a deserializer often cannot tell the two cases apart. Omitting unset
-fields entirely avoids the ambiguity.
+*Null values.* APIs SHOULD NOT produce or consume `null` values. A field that has no value SHOULD simply be
+omitted from the JSON object, rather than being present with a value of `null`. This distinction between
+"absent" and "defined as null" is a frequent source of confusion in strongly-typed client languages, where a
+deserializer often cannot tell the two cases apart. Omitting unset fields entirely avoids the ambiguity.
 
-*Additional properties.* JSON Schema's `additionalProperties: false` keyword
-locks an object down to precisely the set of properties declared in its
-`properties` map. For schemas that describe extensible business data, eg. the
-`attributes` of a `ResourceItem` (see below), this keyword SHOULD NOT be set to
-`false`, because doing so turns the addition of any new field – ordinarily a
-backwards-compatible, additive change – into a schema-breaking one for any
-client that validates strictly against the schema. The envelope-level schemas
-defined later in this document are a deliberate exception: they describe the
-fixed structural "shape" of a message (the `resources`/`metadata`/`links`/
-`messages` envelope, links, errors, and so on), which SHOULD change only
-alongside a major version bump, so locking them down is intentional and
-appropriate. The distinction to draw when authoring a schema is between
-structure (lock it down) and business data (leave it open).
+*Additional properties.* JSON Schema's `additionalProperties: false` keyword locks an object down to precisely
+the set of properties declared in its `properties` map. For schemas that describe extensible business data, eg.
+the `attributes` of a `ResourceItem` (see below), this keyword SHOULD NOT be set to `false`, because doing so
+turns the addition of any new field – ordinarily a backwards-compatible, additive change – into a
+schema-breaking one for any client that validates strictly against the schema. The envelope-level schemas
+defined later in this document are a deliberate exception: they describe the fixed structural "shape" of a
+message (the `resources`/`metadata`/`links`/`messages` envelope, links, errors, and so on), which SHOULD change
+only alongside a major version bump, so locking them down is intentional and appropriate. The distinction to
+draw when authoring a schema is between structure (lock it down) and business data (leave it open).
 
 == Schema composition
 
-JSON Schema provides several keywords for composing schemas out of other
-schemas. These keywords are powerful, but not all of them are well supported by
-the documentation-generation, code-generation, and validation tooling typically
-used with HTTP APIs. The following guidance SHOULD be followed when authoring
-schemas.
+JSON Schema provides several keywords for composing schemas out of other schemas. These keywords are powerful,
+but not all of them are well supported by the documentation-generation, code-generation, and validation tooling
+typically used with HTTP APIs. The following guidance SHOULD be followed when authoring schemas.
 
-*Extending a type with `allOf`.* The `allOf` keyword SHOULD be used where a
-schema needs to extend a common type with additional, API-specific fields. For
-example, a `shipping_address` field might reuse a shared `address` schema, while
-adding a field that is specific to shipping addresses:
+*Extending a type with `allOf`.* The `allOf` keyword SHOULD be used where a schema needs to extend a common type
+with additional, API-specific fields. For example, a `shipping_address` field might reuse a shared `address`
+schema, while adding a field that is specific to shipping addresses:
 
 [source,json]
 ----
@@ -165,17 +130,14 @@ adding a field that is specific to shipping addresses:
 }
 ----
 
-*Avoiding `anyOf` and `oneOf`.* These keywords SHOULD NOT be used to describe
-request or response payloads. A field whose shape can vary between several
-possible schemas, depending on some other field's value, is difficult for client
-tooling to work with: code generators typically cannot produce a single concrete
-type for it, and clients written in statically-typed languages are forced to
-write custom deserialization logic that standard libraries do not provide out of
-the box.
+*Avoiding `anyOf` and `oneOf`.* These keywords SHOULD NOT be used to describe request or response payloads. A
+field whose shape can vary between several possible schemas, depending on some other field's value, is
+difficult for client tooling to work with: code generators typically cannot produce a single concrete type for
+it, and clients written in statically-typed languages are forced to write custom deserialization logic that
+standard libraries do not provide out of the box.
 
-A flatter structure, with one optional field per variant, is easier for clients
-to consume, at the cost of a small amount of redundancy in the schema. For
-example, prefer:
+A flatter structure, with one optional field per variant, is easier for clients to consume, at the cost of a
+small amount of redundancy in the schema. For example, prefer:
 
 [source,json]
 ----
@@ -186,15 +148,13 @@ example, prefer:
 }
 ----
 
-– where only the field named by `activity_type` is expected to be populated –
-over a single `extensions` field typed as `oneOf` a `payment` schema or a
-`money_request` schema.
+– where only the field named by `activity_type` is expected to be populated – over a single `extensions` field
+typed as `oneOf` a `payment` schema or a `money_request` schema.
 
-*Marking fields as immutable with `readOnly`.* Where a resource has fields that
-a client MUST NOT modify via `PUT` or `PATCH`, eg. server-generated identifiers
-or timestamps, these SHOULD be marked with `"readOnly": true` in the schema,
-rather than relying only on prose documentation. This allows tooling to flag
-accidental attempts by a client to submit a value for such a field.
+*Marking fields as immutable with `readOnly`.* Where a resource has fields that a client MUST NOT modify via
+`PUT` or `PATCH`, eg. server-generated identifiers or timestamps, these SHOULD be marked with `"readOnly": true`
+in the schema, rather than relying only on prose documentation. This allows tooling to flag accidental attempts
+by a client to submit a value for such a field.
 
 [source,json]
 ----
@@ -211,26 +171,20 @@ accidental attempts by a client to submit a value for such a field.
 
 == Payload schema
 
-The structure of JSON payloads SHOULD be consistent across all endpoints in an
-API. Consistency makes it easier for clients to understand the API, and to write
-reusable code for interacting with it.
+The structure of JSON payloads SHOULD be consistent across all endpoints in an API. Consistency makes it easier
+for clients to understand the API, and to write reusable code for interacting with it.
 
-As for what that structure should look like, there is no universal standard.
-There have been some attempts to standardize JSON API structures, notably the
-Open Data (OData) protocol (https://www.odata.org/), which is the closest thing
-we have to an industry standard for application-level messaging in JSON. But
-OData is an overly complex system for most use cases, and for this reason it is
-not widely adopted. Lighter weight, community-driven standards include JSON API
-(https://jsonapi.org/) and JSON RPC (https://www.jsonrpc.org/).
+As for what that structure should look like, there is no universal standard. There have been some attempts to
+standardize JSON API structures, notably the Open Data (OData) protocol (https://www.odata.org/), which is the
+closest thing we have to an industry standard for application-level messaging in JSON. But OData is an overly
+complex system for most use cases, and for this reason it is not widely adopted. Lighter weight,
+community-driven standards include JSON API (https://jsonapi.org/) and JSON RPC (https://www.jsonrpc.org/).
 
-An appropriate schema SHOULD be designed to meet the specific needs of each
-API's particular use cases.
+An appropriate schema SHOULD be designed to meet the specific needs of each API's particular use cases.
 
-The following is a RECOMMENDED starting point for schema design. This describes
-a generic schema for the payloads of HTTP _response_ messages. A subset of this
-schema MAY also be adopted for HTTP _request_ message payloads. The schema
-design is heavily influenced by the JSON API standard, but is not compatible
-with it.
+The following is a RECOMMENDED starting point for schema design. This describes a generic schema for the
+payloads of HTTP _response_ messages. A subset of this schema MAY also be adopted for HTTP _request_ message
+payloads. The schema design is heavily influenced by the JSON API standard, but is not compatible with it.
 
 == Top-level properties
 
@@ -241,8 +195,7 @@ This schema defines four top-level properties:
 * `links`
 * `messages`
 
-The values of the first two properties are objects. The values of the third and
-fourth properties are arrays.
+The values of the first two properties are objects. The values of the third and fourth properties are arrays.
 
 [source,json]
 ----
@@ -254,9 +207,9 @@ fourth properties are arrays.
 }
 ----
 
-Only the `resources` property is REQUIRED for response payloads, where the body
-of the HTTP message is not empty. However, the value of this property MAY be an
-empty object. Therefore, the minimum payload REQUIRED for response messages is:
+Only the `resources` property is REQUIRED for response payloads, where the body of the HTTP message is not
+empty. However, the value of this property MAY be an empty object. Therefore, the minimum payload REQUIRED for
+response messages is:
 
 [source,json]
 ----
@@ -267,12 +220,10 @@ empty object. Therefore, the minimum payload REQUIRED for response messages is:
 
 == Resources
 
-The "resources" field encapsulates the main resource representations within an
-HTTP message.
+The "resources" field encapsulates the main resource representations within an HTTP message.
 
-The value of this field MUST be a `ResourcesContainer` object (defined below),
-or an empty object if there are no relevant resource representations to supply
-to the client.
+The value of this field MUST be a `ResourcesContainer` object (defined below), or an empty object if there are
+no relevant resource representations to supply to the client.
 
 .`ResourcesContainer` schema
 [source,json]
@@ -380,11 +331,10 @@ to the client.
 }
 ----
 
-All the keys in a `ResourcesContainer` object map to the name of a resource
-type. Each key is a string representing the full name of a resource type,
-including its namespace and parent resource (if the resource is a sub-type).
-Resource keys SHOULD match exactly the URL paths of their corresponding resource
-types in resource-oriented endpoints.
+All the keys in a `ResourcesContainer` object map to the name of a resource type. Each key is a string
+representing the full name of a resource type, including its namespace and parent resource (if the resource is
+a sub-type). Resource keys SHOULD match exactly the URL paths of their corresponding resource types in
+resource-oriented endpoints.
 
 [source,json]
 ----
@@ -396,12 +346,10 @@ types in resource-oriented endpoints.
 }
 ----
 
-The value of each key in a `ResourcesContainer` object is another object that
-encapsulates one or more resources, plus associated metadata and links, of the
-referenced resource type. This object is of the type `ResourceTypeContainer`,
-which is defined in the JSON Schema above. This object is REQUIRED to have at
-least one property named "items". Other OPTIONAL properties are "metadata" and
-"links".
+The value of each key in a `ResourcesContainer` object is another object that encapsulates one or more
+resources, plus associated metadata and links, of the referenced resource type. This object is of the type
+`ResourceTypeContainer`, which is defined in the JSON Schema above. This object is REQUIRED to have at least one
+property named "items". Other OPTIONAL properties are "metadata" and "links".
 
 [source,json]
 ----
@@ -416,13 +364,11 @@ least one property named "items". Other OPTIONAL properties are "metadata" and
 }
 ----
 
-The "items" key references a `ResourcesCollection` array. Each object in a
-`ResourcesCollection` is a `ResourceItem`, which is a representation of exactly
-one resource. Every `ResourceItem` instance MUST have a property named "id",
-whose value is a unique identifier for the resource. Other attributes of a
-resource MAY be listed in a hashmap referenced via an "attributes" property.
-Other OPTIONAL properties of `ResourceItem` objects are "metadata", "related",
-and "links".
+The "items" key references a `ResourcesCollection` array. Each object in a `ResourcesCollection` is a
+`ResourceItem`, which is a representation of exactly one resource. Every `ResourceItem` instance MUST have a
+property named "id", whose value is a unique identifier for the resource. Other attributes of a resource MAY be
+listed in a hashmap referenced via an "attributes" property. Other OPTIONAL properties of `ResourceItem` objects
+are "metadata", "related", and "links".
 
 [source,json]
 ----
@@ -455,34 +401,29 @@ and "links".
 }
 ----
 
-The "attributes" field of the `ResourceItem` object is important. This is an
-object whose data is derived from the business domain of the application.
-Normally, this will be a representation of a domain object or other entity.
-Conceptually, individual attributes map to fields in a domain object or columns
-in a relational database table.
+The "attributes" field of the `ResourceItem` object is important. This is an object whose data is derived from
+the business domain of the application. Normally, this will be a representation of a domain object or other
+entity. Conceptually, individual attributes map to fields in a domain object or columns in a relational database
+table.
 
-For this reason, the naming convention for `ResourceItem` "attributes" fields –
-shown using the `\{field}` placeholder in the above code example – MAY differ
-from the naming convention for other properties of the response schema. For
-example, resource attributes might adopt a "lowerCamelCase" naming convention
-for their field names, differentiating them from the "lower_snake_case"
-convention for other fields in the schema.
+For this reason, the naming convention for `ResourceItem` "attributes" fields – shown using the `\{field}`
+placeholder in the above code example – MAY differ from the naming convention for other properties of the
+response schema. For example, resource attributes might adopt a "lowerCamelCase" naming convention for their
+field names, differentiating them from the "lower_snake_case" convention for other fields in the schema.
 
-It is RECOMMENDED that `ResourceItem` attributes be composed from a consistent
-set of common types, defined separately using JSON Schema. See
-xref:029.adoc[*TS-29: JSON Schema*] for further guidance on best
-practices for defining libraries of common types using JSON Schema.
+It is RECOMMENDED that `ResourceItem` attributes be composed from a consistent set of common types, defined
+separately using JSON Schema. See xref:029.adoc[*TS-29: JSON Schema*] for further guidance on best practices for
+defining libraries of common types using JSON Schema.
 
 == Metadata
 
-All instances of the "metadata" key in the schema reference either an empty
-object or a `MetadataContainer` object. A `MetadataContainer` object
-encapsulates metadata about the response, a resource collection, or an
-individual resource. Metadata is not part of any representations of resources,
-but it MAY provide additional information about resources.
+All instances of the "metadata" key in the schema reference either an empty object or a `MetadataContainer`
+object. A `MetadataContainer` object encapsulates metadata about the response, a resource collection, or an
+individual resource. Metadata is not part of any representations of resources, but it MAY provide additional
+information about resources.
 
-A `MetadataContainer` object is a hashmap of key-value pairs. The keys MUST be a
-string. The values can be the native JSON types string, number, or boolean.
+A `MetadataContainer` object is a hashmap of key-value pairs. The keys MUST be a string. The values can be the
+native JSON types string, number, or boolean.
 
 .`MetadataContainer` schema
 [source,json]
@@ -499,29 +440,25 @@ string. The values can be the native JSON types string, number, or boolean.
 }
 ----
 
-The "metadata" field at the root level of the schema MAY be used to provide more
-granularity about the status of a response, where HTTP status codes do not
-provide sufficient detail on their own. For example, a "status" metadata field
-could be included to provide a more specific status code, perhaps one
-originating from the business domain.
+The "metadata" field at the root level of the schema MAY be used to provide more granularity about the status of
+a response, where HTTP status codes do not provide sufficient detail on their own. For example, a "status"
+metadata field could be included to provide a more specific status code, perhaps one originating from the
+business domain.
 
-The "metadata" field of a `ResourceTypeContainer` object MAY be used to provide
-information about the collection of resources attached to the object's "items"
-property, such as pagination details. Metadata fields such as `total_items` and
-`total_pages` would be appropriate here.
+The "metadata" field of a `ResourceTypeContainer` object MAY be used to provide information about the
+collection of resources attached to the object's "items" property, such as pagination details. Metadata fields
+such as `total_items` and `total_pages` would be appropriate here.
 
 Metadata may also be attached to individual `ResourceItem` objects.
 
-Metadata SHOULD NOT duplicate information that is already provided in the parts
-of HTTP response messages, such as their headers. For example, the
-`Content-Type` header SHOULD be used to indicate the media type of the response
-body, and the `Content-Length` header SHOULD be used to indicate the length of
-the response body.
+Metadata SHOULD NOT duplicate information that is already provided in the parts of HTTP response messages, such
+as their headers. For example, the `Content-Type` header SHOULD be used to indicate the media type of the
+response body, and the `Content-Length` header SHOULD be used to indicate the length of the response body.
 
 == Related resources
 
-`ResourceItem` instances have an optional property named "related". If included,
-the value is a `RelatedCollection` of `RelatedItem`s.
+`ResourceItem` instances have an optional property named "related". If included, the value is a
+`RelatedCollection` of `RelatedItem`s.
 
 .`RelatedCollection` schema
 [source,json]
@@ -549,9 +486,8 @@ the value is a `RelatedCollection` of `RelatedItem`s.
 }
 ----
 
-Each `RelatedItem` instance is used to create a relationship between entities of
-different types of resources, all of which MUST exist within the same
-`ResourcesContainer` instance.
+Each `RelatedItem` instance is used to create a relationship between entities of different types of resources,
+all of which MUST exist within the same `ResourcesContainer` instance.
 
 [source,json]
 ----
@@ -597,8 +533,8 @@ different types of resources, all of which MUST exist within the same
 }
 ----
 
-In the following example, the "related" field is used to create a relational
-link between a payment card and prior orders paid with the same card.
+In the following example, the "related" field is used to create a relational link between a payment card and
+prior orders paid with the same card.
 
 [source,json]
 ----
@@ -647,31 +583,26 @@ link between a payment card and prior orders paid with the same card.
 
 === Requesting related resources
 
-By default, the "related" field is populated at the server's discretion. An API
-MAY additionally support a client-driven `expand` query parameter, giving
-clients control over which related resources are embedded, to avoid the
-round-trips that would otherwise be needed to fetch them individually.
+By default, the "related" field is populated at the server's discretion. An API MAY additionally support a
+client-driven `expand` query parameter, giving clients control over which related resources are embedded, to
+avoid the round-trips that would otherwise be needed to fetch them individually.
 
 ----
 GET /v1/vault/payment-cards/{id}?expand=history/orders
 ----
 
-Where supported, the `expand` query parameter's value SHOULD be a
-comma-separated list of the `type` values (in the same
-`\{namespace}/\{resource}` form used by the "related" field's own `type`
-property) that the client wants embedded. An API MAY restrict which relations
-are expandable, and MUST document the supported set for each endpoint. An
-`expand` value naming an unsupported relation SHOULD be ignored rather than
-causing the request to fail, consistent with this standard's tolerant-reader
-posture towards client input.
+Where supported, the `expand` query parameter's value SHOULD be a comma-separated list of the `type` values (in
+the same `\{namespace}/\{resource}` form used by the "related" field's own `type` property) that the client
+wants embedded. An API MAY restrict which relations are expandable, and MUST document the supported set for
+each endpoint. An `expand` value naming an unsupported relation SHOULD be ignored rather than causing the
+request to fail, consistent with this standard's tolerant-reader posture towards client input.
 
 == Links
 
-This HTTP message schema supports the embedding of hypermedia controls, aka.
-links.
+This HTTP message schema supports the embedding of hypermedia controls, aka. links.
 
-Links may be associated with the response message itself, or a collection of
-resources, or individual resources within a collection.
+Links may be associated with the response message itself, or a collection of resources, or individual resources
+within a collection.
 
 [source,json]
 ----
@@ -697,46 +628,37 @@ resources, or individual resources within a collection.
 }
 ----
 
-Links related to a specific resource may encode instructions for clients to
-update and delete the resource, for example. Links related to a collection of
-resources may encode instructions for clients to add new resources to the
-collection, or to query or filter the collection. Links at the root of the
-schema may encode other instructions for clients that are not scoped to any
-particular collection or resource.
+Links related to a specific resource may encode instructions for clients to update and delete the resource, for
+example. Links related to a collection of resources may encode instructions for clients to add new resources to
+the collection, or to query or filter the collection. Links at the root of the schema may encode other
+instructions for clients that are not scoped to any particular collection or resource.
 
-Embedding hypermedia controls in HTTP response messages has numerous benefits,
-including easier discoverability of resources and actions, improved
-extensibility of APIs, and reduced coupling between clients and servers.
+Embedding hypermedia controls in HTTP response messages has numerous benefits, including easier discoverability
+of resources and actions, improved extensibility of APIs, and reduced coupling between clients and servers.
 
-There are numerous standards and conventions for defining structured hypermedia
-links in JSON payloads, including
-https://stateless.group/hal_specification.html[HAL (Hypertext Application Language)],
-https://jsonapi.org/[JSON API], and https://github.com/kevinswiber/siren[Siren].
-The following convention takes some design cues from each of these, but is
-primarily inspired by
+There are numerous standards and conventions for defining structured hypermedia links in JSON payloads,
+including https://stateless.group/hal_specification.html[HAL (Hypertext Application Language)],
+https://jsonapi.org/[JSON API], and https://github.com/kevinswiber/siren[Siren]. The following convention takes
+some design cues from each of these, but is primarily inspired by
 https://github.com/levid-gc/paypal-api-standards/blob/master/api-style-guide.md#hypermedia[PayPal's convention].
 
-PayPal's API conventions for hypermedia links align with the principles of
-HATEOAS (Hypermedia as the Engine of Application State). In PayPal's API,
-hypermedia links are used to make the API self-descriptive, by embedding all the
-information that clients need to interact with the available resources. This is
-the proper use of hypermedia links in API design.
+PayPal's API conventions for hypermedia links align with the principles of HATEOAS (Hypermedia as the Engine of
+Application State). In PayPal's API, hypermedia links are used to make the API self-descriptive, by embedding
+all the information that clients need to interact with the available resources. This is the proper use of
+hypermedia links in API design.
 
 Each hypermedia link is composed of an object with three properties:
 
-* `rel`: Indicates the relationship of the link to the current resource. For
-  example, the word "self" is a self-reference to the current resource, while
-  the word "next" is used to navigate to the next page of results in a paginated
-  collection.
+* `rel`: Indicates the relationship of the link to the current resource. For example, the word "self" is a
+  self-reference to the current resource, while the word "next" is used to navigate to the next page of results
+  in a paginated collection.
 
-* `href`: Specifies the URL of the resource. This MUST be an absolute URI, and
-  SHOULD be resolvable as a URI Template per
-  https://tools.ietf.org/html/rfc6570[RFC 6570] where it carries variables.
-  Clients typically retain a link's `href` for later use, so an API MUST NOT
-  return a relative path here.
+* `href`: Specifies the URL of the resource. This MUST be an absolute URI, and SHOULD be resolvable as a URI
+  Template per https://tools.ietf.org/html/rfc6570[RFC 6570] where it carries variables. Clients typically
+  retain a link's `href` for later use, so an API MUST NOT return a relative path here.
 
-* `method`: Defines the HTTP method – eg. `GET`, `POST` – that can be used with
-  the link. This property MAY be omitted, in which case it defaults to `GET`.
+* `method`: Defines the HTTP method – eg. `GET`, `POST` – that can be used with the link. This property MAY be
+  omitted, in which case it defaults to `GET`.
 
 For example, a typical PayPal API response might include links like this:
 
@@ -763,10 +685,9 @@ For example, a typical PayPal API response might include links like this:
 }
 ----
 
-This structure provides clear guidance on how to interact with the API,
-including links for retrieving, approving, or executing a payment. Commonly,
-resource-related links will embed controls to perform CRUD-like operations on
-the resources. Example:
+This structure provides clear guidance on how to interact with the API, including links for retrieving,
+approving, or executing a payment. Commonly, resource-related links will embed controls to perform CRUD-like
+operations on the resources. Example:
 
 [source,json]
 ----
@@ -819,11 +740,10 @@ the resources. Example:
 }
 ----
 
-Hypermedia links with `rel` attributes for "next", "previous", "first", and
-"last" pages SHOULD be included in paginated collections, to make it easier for
-clients to navigate through collections. The `page` and `per_page` query
-parameters, inputted by the client, MUST be maintained for each link, to ensure
-consistent client behavior.
+Hypermedia links with `rel` attributes for "next", "previous", "first", and "last" pages SHOULD be included in
+paginated collections, to make it easier for clients to navigate through collections. The `page` and `per_page`
+query parameters, inputted by the client, MUST be maintained for each link, to ensure consistent client
+behavior.
 
 .Page navigation
 |===
@@ -885,10 +805,9 @@ consistent client behavior.
 }
 ----
 
-Beyond the resource-CRUD and pagination relations already described, the
-following link relation types are also commonly useful, and SHOULD be used where
-their meaning applies, in preference to inventing an equivalent API-specific
-name:
+Beyond the resource-CRUD and pagination relations already described, the following link relation types are also
+commonly useful, and SHOULD be used where their meaning applies, in preference to inventing an equivalent
+API-specific name:
 
 |===
 |Relationship |Description
@@ -915,76 +834,63 @@ name:
 |Refers to the parent resource of the current resource, in a hierarchy of resources.
 |===
 
-For an action's link (see *Actions*), the action's own name SHOULD be used as
-the `rel` value, eg. `activate`, `cancel`, `refund`.
+For an action's link (see *Actions*), the action's own name SHOULD be used as the `rel` value, eg. `activate`,
+`cancel`, `refund`.
 
 === Hypermedia use cases
 
-Embedding hypermedia links serves several concrete purposes beyond general
-discoverability. The following use cases are worth designing for explicitly.
+Embedding hypermedia links serves several concrete purposes beyond general discoverability. The following use
+cases are worth designing for explicitly.
 
-*A single entry point.* Where an API leans into HATEOAS, it SHOULD provide a
-single, well-known starting point from which every other resource and operation
-can eventually be discovered by following links, rather than requiring clients
-to have every URL pattern hard-coded in advance. Depending on the shape of the
-API, this entry point typically takes one of the following forms:
+*A single entry point.* Where an API leans into HATEOAS, it SHOULD provide a single, well-known starting point
+from which every other resource and operation can eventually be discovered by following links, rather than
+requiring clients to have every URL pattern hard-coded in advance. Depending on the shape of the API, this
+entry point typically takes one of the following forms:
 
-* A natural top-level collection or object serves as the entry point, eg.
-  `GET /v1/\{namespace}/\{resource}`, from which links to individual resources and
-  their available operations are reached.
+* A natural top-level collection or object serves as the entry point, eg. `GET /v1/\{namespace}/\{resource}`,
+  from which links to individual resources and their available operations are reached.
 
-* For a complex, multi-step business process, the first step in the process
-  serves as the entry point, and each response returns links to the possible
-  next steps, based on the current state of the process. For example, a credit
-  application might begin at an `applyForCredit` action, whose response links to
-  a `signAgreement` action, whose response in turn links to an `approve` or
-  `decline` outcome. Where a step fails because the client's data was
-  incomplete or incorrect, the response MAY return only a link back to the
-  step that needs correcting, eg. a `PATCH` link to resubmit the missing or
-  invalid data, rather than a link to the next state in the happy path.
+* For a complex, multi-step business process, the first step in the process serves as the entry point, and each
+  response returns links to the possible next steps, based on the current state of the process. For example, a
+  credit application might begin at an `applyForCredit` action, whose response links to a `signAgreement`
+  action, whose response in turn links to an `approve` or `decline` outcome. Where a step fails because the
+  client's data was incomplete or incorrect, the response MAY return only a link back to the step that needs
+  correcting, eg. a `PATCH` link to resubmit the missing or invalid data, rather than a link to the next state
+  in the happy path.
 
-* For a namespace that exposes mostly independent, action-oriented endpoints
-  rather than resources (see *Actions*), the `GET /v\{major}/\{namespace}/actions`
-  endpoint described in *Actions* serves as the entry point, linking to each
-  available action.
+* For a namespace that exposes mostly independent, action-oriented endpoints rather than resources (see
+  *Actions*), the `GET /v\{major}/\{namespace}/actions` endpoint described in *Actions* serves as the entry
+  point, linking to each available action.
 
-Clients SHOULD treat every `href` value as an opaque identifier, rather than
-attempting to construct or otherwise compose URIs themselves from constituent
-parts. The responsibility for URI construction belongs to the server; a client
-that parses or builds URLs by convention forfeits the ability of new versions
-of the API to change unrelated parts of the URL structure without breaking
-that client.
+Clients SHOULD treat every `href` value as an opaque identifier, rather than attempting to construct or
+otherwise compose URIs themselves from constituent parts. The responsibility for URI construction belongs to
+the server; a client that parses or builds URLs by convention forfeits the ability of new versions of the API
+to change unrelated parts of the URL structure without breaking that client.
 
-*Service-controlled flow.* Because the set of links returned with a resource MAY
-vary based on that resource's current state, links can be used to communicate
-which operations are presently valid, without the client needing to embed that
-business logic itself. For example, a `cancel` link SHOULD only be present on an
-order while it is in a cancellable state, eg. `pending`, and SHOULD be absent
-once the order reaches a terminal state, eg. `completed`. This allows new state
-transitions to be introduced on the server side over time without requiring a
-corresponding client-side change to recognize them.
+*Service-controlled flow.* Because the set of links returned with a resource MAY vary based on that resource's
+current state, links can be used to communicate which operations are presently valid, without the client
+needing to embed that business logic itself. For example, a `cancel` link SHOULD only be present on an order
+while it is in a cancellable state, eg. `pending`, and SHOULD be absent once the order reaches a terminal state,
+eg. `completed`. This allows new state transitions to be introduced on the server side over time without
+requiring a corresponding client-side change to recognize them.
 
-*Error resolution links.* An error response (see *Error handling*) MAY include
-`links` that help the client resolve the error, eg. a `422 Unprocessable Entity`
-response for an inactive account might include an `activate` link pointing the
-client at the operation that would resolve the problem.
+*Error resolution links.* An error response (see *Error handling*) MAY include `links` that help the client
+resolve the error, eg. a `422 Unprocessable Entity` response for an inactive account might include an
+`activate` link pointing the client at the operation that would resolve the problem.
 
 == Messages
 
-The "messages" field is an array of `MessageItem` objects that convey
-informational messages to the client. Unlike error responses, informational
-messages are included in successful (`2xx`) responses and do not indicate that
-anything went wrong. They MAY be used to communicate warnings, deprecation
-notices, or other supplementary information that is not part of the resource
-representation itself.
+The "messages" field is an array of `MessageItem` objects that convey informational messages to the client.
+Unlike error responses, informational messages are included in successful (`2xx`) responses and do not indicate
+that anything went wrong. They MAY be used to communicate warnings, deprecation notices, or other supplementary
+information that is not part of the resource representation itself.
 
 Each `MessageItem` object has the following properties:
 
 * `type`: The category of the message (e.g. `warning`, `info`).
 * `code`: A machine-readable code that identifies the specific message.
 * `title`: A short, human-readable summary of the message.
-* `description`: A longer, human-readable description providing additional
-  detail.
+* `description`: A longer, human-readable description providing additional detail.
 
 .`MessageItem` schema
 [source,json]
@@ -1014,106 +920,90 @@ Each `MessageItem` object has the following properties:
 }
 ----
 
-A `2xx` response MUST NOT contain error codes or error messages in the
-`messages` array. Errors MUST be reported using the error response schema
-described in the next section.
+A `2xx` response MUST NOT contain error codes or error messages in the `messages` array. Errors MUST be
+reported using the error response schema described in the next section.
 
 == Error handling
 
-HTTP status codes and human-readable reason phrases alone are not sufficient to
-convey detailed information about errors in a machine-readable manner. To enable
-non-human consumers of HTTP APIs to understand and resolve errors
-programmatically, all error responses — HTTP status codes in the `4xx` and `5xx`
-ranges — MUST include a JSON error representation in the response body that
-conforms to the error schema defined in this section.
+HTTP status codes and human-readable reason phrases alone are not sufficient to convey detailed information
+about errors in a machine-readable manner. To enable non-human consumers of HTTP APIs to understand and resolve
+errors programmatically, all error responses — HTTP status codes in the `4xx` and `5xx` ranges — MUST include a
+JSON error representation in the response body that conforms to the error schema defined in this section.
 
-Error responses use a separate schema from the normal response payload schema
-described earlier in this document. An error response does not include the
-`resources`, `metadata`, or `links` top-level properties. Instead, it uses the
-error-specific schema defined below.
+Error responses use a separate schema from the normal response payload schema described earlier in this
+document. An error response does not include the `resources`, `metadata`, or `links` top-level properties.
+Instead, it uses the error-specific schema defined below.
 
 === Status reporting rules
 
 The following rules govern the use of status codes and error responses.
 
-* Success MUST be reported with a status code in the `2xx` range. A `2xx` status
-  code MUST only be returned if the complete code execution path — including any
-  framework code as well as business logic code — is successful.
+* Success MUST be reported with a status code in the `2xx` range. A `2xx` status code MUST only be returned if
+  the complete code execution path — including any framework code as well as business logic code — is
+  successful.
 
 * Failures MUST be reported in the `4xx` or `5xx` range.
 
-* A `2xx` response MUST NOT contain error codes or error messages in the
-  response body.
+* A `2xx` response MUST NOT contain error codes or error messages in the response body.
 
-* A `4xx` or `5xx` response MUST return an error response body conforming to the
-  error schema defined below.
+* A `4xx` or `5xx` response MUST return an error response body conforming to the error schema defined below.
 
-* For client errors (`4xx`), the error response SHOULD provide enough
-  information for the client to determine what caused the error and how to fix
-  it.
+* For client errors (`4xx`), the error response SHOULD provide enough information for the client to determine
+  what caused the error and how to fix it.
 
-* For server errors (`5xx`), the error response SHOULD limit the amount of
-  information to avoid exposing internal service implementation details. Service
-  developers SHOULD use logging and tracking utilities to capture additional
-  diagnostic information. In particular, an error response MUST NOT include a
-  stack trace or any other information that could assist an attacker in
-  understanding the server's internals; see also *Security*.
+* For server errors (`5xx`), the error response SHOULD limit the amount of information to avoid exposing
+  internal service implementation details. Service developers SHOULD use logging and tracking utilities to
+  capture additional diagnostic information. In particular, an error response MUST NOT include a stack trace or
+  any other information that could assist an attacker in understanding the server's internals; see also
+  *Security*.
 
-* `5xx` status codes SHOULD NOT be used for validation or logic errors. These
-  are client-side errors and MUST be reported with `4xx` status codes.
+* `5xx` status codes SHOULD NOT be used for validation or logic errors. These are client-side errors and MUST
+  be reported with `4xx` status codes.
 
-* A service that calls an upstream or downstream service MUST NOT blindly
-  propagate that dependency's error response to its own caller. The service
-  SHOULD instead re-map the error to a response appropriate to its own
-  contract – for example, an upstream `400 Bad Request` caused by the
-  service's own malformed call to that upstream SHOULD be reported to the
-  service's own caller as a `500 Internal Server Error`, not forwarded as a
-  `400`, since the fault lies with this service, not with its caller. Blindly
-  forwarding an upstream error also risks exposing that upstream's
-  implementation details to a caller who has no relationship with it.
+* A service that calls an upstream or downstream service MUST NOT blindly propagate that dependency's error
+  response to its own caller. The service SHOULD instead re-map the error to a response appropriate to its own
+  contract – for example, an upstream `400 Bad Request` caused by the service's own malformed call to that
+  upstream SHOULD be reported to the service's own caller as a `500 Internal Server Error`, not forwarded as a
+  `400`, since the fault lies with this service, not with its caller. Blindly forwarding an upstream error also
+  risks exposing that upstream's implementation details to a caller who has no relationship with it.
 
 === Error response schema
 
 An error response MUST include the following fields:
 
-* `name`: A human-readable, unique name for the error type (e.g.
-  `VALIDATION_ERROR`, `OBJECT_NOT_FOUND_ERROR`).
+* `name`: A human-readable, unique name for the error type (e.g. `VALIDATION_ERROR`, `OBJECT_NOT_FOUND_ERROR`).
 
-* `details`: An array that contains individual instances of the error with
-  specifics. This field is REQUIRED for client-side errors (`4xx`).
+* `details`: An array that contains individual instances of the error with specifics. This field is REQUIRED
+  for client-side errors (`4xx`).
 
-** `field`: A JSON Pointer (RFC 6901) reference to the field in the request body
-   that caused the error. For errors in path parameters or query parameters,
-   this is the name of the parameter.
+** `field`: A JSON Pointer (RFC 6901) reference to the field in the request body that caused the error. For
+   errors in path parameters or query parameters, this is the name of the parameter.
 
 ** `value`: The value of the field that caused the error.
 
 ** `issue`: A human-readable description of the reason for the error.
 
-** `location`: The location of the field in error — `body`, `path`, or `query`.
-   If omitted, the default value is `body`.
+** `location`: The location of the field in error — `body`, `path`, or `query`. If omitted, the default value is
+   `body`.
 
-* `debug_id`: A unique error identifier generated on the server side, logged for
-  correlation and diagnostic purposes.
+* `debug_id`: A unique error identifier generated on the server side, logged for correlation and diagnostic
+  purposes.
 
-* `message`: A human-readable message describing the error. This MUST describe
-  the problem, not suggest how to fix it.
+* `message`: A human-readable message describing the error. This MUST describe the problem, not suggest how to
+  fix it.
 
-* `links`: HATEOAS links specific to the error scenario. These links MAY provide
-  more information about the error and how to resolve it.
+* `links`: HATEOAS links specific to the error scenario. These links MAY provide more information about the
+  error and how to resolve it.
 
 The following field is OPTIONAL and deprecated:
 
-* `information_link`: A URI for expanded developer information related to this
-  error. Use `links` instead.
+* `information_link`: A URI for expanded developer information related to this error. Use `links` instead.
 
 NOTE: This error schema is not an implementation of the IETF's
-https://datatracker.ietf.org/doc/rfc7807/[RFC 7807] Problem Details format
-(`application/problem+json`, obsoleted by RFC 9457). RFC 7807's `type`,
-`title`, `status`, `detail`, and `instance` members serve a similar purpose to
-this schema's `name`, `message`, and `debug_id`, but this standard's schema is
-retained for its richer per-field `details` array and its `links` and error
-catalog machinery, described below.
+https://datatracker.ietf.org/doc/rfc7807/[RFC 7807] Problem Details format (`application/problem+json`,
+obsoleted by RFC 9457). RFC 7807's `type`, `title`, `status`, `detail`, and `instance` members serve a similar
+purpose to this schema's `name`, `message`, and `debug_id`, but this standard's schema is retained for its
+richer per-field `details` array and its `links` and error catalog machinery, described below.
 
 .Error response schema
 [source,json]
@@ -1197,28 +1087,24 @@ catalog machinery, described below.
 
 === JSON Pointer usage
 
-The `field` property in error details SHOULD use JSON Pointer syntax as defined
-in https://tools.ietf.org/html/rfc6901[RFC 6901] to identify the specific field
-in the request body that caused the error. For example,
-`/credit_card/expire_month` points to the `expire_month` field within the
-`credit_card` object.
+The `field` property in error details SHOULD use JSON Pointer syntax as defined in
+https://tools.ietf.org/html/rfc6901[RFC 6901] to identify the specific field in the request body that caused
+the error. For example, `/credit_card/expire_month` points to the `expire_month` field within the `credit_card`
+object.
 
-For errors in path parameters or query parameters, the `field` property SHOULD
-contain the parameter name, and the `location` property MUST be set to `path` or
-`query` respectively.
+For errors in path parameters or query parameters, the `field` property SHOULD contain the parameter name, and
+the `location` property MUST be set to `path` or `query` respectively.
 
-An API that has already published a version identifying `field` by some other
-means (eg. a dotted path, or the bare field name) MAY continue using that
-existing scheme unchanged, rather than being forced to adopt JSON Pointer
-retroactively. But migrating an already-`LIVE` version to JSON Pointer is a
-breaking change for any client that parses `field` programmatically, and MUST
-be released as a new major version, per *Versioning*, with migration support
-for existing consumers.
+An API that has already published a version identifying `field` by some other means (eg. a dotted path, or the
+bare field name) MAY continue using that existing scheme unchanged, rather than being forced to adopt JSON
+Pointer retroactively. But migrating an already-`LIVE` version to JSON Pointer is a breaking change for any
+client that parses `field` programmatically, and MUST be released as a new major version, per *Versioning*,
+with migration support for existing consumers.
 
 === Input validation errors
 
-In validating requests, different types of input errors should be addressed in
-the following order of precedence:
+In validating requests, different types of input errors should be addressed in the following order of
+precedence:
 
 .Input validation error classification
 |===
@@ -1242,8 +1128,8 @@ This section provides sample error responses in various scenarios.
 
 ==== Validation error — single field
 
-The following sample shows a validation error in one field. Because this is a
-client error, a `400 Bad Request` HTTP status code should be returned.
+The following sample shows a validation error in one field. Because this is a client error, a `400 Bad Request`
+HTTP status code should be returned.
 
 [source,json]
 ----
@@ -1263,8 +1149,8 @@ client error, a `400 Bad Request` HTTP status code should be returned.
 
 ==== Validation error — multiple fields
 
-The following sample shows validation errors of the same type in two fields.
-Note that `details` is an array listing all instances of the error.
+The following sample shows validation errors of the same type in two fields. Note that `details` is an array
+listing all instances of the error.
 
 [source,json]
 ----
@@ -1290,10 +1176,9 @@ Note that `details` is an array listing all instances of the error.
 
 ==== Multiple heterogeneous errors (bulk operations)
 
-For heterogeneous types of client-side errors, an `errors` array is returned.
-Each error instance is represented as an item in this array. Because these are
-client validation errors, a `400 Bad Request` HTTP status code should be
-returned.
+For heterogeneous types of client-side errors, an `errors` array is returned. Each error instance is
+represented as an item in this array. Because these are client validation errors, a `400 Bad Request` HTTP
+status code should be returned.
 
 [source,json]
 ----
@@ -1331,9 +1216,9 @@ returned.
 
 ==== Semantic validation error
 
-In cases where client input is well-formed and valid, but the request action
-cannot be performed due to semantic errors (e.g. insufficient account balance),
-an HTTP status code `422 Unprocessable Entity` should be returned.
+In cases where client input is well-formed and valid, but the request action cannot be performed due to
+semantic errors (e.g. insufficient account balance), an HTTP status code `422 Unprocessable Entity` should be
+returned.
 
 [source,json]
 ----
@@ -1346,10 +1231,9 @@ an HTTP status code `422 Unprocessable Entity` should be returned.
 
 === Error declaration in API specifications
 
-Error responses SHOULD be declared in API specifications (e.g. OpenAPI) so that
-documentation generation tools and client/server code generation tools can
-recognize them. Each operation SHOULD declare the error responses it can return,
-referencing the error schema.
+Error responses SHOULD be declared in API specifications (e.g. OpenAPI) so that documentation generation tools
+and client/server code generation tools can recognize them. Each operation SHOULD declare the error responses
+it can return, referencing the error schema.
 
 [source,json]
 ----
@@ -1377,69 +1261,62 @@ referencing the error schema.
 
 === Error samples in documentation
 
-API documentation SHOULD include samples showing error scenarios, not only
-samples showing successful execution. It is equally important — perhaps more so
-— to show API consumers how an API propagates errors in a machine-readable form,
-so that they can build applications that handle errors gracefully and
-meaningfully.
+API documentation SHOULD include samples showing error scenarios, not only samples showing successful execution.
+It is equally important — perhaps more so — to show API consumers how an API propagates errors in a
+machine-readable form, so that they can build applications that handle errors gracefully and meaningfully.
 
 === Error catalog
 
-An error catalog is a structured collection of error specifications (metadata)
-for an API namespace. Cataloging errors provides several benefits:
+An error catalog is a structured collection of error specifications (metadata) for an API namespace. Cataloging
+errors provides several benefits:
 
-* *Externalization:* Error message strings are externalized from the API
-  implementation, making them easy to modify without code changes or
-  redeployment.
+* *Externalization:* Error message strings are externalized from the API implementation, making them easy to
+  modify without code changes or redeployment.
 
-* *Localization:* Externalized error strings can be localized by documentation
-  or internationalization teams without service developer involvement.
+* *Localization:* Externalized error strings can be localized by documentation or internationalization teams
+  without service developer involvement.
 
-* *Synchronization:* API documentation and runtime error responses remain in
-  sync, increasing consumer confidence and reducing support costs.
+* *Synchronization:* API documentation and runtime error responses remain in sync, increasing consumer
+  confidence and reducing support costs.
 
-An error catalog is a JSON file containing a collection of error specifications.
-Each error specification includes the error name, message, issue details, and
-related links. The catalog supports multiple locales — there should be one
-default catalog (e.g. in English) and corresponding locale-specific catalogs for
-each additional supported locale.
+An error catalog is a JSON file containing a collection of error specifications. Each error specification
+includes the error name, message, issue details, and related links. The catalog supports multiple locales —
+there should be one default catalog (e.g. in English) and corresponding locale-specific catalogs for each
+additional supported locale.
 
 Each error specification SHOULD include:
 
-* `name`: A human-readable, unique name for the error. This MUST match the
-  `name` field in the error response.
+* `name`: A human-readable, unique name for the error. This MUST match the `name` field in the error response.
 
-* `message`: A human-readable message describing the error. This MUST match the
-  `message` field in the error response. This value MAY be localized.
+* `message`: A human-readable message describing the error. This MUST match the `message` field in the error
+  response. This value MAY be localized.
 
-* `log_level`: The log level associated with this error. This MUST NOT be
-  exposed in error responses or external documentation.
+* `log_level`: The log level associated with this error. This MUST NOT be exposed in error responses or
+  external documentation.
 
 * `http_status_codes`: The HTTP status codes applicable to this error.
 
-* `legacy_code`: An older error code, used if and only if a previously
-  published version of the error catalog already used this code and it must
-  continue to be supported for backward compatibility. This SHOULD NOT be used
-  for new errors.
+* `legacy_code`: An older error code, used if and only if a previously published version of the error catalog
+  already used this code and it must continue to be supported for backward compatibility. This SHOULD NOT be
+  used for new errors.
 
-* `suggested_application_actions`: Practical actions that the developer of an
-  application consuming the API could take to resolve the error.
+* `suggested_application_actions`: Practical actions that the developer of an application consuming the API
+  could take to resolve the error.
 
-* `suggested_user_actions`: Practical actions that an end user could take to
-  resolve the error. These MAY be localized.
+* `suggested_user_actions`: Practical actions that an end user could take to resolve the error. These MAY be
+  localized.
 
 * `links`: HATEOAS links specific to the error scenario.
 
-* `issues`: Issue details associated with this error. Each issue corresponds to
-  an item in the error response `details` array.
+* `issues`: Issue details associated with this error. Each issue corresponds to an item in the error response
+  `details` array.
 
 Each issue within an error specification SHOULD include:
 
 * `id`: A catalog-unique identifier for the issue.
 
-* `issue`: The reason for the error. This MUST match the `issue` field in the
-  error response `details` array. This value MAY be localized and MAY contain
-  parameterized strings for runtime substitution.
+* `issue`: The reason for the error. This MUST match the `issue` field in the error response `details` array.
+  This value MAY be localized and MAY contain parameterized strings for runtime substitution.
 
 .Example catalog entry, namespace `payments`
 [source,json]
@@ -1468,56 +1345,45 @@ Each issue within an error specification SHOULD include:
 
 ==== Canonical error names
 
-An organization maintaining multiple HTTP APIs SHOULD adopt a shared,
-canonical vocabulary of top-level error `name` values for conditions that recur
-across APIs, so that a client integrating with more than one of the
-organization's APIs can handle common failure modes generically. The following
-names are RECOMMENDED as a starting point:
+An organization maintaining multiple HTTP APIs SHOULD adopt a shared, canonical vocabulary of top-level error
+`name` values for conditions that recur across APIs, so that a client integrating with more than one of the
+organization's APIs can handle common failure modes generically. The following names are RECOMMENDED as a
+starting point:
 
 * `INVALID_ARGUMENT`: The request is malformed or fails validation.
-* `FAILED_PRECONDITION`: The request is valid, but the current state of the
-  server does not permit the operation.
-* `OUT_OF_RANGE`: A parameter is outside the range of valid values, distinct
-  from `INVALID_ARGUMENT` in that the valid range may itself be dynamic.
+* `FAILED_PRECONDITION`: The request is valid, but the current state of the server does not permit the
+  operation.
+* `OUT_OF_RANGE`: A parameter is outside the range of valid values, distinct from `INVALID_ARGUMENT` in that the
+  valid range may itself be dynamic.
 * `UNAUTHENTICATED`: The request lacks valid authentication credentials.
-* `PERMISSION_DENIED`: The caller is authenticated but lacks permission for
-  the operation.
+* `PERMISSION_DENIED`: The caller is authenticated but lacks permission for the operation.
 * `NOT_FOUND`: The requested resource does not exist.
-* `ALREADY_EXISTS`: The resource the client attempted to create already
-  exists.
-* `ABORTED`: The operation was aborted, typically due to a concurrency
-  conflict (see *Concurrency control*).
-* `UNAVAILABLE`: The service is currently unavailable; the request is
-  retryable.
+* `ALREADY_EXISTS`: The resource the client attempted to create already exists.
+* `ABORTED`: The operation was aborted, typically due to a concurrency conflict (see *Concurrency control*).
+* `UNAVAILABLE`: The service is currently unavailable; the request is retryable.
 
-An API-specific error catalog MAY define further `name` values for conditions
-specific to its own domain, alongside these canonical ones. Once published,
-adding a new top-level canonical name to the shared vocabulary is a breaking
-change (see *Versioning*); a new, narrower error condition SHOULD instead be
-expressed as a `details` entry under an existing canonical name.
+An API-specific error catalog MAY define further `name` values for conditions specific to its own domain,
+alongside these canonical ones. Once published, adding a new top-level canonical name to the shared vocabulary
+is a breaking change (see *Versioning*); a new, narrower error condition SHOULD instead be expressed as a
+`details` entry under an existing canonical name.
 
 == JSON schema
 
-The payload structure described above can be validated against the following
-JSON schema.
+The payload structure described above can be validated against the following JSON schema.
 
 .Schema version
 ****
-The schemas in this document are written against the
-https://json-schema.org/draft/2020-12/schema[2020-12] draft of JSON Schema, the
-current version at the time of writing. APIs SHOULD use the same draft for their
-own schemas, for consistency, and SHOULD declare it explicitly via the `$schema`
-keyword on every schema document.
+The schemas in this document are written against the https://json-schema.org/draft/2020-12/schema[2020-12] draft
+of JSON Schema, the current version at the time of writing. APIs SHOULD use the same draft for their own
+schemas, for consistency, and SHOULD declare it explicitly via the `$schema` keyword on every schema document.
 
-Be aware that tooling support for JSON Schema drafts lags behind the
-specification itself. Some API description formats, notably older versions of
-OpenAPI, only support a constrained subset of an older JSON Schema draft, and
-some documentation-generation, code-generation, and validation tools may not
-recognize newer keywords. Before adopting a given draft version across an API
-portfolio, verify that it is supported by every tool in the toolchain – editors,
-linters, code generators, and runtime validators alike. Where a tool cannot be
-upgraded, it may be necessary to either downgrade the schema's draft version to
-match, or to hand-maintain a compatible subset of keywords.
+Be aware that tooling support for JSON Schema drafts lags behind the specification itself. Some API description
+formats, notably older versions of OpenAPI, only support a constrained subset of an older JSON Schema draft,
+and some documentation-generation, code-generation, and validation tools may not recognize newer keywords.
+Before adopting a given draft version across an API portfolio, verify that it is supported by every tool in the
+toolchain – editors, linters, code generators, and runtime validators alike. Where a tool cannot be upgraded, it
+may be necessary to either downgrade the schema's draft version to match, or to hand-maintain a compatible
+subset of keywords.
 ****
 
 .Full JSON Schema
@@ -1679,6 +1545,6 @@ match, or to hand-maintain a compatible subset of keywords.
 
 [TIP]
 ======
-Use the online https://www.jsonschemavalidator.net/[JSON Schema Validator] to
-validate your JSON payloads against the schema above.
+Use the online https://www.jsonschemavalidator.net/[JSON Schema Validator] to validate your JSON payloads
+against the schema above.
 ======

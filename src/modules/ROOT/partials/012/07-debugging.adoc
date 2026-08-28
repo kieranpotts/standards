@@ -1,109 +1,82 @@
 = Debugging
 
-Debugging is a distinct discipline from testing, and this standard has so far
-addressed it only indirectly — through the code review, quality gate, and
-metrics practices that reduce how often debugging is needed. Testing tells you
-_that_ a defect exists; debugging is the practice of finding out _why_, and it
-deserves guidance of its own.
+Debugging is a distinct discipline from testing, and this standard has so far addressed it only indirectly — through the
+code review, quality gate, and metrics practices that reduce how often debugging is needed. Testing tells you _that_ a
+defect exists; debugging is the practice of finding out _why_, and it deserves guidance of its own.
 
 == Escalate from cheap to expensive
 
-Before investing in deep investigation, try the trivial fixes first. Most
-defects are not novel — they are a known failure mode recurring in a new
-context — and a disciplined engineer checks the cheap explanations before
-reaching for the expensive ones.
+Before investing in deep investigation, try the trivial fixes first. Most defects are not novel — they are a known
+failure mode recurring in a new context — and a disciplined engineer checks the cheap explanations before reaching for
+the expensive ones.
 
 RECOMMENDED first steps, roughly in order of increasing cost:
 
-1. *Reproduce the failure.* Confirm the defect is real and repeatable before
-   investigating further. An intermittent report that cannot be reproduced may
-   be an environment difference, not a defect in the code.
+1. *Reproduce the failure.* Confirm the defect is real and repeatable before investigating further. An intermittent
+   report that cannot be reproduced may be an environment difference, not a defect in the code.
 
-2. *Check for a known cause.* Search the issue tracker, recent change history,
-   and release notes for the affected component. The defect may already be
-   documented, or may correlate with a specific recent change.
+2. *Check for a known cause.* Search the issue tracker, recent change history, and release notes for the affected
+   component. The defect may already be documented, or may correlate with a specific recent change.
 
-3. *Check dependency versions.* An unpinned or recently bumped dependency is a
-   common source of behavior change that looks like a defect in the
-   application's own code. See
-   xref:009.adoc[*TS-9: Version control*] for dependency pinning practice.
+3. *Check dependency versions.* An unpinned or recently bumped dependency is a common source of behavior change that
+   looks like a defect in the application's own code. See xref:009.adoc[*TS-9: Version control*] for dependency pinning
+   practice.
 
-4. *Reproduce against a debug build.* A build with assertions, verbose
-   logging, or optimizations disabled often surfaces the failure with far more
-   context than the production build provides.
+4. *Reproduce against a debug build.* A build with assertions, verbose logging, or optimizations disabled often surfaces
+   the failure with far more context than the production build provides.
 
-5. *Attach a debugger.* Stepping through the failing path directly is often
-   faster than reasoning about it from logs alone, particularly for logic
-   errors confined to a single process.
+5. *Attach a debugger.* Stepping through the failing path directly is often faster than reasoning about it from logs
+   alone, particularly for logic errors confined to a single process.
 
-Only once these are exhausted does the defect warrant the cross-layer
-investigation described below. Escalating straight to source-level
-archaeology on every defect is itself a quality-process failure: it wastes
-the time of the engineer doing the investigating, and it treats every defect
-as equally novel when most are not.
+Only once these are exhausted does the defect warrant the cross-layer investigation described below. Escalating straight
+to source-level archaeology on every defect is itself a quality-process failure: it wastes the time of the engineer
+doing the investigating, and it treats every defect as equally novel when most are not.
 
 == Cross-layer investigation
 
-The defects that survive the cheap checks above are usually the ones that
-span multiple layers of the system — application code, a library, the
-runtime, the operating system, the network, or a downstream service. No
-single layer's owner has full visibility into the failure, which is exactly
-why it survived initial triage.
+The defects that survive the cheap checks above are usually the ones that span multiple layers of the system —
+application code, a library, the runtime, the operating system, the network, or a downstream service. No single layer's
+owner has full visibility into the failure, which is exactly why it survived initial triage.
 
-Investigating a cross-layer defect is a process of forming and refining a
-hypothesis, then testing it against the system's actual behavior:
+Investigating a cross-layer defect is a process of forming and refining a hypothesis, then testing it against the
+system's actual behavior:
 
-* *Form a hypothesis from the symptom.* State, explicitly, what you believe is
-  happening and why. A vague sense that "something is wrong with the cache" is
-  not a hypothesis; "the cache is serving a stale entry because the
-  invalidation event is not being published" is.
+* *Form a hypothesis from the symptom.* State, explicitly, what you believe is happening and why. A vague sense that
+  "something is wrong with the cache" is not a hypothesis; "the cache is serving a stale entry because the invalidation
+  event is not being published" is.
 
-* *Identify the observation that would confirm or refute it.* Before gathering
-  more data, decide what result would prove the hypothesis wrong. A hypothesis
-  that cannot be falsified by any available observation is not useful yet —
-  narrow it until it can be.
+* *Identify the observation that would confirm or refute it.* Before gathering more data, decide what result would prove
+  the hypothesis wrong. A hypothesis that cannot be falsified by any available observation is not useful yet — narrow it
+  until it can be.
 
-* *Move between layers deliberately.* Cross-layer defects are rarely solved by
-  staying in one layer and reading harder. When the application-level evidence
-  is inconclusive, move down a layer — inspect the runtime's behavior, the
-  network traffic, or the underlying system call — then reason back up from
-  what is found there. See
-  xref:057.adoc[*TS-57: Logging, monitoring, observability*] for the
-  telemetry that makes this movement possible in production.
+* *Move between layers deliberately.* Cross-layer defects are rarely solved by staying in one layer and reading harder.
+  When the application-level evidence is inconclusive, move down a layer — inspect the runtime's behavior, the network
+  traffic, or the underlying system call — then reason back up from what is found there. See
+  xref:057.adoc[*TS-57: Logging, monitoring, observability*] for the telemetry that makes this movement possible in
+  production.
 
-* *Reason both forward and backward.* Forward reasoning starts from a
-  suspected cause and predicts its effects. Backward reasoning starts from the
-  observed failure and works out what state or event could have produced it.
-  Neither direction is sufficient alone on a genuinely difficult defect —
-  forward reasoning from the wrong cause wastes time, and backward reasoning
-  from the symptom alone often admits too many candidate causes to be
-  useful. Alternate between them: use backward reasoning to narrow the field
-  of candidate causes, then forward reasoning to confirm the surviving
-  candidate actually produces the observed symptom.
+* *Reason both forward and backward.* Forward reasoning starts from a suspected cause and predicts its effects. Backward
+  reasoning starts from the observed failure and works out what state or event could have produced it. Neither direction
+  is sufficient alone on a genuinely difficult defect — forward reasoning from the wrong cause wastes time, and backward
+  reasoning from the symptom alone often admits too many candidate causes to be useful. Alternate between them: use
+  backward reasoning to narrow the field of candidate causes, then forward reasoning to confirm the surviving candidate
+  actually produces the observed symptom.
 
-* *Update the hypothesis, do not discard it wholesale.* An observation that
-  contradicts the current hypothesis usually refines it rather than
-  invalidating the whole investigation. Treat each observation as evidence
-  that narrows the hypothesis space, not as a reason to start over from
-  nothing.
+* *Update the hypothesis, do not discard it wholesale.* An observation that contradicts the current hypothesis usually
+  refines it rather than invalidating the whole investigation. Treat each observation as evidence that narrows the
+  hypothesis space, not as a reason to start over from nothing.
 
-With a strong enough mental model of the system, an experienced engineer can
-sometimes skip most of this cycle and reason directly from a single
-observation to the root cause — a capability sometimes called
-"single-shotting" a bug. This is not a shortcut available at will; it is
-what the iterative hypothesis-and-observation process above looks like once
-internalized. Teams SHOULD treat a successful single-shot diagnosis as a
-signal of a strong mental model worth capturing — through documentation or
-mentoring — rather than as luck.
+With a strong enough mental model of the system, an experienced engineer can sometimes skip most of this cycle and
+reason directly from a single observation to the root cause — a capability sometimes called "single-shotting" a bug.
+This is not a shortcut available at will; it is what the iterative hypothesis-and-observation process above looks like
+once internalized. Teams SHOULD treat a successful single-shot diagnosis as a signal of a strong mental model worth
+capturing — through documentation or mentoring — rather than as luck.
 
 == Preserving what was learned
 
-A cross-layer investigation is expensive, and the understanding it produces
-has value beyond fixing the immediate defect. Where the investigation
-revealed something non-obvious about how the system behaves — a surprising
-interaction between components, a gap in the mental model the team held
-going in — capture it. See "Continuous improvement" above for how that
-learning feeds back into the team's practices, and
-xref:057.adoc[*TS-57: Logging, monitoring, observability*] for adding the
-telemetry that would have shortened the investigation, so the next
-occurrence of the same failure mode is cheaper to diagnose.
+A cross-layer investigation is expensive, and the understanding it produces has value beyond fixing the immediate
+defect. Where the investigation revealed something non-obvious about how the system behaves — a surprising interaction
+between components, a gap in the mental model the team held going in — capture it. See "Continuous improvement" above
+for how that learning feeds back into the team's practices, and
+xref:057.adoc[*TS-57: Logging, monitoring, observability*] for adding the telemetry that would have shortened the
+investigation, so the next occurrence of the same failure mode is cheaper to diagnose.

@@ -15,165 +15,131 @@ flowchart TB
   classDef base fill:#e2e3e5,stroke:#4b5157,color:#383d41,stroke-width:2px
 ....
 
-*Loop engineering* is the work of automating an entire workflow so that it runs
-itself — waking on a schedule, discovering its own work, spawning sub-agents,
-and feeding its own output back as the input to the next round.
+*Loop engineering* is the work of automating an entire workflow so that it runs itself — waking on a schedule,
+discovering its own work, spawning sub-agents, and feeding its own output back as the input to the next round.
 
-It is the fourth layer above <<Harness engineering,harness engineering>>. Each
-layer below it optimizes a single run — the model's instructions, the <<Context
-engineering,context>> it sees, and the harness around it — while a human stays
-in the loop as operator, triggering each run and judging its result. A loop
-removes the human from that inner cycle. The system becomes its own clock and
-its own first reviewer.
+It is the fourth layer above <<Harness engineering,harness engineering>>. Each layer below it optimizes a single run —
+the model's instructions, the <<Context engineering,context>> it sees, and the harness around it — while a human stays
+in the loop as operator, triggering each run and judging its result. A loop removes the human from that inner cycle. The
+system becomes its own clock and its own first reviewer.
 
-This is a difference in kind, not degree. An <<Agentic workflows,agentic
-workflow>> can be fully autonomous within a run and still depend on a human to
-start it and to accept its output. A loop closes on itself: it decides when to
-run, what to work on, and whether its own output is good enough to keep.
+This is a difference in kind, not degree. An <<Agentic workflows,agentic workflow>> can be fully autonomous within a run
+and still depend on a human to start it and to accept its output. A loop closes on itself: it decides when to run, what
+to work on, and whether its own output is good enough to keep.
 
 == Judgment is the scarce resource
 
-Once generation is automated it is effectively free: another run costs tokens
-and wall-clock time, not human effort. What does not scale is judgment. The
-engineering value therefore moves off the generator and onto the mechanism that
+Once generation is automated it is effectively free: another run costs tokens and wall-clock time, not human effort.
+What does not scale is judgment. The engineering value therefore moves off the generator and onto the mechanism that
 decides whether a result is fit to keep.
 
-The consequence is stark. The same loop, built by two people, can produce
-opposite outcomes — one a compounding asset, the other a compounding liability —
-and the difference is almost entirely in how rigorously it is gated, not in how
-well it generates. A loop is only as good as its weakest verification step.
-Design the evaluator first, and treat the generator as the replaceable part.
+The consequence is stark. The same loop, built by two people, can produce opposite outcomes — one a compounding asset,
+the other a compounding liability — and the difference is almost entirely in how rigorously it is gated, not in how well
+it generates. A loop is only as good as its weakest verification step. Design the evaluator first, and treat the
+generator as the replaceable part.
 
 == Generator and evaluator
 
-A loop MUST separate the agent that produces work from the agent that judges it
-— the maker-checker principle applied to an unattended system. The reasons are
-already set out under <<Guides and sensors,guides and sensors>>, and they bind
+A loop MUST separate the agent that produces work from the agent that judges it — the maker-checker principle applied to
+an unattended system. The reasons are already set out under <<Guides and sensors,guides and sensors>>, and they bind
 more tightly here because no human sees each iteration:
 
-* The evaluator MUST be a separate session, and preferably a different model,
-  framed adversarially — instructed to assume the work is broken and to prove
-  it, not to skim for obvious faults. An agent grading its own output is
+* The evaluator MUST be a separate session, and preferably a different model, framed adversarially — instructed to
+  assume the work is broken and to prove it, not to skim for obvious faults. An agent grading its own output is
   sycophantic and will wave it through.
 
-* The evaluator MUST verify by _execution_ — running the tests, exercising the
-  build, inspecting the actual output — not by reading the code and reasoning
-  about it. Inspection alone produces a *nodding loop*, in which small errors
-  are approved and accumulate across iterations that no human is watching.
+* The evaluator MUST verify by _execution_ — running the tests, exercising the build, inspecting the actual output — not
+  by reading the code and reasoning about it. Inspection alone produces a *nodding loop*, in which small errors are
+  approved and accumulate across iterations that no human is watching.
 
-* Inferential judgment MUST be anchored on deterministic gates. Reliability in a
-  loop comes from the quality of its constraints, not the capability of its
-  model. Interleave deterministic gates with probabilistic steps, exactly as in
-  a <<Composable pipelines,composable pipeline>>, so that a failing lint, type
-  check, or test halts the iteration regardless of what any agent claims.
+* Inferential judgment MUST be anchored on deterministic gates. Reliability in a loop comes from the quality of its
+  constraints, not the capability of its model. Interleave deterministic gates with probabilistic steps, exactly as in a
+  <<Composable pipelines,composable pipeline>>, so that a failing lint, type check, or test halts the iteration
+  regardless of what any agent claims.
 
 == Bootstrapping a loop
 
-A loop's first iteration runs against an empty history. There is no progress
-log to read, no baseline commit to diff against, and no record of what "done"
-looks like for the task the loop exists to advance. Treat that first pass
+A loop's first iteration runs against an empty history. There is no progress log to read, no baseline commit to diff
+against, and no record of what "done" looks like for the task the loop exists to advance. Treat that first pass
 differently from every iteration that follows it.
 
-Run a distinctly-prompted *initializer* pass before the loop's ordinary
-iterations begin. Its job is not to make progress on the task but to build the
-scaffolding every later iteration will depend on:
+Run a distinctly-prompted *initializer* pass before the loop's ordinary iterations begin. Its job is not to make
+progress on the task but to build the scaffolding every later iteration will depend on:
 
-* A script that starts the environment and runs a basic smoke test, so every
-  later iteration can confirm the system still works before it changes
-  anything.
+* A script that starts the environment and runs a basic smoke test, so every later iteration can confirm the system
+  still works before it changes anything.
 * A durable, human-readable progress log, seeded with the starting state.
-* A granular backlog of the individual units of work the task decomposes into,
-  each carrying its own executable success criterion (see <<Success
-  criteria,success criteria>>), recorded as not yet met.
-* An initial commit, so every later iteration diffs against a known baseline
-  rather than an undocumented starting point.
+* A granular backlog of the individual units of work the task decomposes into, each carrying its own executable success
+  criterion (see <<Success criteria,success criteria>>), recorded as not yet met.
+* An initial commit, so every later iteration diffs against a known baseline rather than an undocumented starting point.
 
-Once this scaffolding exists, ordinary iterations read it rather than rebuild
-it. An iteration that instead spends its budget rediscovering the state of the
-world, because no one wrote it down, is spending the same tokens the
-initializer pass exists to save.
+Once this scaffolding exists, ordinary iterations read it rather than rebuild it. An iteration that instead spends its
+budget rediscovering the state of the world, because no one wrote it down, is spending the same tokens the initializer
+pass exists to save.
 
 == Bounding the loop
 
-Because a loop re-triggers itself, it can run away in ways a single agent run
-cannot — indefinitely, and while no one is looking. Every loop MUST have hard
-stops that do not depend on the model's cooperation:
+Because a loop re-triggers itself, it can run away in ways a single agent run cannot — indefinitely, and while no one is
+looking. Every loop MUST have hard stops that do not depend on the model's cooperation:
 
-* A termination condition — the state that ends the loop rather than scheduling
-  another turn.
+* A termination condition — the state that ends the loop rather than scheduling another turn.
 
-* Iteration and tool quotas, and a token or cost budget, enforced by the
-  harness. This is the <<Guarding against runaway loops,runaway-loop>> guard
-  raised to the scale of the whole workflow, and the same caveat scales with it:
-  a loop that spawns sub-agents can multiply cost without bound unless the cap
-  is enforced at the orchestrator, not left to each agent's own budget. See also
-  <<Cost optimization,cost optimization>>.
+* Iteration and tool quotas, and a token or cost budget, enforced by the harness. This is the
+  <<Guarding against runaway loops,runaway-loop>> guard raised to the scale of the whole workflow, and the same caveat
+  scales with it: a loop that spawns sub-agents can multiply cost without bound unless the cap is enforced at the
+  orchestrator, not left to each agent's own budget. See also <<Cost optimization,cost optimization>>.
 
 == State between iterations
 
-A loop outlives any single session and any single context window, so its working
-state MUST live outside the conversation. Each iteration's distilled output is
-<<Persistence,persisted>> to a durable store — version control preferred — from
-which the next iteration reads with a clean context. Where iterations run
-concurrently, each MUST be given its own <<Isolated environments,isolated
-working copy>>, so parallel turns cannot corrupt one another.
+A loop outlives any single session and any single context window, so its working state MUST live outside the
+conversation. Each iteration's distilled output is <<Persistence,persisted>> to a durable store — version control
+preferred — from which the next iteration reads with a clean context. Where iterations run concurrently, each MUST be
+given its own <<Isolated environments,isolated working copy>>, so parallel turns cannot corrupt one another.
 
-Each iteration SHOULD open with a fixed routine before it does anything else:
-confirm its working directory and environment, read the progress log and
-recent commit history for what the previous iteration left behind, consult the
-backlog for the next unmet criterion, and run the baseline smoke test to
-confirm nothing already in place is broken. This costs a small, predictable
-amount of context, and it is cheaper than the alternative — an iteration that
-skips it may redo finished work, build on top of a regression it doesn't know
-is there, or contradict a decision a previous iteration already made.
+Each iteration SHOULD open with a fixed routine before it does anything else: confirm its working directory and
+environment, read the progress log and recent commit history for what the previous iteration left behind, consult the
+backlog for the next unmet criterion, and run the baseline smoke test to confirm nothing already in place is broken.
+This costs a small, predictable amount of context, and it is cheaper than the alternative — an iteration that skips it
+may redo finished work, build on top of a regression it doesn't know is there, or contradict a decision a previous
+iteration already made.
 
-Each iteration SHOULD also take on a single unit of work, not as much of the
-remaining task as it can. An iteration that attempts everything left tends to
-exhaust its context mid-implementation, leaving the next iteration to recover
-a partial, possibly uncommitted change rather than build on a finished one.
-Scoping each iteration to one verifiable increment keeps every handoff clean.
+Each iteration SHOULD also take on a single unit of work, not as much of the remaining task as it can. An iteration that
+attempts everything left tends to exhaust its context mid-implementation, leaving the next iteration to recover a
+partial, possibly uncommitted change rather than build on a finished one. Scoping each iteration to one verifiable
+increment keeps every handoff clean.
 
-Commit each completed, verified increment before moving to the next, with a
-message specific enough to explain what changed and why. This is more than the
-handoff mechanism described in <<Persistence,persistence>> — it is a rollback
-point. An iteration that goes wrong can be reverted to the last good commit
-without losing the increments that came before it, which holds only if
-increments are committed individually rather than accumulated into one large,
-uncommitted change.
+Commit each completed, verified increment before moving to the next, with a message specific enough to explain what
+changed and why. This is more than the handoff mechanism described in <<Persistence,persistence>> — it is a rollback
+point. An iteration that goes wrong can be reverted to the last good commit without losing the increments that came
+before it, which holds only if increments are committed individually rather than accumulated into one large, uncommitted
+change.
 
 == The hidden costs
 
-A loop that runs cleanly can still be accumulating costs that surface only
-later. Budget for them deliberately rather than discovering them:
+A loop that runs cleanly can still be accumulating costs that surface only later. Budget for them deliberately rather
+than discovering them:
 
-* *Verification debt.* The evaluator and its gates are themselves software that
-  must be built, tested, and maintained. Automating generation without a
-  commensurate investment here is borrowing against future reliability.
+* *Verification debt.* The evaluator and its gates are themselves software that must be built, tested, and maintained.
+  Automating generation without a commensurate investment here is borrowing against future reliability.
 
-* *Comprehension rot.* Context and configuration accrete across iterations until
-  no one can say why the loop behaves as it does. Prune it on the same
-  discipline as any other harness configuration.
+* *Comprehension rot.* Context and configuration accrete across iterations until no one can say why the loop behaves as
+  it does. Prune it on the same discipline as any other harness configuration.
 
-* *Cognitive surrender.* As the loop produces more of a system, the engineers
-  responsible for it understand it less, and their ability to judge its output —
-  the one scarce resource — erodes with it.
+* *Cognitive surrender.* As the loop produces more of a system, the engineers responsible for it understand it less, and
+  their ability to judge its output — the one scarce resource — erodes with it.
 
-* *Token blowout.* Re-processing accumulated context every iteration makes cost
-  grow with the history, not the work. Keep the per-iteration input minimal, as
-  <<Persistence,persistence>> and <<Context engineering,context engineering>>
+* *Token blowout.* Re-processing accumulated context every iteration makes cost grow with the history, not the work.
+  Keep the per-iteration input minimal, as <<Persistence,persistence>> and <<Context engineering,context engineering>>
   both require.
 
 == When to close the loop
 
-Closing the loop is warranted only where the work is repetitive, its <<Success
-criteria,success criteria>> are executable, and the cost of an unverified error
-is bounded. Where the criteria cannot be reduced to a machine check, or a
-mistake is irreversible or high-blast-radius, the human belongs in the loop —
-see <<Human-in-the-loop,human-in-the-loop>>.
+Closing the loop is warranted only where the work is repetitive, its <<Success criteria,success criteria>> are
+executable, and the cost of an unverified error is bounded. Where the criteria cannot be reduced to a machine check, or
+a mistake is irreversible or high-blast-radius, the human belongs in the loop — see
+<<Human-in-the-loop,human-in-the-loop>>.
 
-As with graduating from a ready-made harness to a framework, do not close the
-loop in anticipation. Run the workflow with a human triggering and accepting
-each turn until that supervision is demonstrably the only thing left to
-automate, and the verification is trustworthy enough to run unwatched.
-Automating a workflow whose output you cannot yet verify does not remove the
-human — it removes the oversight.
+As with graduating from a ready-made harness to a framework, do not close the loop in anticipation. Run the workflow
+with a human triggering and accepting each turn until that supervision is demonstrably the only thing left to automate,
+and the verification is trustworthy enough to run unwatched. Automating a workflow whose output you cannot yet verify
+does not remove the human — it removes the oversight.

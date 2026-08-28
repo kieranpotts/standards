@@ -1,14 +1,12 @@
 = Principles of good CSS
 
-All web design methodologies are based on similar principles, though emphasis
-varies from one to another. This section sets out the principles behind the
-conventions defined in the rest of this standard.
+All web design methodologies are based on similar principles, though emphasis varies from one to another. This
+section sets out the principles behind the conventions defined in the rest of this standard.
 
 == Embrace the constraints of the cascade
 
-To reduce the influence of the style cascade, some methodologies give every
-element a class and assign styles exclusively via classes rather than element
-types. So instead of this:
+To reduce the influence of the style cascade, some methodologies give every element a class and assign styles
+exclusively via classes rather than element types. So instead of this:
 
 [source,css]
 ----
@@ -41,47 +39,36 @@ They do this:
 }
 ----
 
-Using classes as the exclusive contract between HTML and CSS gives granular
-control over presentation, decouples selectors from particular HTML structures,
-and avoids the need to unwind unwanted inherited styles. But it also litters
-HTML documents with classes, and forgoes the convenience and efficiency of the
-inheritance model. Class-heavy designs also tend toward more rulesets overall,
-giving browsers more work to resolve final styles.
+Using classes as the exclusive contract between HTML and CSS gives granular control over presentation, decouples
+selectors from particular HTML structures, and avoids the need to unwind unwanted inherited styles. But it also
+litters HTML documents with classes, and forgoes the convenience and efficiency of the inheritance model. Class-heavy
+designs also tend toward more rulesets overall, giving browsers more work to resolve final styles.
 
 [NOTE]
 ======
-Greater dependence on classes does not increase coupling between HTML and CSS.
-Classes exist for exactly this purpose. They are an abstraction layer linking
-two separate concerns, the equivalent of hooks in event-driven programming.
+Greater dependence on classes does not increase coupling between HTML and CSS. Classes exist for exactly this
+purpose. They are an abstraction layer linking two separate concerns, the equivalent of hooks in event-driven
+programming.
 ======
 
-There is a balance between harnessing the cascade (assigning default properties
-to element types) and locking things down with classes. The default position
-SHOULD favor the cascade. A project SHOULD start by defining default styles for
-base typography, hyperlinks, tables, input controls, buttons, and every other
-visible element used in the theme. Resetting inherited styles from time to time
-is an acceptable cost. If resets become too frequent, iterate in a restrained
-way toward fewer default properties on type selectors and greater reliance on
-classes.
+There is a balance between harnessing the cascade (assigning default properties to element types) and locking things
+down with classes. The default position SHOULD favor the cascade. A project SHOULD start by defining default styles
+for base typography, hyperlinks, tables, input controls, buttons, and every other visible element used in the theme.
+Resetting inherited styles from time to time is an acceptable cost. If resets become too frequent, iterate in a
+restrained way toward fewer default properties on type selectors and greater reliance on classes.
 
-Resetting is done with one of CSS's own inheritance keywords, valid as the
-value of any property:
+Resetting is done with one of CSS's own inheritance keywords, valid as the value of any property:
 
-* `inherit` — takes the computed value from the parent element, even for a
-  property that does not normally inherit.
-* `initial` — resets to the property's specification-defined default,
-  ignoring both inheritance and any style sheet rule.
-* `unset` — acts as `inherit` for a property that naturally inherits (eg.
-  `color`), or as `initial` for one that does not (eg. `border`) — the usual
-  choice, since it does not require knowing which behavior a given property
-  has.
-* `revert` — resets to the browser's built-in style for the element, rather
-  than to the property's specification default; rarely needed in this
-  standard's default-cascade-first approach, since there is normally no
-  competing style sheet rule to revert past.
-* `all` — a pseudo-property applying any of the above to every property at
-  once, useful for fully isolating a component from unwanted inherited or
-  cascaded styles (`all: unset;` followed by the component's own declarations).
+* `inherit` — takes the computed value from the parent element, even for a property that does not normally inherit.
+* `initial` — resets to the property's specification-defined default, ignoring both inheritance and any style sheet
+  rule.
+* `unset` — acts as `inherit` for a property that naturally inherits (eg. `color`), or as `initial` for one that does
+  not (eg. `border`) — the usual choice, since it does not require knowing which behavior a given property has.
+* `revert` — resets to the browser's built-in style for the element, rather than to the property's specification
+  default; rarely needed in this standard's default-cascade-first approach, since there is normally no competing
+  style sheet rule to revert past.
+* `all` — a pseudo-property applying any of the above to every property at once, useful for fully isolating a
+  component from unwanted inherited or cascaded styles (`all: unset;` followed by the component's own declarations).
 
 [source,css]
 ----
@@ -92,19 +79,16 @@ value of any property:
 }
 ----
 
-Embracing the cascade also keeps visual design in check. It encourages style
-guides built around the limited set of native HTML elements, rather than the
-infinite possibilities afforded by classes.
+Embracing the cascade also keeps visual design in check. It encourages style guides built around the limited set of
+native HTML elements, rather than the infinite possibilities afforded by classes.
 
 == Encapsulation
 
-The style cascade makes everything global. The browser evaluates every selector
-in every style sheet against every new element it renders, so any ruleset can
-potentially apply to anything on the page. This is what makes CSS leaky.
+The style cascade makes everything global. The browser evaluates every selector in every style sheet against every
+new element it renders, so any ruleset can potentially apply to anything on the page. This is what makes CSS leaky.
 
-Traditionally, styles have been scoped to fragments of HTML --- so preventing
-styles from leaking in and out of distinct parts of a UI --- using classes as
-namespaces. Example:
+Traditionally, styles have been scoped to fragments of HTML --- so preventing styles from leaking in and out of
+distinct parts of a UI --- using classes as namespaces. Example:
 
 [source,css]
 ----
@@ -116,10 +100,9 @@ namespaces. Example:
 }
 ----
 
-The `sidebar` class namespaces styles to hyperlinks located within the sidebar.
-But if a calendar component were added to the sidebar, this ruleset would apply
-to its links too, which is almost certainly unintended. Precision matters. It
-must be clear exactly what is being selected for styling.
+The `sidebar` class namespaces styles to hyperlinks located within the sidebar. But if a calendar component were
+added to the sidebar, this ruleset would apply to its links too, which is almost certainly unintended. Precision
+matters. It must be clear exactly what is being selected for styling.
 
 One option is to combine class-based namespacing with descendant selectors:
 
@@ -129,25 +112,23 @@ One option is to combine class-based namespacing with descendant selectors:
 .sidebar .calendar table a {}
 ----
 
-But long descendant selectors like these couple rulesets to specific HTML
-structures — if the HTML changes, the design breaks — and they carry high
-specificity, which makes later overrides harder. Complex combinator selectors
-are also difficult for a reader to parse at a glance:
+But long descendant selectors like these couple rulesets to specific HTML structures — if the HTML changes, the
+design breaks — and they carry high specificity, which makes later overrides harder. Complex combinator selectors are
+also difficult for a reader to parse at a glance:
 
 [source,css]
 ----
 .sidebar section:first-of-type h2 + p {}
 ----
 
-CSS MUST be loosely coupled to HTML, not just for machine performance, but for
-the sanity of the people maintaining it.
+CSS MUST be loosely coupled to HTML, not just for machine performance, but for the sanity of the people maintaining
+it.
 
 == Loose coupling
 
-A maintainable codebase is one where developers can change one part with
-confidence that they are not inadvertently breaking another. In front-end
-engineering, this means the source order of an HTML document SHOULD be
-changeable without triggering CSS refactoring.
+A maintainable codebase is one where developers can change one part with confidence that they are not inadvertently
+breaking another. In front-end engineering, this means the source order of an HTML document SHOULD be changeable
+without triggering CSS refactoring.
 
 Given a tightly coupled selector:
 
@@ -156,31 +137,27 @@ Given a tightly coupled selector:
 .sidebar nav > ul a {}
 ----
 
-A more loosely coupled equivalent uses fewer descendant selectors and a more
-targeted encapsulation class:
+A more loosely coupled equivalent uses fewer descendant selectors and a more targeted encapsulation class:
 
 [source,css]
 ----
 ul.sidebar-menu a {}
 ----
 
-Or, applying the class directly to the target elements, dropping the descendant
-selector entirely:
+Or, applying the class directly to the target elements, dropping the descendant selector entirely:
 
 [source,css]
 ----
 a.sidebar-menu {}
 ----
 
-Applying classes directly to the elements being styled gives more flexibility to
-move things around and makes a designer's intent explicit in the markup. The
-classes describe exactly what the elements should look like. The trade-off is
-more classes, potentially duplicated across sibling elements.
+Applying classes directly to the elements being styled gives more flexibility to move things around and makes a
+designer's intent explicit in the markup. The classes describe exactly what the elements should look like. The
+trade-off is more classes, potentially duplicated across sibling elements.
 
-A flat hierarchy of simple type and class selectors SHOULD be preferred over
-deep selector chains, for long-term maintainability. It MAY still be sensible to
-push encapsulation classes up one or two levels in the DOM — for example onto a
-`<table>` or `<ul>` whose internal structure is unlikely to ever change:
+A flat hierarchy of simple type and class selectors SHOULD be preferred over deep selector chains, for long-term
+maintainability. It MAY still be sensible to push encapsulation classes up one or two levels in the DOM — for example
+onto a `<table>` or `<ul>` whose internal structure is unlikely to ever change:
 
 [source,css]
 ----
@@ -193,39 +170,33 @@ table.account-balance td:first-child {}
 
 == Defensive programming
 
-Class selectors MAY be qualified with type selectors (`type.class`), which
-retains some coupling between HTML and CSS but makes explicit the context a
-class is designed for:
+Class selectors MAY be qualified with type selectors (`type.class`), which retains some coupling between HTML and
+CSS but makes explicit the context a class is designed for:
 
 [source,css]
 ----
 p.dropcap {}
 ----
 
-If `dropcap` is applied to a different element by mistake, the ruleset simply
-will not match — no harm done. An unqualified, global class (`.dropcap {}`)
-carries a real risk of accidental misuse producing unintended presentational
-effects. Where a class is deliberately designed to be global, it SHOULD be
-qualified with the universal selector to make that intent explicit:
+If `dropcap` is applied to a different element by mistake, the ruleset simply will not match — no harm done. An
+unqualified, global class (`.dropcap {}`) carries a real risk of accidental misuse producing unintended presentational
+effects. Where a class is deliberately designed to be global, it SHOULD be qualified with the universal selector to
+make that intent explicit:
 
 [source,css]
 ----
 *.clearfix {}
 ----
 
-Classes MUST NOT be qualified against element types that are freely
-interchangeable with others. This applies in particular to the two non-semantic
-elements, `<div>` and `<span>`, and to the semantic sectioning elements —
-`<main>`, `<header>`, `<footer>`, `<article>`, `<aside>`, `<address>`, `<nav>`,
-`<section>` — since it is often useful to swap one for another (for example,
-replacing an `<aside>` with a `<div>`) without also refactoring the CSS.
+Classes MUST NOT be qualified against element types that are freely interchangeable with others. This applies in
+particular to the two non-semantic elements, `<div>` and `<span>`, and to the semantic sectioning elements —
+`<main>`, `<header>`, `<footer>`, `<article>`, `<aside>`, `<address>`, `<nav>`, `<section>` — since it is often useful
+to swap one for another (for example, replacing an `<aside>` with a `<div>`) without also refactoring the CSS.
 
-Type-qualifying a component or layout class also raises that selector's
-specificity above an unqualified class selector's. This matters beyond the
-freely-interchangeable-elements case above: a modifier or utility class MUST
-be able to override a component's default presentation, and it can only do so
-where both selectors carry the same specificity. Given a type-qualified
-component selector and an unqualified modifier:
+Type-qualifying a component or layout class also raises that selector's specificity above an unqualified class
+selector's. This matters beyond the freely-interchangeable-elements case above: a modifier or utility class MUST be
+able to override a component's default presentation, and it can only do so where both selectors carry the same
+specificity. Given a type-qualified component selector and an unqualified modifier:
 
 [source,css]
 ----
@@ -233,18 +204,15 @@ button.Button { background: hsl(210, 80%, 45%); }
 .background-midgrey { background: hsl(0, 0%, 60%); }
 ----
 
-`.background-midgrey` cannot override `button.Button` on a `<button
-class="Button background-midgrey">`, regardless of source order, because
-`button.Button` carries higher specificity (see
-<<Specificity and !important>>). Leaving the component selector unqualified
-(`.Button {}`) keeps its specificity equal to the modifier's, so source order
-alone determines which wins — which is what makes composing modifiers onto a
-component predictable in the first place (see <<Composition>>).
+`.background-midgrey` cannot override `button.Button` on a `<button class="Button background-midgrey">`, regardless
+of source order, because `button.Button` carries higher specificity (see <<Specificity and !important>>). Leaving the
+component selector unqualified (`.Button {}`) keeps its specificity equal to the modifier's, so source order alone
+determines which wins — which is what makes composing modifiers onto a component predictable in the first place (see
+<<Composition>>).
 
 == Predictability
 
-Classes scope styles to particular bits of markup, but leakage remains possible
-if class names are too generic:
+Classes scope styles to particular bits of markup, but leakage remains possible if class names are too generic:
 
 [source,html]
 ----
@@ -253,39 +221,31 @@ if class names are too generic:
 <p class="meta">Author, Date</p>
 ----
 
-In a large project, generic class names like `tagline` and `meta` could easily
-turn up elsewhere and leak styles between unrelated things — acceptable only if
-global reuse was actually intended.
+In a large project, generic class names like `tagline` and `meta` could easily turn up elsewhere and leak styles
+between unrelated things — acceptable only if global reuse was actually intended.
 
-A robust, scalable CSS codebase is one in which every class behaves predictably.
-Reading a class name in markup SHOULD be enough to confidently predict its
-presentational effect and scope of influence, what else in the application may
-depend on it, and the consequences of removing it. The bigger the project and
-the more complex the design, the more this matters. This is achieved through
-consistent execution of a robust class naming methodology.
+A robust, scalable CSS codebase is one in which every class behaves predictably. Reading a class name in markup
+SHOULD be enough to confidently predict its presentational effect and scope of influence, what else in the
+application may depend on it, and the consequences of removing it. The bigger the project and the more complex the
+design, the more this matters. This is achieved through consistent execution of a robust class naming methodology.
 
 == Separation of concerns
 
-Classes are frequently overloaded. Some position things, some modify the default
-presentation of individual elements, some encapsulate larger UI components, some
-act as JavaScript hooks, some are added dynamically for feature detection. Given
-`<div class="header">`, it is not obvious from the class name alone whether it
-positions the element, styles its background and borders, styles nested content,
-or serves as a DOM query hook.
+Classes are frequently overloaded. Some position things, some modify the default presentation of individual
+elements, some encapsulate larger UI components, some act as JavaScript hooks, some are added dynamically for feature
+detection. Given `<div class="header">`, it is not obvious from the class name alone whether it positions the
+element, styles its background and borders, styles nested content, or serves as a DOM query hook.
 
-It SHOULD be easy for a new contributor to a project to quickly determine, for
-any class in the markup: what it does, where it came from, where else it could
-be used, what else it relates to, and what happens if it is removed.
+It SHOULD be easy for a new contributor to a project to quickly determine, for any class in the markup: what it
+does, where it came from, where else it could be used, what else it relates to, and what happens if it is removed.
 
-Distinguishing naming conventions for classes that fulfil different roles is how
-this is achieved. The naming convention SHOULD be simple. It MUST NOT demand a
-steep learning curve to use correctly.
+Distinguishing naming conventions for classes that fulfil different roles is how this is achieved. The naming
+convention SHOULD be simple. It MUST NOT demand a steep learning curve to use correctly.
 
 == Single responsibility principle
 
-Classes SHOULD do only one specific thing. Single-purpose classes are the most
-predictable, because their names tend to be self-explanatory. A class called
-`box-shadow` is unambiguous. A class called `box` is not.
+Classes SHOULD do only one specific thing. Single-purpose classes are the most predictable, because their names tend
+to be self-explanatory. A class called `box-shadow` is unambiguous. A class called `box` is not.
 
 Focused classes also tend to be more reusable. Consider:
 
@@ -304,8 +264,8 @@ Focused classes also tend to be more reusable. Consider:
 }
 ----
 
-This mixes look-and-feel with layout and position, so it cannot be reused in a
-different location. Splitting the concerns apart fixes this:
+This mixes look-and-feel with layout and position, so it cannot be reused in a different location. Splitting the
+concerns apart fixes this:
 
 [source,css]
 ----
@@ -325,8 +285,8 @@ different location. Splitting the concerns apart fixes this:
 }
 ----
 
-`alert-box` can now be composed with `layout-alerts` in one location and reused,
-unmodified, in another (for example, a sidebar).
+`alert-box` can now be composed with `layout-alerts` in one location and reused, unmodified, in another (for example,
+a sidebar).
 
 == Composition
 
@@ -351,37 +311,32 @@ Responsibility can be delegated further, to more single-purpose classes:
 <div class="alert-box warning shout">
 ----
 
-A design's final presentation is composed from multiple classes. Variants are
-added by composing in new classes (`rounded-corners`, `box-shadow`, a `success`
-variant that replaces `warning`) rather than modifying existing ones, and the
-same specialist classes can be reused across otherwise unrelated components:
+A design's final presentation is composed from multiple classes. Variants are added by composing in new classes
+(`rounded-corners`, `box-shadow`, a `success` variant that replaces `warning`) rather than modifying existing ones,
+and the same specialist classes can be reused across otherwise unrelated components:
 
 [source,html]
 ----
 <div class="popup success rounded-corners box-shadow">
 ----
 
-The more specialized a class, the more frequently it can be recycled across a
-UI. A class called `rounded-corners` that also set borders, padding, and margins
-would be far less reusable.
+The more specialized a class, the more frequently it can be recycled across a UI. A class called `rounded-corners`
+that also set borders, padding, and margins would be far less reusable.
 
 == Open/closed principle
 
-Composing designs from small, specialized components speeds up development,
-because less CSS needs to be written and maintained, and produces a more stable
-codebase. Specialist classes need updating far less often than comprehensive
+Composing designs from small, specialized components speeds up development, because less CSS needs to be written and
+maintained, and produces a more stable codebase. Specialist classes need updating far less often than comprehensive
 ones.
 
-A base class SHOULD stay closed for modification once established. New
-presentation SHOULD be layered on by adding classes, not by editing the base
-class, which may have implications for everything that already depends on it. As
+A base class SHOULD stay closed for modification once established. New presentation SHOULD be layered on by adding
+classes, not by editing the base class, which may have implications for everything that already depends on it. As
 with software, classes SHOULD be open for extension but closed for modification.
 
 == Don't repeat yourself
 
-Breaking a design into small, portable components reduces duplicated
-declarations, because components are reused rather than redeclared. This does
-not, by itself, solve duplication in the default presentation of element types:
+Breaking a design into small, portable components reduces duplicated declarations, because components are reused
+rather than redeclared. This does not, by itself, solve duplication in the default presentation of element types:
 
 [source,css]
 ----
@@ -390,8 +345,7 @@ h3 { font-size: 1.4rem; line-height: 1.2; margin-top: 2em; margin-bottom: 1em; }
 p { font-size: 1.4rem; line-height: 1.2; margin-bottom: 1em; }
 ----
 
-Reorganizing type selectors around shared properties, rather than around
-elements, eliminates the duplication:
+Reorganizing type selectors around shared properties, rather than around elements, eliminates the duplication:
 
 [source,css]
 ----
@@ -402,28 +356,24 @@ h2, h3    { margin-top: 2em; }
 h2, h3, p { margin-bottom: 1em; }
 ----
 
-Style sheets SHOULD stay DRY ("Don't Repeat Yourself"), but a little WET ("Write
-Everything Twice") is acceptable where two unrelated components happen to share
-visual characteristics by coincidence. Duplicated properties do not need to be
-declared via the same selector if doing so would be the simpler solution.
+Style sheets SHOULD stay DRY ("Don't Repeat Yourself"), but a little WET ("Write Everything Twice") is acceptable
+where two unrelated components happen to share visual characteristics by coincidence. Duplicated properties do not
+need to be declared via the same selector if doing so would be the simpler solution.
 
 == Progressive enhancement
 
 [quote, Ethan Marcotte]
 ____
-Progressive enhancement is about resilience as much as it is about
-inclusiveness.
+Progressive enhancement is about resilience as much as it is about inclusiveness.
 ____
 
-Progressive enhancement builds an interface up in layers: a plain text document,
-then HTML markup, then CSS, then JavaScript-driven behavior. Each of these
-layers can itself be layered further.
+Progressive enhancement builds an interface up in layers: a plain text document, then HTML markup, then CSS, then
+JavaScript-driven behavior. Each of these layers can itself be layered further.
 
-For CSS, the practical approach is to start with a minimum baseline design that
-works consistently across every target browser, including mobile, and
-progressively enhance it with more detail and more intricate layout as permitted
-by more capable browsers and larger screens — that is, mobile-first, using only
-the CSS properties supported by every browser being targeted initially.
+For CSS, the practical approach is to start with a minimum baseline design that works consistently across every
+target browser, including mobile, and progressively enhance it with more detail and more intricate layout as
+permitted by more capable browsers and larger screens — that is, mobile-first, using only the CSS properties
+supported by every browser being targeted initially.
 
 [source,css]
 ----
@@ -445,11 +395,10 @@ the CSS properties supported by every browser being targeted initially.
 }
 ----
 
-Every current browser renders this consistently. Legacy browsers without media
-query support render the baseline mobile view. New CSS features also land in
-different browsers at different times. A newer property SHOULD be layered in as
-an enhancement, written after the baseline property it augments, so that
-browsers without support fall back to the baseline:
+Every current browser renders this consistently. Legacy browsers without media query support render the baseline
+mobile view. New CSS features also land in different browsers at different times. A newer property SHOULD be layered
+in as an enhancement, written after the baseline property it augments, so that browsers without support fall back to
+the baseline:
 
 [source,css]
 ----
@@ -462,17 +411,14 @@ browsers without support fall back to the baseline:
 }
 ----
 
-A vendor-prefixed property, such as `-webkit-border-image` above, SHOULD NOT
-be used in production CSS unless the target browser support data shows it is
-still required. Where one is used, it MUST be written immediately before the
-standard property it prefixes, in the order shown, so the unprefixed
-declaration always wins in browsers that support both — and the surrounding
-code or a comment SHOULD note which browsers still need the prefix, so it can
-be removed once they no longer do.
+A vendor-prefixed property, such as `-webkit-border-image` above, SHOULD NOT be used in production CSS unless the
+target browser support data shows it is still required. Where one is used, it MUST be written immediately before the
+standard property it prefixes, in the order shown, so the unprefixed declaration always wins in browsers that support
+both — and the surrounding code or a comment SHOULD note which browsers still need the prefix, so it can be removed
+once they no longer do.
 
-The native `@supports` at-rule complements class-based feature detection (see
-<<Dynamic classes>>) for enhancements that only need to apply within a single
-style sheet, without a JavaScript-injected `supports-*` class:
+The native `@supports` at-rule complements class-based feature detection (see <<Dynamic classes>>) for enhancements
+that only need to apply within a single style sheet, without a JavaScript-injected `supports-*` class:
 
 [source,css]
 ----
@@ -487,17 +433,13 @@ style sheet, without a JavaScript-injected `supports-*` class:
 }
 ----
 
-Prefer `@supports` where the enhancement is pure CSS and does not need to be
-known to JavaScript or reflected in the markup. Prefer a `supports-*` class
-(see <<Dynamic classes>>) where the same feature test also has to gate
-JavaScript behavior, since duplicating the test in both `@supports` and a
-script risks the two falling out of sync.
+Prefer `@supports` where the enhancement is pure CSS and does not need to be known to JavaScript or reflected in the
+markup. Prefer a `supports-*` class (see <<Dynamic classes>>) where the same feature test also has to gate JavaScript
+behavior, since duplicating the test in both `@supports` and a script risks the two falling out of sync.
 
-Progressive enhancement avoids CSS hacks, browser-detection scripts, and
-conditional comments for legacy browsers — just standard CSS. It also has
-knock-on benefits. Smaller, slower devices only need to render the simplest
-version of a page. Mobile-first design forces content into its logical order in
-the HTML source, rather than an order dictated by desktop layout, which improves
-accessibility. And the constraints of mobile devices (screen size, processing
-power, bandwidth) keep focus on what matters most — content, performance,
-usability, and accessibility — ahead of visual embellishment.
+Progressive enhancement avoids CSS hacks, browser-detection scripts, and conditional comments for legacy browsers —
+just standard CSS. It also has knock-on benefits. Smaller, slower devices only need to render the simplest version of
+a page. Mobile-first design forces content into its logical order in the HTML source, rather than an order dictated
+by desktop layout, which improves accessibility. And the constraints of mobile devices (screen size, processing
+power, bandwidth) keep focus on what matters most — content, performance, usability, and accessibility — ahead of
+visual embellishment.

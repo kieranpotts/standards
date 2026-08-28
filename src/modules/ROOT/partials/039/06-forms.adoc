@@ -3,140 +3,108 @@
 [#the-form-element]
 == The form element
 
-`<form>` MUST encapsulate every control it submits — a control outside its
-`<form>` (associated only via the HTML5 `form` attribute pointing at the
-form's `id`) is easy to lose track of during a refactor, so this standard
-prefers the simpler, self-contained structure of every submitted control
-nested inside its own `<form>`.
+`<form>` MUST encapsulate every control it submits — a control outside its `<form>` (associated only via the
+HTML5 `form` attribute pointing at the form's `id`) is easy to lose track of during a refactor, so this
+standard prefers the simpler, self-contained structure of every submitted control nested inside its own
+`<form>`.
 
-* `action` and `method` SHOULD be set explicitly, even though both default
-  to the current URL and `GET` respectively — an explicit value documents
-  the form's behavior at the point of definition rather than relying on
-  the reader to know the defaults.
-* An `action` targeting the same origin SHOULD be a relative URL, per
-  <<Hyperlinks>>; a cross-domain `action` MUST be absolute.
-* `id` is preferred over `name` for identifying the form itself in CSS or
-  JavaScript, consistent with <<Coding style>>. `name` remains necessary
-  on individual controls, since it is what the browser uses as the
+* `action` and `method` SHOULD be set explicitly, even though both default to the current URL and `GET`
+  respectively — an explicit value documents the form's behavior at the point of definition rather than
+  relying on the reader to know the defaults.
+* An `action` targeting the same origin SHOULD be a relative URL, per <<Hyperlinks>>; a cross-domain `action`
+  MUST be absolute.
+* `id` is preferred over `name` for identifying the form itself in CSS or JavaScript, consistent with
+  <<Coding style>>. `name` remains necessary on individual controls, since it is what the browser uses as the
   submitted field key.
-* `enctype="multipart/form-data"` MUST be set whenever the form contains a
-  file input, and only works with `method="post"` — a file input inside a
-  `GET` form, or without the correct `enctype`, silently fails to submit
-  the file.
+* `enctype="multipart/form-data"` MUST be set whenever the form contains a file input, and only works with
+  `method="post"` — a file input inside a `GET` form, or without the correct `enctype`, silently fails to
+  submit the file.
 
 == Validation and input attributes
 
-Native HTML form validation and autofill are unreliable in appearance and
-behavior across browsers, and this standard therefore prefers a
-consistent, custom-styled validation experience over the native one:
+Native HTML form validation and autofill are unreliable in appearance and behavior across browsers, and this
+standard therefore prefers a consistent, custom-styled validation experience over the native one:
 
-* `novalidate` SHOULD be set on the `<form>` to suppress the browser's own
-  validation UI, and validation logic implemented in JavaScript instead —
-  see xref:021.adoc[*TS-21: HTTP APIs*] for how that client-side validation
-  relates to the server-side validation the API MUST still perform
-  independently.
-* `spellcheck="false"` SHOULD be set on any field where the browser's
-  spellcheck underline is unhelpful noise — a code field, a username, a
-  postal code.
-* `autocomplete="off"` SHOULD be set at the `<form>` level for a form
-  where browser-remembered values are actively unhelpful (a search box
-  that should start empty each time), and `autocomplete="on"` (or a
-  specific autofill token, e.g. `"email"`, `"given-name"`) set per control
-  where the browser's autofill genuinely helps the user, such as a
-  standard address or payment form.
-* `autocapitalize="none"` MAY be set to prevent iOS Safari's non-standard
-  automatic capitalization on a field where it is unhelpful (a username,
-  an email address) — this attribute is a Safari-specific extension, not
-  part of the HTML standard, but is widely supported as a no-op elsewhere.
+* `novalidate` SHOULD be set on the `<form>` to suppress the browser's own validation UI, and validation
+  logic implemented in JavaScript instead — see xref:021.adoc[*TS-21: HTTP APIs*] for how that client-side
+  validation relates to the server-side validation the API MUST still perform independently.
+* `spellcheck="false"` SHOULD be set on any field where the browser's spellcheck underline is unhelpful
+  noise — a code field, a username, a postal code.
+* `autocomplete="off"` SHOULD be set at the `<form>` level for a form where browser-remembered values are
+  actively unhelpful (a search box that should start empty each time), and `autocomplete="on"` (or a specific
+  autofill token, e.g. `"email"`, `"given-name"`) set per control where the browser's autofill genuinely
+  helps the user, such as a standard address or payment form.
+* `autocapitalize="none"` MAY be set to prevent iOS Safari's non-standard automatic capitalization on a
+  field where it is unhelpful (a username, an email address) — this attribute is a Safari-specific extension,
+  not part of the HTML standard, but is widely supported as a no-op elsewhere.
 
-Passwords are a specific case worth calling out: users MUST NOT be
-prevented from pasting into a password field. Blocking paste (historically
-done to force manual re-entry, on the mistaken belief it improved security)
-actively harms users of password managers and makes strong, randomly
-generated passwords harder to use, which the UK National Cyber Security
-Centre has documented as a net security loss, not a gain.
+Passwords are a specific case worth calling out: users MUST NOT be prevented from pasting into a password
+field. Blocking paste (historically done to force manual re-entry, on the mistaken belief it improved
+security) actively harms users of password managers and makes strong, randomly generated passwords harder to
+use, which the UK National Cyber Security Centre has documented as a net security loss, not a gain.
 
 [#input-controls]
 == Input controls
 
-The following `<input>` types, plus `<select>` and `<textarea>`, are the
-permitted control set:
+The following `<input>` types, plus `<select>` and `<textarea>`, are the permitted control set:
 
 `checkbox`, `radio`::
-`value` is mandatory on both, even where there is only one option, because
-it is what gets submitted. Both MUST be wrapped in a `<label>` (see
-<<labels-fieldsets-and-legends,Labels, fieldsets, and legends>>) so that
-clicking the label text toggles the control. An unchecked checkbox submits
-nothing at all, not an empty or `false` value — a form that needs to
-distinguish "unchecked" from "not shown" MUST pair the checkbox with a
+`value` is mandatory on both, even where there is only one option, because it is what gets submitted. Both
+MUST be wrapped in a `<label>` (see <<labels-fieldsets-and-legends,Labels, fieldsets, and legends>>) so that
+clicking the label text toggles the control. An unchecked checkbox submits nothing at all, not an empty or
+`false` value — a form that needs to distinguish "unchecked" from "not shown" MUST pair the checkbox with a
 hidden input carrying the unchecked-state default.
 
 `email`, `search`, `tel`, `url`, `number`, `date`::
-These specialized types delegate basic format validation and, on mobile,
-an appropriate on-screen keyboard, to the browser. They degrade gracefully
-to a plain text input in a browser that does not recognize the type, so
-there is no compatibility cost to using them wherever the semantic type
-applies.
+These specialized types delegate basic format validation and, on mobile, an appropriate on-screen keyboard,
+to the browser. They degrade gracefully to a plain text input in a browser that does not recognize the type,
+so there is no compatibility cost to using them wherever the semantic type applies.
 +
-`range` and `datetime-local` are more inconsistently implemented across
-browsers and MUST NOT be relied upon as the sole means of input — provide
-an equivalent text-based fallback or a custom control instead.
+`range` and `datetime-local` are more inconsistently implemented across browsers and MUST NOT be relied upon
+as the sole means of input — provide an equivalent text-based fallback or a custom control instead.
 +
-Where a field expects a specific, limited format, offering the user a
-constrained choice (a `<select>`, a set of radio buttons) is preferable to
-free text wherever the set of valid values is small and known in advance —
-it removes an entire class of format errors rather than validating them
-after the fact.
+Where a field expects a specific, limited format, offering the user a constrained choice (a `<select>`, a
+set of radio buttons) is preferable to free text wherever the set of valid values is small and known in
+advance — it removes an entire class of format errors rather than validating them after the fact.
 
 `password`::
-MUST NOT have a `value` set from the server — a pre-filled password field
-either leaks the value into the page's HTML source or, worse, is never the
-correct value the user intended.
+MUST NOT have a `value` set from the server — a pre-filled password field either leaks the value into the
+page's HTML source or, worse, is never the correct value the user intended.
 
 `text`::
-The default. `maxlength` limits input length; `size` sets the control's
-visible width in characters but is a layout no-op in any form styled with
-CSS, so `size` SHOULD be omitted in favor of a CSS width.
+The default. `maxlength` limits input length; `size` sets the control's visible width in characters but is a
+layout no-op in any form styled with CSS, so `size` SHOULD be omitted in favor of a CSS width.
 
 `file`::
-Requires `method="post"` and `enctype="multipart/form-data"` on the parent
-`<form>` — see <<The form element>>. `accept` is an advisory filter on the
-file picker only, not a validation guarantee, so the server MUST still
-verify the uploaded file's actual type. `multiple` permits selecting more
-than one file in a single control.
+Requires `method="post"` and `enctype="multipart/form-data"` on the parent `<form>` — see
+<<The form element>>. `accept` is an advisory filter on the file picker only, not a validation guarantee, so
+the server MUST still verify the uploaded file's actual type. `multiple` permits selecting more than one file
+in a single control.
 
 `hidden`::
-Carries a value the user does not see or edit, submitted along with the
-rest of the form.
+Carries a value the user does not see or edit, submitted along with the rest of the form.
 
 `select`::
-SHOULD be used once a control has around 12 or more options — below that,
-a set of visible radio buttons is usually more usable, since it does not
-require an extra interaction to reveal the choices. The `multiple`
-attribute on `<select>` produces a poorly understood, hard-to-style
-multi-select widget and SHOULD be avoided in favor of a set of checkboxes.
+SHOULD be used once a control has around 12 or more options — below that, a set of visible radio buttons is
+usually more usable, since it does not require an extra interaction to reveal the choices. The `multiple`
+attribute on `<select>` produces a poorly understood, hard-to-style multi-select widget and SHOULD be
+avoided in favor of a set of checkboxes.
 
 `textarea`::
-`cols` and `rows` are unitless integers, not CSS lengths. `cols` SHOULD be
-overridden with a CSS `width: 100%` (or an explicit width) rather than
-relied on for layout; `rows` sets a starting height, which CSS `height`
-(or `resize`) can then adjust. A reset-type button paired with a
-`<textarea>` or any other form is discouraged — see <<Buttons>>.
+`cols` and `rows` are unitless integers, not CSS lengths. `cols` SHOULD be overridden with a CSS
+`width: 100%` (or an explicit width) rather than relied on for layout; `rows` sets a starting height, which
+CSS `height` (or `resize`) can then adjust. A reset-type button paired with a `<textarea>` or any other form
+is discouraged — see <<Buttons>>.
 
 [#labels-fieldsets-and-legends]
 == Labels, fieldsets, and legends
 
-Every form control MUST have an associated `<label>`, connected either by
-wrapping the control inside the `<label>` or by a matching `for`/`id`
-pair. A control with no programmatically associated label is unusable with
-a screen reader and gives no larger click/tap target than the control
-itself.
+Every form control MUST have an associated `<label>`, connected either by wrapping the control inside the
+`<label>` or by a matching `for`/`id` pair. A control with no programmatically associated label is unusable
+with a screen reader and gives no larger click/tap target than the control itself.
 
-Related fields MUST be grouped in a `<fieldset>` wherever the grouping is
-meaningful — a set of radio buttons for one question, the address fields
-of a shipping form. `<fieldset>` MUST be used even where the group
-contains only a single control, for consistency and because groups
-routinely grow a second field later. A `<fieldset>` with more than one
-control SHOULD have a `<legend>` naming the group, which a screen reader
-announces as the group's own label, distinct from each individual
-control's own `<label>`.
+Related fields MUST be grouped in a `<fieldset>` wherever the grouping is meaningful — a set of radio
+buttons for one question, the address fields of a shipping form. `<fieldset>` MUST be used even where the
+group contains only a single control, for consistency and because groups routinely grow a second field
+later. A `<fieldset>` with more than one control SHOULD have a `<legend>` naming the group, which a screen
+reader announces as the group's own label, distinct from each individual control's own `<label>`.

@@ -1,135 +1,103 @@
 = Safeness and idempotency
 
-The HTTP standards define the concepts of safeness and idempotency for HTTP
-methods.
+The HTTP standards define the concepts of safeness and idempotency for HTTP methods.
 
-A *safe* operation is one that does not modify the state of the resource – they
-are *read-only* operations. The HTTP standards define the `GET` and `HEAD`
-methods as safe methods, as these methods are intended not to request any kind
-of operation except data retrieval.
+A *safe* operation is one that does not modify the state of the resource – they are *read-only* operations. The HTTP
+standards define the `GET` and `HEAD` methods as safe methods, as these methods are intended not to request any kind of
+operation except data retrieval.
 
-An *idempotent* operation is one that has the same effect on the state of the
-requested resources, regardless of how many times the operation is performed.
-Clients can therefore retry operations, sending identical requests multiple
-times, without worrying about data corruption or other unexpected side effects
-of doing the retries.
+An *idempotent* operation is one that has the same effect on the state of the requested resources, regardless of how
+many times the operation is performed. Clients can therefore retry operations, sending identical requests multiple
+times, without worrying about data corruption or other unexpected side effects of doing the retries.
 
-There are many use cases for clients to send identical requests multiple times.
-Commonly, this is done in retry mechanisms in response to failed connection
-attempts.
+There are many use cases for clients to send identical requests multiple times. Commonly, this is done in retry
+mechanisms in response to failed connection attempts.
 
-Building in idempotency is an important aspect of the design of any HTTP API. It
-makes it easier for clients to interact with the API, and improves the fault
-tolerance of the server-side system.
+Building in idempotency is an important aspect of the design of any HTTP API. It makes it easier for clients to interact
+with the API, and improves the fault tolerance of the server-side system.
 
-The HTTP standards define the `GET`, `HEAD`, `PUT`, and `DELETE` methods as
-being idempotent methods. HTTP APIs therefore MUST implement these operations to
-be idempotent.
+The HTTP standards define the `GET`, `HEAD`, `PUT`, and `DELETE` methods as being idempotent methods. HTTP APIs
+therefore MUST implement these operations to be idempotent.
 
-The HTTP standards do not specify the `PATCH` method as being neither safe nor
-idempotent. However, it is strongly RECOMMENDED that `PATCH` operations be
-implemented as idempotent ones.
+The HTTP standards do not specify the `PATCH` method as being neither safe nor idempotent. However, it is strongly
+RECOMMENDED that `PATCH` operations be implemented as idempotent ones.
 
-`POST` operations are, by definition, neither safe nor idempotent. By default,
-executing an identical `POST` operation multiple times will create multiple
-discrete resources with different identifiers but duplicate data. There may be
-legitimate use cases where this is the desirable behavior. For example, a "like"
-operation on a social media post may not be required to be idempotent, as the
-desired behavior of sending multiple instances of the same request may be to
+`POST` operations are, by definition, neither safe nor idempotent. By default, executing an identical `POST` operation
+multiple times will create multiple discrete resources with different identifiers but duplicate data. There may be
+legitimate use cases where this is the desirable behavior. For example, a "like" operation on a social media post may
+not be required to be idempotent, as the desired behavior of sending multiple instances of the same request may be to
 toggle the user's "like" state of the post.
 
-However, for most use cases in most APIs it is expected that `POST` operations
-will need to be implemented to be idempotent, to avoid unwanted duplicates of
-data entities being created.
+However, for most use cases in most APIs it is expected that `POST` operations will need to be implemented to be
+idempotent, to avoid unwanted duplicates of data entities being created.
 
 == Naturally-idempotent endpoint design
 
-Before reaching for the idempotency-key mechanism described below, consider
-whether the endpoint itself can be designed to be naturally idempotent, simply
-by choosing its verb and behavior carefully. A healthy majority of endpoints
-can be made idempotent this way, and doing so is preferable to idempotency
-keys: it needs no extra client-side bookkeeping, no server-side cache of past
-responses, and it is idempotent for every caller by construction, not only for
-callers that remembered to generate and resend a key.
+Before reaching for the idempotency-key mechanism described below, consider whether the endpoint itself can be designed
+to be naturally idempotent, simply by choosing its verb and behavior carefully. A healthy majority of endpoints can be
+made idempotent this way, and doing so is preferable to idempotency keys: it needs no extra client-side bookkeeping, no
+server-side cache of past responses, and it is idempotent for every caller by construction, not only for callers that
+remembered to generate and resend a key.
 
-The canonical shape is *check-then-insert*: a `PUT` endpoint, keyed by a
-natural, client-known identifier (rather than a server-generated one), that
-looks up whether a matching resource already exists and, within the same
-transaction (see *Request-scoped transactions* in *Actions*), either creates
-it or leaves it unchanged.
+The canonical shape is *check-then-insert*: a `PUT` endpoint, keyed by a natural, client-known identifier (rather than a
+server-generated one), that looks up whether a matching resource already exists and, within the same transaction (see
+*Request-scoped transactions* in *Actions*), either creates it or leaves it unchanged.
 
 [source,http]
 ----
 PUT /v1/vault/customers?email=jane@example.com HTTP/1.1
 ----
 
-The first call finds no existing match, creates the resource, and returns
-`201 Created`. Every subsequent call with the same parameters finds the
-existing resource, makes no change, and returns `200 OK`. The endpoint is
-idempotent in the ordinary HTTP sense – repeating it has no further effect –
-without any idempotency key being involved at all.
+The first call finds no existing match, creates the resource, and returns `201 Created`. Every subsequent call with the
+same parameters finds the existing resource, makes no change, and returns `200 OK`. The endpoint is idempotent in the
+ordinary HTTP sense – repeating it has no further effect – without any idempotency key being involved at all.
 
-This naturally-idempotent posture extends beyond resource creation. Where an
-endpoint's underlying work involves a non-idempotent network call to another
-service, eg. sending an email or provisioning infrastructure, that call
-SHOULD be moved out of the synchronous request path entirely and performed by
-a background job instead, per *Asynchronous operations*. The endpoint itself
-then only needs to be idempotent about enqueuing the job – a naturally-easier
-problem than making the network call itself idempotent.
+This naturally-idempotent posture extends beyond resource creation. Where an endpoint's underlying work involves a
+non-idempotent network call to another service, eg. sending an email or provisioning infrastructure, that call SHOULD be
+moved out of the synchronous request path entirely and performed by a background job instead, per *Asynchronous
+operations*. The endpoint itself then only needs to be idempotent about enqueuing the job – a naturally-easier problem
+than making the network call itself idempotent.
 
-Idempotency keys remain necessary for operations that cannot be shaped this
-way: notably `POST`-created resources with server-generated identifiers,
-which have no natural key to check-then-insert against, and operations with
-irreversible external side effects, discussed next.
+Idempotency keys remain necessary for operations that cannot be shaped this way: notably `POST`-created resources with
+server-generated identifiers, which have no natural key to check-then-insert against, and operations with irreversible
+external side effects, discussed next.
 
 == Genuinely non-idempotent operations
 
-Some operations cannot be made naturally idempotent, and cannot be made safe
-merely by wrapping them in a database transaction, because part of their work
-is *foreign* – a mutation to state outside the API's own database, such as
-charging a credit card through an external payment gateway, provisioning a
-server with a cloud provider, or any other synchronous call to an external
-system. Once such a call has been made, its effect cannot be rolled back the
-way a local database transaction can: the charge has been made, or the server
-has been provisioned, whether or not the rest of the request subsequently
-fails.
+Some operations cannot be made naturally idempotent, and cannot be made safe merely by wrapping them in a database
+transaction, because part of their work is *foreign* – a mutation to state outside the API's own database, such as
+charging a credit card through an external payment gateway, provisioning a server with a cloud provider, or any other
+synchronous call to an external system. Once such a call has been made, its effect cannot be rolled back the way a local
+database transaction can: the charge has been made, or the server has been provisioned, whether or not the rest of the
+request subsequently fails.
 
-The idempotency-key cache-and-replay mechanism described below is
-*insufficient* on its own for this class of operation. Caching and replaying
-a stored response protects a client that retries *after* a response was
-successfully returned, but it does nothing for the case that actually causes
-retries in practice: the client disconnects, or the request times out,
-*before* a response is returned, while the foreign call may or may not have
-already gone through. A naive retry in that situation risks making the
-foreign call – eg. charging the card – a second time.
+The idempotency-key cache-and-replay mechanism described below is *insufficient* on its own for this class of operation.
+Caching and replaying a stored response protects a client that retries *after* a response was successfully returned, but
+it does nothing for the case that actually causes retries in practice: the client disconnects, or the request times out,
+*before* a response is returned, while the foreign call may or may not have already gone through. A naive retry in that
+situation risks making the foreign call – eg. charging the card – a second time.
 
-Operations with this shape MUST instead be built on a *multi-stage
-transaction*: the request's work is broken into a sequence of discrete
-stages, each of which is durably recorded as it completes, so that a retried
-request can determine exactly how far the original attempt got and resume
-from there, rather than blindly re-executing every stage including the
-foreign one. See *Idempotency keys with atomic phases*, below, for how this
-standard's idempotency-key mechanism is extended to implement this.
+Operations with this shape MUST instead be built on a *multi-stage transaction*: the request's work is broken into a
+sequence of discrete stages, each of which is durably recorded as it completes, so that a retried request can determine
+exactly how far the original attempt got and resume from there, rather than blindly re-executing every stage including
+the foreign one. See *Idempotency keys with atomic phases*, below, for how this standard's idempotency-key mechanism is
+extended to implement this.
 
 == Idempotency keys
 
-Idempotency keys MUST be used to implement idempotency in `POST`, `PUT`,
-`PATCH`, and `DELETE` operations as required. An idempotency key is generated
-client-side and it is a unique identifier for each discrete request. It is used
-by the server to ensure that it processes only the first instance of each
-discrete request it receives. Subsequent requests with the same idempotency key
-are ignored, and the _same response is returned as for the first request_ (the
-server should assume that the client never received the first response).
+Idempotency keys MUST be used to implement idempotency in `POST`, `PUT`, `PATCH`, and `DELETE` operations as required.
+An idempotency key is generated client-side and it is a unique identifier for each discrete request. It is used by the
+server to ensure that it processes only the first instance of each discrete request it receives. Subsequent requests
+with the same idempotency key are ignored, and the _same response is returned as for the first request_ (the server
+should assume that the client never received the first response).
 
-Idempotency keys have other use cases too. They can double up as identifiers to
-correlate requests with responses ("correlation IDs"), and they support the
-tracing of cause-and-effect throughout distributed systems ("trace IDs"). For
-this reason, it is RECOMMENDED that idempotency keys be implemented universally
-across all operations in an API, including `GET` and `HEAD` operations.
+Idempotency keys have other use cases too. They can double up as identifiers to correlate requests with responses
+("correlation IDs"), and they support the tracing of cause-and-effect throughout distributed systems ("trace IDs"). For
+this reason, it is RECOMMENDED that idempotency keys be implemented universally across all operations in an API,
+including `GET` and `HEAD` operations.
 
-In HTTP APIs, the header field `X-Request-Id` SHOULD be used as the idempotency
-key. This is a widely-used header field, and it is used by many client libraries
-and frameworks to generate unique identifiers for requests.
+In HTTP APIs, the header field `X-Request-Id` SHOULD be used as the idempotency key. This is a widely-used header field,
+and it is used by many client libraries and frameworks to generate unique identifiers for requests.
 
 [source,http]
 ----
@@ -144,188 +112,138 @@ X-Request-Id: 123e4567-e89b-12d3-a456-426655440000
 }
 ----
 
-If a `X-Request-Id` header is not provided by the client, the server MAY
-generate a unique identifier for the request. However, for most use cases it
-will be more appropriate for the service to respond with a `400 Bad Request` and
-a link to the relevant documentation.
+If a `X-Request-Id` header is not provided by the client, the server MAY generate a unique identifier for the request.
+However, for most use cases it will be more appropriate for the service to respond with a `400 Bad Request` and a link
+to the relevant documentation.
 
-Whether an idempotency key is generated client-side or server-side, it MUST be
-returned in response messages, also in the `X-Request-Id` header field.
+Whether an idempotency key is generated client-side or server-side, it MUST be returned in response messages, also in
+the `X-Request-Id` header field.
 
-Each idempotency key MUST be unique and MUST NOT be reused with other requests
-with different payloads. For simplicity of implementation, idempotency keys
-SHOULD be unique across all clients, too. For this reason, it is RECOMMENDED to
-use the UUID version 4 algorithm to generate idempotency keys. This probability
-of generating the same UUID twice is so low that it can be considered to be zero
-for all practical purposes.
+Each idempotency key MUST be unique and MUST NOT be reused with other requests with different payloads. For simplicity
+of implementation, idempotency keys SHOULD be unique across all clients, too. For this reason, it is RECOMMENDED to use
+the UUID version 4 algorithm to generate idempotency keys. This probability of generating the same UUID twice is so low
+that it can be considered to be zero for all practical purposes.
 
-If a client reused an idempotency key with a different request payload, the
-server MUST reply with a `422` status code.
+If a client reused an idempotency key with a different request payload, the server MUST reply with a `422` status code.
 
-To implement idempotency, servers are required to cache response payloads
-against their idempotency keys. The server MUST return the cached response
-payload for each subsequent request with the same idempotency key, even if the
-response status code is not `200 OK`. This is to ensure that the client receives
-the same response as it would have received if the request had not been retried.
+To implement idempotency, servers are required to cache response payloads against their idempotency keys. The server
+MUST return the cached response payload for each subsequent request with the same idempotency key, even if the response
+status code is not `200 OK`. This is to ensure that the client receives the same response as it would have received if
+the request had not been retried.
 
-Validity of idempotency keys SHOULD be time-based, allowing for servers to
-optimize storage by periodically purging the cached response payloads associated
-with expired idempotency keys (which are persisted for longer). The expiry time
-MAY vary depending on each key's use case, but a good default value is 24 hours.
-After this time, the server SHOULD return a `400 Bad Request` response for
-requests with expired idempotency keys.
+Validity of idempotency keys SHOULD be time-based, allowing for servers to optimize storage by periodically purging the
+cached response payloads associated with expired idempotency keys (which are persisted for longer). The expiry time MAY
+vary depending on each key's use case, but a good default value is 24 hours. After this time, the server SHOULD return a
+`400 Bad Request` response for requests with expired idempotency keys.
 
 == Idempotency-key locking
 
-An idempotency key's record SHOULD carry a `locked_at` timestamp, acquired
-when a request first arrives with that key and released once the request
-finishes. This lock serializes concurrent attempts to process the same key,
-which the cache-and-replay behavior above does not by itself prevent – two
-requests bearing the same key could otherwise both observe "no cached response
-yet" and proceed to execute the underlying operation twice.
+An idempotency key's record SHOULD carry a `locked_at` timestamp, acquired when a request first arrives with that key
+and released once the request finishes. This lock serializes concurrent attempts to process the same key, which the
+cache-and-replay behavior above does not by itself prevent – two requests bearing the same key could otherwise both
+observe "no cached response yet" and proceed to execute the underlying operation twice.
 
-On receiving a request, the server MUST attempt to acquire the lock as part of
-looking up or creating the idempotency-key record, atomically:
+On receiving a request, the server MUST attempt to acquire the lock as part of looking up or creating the
+idempotency-key record, atomically:
 
-* If no record exists for the key, one is created, locked, and the request
+* If no record exists for the key, one is created, locked, and the request proceeds.
+* If a record exists, is unlocked (or its lock has exceeded a configured timeout, indicating a previous attempt is no
+  longer actually in progress), and its parameters match the current request, the lock is acquired and the request
   proceeds.
-* If a record exists, is unlocked (or its lock has exceeded a configured
-  timeout, indicating a previous attempt is no longer actually in progress),
-  and its parameters match the current request, the lock is acquired and the
-  request proceeds.
-* If a record exists and is currently locked by an in-progress attempt, the
-  server MUST respond with `409 Conflict`.
-* If a record exists whose stored parameters do not match the current
-  request's parameters, this is a reused key with a different payload; the
-  server MUST respond with `422 Unprocessable Entity`, per the reuse rule
-  above.
-* If a record exists and its status shows the request already finished, the
-  server short-circuits directly to the cache-and-replay behavior above,
-  returning the stored response without re-executing anything.
+* If a record exists and is currently locked by an in-progress attempt, the server MUST respond with `409 Conflict`.
+* If a record exists whose stored parameters do not match the current request's parameters, this is a reused key with a
+  different payload; the server MUST respond with `422 Unprocessable Entity`, per the reuse rule above.
+* If a record exists and its status shows the request already finished, the server short-circuits directly to the
+  cache-and-replay behavior above, returning the stored response without re-executing anything.
 
-This lookup-and-lock sequence MUST itself run under `SERIALIZABLE` isolation
-(see xref:043.adoc[*TS-43: Relational databases and SQL*] for the mechanism),
-so that two transactions racing to lock the same key are guaranteed to leave
-exactly one of them holding the lock and the other aborted, rather than both
-believing they hold it.
+This lookup-and-lock sequence MUST itself run under `SERIALIZABLE` isolation (see xref:043.adoc[*TS-43: Relational
+databases and SQL*] for the mechanism), so that two transactions racing to lock the same key are guaranteed to leave
+exactly one of them holding the lock and the other aborted, rather than both believing they hold it.
 
-If the request subsequently fails, the server SHOULD release the lock (set
-`locked_at` back to empty) as part of handling the failure, so that a client
-retry is not needlessly blocked behind a lock nothing will ever release.
+If the request subsequently fails, the server SHOULD release the lock (set `locked_at` back to empty) as part of
+handling the failure, so that a client retry is not needlessly blocked behind a lock nothing will ever release.
 
 == Idempotency keys with atomic phases
 
-The cache-and-replay mechanism above, together with locking, is sufficient
-for operations whose work is entirely local. For the genuinely
-non-idempotent operations described above – those involving a foreign state
-mutation – the idempotency-key record needs to carry more than a lock and a
-cached response: it needs to track *how far the request got*, so that a retry
-can resume rather than restart.
+The cache-and-replay mechanism above, together with locking, is sufficient for operations whose work is entirely local.
+For the genuinely non-idempotent operations described above – those involving a foreign state mutation – the
+idempotency-key record needs to carry more than a lock and a cached response: it needs to track *how far the request
+got*, so that a retry can resume rather than restart.
 
 === Recovery points and the request state machine
 
-Extend the idempotency-key record with a `recovery_point` field. Model the
-request's server-side work as a sequence of named checkpoints, starting at
-`started` and ending at `finished`, with one or more named checkpoints for
-the operation's specific stages in between, eg. `charge_created`,
-`payout_recorded`. Each checkpoint name marks a point the request has
-*durably* reached; the field is updated, as part of committing the work that
-reaches it, to the name of the checkpoint just passed.
+Extend the idempotency-key record with a `recovery_point` field. Model the request's server-side work as a sequence of
+named checkpoints, starting at `started` and ending at `finished`, with one or more named checkpoints for the
+operation's specific stages in between, eg. `charge_created`, `payout_recorded`. Each checkpoint name marks a point the
+request has *durably* reached; the field is updated, as part of committing the work that reaches it, to the name of the
+checkpoint just passed.
 
-A request implemented this way is a simple state machine whose states are its
-recovery points, forming a directed acyclic graph: execution moves forward
-through the checkpoints toward `finished` and never cycles back. On the
-original attempt, the request starts at `started` and works through each
-checkpoint in order. On a retried attempt bearing the same idempotency key,
-the server reads the stored `recovery_point` and resumes execution from
-there, skipping any checkpoint the request already durably reached, rather
-than re-running the whole request from the start.
+A request implemented this way is a simple state machine whose states are its recovery points, forming a directed
+acyclic graph: execution moves forward through the checkpoints toward `finished` and never cycles back. On the original
+attempt, the request starts at `started` and works through each checkpoint in order. On a retried attempt bearing the
+same idempotency key, the server reads the stored `recovery_point` and resumes execution from there, skipping any
+checkpoint the request already durably reached, rather than re-running the whole request from the start.
 
 === Atomic phases
 
-Each transition between recovery points is implemented as an *atomic phase*:
-a set of local, ACID-transactional state mutations, executed together with
-the update to `recovery_point` itself, that runs *between* two foreign state
-mutations (or between `started` and the first foreign mutation, or between
-the last foreign mutation and `finished`). Structure a multi-stage
-transaction's phases according to three rules:
+Each transition between recovery points is implemented as an *atomic phase*: a set of local, ACID-transactional state
+mutations, executed together with the update to `recovery_point` itself, that runs *between* two foreign state mutations
+(or between `started` and the first foreign mutation, or between the last foreign mutation and `finished`). Structure a
+multi-stage transaction's phases according to three rules:
 
-* The idempotency-key upsert and lock acquisition described above is its own
-  phase, always the first.
-* Every foreign state mutation gets its own phase, isolated from all others,
-  since it is the one part of the sequence a local transaction cannot make
-  atomic.
-* Every local state mutation that occurs between two foreign mutations (or
-  between the key upsert and the first foreign mutation, or between the last
-  foreign mutation and completion) is grouped into a single transaction,
-  committed before the next foreign mutation is attempted.
+* The idempotency-key upsert and lock acquisition described above is its own phase, always the first.
+* Every foreign state mutation gets its own phase, isolated from all others, since it is the one part of the sequence a
+  local transaction cannot make atomic.
+* Every local state mutation that occurs between two foreign mutations (or between the key upsert and the first foreign
+  mutation, or between the last foreign mutation and completion) is grouped into a single transaction, committed before
+  the next foreign mutation is attempted.
 
-Committing each local phase before the next foreign mutation begins is what
-makes the sequence resumable: the local database durably records what has
-already happened, so that if the process crashes or the foreign call itself
-fails, a retry knows – from the committed `recovery_point` – exactly which
-phase to resume from, rather than having to guess whether the last foreign
-call actually took effect.
+Committing each local phase before the next foreign mutation begins is what makes the sequence resumable: the local
+database durably records what has already happened, so that if the process crashes or the foreign call itself fails, a
+retry knows – from the committed `recovery_point` – exactly which phase to resume from, rather than having to guess
+whether the last foreign call actually took effect.
 
 == Foreign state mutations
 
-The distinction between local and foreign state exists because the two offer
-fundamentally different guarantees. *Local* mutations, made within the API's
-own ACID-compliant database, can always be rolled back cleanly if a
-transaction fails partway. *Foreign* mutations – calls to external services,
-including a payment gateway or a cloud provisioning API, but also, just as
-importantly, calls to the API's own supporting infrastructure, eg. publishing
-a message to a queue such as Kafka – are irreversible: once made, the effect
-has happened, whether or not anything else in the request subsequently fails.
-Internal infrastructure calls are foreign, not local, and MUST be treated
-with the same atomic-phase discipline as a call to a third-party service,
-however tempting it is to assume they are "part of" the local transaction.
+The distinction between local and foreign state exists because the two offer fundamentally different guarantees. *Local*
+mutations, made within the API's own ACID-compliant database, can always be rolled back cleanly if a transaction fails
+partway. *Foreign* mutations – calls to external services, including a payment gateway or a cloud provisioning API, but
+also, just as importantly, calls to the API's own supporting infrastructure, eg. publishing a message to a queue such as
+Kafka – are irreversible: once made, the effect has happened, whether or not anything else in the request subsequently
+fails. Internal infrastructure calls are foreign, not local, and MUST be treated with the same atomic-phase discipline
+as a call to a third-party service, however tempting it is to assume they are "part of" the local transaction.
 
 === Indeterminate errors
 
-Where a foreign state mutation fails, and the foreign service offers no
-idempotency mechanism of its own to make the mutation safely retryable, the
-server must decide how to record that failure. An error the foreign service
-reports explicitly (eg. a clear rejection) MAY be treated as a normal,
-retry-safe failure. But an *indeterminate* error – a connection reset, a
-timeout, or anything else where it cannot be established whether the foreign
-mutation actually took effect – MUST be treated conservatively, and recorded
-as permanently failed rather than retried, unless the foreign service
-provides an explicit "safe to retry" signal. Retrying an indeterminate
-failure risks performing the foreign mutation a second time with no way to
-detect that it has happened.
+Where a foreign state mutation fails, and the foreign service offers no idempotency mechanism of its own to make the
+mutation safely retryable, the server must decide how to record that failure. An error the foreign service reports
+explicitly (eg. a clear rejection) MAY be treated as a normal, retry-safe failure. But an *indeterminate* error – a
+connection reset, a timeout, or anything else where it cannot be established whether the foreign mutation actually took
+effect – MUST be treated conservatively, and recorded as permanently failed rather than retried, unless the foreign
+service provides an explicit "safe to retry" signal. Retrying an indeterminate failure risks performing the foreign
+mutation a second time with no way to detect that it has happened.
 
 === Completer and reaper
 
-Two background processes support the idempotency-key mechanism in
-production:
+Two background processes support the idempotency-key mechanism in production:
 
-* A *completer* periodically scans for idempotency-key records that are
-  locked but have not progressed for longer than would be expected, meaning
-  the originating client most likely disconnected before the request
-  finished. The completer resumes and drives these requests to completion
-  itself, from their last recovery point, so that abandoned requests do not
-  languish half-done indefinitely.
+* A *completer* periodically scans for idempotency-key records that are locked but have not progressed for longer than
+  would be expected, meaning the originating client most likely disconnected before the request finished. The completer
+  resumes and drives these requests to completion itself, from their last recovery point, so that abandoned requests do
+  not languish half-done indefinitely.
 
-* A *reaper* periodically deletes idempotency-key records older than a
-  documented retention threshold – around 72 hours is RECOMMENDED as a
-  starting point, long enough that a key survives across a bad deploy and an
-  ensuing weekend before recovery, without retaining records indefinitely.
-  The reaper is also an appropriate place to surface any request left in a
-  permanently-failed state (per indeterminate-error handling, above) for
-  human investigation, since these represent cases automated recovery
-  could not resolve on its own.
+* A *reaper* periodically deletes idempotency-key records older than a documented retention threshold – around 72 hours
+  is RECOMMENDED as a starting point, long enough that a key survives across a bad deploy and an ensuing weekend before
+  recovery, without retaining records indefinitely. The reaper is also an appropriate place to surface any request left
+  in a permanently-failed state (per indeterminate-error handling, above) for human investigation, since these represent
+  cases automated recovery could not resolve on its own.
 
 == Passive safety
 
-The idempotency mechanisms described in this section exist in service of a
-broader goal: *passive safety* – a backend that ends up in a stable,
-consistent state regardless of what fails along the way, without requiring a
-human to intervene to put things right. Request-scoped transactions and
-naturally-idempotent design (above) and idempotency keys with atomic phases
-are the two complementary techniques this standard relies on to achieve it:
-the former for operations confined to the local database, the latter for
-operations that must also coordinate with the world outside it. A backend
-built this way treats failure as expected, not exceptional, and is designed
-so that ordinary retries – rather than manual recovery – are enough to
-resolve it.
+The idempotency mechanisms described in this section exist in service of a broader goal: *passive safety* – a backend
+that ends up in a stable, consistent state regardless of what fails along the way, without requiring a human to
+intervene to put things right. Request-scoped transactions and naturally-idempotent design (above) and idempotency keys
+with atomic phases are the two complementary techniques this standard relies on to achieve it: the former for operations
+confined to the local database, the latter for operations that must also coordinate with the world outside it. A backend
+built this way treats failure as expected, not exceptional, and is designed so that ordinary retries – rather than
+manual recovery – are enough to resolve it.

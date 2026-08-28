@@ -1,270 +1,213 @@
 = Principles
 
-Making good quality CLI programs requires giving attention to all the little
-design details that affect the user experience. It's about keeping the user
-informed at all times about what's happening. It's about explaining clearly why
-errors happened and how they can be resolved. It's about good validation,
-sensible defaults, reasonable timeouts, and so on.
+Making good quality CLI programs requires giving attention to all the little design details that affect the user
+experience. It's about keeping the user informed at all times about what's happening. It's about explaining clearly why
+errors happened and how they can be resolved. It's about good validation, sensible defaults, reasonable timeouts, and so
+on.
 
-This section sets out some design principles that will help you to think through
-all the little details of your CLI programs.
+This section sets out some design principles that will help you to think through all the little details of your CLI
+programs.
 
 == Terminology
 
-This standard uses several terms – terminal, shell, tty, console, and
-terminal emulator – that are closely related and often used loosely as
-synonyms. They are not the same thing, and the distinction matters when
-reasoning about I/O, signals, and environment detection.
+This standard uses several terms – terminal, shell, tty, console, and terminal emulator – that are closely related and
+often used loosely as synonyms. They are not the same thing, and the distinction matters when reasoning about I/O,
+signals, and environment detection.
 
-*Shell.* The command-line interpreter a user interacts with directly – Bash,
-Zsh, `cmd.exe`, PowerShell, etc. Its primary purpose is to read commands and
-start other programs. A CLI program is normally invoked from a shell, but is
-not itself a shell.
+*Shell.* The command-line interpreter a user interacts with directly – Bash, Zsh, `cmd.exe`, PowerShell, etc. Its
+primary purpose is to read commands and start other programs. A CLI program is normally invoked from a shell, but is not
+itself a shell.
 
-*Terminal, in the Unix sense, and tty.* A text input/output environment: the
-thing that reads keystrokes and displays output. In Unix terminology,
-"terminal" is synonymous with tty – a particular kind of device file
-supporting a set of control operations (`ioctl`\s) beyond plain reads and
-writes. Some ttys are backed directly by a hardware device or a kernel-level
-virtual console; others, called pseudo-ttys (ptys), are provided through a
-thin kernel layer by a terminal emulator.
-
-*Terminal emulator.* A program that provides a pseudo-tty and renders it as a
-window or a remote session – for example Xterm, `screen`, `tmux`, or an SSH
-client connecting a local terminal to programs running on a remote machine.
-"Terminal," in its everyday sense, most often refers to this kind of program:
-a window with a keyboard and a display, standing in for the physical
-teleprinters the terminology originally described.
-
-*Console.* A terminal in the physical sense – conventionally, the primary
-terminal directly connected to a machine. It appears to the operating system
-as a tty like any other, so the distinction from "terminal" is about
-physical/primary status, not about the underlying mechanism.
-
-A CLI program's own I/O model – reading from standard input, writing to
-standard output and standard error, detecting whether it is attached to a
-tty (see <<Piping>>) – is the same regardless of which of
-these sits behind it. The terms matter mainly for correctly describing
-*where* a behavior applies: a `NO_COLOR`-style check is a tty check on the
-process's streams, not a check for any particular shell or terminal
+*Terminal, in the Unix sense, and tty.* A text input/output environment: the thing that reads keystrokes and displays
+output. In Unix terminology, "terminal" is synonymous with tty – a particular kind of device file supporting a set of
+control operations (`ioctl`\s) beyond plain reads and writes. Some ttys are backed directly by a hardware device or a
+kernel-level virtual console; others, called pseudo-ttys (ptys), are provided through a thin kernel layer by a terminal
 emulator.
+
+*Terminal emulator.* A program that provides a pseudo-tty and renders it as a window or a remote session – for example
+Xterm, `screen`, `tmux`, or an SSH client connecting a local terminal to programs running on a remote machine.
+"Terminal," in its everyday sense, most often refers to this kind of program: a window with a keyboard and a display,
+standing in for the physical teleprinters the terminology originally described.
+
+*Console.* A terminal in the physical sense – conventionally, the primary terminal directly connected to a machine. It
+appears to the operating system as a tty like any other, so the distinction from "terminal" is about physical/primary
+status, not about the underlying mechanism.
+
+A CLI program's own I/O model – reading from standard input, writing to standard output and standard error, detecting
+whether it is attached to a tty (see <<Piping>>) – is the same regardless of which of these sits behind it. The terms
+matter mainly for correctly describing *where* a behavior applies: a `NO_COLOR`-style check is a tty check on the
+process's streams, not a check for any particular shell or terminal emulator.
 
 == Simplicity
 
-Above all, robustness is achieved by keeping the program simple. Complex code
-and special-case handling make a program fragile and unpredictable: every
-branch is a place where an assumption can turn out to be wrong, and every
-edge case handled is an edge case that must be maintained. A CLI with fewer
-moving parts is easier to reason about, easier to test exhaustively, and less
-likely to surprise its users.
+Above all, robustness is achieved by keeping the program simple. Complex code and special-case handling make a program
+fragile and unpredictable: every branch is a place where an assumption can turn out to be wrong, and every edge case
+handled is an edge case that must be maintained. A CLI with fewer moving parts is easier to reason about, easier to test
+exhaustively, and less likely to surprise its users.
 
-Favor a small number of well-understood behaviors over a large number of
-special-cased ones. Where a feature would only handle a rare combination of
-inputs, consider whether the CLI is better off rejecting that combination
-outright, with a clear error, than trying to handle it correctly.
+Favor a small number of well-understood behaviors over a large number of special-cased ones. Where a feature would only
+handle a rare combination of inputs, consider whether the CLI is better off rejecting that combination outright, with a
+clear error, than trying to handle it correctly.
 
 == Composability
 
-Design CLI programs to be composable. This means that each program and
-subcommand should be designed do a small amount of work independently, but that
-it should be possible to combine multiple simple programs and commands to
-compose more complex operations. Your CLI programs might even be used by others
-in ways you did not anticipate.
+Design CLI programs to be composable. This means that each program and subcommand should be designed do a small amount
+of work independently, but that it should be possible to combine multiple simple programs and commands to compose more
+complex operations. Your CLI programs might even be used by others in ways you did not anticipate.
 
-This design principle is a key tenet of
-https://en.wikipedia.org/wiki/Unix_philosophy[the UNIX philosophy]. At a time of
-large-scale automation, in the form of CI/CD pipelines and container
-orchestration, this principle is as important today as it has ever been.
+This design principle is a key tenet of https://en.wikipedia.org/wiki/Unix_philosophy[the UNIX philosophy]. At a time of
+large-scale automation, in the form of CI/CD pipelines and container orchestration, this principle is as important today
+as it has ever been.
 
-Composable CLIs are achieved by following standard conventions for inputs and
-outputs for the program's runtime environment. In Unix-like environments, this
-means using standard in/out/err, signals, exit codes, arguments and flags,
-environment variables and other long-established conventions for input and
-output.
+Composable CLIs are achieved by following standard conventions for inputs and outputs for the program's runtime
+environment. In Unix-like environments, this means using standard in/out/err, signals, exit codes, arguments and flags,
+environment variables and other long-established conventions for input and output.
 
 == Design CLIs as conversations
 
-It is tempting to think about CLIs as programmatic interfaces, used in scripting
-and automation, rather than human interfaces. But we should design CLIs
-primarily with human users in mind. Even if a program is intended for use in
-automation, its client programs will still be developed by real people. Those
-people, the developers of the client programs, are the users.
+It is tempting to think about CLIs as programmatic interfaces, used in scripting and automation, rather than human
+interfaces. But we should design CLIs primarily with human users in mind. Even if a program is intended for use in
+automation, its client programs will still be developed by real people. Those people, the developers of the client
+programs, are the users.
 
-The user experience of a CLI should be like having a conversation with the
-computer.
+The user experience of a CLI should be like having a conversation with the computer.
 
-In CLIs, users provide input through a sequence of commands, each of which
-performs a specific task within a larger operation. For example, you `git add`
-files before you `git commit` them. The output of one command should guide the
-user to their next command. When the user inputs invalid data or uses an
-unsupported subcommand, the program should provide helpful suggestions or error
-messages to guide the user.
+In CLIs, users provide input through a sequence of commands, each of which performs a specific task within a larger
+operation. For example, you `git add` files before you `git commit` them. The output of one command should guide the
+user to their next command. When the user inputs invalid data or uses an unsupported subcommand, the program should
+provide helpful suggestions or error messages to guide the user.
 
-If the user enters an invalid command name, the program SHOULD suggest valid
-commands with similar spellings or semantics. For example, if the user inputs
-`upgrade`, the output might suggest the user try `update` or `install` instead.
-If the user inputs `ststus`, the output might suggest they meant `status`.
+If the user enters an invalid command name, the program SHOULD suggest valid commands with similar spellings or
+semantics. For example, if the user inputs `upgrade`, the output might suggest the user try `update` or `install`
+instead. If the user inputs `ststus`, the output might suggest they meant `status`.
 
-But you MUST NOT run the alternative operation without the user's explicit
-approval, unless it is a documented alias. Making assumptions about a user's
-intention can be dangerous, especially where operations may result in modified
-state.
+But you MUST NOT run the alternative operation without the user's explicit approval, unless it is a documented alias.
+Making assumptions about a user's intention can be dangerous, especially where operations may result in modified state.
 
 == Make CLIs discoverable
 
-CLIs should be self-documenting. Good help tests, with lots of examples, and
-suggestions on what commands the user might like to run next, and how they can
-fix errors – all of these things help users to _discover_ a program for
-themselves.
+CLIs should be self-documenting. Good help tests, with lots of examples, and suggestions on what commands the user might
+like to run next, and how they can fix errors – all of these things help users to _discover_ a program for themselves.
 
 == Communicate state changes
 
-If the program changes state, inform the user. This is especially important when
-a program enters intermediate state, while waiting for further user input, or
-when a failure mode puts the system into an invalid state.
+If the program changes state, inform the user. This is especially important when a program enters intermediate state,
+while waiting for further user input, or when a failure mode puts the system into an invalid state.
 
-Make it easy for the user to inspect the current state of CLI programs. The Git
-operation `git status` is a good model for this.
+Make it easy for the user to inspect the current state of CLI programs. The Git operation `git status` is a good model
+for this.
 
 == Prefer explicit actions
 
-Reading or writing files that the user did not explicitly pass as arguments,
-and talking to a remote server – for example, to check for updates or
-download a file – SHOULD usually be an explicit, visible action. Don't
-surprise the user with side effects they didn't ask for.
+Reading or writing files that the user did not explicitly pass as arguments, and talking to a remote server – for
+example, to check for updates or download a file – SHOULD usually be an explicit, visible action. Don't surprise the
+user with side effects they didn't ask for.
 
-The exception is storing internal program state, such as a cache or a
-telemetry queue (see <<Analytics>>). Users don't need to be told every time a
-program reads its own cache directory.
+The exception is storing internal program state, such as a cache or a telemetry queue (see <<Analytics>>). Users don't
+need to be told every time a program reads its own cache directory.
 
 == Analytics
 
-CLI programs MUST NOT phone home usage or crash data without the user's
-consent. Where a program does collect telemetry, be explicit with users about
-what is collected, why it is collected, how it is anonymized, and how long it
-is retained.
+CLI programs MUST NOT phone home usage or crash data without the user's consent. Where a program does collect telemetry,
+be explicit with users about what is collected, why it is collected, how it is anonymized, and how long it is retained.
 
-Prefer an opt-in model. Where telemetry is opt-out instead, tell users clearly
-that data is being collected and make it easy to disable – for example, via a
-`--no-analytics` flag or a `[APP]_NO_ANALYTICS` environment variable,
-mirroring the `NO_COLOR` convention (see <<Formatting>>).
+Prefer an opt-in model. Where telemetry is opt-out instead, tell users clearly that data is being collected and make it
+easy to disable – for example, via a `--no-analytics` flag or a `[APP]_NO_ANALYTICS` environment variable, mirroring the
+`NO_COLOR` convention (see <<Formatting>>).
 
-Consider alternatives to in-program telemetry before reaching for it: download
-counts from your package registry or website analytics on your documentation
-site often answer the same questions without instrumenting the CLI itself. And
-talking to users directly – support channels, issue trackers, user
-interviews – surfaces the "why", which telemetry cannot.
+Consider alternatives to in-program telemetry before reaching for it: download counts from your package registry or
+website analytics on your documentation site often answer the same questions without instrumenting the CLI itself. And
+talking to users directly – support channels, issue trackers, user interviews – surfaces the "why", which telemetry
+cannot.
 
 == Control output
 
-An essential design choice for CLI programs is the amount of output they produce
-by default. The optimum balance between too much and too little output will vary
-depending on the use cases of the program.
+An essential design choice for CLI programs is the amount of output they produce by default. The optimum balance between
+too much and too little output will vary depending on the use cases of the program.
 
-Users should be able to control the amount of output, for example by using
-`--quiet` and/or `--verbose` flags. It may also be desirable to allow users to
-control output formats, too. Flags such as `--plain` and `--json` are commonly
-used for this purpose.
+Users should be able to control the amount of output, for example by using `--quiet` and/or `--verbose` flags. It may
+also be desirable to allow users to control output formats, too. Flags such as `--plain` and `--json` are commonly used
+for this purpose.
 
 == Be responsive
 
-CLIs should respond quickly to user input. This means providing feedback in
-under 100ms and keeping the user informed of the progress of long operations,
-eg. using progress bars.
+CLIs should respond quickly to user input. This means providing feedback in under 100ms and keeping the user informed of
+the progress of long operations, eg. using progress bars.
 
-If you need to make a network request, try to do it in a non-blocking way. If
-that is not possible or desirable, print something before you initialize the
-request, so the UI doesn't hang and look broken if the network request times
-out. Set sensible defaults for network timeouts, and allow the user to override
-the default configuration.
+If you need to make a network request, try to do it in a non-blocking way. If that is not possible or desirable, print
+something before you initialize the request, so the UI doesn't hang and look broken if the network request times out.
+Set sensible defaults for network timeouts, and allow the user to override the default configuration.
 
 A responsive program _feels_ robust and dependable.
 
-Responsiveness also covers cold-start time – how long it takes the program to
-begin doing useful work after invocation, before any of its own feedback can
-be shown. As a rough guide: under 100ms feels instant; 100–500ms is a
-reasonable target for most CLIs; 500ms–2s is usable but noticeable; beyond 2s,
-users start to avoid the tool, scripting around it or reaching for
-alternatives. Startup time matters most for CLIs invoked frequently in tight
-loops – shell prompts, git hooks, editor integrations – where even a few
-hundred milliseconds compounds quickly.
+Responsiveness also covers cold-start time – how long it takes the program to begin doing useful work after invocation,
+before any of its own feedback can be shown. As a rough guide: under 100ms feels instant; 100–500ms is a reasonable
+target for most CLIs; 500ms–2s is usable but noticeable; beyond 2s, users start to avoid the tool, scripting around it
+or reaching for alternatives. Startup time matters most for CLIs invoked frequently in tight loops – shell prompts, git
+hooks, editor integrations – where even a few hundred milliseconds compounds quickly.
 
 == Parallelism
 
-Do stuff in parallel where you can, to speed up operations. But only do this if
-it can be done reliably. It is more important to be responsive and robust, than
-to be fast.
+Do stuff in parallel where you can, to speed up operations. But only do this if it can be done reliably. It is more
+important to be responsive and robust, than to be fast.
 
 == Crash-only
 
-Design your CLI as a "crash-only" program. This means that the program should
-exit immediately on failure or user interruption (`Ctrl+C`).
+Design your CLI as a "crash-only" program. This means that the program should exit immediately on failure or user
+interruption (`Ctrl+C`).
 
-Besides being safer, this also makes CLI programs _feel_ more responsive and
-robust.
+Besides being safer, this also makes CLI programs _feel_ more responsive and robust.
 
 == Idempotency
 
-Make requests idempotent where possible. This means that if a command fails, the
-user should be able to retry the command – simply by pressing `Up` and `Enter` –
-without causing unintended side effects.
+Make requests idempotent where possible. This means that if a command fails, the user should be able to retry the
+command – simply by pressing `Up` and `Enter` – without causing unintended side effects.
 
 == Defensive programming
 
-In designing a CLI, think through all the ways that users could misuse it. Ask
-yourself, how does the program perform when:
+In designing a CLI, think through all the ways that users could misuse it. Ask yourself, how does the program perform
+when:
 
 * it is used in a script;
 * when the user has a bad network connection;
 * when the user runs multiple instances of it at once;
 * when it runs in an unsupported environment.
 
-Plan and test for these use case scenarios. Fail gracefully whenever the program
-cannot handle the user's input or is otherwise unable to guarantee correct
-operation for whatever reason.
+Plan and test for these use case scenarios. Fail gracefully whenever the program cannot handle the user's input or is
+otherwise unable to guarantee correct operation for whatever reason.
 
 == Future proofing
 
-In software of any kind, it is important that interfaces do not change
-erratically. This is especially important in CLI programs, which are commonly
-dependencies of other programs.
+In software of any kind, it is important that interfaces do not change erratically. This is especially important in CLI
+programs, which are commonly dependencies of other programs.
 
-Subcommands, arguments, flags, configuration files, environment variables –
-these are all interfaces, and once your program starts using them you are
-committing to keeping them stable.
+Subcommands, arguments, flags, configuration files, environment variables – these are all interfaces, and once your
+program starts using them you are committing to keeping them stable.
 
-Major versions SHOULD endure with non-breaking changes for as long as possible –
-preferably indefinitely, for the whole lifespan of the program.
+Major versions SHOULD endure with non-breaking changes for as long as possible – preferably indefinitely, for the whole
+lifespan of the program.
 
-Use https://semver.org/[Semantic Versioning] for CLI programs. Reserve major
-version bumps for breaking changes to the interface – removed or renamed
-subcommands, flags, or environment variables; changed defaults; changed exit
-codes – so that users and downstream scripts can tell from the version number
-alone whether upgrading is safe.
+Use https://semver.org/[Semantic Versioning] for CLI programs. Reserve major version bumps for breaking changes to the
+interface – removed or renamed subcommands, flags, or environment variables; changed defaults; changed exit codes – so
+that users and downstream scripts can tell from the version number alone whether upgrading is safe.
 
 [quote, Linus Torvalds]
 ____
 We do not break userspace.
 ____
 
-Keep changes additive where you can. For example, rather than modifying the
-behavior of a flag (which would be backwards-incompatible), prefer instead to
-add a new flag. To avoid bloating the interface, the old flag can be marked as
-deprecated – but not removed until the next major version bump.
+Keep changes additive where you can. For example, rather than modifying the behavior of a flag (which would be
+backwards-incompatible), prefer instead to add a new flag. To avoid bloating the interface, the old flag can be marked
+as deprecated – but not removed until the next major version bump.
 
-Warn your users about deprecated operations. This gives them a chance to update
-their clients before they are broken by the next major release of your program.
-A good deprecation warning does three things: tells the user, at the moment
-they use the deprecated flag or subcommand, that it is going to change or be
-removed; shows them the future-proof alternative to switch to; and, where
-possible, detects when they have already updated their usage elsewhere and
-stops showing the warning, so it doesn't nag users who have nothing left to
-fix.
+Warn your users about deprecated operations. This gives them a chance to update their clients before they are broken by
+the next major release of your program. A good deprecation warning does three things: tells the user, at the moment they
+use the deprecated flag or subcommand, that it is going to change or be removed; shows them the future-proof alternative
+to switch to; and, where possible, detects when they have already updated their usage elsewhere and stops showing the
+warning, so it doesn't nag users who have nothing left to fix.
 
-Avoid creating time-bombs. Think about the future – how might your program work
-5, 10, 20 years from now? Can you guarantee it will still work in the same way?
-If you cannot guarantee this – due to dependencies on external components or
-services, for example – be sure to clearly document the reasons why. Don't
-build in a blocking call to a third-party analytics service, for example –
-if that service is ever discontinued or blocks the request, your program
-should not hang or fail because of it.
+Avoid creating time-bombs. Think about the future – how might your program work 5, 10, 20 years from now? Can you
+guarantee it will still work in the same way? If you cannot guarantee this – due to dependencies on external components
+or services, for example – be sure to clearly document the reasons why. Don't build in a blocking call to a third-party
+analytics service, for example – if that service is ever discontinued or blocks the request, your program should not
+hang or fail because of it.

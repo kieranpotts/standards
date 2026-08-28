@@ -1,40 +1,33 @@
 = Asynchronous programming
 
-Asynchronous programming lets a JavaScript program make calls to external
-systems without blocking the rest of the program from executing. It is widely
-used for I/O, timers, HTTP requests, and event-driven UIs.
+Asynchronous programming lets a JavaScript program make calls to external systems without blocking the rest of the
+program from executing. It is widely used for I/O, timers, HTTP requests, and event-driven UIs.
 
-Asynchronous programming in JavaScript is _not_ the same thing as concurrent
-programming. JavaScript runs on a single-threaded event loop: asynchronous
-operations are queued and their callbacks run when the main thread is free, but
-only one piece of JavaScript ever runs at a time. (True parallelism requires
-worker threads or separate processes.)
+Asynchronous programming in JavaScript is _not_ the same thing as concurrent programming. JavaScript runs on a
+single-threaded event loop: asynchronous operations are queued and their callbacks run when the main thread is free, but
+only one piece of JavaScript ever runs at a time. (True parallelism requires worker threads or separate processes.)
 
 [#callbacks]
 == Callbacks
 
-For a long time, callbacks were the only way to express asynchronous operations,
-leading to deeply nested control flow known as "callback hell". With promises
-and `async`/`await`, callbacks SHOULD be avoided for new code.
+For a long time, callbacks were the only way to express asynchronous operations, leading to deeply nested control flow
+known as "callback hell". With promises and `async`/`await`, callbacks SHOULD be avoided for new code.
 
-Where a callback API must still be consumed, follow the Node.js error-first
-convention: the callback's first argument is the error (or `null` on success),
-and subsequent arguments are the result. Never ignore the error argument.
+Where a callback API must still be consumed, follow the Node.js error-first convention: the callback's first argument is
+the error (or `null` on success), and subsequent arguments are the result. Never ignore the error argument.
 
 [#promises]
 == Promises
 
-A promise is an object representing the eventual result of an asynchronous
-operation. It is always in one of three states:
+A promise is an object representing the eventual result of an asynchronous operation. It is always in one of three
+states:
 
-* *Pending* – the operation has not completed; the promise holds no value
-  (the initial state).
+* *Pending* – the operation has not completed; the promise holds no value (the initial state).
 * *Fulfilled* – the operation succeeded; the promise holds a result value.
 * *Rejected* – the operation failed; the promise holds an error value.
 
-A promise is *settled* once it is either fulfilled or rejected; subsequent calls
-to `resolve` or `reject` have no effect. `then` registers fulfillment and
-rejection reactions and returns a new, dependent promise, which enables
+A promise is *settled* once it is either fulfilled or rejected; subsequent calls to `resolve` or `reject` have no
+effect. `then` registers fulfillment and rejection reactions and returns a new, dependent promise, which enables
 chaining:
 
 [source,javascript]
@@ -48,15 +41,13 @@ const p2 = p.then((value) => {
 })
 ----
 
-Promises avoid the pitfalls of event-driven code: reactions are scheduled even
-when attached after a promise has settled (no "lost events"), errors propagate
-along the chain, and chaining keeps code flat rather than nested.
+Promises avoid the pitfalls of event-driven code: reactions are scheduled even when attached after a promise has settled
+(no "lost events"), errors propagate along the chain, and chaining keeps code flat rather than nested.
 
 == `async`/`await`
 
-`async`/`await` provides a cleaner syntax over promises. An `async` function
-always returns a promise, and `await` pauses execution until a promise settles,
-reading its fulfilled value or throwing its rejection:
+`async`/`await` provides a cleaner syntax over promises. An `async` function always returns a promise, and `await`
+pauses execution until a promise settles, reading its fulfilled value or throwing its rejection:
 
 [source,javascript]
 ----
@@ -66,24 +57,21 @@ async function loadConfig () {
 }
 ----
 
-Errors propagate naturally: a rejected awaited promise throws, so `try`/`catch`
-works as expected. In ES modules, top-level `await` is supported at the module
-scope (in CommonJS it must be wrapped in an `async` block – see <<Modules>>).
+Errors propagate naturally: a rejected awaited promise throws, so `try`/`catch` works as expected. In ES modules,
+top-level `await` is supported at the module scope (in CommonJS it must be wrapped in an `async` block – see
+<<Modules>>).
 
 == Combining promises
 
-* *`Promise.all`.* Resolves with an array of results once _all_ input promises
-  fulfill, or rejects as soon as any one rejects.
+* *`Promise.all`.* Resolves with an array of results once _all_ input promises fulfill, or rejects as soon as any one
+  rejects.
 
-* *`Promise.allSettled`.* Resolves once all input promises have settled,
-  returning each as `{ status, value }` or `{ status, reason }`; it never
-  rejects. Use this when you want every result regardless of individual
-  failures.
+* *`Promise.allSettled`.* Resolves once all input promises have settled, returning each as `{ status, value }` or
+  `{ status, reason }`; it never rejects. Use this when you want every result regardless of individual failures.
 
 * *`Promise.race`.* Settles the same way as the first input promise to settle.
 
-* *`Promise.any`.* Resolves with the first input promise to fulfill, or rejects
-  if all reject.
+* *`Promise.any`.* Resolves with the first input promise to fulfill, or rejects if all reject.
 
 [source,javascript]
 ----
@@ -95,9 +83,8 @@ const [users, config] = await Promise.all([
 
 == Async functions within loops
 
-`async`/`await` MUST NOT be used inside higher-order functions such as
-`forEach()`, which do not await the callback – the enclosing function will
-return before the asynchronous work completes:
+`async`/`await` MUST NOT be used inside higher-order functions such as `forEach()`, which do not await the callback –
+the enclosing function will return before the asynchronous work completes:
 
 [source,javascript]
 ----
@@ -111,8 +98,7 @@ async function printFiles () {
 }
 ----
 
-To run the iterations in sequence (preserving order), use a `for...of` loop,
-where `await` works as expected:
+To run the iterations in sequence (preserving order), use a `for...of` loop, where `await` works as expected:
 
 [source,javascript]
 ----
@@ -140,11 +126,9 @@ async function printFiles () {
 
 == Async iterators
 
-If you want to handle data as it becomes available when individual promises in a
-collection resolve – rather than waiting for all of them – use _async iterators_.
-The `for await...of` construct is the easiest pattern for iterating through the
-results of a collection of promises; `forEach` cannot be used (you cannot
-`await` it).
+If you want to handle data as it becomes available when individual promises in a collection resolve – rather than
+waiting for all of them – use _async iterators_. The `for await...of` construct is the easiest pattern for iterating
+through the results of a collection of promises; `forEach` cannot be used (you cannot `await` it).
 
 [source,javascript]
 ----
@@ -155,22 +139,20 @@ for await (const file of g) {
 }
 ----
 
-This reads results in sequence. To read them in parallel, combine `Promise.all`
-with `Array.prototype.map` mapping to an `async` callback (as above).
+This reads results in sequence. To read them in parallel, combine `Promise.all` with `Array.prototype.map` mapping to an
+`async` callback (as above).
 
 == Promise constructors
 
-Use of `Promise` constructors (i.e. `new Promise()`) is considered an
-anti-pattern: it is almost always unnecessary, and wrapping existing promises in
-a constructor reintroduces the error-handling problems that promises were
-designed to solve. Prefer `async`/`await`, or chain existing promises directly.
+Use of `Promise` constructors (i.e. `new Promise()`) is considered an anti-pattern: it is almost always unnecessary, and
+wrapping existing promises in a constructor reintroduces the error-handling problems that promises were designed to
+solve. Prefer `async`/`await`, or chain existing promises directly.
 
 == Asynchronous constructors
 
-A class `constructor` cannot be `async`, and `await` cannot be used to delay the
-return of a `new` instance. If construction needs to run asynchronous work, store
-the promise from an immediately-invoked async function expression and expose an
-asynchronous initializer or asynchronous methods that `await` it:
+A class `constructor` cannot be `async`, and `await` cannot be used to delay the return of a `new` instance. If
+construction needs to run asynchronous work, store the promise from an immediately-invoked async function expression and
+expose an asynchronous initializer or asynchronous methods that `await` it:
 
 [source,javascript]
 ----
@@ -193,8 +175,6 @@ const inst = new ExampleClass()
 await inst.otherMethod()
 ----
 
-Making the consuming methods asynchronous is preferred over an `initialized`
-property that callers must remember to `await`, because the external API is
-cleaner and the instance is always in a valid state when its methods run. If the
-asynchronous dependency is needed by only one method, move the call out of the
-constructor into that method.
+Making the consuming methods asynchronous is preferred over an `initialized` property that callers must remember to
+`await`, because the external API is cleaner and the instance is always in a valid state when its methods run. If the
+asynchronous dependency is needed by only one method, move the call out of the constructor into that method.

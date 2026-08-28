@@ -1,13 +1,11 @@
 = Dependencies
 
-Dependence on third-party libraries and services SHOULD be kept to a minimum.
-Each dependency adds complexity, potential security vulnerabilities, and
-maintenance overhead.
+Dependence on third-party libraries and services SHOULD be kept to a minimum. Each dependency adds complexity, potential
+security vulnerabilities, and maintenance overhead.
 
-Excessive dependencies can lead to "dependency hell", where conflicting or
-outdated dependencies make it difficult to build, test, and deploy an
-application. They also make it harder to roll back to previous versions or to
-check out and rebuild any earlier version of the application.
+Excessive dependencies can lead to "dependency hell", where conflicting or outdated dependencies make it difficult to
+build, test, and deploy an application. They also make it harder to roll back to previous versions or to check out and
+rebuild any earlier version of the application.
 
 [quote, Shay Friedman]
 ____
@@ -17,112 +15,92 @@ Drinking game for web devs: +
 (3) If a library with that name exists — drink
 ____
 
-It's not uncommon for a new Ruby on Rails project to install a hundred or so
-dependencies out-of-the-box, before you've even written a single line of
-application code. Creating a new React app (`npx create-react-app my-app`)
-similarly results in a large number of dependencies being installed by default –
-hundreds of modules, accounting for hundreds of MBs of disk space.
+It's not uncommon for a new Ruby on Rails project to install a hundred or so dependencies out-of-the-box, before you've
+even written a single line of application code. Creating a new React app (`npx create-react-app my-app`) similarly
+results in a large number of dependencies being installed by default – hundreds of modules, accounting for hundreds of
+MBs of disk space.
 
-Every dependency you add gives some degree of control over your application to a
-third party – someone you don't know and whom you will probably never meet. This
-has all sorts of maintenance and security implications.
+Every dependency you add gives some degree of control over your application to a third party – someone you don't know
+and whom you will probably never meet. This has all sorts of maintenance and security implications.
 
-In 2016 a prolific developer of JavaScript libraries suddenly removed them all
-from the NPM repository. One of which, named `left-pad`, was a tiny library used
-by thousands of other libraries, including mainstream tools and frameworks like
-Babel and React. The removal of this tiny library broke thousands of builds
-around the world, causing widespread disruption.
+In 2016 a prolific developer of JavaScript libraries suddenly removed them all from the NPM repository. One of which,
+named `left-pad`, was a tiny library used by thousands of other libraries, including mainstream tools and frameworks
+like Babel and React. The removal of this tiny library broke thousands of builds around the world, causing widespread
+disruption.
 
-In 2024 a critical vulnerability (CVE-2024-3094) was discovered in a widely-used
-compression library called XZ. The library was used by, among others, the
-OpenSSH daemon, meaning there was a potential backdoor into many of the world's
+In 2024 a critical vulnerability (CVE-2024-3094) was discovered in a widely-used compression library called XZ. The
+library was used by, among others, the OpenSSH daemon, meaning there was a potential backdoor into many of the world's
 servers via a supposedly secure data transport protocol.
 
-Each dependency you add — including everything bundled with your application
-framework — MUST be carefully considered and justified. Before adding a
-dependency, verify its provenance, examine the dependency tree, and review its
-code and tests.
+Each dependency you add — including everything bundled with your application framework — MUST be carefully considered
+and justified. Before adding a dependency, verify its provenance, examine the dependency tree, and review its code and
+tests.
 
-Keep dependencies updated. Incremental updates are much easier to manage than
-allowing them to accumulate. And regularly audit dependencies for security
-vulnerabilities using automated tools. Vulnerabilities may surface after you've
+Keep dependencies updated. Incremental updates are much easier to manage than allowing them to accumulate. And regularly
+audit dependencies for security vulnerabilities using automated tools. Vulnerabilities may surface after you've
 installed them.
 
-These checks are more critical for components that will become part of your
-application's runtime, than it is for development and operations tools that are
-used only during the build and test phases of your development workflow. But
-even these tools should be carefully considered. After all, they have access to
-your source code and your build environment, and they represent an increased
-attack surface for supply-chain attacks.
+These checks are more critical for components that will become part of your application's runtime, than it is for
+development and operations tools that are used only during the build and test phases of your development workflow. But
+even these tools should be carefully considered. After all, they have access to your source code and your build
+environment, and they represent an increased attack surface for supply-chain attacks.
 
 == Application frameworks
 
-Application frameworks are dependencies that provide a skeleton structure for
-building applications. Common examples include Express.js, Django, Ruby on
-Rails, and Spring.
+Application frameworks are dependencies that provide a skeleton structure for building applications. Common examples
+include Express.js, Django, Ruby on Rails, and Spring.
 
-When adopting a framework, align your application architecture with the patterns
-and best practices that the framework enforces. For example, if using a
-Model-View-Controller (MVC) framework, structure your application around MVC
+When adopting a framework, align your application architecture with the patterns and best practices that the framework
+enforces. For example, if using a Model-View-Controller (MVC) framework, structure your application around MVC
 principles.
 
-Choose a framework based on your application's specific requirements, not on its
-feature count, popularity, or what colleagues are using. Select a framework you
-understand well. Prefer frameworks with a proven track record of stability and
-longevity over newer alternatives.
+Choose a framework based on your application's specific requirements, not on its feature count, popularity, or what
+colleagues are using. Select a framework you understand well. Prefer frameworks with a proven track record of stability
+and longevity over newer alternatives.
 
 == Vendor facades
 
-To minimize coupling on third-party frameworks and libraries, applications
-SHOULD implement facades for all vendor dependencies. These facades SHOULD be
-implemented in a dedicated *vendors* layer of the application's architecture.
+To minimize coupling on third-party frameworks and libraries, applications SHOULD implement facades for all vendor
+dependencies. These facades SHOULD be implemented in a dedicated *vendors* layer of the application's architecture.
 
-This approach isolates your codebase from external library implementations. If a
-third-party library's API changes or must be replaced with an alternative, only
-the facade requires updating. The rest of your application remains unchanged, as
-it depends solely on the facade's interface.
+This approach isolates your codebase from external library implementations. If a third-party library's API changes or
+must be replaced with an alternative, only the facade requires updating. The rest of your application remains unchanged,
+as it depends solely on the facade's interface.
 
-Ideally, even framework components should be surfaced in an application through
-facades, the interfaces to which are specified by the application. This has the
-effect of better decoupling application code from any particular framework. But
-in practice this is not always practical. It is very difficult, for example, to
-build a React GUI without strong coupling to the React framework.
+Ideally, even framework components should be surfaced in an application through facades, the interfaces to which are
+specified by the application. This has the effect of better decoupling application code from any particular framework.
+But in practice this is not always practical. It is very difficult, for example, to build a React GUI without strong
+coupling to the React framework.
 
 == Graceful degradation
 
-Applications MUST fail gracefully when external dependencies are unavailable or
-performing unacceptably (eg. high latency).
+Applications MUST fail gracefully when external dependencies are unavailable or performing unacceptably (eg. high
+latency).
 
-Graceful degradation means your application continues to function — albeit with
-reduced capability — when a dependency fails or becomes unreliable. Rather than
-crashing or presenting broken functionality to users, the application should
+Graceful degradation means your application continues to function — albeit with reduced capability — when a dependency
+fails or becomes unreliable. Rather than crashing or presenting broken functionality to users, the application should
 detect the failure and adapt its behavior appropriately.
 
-For example, if a feature depends on an external API that becomes unavailable,
-your application might disable that feature temporarily while preserving core
-functionality. A recommendation engine could fall back to a simpler algorithm. A
-real-time messaging service might queue messages locally until the connection is
-restored. And a caching layer can serve stale data when a downstream service is
-slow, allowing users to proceed rather than waiting indefinitely. And so on.
+For example, if a feature depends on an external API that becomes unavailable, your application might disable that
+feature temporarily while preserving core functionality. A recommendation engine could fall back to a simpler algorithm.
+A real-time messaging service might queue messages locally until the connection is restored. And a caching layer can
+serve stale data when a downstream service is slow, allowing users to proceed rather than waiting indefinitely. And so
+on.
 
-Implementing graceful degradation requires anticipating failure modes for each
-critical dependency. Define what the minimal viable behavior is when that
-dependency fails, and implement fallback logic accordingly.
+Implementing graceful degradation requires anticipating failure modes for each critical dependency. Define what the
+minimal viable behavior is when that dependency fails, and implement fallback logic accordingly.
 
-Set reasonable timeouts to prevent users from being stuck waiting. Log failures
-so your operations team can investigate. And test failure scenarios regularly —
-do not assume graceful degradation code works if it has never been executed
+Set reasonable timeouts to prevent users from being stuck waiting. Log failures so your operations team can investigate.
+And test failure scenarios regularly — do not assume graceful degradation code works if it has never been executed
 during testing or in production.
 
 == Favor proven technology
 
-Prefer technology with a long track record of production use over newer
-alternatives, and this applies to every technology choice an application
-makes — not only application frameworks, but databases, languages, protocols,
-runtimes, and message brokers as well. A technology that
-has survived years of real-world use has already had its rough edges found and
-fixed by others, has a mature ecosystem of tooling and documentation, and has a
-larger pool of engineers who already know it.
+Prefer technology with a long track record of production use over newer alternatives, and this applies to every
+technology choice an application makes — not only application frameworks, but databases, languages, protocols, runtimes,
+and message brokers as well. A technology that has survived years of real-world use has already had its rough edges
+found and fixed by others, has a mature ecosystem of tooling and documentation, and has a larger pool of engineers who
+already know it.
 
 [quote, Dan McKinley]
 ____
@@ -132,105 +110,81 @@ living fossil, it's a fossil that's still alive because it's really good at
 what it does.
 ____
 
-This is not a call to reject new technology outright. It is a requirement that
-newer alternatives clear a higher bar of justification before displacing an
-established, working technology. Replace a proven technology only for a
-concrete, well-evidenced reason — a hard scaling limit, a missing capability
-the domain genuinely requires, or an unacceptable cost — not because the
-alternative is fashionable or because a competitor uses it.
+This is not a call to reject new technology outright. It is a requirement that newer alternatives clear a higher bar of
+justification before displacing an established, working technology. Replace a proven technology only for a concrete,
+well-evidenced reason — a hard scaling limit, a missing capability the domain genuinely requires, or an unacceptable
+cost — not because the alternative is fashionable or because a competitor uses it.
 
 == Triggers for adopting new technology
 
-Introducing a new technology has a cost — the learning curve, the operational
-burden of running one more system, and the long-term maintenance commitment.
-That cost SHOULD be weighed against a concrete problem, not incurred on
-spec. Reserve new technology adoption for cases where an existing part of the
-stack has hit a real limit:
+Introducing a new technology has a cost — the learning curve, the operational burden of running one more system, and the
+long-term maintenance commitment. That cost SHOULD be weighed against a concrete problem, not incurred on spec. Reserve
+new technology adoption for cases where an existing part of the stack has hit a real limit:
 
-* *Cost.* An existing solution has become prohibitively expensive to run or
-  license at the application's current or projected scale.
+* *Cost.* An existing solution has become prohibitively expensive to run or license at the application's current or
+  projected scale.
 
-* *Scale.* An existing solution has hit a hard technical ceiling — throughput,
-  latency, data volume — that reengineering effort cannot resolve.
+* *Scale.* An existing solution has hit a hard technical ceiling — throughput, latency, data volume — that reengineering
+  effort cannot resolve.
 
-* *New requirements.* A new customer or business requirement cannot be met by
-  any technology already in the stack, however it is reconfigured.
+* *New requirements.* A new customer or business requirement cannot be met by any technology already in the stack,
+  however it is reconfigured.
 
-Each of these triggers raises an explicit build-vs-buy question: extend or
-reconfigure what you already run, build the missing capability in-house, or
-adopt a new off-the-shelf technology or vendor service. Building in-house
-avoids adding an external dependency but commits the team to owning the
-capability's maintenance indefinitely; buying (or adopting an open-source
-alternative) shifts that maintenance burden outward at the cost of the
-dependency risk described earlier in this section. Make the choice explicit
-and record the reasoning — do not let a new technology enter the stack by
-accretion, one convenient library at a time, with no one having weighed the
-alternative.
+Each of these triggers raises an explicit build-vs-buy question: extend or reconfigure what you already run, build the
+missing capability in-house, or adopt a new off-the-shelf technology or vendor service. Building in-house avoids adding
+an external dependency but commits the team to owning the capability's maintenance indefinitely; buying (or adopting an
+open-source alternative) shifts that maintenance burden outward at the cost of the dependency risk described earlier in
+this section. Make the choice explicit and record the reasoning — do not let a new technology enter the stack by
+accretion, one convenient library at a time, with no one having weighed the alternative.
 
 == Technology selection criteria
 
-Weigh a technology choice against a consistent set of criteria that
-deliberately mixes technical and business factors, rather than on a single
-axis such as raw performance or popularity:
+Weigh a technology choice against a consistent set of criteria that deliberately mixes technical and business factors,
+rather than on a single axis such as raw performance or popularity:
 
-* *Performance and scalability.* Does it meet the application's current and
-  foreseeable throughput, latency, and data-volume requirements?
+* *Performance and scalability.* Does it meet the application's current and foreseeable throughput, latency, and
+  data-volume requirements?
 
-* *Cost.* What is the total cost of ownership — license or usage fees,
-  infrastructure to run it, and the engineering time to operate and maintain
-  it?
+* *Cost.* What is the total cost of ownership — license or usage fees, infrastructure to run it, and the engineering
+  time to operate and maintain it?
 
-* *Reliability.* What is its track record for uptime and correctness, and
-  what support or SLA backs it when something goes wrong?
+* *Reliability.* What is its track record for uptime and correctness, and what support or SLA backs it when something
+  goes wrong?
 
-* *Support and maturity.* Is it actively maintained, with a healthy community
-  or vendor behind it, and documentation and tooling mature enough that the
-  team is not the first to hit a given problem?
+* *Support and maturity.* Is it actively maintained, with a healthy community or vendor behind it, and documentation and
+  tooling mature enough that the team is not the first to hit a given problem?
 
-* *Flexibility and interoperability.* Does it integrate cleanly with the rest
-  of the stack, and does it avoid locking the application into a proprietary
-  format or protocol that would be costly to migrate away from later?
+* *Flexibility and interoperability.* Does it integrate cleanly with the rest of the stack, and does it avoid locking
+  the application into a proprietary format or protocol that would be costly to migrate away from later?
 
-No technology will score best on every criterion. The point of naming them
-explicitly is to make the trade-off visible and deliberate, rather than
-implicit in whoever happened to propose the technology.
+No technology will score best on every criterion. The point of naming them explicitly is to make the trade-off visible
+and deliberate, rather than implicit in whoever happened to propose the technology.
 
 == Adoption process
 
-Adopt a new technology only once the team fully understands why it is needed,
-what it does, and how it works — not on the strength of a conference talk or a
-vendor's marketing. Where that understanding is not yet there, invest in
-building it before committing production traffic to the technology.
+Adopt a new technology only once the team fully understands why it is needed, what it does, and how it works — not on
+the strength of a conference talk or a vendor's marketing. Where that understanding is not yet there, invest in building
+it before committing production traffic to the technology.
 
-Pilot new technology at a small scale before committing to it broadly. Run it
-against a narrow, low-risk slice of real production traffic or data first,
-and use that pilot to validate the technology's operational characteristics —
-failure modes, performance under real load, and the operational burden of
-running it — before extending it to critical paths. A technology that looks
-good in a proof-of-concept can still fail this test once it meets production
-conditions.
+Pilot new technology at a small scale before committing to it broadly. Run it against a narrow, low-risk slice of real
+production traffic or data first, and use that pilot to validate the technology's operational characteristics — failure
+modes, performance under real load, and the operational burden of running it — before extending it to critical paths. A
+technology that looks good in a proof-of-concept can still fail this test once it meets production conditions.
 
-Larger organizations SHOULD establish a structural process for evaluating and
-introducing new technology — for example, an architecture review — rather
-than leaving each team to adopt independently. This keeps the technology
-selection criteria above applied consistently, and keeps the organization's
-technology portfolio from fragmenting into a different stack per team.
+Larger organizations SHOULD establish a structural process for evaluating and introducing new technology — for example,
+an architecture review — rather than leaving each team to adopt independently. This keeps the technology selection
+criteria above applied consistently, and keeps the organization's technology portfolio from fragmenting into a different
+stack per team.
 
 == Design for change: prefer open standards
 
-Where a choice exists between a proprietary technology and one built on an
-open standard, prefer the open standard, and prefer an implementation that is
-free and open source (FOSS) over a proprietary one. This is a complement to
-the <<Vendor facades>> pattern described above: facades mitigate lock-in
-mechanically, by containing the blast radius of a vendor-specific dependency
-to one layer of the codebase, but they do not eliminate the underlying risk
-that the facade wraps a proprietary format, protocol, or API that has no
-alternative implementation. An open standard, by contrast, can in principle be
-implemented by more than one vendor, which keeps a migration path open even
-where no facade was written.
+Where a choice exists between a proprietary technology and one built on an open standard, prefer the open standard, and
+prefer an implementation that is free and open source (FOSS) over a proprietary one. This is a complement to the
+<<Vendor facades>> pattern described above: facades mitigate lock-in mechanically, by containing the blast radius of a
+vendor-specific dependency to one layer of the codebase, but they do not eliminate the underlying risk that the facade
+wraps a proprietary format, protocol, or API that has no alternative implementation. An open standard, by contrast, can
+in principle be implemented by more than one vendor, which keeps a migration path open even where no facade was written.
 
-This preference is not absolute. A proprietary technology may still be the
-right choice where it offers capabilities no open alternative provides, or
-where the switching cost it introduces is one the organization has explicitly
-accepted. But the default, all else being equal, SHOULD favor the option that
-keeps the application portable.
+This preference is not absolute. A proprietary technology may still be the right choice where it offers capabilities no
+open alternative provides, or where the switching cost it introduces is one the organization has explicitly accepted.
+But the default, all else being equal, SHOULD favor the option that keeps the application portable.

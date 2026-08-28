@@ -3,313 +3,236 @@
 .TL;DR
 ****
 * Prefer composition over inheritance. Avoid deep OOP inheritance hierarchies.
-* Prefer polymorphism to if/else or switch/case chains that discriminate on
-  object type.
-* Follow the Law of Demeter: don't reach through objects to access their
-  internals.
-* Objects hide data and expose behavior. Data structures expose data and have no
-  significant behavior. Don't conflate them.
-* Avoid "hybrid" classes that expose their data but also contain significant
-  business logic.
-* Prefer value objects over raw primitive types for domain concepts (avoid
-  primitive obsession).
-* Encapsulate boundary conditions in dedicated abstractions rather than
-  scattering them throughout the codebase.
+* Prefer polymorphism to if/else or switch/case chains that discriminate on object type.
+* Follow the Law of Demeter: don't reach through objects to access their internals.
+* Objects hide data and expose behavior. Data structures expose data and have no significant behavior. Don't conflate
+  them.
+* Avoid "hybrid" classes that expose their data but also contain significant business logic.
+* Prefer value objects over raw primitive types for domain concepts (avoid primitive obsession).
+* Encapsulate boundary conditions in dedicated abstractions rather than scattering them throughout the codebase.
 * Prefer non-static methods to static ones.
-* SOLID names five design principles this standard already largely follows –
-  know the names, and apply the two (LSP, ISP) not otherwise covered here.
+* SOLID names five design principles this standard already largely follows – know the names, and apply the two (LSP,
+  ISP) not otherwise covered here.
 ****
 
-The following guidance extends the general advice on abstraction to the specific
-patterns and pitfalls of object-oriented programming.
+The following guidance extends the general advice on abstraction to the specific patterns and pitfalls of
+object-oriented programming.
 
 == SOLID
 
-SOLID is a mnemonic for five object-oriented design principles: Single
-Responsibility, Open-Closed, Liskov Substitution, Interface Segregation, and
-Dependency Inversion. The principles were formulated for OO languages, but
-each has a natural restatement for multi-paradigm, dynamic, and functional
-code, where the "module" in question may be a function, a exported object, or
-a file rather than a class.
+SOLID is a mnemonic for five object-oriented design principles: Single Responsibility, Open-Closed, Liskov Substitution,
+Interface Segregation, and Dependency Inversion. The principles were formulated for OO languages, but each has a natural
+restatement for multi-paradigm, dynamic, and functional code, where the "module" in question may be a function, a
+exported object, or a file rather than a class.
 
-Much of SOLID is already covered elsewhere in this standard, under different
-names. Single Responsibility is the focus of
-<<Keep methods and classes focused>>. Open-Closed is the outcome of
-<<Polymorphism over conditionals>>. Dependency Inversion is the principle
-behind <<Dependency injection>>. This section names those connections
-explicitly, and adds the two principles – Liskov Substitution and Interface
-Segregation – that TS-7 does not otherwise state.
+Much of SOLID is already covered elsewhere in this standard, under different names. Single Responsibility is the focus
+of <<Keep methods and classes focused>>. Open-Closed is the outcome of <<Polymorphism over conditionals>>. Dependency
+Inversion is the principle behind <<Dependency injection>>. This section names those connections explicitly, and adds
+the two principles – Liskov Substitution and Interface Segregation – that TS-7 does not otherwise state.
 
-Knowing the SOLID names is useful independent of the guidance itself: they
-give a shared vocabulary for code review discussions, and searching for
-"violates SRP" or "violates OCP" surfaces a much larger body of external
-material than any bespoke terminology this standard could invent.
+Knowing the SOLID names is useful independent of the guidance itself: they give a shared vocabulary for code review
+discussions, and searching for "violates SRP" or "violates OCP" surfaces a much larger body of external material than
+any bespoke terminology this standard could invent.
 
 === Liskov Substitution Principle
 
-A subtype must be substitutable for its base type without altering the
-correctness of the program. Any code written against the base type's
-interface should continue to behave correctly when a subtype is passed in
-its place.
+A subtype must be substitutable for its base type without altering the correctness of the program. Any code written
+against the base type's interface should continue to behave correctly when a subtype is passed in its place.
 
-Concretely, this means a subtype must not strengthen the preconditions its
-base type promises to accept, and must not weaken the postconditions its
-base type promises to deliver. A method override that throws on inputs its
-base class accepted, or that returns a narrower range of results than its
-base class documented, violates the principle – callers written against the
-base type's contract will break when handed the subtype, even though the
-type system raises no error.
+Concretely, this means a subtype must not strengthen the preconditions its base type promises to accept, and must not
+weaken the postconditions its base type promises to deliver. A method override that throws on inputs its base class
+accepted, or that returns a narrower range of results than its base class documented, violates the principle – callers
+written against the base type's contract will break when handed the subtype, even though the type system raises no
+error.
 
-In duck-typed and functional code, where there is no formal subtype
-relationship, the same discipline applies to any code that conforms to a
-shared interface or is passed as a substitutable implementation: keep the
-promises the interface declares. A retry-wrapped implementation of a
-function MUST accept everything the unwrapped version accepts and MUST
-deliver everything it promises to deliver – it MAY do more, such as retrying
-internally, but MUST NOT do less.
+In duck-typed and functional code, where there is no formal subtype relationship, the same discipline applies to any
+code that conforms to a shared interface or is passed as a substitutable implementation: keep the promises the interface
+declares. A retry-wrapped implementation of a function MUST accept everything the unwrapped version accepts and MUST
+deliver everything it promises to deliver – it MAY do more, such as retrying internally, but MUST NOT do less.
 
-A common symptom of an LSP violation is calling code that has to check the
-concrete type of an object before it can safely call a method on it – for
-example, testing whether an object is a specific subtype before calling a
-method that is only safe on some subtypes. Where such a check exists, one of
-the implementations is not honoring the shared contract, and the fix is to
-either strengthen that implementation to honor it, or to recognize that the
-two types do not actually belong in the same hierarchy.
+A common symptom of an LSP violation is calling code that has to check the concrete type of an object before it can
+safely call a method on it – for example, testing whether an object is a specific subtype before calling a method that
+is only safe on some subtypes. Where such a check exists, one of the implementations is not honoring the shared
+contract, and the fix is to either strengthen that implementation to honor it, or to recognize that the two types do not
+actually belong in the same hierarchy.
 
 === Interface Segregation Principle
 
-Clients should not be forced to depend on interface members they do not use.
-A large, general-purpose interface that bundles together methods serving
-several unrelated clients forces each client to depend on – and be affected
-by changes to – the whole interface, including the parts it never calls.
+Clients should not be forced to depend on interface members they do not use. A large, general-purpose interface that
+bundles together methods serving several unrelated clients forces each client to depend on – and be affected by changes
+to – the whole interface, including the parts it never calls.
 
-Prefer several small, role-specific interfaces over one broad interface.
-Where different callers use a component for genuinely different purposes,
-define a separate interface for each purpose, even if a single concrete
-class implements all of them. A caller that only ever reads from a
-repository should depend on a read-only interface, not the full
+Prefer several small, role-specific interfaces over one broad interface. Where different callers use a component for
+genuinely different purposes, define a separate interface for each purpose, even if a single concrete class implements
+all of them. A caller that only ever reads from a repository should depend on a read-only interface, not the full
 read-write interface, even if the underlying implementation supports both.
 
-The benefit is reduced coupling. A client that depends only on the interface
-it actually uses is unaffected when the broader component changes in ways
-that do not touch that interface, and the interface it depends on is easier
-to understand and to substitute with a test double, because it only exposes
-what that client needs to see.
+The benefit is reduced coupling. A client that depends only on the interface it actually uses is unaffected when the
+broader component changes in ways that do not touch that interface, and the interface it depends on is easier to
+understand and to substitute with a test double, because it only exposes what that client needs to see.
 
 == Composition over inheritance
 
-Inheritance is a design pattern supported by object-oriented programming
-languages that enables abstraction. However, inheritance encourages high levels
-of abstraction. Since shallow abstractions should be preferred over deep ones,
-it follows that deep inheritance hierarchies should be avoided.
+Inheritance is a design pattern supported by object-oriented programming languages that enables abstraction. However,
+inheritance encourages high levels of abstraction. Since shallow abstractions should be preferred over deep ones, it
+follows that deep inheritance hierarchies should be avoided.
 
-Better to compose complex logic from lots of small, shallow abstractions. Erring
-on the side of composition over inheritance tends to lead to code designs that
-are more expressive and have better evolvability.
+Better to compose complex logic from lots of small, shallow abstractions. Erring on the side of composition over
+inheritance tends to lead to code designs that are more expressive and have better evolvability.
 
-A notable exception to this rule is domain modeling. In this use case,
-inheritance hierarchies can be quite useful for modeling real-world taxonomies
-and ontologies. (This was the original intent of object-oriented programming,
-after all.)
+A notable exception to this rule is domain modeling. In this use case, inheritance hierarchies can be quite useful for
+modeling real-world taxonomies and ontologies. (This was the original intent of object-oriented programming, after all.)
 
 In most other use cases, inheritance should be shallow, or avoided altogether.
 
 == Polymorphism over conditionals
 
-Long chains of `if/else` or `switch/case` statements that branch on the type,
-category, or state of an object are a common code smell. They are brittle
-because every time a new variant is added, each such chain must be found and
-updated. They also spread type-discriminating logic across the codebase, making
-it hard to locate all the places where a given type affects behavior.
+Long chains of `if/else` or `switch/case` statements that branch on the type, category, or state of an object are a
+common code smell. They are brittle because every time a new variant is added, each such chain must be found and
+updated. They also spread type-discriminating logic across the codebase, making it hard to locate all the places where a
+given type affects behavior.
 
-Object-oriented polymorphism provides a more expressive and extensible
-alternative. Rather than asking "what type is this object?" and switching on the
-answer, define a common interface or abstract base class and let each concrete
-type implement that interface with its own behavior. The calling code then
-invokes the interface method, and the correct behavior is dispatched
-automatically at runtime.
+Object-oriented polymorphism provides a more expressive and extensible alternative. Rather than asking "what type is
+this object?" and switching on the answer, define a common interface or abstract base class and let each concrete type
+implement that interface with its own behavior. The calling code then invokes the interface method, and the correct
+behavior is dispatched automatically at runtime.
 
-This is the mechanism behind the Open-Closed Principle – "open for
-extension, closed for modification" – one of the five SOLID principles
-introduced in <<SOLID>>. A conditional chain must be edited every time a new
-variant is added; a polymorphic design is extended by adding a new
-implementation of the interface, without touching the existing dispatch
-code. In multi-paradigm and functional code, the equivalent mechanism is a
-hook point or an overridable callback – a function accepted as a parameter
-to vary behavior – rather than a class implementing an interface, but the
-principle is the same: add new behavior by supplying a new implementation,
-not by editing a central dispatch point.
+This is the mechanism behind the Open-Closed Principle – "open for extension, closed for modification" – one of the five
+SOLID principles introduced in <<SOLID>>. A conditional chain must be edited every time a new variant is added; a
+polymorphic design is extended by adding a new implementation of the interface, without touching the existing dispatch
+code. In multi-paradigm and functional code, the equivalent mechanism is a hook point or an overridable callback – a
+function accepted as a parameter to vary behavior – rather than a class implementing an interface, but the principle is
+the same: add new behavior by supplying a new implementation, not by editing a central dispatch point.
 
-This is not a rule against all conditional logic. Simple conditions for genuine
-business decisions are perfectly appropriate. The heuristic applies specifically
-to conditionals that discriminate on the
-_type or category of an object in order to select different behavior_ – a
-pattern that is almost always better expressed through polymorphism. Doing so
-also opens the design to extension without modification: new variants can be
-added by implementing the interface rather than by editing existing chains.
+This is not a rule against all conditional logic. Simple conditions for genuine business decisions are perfectly
+appropriate. The heuristic applies specifically to conditionals that discriminate on the _type or category of an object
+in order to select different behavior_ – a pattern that is almost always better expressed through polymorphism. Doing so
+also opens the design to extension without modification: new variants can be added by implementing the interface rather
+than by editing existing chains.
 
-A related pressure: prefer guard clauses (early returns) over `if/else`
-chains. When a method branches on an error or edge case, return early and leave
-the main path unindented. `if/else` chains tend to grow over time into tangled
-conditional logic, and where the branches select behavior based on an object's
-state or type, polymorphism is the better tool.
+A related pressure: prefer guard clauses (early returns) over `if/else` chains. When a method branches on an error or
+edge case, return early and leave the main path unindented. `if/else` chains tend to grow over time into tangled
+conditional logic, and where the branches select behavior based on an object's state or type, polymorphism is the better
+tool.
 
 == Law of Demeter
 
-The Law of Demeter, sometimes called the "principle of least knowledge", is a
-guideline for reducing coupling between abstractions. It states that a method
-should only interact with: the object itself; its direct fields; arguments
-passed to the method; and objects it creates directly. It should not "reach
-through" one object to call methods on another object obtained from it.
+The Law of Demeter, sometimes called the "principle of least knowledge", is a guideline for reducing coupling between
+abstractions. It states that a method should only interact with: the object itself; its direct fields; arguments passed
+to the method; and objects it creates directly. It should not "reach through" one object to call methods on another
+object obtained from it.
 
-Violations often manifest as chains of calls like
-`order.getCustomer().getAddress().getCity()`. Such chains make the calling code
-brittle, because it now depends not just on the `Order` abstraction but also on
-the internal structure of `Customer` and `Address`. If any intermediate
-representation changes – for example, the concept of an address is refactored –
-all such call chains throughout the codebase must be updated.
+Violations often manifest as chains of calls like `order.getCustomer().getAddress().getCity()`. Such chains make the
+calling code brittle, because it now depends not just on the `Order` abstraction but also on the internal structure of
+`Customer` and `Address`. If any intermediate representation changes – for example, the concept of an address is
+refactored – all such call chains throughout the codebase must be updated.
 
-The fix is usually to add a delegating method to the intermediate object:
-`order.getDeliveryCity()`. This keeps the traversal internal to the abstraction,
-where it belongs, and presents a stable interface to callers.
+The fix is usually to add a delegating method to the intermediate object: `order.getDeliveryCity()`. This keeps the
+traversal internal to the abstraction, where it belongs, and presents a stable interface to callers.
 
-The Law of Demeter reinforces encapsulation. Good abstractions hide their
-internal structure. By following this principle, callers are encouraged to
-respect those boundaries, resulting in code that is less brittle and easier to
+The Law of Demeter reinforces encapsulation. Good abstractions hide their internal structure. By following this
+principle, callers are encouraged to respect those boundaries, resulting in code that is less brittle and easier to
 evolve independently.
 
 == Objects and data structures
 
-In object-oriented design, there is a fundamental and often overlooked
-distinction between two different kinds of construct: objects and data
-structures.
+In object-oriented design, there is a fundamental and often overlooked distinction between two different kinds of
+construct: objects and data structures.
 
-*Objects* hide their internal data and expose behavior through methods. Callers
-ask the object to _do something_ and trust it to manage its own state. The
-implementation – how data is stored, what algorithms are applied – is an
-internal concern that callers do not need to know about.
+*Objects* hide their internal data and expose behavior through methods. Callers ask the object to _do something_ and
+trust it to manage its own state. The implementation – how data is stored, what algorithms are applied – is an internal
+concern that callers do not need to know about.
 
-*Data structures* expose their data directly, via public fields or simple
-accessors, and have little or no significant behavior. Any logic that operates
-on the data lives in separate code that works with the structure.
+*Data structures* expose their data directly, via public fields or simple accessors, and have little or no significant
+behavior. Any logic that operates on the data lives in separate code that works with the structure.
 
-These constructs are not in competition – both are useful in different contexts.
-But they are complementary opposites, and conflating them into "hybrids"
-produces poor designs. A class that exposes its internal data through getters
-and setters _and_ also contains significant business logic is neither a clean
-object nor a clean data structure. Such hybrids attract additional
-responsibilities over time, making them harder to reason about and change.
-Choose one or the other: hide the data and expose behavior, or expose the data
-and keep behavior elsewhere.
+These constructs are not in competition – both are useful in different contexts. But they are complementary opposites,
+and conflating them into "hybrids" produces poor designs. A class that exposes its internal data through getters and
+setters _and_ also contains significant business logic is neither a clean object nor a clean data structure. Such
+hybrids attract additional responsibilities over time, making them harder to reason about and change. Choose one or the
+other: hide the data and expose behavior, or expose the data and keep behavior elsewhere.
 
-Where you do hide data behind behavior, follow the _Tell, Don't Ask_ principle:
-tell an object to do something, don't ask it for its data and then decide what
-to do with it. Decisions based on an object's state SHOULD live inside the
-object itself. Exposing state through getters so that callers can inspect it
-and act on it re-introduces the hybrid — the object becomes a data structure
-again, with the logic that should belong to it scattered across its callers.
+Where you do hide data behind behavior, follow the _Tell, Don't Ask_ principle: tell an object to do something, don't
+ask it for its data and then decide what to do with it. Decisions based on an object's state SHOULD live inside the
+object itself. Exposing state through getters so that callers can inspect it and act on it re-introduces the hybrid —
+the object becomes a data structure again, with the logic that should belong to it scattered across its callers.
 
 == Value objects
 
-Primitive types – strings, integers, booleans, dates – are versatile, but they
-carry no domain meaning. A function signature like
-`createUser(string, string, int)` tells callers nothing about what the arguments
-represent. Is the first string a username or an email address? In what format
-should it be passed? What unit is the integer measured in?
+Primitive types – strings, integers, booleans, dates – are versatile, but they carry no domain meaning. A function
+signature like `createUser(string, string, int)` tells callers nothing about what the arguments represent. Is the first
+string a username or an email address? In what format should it be passed? What unit is the integer measured in?
 
-Prefer value objects over raw primitives for domain concepts. A `UserId`,
-`EmailAddress`, or `MonetaryAmount` type communicates intent unambiguously. It
-also enforces its own invariants – a valid email format, a non-negative monetary
-amount – keeping validation logic in one place rather than scattered across
-every call site that receives a raw string or number.
+Prefer value objects over raw primitives for domain concepts. A `UserId`, `EmailAddress`, or `MonetaryAmount` type
+communicates intent unambiguously. It also enforces its own invariants – a valid email format, a non-negative monetary
+amount – keeping validation logic in one place rather than scattered across every call site that receives a raw string
+or number.
 
-This is sometimes called avoiding _primitive obsession_: the tendency to
-represent meaningful domain concepts with generic language types rather than
-dedicated wrappers. Value objects make function signatures self-documenting and
-make misuse harder, because the type system can reject a value of the wrong kind
-passed in the wrong position.
+This is sometimes called avoiding _primitive obsession_: the tendency to represent meaningful domain concepts with
+generic language types rather than dedicated wrappers. Value objects make function signatures self-documenting and make
+misuse harder, because the type system can reject a value of the wrong kind passed in the wrong position.
 
-Value objects should be immutable. Once created with valid state, a value object
-should not be modifiable. This eliminates an entire class of bugs related to
-shared mutable state and makes value objects safe to pass between components
-without defensive copying.
+Value objects should be immutable. Once created with valid state, a value object should not be modifiable. This
+eliminates an entire class of bugs related to shared mutable state and makes value objects safe to pass between
+components without defensive copying.
 
-The same principle applies to collections. A class that contains a collection
-SHOULD contain no other instance variables — give each collection its own class
-so that the behaviors that operate on it (filtering, mapping, validation) have a
-home. This keeps collection logic out of the classes that merely use the
-collection, and treats the collection itself as a domain concept rather than a
-raw container.
+The same principle applies to collections. A class that contains a collection SHOULD contain no other instance variables
+— give each collection its own class so that the behaviors that operate on it (filtering, mapping, validation) have a
+home. This keeps collection logic out of the classes that merely use the collection, and treats the collection itself as
+a domain concept rather than a raw container.
 
 == Encapsulating boundary conditions
 
-Boundary conditions – range checks, upper and lower limits, off-by-one
-calculations – are among the most error-prone parts of any program. They are
-easy to get subtly wrong, and when the same boundary logic is scattered
-throughout the codebase, inconsistencies inevitably creep in.
+Boundary conditions – range checks, upper and lower limits, off-by-one calculations – are among the most error-prone
+parts of any program. They are easy to get subtly wrong, and when the same boundary logic is scattered throughout the
+codebase, inconsistencies inevitably creep in.
 
-Encapsulate boundary conditions in dedicated abstractions. A `DateRange` class
-that captures the semantics of inclusive and exclusive bounds, or a `PageSlice`
-that encapsulates the logic of page numbers and offsets, puts the boundary logic
-in a single, testable place. Any code that works with the concept uses the
-abstraction and trusts it to handle the edge cases correctly, rather than
-duplicating the same defensive checks at every call site.
+Encapsulate boundary conditions in dedicated abstractions. A `DateRange` class that captures the semantics of inclusive
+and exclusive bounds, or a `PageSlice` that encapsulates the logic of page numbers and offsets, puts the boundary logic
+in a single, testable place. Any code that works with the concept uses the abstraction and trusts it to handle the edge
+cases correctly, rather than duplicating the same defensive checks at every call site.
 
 == Static vs non-static methods
 
-Static methods – methods that belong to the class rather than to any instance of
-it – are sometimes a tempting shortcut. They require no instantiation, are
-globally callable, and seem to simplify utility-style operations. In languages
-like Java, they are a common way to group functions that have no natural object
-to belong to.
+Static methods – methods that belong to the class rather than to any instance of it – are sometimes a tempting shortcut.
+They require no instantiation, are globally callable, and seem to simplify utility-style operations. In languages like
+Java, they are a common way to group functions that have no natural object to belong to.
 
-However, static methods come with trade-offs. Because they cannot be overridden
-through inheritance or replaced through dependency injection, they introduce a
-form of tight coupling that is difficult to break. Code that calls a static
-method directly is tightly coupled to that specific implementation, making it
-harder to substitute a different behavior in tests or alternative deployments.
+However, static methods come with trade-offs. Because they cannot be overridden through inheritance or replaced through
+dependency injection, they introduce a form of tight coupling that is difficult to break. Code that calls a static
+method directly is tightly coupled to that specific implementation, making it harder to substitute a different behavior
+in tests or alternative deployments.
 
-Non-static methods, by contrast, are invoked on an instance. That instance can
-be injected, substituted, or mocked, which makes the code that uses it easier to
-test and evolve. Non-static methods also participate in polymorphism, so
-behavior can be varied by supplying a different implementation of the same
-interface.
+Non-static methods, by contrast, are invoked on an instance. That instance can be injected, substituted, or mocked,
+which makes the code that uses it easier to test and evolve. Non-static methods also participate in polymorphism, so
+behavior can be varied by supplying a different implementation of the same interface.
 
-Prefer non-static methods as the default. Reserve static methods for genuinely
-stateless, context-free utility functions where the lack of substitutability is
-an acceptable trade-off – for example, pure mathematical calculations or simple
+Prefer non-static methods as the default. Reserve static methods for genuinely stateless, context-free utility functions
+where the lack of substitutability is an acceptable trade-off – for example, pure mathematical calculations or simple
 string transformations where no alternative implementation would ever be needed.
 
 == Keep methods and classes focused
 
-The measure of a well-designed class or method is not its length but its
-focus. A class or method SHOULD have a single responsibility — one reason to
-change. It SHOULD be as long as it needs to be to fulfill that responsibility
-completely, and no longer.
+The measure of a well-designed class or method is not its length but its focus. A class or method SHOULD have a single
+responsibility — one reason to change. It SHOULD be as long as it needs to be to fulfill that responsibility completely,
+and no longer.
 
-Imposing arbitrary length limits on classes and methods is counterproductive.
-When a fixed ceiling is enforced, the tendency is toward unnecessary
-extraction: methods and classes are split purely to stay under the limit, even
-when the extracted code has no coherent responsibility of its own. Each
-extraction adds a new entity, a new name, and a new dependency between the parts
-that were previously together. This increases the dependency chain and raises
-the overall complexity of the system — the opposite of what the rule was meant
-to achieve.
+Imposing arbitrary length limits on classes and methods is counterproductive. When a fixed ceiling is enforced, the
+tendency is toward unnecessary extraction: methods and classes are split purely to stay under the limit, even when the
+extracted code has no coherent responsibility of its own. Each extraction adds a new entity, a new name, and a new
+dependency between the parts that were previously together. This increases the dependency chain and raises the overall
+complexity of the system — the opposite of what the rule was meant to achieve.
 
-A method that is long because it is doing one complex thing well is better than
-several short methods that each do a fragment of it and must be read together to
-be understood. Extract a method when the extracted code has a clear, independent
-responsibility — a name that describes what it does without reference to the
-caller — not merely to reduce line count.
+A method that is long because it is doing one complex thing well is better than several short methods that each do a
+fragment of it and must be read together to be understood. Extract a method when the extracted code has a clear,
+independent responsibility — a name that describes what it does without reference to the caller — not merely to reduce
+line count.
 
-Similarly, a class that is large because it encapsulates a single, cohesive
-concept is preferable to several small classes wired together with
-boilerplate. A class that accumulates many instance variables MAY be gathering
-unrelated state, which is a sign that it should be split — but split along the
-fault lines of responsibility, not at an arbitrary line count.
+Similarly, a class that is large because it encapsulates a single, cohesive concept is preferable to several small
+classes wired together with boilerplate. A class that accumulates many instance variables MAY be gathering unrelated
+state, which is a sign that it should be split — but split along the fault lines of responsibility, not at an arbitrary
+line count.
 
-Don't abbreviate names to keep entities short. Abbreviations save a few
-keystrokes at the cost of readability. If a name feels too long to repeat, the
-method is probably reused heavily — which suggests duplication, or that the
-class has too many responsibilities. If you can't find a concise, descriptive
-name, something is wrong with the abstraction.
+Don't abbreviate names to keep entities short. Abbreviations save a few keystrokes at the cost of readability. If a name
+feels too long to repeat, the method is probably reused heavily — which suggests duplication, or that the class has too
+many responsibilities. If you can't find a concise, descriptive name, something is wrong with the abstraction.

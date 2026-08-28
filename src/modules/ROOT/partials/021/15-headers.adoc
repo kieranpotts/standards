@@ -2,27 +2,24 @@
 
 == HTTP header naming conventions
 
-HTTP header field names are case-insensitive. This means that `Content-Type`,
-`content-type`, and `CONTENT-TYPE` MUST be treated identically by HTTP clients
-and servers to comply with RFC 7230 Section 3.2.
+HTTP header field names are case-insensitive. This means that `Content-Type`, `content-type`, and
+`CONTENT-TYPE` MUST be treated identically by HTTP clients and servers to comply with RFC 7230 Section 3.2.
 
-However, header values may be case-sensitive depending on their semantics. For
-example, `text/html` and `TEXT/HTML` will usually be trated the same, but the
-behavior of `Bearer <token>` versus `bearer <token>` may differ between
-implementations.
+However, header values may be case-sensitive depending on their semantics. For example, `text/html` and
+`TEXT/HTML` will usually be trated the same, but the behavior of `Bearer <token>` versus `bearer <token>` may
+differ between implementations.
 
-Where you have control over the letter case of HTTP header fields, it is
-RECOMMENDED to write them using Pascal Case (aka. Title Case) with words
-delimited by hyphens: `Content-Type`, `User-Agent`, `Accept-Encoding`, etc. This
-is the most widely used naming convention.
+Where you have control over the letter case of HTTP header fields, it is RECOMMENDED to write them using Pascal
+Case (aka. Title Case) with words delimited by hyphens: `Content-Type`, `User-Agent`, `Accept-Encoding`, etc.
+This is the most widely used naming convention.
 
-Avoid using underscores or alternative letter case conventions such as
-camelCase, even for your application's own non-standard header fields.
+Avoid using underscores or alternative letter case conventions such as camelCase, even for your application's
+own non-standard header fields.
 
 == `Date` header
 
-Every response MUST include a `Date` header, giving the time at which the
-server generated the response, formatted per RFC 5322 and expressed in GMT.
+Every response MUST include a `Date` header, giving the time at which the server generated the response,
+formatted per RFC 5322 and expressed in GMT.
 
 [source,http]
 ----
@@ -31,202 +28,165 @@ Date: Wed, 24 Aug 2016 18:41:30 GMT
 
 == Content negotiation
 
-HTTP APIs use a small number of standard headers to negotiate the format of
-request and response bodies.
+HTTP APIs use a small number of standard headers to negotiate the format of request and response bodies.
 
-* `Accept`: Clients SHOULD send this header to indicate which media types they
-  are able to handle in the response. Servers SHOULD NOT assume this header is
-  present, since some clients omit it. Where an API cannot produce a response in
-  any of the media types requested, it MUST return `406 Not Acceptable`, rather
-  than silently falling back to a different media type than the one requested.
+* `Accept`: Clients SHOULD send this header to indicate which media types they are able to handle in the
+  response. Servers SHOULD NOT assume this header is present, since some clients omit it. Where an API cannot
+  produce a response in any of the media types requested, it MUST return `406 Not Acceptable`, rather than
+  silently falling back to a different media type than the one requested.
 
-* `Accept-Charset`: Where sent, this SHOULD include `utf-8`. HTTP APIs following
-  this standard only produce UTF-8 encoded content, so this header adds little
-  in practice, but SHOULD be handled gracefully where present.
+* `Accept-Charset`: Where sent, this SHOULD include `utf-8`. HTTP APIs following this standard only produce
+  UTF-8 encoded content, so this header adds little in practice, but SHOULD be handled gracefully where present.
 
-* `Content-Type`: Clients MUST include this header on any request that has a
-  body, eg. `POST`, `PUT`, and `PATCH` requests, and servers MUST include it on
-  any response that has a body. Where the media type is text-based, eg.
-  `application/json`, the header MUST include an explicit `charset` parameter,
-  and that charset MUST be `utf-8`. Where a request's `Content-Type` names a
-  media type the server does not support, the server MUST return
-  `415 Unsupported Media Type`. +
+* `Content-Type`: Clients MUST include this header on any request that has a body, eg. `POST`, `PUT`, and
+  `PATCH` requests, and servers MUST include it on any response that has a body. Where the media type is
+  text-based, eg. `application/json`, the header MUST include an explicit `charset` parameter, and that charset
+  MUST be `utf-8`. Where a request's `Content-Type` names a media type the server does not support, the server
+  MUST return `415 Unsupported Media Type`. +
   [source,http]
   ----
   Content-Type: application/json; charset=utf-8
   ----
 
-* `Content-Language`: Responses SHOULD include this header to indicate the
-  language of the response content, using a language tag. Where an API does not
-  support content negotiation by language, it SHOULD still include this header
-  with a fixed value representing the language it always responds in, eg.
-  `en-US`.
+* `Content-Language`: Responses SHOULD include this header to indicate the language of the response content,
+  using a language tag. Where an API does not support content negotiation by language, it SHOULD still include
+  this header with a fixed value representing the language it always responds in, eg. `en-US`.
 
 == Non-standard headers
 
-Non-standard headers SHOULD be prefixed with `X-` to indicate that they are
-custom headers, and to avoid potential conflicts with future standard headers.
+Non-standard headers SHOULD be prefixed with `X-` to indicate that they are custom headers, and to avoid
+potential conflicts with future standard headers.
 
 Examples:
 
-* `X-Request-Id`: A unique identifier for the request, used for logging and
-  tracing, and to implement idempotent operations.
+* `X-Request-Id`: A unique identifier for the request, used for logging and tracing, and to implement idempotent
+  operations.
 
-* `X-Correlation-Id`: A unique identifier to correlate requests and responses
-  through distributed systems. This may be useful in scenarios where a client
-  does not supply an `X-Request-Id` header, or where processes are initialized
-  by the system (such as batch processes or scheduled jobs) rather than by a
-  user.
+* `X-Correlation-Id`: A unique identifier to correlate requests and responses through distributed systems. This
+  may be useful in scenarios where a client does not supply an `X-Request-Id` header, or where processes are
+  initialized by the system (such as batch processes or scheduled jobs) rather than by a user.
 
-* `X-Client-Id`: A unique identifier for the client application making the
-  request. This may be useful where you want to track the behavior of a specific
-  client application, rather than a specific user.
+* `X-Client-Id`: A unique identifier for the client application making the request. This may be useful where you
+  want to track the behavior of a specific client application, rather than a specific user.
 
 == Header reliability
 
-HTTP headers are convenient for carrying cross-cutting metadata, but they travel
-through more infrastructure than the response body does – proxies, gateways,
-CDNs, and client libraries can all inspect, add, remove, or modify headers in
-transit. For this reason:
+HTTP headers are convenient for carrying cross-cutting metadata, but they travel through more infrastructure
+than the response body does – proxies, gateways, CDNs, and client libraries can all inspect, add, remove, or
+modify headers in transit. For this reason:
 
-* API consumers and API implementations SHOULD NOT assume that a particular
-  header will always survive the journey from server to client intact. Business
-  logic SHOULD NOT depend on a header being present or unmodified. Where a value
-  is essential to correct behavior, it SHOULD be carried in the message body
+* API consumers and API implementations SHOULD NOT assume that a particular header will always survive the
+  journey from server to client intact. Business logic SHOULD NOT depend on a header being present or
+  unmodified. Where a value is essential to correct behavior, it SHOULD be carried in the message body instead.
+
+* Infrastructure components in the request path MAY reject a request outright based on a header, eg. rejecting
+  an unauthenticated request before it reaches the API implementation, but SHOULD NOT otherwise silently alter a
+  header's semantic meaning.
+
+Because of this unreliability, and because responses may be passed between layers of a client application that
+do not all have access to the original HTTP headers, hypermedia links MUST be conveyed in the response body
+rather than in headers. Specifically:
+
+* The `Location` header MUST NOT be used as a substitute for a `self` hypermedia link in `201 Created` responses.
+  A `201` response MUST include a `self` link in the response body, even where a `Location` header is also
+  present.
+
+* The `Link` header MUST NOT be used to convey hypermedia controls. Use the `links` array in the response body
   instead.
 
-* Infrastructure components in the request path MAY reject a request outright
-  based on a header, eg. rejecting an unauthenticated request before it reaches
-  the API implementation, but SHOULD NOT otherwise silently alter a header's
-  semantic meaning.
-
-Because of this unreliability, and because responses may be passed between
-layers of a client application that do not all have access to the original HTTP
-headers, hypermedia links MUST be conveyed in the response body rather than in
-headers. Specifically:
-
-* The `Location` header MUST NOT be used as a substitute for a `self` hypermedia
-  link in `201 Created` responses. A `201` response MUST include a `self` link
-  in the response body, even where a `Location` header is also present.
-
-* The `Link` header MUST NOT be used to convey hypermedia controls. Use the
-  `links` array in the response body instead.
-
-This does not apply to the genuine, protocol-level use of `Location` in `3xx`
-redirect responses, where the header is structurally required for HTTP
-redirection to function and is handled transparently by HTTP client libraries.
+This does not apply to the genuine, protocol-level use of `Location` in `3xx` redirect responses, where the
+header is structurally required for HTTP redirection to function and is handled transparently by HTTP client
+libraries.
 
 == CORS
 
-HTTP APIs that are integrated into browser-based client applications MUST
-support Cross-Origin Resource Sharing (CORS), so that a browser will permit a
-page served from one origin to call the API on another.
+HTTP APIs that are integrated into browser-based client applications MUST support Cross-Origin Resource Sharing
+(CORS), so that a browser will permit a page served from one origin to call the API on another.
 
-An API SHOULD permit an allowed origin of `*` and rely on the `Authorization`
-header (a valid OAuth 2.0 Bearer token, per the *Authentication and
-authorization* section) to enforce access control, rather than supporting
-user credentials with per-origin validation. An API with a genuine need to
-restrict origins, eg. one that accepts cookie-based credentials, MAY instead
-validate the `Origin` request header against an allow-list and echo it back,
-but this is the exception, not the default.
+An API SHOULD permit an allowed origin of `*` and rely on the `Authorization` header (a valid OAuth 2.0 Bearer
+token, per the *Authentication and authorization* section) to enforce access control, rather than supporting
+user credentials with per-origin validation. An API with a genuine need to restrict origins, eg. one that
+accepts cookie-based credentials, MAY instead validate the `Origin` request header against an allow-list and
+echo it back, but this is the exception, not the default.
 
-A server MUST inspect the `Origin` request header and, where present, include
-the appropriate CORS response headers (`Access-Control-Allow-Origin` and
-related headers) on every response, not only on preflight responses.
+A server MUST inspect the `Origin` request header and, where present, include the appropriate CORS response
+headers (`Access-Control-Allow-Origin` and related headers) on every response, not only on preflight responses.
 
-A "simple" request – one using `GET`, `HEAD`, or `POST` with only CORS-safe
-headers and content types – is not preflighted by the browser. Any other
-request, eg. one using `PUT`, `PATCH`, or `DELETE`, or that sets a
-non-standard header such as `X-Api-Key`, triggers a preflight: the browser
-sends an `OPTIONS` request carrying `Access-Control-Request-Method` and
-`Access-Control-Request-Headers`, and the server MUST respond with matching
-`Access-Control-Allow-Methods` and `Access-Control-Allow-Headers` headers
-before the browser will send the real request. Because a preflight adds a full
-round-trip, performance-critical endpoints SHOULD prefer "simple" request
-shapes where practical.
+A "simple" request – one using `GET`, `HEAD`, or `POST` with only CORS-safe headers and content types – is not
+preflighted by the browser. Any other request, eg. one using `PUT`, `PATCH`, or `DELETE`, or that sets a
+non-standard header such as `X-Api-Key`, triggers a preflight: the browser sends an `OPTIONS` request carrying
+`Access-Control-Request-Method` and `Access-Control-Request-Headers`, and the server MUST respond with matching
+`Access-Control-Allow-Methods` and `Access-Control-Allow-Headers` headers before the browser will send the real
+request. Because a preflight adds a full round-trip, performance-critical endpoints SHOULD prefer "simple"
+request shapes where practical.
 
 == `Prefer` header
 
-HTTP APIs MAY support the `Prefer` header. This standard HTTP header is
-specified in https://tools.ietf.org/html/rfc7240[RFC 7240]. It is used by
-clients to opt-in to specific behaviors when the server is processing the
-client's requests.
+HTTP APIs MAY support the `Prefer` header. This standard HTTP header is specified in
+https://tools.ietf.org/html/rfc7240[RFC 7240]. It is used by clients to opt-in to specific behaviors when the
+server is processing the client's requests.
 
-The `Prefer` header is useful for a number of use cases. Perhaps the most common
-use case is to allow clients to opt-in to receiving a response body, encoding
-up-to-date resources, for requests that would not otherwise receive one. For
-example, instead of `PUT` and `PATCH` requests receiving a `204 No Content`
-response by default, clients can opt-in to receiving a `200 OK` response with
-the updated resource in the response body. This can be useful for clients that
-need to capture system-generated fields, such as `create_time` and
-`update_time`, or where clients benefit from receiving up-to-date
-representations of resources that are particularly volatile.
+The `Prefer` header is useful for a number of use cases. Perhaps the most common use case is to allow clients to
+opt-in to receiving a response body, encoding up-to-date resources, for requests that would not otherwise
+receive one. For example, instead of `PUT` and `PATCH` requests receiving a `204 No Content` response by
+default, clients can opt-in to receiving a `200 OK` response with the updated resource in the response body.
+This can be useful for clients that need to capture system-generated fields, such as `create_time` and
+`update_time`, or where clients benefit from receiving up-to-date representations of resources that are
+particularly volatile.
 
-By default, HTTP APIs should return full representations of requested and
-updated resources. But sometimes the client does not need the full
-representation and the client-server interaction can therefore be optimized by
-returning partial representations of resources. This can be particularly
-beneficial in collections in which individual resources are large objects in
-their complete representations. Clients may therefore choose to fetch minimal or
-summarized lists of resources, and then fetch the full representations of
-individual resources as-and-when needed.
+By default, HTTP APIs should return full representations of requested and updated resources. But sometimes the
+client does not need the full representation and the client-server interaction can therefore be optimized by
+returning partial representations of resources. This can be particularly beneficial in collections in which
+individual resources are large objects in their complete representations. Clients may therefore choose to fetch
+minimal or summarized lists of resources, and then fetch the full representations of individual resources
+as-and-when needed.
 
-The `Prefer: return=minimal` header MAY be used for this purpose. The definition
-of a "minimal" representation is left to the discretion of the service, but it
-SHOULD be documented as part of the API's interface specification.
+The `Prefer: return=minimal` header MAY be used for this purpose. The definition of a "minimal" representation
+is left to the discretion of the service, but it SHOULD be documented as part of the API's interface
+specification.
 
 ****
-To gives clients even more granular control over the subset of resource data
-that they receive, API services MAY instead support a query parameter named
-`fields`. This accepts a comma-separated list of field names that the client is
-interested in. The response body SHOULD include only the fields that are listed
-in the `fields` query parameter, plus any required fields that the server always
-provides.
+To gives clients even more granular control over the subset of resource data that they receive, API services MAY
+instead support a query parameter named `fields`. This accepts a comma-separated list of field names that the
+client is interested in. The response body SHOULD include only the fields that are listed in the `fields` query
+parameter, plus any required fields that the server always provides.
 
 ----
 GET https://api.example.com/v1/users/bob?fields=department,title,location
 ----
 
-The `fields` pattern, if implemented, SHOULD be supported globally across all
-resources and collections. It SHOULD NOT be used in conjunction with the
-`Prefer: return=minimal` header. Clients SHOULD be expected to supply one or the
-other, or neither, but not both.
+The `fields` pattern, if implemented, SHOULD be supported globally across all resources and collections. It SHOULD
+NOT be used in conjunction with the `Prefer: return=minimal` header. Clients SHOULD be expected to supply one or
+the other, or neither, but not both.
 ****
 
-Besides controlling the shape of a response, the `Prefer` header MAY also be
-used by clients to express a preference about the consistency and freshness of
-the data returned, trading off strict accuracy for lower latency. This is
-particularly relevant for read operations on data that is expensive to compute
-or that is served from a cache or a read replica.
+Besides controlling the shape of a response, the `Prefer` header MAY also be used by clients to express a
+preference about the consistency and freshness of the data returned, trading off strict accuracy for lower
+latency. This is particularly relevant for read operations on data that is expensive to compute or that is
+served from a cache or a read replica.
 
-The following tokens MAY be supported for this purpose, in decreasing order of
-consistency guarantee:
+The following tokens MAY be supported for this purpose, in decreasing order of consistency guarantee:
 
-* `Prefer: read-consistent`: The client requires the response to be sourced from
-  a durable, consistent data store, reflecting the result of all writes already
-  acknowledged to any client. Where an API does not offer any other read
-  consistency preference, this SHOULD be the default behavior, and clients
-  SHOULD NOT need to set this token explicitly.
+* `Prefer: read-consistent`: The client requires the response to be sourced from a durable, consistent data
+  store, reflecting the result of all writes already acknowledged to any client. Where an API does not offer any
+  other read consistency preference, this SHOULD be the default behavior, and clients SHOULD NOT need to set
+  this token explicitly.
 
-* `Prefer: read-eventual-consistent`: The client accepts a response that may be
-  sourced from a cache or an eventually-consistent replica, and so may not
-  reflect the most recent writes. If no such source is available, the server MAY
-  fall back to a consistent, durable data store.
+* `Prefer: read-eventual-consistent`: The client accepts a response that may be sourced from a cache or an
+  eventually-consistent replica, and so may not reflect the most recent writes. If no such source is available,
+  the server MAY fall back to a consistent, durable data store.
 
-* `Prefer: read-cache`: The client prefers the response to be served from a
-  cache, if available, prioritizing latency over freshness. On a cache miss, the
-  server MAY fall back to an eventually-consistent or a fully consistent source.
+* `Prefer: read-cache`: The client prefers the response to be served from a cache, if available, prioritizing
+  latency over freshness. On a cache miss, the server MAY fall back to an eventually-consistent or a fully
+  consistent source.
 
-An API that supports any of these tokens MUST document which of its endpoints
-honor them, and MUST document the default behavior for endpoints where no
-`Prefer` header is supplied.
+An API that supports any of these tokens MUST document which of its endpoints honor them, and MUST document the
+default behavior for endpoints where no `Prefer` header is supplied.
 
-Where a request includes a `Prefer` header, the response SHOULD include a
-`Preference-Applied` header indicating which of the requested preferences were
-actually honoured. This lets a client that requested, eg.
-`Prefer: return=minimal, read-cache`, tell whether both preferences took
-effect, only one did, or neither did – rather than having to infer this from
-the response body's shape.
+Where a request includes a `Prefer` header, the response SHOULD include a `Preference-Applied` header indicating
+which of the requested preferences were actually honoured. This lets a client that requested, eg.
+`Prefer: return=minimal, read-cache`, tell whether both preferences took effect, only one did, or neither did –
+rather than having to infer this from the response body's shape.
 
 [source,http]
 ----
@@ -236,41 +196,36 @@ Preference-Applied: return=minimal
 
 == Header propagation
 
-Where a service makes its own downstream calls to other internal services in
-order to fulfil a request, it MUST forward relevant custom headers, eg.
-`X-Request-Id` and `X-Correlation-Id`, to those downstream calls. This allows a
-single client-facing request to be traced consistently across all the internal
-services that participate in fulfilling it.
+Where a service makes its own downstream calls to other internal services in order to fulfil a request, it MUST
+forward relevant custom headers, eg. `X-Request-Id` and `X-Correlation-Id`, to those downstream calls. This
+allows a single client-facing request to be traced consistently across all the internal services that
+participate in fulfilling it.
 
-Standard HTTP headers that carry cross-cutting concerns, eg. `Authorization` and
-`Accept-Language`, SHOULD also be propagated downstream where the downstream
-service needs the same context. Headers that are specific to the transport
-between the client and the first-hop service, eg. `Content-Length`, SHOULD NOT
-be blindly forwarded, since they may no longer be accurate for the downstream
-request.
+Standard HTTP headers that carry cross-cutting concerns, eg. `Authorization` and `Accept-Language`, SHOULD also
+be propagated downstream where the downstream service needs the same context. Headers that are specific to the
+transport between the client and the first-hop service, eg. `Content-Length`, SHOULD NOT be blindly forwarded,
+since they may no longer be accurate for the downstream request.
 
 == Response caching
 
-HTTP API servers MUST provide guidance to clients on appropriate caching of
-response messages. Clients MAY cache responses based on the guidance issued by
-the server.
+HTTP API servers MUST provide guidance to clients on appropriate caching of response messages. Clients MAY cache
+responses based on the guidance issued by the server.
 
-Client-side caching is typically guided using the `Cache-Control` header, but a
-combination of other headers may be used:
+Client-side caching is typically guided using the `Cache-Control` header, but a combination of other headers may
+be used:
 
 * `Cache-Control`: set appropriate directives (max-age, no-cache, private).
 * `ETag`: implement entity tags for conditional requests.
 * `Last-Modified`: include modification timestamps where applicable.
 * `Vary`: specify headers that affect response content.
 
-If you also are in control the client-size code, then you have more flexibility
-to control the downstream caching behavior.
+If you also are in control the client-size code, then you have more flexibility to control the downstream
+caching behavior.
 
 Response caching can also be done upstream, too:
 
 * *CDN/Edge*: Cache responses at edge locations for global distribution
-* *Application-level*: Implement in-memory or distributed caching for computed
-  results
+* *Application-level*: Implement in-memory or distributed caching for computed results
 * *Database query*: Cache expensive database operations
 
 Consider *cache invalidation* techniques.

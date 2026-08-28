@@ -1,100 +1,76 @@
 = Consensus and coordination
 
-Some decisions in a distributed system cannot be made by a single node acting
-alone: which replica is the leader, which node holds a lock, whether a
-transaction committed. These decisions require *consensus* — getting a set of
-nodes, any of which may fail, to agree on a single value.
+Some decisions in a distributed system cannot be made by a single node acting alone: which replica is the leader, which
+node holds a lock, whether a transaction committed. These decisions require *consensus* — getting a set of nodes, any of
+which may fail, to agree on a single value.
 
 == When consensus is actually needed
 
-Consensus is expensive: every decision requires a round trip to a majority of
-participants, so it adds latency and reduces availability during a partition
-(a minority partition cannot make progress at all — see
-<<Consistency and availability>>). It SHOULD be reserved for the small amount
-of state where getting it wrong is unacceptable — leader election, distributed
-locks, configuration that must be seen identically by every node, commit
-decisions for a transaction — not used as the default coordination mechanism
-for application data. Most application state SHOULD be owned by exactly one
-service and one datastore, avoiding the need for consensus about it entirely.
+Consensus is expensive: every decision requires a round trip to a majority of participants, so it adds latency and
+reduces availability during a partition (a minority partition cannot make progress at all — see <<Consistency and
+availability>>). It SHOULD be reserved for the small amount of state where getting it wrong is unacceptable — leader
+election, distributed locks, configuration that must be seen identically by every node, commit decisions for a
+transaction — not used as the default coordination mechanism for application data. Most application state SHOULD be
+owned by exactly one service and one datastore, avoiding the need for consensus about it entirely.
 
 == Quorum systems
 
-A quorum system tolerates the failure of a minority of nodes by requiring
-every read and write to touch a majority. For a cluster of `2f + 1` nodes, up
-to `f` nodes can fail (or be unreachable) while the system continues to make
-progress, because any two majorities are guaranteed to overlap in at least one
-node. This is why consensus clusters are near-universally sized as odd numbers
-(3, 5, 7) — an even-sized cluster adds a node without adding fault tolerance,
+A quorum system tolerates the failure of a minority of nodes by requiring every read and write to touch a majority. For
+a cluster of `2f + 1` nodes, up to `f` nodes can fail (or be unreachable) while the system continues to make progress,
+because any two majorities are guaranteed to overlap in at least one node. This is why consensus clusters are
+near-universally sized as odd numbers (3, 5, 7) — an even-sized cluster adds a node without adding fault tolerance,
 because the majority threshold rises with it.
 
-A cluster that loses its majority (a "minority partition") MUST stop accepting
-writes rather than accept them and risk an unrecoverable conflict once the
-partition heals. This is the availability cost of a CP system, applied
-concretely.
+A cluster that loses its majority (a "minority partition") MUST stop accepting writes rather than accept them and risk
+an unrecoverable conflict once the partition heals. This is the availability cost of a CP system, applied concretely.
 
 == Leader election and replicated logs
 
-Raft and Paxos are the two consensus algorithms most systems build on;
-Raft is more widely implemented in modern infrastructure (etcd, Consul,
-CockroachDB, Kafka's KRaft mode) specifically because it was designed to be
-easier to reason about and implement correctly than Paxos.
+Raft and Paxos are the two consensus algorithms most systems build on; Raft is more widely implemented in modern
+infrastructure (etcd, Consul, CockroachDB, Kafka's KRaft mode) specifically because it was designed to be easier to
+reason about and implement correctly than Paxos.
 
 Raft decomposes consensus into two separable problems:
 
-1. *Leader election.* Nodes hold randomized-timeout elections; a candidate
-   that wins votes from a majority becomes leader for a fixed term. Only one
-   leader can exist per term, because winning requires a majority and any two
+1. *Leader election.* Nodes hold randomized-timeout elections; a candidate that wins votes from a majority becomes
+   leader for a fixed term. Only one leader can exist per term, because winning requires a majority and any two
    majorities overlap.
 
-2. *Log replication.* All writes go through the leader, which appends them to
-   a replicated log and only acknowledges a write once a majority of
-   followers have persisted it. A log entry acknowledged by a majority is
-   *committed* and will survive the failure of any minority of nodes,
-   including the leader.
+2. *Log replication.* All writes go through the leader, which appends them to a replicated log and only acknowledges a
+   write once a majority of followers have persisted it. A log entry acknowledged by a majority is *committed* and will
+   survive the failure of any minority of nodes, including the leader.
 
-A team building a new distributed system SHOULD NOT implement Raft or Paxos
-from scratch. Use a proven, off-the-shelf consensus system — etcd, ZooKeeper,
-Consul — or a database that has consensus built in (CockroachDB, Cloud
-Spanner, several managed Kafka offerings), rather than re-deriving one of the
-hardest-to-get-right areas of distributed systems.
+A team building a new distributed system SHOULD NOT implement Raft or Paxos from scratch. Use a proven, off-the-shelf
+consensus system — etcd, ZooKeeper, Consul — or a database that has consensus built in (CockroachDB, Cloud Spanner,
+several managed Kafka offerings), rather than re-deriving one of the hardest-to-get-right areas of distributed systems.
 
 == Distributed locks
 
-A distributed lock is the most common consumer-facing use of a consensus
-system: it lets otherwise-independent processes coordinate mutually exclusive
-access to a resource. A distributed lock MUST have a lease with an expiry —
-never an indefinite hold — so that a process that crashes while holding the
-lock does not block every other process forever.
+A distributed lock is the most common consumer-facing use of a consensus system: it lets otherwise-independent processes
+coordinate mutually exclusive access to a resource. A distributed lock MUST have a lease with an expiry — never an
+indefinite hold — so that a process that crashes while holding the lock does not block every other process forever.
 
-A lease-based lock does not, by itself, guarantee mutual exclusion under all
-failure modes: a process can be paused (garbage collection, virtual machine
-migration, CPU starvation) for longer than the lease timeout, have its lease
-expire and be granted to another process, then resume and act as though it
-still holds the lock. Where the action guarded by the lock is not itself
-idempotent or safe to perform twice, the lock MUST be paired with a fencing
-token — a monotonically increasing number issued with each lease grant, which
-the protected resource checks and rejects if it has already seen a higher
-token. The lock alone is a performance optimization to reduce contention; the
-fencing token is what actually guarantees correctness.
+A lease-based lock does not, by itself, guarantee mutual exclusion under all failure modes: a process can be paused
+(garbage collection, virtual machine migration, CPU starvation) for longer than the lease timeout, have its lease expire
+and be granted to another process, then resume and act as though it still holds the lock. Where the action guarded by
+the lock is not itself idempotent or safe to perform twice, the lock MUST be paired with a fencing token — a
+monotonically increasing number issued with each lease grant, which the protected resource checks and rejects if it has
+already seen a higher token. The lock alone is a performance optimization to reduce contention; the fencing token is
+what actually guarantees correctness.
 
 == Coordination without consensus
 
-Not every coordination problem needs a consensus system. Weaker, cheaper
-techniques are often sufficient:
+Not every coordination problem needs a consensus system. Weaker, cheaper techniques are often sufficient:
 
-- *Optimistic concurrency (versioning).* Readers and writers proceed without
-  locking, and a write is accepted only if the version it read still matches;
-  see xref:046.adoc[*TS-46: Distributed data and caching*]
-  for the mechanics. Avoids the cost of consensus entirely where conflicts are
-  rare.
+- *Optimistic concurrency (versioning).* Readers and writers proceed without locking, and a write is accepted only if
+  the version it read still matches; see xref:046.adoc[*TS-46: Distributed data and caching*] for the mechanics. Avoids
+  the cost of consensus entirely where conflicts are rare.
 
-- *Idempotent operations.* If an operation is safe to perform more than once,
-  coordination to prevent duplicate execution is unnecessary — see
-  <<Idempotency and delivery semantics>>.
+- *Idempotent operations.* If an operation is safe to perform more than once, coordination to prevent duplicate
+  execution is unnecessary — see <<Idempotency and delivery semantics>>.
 
-- *Single-writer ownership.* If exactly one service or one partition owns a
-  piece of state, there is nothing to coordinate — the owner is the sole
-  authority by construction. This is the default a system SHOULD aim for
-  before reaching for a coordination mechanism.
+- *Single-writer ownership.* If exactly one service or one partition owns a piece of state, there is nothing to
+  coordinate — the owner is the sole authority by construction. This is the default a system SHOULD aim for before
+  reaching for a coordination mechanism.
 
 Reach for consensus only after these cheaper options have been ruled out.
