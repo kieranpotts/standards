@@ -57,6 +57,17 @@ for new standards.
   reader on the page and let them find the section, rather than replicating
   Asciidoctor's section-ID algorithm for a fragment.
 
+- Every external URL used in a page (References entries and inline prose links
+  alike) MUST be declared as a document-level AsciiDoc attribute near the top
+  of the page, immediately below the `:toc-title:` line, and referenced by
+  name wherever it's linked: `:link-<slug>: https://...`, used as
+  `{link-<slug>}[_Title_]`. Never inline a raw `https://...[text]` macro in the
+  body. The `<slug>` SHOULD identify the source concisely, eg. author-year
+  (`link-brandolini-2013`) or a short topic slug for sources with no clear
+  author (`link-worse-is-better`). Where a single source has more than one
+  citable URL (eg. a book and a follow-up blog post), disambiguate with a
+  suffix: `link-brandolini-2013-book`, `link-brandolini-2013-blog`.
+
 - Internal links MUST be bold; external links MUST NOT be. An internal link is
   one to another technical standard in this repository; everything else —
   including links to `github.com/kieranpotts` repositories — is external. The
