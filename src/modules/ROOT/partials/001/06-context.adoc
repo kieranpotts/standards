@@ -4,48 +4,49 @@ The context part of a specification is descriptive. It establishes the problem s
 domain the system is built around. None of it is a requirement in its own right. Rather, context is the shared frame of
 reference from which the requirements are derived.
 
-The following sub-sections are RECOMMENDED.
+This technical standard RECOMMENDS that the context of a system be documented across the following sub-sections.
 
-.Context structure
+* *Overview.* Mission statement, problem space, and scope.
+* *Constraints.* Regulatory, legal, and business constraints, plus any assumptions made in those.
+* *Model.* Domain entities and their relationships.
+* *Actors.* Participants in the system, and their hierarchy.
+* *Glossary.* Defines the system's ubiquitous language, derived from the business domain.
+
 ----
 specification/
 │
-├── context/              Descriptive — the problem space.
+├── context/              The problem space (descriptive).
 │   ├── overview/           Mission, problem, scope.
-│   ├── constraints/        Regulatory, legal, business; assumptions.
+│   ├── constraints/        Regulatory, legal, and business constraints, plus assumptions.
 │   ├── model/              Domain entities, relationships, ERD.
-│   ├── actors/             Participants and hierarchy. No permissions.
+│   ├── actors/             Participants and their hierarchy.
 │   └── glossary/           Ubiquitous language.
 │
-└── requirements/         Prescriptive — the contract.
+└── requirements/         The delivery contract (prescriptive).
 ----
 
 == Overview
 
-Start with a high-level description of the system, written in prose. This should cover:
+Start with a high-level description of the system, written in prose. This should cover the following topics.
 
-* The *mission*. The value the system delivers, and to whom.
-* The *problem* it solves.
-* Its *scope*. What is in, and — just as importantly — what is explicitly out.
+* The mission statement — the value the system delivers, and to whom.
+* The problem(s) the system solves.
+* The scope — what is in and, just as importantly, what is explicitly out.
 
-The scope statement is particularly important. It's what stops the specification quietly expanding to describe systems
-and responsibilities that belong elsewhere.
+The scope statement is particularly important. It's what stops the specification quietly expanding to describe
+responsibilities that belong in other systems.
 
 == Constraints
 
 Constraints describe the conditions imposed on the system from the outside. The conditions are the "givens" the system
-must work within, rather than behaviors the system is expected to exhibit (requirements, or "thens").
+must work within, rather than behaviors the system is expected to exhibit (the "thens").
 
 Conditions include:
 
-* *Regulatory and legal* constraints, such as applicable laws and standards (eg. data-protection law).
-
-* *Business* constraints, such as contractual terms and commercial boundaries.
-
-* *Assumptions* the specification depends on. If an assumption proves false, the affected requirements must be
-  revisited.
-
-* *Dependencies.* External systems and services the system relies on.
+* Regulatory and legal constraints, such as applicable laws and standards (eg. data-protection law).
+* Business constraints, such as contractual terms and commercial boundaries.
+* Assumptions the specification makes. (If an assumption proves false, the affected requirements will need to be revisited.)
+* Dependencies — external systems and services the system relies on.
 
 Constraints are descriptive. A regulatory or contractual constraint may read like a requirement, but it is actually a
 boundary set by the world — a law, a contract, a dependency, a standing assumption — not a behavior the system chooses
@@ -54,20 +55,20 @@ to exhibit.
 Where a constraint implies a testable obligation on the system, state that obligation as a rule or quality, and
 cross-reference it from the constraint, so the constraint itself remains purely a statement of the boundary.
 
-== Model
+== Domain model
 
-The *domain model* documents the entities in the system's domain — the categories of information the system stores —
-their meaningful attributes, and how they relate to one another. An entity-relationship diagram may be embedded to
-summarize the model visually.
+The domain model documents the system's entities, which individually encapsulate a discrete category of information
+and, optionally, behavior. The domain model should capture the key attributes of each key entity type, plus the
+relationships between entities. Entity-relationship diagrams may be useful to represent the domain model visually.
 
-The model anchors the project's shared vocabulary and is the foundation from which the actors and features are derived.
+The domain model SHOULD declare the states that an entity can hold (eg. a `status` of `available`, `reserved`,
+or `sold`) but SHOULD NOT specify the business rules that determine the allowed transitions between those states.
+Those belong in *Requirements* → *Behaviors* → *Rules*.
 
-The model declares the states an entity can hold (eg. a `status` of `available`, `reserved`, or `sold`), but the allowed
-transitions between those states should be defined separately in the business rules.
-
-In practical terms, the model is where the SRS comes closest to the software architecture. There may be a lot of
-necessary overlap with the design docs here. After all, a sound domain model tends to become the backbone of the
-implementation.
+The domain model is one of the most important parts of a software requirements specification. It anchors the project's
+shared vocabulary and is the foundation from which the system's actors and behaviors are derived. The domain model is
+also the closest that the SRS comes to the software architecture. Indeed, there may be a lot of necessary overlap
+between this part of the requirements specification and the system's design docs.
 
 For modeling techniques, see xref:004.adoc[*TS-4: Modeling*].
 
@@ -77,29 +78,22 @@ Actors are the participants in the domain — the people, organizations, and ext
 must serve. The actors are derived from the domain model.
 
 Actors are typically arranged as a hierarchy, ordered by privilege. Privileges are inherited down the hierarchy. An
-actor holds every capability of the actors below it, plus whatever is granted to it directly.
+actor holds every capability of the actors below it in the hierarchy, plus whatever is granted to it directly.
 
-Even small differences between actor types can have a significant impact on the system's design and the effort required
-to build it, so the hierarchy is worth stating explicitly.
-
-Actors describe _who_ the participants are, but not _what_ each is permitted to do. Permissions — the capabilities that
-each actor is allowed to access — SHOULD be specified separately under the requirements section. Actors, and their
-hierarchy, are part of the domain model, which is background context, while access rules are requirements that the
-system is expected to enforce.
+Although the hierarchy of actors should be defined as part of the background context, this is not the right place to
+specify the particular privileges that are afforded to each actor. Permissions — the behaviors that each actor is
+allowed to access — SHOULD be specified separately, under *Requirements* → *Behaviors* → *Access*.
 
 == Glossary
 
-It is RECOMMENDED to include a glossary of terms that define the project's *ubiquitous language*. Capture every domain
-term, each with a single agreed meaning that's used consistently throughout the specification.
+It is RECOMMENDED to include a glossary of terms that define the project's ubiquitous language. Capture every domain
+term, each with a single agreed meaning that's used consistently throughout the specification — and also throughout
+the design docs, the code and tests, and every other artifact under the project umbrella.
 
-Consistent vocabulary is what keeps the model, the actors, and the requirements coherent. Using the same term to mean
-the same thing in the glossary, the model, and every scenario is one of the highest-leverage things a specification can
-get right.
-
-The glossary is separate from the model, though there will be much overlap between the two. The model defines entities,
-but not every domain term is an entity. For example, _reservation_, _credential_, and _currency_ are domain vocabulary
+The glossary may be a superset of the terms defined in the domain model. The model defines entities, but not every
+domain term is an entity. For example, _reservation_, _credential_, and _currency_ are domain vocabulary
 with no structural definition. The glossary is the flat index of _all_ domain vocabulary, including but not limited to
 domain entities and their properties.
 
-For terms that are also domain entities, define the term briefly in the glossary and link to the model for the full
-entity structure.
+Consistent vocabulary is what keeps the requirements coherent. Using the same term to mean the same thing throughout
+the whole specification is one of the highest-leverage things to get right.

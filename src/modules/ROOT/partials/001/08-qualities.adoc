@@ -5,21 +5,27 @@ cross-functional requirements (CFRs). They define the operational constraints wi
 expected to work. They include, but are not limited to, security, performance (throughput, latency), scalability,
 availability, portability, data retention requirements, and so on.
 
-The scope here is the system's *dynamic* quality attributes — those that emerge at runtime and are observable
-externally, in the way the system behaves for real users in production. These are distinct from a system's *static*
-quality attributes — internal qualities of the code and design (readability, modularity, naming, structure) that emerge
-at or before compile time and matter to developers rather than users.
+The scope here is the system's dynamic quality attributes — those that emerge at runtime and are observable externally
+in the way the system behaves for real users in production. These are distinct from a system's static quality attributes
+ — internal qualities of the code and design (readability, modularity, naming, structure) that emerge at or before
+compile time and that matter to developers rather than users.
 
 Static qualities are out-of-scope for the requirements specification. They are not requirements the business specifies.
-Rather, they are design concerns, addressed through code design and refactoring. See also:
+Rather, they are design concerns, addressed through code design and refactoring.
 
-* xref:002.adoc[*TS-2: Software design qualities*]
-* xref:007.adoc[*TS-7: Code design*]
+Many NFRs are architecturally significant, heavily influencing fundamental design choices such as technology stacks and
+databases. For example, scalability and durability require big up-front decisions on both the software architecture and
+the production infrastructure, eg. planning for redundancy in additional hardware, network, or bandwidth capacity. For
+these reasons, non-functional requirements can be much harder to change than functional requirements (FRs) later in
+a project. Some NFRs, such as uptime guarantees, will also be reflected in Service Level Agreements (SLA) and are therefore
+significant to business stakeholders and customers. For these reasons, quality requirements MUST be comprehensively
+specified _before_ major design and construction work begins on a new system. In general, the same is not true of
+functional requirements, for which there is usually more scope to specify incrementally.
 
 == Organizing qualities
 
-Qualities SHOULD be grouped by quality characteristic, using the product quality model of ISO/IEC 25010 as the
-RECOMMENDED taxonomy:
+Qualities SHOULD be grouped by quality characteristic, using the product quality model of {link-iso-25010}[ISO/IEC 25010]
+as the RECOMMENDED taxonomy.
 
 * *Functional suitability.* Completeness, correctness, appropriateness.
 * *Performance efficiency.* Time behavior, resource utilization, capacity.
@@ -35,108 +41,31 @@ from the taxonomy. These are static qualities — design concerns addressed thro
 requirements the business specifies. Where a maintenance concern is genuinely observable at runtime, such as the time
 taken to restore service after a fault, it belongs under *reliability* as a recoverability requirement.
 
-== Prioritizing qualities
-
-Qualities MUST be prioritized relative to one another, in the same way functional requirements are. A specification that
-names a dozen qualities without saying which of them matter most has recorded a wish list, not a set of requirements.
-
-Prioritization is necessary because qualities compete. Raising one often lowers another. Multi-factor authentication
-raises security and lowers usability. Caching a derived value raises performance and puts correctness at risk. Tuning
-for one runtime raises throughput and lowers portability. No design maximizes every quality at once, so every design
-resolves these conflicts one way or another. The only question is whether the business chose the resolution, or left it
-to whoever wrote the code.
-
-The RECOMMENDED unit of prioritization is the quality characteristic, not the individual threshold. Ranking the eight
-ISO/IEC 25010 characteristics against one another for a given product is an exercise a business stakeholder can reason
-about. Ranking forty individual thresholds is not.
-
-The ranking is an input to design, not an output of it. Like any architecturally-significant requirement, it MUST be
-settled before the increment that depends on it is designed — see <<Architecturally-significant requirements>>.
-
-Where two qualities conflict directly, the specification MUST state which one takes precedence, and the proposal that
-settled it MUST record why. A threshold on its own does not tell a future reader that something was given up to reach
-it.
-
-This is a different axis of prioritization from the MoSCoW ranking of proposals awaiting implementation, which orders
-the delivery queue — see <<Prioritizing proposals>>. A quality may rank highest for the product and still sit low in the
-delivery order.
-
-How a design absorbs one of these compromises, once it has been decided, is covered in xref:002.adoc[*TS-2: Software
-design qualities*].
-
-== Value and cost
-
-Every quality threshold has a price, and the price rises steeply toward the top of the scale. The level to specify is
-therefore not the highest level achievable, but the level at which the value of meeting it exceeds the cost of meeting
-it.
-
-A quality goal SHOULD be justified by what failing to meet it would cost the business.
-https://stackoverflow.blog/2022/01/17/plan-for-tradeoffs-you-cant-optimize-all-software-quality-attributes/[Karl
-Wiegers] describes a manufacturer whose process-control system had to run continuously, with no downtime acceptable at
-all. Meeting that requirement took two independent, redundant computer systems, so that one could be taken offline for
-updates while the other kept running. The redundancy was expensive, and still cheaper than halting production every time
-the control system went down.
-
-That is the shape of the argument a quality requirement needs. "Availability of 99.99%" is a testable threshold, but an
-arbitrary one until somebody has said what an hour of downtime costs. Thresholds set without that figure tend to ratchet
-upward: no stakeholder asked to name a number volunteers a lower one, and the cost of the extra nines lands on a budget
-the person naming them does not hold.
-
-Two practical consequences follow:
-
-* *State the loss, then derive the threshold.* The business stakeholder is the authority on what an outage, a slow page,
-  or a breach costs. The threshold that follows from that figure is a technical judgment.
-
-* *Record the level that was rejected.* Where a higher threshold was considered and turned down on cost, the proposal
-  SHOULD say so. Otherwise the question is reopened, and re-costed, at every subsequent review.
-
-Where the cost in question is cloud infrastructure spend, see xref:050.adoc[*TS-50: Cloud economics*].
-
-== Architecturally-significant requirements
-
-Many NFRs are architecturally significant, heavily influencing fundamental design choices such as technology stacks and
-databases. For example, scalability and durability require big up-front decisions on both the software architecture and
-the production infrastructure, eg. planning for redundancy in additional hardware, network, or bandwidth capacity.
-
-For these reasons, non-functional requirements can be much harder to change than functional requirements (FRs) later in
-a project. A quality requirement that bears on the architecture MUST therefore be identified before the increment that
-depends on it is designed, rather than discovered once it is built.
-
-Some NFRs, such as uptime guarantees, will also be reflected in Service Level Agreements (SLA) and are therefore
-significant to business stakeholders and customers.
-
 == Acceptance criteria
 
-Like FRs, NFRs SHOULD be specified as acceptance criteria — measurable, testable benchmarks. For example, "the system
-handles 1,000 concurrent users" can be tested by simulating that load and measuring performance under it.
+Like functional requirements, non-functional requirements SHOULD be specified as acceptance criteria with measurable,
+testable benchmarks. For example, "the system handles 1,000 concurrent users" can be tested by simulating that load and
+measuring performance under it.
 
-A quality requirement that cannot be measured cannot be verified, and an unverifiable requirement is just a wish.
-Wherever a quality is objectively measurable, it MUST be stated as a concrete threshold, ideally at a named percentile
-and load: "list responses within 300 ms at the 95th percentile under normal load," not "the API should be fast." Vague
-qualities give the false comfort of a requirement without the substance of one. The exception is the genuinely
-subjective — see <<Subjective quality requirements>>.
-
-Each quality takes an identifier (`Q1`, `Q2`, …), and each threshold stated within it a two-part identifier (`Q1.1`,
-`Q1.2`, …). Thresholds are identified individually because they are verified individually. A single quality such as
-latency may state different budgets for different operations, percentiles, and load conditions, and each is a separate
-pass or fail.
-
-Where possible, constraints should specify metrics against which the system can be benchmarked, such as Mean Time
-Between Failures (MTBF), Mean Time to Recover/Repair (MTTR), or the application's crash rate and time to recovery. More
-indirect measurements such as the open/close rates of incidents, and user analytics such as shopping cart abandonment
-rate, may also be useful.
+A quality requirement that cannot be measured against a benchmark cannot be verified that the requirement has been met.
+So, wherever a quality is objectively measurable, it MUST be stated as a concrete threshold, eg. "list responses within
+300ms at the 95th percentile under normal load". Prefer to use specific metrics such as Mean Time Between Failures (MTBF)
+and Mean Time to Recover/Repair (MTTR). More indirect measurements such as the open/close rates of incidents, and user
+analytics such as shopping cart abandonment rate, may also be useful.
 
 Alternatively, it may be possible to define acceptance criteria in terms of conformance to published standards, such as
 AES-256 (for encrypting sensitive data at rest), TLS 1.3 (for data in transit), the Web Content Accessibility Guidelines
 (for accessibility), and the EU General Data Protection Regulation (for the handling of personally-identifiable data).
+Cite a specific version, and state the conformance level where the standard defines one, eg. "WCAG 2.2 Level AA".
 
-Cite a specific version, and state the conformance level where the standard defines one — "WCAG 2.2 Level AA", not
-"accessible". A standard named without a version is not a testable threshold, and it ages badly.
+Where an objective quality requirement is verified by an automated check — eg. a load test, a security scan, an
+accessibility audit — the requirement SHOULD cross-reference that check, and the check SHOULD back-reference the
+requirement, via their respective unique identifiers.
 
 Some quality attributes, such as aspects of security, authentication, and authorization, naturally lend themselves to
 verification using conventional functional testing techniques. These are best specified as user stories and included as
 part of the functional requirements. Authorization requirements, for example, can mostly be dealt with by specifying
-personas or roles and the permissions associated with each. Example:
+personas or roles and the permissions associated with each.
 
 .Example user story
 ----
@@ -145,25 +74,39 @@ I want to change the email server settings via a UI
 so that I don't need to raise IT change requests to do this
 ----
 
+== Choosing thresholds
+
+"Availability of 99.99%" is a quality requirement with a concrete, testable threshold. But that threshold is an entirely
+arbitrary one unless the value of meeting it exceeds the cost. Thresholds should be set at levels where they offer the
+optimum cost-benefit trade-off given the domain and the business's appetite for risk, etc.
+
+The general rule is to choose thresholds that can be justified by what failing to meet it would cost the business. For
+example, a manufacturer whose process-control system has to run continuously, with no downtime acceptable at all, will
+require one or more redundant systems to maintain availability during downtime of one instance. Redundancy is expensive,
+but it could be justified if the cost of operating redundant systems is cheaper than halting production every time the
+control system goes down.
+
+Quality requirements SHOULD include the business justification for the thresholds set.
+
 == Subjective quality requirements
 
 Some NFRs are more nebulous and subjective. User experience is a case in point. UX is an entirely subjective quality,
-difficult to specify and measure in quantifiable terms. It must instead be satisfied through the development process —
-explicit user research, continuous testing via A/B strategies, or user satisfaction surveys.
+difficult to specify and measure in quantifiable terms. It must instead be satisfied through the development process via
+user research, continuous testing via A/B strategies, or user satisfaction surveys.
 
+.Net Promoter Score (NPS)
+****
 Net Promoter Score (NPS) surveys can be a good option for keeping track of user sentiment. NPS is a simple, but
 powerful, tool to measure customer loyalty and satisfaction. It's based on a single core question: "How likely are you
 to recommend our product/service/company to a friend or colleague?" Respondents rate their likelihood on a scale from
-zero (not likely) to 10 (extremely likely). Based on the responses, customers are categorized into three groups:
+zero (not likely) to 10 (extremely likely). Based on the responses, customers are categorized into three groups.
 
-* Promoters (score 9-10): Loyal customers who are likely to help fuel growth.
+* *Promoters (score 9-10).* Loyal customers who are likely to help fuel growth.
+* *Passives (score 7-8).* Satisfied but unenthusiastic customers who are vulnerable to competitive offerings.
+* *Detractors (score 0-6).* Unhappy customers who can damage your brand and impede growth through negative word-of-mouth,
+  ie. actively _discourage_ others from engaging.
 
-* Passives (score 7-8): Satisfied but unenthusiastic customers who are vulnerable to competitive offerings.
-
-* Detractors (score 0-6): Unhappy customers who can damage your brand and impede growth through negative word-of-mouth
-  (ie. actively _discourage_ others from engaging).
-
-The NPS is calculated with the formula:
+The NPS is calculated with the following formula.
 
 ----
 NPS = % Promoters - % Detractors
@@ -171,9 +114,20 @@ NPS = % Promoters - % Detractors
 
 NPS surveys often include an open-ended question, such as "What is the primary reason for your score?", to understand
 what's working well and what needs improvement.
+****
 
-== Verification
+== Prioritizing qualities
 
-Where an objective quality requirement is verified by an automated check — eg. a load test, a security scan, an
-accessibility audit — the requirement SHOULD cross-reference that check, and the check SHOULD cross-reference the
-requirement it verifies, by its identifier.
+Qualities SHOULD be prioritized relative to one another, to guide trade-off decisions when qualities conflict.
+
+Prioritization is necessary because qualities compete. Raising one often lowers another. Multi-factor authentication
+raises security but lowers usability. Caching a derived value raises performance but puts correctness at risk. Tuning
+for one runtime raises throughput but lowers portability.
+
+The priority order is a general guideline rather than a rule to be applied consistently in every case. A lower-priority
+quality MAY still take precedence in a specific context where that is clearly justified and documented. The ranking is
+an input to design, not an output of it.
+
+The purpose of defining a priority order for quality attributes in the requirements specification is that it puts the
+choice in the hands of business stakeholders. Engineers are well placed to say how two qualities trade off against each
+other in a given design, but they are less well places to say which on the business values more.
