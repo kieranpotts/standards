@@ -54,5 +54,7 @@ starting point for a new standard, and treat it as the canonical demonstration o
 - The introductory section on the page SHOULD describe the scope and purpose of the standard, and SHOULD link to
   related standards where appropriate.
 
-- A `== References` section MAY be added at the end of the page, after a horizontal rule, to list external sources that
-  informed the content of the standard. References SHOULD NOT be split out into a separate partial.
+- A references section MAY be added to list external sources that informed the content of the standard. It MUST be
+  split out into its own `partials/NNN/99-references.adoc` partial, included from the page after a horizontal rule:
+  `include::partial$NNN/99-references.adoc[leveloffset=+1]`. See TS-26 for the entry format and the `:link-<slug>:`
+  attribute rules.
