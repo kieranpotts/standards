@@ -13,11 +13,13 @@ starting point for a new standard, and treat it as the canonical demonstration o
 ## Page structure
 
 - A standard's page (`pages/NNN.adoc`) MUST begin with a level-1 title in the form `= TS-N: Title`, followed by
-  `:toc: macro` and `:toc-title: Contents`, any `:link-*:` attributes, an introductory paragraph, `toc::[]`, then the
-  `include::` directives.
+  `:toc: macro` and `:toc-title: Contents`, any `:link-*:` attributes, the introduction (included from
+  `partials/NNN/00-introduction.adoc`), `toc::[]`, then the `include::` directives for the standard's numbered
+  content files.
 
 - Content files (`partials/NNN/01-topic.adoc`, `02-topic.adoc`, etc.) MUST start with a level-1 section header (`=`),
-  which becomes a level-2 heading when included with `[leveloffset=+1]`.
+  which becomes a level-2 heading when included with `[leveloffset=+1]`. `00-introduction.adoc` is the only exception
+  — it does not have a section header.
 
 - `include::` directives MUST use `[leveloffset=+1]` and target their partial with the `partial$` resource ID, eg
   `include::partial$NNN/01-topic.adoc[leveloffset=+1]`.
@@ -51,8 +53,9 @@ starting point for a new standard, and treat it as the canonical demonstration o
   MUST NOT be content files in a standard's `partials/NNN/` directory that are not included by the page – except
   examples, which MUST go in an `examples/` subdirectory.
 
-- The introductory section on the page SHOULD describe the scope and purpose of the standard, and SHOULD link to
-  related standards where appropriate.
+- The introduction MUST be split out into its own `partials/NNN/00-introduction.adoc` partial, included from the page
+  before `toc::[]`: `include::partial$NNN/00-introduction.adoc[leveloffset=+1]`. It SHOULD describe the scope and
+  purpose of the standard, and SHOULD link to related standards where appropriate.
 
 - A references section MAY be added to list external sources that informed the content of the standard. It MUST be
   split out into its own `partials/NNN/99-references.adoc` partial, included from the page after a horizontal rule:
