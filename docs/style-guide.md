@@ -59,5 +59,6 @@ starting point for a new standard, and treat it as the canonical demonstration o
 
 - A references section MAY be added to list external sources that informed the content of the standard. It MUST be
   split out into its own `partials/NNN/99-references.adoc` partial, included from the page after a horizontal rule:
-  `include::partial$NNN/99-references.adoc[leveloffset=+1]`. See TS-26 for the entry format and the `:link-<slug>:`
-  attribute rules.
+  `include::partial$NNN/99-references.adoc[leveloffset=+1]`. See TS-26 for the entry format. The partial itself holds
+  only the `*` bullet entries — every `:link-<slug>:` attribute, whether it's cited in the references list, the
+  introduction, or elsewhere in the body, is declared once in the single page-top attribute block described above.
