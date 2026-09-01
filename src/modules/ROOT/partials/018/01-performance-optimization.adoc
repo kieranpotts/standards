@@ -1,3 +1,4 @@
+[#performance-optimization]
 = Performance optimization
 
 Web GUIs SHOULD be designed to be as fast and responsive as possible.
@@ -12,6 +13,7 @@ enhancement* model: serve a static baseline that works without JavaScript or CSS
 Anything that requires JavaScript to function MUST be injected by JavaScript, not present in the initial markup and then
 broken without it.
 
+[#time-to-first-byte]
 == Time to First Byte
 
 *Time to First Byte* (TTFB) is the time between a browser requesting a page and receiving the first byte of the
@@ -29,6 +31,7 @@ TTFB takes, so optimizing rendering without addressing TTFB has a ceiling.
   performance tooling (and browser DevTools) show *where* server time was spent — routing, database queries, rendering —
   directly alongside client-side metrics, rather than treating TTFB as an opaque number.
 
+[#http-2-and-asset-delivery]
 == HTTP/2 and asset delivery
 
 * Serve web GUI assets over *HTTP/2* (or later). HTTP/2 multiplexes many requests over a single connection, removing the
@@ -40,6 +43,7 @@ TTFB takes, so optimizing rendering without addressing TTFB has a ceiling.
   bundling necessary in the first place. Choose the strategy that matches the actual transport in use, and reassess it
   if the transport changes.
 
+[#script-loading]
 == Script loading
 
 * Place `<script>` elements before the closing `</body>` tag, or use the `defer` attribute, so script downloading and
@@ -56,6 +60,7 @@ TTFB takes, so optimizing rendering without addressing TTFB has a ceiling.
   reimplementation of the same capability; use a coverage tool (eg. Chrome DevTools' Coverage panel) to find and remove
   unused code; and periodically prune tag-manager tags that have accumulated without being removed.
 
+[#Profiling]
 == Profiling
 
 Diagnose a performance problem with browser DevTools before optimizing blind. Chrome DevTools' *Performance* tab records
@@ -64,7 +69,7 @@ way to confirm whether a suspected cause — a long task, a layout thrashing loo
 bottleneck, rather than guessing from the code alone. Its *Memory* tab captures heap snapshots that can be compared
 across a sequence of interactions to find a leak: an object that a snapshot shows growing in count or retained size
 across repeated cycles of the same interaction, when it should return to its starting size, points at retained
-references that never get released — see <<Memory-efficient DOM manipulation>> for the patterns (`WeakMap`/`WeakRef`,
+references that never get released — see <<memory-efficient-dom-manipulation,Memory-efficient DOM manipulation>> for the patterns (`WeakMap`/`WeakRef`,
 event-listener cleanup) that most commonly fix what this tool finds.
 
 [#reflows-repaints-and-layout-thrashing]
@@ -91,9 +96,10 @@ event-listener cleanup) that most commonly fix what this tool finds.
 
 * Use event delegation: attach one listener to a common ancestor rather than a separate listener to each of many child
   elements. This reduces the total number of bound listeners, which reduces both memory use and the setup cost of
-  initializing many individual handlers. See <<JavaScript behaviors>> for how this applies to component-scoped behavior
+  initializing many individual handlers. See <<javascript-behaviors,JavaScript behaviors>> for how this applies to component-scoped behavior
   code specifically.
 
+[#interaction-responsiveness]
 == Interaction responsiveness
 
 * Track *Interaction to Next Paint* (INP) — the time from a user interaction to the next frame the browser paints in
@@ -103,6 +109,7 @@ event-listener cleanup) that most commonly fix what this tool finds.
   blocking it for the whole task duration. Use the Scheduler API's `scheduler.yield()` where available, or chunk the
   work manually, so user input is not delayed behind an in-flight task.
 
+[#instant-navigations]
 == Instant navigations
 
 * Design pages to be eligible for the browser's *back/forward cache* (bfcache): avoid setting `Cache-Control: no-store`
@@ -169,13 +176,14 @@ event-listener cleanup) that most commonly fix what this tool finds.
 * Similarly, for JavaScript, try to serve only the subset of code that is required to enable dynamic functionality on
   the current page. This is known as *code splitting* and tools are available to do this automatically (at compile time
   or dynamically on the server-side). Avoid loading _all_ your JavaScript on _all_ your pages. Which strategy code
-  splitting should target depends on the HTTP protocol in service — see <<HTTP/2 and asset delivery>>. Code splitting
+  splitting should target depends on the HTTP protocol in service — see <<http-2-and-asset-delivery,HTTP/2 and asset delivery>>. Code splitting
   decides *what* to serve; a build's module bundler decides *how* it is packaged for delivery, and the two decisions are
   related but distinct.
 
 * Consider *lazy loading* additional JavaScript that enhances the user experience but is not required to enable the core
   functionality.
 
+[#Images]
 == Images
 
 *Choose an image format for what the image contains, not by habit.*
@@ -189,14 +197,14 @@ event-listener cleanup) that most commonly fix what this tool finds.
   GIF's file size, with no reason to prefer GIF's legacy 256-color palette today.
 
 * Use *SVG* for icons, logos, and other simple vector shapes. SVG remains crisp at any size and resolution, so it needs
-  no `@2x`/`@3x` variants for high-density screens, unlike a raster format. See <<Icon fonts>> for why SVG, not an icon
-  font, is this standard's required choice for interface icons, and <<1. Perceivable>> for the accessibility markup an
+  no `@2x`/`@3x` variants for high-density screens, unlike a raster format. See <<icon-fonts,Icon fonts>> for why SVG, not an icon
+  font, is this standard's required choice for interface icons, and <<perceivable,1. Perceivable>> for the accessibility markup an
   SVG image itself needs.
 
 * Test formats empirically rather than applying these defaults rigidly — an image's actual content determines which
   format compresses it best, and the guidance above is a starting point, not an absolute rule.
 
-*Give every image a text alternative appropriate to its role*, per <<1. Perceivable>>: a functional image (a button, an
+*Give every image a text alternative appropriate to its role*, per <<perceivable,1. Perceivable>>: a functional image (a button, an
 icon acting as a control) takes an `alt` that names the action ("Play", "Close"), a complex chart or diagram takes a
 caption or an accompanying accessible data table rather than relying on `alt` alone, and a purely decorative image takes
 an empty `alt=""`.

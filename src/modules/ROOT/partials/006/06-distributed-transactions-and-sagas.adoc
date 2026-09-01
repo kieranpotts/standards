@@ -1,3 +1,4 @@
+[#distributed-transactions-and-sagas]
 = Distributed transactions and sagas
 
 A single-database transaction gives atomicity for free: either every change commits, or none does. Once a business
@@ -30,7 +31,7 @@ committed, undoing their effect in reverse order rather than rolling back a sing
 strong atomicity for availability: no step blocks waiting on the others, and the operation always terminates in a known
 state (fully applied, or fully compensated) without indefinite locking.
 
-Compensating transactions MUST be idempotent and retryable — see <<Idempotency and delivery semantics>> — because they
+Compensating transactions MUST be idempotent and retryable — see <<idempotency-and-delivery-semantics,Idempotency and delivery semantics>> — because they
 run under the same uncertain-delivery conditions as any other distributed operation, and a saga that cannot safely retry
 a failed compensation is not actually recoverable. A compensation is not always a literal reversal: "cancel a shipped
 order" cannot un-ship a package, so its compensation is a new, forward-moving operation (issue a return) rather than a
@@ -65,6 +66,6 @@ The *transactional outbox* pattern resolves it. The service writes the event to 
 transaction as the business data it describes, so the two either both commit or both roll back — they cannot disagree. A
 separate process (a poller, or change-data-capture reading the database's replication log) then reads the outbox table
 and publishes the event to the message broker, retrying until it succeeds, and marks the row as published only on
-confirmed delivery. This gives at-least-once delivery of the event (see <<Idempotency and delivery semantics>>) with no
+confirmed delivery. This gives at-least-once delivery of the event (see <<idempotency-and-delivery-semantics,Idempotency and delivery semantics>>) with no
 possibility of a write persisting silently without ever being announced, and without requiring a distributed transaction
 between the database and the message broker.

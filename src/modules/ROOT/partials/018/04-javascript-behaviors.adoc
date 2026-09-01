@@ -1,9 +1,11 @@
+[#javascript-behaviors]
 = JavaScript behaviors
 
 Client-side JavaScript that adds interactive behavior to a server-rendered page SHOULD be organized around the same
 *component behaviors* the GUI itself is built from, rather than as a monolithic script that reaches across the whole
 page.
 
+[#component-behaviors]
 == Component behaviors
 
 * *Think in component behaviors.* A piece of client-side JavaScript SHOULD affect exactly one DOM subtree — a component
@@ -22,7 +24,7 @@ page.
 * *Load all behaviors on every page.* Because each behavior is scoped to its own selector, it is safe to concatenate all
   of them into one bundle loaded site-wide; a behavior with no matching element on the current page simply does nothing.
   This avoids maintaining a per-page manifest of which scripts to include. Where the resulting bundle grows large enough
-  to affect load performance, apply the code-splitting guidance in <<Performance optimization>> instead — the two
+  to affect load performance, apply the code-splitting guidance in <<performance-optimization,Performance optimization>> instead — the two
   approaches address different scales of the same problem.
 
 * *Bind on document-ready, and guard against absence.* Initialize a behavior inside the `DOMContentLoaded` handler, so
@@ -42,6 +44,7 @@ page.
   scoped to its own subtree — rather than initialized ad hoc wherever it happens to be needed. This keeps every piece of
   interactive behavior discoverable the same way, first-party or not.
 
+[#memory-efficient-dom-manipulation]
 == Memory-efficient DOM manipulation
 
 * *Prefer showing and hiding existing elements over recreating them.* Where a piece of server-rendered markup can be
@@ -95,8 +98,9 @@ action — a payment, an order — twice. Prevent this with a client-side idempo
   slow network causing a user to resubmit from a second tab) in a way the server-side key cannot.
 
 This is distinct from the WCAG requirement that a consequential submission be reviewable and confirmable before it
-commits — see <<3. Understandable>>, "Input assistance" — which addresses informed consent, not duplicate submission.
+commits — see <<understandable,3. Understandable>>, "Input assistance" — which addresses informed consent, not duplicate submission.
 
+[#dom-interaction-conventions]
 == DOM interaction conventions
 
 These conventions govern how a component behavior touches the DOM and reads its inputs. They are implementation-agnostic
@@ -106,21 +110,23 @@ conventions about *what* a behavior does; for the platform APIs that carry them 
 * *Only apply interactive behavior to semantically interactive elements* — `<a>`, `<button>`, `<input>`, `<select>`, and
   `<textarea>`. These elements carry built-in keyboard operability and assistive-technology semantics for free; any
   other element made clickable or tappable requires the behavior to reimplement that support by hand (a `tabindex`, a
-  `role`, and keyboard handlers, per <<2. Operable>>). Where a non-interactive container needs to become interactive —
+  `role`, and keyboard handlers, per <<operable,2. Operable>>). Where a non-interactive container needs to become interactive —
   for example, making a table's header cells sortable — inject a `<button>` into the cell and bind the behavior to the
   button, rather than binding it to the `<th>` itself.
 
 * *Attach behaviors to `data-js-*` hooks, never to HTML event attributes.* `onclick`, `onchange`, and the other inline
   event-handler attributes MUST NOT be used. This restates, for the specific case of event attributes, the
-  `data-js-*`-hook convention in <<Component behaviors>>: a behavior discovered only by reading a JavaScript file, not
+  `data-js-*`-hook convention in <<component-behaviors,Component behaviors>>: a behavior discovered only by reading a JavaScript file, not
   one scattered through the markup as inline attribute values, keeps behavior and markup in one place each.
 
 * *Prefer `requestAnimationFrame` over `setTimeout`/`setInterval` for any animation a behavior drives directly.*
   `requestAnimationFrame` synchronizes the callback with the browser's own repaint cycle, so it produces smoother
   results and lower power consumption than timer-based polling. This applies only to the rare case where an animation
-  cannot be expressed in CSS; see <<Reflows, repaints, and layout thrashing>> for why a CSS animation SHOULD be
+  cannot be expressed in CSS; see <<reflows-repaints-and-layout-thrashing,Reflows, repaints, and layout thrashing>> for
+  why a CSS animation SHOULD be
   preferred in the first place.
 
+[#pattern-libraries-and-living-style-guides]
 == Pattern libraries and living style guides
 
 A *pattern library* (or *living style guide*) is a standalone reference page, built from the application's own component

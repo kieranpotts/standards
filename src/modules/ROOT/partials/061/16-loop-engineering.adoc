@@ -18,12 +18,12 @@ flowchart TB
 *Loop engineering* is the work of automating an entire workflow so that it runs itself — waking on a schedule,
 discovering its own work, spawning sub-agents, and feeding its own output back as the input to the next round.
 
-It is the fourth layer above <<Harness engineering,harness engineering>>. Each layer below it optimizes a single run —
-the model's instructions, the <<Context engineering,context>> it sees, and the harness around it — while a human stays
+It is the fourth layer above <<harness-engineering,harness engineering>>. Each layer below it optimizes a single run —
+the model's instructions, the <<context-engineering,context>> it sees, and the harness around it — while a human stays
 in the loop as operator, triggering each run and judging its result. A loop removes the human from that inner cycle. The
 system becomes its own clock and its own first reviewer.
 
-This is a difference in kind, not degree. An <<Agentic workflows,agentic workflow>> can be fully autonomous within a run
+This is a difference in kind, not degree. An <<agentic-workflows,agentic workflow>> can be fully autonomous within a run
 and still depend on a human to start it and to accept its output. A loop closes on itself: it decides when to run, what
 to work on, and whether its own output is good enough to keep.
 
@@ -41,7 +41,7 @@ generator as the replaceable part.
 == Generator and evaluator
 
 A loop MUST separate the agent that produces work from the agent that judges it — the maker-checker principle applied to
-an unattended system. The reasons are already set out under <<Guides and sensors,guides and sensors>>, and they bind
+an unattended system. The reasons are already set out under <<guides-and-sensors,guides and sensors>>, and they bind
 more tightly here because no human sees each iteration:
 
 * The evaluator MUST be a separate session, and preferably a different model, framed adversarially — instructed to
@@ -54,7 +54,7 @@ more tightly here because no human sees each iteration:
 
 * Inferential judgment MUST be anchored on deterministic gates. Reliability in a loop comes from the quality of its
   constraints, not the capability of its model. Interleave deterministic gates with probabilistic steps, exactly as in a
-  <<Composable pipelines,composable pipeline>>, so that a failing lint, type check, or test halts the iteration
+  <<composable-pipelines,composable pipeline>>, so that a failing lint, type check, or test halts the iteration
   regardless of what any agent claims.
 
 == Bootstrapping a loop
@@ -70,7 +70,7 @@ progress on the task but to build the scaffolding every later iteration will dep
   still works before it changes anything.
 * A durable, human-readable progress log, seeded with the starting state.
 * A granular backlog of the individual units of work the task decomposes into, each carrying its own executable success
-  criterion (see <<Success criteria,success criteria>>), recorded as not yet met.
+  criterion (see <<success-criteria,success criteria>>), recorded as not yet met.
 * An initial commit, so every later iteration diffs against a known baseline rather than an undocumented starting point.
 
 Once this scaffolding exists, ordinary iterations read it rather than rebuild it. An iteration that instead spends its
@@ -85,16 +85,16 @@ looking. Every loop MUST have hard stops that do not depend on the model's coope
 * A termination condition — the state that ends the loop rather than scheduling another turn.
 
 * Iteration and tool quotas, and a token or cost budget, enforced by the harness. This is the
-  <<Guarding against runaway loops,runaway-loop>> guard raised to the scale of the whole workflow, and the same caveat
+  <<guarding-against-runaway-loops,runaway-loop>> guard raised to the scale of the whole workflow, and the same caveat
   scales with it: a loop that spawns sub-agents can multiply cost without bound unless the cap is enforced at the
-  orchestrator, not left to each agent's own budget. See also <<Cost optimization,cost optimization>>.
+  orchestrator, not left to each agent's own budget. See also <<cost-optimization,cost optimization>>.
 
 == State between iterations
 
 A loop outlives any single session and any single context window, so its working state MUST live outside the
 conversation. Each iteration's distilled output is <<Persistence,persisted>> to a durable store — version control
 preferred — from which the next iteration reads with a clean context. Where iterations run concurrently, each MUST be
-given its own <<Isolated environments,isolated working copy>>, so parallel turns cannot corrupt one another.
+given its own <<isolated-environments,isolated working copy>>, so parallel turns cannot corrupt one another.
 
 Each iteration SHOULD open with a fixed routine before it does anything else: confirm its working directory and
 environment, read the progress log and recent commit history for what the previous iteration left behind, consult the
@@ -129,12 +129,12 @@ than discovering them:
   their ability to judge its output — the one scarce resource — erodes with it.
 
 * *Token blowout.* Re-processing accumulated context every iteration makes cost grow with the history, not the work.
-  Keep the per-iteration input minimal, as <<Persistence,persistence>> and <<Context engineering,context engineering>>
+  Keep the per-iteration input minimal, as <<Persistence,persistence>> and <<context-engineering,context engineering>>
   both require.
 
 == When to close the loop
 
-Closing the loop is warranted only where the work is repetitive, its <<Success criteria,success criteria>> are
+Closing the loop is warranted only where the work is repetitive, its <<success-criteria,success criteria>> are
 executable, and the cost of an unverified error is bounded. Where the criteria cannot be reduced to a machine check, or
 a mistake is irreversible or high-blast-radius, the human belongs in the loop — see
 <<Human-in-the-loop,human-in-the-loop>>.
