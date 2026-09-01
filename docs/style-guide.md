@@ -29,7 +29,7 @@ starting point for a new standard, and treat it as the canonical demonstration o
 
 - Within a technical standard, all partials are merged into a ingle document from `include::` directives from the main
   page. Therefore, cross-references _within_ the same standard MUST use the explicit-anchor convention from TS-28
-  (`[[id]]` / `<<id>>`), never a `link:` to the partial file.
+  (`[#id]` / `<<id>>`), never a `link:` to the partial file.
 
 ## File naming
 
