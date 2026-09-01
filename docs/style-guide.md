@@ -18,8 +18,8 @@ starting point for a new standard, and treat it as the canonical demonstration o
   content files.
 
 - Content files (`partials/NNN/01-topic.adoc`, `02-topic.adoc`, etc.) MUST start with a level-1 section header (`=`),
-  which becomes a level-2 heading when included with `[leveloffset=+1]`. `00-introduction.adoc` is the only exception
-  — it does not have a section header.
+  which becomes a level-2 heading when included with `[leveloffset=+1]`. `00-attributes.adoc and `00-introduction.adoc`
+  are the only exceptions — they do not have a section header.
 
 - `include::` directives MUST use `[leveloffset=+1]` and target their partial with the `partial$` resource ID, eg
   `include::partial$NNN/01-topic.adoc[leveloffset=+1]`.
