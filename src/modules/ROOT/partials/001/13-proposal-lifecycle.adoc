@@ -1,30 +1,20 @@
 = Proposal lifecycle
 
-A specification is only as valuable as it is trustworthy, and trust depends on process. A specification MUST be kept
-current with production, and changes to it MUST be deliberate and recorded.
-
-Changes to a specification are therefore introduced through *proposals*. Each one is drafted, reviewed, decided, and —
-if accepted — merged alongside the code that implements it, then preserved permanently as a record of the decision.
-
-This section covers that lifecycle, and the practices that keep the specification trustworthy as it evolves.
-
-== Two artifacts
-
-A complete requirements practice MUST maintain two artifacts side by side, in the same repository:
+A complete requirements management practice requires two types of artifact.
 
 * The *specification*. Mutable and always describing the as-is production system.
+* The *proposal archive*. An immutable, append-only log of every significant proposed change to the specification.
 
-* The *proposal archive*. An immutable, append-only log of every significant proposed change, including those that were
-  rejected.
-
-The specification answers "what does the system do?" The archive answers "why is it that way?"
+The specification answers "what does the system do?" The proposal archive answers "why is it that way?"
 
 The two artifacts SHOULD be colocated, so as to prevent drift between the description of the system and the record of
-the reasoning behind it.
+the reasoning behind it. A version control system is RECOMMENDED as the home for both artifacts.
 
-A version control system is RECOMMENDED as the home for both artifacts.
+== Proposal lifecycle states
 
-== Lifecycle states
+Changes to specifications SHOULD always be introduced through proposals. Each proposal is drafted, reviewed, decided,
+and — if accepted — moved to the archive at the same time the corresponding changes to the specification artifacts
+are made.
 
 Each proposal SHOULD move through a defined state machine, reflecting the process of drafting, discussing, and
 ultimately accepting or rejecting a proposed change to the system specification.
@@ -33,8 +23,16 @@ The following lifecycle states are RECOMMENDED for a baseline implementation.
 
 [mermaid]
 ....
-stateDiagram-v2 [*] --> Draft Draft --> Proposed Proposed --> Accepted Proposed --> Rejected Accepted --> Released
-     Released --> Superseded Rejected --> [*] Released --> [*] Superseded --> [*]
+stateDiagram-v2
+  [*] --> Draft
+  Draft --> Proposed
+  Proposed --> Accepted
+  Accepted --> Released
+  Released --> Superseded
+  Proposed --> Rejected
+  Rejected --> [*]
+  Released --> [*]
+  Superseded --> [*]
 ....
 
 The states have the following meanings.
@@ -46,114 +44,63 @@ The states have the following meanings.
   relevant stakeholders.
 
 * *Accepted.* The proposal is approved by the product managers. Implementation is being tracked via the normal product
-  backlog system. Its specification edits are not yet on the main line, and MAY continue to evolve during
-  implementation.
+  backlog system. Its specification edits are not yet on the main line, and MAY continue to evolve during implementation.
 
 * *Rejected.* The proposal will not be taken forward.
 
 * *Released.* The change has been built, its specification edits are merged alongside the implementing code, and the
-  change-set has been deployed to production.
+  changeset has been deployed to production.
 
 * *Superseded.* A previously released change is no longer in effect. A later proposal replaced or removed the feature.
 
+When under version control, proposals should be introduced via side branches and merged to the main trunk when they
+reach either the rejected or released state. When released, the proposal SHOULD be merged alongside the corresponding
+changes to the specification artifacts. This way, specifications and proposals stay in lock-step with the current
+state of production.
+
+Removing behavior from a system is a specification change like any other, and so proposals to withdraw requirements
+SHOULD follow the normal lifecycle.
+
 == Prioritizing proposals
 
-Acceptance says a change will be made, not when. A backlog of accepted proposals awaiting implementation therefore needs
-a priority order, and the RECOMMENDED scheme for expressing it is *MoSCoW*.
+Accepted proposals form a backlog of changes awaiting implementation. I is RECOMMENDED these be prioritized using a
+scheme such as *MoSCoW*. OPTIONALLY, the prioritization can be mapped to milestones or releases.
 
-* *Must.* The release is not viable without it. A failed Must is a failed release.
+* *Must.* Non-negotiable for the mapped release.
 
-* *Should.* Important, and included unless something has to give.
+* *Should.* Important but not release-blocking.
 
-* *Could.* Desirable. The first thing dropped when time runs short.
+* *Could.* Worth having if time and budget allow.
 
-* *Won't.* Explicitly out-of-scope for now, though the proposal remains accepted and it may be scheduled for delivery in
-  the future, when time and budget allows.
-
-== Withdrawing a requirement
-
-Removing behavior from a system is a change like any other, and MUST be proposed, reviewed, and decided through the same
-lifecycle.
-
-Withdrawal takes two phases. Announcing a removal and implementing it are separate tasks, which may be separated by a
-long interval.
-
-1. *Deprecated.* The proposal to remove the behavior is released. The behavior is still in production, so the
-   requirement stays in the specification, but marked as `@deprecated` or similar.
-
-2. *Removed.* Once the behavior is gone from production, the specification artifacts are deleted, in the same change-set
-   that removes the implementing code.
-
-The two phases MAY be carried by one proposal or by two. One proposal is usually simpler, but two are warranted where
-the time gap between deprecation and removal is long.
-
-== Binding the specification to production
-
-A proposal's specification edits MUST be merged in the same change-set as the code and configuration that implement
-them, and MUST NOT be merged ahead of them.
-
-It is not enough for a proposal to be approved. The change MUST also be designed, built, and tested before its
-specification edits reach the main line. This is what keeps the specification synchronized with the running system, and
-it makes drift a merge-time concern rather than a documentation debt.
-
-Where a project batches releases rather than deploying on merge, the main line of the specification repository will
-briefly lead production — describing behavior that is built and merged but not yet deployed. This window SHOULD be kept
-short. It is the release pipeline's job to close it, not the specification's. Withholding the merge instead would strand
-the specification on a long-lived branch and reintroduce the drift the practice exists to prevent.
-
-Between acceptance and merge, a proposal's specification edits MAY continue to evolve — in response to technical
-feedback, discoveries made while building, or feedback from real users in beta tests and staged roll-outs. It is
-expected that accepted proposals will continue to evolve through implementation. The important thing is that, by the
-time a proposal and its corresponding specification edits land in the main trunk, they are an accurate reflection of the
-final code and configuration changes shipped to production.
-
-== Concurrently supported versions
-
-"The production system" is unambiguous only where one version is live at a time. Products distributed to customers —
-on-premises installations, long-term support branches, or mobile clients that users update at their own pace — have
-several versions running simultaneously, each with different behavior.
-
-Where this applies, the main line MUST describe the newest released version. Each other supported version is a branch or
-tag of the specification repository, cut at the point that version was released, so that a reader can retrieve the
-specification for the version they are running.
+* *Won't.* Agreed to be out-of-scope for the mapped release.
 
 == Best practices
 
-* *Scope each proposal atomically.* One feature or one quality requirement — the smallest thing that can be reviewed,
-  decided, and shipped independently of any other change. Where several changes genuinely depend on one another, such as
-  specifying a greenfield system, they SHOULD be kept as separate atomic proposals grouped under an "epic" container.
+* *Give each proposal a unique reference number.* The number SHOULD be treated as immutable once assigned. This helps
+  to keep stable cross-references.
+
+* *Scope each proposal atomically.* One feature or one quality requirement that can be reviewed, decided, and shipped
+  independently of any other change.
 
 * *Review cross-functionally.* The product teams SHOULD read a proposal for scope and business intent, QA SHOULD read it
   for missing or ambiguous acceptance criteria, and engineering SHOULD review and approve it for feasibility.
 
-* *Specify the end state, not a changelog.* Write "authenticated callers can filter the catalog by species", not "add a
-  species filter". The diff already shows what is changing. The prose SHOULD read as a description of the destination,
-  so that on release the specification is simply true.
-
 * *Keep description and reasoning in their proper homes.* The specification says _what_ the system does, while the
-  proposals say _why_ changes were made over time. Rationale MUST NOT be smuggled into the specification, and a proposal
-  MUST NOT restate the specification — it SHOULD instead link to the artifacts it edits. The proposal is where to be
-  honest about motivation, alternatives, and trade-offs accepted — these are what make the decision log valuable years
-  later.
+  proposals say _why_ changes were made over time. Rationale SHOULD NOT be smuggled into the specification, and a
+  proposal SHOULD NOT restate the specification — it SHOULD instead link to the artifacts it edits.
 
 * *Leave out implementation details.* How the change is rolled out — migration steps, sequencing, feature flags — is an
-  implementation concern and MUST NOT appear in the specification.
+  implementation concern and SHOULD NOT appear in the specification.
 
 * *Keep feedback out of the record.* Open-ended debate and negotiation SHOULD happen in a discussion thread attached to
   the proposal, separate from the document and its revision history. The document's history then stays a clean record of
-  how the proposal evolved. Once merged, the thread's conclusions MAY be summarized in the document.
+  how the proposal evolved.
 
 * *Treat merged proposals as immutable.* A merged proposal MUST NOT be edited or deleted. To revisit a decision, open a
-  new proposal that supersedes the original, cross-referencing the two. Every merged proposal SHOULD be assigned a
-  stable, sequential identifier and listed in an index, so that stewards with no knowledge of the project's history
-  still inherit an appreciation for why the system is the way it is.
+  new proposal that supersedes the original, cross-referencing the two.
 
-* *Record rejections as carefully as acceptances.* A rejected proposal is a decision worth remembering, not a failure to
-  hide. Its specification edits MUST be reverted, but the document MUST be preserved in the archive, so the next person
-  with the same idea can read why it was not pursued. Write its motivation, alternatives, and trade-offs with the same
-  care as a winning one.
+* *Keep a record of rejected proposals.* It is worth recording the rationale for proposals being rejected as much as
+  it is for them being accepted.
 
 * *Trace requirements to their implementation.* Where the tooling allows, each requirement SHOULD be linked to its
-  implementing component, its test suite, and any tracking ticket for outstanding work, citing requirement identifiers
-  such as `F3.2` or `Q1.4`. A feature or quality is easiest to trust when a reader can follow it to the code that
-  implements it and the tests that verify it.
+  implementing component, its test suite, and any tracking ticket for outstanding work.
