@@ -1,18 +1,15 @@
 [#correctness]
 = Functional correctness
 
-Correctness means that a system always performs its functional requirements. It is the second of the three
-sub-characteristics of functional suitability, alongside <<functional-completeness,functional completeness>>, and it is
-treated separately here for two reasons. It is the largest of the three. And this technical standard draws it wider
-than ISO 25010 does, which defines functional correctness only as a property of the results a function returns.
-
-A system exhibits correctness in the following scenarios.
+Correctness means that a system always performs its functional requirements correctly. A system exhibits correctness in
+the following scenarios.
 
 * When the actual behaviors always match the expected behaviors, as specified in the system requirements. All operations
   complete predictably, without silent failures or undetected errors.
 
 * When all state – including state following error conditions – remains valid and consistent. Data is correctly
-  processed and maintained throughout its entire lifecycle.
+  processed and maintained throughout its entire lifecycle, thus preserving the correctness of future operations
+  made on that data.
 
 For a system to consistently behave correctly, it must be designed for valid state across all possible conditions,
 including those involving errors. This means that all possible states, including failure modes, must be predicted and
@@ -23,9 +20,9 @@ inconsistent or invalid state.
 
 == Consistency
 
-Consistency is a constituent of correctness. Consistency is a property of a system's state — whether the values held
-in different places agree with one another. Correctness is a broader property — behavior that conforms to the
-specification — of which valid and consistent state is one requirement among several.
+Consistency is a constituent of correctness. Consistency is a property of a system's state. Consistent state means values
+held in different places agree with one another. Correctness is a broader property. It means behavior conforms to the
+specification. Consistent state is a prerequisite for correct behavior.
 
 In distributed systems, it is common for some consistency to be traded for availability and other qualities. The design
 objective often becomes one of the weaker consistency models, such as *eventual consistency*, which means that replicas
@@ -46,11 +43,13 @@ design, and most correctness defects are ultimately defects of state. But two ru
   a system removes whole categories of defects – synchronization bugs, conflicting writes, stale reads – rather than
   merely defending against them.
 
-* *Maintain one source of truth.* A single piece of state SHOULD not be stored in two places within the same service.
-  However carefully the copies are kept in step, they _will_ diverge. Sometimes that divergence will appear to be
-  random.
+* *Maintain one source of truth.* State MAY be held in more than one place, even within a single service – eg, a read
+  model alongside the write model. What matters is that exactly one copy is authoritative, and that every other copy
+  is derived from it along a defined synchronization path. What SHOULD be avoided is peer copies, each written to
+  independently. However carefully such copies are kept in step, they _will_ diverge. Sometimes that divergence will
+  appear to be random.
 
-Building on the second point, derived values are a common source of inconsistency.  Suppose a client receives a bank
+Building on the second point, *derived values* are a common source of inconsistency.  Suppose a client receives a bank
 balance from a server, and a "spendable balance" is derived from it. To guarantee correctness, the derived value must be
 calculated on demand, rather than it being stored alongside the original for fast retrieval. A slightly less reliable
 alternative is to recalculate the derived value whenever the source data changes. But sooner or later one such
