@@ -1,6 +1,6 @@
 # Technical Standards
 
-**🚧 Under reconstruction.**
+**🚧 UNDER RECONSTRUCTION 🚧**
 
 A set of general-purpose technical standards for software development, curated
 to support the creation of high-quality software products. The standards cover
