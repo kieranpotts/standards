@@ -1,26 +1,28 @@
 [#reliability]
 = Reliability
 
-Reliability is one of the <<runtime-quality,runtime qualities>> that is important enough to warrant being treated as
-a distinct property. While runtime quality in general measures how well a system operates within its specified
-constraints, reliability is more specific. It addresses a system's ability to handle and recover gracefully when
-failures occur.
+Reliability is a <<runtime-quality,runtime quality>> that is important enough to warrant being treated as
+a distinct property. While other runtime qualities are measures of how well a system operates within its specified
+constraints under normal conditions, reliability addresses a system's ability to handle and recover gracefully from
+failures and other abnormal conditions.
 
-Reliability is also closely related to correctness. Correctness refers to the degree to which a system consistently
-performs its intended functions, without failures or errors. A system that is correct all of the time is, by definition,
-a highly reliable system. But, from a strictly architectural definition, the quality of reliability is more specific. It
-addresses how effectively a system recovers, when failures do occur, from error states back to correct states.
+Reliability is related to functional correctness. A system that is correct all of the time is, by definition, a highly
+reliable system. But the two properties are distinct. The quality of reliability specifically addresses a system's
+ability to recover from exceptional conditions. Such recovery may involve the correction of invalid state.
 
 Key to reliability is the ability of a system to keep operating, at least with partial functionality, in exceptional
-circumstances. Three related properties make that up, and they are worth keeping apart. *Fault tolerance* is masking a
-fault so that no failure reaches the user at all, typically by having something else take over. *Graceful degradation*
-is continuing to offer reduced service where the fault cannot be masked. *Resilience* is returning to full service
-afterwards. Where the three are not being contrasted, "resilience" is used below as the umbrella term for all of them,
-which is the ordinary usage.
+circumstances. Three related properties support this objective. *Fault tolerance* means operating as intended despite
+the presence of hardware or software faults. This involves making faults so they don't reach the user at all, typically
+by having something else (like a backup server) take over. *Graceful degradation* is continuing to provide partial
+operational capability in the event of failures. *Recoverability* is returning to full service afterwards.
 
-A system with high fault tolerance will have *high availability*. Availability is defined as the proportion of time that
-a software system is operational and accessible to users. It is often measured as a percentage of time, called *uptime*.
-Downtime is the opposite metric.
+Reliability is closely related to *availability*. Availability is typically measured as the proportion of time that
+a software system is operational and accessible to users (*uptime*). The relationship is not as simple as high
+reliability = high availability. A system that fails often but recovers quickly (in milliseconds) will have poor
+reliability but excellent availability. Availability is also impacted by other properties, besides reliability,
+including performance efficiency, capacity, and scalability.
+
+*Faultlessness* is another property of reliability. It refers to systems performing without fault under normal operation.
 
 == Designing for failure
 
@@ -31,8 +33,8 @@ failure recovery in mind. The specific failure modes and levels of acceptable do
 designing for failure applies universally.
 
 To achieve fault tolerance, systems must anticipate failure modes – things like runtime exceptions, network latency, and
-other disruptions – and gracefully handle them. All sorts of possible failure modes are explicitly designed for. Such a
-system is said to be "designed for failure".
+other disruptions – and handle them. All sorts of possible failure modes are explicitly designed for. Such a system is
+said to be *designed for failure*.
 
 A system built to be fault tolerant is _not_ one that never fails. Rather, the principle of designing for failure is to
 _assume_ that failures will happen and for the design to have explicit recovery logic for each failure scenario.
@@ -56,8 +58,8 @@ crashes.
 In distributed system design, numerous design patterns and operations strategies can help to build in resiliency,
 including the following.
 
-* *Redundancy.* Running multiple instances of a service. Load balancers and circuit breakers distribute processing
-  across multiple instances, and automatically fail over to backup instances when primary instances fail.
+* *Redundancy.* Running multiple instances of a service. Load balancers distribute processing across multiple instances,
+  and circuit breakers stop calls to failing instances.
 
 * *Replication and caching.* Copies of data are stored in multiple locations, and closer to the services that need the
   data (so reducing the physical distance between nodes, which reduces latency).
@@ -69,7 +71,7 @@ including the following.
   scale nodes individually.
 
 Advanced strategies for achieving fault tolerance in mission-critical and safety-critical systems include
-*stand-in systems* (a failover system that is entirely independent of the primary system), *blue-green deployments* and
+*standby systems* (a failover system that is entirely independent of the primary system), *blue-green deployments* and
 *canary releases* (deployment strategies in which new versions of a system are tested in production before going live),
 and *chaos engineering* (intentionally causing failures in production to test the system's ability to recover from
 them).
@@ -77,8 +79,8 @@ them).
 In addition, *monitoring and alerting systems* create feedback loops that are critical to the reliable operation of
 software-as-a-service.
 
-Underpinning all of these patterns is the quality of *visibility* (monitoring plus observability) — the ease with which
-a software system can be monitored and diagnosed at runtime, in production environments. Visibility is critical for
+Underpinning all of these patterns is the quality of *observability* and the practice of *monitoring*, which determine
+the ease with which issues can be diagnosed at runtime in production environments. Such visibility is critical for
 reliability, in all systems but especially distributed ones.
 
 == Other factors
@@ -89,9 +91,7 @@ component is not met) and *exception handling* (to enable graceful degradation f
 
 The user experience needs to be considered, too. A reliable system is also one that *behaves predictably* from the
 user's perspective. If an operation is performed correctly, but it is not what the user expected, the system will be
-_perceived_ as being unreliable, which will impact people's confidence in it. This is the constituent of
-<<usability,usability>> that reliability owns, and it is why that chapter does not treat perceived reliability
-separately.
+_perceived_ as being unreliable, which will impact people's confidence in it.
 
 *Security* is also integral to reliability. A system that is compromised or under attack is, from the user's
 perspective, unreliable. Security threats – whether unauthorized access, data breaches, or denial-of-service attacks –
