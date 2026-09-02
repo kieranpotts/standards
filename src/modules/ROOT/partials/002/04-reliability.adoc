@@ -2,39 +2,41 @@
 = Reliability
 
 Reliability is a <<runtime-quality,runtime quality>> that is important enough to warrant being treated as
-a distinct property. While other runtime qualities are measures of how well a system operates within its specified
-constraints under normal conditions, reliability addresses a system's ability to handle and recover gracefully from
-failures and other abnormal conditions.
+a distinct property. While other runtime qualities are measures of how well a system operates under normal conditions,
+reliability addresses a system's ability to handle and recover from failures and other abnormal conditions.
 
-Reliability is related to functional correctness. A system that is correct all of the time is, by definition, a highly
-reliable system. But the two properties are distinct. The quality of reliability specifically addresses a system's
-ability to recover from exceptional conditions. Such recovery may involve the correction of invalid state.
+Reliability is the capacity of a system to absorb a fault, carry on in some reduced form, and return to normal afterwards.
+Reliability is a {link-iso-25010}[ISO/IEC 25010] term. *Resilience* is colloquially used as a synonym.
 
-Key to reliability is the ability of a system to keep operating, at least with partial functionality, in exceptional
-circumstances. Three related properties support this objective. *Fault tolerance* means operating as intended despite
-the presence of hardware or software faults. This involves making faults so they don't reach the user at all, typically
-by having something else (like a backup server) take over. *Graceful degradation* is continuing to provide partial
-operational capability in the event of failures. *Recoverability* is returning to full service afterwards.
+Reliability is related to functional correctness. ISO/IEC 25010 defines *faultlessness* — aka *maturity* — as a
+sub-characteristic of reliability. It refers to a system performing without fault under normal operation. A system
+that is correct all of the time is, by definition, a highly reliable system.
 
-Reliability is closely related to *availability*. Availability is typically measured as the proportion of time that
-a software system is operational and accessible to users (*uptime*). The relationship is not as simple as high
-reliability = high availability. A system that fails often but recovers quickly (in milliseconds) will have poor
-reliability but excellent availability. Availability is also impacted by other properties, besides reliability,
-including performance efficiency, capacity, and scalability.
+ISO/IEC 25010 defines three other sub-characteristics of reliability.
 
-*Faultlessness* is another property of reliability. It refers to systems performing without fault under normal operation.
+* *Fault tolerance* is about operating as intended despite the presence of hardware or software failures. This may
+  involve masking faults to that failures never reach users at all. Typically this involves having a stand-by system,
+  like a backup server, take over. Or it may involve *graceful degradation*, whereby the system continues to operate
+  but with reduced capability until the fault is resolved.
+
+* *Recoverability* is returning to full service afterwards. Recovering from an exceptional condition may involve the
+  correction of invalid state.
+
+* *Availability* is typically measured as the proportion of time that a software system is operational and accessible
+  to users (*uptime*). A system that fails often can still have good availability if the time-to-recover is short.
 
 == Designing for failure
 
 While reliability is often discussed in the context of software-as-a-service and other continuously-operated systems,
 where downtime directly impacts users, it is equally important for other categories of software. Shrinkwrapped products,
 internal tools, batch processing systems, and embedded systems all benefit from being designed with fault tolerance and
-failure recovery in mind. The specific failure modes and levels of acceptable downtime will vary, but the principle of
+recoverability in mind. The specific failure modes and levels of acceptable downtime will vary, but the principle of
 designing for failure applies universally.
 
-To achieve fault tolerance, systems must anticipate failure modes – things like runtime exceptions, network latency, and
-other disruptions – and handle them. All sorts of possible failure modes are explicitly designed for. Such a system is
-said to be *designed for failure*.
+To achieve fault tolerance, systems must anticipate their failure modes – things like runtime exceptions, network
+latency, and other disruptions – and handle them, so that a failure in one component becomes no more than a fault the
+rest of the system absorbs. All sorts of possible failure modes are explicitly designed for. Such a system is said to be
+*designed for failure*.
 
 A system built to be fault tolerant is _not_ one that never fails. Rather, the principle of designing for failure is to
 _assume_ that failures will happen and for the design to have explicit recovery logic for each failure scenario.
@@ -70,11 +72,17 @@ including the following.
 * *Asynchronous messaging.* Reduces direct dependencies between components, reducing coupling and making it easier to
   scale nodes individually.
 
-Advanced strategies for achieving fault tolerance in mission-critical and safety-critical systems include
-*standby systems* (a failover system that is entirely independent of the primary system), *blue-green deployments* and
-*canary releases* (deployment strategies in which new versions of a system are tested in production before going live),
-and *chaos engineering* (intentionally causing failures in production to test the system's ability to recover from
-them).
+Redundancy can be taken further. A *standby system* is a replica held ready to take over – hot, warm, or cold, according
+to how much state it keeps current. Where a common-mode defect would defeat an identical replica, *diverse redundancy*
+substitutes an independent implementation of the same specification, built by a separate team. That tactic, also known
+as N-version programming, is confined to mission-critical and safety-critical domains, because the cost of building and
+maintaining a second implementation is rarely justified elsewhere.
+
+Release strategies contribute too, by limiting the blast radius of a change. *Canary releases* expose a new version to a
+small fraction of real traffic before it reaches everyone, so that a regression is caught while its impact is still
+small. *Blue-green deployments* keep two production environments and cut over between them, which makes rollback a
+routing change rather than a redeployment. *Chaos engineering* goes further still, injecting failures deliberately to
+test whether the system recovers the way its design claims it will.
 
 In addition, *monitoring and alerting systems* create feedback loops that are critical to the reliable operation of
 software-as-a-service.
@@ -85,9 +93,32 @@ reliability, in all systems but especially distributed ones.
 
 == Other factors
 
-Designing for failure needs to be considered at every level of a system's architecture. At the low-level of code
-modules, consideration must be given to *programming defensively* (raising an exception whenever any expectation of any
-component is not met) and *exception handling* (to enable graceful degradation from failure modes).
+Designing for failure needs to be considered at every level of a system's architecture. At the low level of code
+modules, this means *programming defensively* — writing each routine to protect itself against input it has no reason to
+trust, rather than assuming its callers have behaved. The name is an analogy with defensive driving – assume all other
+drivers on the road will be careless, and drive your own car in a way that reduces the harm they could do to you.
+
+The distinction that matters within defensive programming is between conditions *expected* to occur occasionally –
+invalid user input, a missing file, an unreachable service – and conditions that should be *impossible* if the code is
+correct. The first are ordinary operating conditions, and belong in normal control flow. The second indicate a bug, and
+are what assertions are for.
+
+*Design by contract*, from Bertrand Meyer's work on Eiffel, is a design principle that means designing routines to
+declare their preconditions (what the caller must guarantee), postconditions (what the routine guarantees in return),
+and the invariants that hold throughout. A violated precondition is a bug in the caller. A violated postcondition is a
+bug in the routine. Because each obligation belongs to exactly one party, the contract also says where _not_ to check.
+
+*Fail fast* governs what happens when a check does trip — report the failure at the point of detection, rather than
+continuing with state known to be invalid and surfacing a wrong answer somewhere further downstream.
+*Offensive programming* pushes the same instinct harder, deliberately refusing to paper over a condition that indicates
+a bug. Steve McConnell's formulation is that failing hard during development is what lets a system fail soft in
+production.
+
+These look like enemies of reliability. They are not. Invalid state that propagates is precisely what turns a local fault
+into a system-wide failure. And a component that stops the moment it detects a problem is one that can be restarted
+clean. Erlang formalizes this as *let it crash* — processes fail fast, supervision trees restart them, and the system
+degrades gracefully instead of corrupting itself. Failing fast localizes the fault, and *exception handling* at
+well-chosen boundaries then turns it into graceful degradation rather than an outage.
 
 The user experience needs to be considered, too. A reliable system is also one that *behaves predictably* from the
 user's perspective. If an operation is performed correctly, but it is not what the user expected, the system will be
