@@ -10,8 +10,9 @@ following scenarios.
   processed and maintained throughout its entire lifecycle.
 
 For a system to consistently behave correctly, it must be designed for valid state across all possible conditions,
-including those involving errors. All possible states, including failure modes, must be predicted and planned for in the
-system's design. There should be no unhandled edge cases that could trip the system into an invalid state.
+including those involving errors. This means that sll possible states, including failure modes, must be predicted and
+planned for in a system's design. There should be no unhandled edge cases that could trip the system into an invalid
+state.
 
 When errors occur, the system must recover to a valid state. This may mean rolling back a partial operation, returning
 an error to the caller, or entering a safe degraded state. But it must never leave data or the application in an
@@ -26,20 +27,18 @@ Key to achieving data integrity is good *state management*. Managing state is am
 design, and most correctness defects are ultimately defects of state. But two rules do most of the work.
 
 * *Minimize mutable state.* State that cannot change cannot become inconsistent. Reducing the amount of mutable state in
-  a system removes whole categories of defect – synchronization bugs, conflicting writes, stale reads – rather than
+  a system removes whole categories of defects – synchronization bugs, conflicting writes, stale reads – rather than
   merely defending against them.
 
-* *Maintain one source of truth.* A single piece of state should not be stored in two places within the same service.
+* *Maintain one source of truth.* A single piece of state SHOULD not be stored in two places within the same service.
   However carefully the copies are kept in step, they _will_ diverge. Sometimes that divergence will appear to be
   random.
 
-== Derived values
-
-It is often tempting to reach for derived values. Suppose a client receives a bank balance from a server, and a
-"spendable balance" is derived from it. To guarantee correctness, the derived value must be calculated on demand, rather
-than it being stored alongside the original for fast retrieval. A slightly less reliable alternative is to recalculate
-the derived value whenever the source data changes. But sooner or later one such recalculation will fail, and the
-application will be left holding two numbers that disagree.
+Building on the second point, derived values are a common source of inconsistency.  Suppose a client receives a bank
+balance from a server, and a "spendable balance" is derived from it. To guarantee correctness, the derived value must be
+calculated on demand, rather than it being stored alongside the original for fast retrieval. A slightly less reliable
+alternative is to recalculate the derived value whenever the source data changes. But sooner or later one such
+recalculation will fail, and the application will be left holding two numbers that disagree.
 
 As ever, there are trade-offs. If the derivation is genuinely expensive to calculate, caching the result — and extending
 or invalidating the cache to balance performance against consistency — may be the right design. But caching should be
