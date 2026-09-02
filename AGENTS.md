@@ -33,7 +33,7 @@ and formatting conventions described below.
 - `src/modules/ROOT/pages/`. One page per technical standard,
   `<NNN>.adoc` (eg. `031.adoc`), plus `index.adoc`, the master index of all
   standards. A page is the entry point for its standard — title, intro,
-  `toc::[]`, then `include::` directives pulling in that standard's partials.
+  then `include::` directives pulling in that standard's partials.
 
 - `src/modules/ROOT/partials/<NNN>/`. Everything else that belongs to
   standard `TS-<N>` but isn't the page itself: numbered content files
