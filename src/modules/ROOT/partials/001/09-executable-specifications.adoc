@@ -11,7 +11,7 @@ can be parsed by machines and used as the basis for automated acceptance testing
 
 The Gherkin language was originally developed as part of the https://cucumber.io/[Cucumber] testing framework, but it
 has since been adopted by other testing frameworks including https://specflow.org/[SpecFlow], https://docs.behat.org/[Behat],
-https://jbehave.org/[JBehave], and https://lettuce.readthedocs.io/[Lettuce].
+https://jbehave.org/[JBehave], and https://lettuce.readthedocs.io/[Lettuce]. It is widely supported.
 
 Gherkin is a business-readable domain-specific language. It specifies a software system on a feature-by-feature basis
 from the point of view of different groups of users. One of the objectives of the language's design is to provide a
@@ -25,20 +25,22 @@ The following documentation covers the basic features of the Gherkin language th
 testing frameworks. This is the RECOMMENDED baseline syntax. Various test frameworks support additional extended syntax,
 which you MAY opt in to.
 
-The canonical Gherkin specification lives at https://cucumber.io/docs/gherkin/reference/. Note this is the version
-supported by the latest release of Cucumber. Language support varies between other test frameworks.
+[NOTE]
+======
+The canonical Gherkin specification lives at https://cucumber.io/docs/gherkin/reference/.
+======
 
 == Basic structure
 
-A feature is described in a plain text file with the `.feature` extension, and a file MUST contain at most one `Feature`
-block. Gherkin is line-oriented — one statement per line, and line endings terminate statements or open new blocks.
+Gherkin is line-oriented — one statement per line, and line endings terminate statements or open new blocks.
 Structure is determined by keywords — `Feature`, `Background`, `Scenario`, `Given`, `When`, `Then` — not by indentation.
 Parsers ignore leading whitespace outside doc strings, so indentation is purely a readability convention. Nesting steps
 two spaces under their scenario, and scenarios two spaces under their feature, is the conventional layout and SHOULD be
 followed.
 
-Business rules are structured by features, scenarios, and steps. A software feature may have multiple scenarios, and a
-scenario may play out over multiple steps.
+Business rules are structured by features, scenarios, and steps.  A single feature is described in a plain text file
+with the `.feature` extension. Each feature file MUST contain at most one `Feature` block. A feature may have multiple
+scenarios, and a scenario may play out over multiple steps.
 
 .Template
 [source,feature]
@@ -81,19 +83,13 @@ Feature: Refund item
 
 == Feature files
 
-`.feature` files are the concrete, scenario-level functional requirements.
+Feature files (`*.feature`) are the concrete, scenario-level functional requirements.
 
-How much behavior belongs in one file is a matter of judgment. A file SHOULD be scoped to a single feature — but where a
-feature is large, it is better split across several files, each covering one coherent aspect of it, than allowed to grow
-into a scenario dump. The test is whether a reader can hold the file's subject in their head.
+How much behavior belongs in one file is a matter of judgment. A file SHOULD be scoped to a single feature. But where a
+feature is large, it is better split it across several files, each covering one coherent aspect of it, than allowed to grow
+into a scenario dump. The test is whether a reader can hold the file's contents in their head.
 
-Each file carries its own feature identifier, so a feature split across several files takes several identifiers.
-Identifiers name files, not concepts.
-
-A scenario SHOULD NOT restate a business rule that is stated in the *Requirements* → *Behaviors* → *Rules* section.
-Better instead to cross-reference rules by their identifiers.
-
-The opening lines of each `.feature` file MUST have the following structure.
+The opening lines of each feature file MUST have the following structure.
 
 [source,feature]
 ----
@@ -125,8 +121,8 @@ This top section is for the benefit of humans. It is not used by machines in the
 
 == Scenarios
 
-At this level, both user stories and Gherkin describe the problem, not the solution. But Gherkin goes further by
-describing how the problem will be solved in the software. This is done via one or more scenarios.
+At the level of the feature, both user stories and Gherkin describe the problem, not the solution. Gherkin goes
+further by describing how the problem will be solved in the software. This is done via one or more scenarios.
 
 A scenario is a concrete example that illustrates a business rule, expressed as a sequence of steps. Scenarios MUST
 follow the below pattern.
@@ -166,6 +162,10 @@ Scenario: A user schedules a post to be published in the future
   Then the user receives confirmation of the scheduled publication date
   And the post is not immediately published
 ----
+
+A scenario SHOULD NOT restate a business rule that is stated in the *Requirements* → *Behaviors* → *Rules* section.
+Nevertheless, those rules will be codified in the steps of some scenarios. Where so, the scenario should cross-reference
+the related business rules using their identifiers.
 
 == Steps
 
@@ -221,17 +221,20 @@ smaller ones.
 
 *Thens* are assertions — _actual_ outcomes (what the system actually does) compared against _expected_ outcomes (what it
 is supposed to do). Each `Then` step MUST describe a specific, verifiable (ie. testable) result, output, or expected new
-state. Thens SHOULD observe outcomes related to the business value in the feature description — a report, user interface
-repaint, message, command output, etc. — rather than something deeply buried in the system, such as a database change.
-Assertions about the system's internal state or implementation details SHOULD be avoided.
+state.
 
-A scenario MAY have multiple `Given`, multiple `When` and multiple `Then` steps, but they MUST always be grouped in that
-order. For better readability, subsequent `Given`, `When` and `Then` keywords MAY be swapped for `And` or `But`.
+Thens SHOULD observe outcomes related to the business value in the feature description — a report, user interface
+repaint, message, command output, etc. — rather than something deeply buried in the system, such as a database change.
+Assertions SHOULD NOT be made about the system's internal state or implementation details — though, in practice, this
+is hard to avoid.
+
+A scenario MAY have multiple `Given`, multiple `When`, and multiple `Then` steps, but they MUST always be grouped in that
+order. For better readability, subsequent `Given`, `When`, and `Then` keywords MAY be swapped for `And` or `But`.
 
 Steps are the basis for automated behavior-driven testing. Test automation systems will take the trailing portion of
 each step — the text after the keywords `Given`, `When`, `Then`, `And` and `But` — and map it to a callback function,
-which is executed. Typically, the callbacks for each `Then` step will inspect some aspect of the system — a log entry,
-user interface repaint, command output, etc. — to verify the assertion made in the step.
+which is executed. Typically, the callbacks for each `Then` step will inspect some aspect of the system to verify the
+assertion made in the step.
 
 === Step arguments
 
@@ -271,7 +274,7 @@ which case the scenario has probably stopped illustrating the underlying busines
 
 The same `Given` steps can end up repeated across all scenarios in a feature file. Repeated preparation steps are
 usually incidental detail, not essential to describing individual scenarios. Such details SHOULD be moved to the
-background — a single `Background` section, placed near the top of a feature file between the `Feature` block and the
+background — literally, a single `Background` section, placed near the top of a feature file between the `Feature` block and the
 first `Scenario`, written just like a scenario except with no title.
 
 [source,feature]
@@ -358,7 +361,7 @@ Scenario: Eating
 
 Variables in the scenario outline steps are marked up with `<` and `>`.
 
-A scenario outline section MUST be followed by one or more *Examples* sections. Examples are tabular data used to
+A scenario outline section MUST be followed by one or more `Examples` sections. Examples are tabular data used to
 populate the scenario outline's variables. The table MUST have a header row with column names corresponding to the
 variables encoded in the scenario outline steps. Each table row produces a new scenario, with the variables filled in
 with its values.

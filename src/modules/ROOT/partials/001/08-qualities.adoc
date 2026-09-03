@@ -5,29 +5,33 @@ cross-functional requirements (CFRs). They define the operational constraints wi
 expected to work. They include, but are not limited to, security, performance (throughput, latency, responsiveness),
 scalability, availability, portability, data retention requirements, and so on.
 
-The scope here is the system's *dynamic quality attributes*, which emerge at runtime and are observable externally in
-the way the system behaves for real users in production. These are distinct from a system's *static quality attributes*,
-which are internal qualities of the code and design (readability, modularity, naming, structure) that emerge at or
-before compile time and that matter to developers rather than users.
-
-Static qualities are out-of-scope for the requirements specification. They are not requirements the business specifies.
-Rather, they are design concerns, addressed through code design and refactoring.
-
 Many NFRs are architecturally significant, heavily influencing fundamental design choices such as technology stacks and
 databases. For example, scalability and durability require big up-front decisions on both the software architecture and
 the production infrastructure, eg. planning for redundancy in additional hardware, network, or bandwidth capacity. For
 these reasons, non-functional requirements can be much harder to change than functional requirements (FRs) later in
 a project. Some NFRs, such as uptime guarantees, will also be reflected in Service Level Agreements (SLA) and are therefore
-significant to business stakeholders and customers. For these reasons, quality requirements MUST be comprehensively
-specified _before_ major design and construction work begins on a new system. In general, the same is not true of
-functional requirements, for which there is usually more scope to specify incrementally.
+significant to business stakeholders and customers.
+
+For these reasons, quality requirements MUST be comprehensively specified _before_ major design and construction work
+begins on a new system. In general, the same is not true of functional requirements, for which there is usually more
+scope to specify incrementally.
+
+Nevertheless, it is RECOMMENDED to restrict the scope of the specified quality requirements to the system's
+*dynamic quality attributes*. These are the qualities that emerge at runtime and are observable externally in the way
+the system behaves for real users in production. They are distinct from a system's *static quality attributes*,
+which are internal qualities of the code and design (readability, modularity, naming, structure) that emerge at or
+before compile time and that matter to developers rather than users.
+
+Static qualities are not requirements the business specifies, though they are influenced by them. Rather, static
+qualities are design concerns, addressed through architectural design and refactoring work. For this reason, it is
+RECOMMENDED to keep static qualities out-of-scope for the requirements specification.
 
 == Organizing qualities
 
 Qualities SHOULD be grouped by quality characteristic, using the product quality model of {link-iso-25010}[ISO/IEC 25010]
 as the RECOMMENDED taxonomy.
 
-* *Functional suitability.* Completeness, correctness, appropriateness.
+* *Functional suitability.* Covers functional completeness, correctness, and appropriateness.
 * *Performance efficiency.* Time behavior, resource utilization, capacity.
 * *Compatibility.* Co-existence, interoperability.
 * *Interaction capability.* Usability, accessibility, learnability.
@@ -47,11 +51,13 @@ Like functional requirements, non-functional requirements SHOULD be specified as
 testable benchmarks. For example, "the system handles 1,000 concurrent users" can be tested by simulating that load and
 measuring performance under it.
 
-A quality requirement that cannot be measured against a benchmark cannot be verified that the requirement has been met.
-So, wherever a quality is objectively measurable, it MUST be stated as a concrete threshold, eg. "list responses within
-300ms at the 95th percentile under normal load". Prefer to use specific metrics such as Mean Time Between Failures (MTBF)
-and Mean Time to Recover/Repair (MTTR). More indirect measurements such as the open/close rates of incidents, and user
-analytics such as shopping cart abandonment rate, may also be useful.
+A quality requirement that cannot be measured against a benchmark cannot be verified. So, wherever a quality is
+objectively measurable, it MUST be stated as a concrete threshold, eg. "list responses within 300ms at the 95th
+percentile under normal load".
+
+Prefer to use specific metrics such as Mean Time Between Failures (MTBF) and Mean Time to Recover/Repair (MTTR).
+More indirect measurements such as the open/close rates of incidents, and user analytics such as shopping cart
+abandonment rate, may also be useful.
 
 Alternatively, it may be possible to define acceptance criteria in terms of conformance to published standards, such as
 AES-256 (for encrypting sensitive data at rest), TLS 1.3 (for data in transit), the Web Content Accessibility Guidelines
@@ -69,7 +75,7 @@ personas or roles and the permissions associated with each.
 
 .Example user story
 ----
-As an administrator,
+As an administrator
 I want to change the email server settings via a UI
 so that I don't need to raise IT change requests to do this
 ----
@@ -94,43 +100,33 @@ Some NFRs are more nebulous and subjective. User experience is a case in point. 
 difficult to specify and measure in quantifiable terms. It must instead be satisfied through the development process via
 user research, continuous testing via A/B strategies, or user satisfaction surveys.
 
-.Net Promoter Score (NPS)
-****
-Net Promoter Score (NPS) surveys can be a good option for keeping track of user sentiment. NPS is a simple, but
-powerful, tool to measure customer loyalty and satisfaction. It's based on a single core question: "How likely are you
+In some cases, qualities can be translated into quantifiable metrics. *Net Promoter Score (NPS)* is one such metric.
+It is a methodology for tracking user sentiment. It's based on a single core curvey question: "How likely are you
 to recommend our product/service/company to a friend or colleague?" Respondents rate their likelihood on a scale from
-zero (not likely) to 10 (extremely likely). Based on the responses, customers are categorized into three groups.
+zero (not likely) to 10 (extremely likely). Based on the responses, customers are categorized into three groups:
+promoters (score 9-01), loyal customers who are likely to help fuel growth; passives (7-8), satisfied but unenthusiastic
+customers who are vulnerable to competitive offerings; and detractors (0-6), unhappy customers who can damage your brand
+and impede growth through negative word-of-mouth, ie. actively _discourage_ others from engaging. An overall NPS score
+is calculated by deducting the percentage of users who are detractors from the percentage of promoters. This is a hard
+number that can be monitored over time, and targets specified.
 
-* *Promoters (score 9-10).* Loyal customers who are likely to help fuel growth.
-
-* *Passives (score 7-8).* Satisfied but unenthusiastic customers who are vulnerable to competitive offerings.
-
-* *Detractors (score 0-6).* Unhappy customers who can damage your brand and impede growth through negative word-of-mouth,
-  ie. actively _discourage_ others from engaging.
-
-The NPS is calculated with the following formula.
-
-----
-NPS = % Promoters - % Detractors
-----
-
-NPS surveys often include an open-ended question, such as "What is the primary reason for your score?", to understand
-what's working well and what needs improvement.
-****
+Wherever practical, subjective qualities should be captured in more objective metrics through measurement. Where this
+is not possible, the requirements SHOULD still be specified but clearly marked as non-concrete.
 
 [#prioritizing-qualities]
 == Prioritizing qualities
 
-Qualities SHOULD be prioritized relative to one another, to guide trade-off decisions when qualities conflict.
+Qualities SHOULD be prioritized relative to one another.
 
 Prioritization is necessary because qualities compete. Raising one often lowers another. Multi-factor authentication
 raises security but lowers usability. Caching a derived value raises performance but puts correctness at risk. Tuning
-for one runtime raises throughput but lowers portability.
+a system for a particular runtime environment raises its performance but lowers the portability of the system into
+other environments.
 
-The priority order is a general guideline rather than a rule to be applied consistently in every case. A lower-priority
-quality MAY still take precedence in a specific context where that is clearly justified and documented. The ranking is
-an input to design, not an output of it.
+The priority order MUST be treated as a general guideline rather than a rule to be applied consistently in every case.
+A lower-priority quality MAY still take precedence in a specific context where it is clearly justified and documented.
+The ranking is an input to design, not an output of it.
 
 The purpose of defining a priority order for quality attributes in the requirements specification is that it puts the
 choice in the hands of business stakeholders. Engineers are well placed to say how two qualities trade off against each
-other in a given design, but they are less well places to say which on the business values more.
+other in a given design, but they are less well placed to say which qualities the business values more than others.
