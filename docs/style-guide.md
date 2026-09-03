@@ -4,7 +4,7 @@ This style guide defines the file layout, naming, and content structure conventi
 technical standards in this repository.
 
 For prose-level writing conventions — voice, headings, terminology, citations, punctuation — see
-[TS-26: Technical writing style guide](https://kieranpotts.com/standards/026). For AsciiDoc syntax generally, see
+[TS-26: Technical Writing Style Guide](https://kieranpotts.com/standards/026). For AsciiDoc syntax generally, see
 [TS-28: AsciiDoc](https://kieranpotts.com/standards/028).
 
 [`template/`](../template/) is a complete, compliant worked example, only with lorem-ipsum body text. Copy it as the

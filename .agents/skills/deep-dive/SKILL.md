@@ -77,7 +77,7 @@ prompt the user for clarification.
 
     - `docs/style-guide.md`. Normative for everything under `src/`.
 
-    - `src/modules/ROOT/partials/026/` (TS-26: Technical writing style guide).
+    - `src/modules/ROOT/partials/026/` (TS-26: Technical Writing Style Guide).
       Covers prose conventions.
 
     - `src/modules/ROOT/partials/027/` (TS-27: Markdown). Applies to
