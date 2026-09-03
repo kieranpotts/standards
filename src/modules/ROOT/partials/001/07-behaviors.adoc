@@ -33,28 +33,30 @@ specification/
 
 == Features
 
-Features document the concrete, scenario-level behaviors of the system.
+Features document the concrete, scenario-level behaviors of a system.
 
-It is RECOMMENDED that features be organized by actor. Because privileges are inherited down the actor hierarchy, each
-feature can be specified once against the lowest-privileged actor that can exercise it.
+A *scenario* is a single, concrete example of a feature in use. Each scenario captures a specific starting condition, a
+specific action taken by an actor, and the specific outcome that follows. A feature is typically composed of multiple
+scenarios. The feature names the capability, while the scenarios frame the capability as test cases. Each scenario is
+a condition of satisfaction that either holds true or false.
 
 Acceptance criteria for functional requirements may be captured in a variety of ways. A basic, unstructured list is a
 good starting point. For example, "As a newcomer I can register for an account by creating a login and providing my
 contact information" might be translated into the following technical condition of satisfaction.
 
 ----
-* A username must be provided.
-** It must be between 4 and 20 characters long.
-** It must be unique.
-** The username is case sensitive.
-* A password must be provided.
-** It must be between 8 and 20 characters long.
-** It may contain numbers, letters, and special characters.
-** It must contain at least one letter and one number.
-* An email must be provided.
-** The email must be provided in a valid format.
-** The email must be confirmed by double entry.
-** The email must not already exist in the system.
+- A username must be provided.
+  - It must be between 4 and 20 characters long.
+  - It must be unique.
+  - The username is case sensitive.
+- A password must be provided.
+  - It must be between 8 and 20 characters long.
+  - It may contain numbers, letters, and special characters.
+  - It must contain at least one letter and one number.
+- An email must be provided.
+  - The email must be provided in a valid format.
+  - The email must be confirmed by double entry.
+  - The email must not already exist in the system.
 ----
 
 But this informal notation is insufficient for complex systems, which need a more structured approach. In this situation,
@@ -63,26 +65,30 @@ in the section on <<executable-specifications,executable specifications>>.
 
 Whichever format is used, the following practices keep scenarios useful as specification.
 
-* A scenario SHOULD define one behavior. If a scenario has two unrelated `Then` outcomes, it is probably two scenarios.
+* A scenario SHOULD define one discrete behavior. If a scenario has two unrelated outcomes, it is probably better
+  expressed as two scenarios.
 
-* Scenarios SHOULD be kept concrete. Prefer "then the response contains at most 10 records" over "then a reasonable
-  number of records is returned."
+* Outcomes SHOULD be as concrete as reasonably practical. Prefer "then the response contains at most 10 records" over
+  "then one or more records are returned."
 
-* The project's ubiquitous language SHOULD be used. The same term MUST mean the same thing in the glossary, the model,
-  and every scenario.
+* The project's ubiquitous language SHOULD be used throughout all features and their scenarios.
 
 * Unhappy paths SHOULD be covered too — empty results, not found, unauthorized, etc.
 
 * Edge cases SHOULD be covered as much as reasonably practical. These are where requirements are most often ambiguous,
   which is all the more reason to make them explicit.
 
-* Cross-cutting invariants SHOULD be lifted out of scenarios and moved into rules.
+* Cross-cutting invariants SHOULD be lifted out of scenarios and moved into <<rules,rules>>.
 
+It may be desirable to organize features by actor. Because privileges are inherited down the actor hierarchy, each
+feature can be specified once against the lowest-privileged actor that can exercise it.
+
+[#rules]
 == Rules
 
-A feature is a concrete, scenario-level behavior. Validation constraints and policies like "a pet can't be reserved and
-sold at the same time" are cross-cutting concerns that tend to span multiple features. Specifying them at the level of
-features would duplicate them across every feature they touch, leading inevitably to drift.
+Validation constraints and policies like "a pet can't be reserved and sold at the same time" are cross-cutting concerns
+that tend to span multiple features. Specifying them at the level of features would duplicate them across every feature
+they touch, leading inevitably to drift.
 
 The solution is to state policies and validation constraints as business rules in one central place. Each rule gets a
 single authoritative statement with a stable identifier, so they can be cross-referenced from feature scenarios and
@@ -90,13 +96,14 @@ elsewhere as necessary.
 
 Similarly, entity lifecycle rules live under business rules, not in the domain model. The states that an entity can hold
 are part of its structure, so the domain model declares that they exist. But which state transitions are allowed, and
-which actors may trigger them, is a prescriptive constraint — a rule. Thus, the model defines the vocabulary of states, but
-business rules define the conditions under which those states may transition from one to another.
-
-A state-transition diagram is a good way to express an entity lifecycle.
+which actors have permissions to mutate them, is a prescriptive constraint — a rule. Thus, the model defines the
+vocabulary of states, but business rules define the conditions under which those states may transition from one to
+another.
 
 State each rule so that it is unambiguous and, where possible, testable. Give each a stable identifier so it can be
 cross-referenced from other specification artifacts.
+
+A state-transition diagram is a good way to express an entity lifecycle.
 
 == Access
 
@@ -133,7 +140,7 @@ events it emits.
 This SHOULD be a _behavioral_ contract only. Protocol, transport, payload formats, and endpoint naming are technical
 design decisions, not requirements.
 
-State here only what a consumer can rely on: the operations available, their inputs and outputs (specified in domain
+State here only what a user can rely on: the operations available, their inputs and outputs (specified in domain
 terms), and the actors permitted to invoke them.
 
 == Journeys
@@ -148,7 +155,7 @@ appropriate for headless systems. Either way, these SHOULD be at the level of st
 designs, for example, are downstream concerns that do not belong in a requirements specification.
 
 Whatever the format, the journeys should show how the system's features combine into coherent end-to-end flows — the
-paths a consumer follows to accomplish their goals. Whereas features specify _what_ the system does, journeys show _how_
+paths a user follows to accomplish their goals. Whereas features specify _what_ the system does, journeys show _how_
 those functions come together in the user experience.
 
 Journeys apply only where there is a multi-step flow worth documenting. A feature that is made available through a
