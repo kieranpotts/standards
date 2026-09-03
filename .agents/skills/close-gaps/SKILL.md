@@ -319,9 +319,8 @@ prompt the user for clarification.
         <<Microservices at scale>>.
       ```
 
-      The list lives in a `== References` section on the page, after a `''''`
-      rule, per the style guide. Create it there if the standard has none —
-      most standards do not.
+      The list lives in a `== References` section on the page, per the style
+      guide. Create it there if the standard has none — most standards do not.
 
       Where the standard already keeps its references in a trailing partial,
       add the entry to that list where it is; relocating it is a style-guide
