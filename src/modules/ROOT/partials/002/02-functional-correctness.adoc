@@ -1,9 +1,9 @@
 [#functional-correctness]
 = Functional correctness
 
-Correctness means that a system always performs its functional requirements without error.
+Correctness means that a system always performs its functional requirements correctly.
 
-A system exhibits correctness in the following scenarios.
+A system exhibits correctness when the following conditions are true.
 
 * When the actual behaviors always match the expected behaviors, as specified in the system requirements. All operations
   complete predictably, without silent failures or undetected errors.
@@ -12,25 +12,26 @@ A system exhibits correctness in the following scenarios.
   processed and maintained throughout its entire lifecycle, thus preserving the correctness of future operations
   made on that data.
 
-For a system to consistently behave correctly, it must be designed for valid state across all possible conditions,
-including those involving errors. This means that all possible states, including failure modes, must be predicted and
-planned for in a system's design. There should be no unhandled edge cases that could trip the system into an invalid
-state. When errors occur, the system must recover to a valid state, by rolling back a partial operation, returning an
-error to the caller, or entering a safe degraded state. But it must never leave data or the application in an
-inconsistent or invalid state.
+For a system to consistently behave correctly, it must be designed to maintain valid state across all operations
+and outcomes, including those involving errors.
+
+This requires that all possible states, including failure states, be predicted and planned for in a system's design.
+There should be no unhandled edge cases that could trip the system into an invalid state. When errors do occur, as they
+inevitably will, the system must recover itself to a valid state, for example by rolling back a partial operation,
+returning an error to the caller, or entering a safe degraded state.
 
 == Consistency
 
-Consistency is a constituent of correctness. Consistency is a property of a system's state. Consistent state means values
-held in different places agree with one another. Correctness is a broader property. It means behavior conforms to the
-specification. Consistent state is a prerequisite for correct behavior.
+*Consistency* is a constituent of correctness. Consistency is a property of a system's state. Consistent state means
+values held in different places agree with one another. Correctness is a broader property. It means behavior conforms to
+the specification. Consistent state is a prerequisite for correct behavior.
 
 In distributed systems, it is common for some consistency to be traded for availability and other qualities. The design
 objective often becomes one of the weaker consistency models, such as *eventual consistency*, which means that replicas
-are permitted to hold different values for a time, provided they converge on the same value once updates stop.
+are permitted to hold different values for a time, provided they eventually converge on the same value.
 
 A system is said to be correct if it is eventually consistent _by design_. But a system is incorrect if inconsistency
-arises unexpectedly.
+arises unexpectedly, and the system fails to self-correct.
 
 == State management
 
@@ -38,13 +39,15 @@ arises unexpectedly.
 a critical aspect of correctness.
 
 Key to achieving data integrity is good *state management*. Managing state is among the hardest problems in software
-design, and most correctness defects are ultimately defects of state. But two rules do most of the work.
+design, and most correctness defects are ultimately defects of state.
+
+Two design principles do much of the work in maintaining correct state.
 
 * *Minimize mutable state.* State that cannot change cannot become inconsistent. Reducing the amount of mutable state in
   a system removes whole categories of defects – synchronization bugs, conflicting writes, stale reads – rather than
   merely defending against them.
 
-* *Maintain one source of truth.* State MAY be held in more than one place, even within a single service – eg, a read
+* *Maintain one source of truth.* State MAY be held in more than one place, even within a single service, eg. a read
   model alongside the write model. What matters is that exactly one copy is authoritative, and that every other copy
   is derived from it along a defined synchronization path. What SHOULD be avoided is peer copies, each written to
   independently. However carefully such copies are kept in step, they _will_ diverge. Sometimes that divergence will
@@ -59,27 +62,28 @@ recalculation will fail, and the application will be left holding two numbers th
 As ever, there are trade-offs. If the derivation is genuinely expensive to calculate, caching the result — and extending
 or invalidating the cache to balance performance against consistency — may be the right design. But caching should be
 arrived at as a deliberate design choice, and added as a performance optimization to a state management system that
-already reliably produces correct state.
+already reliably maintains correct state.
 
 == Defensive programming
 
 *Input validation* is a primary line of defense against invalid state. It is not limited to validation of end-user input
-via the user interface layer. Input validation should be strictly applied to all components within a software system, at
-every boundary where data crosses from one component into another, whether a function call, a message on a queue, a
-response from another internal service, or a record returned from a database.
+via the user interface layer. Input validation MUST be applied to all components within a software system, at every
+boundary where data crosses from one component into another, whether a function call, a message on a queue, a response
+from another internal service, or a record returned from a database.
 
 [quote, Doug Linder]
 ____
 A good programmer is someone who always looks both ways before crossing a one-way street.
 ____
 
-Public interfaces to software components should be programmed defensively. This means raising an exception whenever a
-component receives input it cannot handle, rather than proceeding on the assumption that the input is well formed.
+Public interfaces to internal software components MUST be programmed defensively. This means raising an exception
+whenever a component receives input it cannot handle, rather than proceeding on the assumption that the input is well
+formed.
 
 The purpose is to convert silent corruption into loud, immediate failure. An invalid input that is quietly accepted will
-produce an invalid state somewhere downstream, at a point far removed from the mistake that caused it. Failing at the
-boundary forces the defect to be fixed where it originated, and makes the source of a problem obvious when one does
-occur.
+produce an invalid state somewhere downstream, at a point far removed from the programming mistake that caused it.
+Failing at the boundary forces the defect to be fixed where it originated, and makes the source of a problem obvious
+when one does occur.
 
 This is the essence of *defensive programming*. It connects correctness to reliability. A component that refuses invalid
 input is one that cannot be driven into an inconsistent state by its callers, which means failures stay contained rather
