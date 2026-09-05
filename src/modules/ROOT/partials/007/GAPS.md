@@ -29,7 +29,7 @@ TS-2 states a sharper or broader rule than TS-7's existing treatment.
       TL;DR bullet.
 
       **Resolved.** Added a new "Avoiding magic" section to
-      `04-expressiveness.adoc`, after "Syntax and control structures" and
+      `05-expressiveness.adoc`, after "Syntax and control structures" and
       before "Programming paradigms". Defines magic as implicit behavior
       driven by naming convention, reflection, decorators, dependency
       injection, or other framework machinery; gives concrete examples (a
@@ -73,7 +73,7 @@ TS-2 states a sharper or broader rule than TS-7's existing treatment.
       even when it's less approachable to newcomers.
 
       **Resolved.** Extended the "Naming things" section of
-      `04-expressiveness.adoc`, directly after the existing jargon/acronym
+      `05-expressiveness.adoc`, directly after the existing jargon/acronym
       sentence. Added guidance to favor precise, specialized terminology
       over generic words that could be misunderstood, and to respect
       established domain/ecosystem precedent even where it is less
@@ -92,7 +92,7 @@ TS-2 states a sharper or broader rule than TS-7's existing treatment.
       out-of-band documentation.
 
       **Resolved.** Extended the "Naming things" section of
-      `04-expressiveness.adoc`, immediately after the existing "vocabulary
+      `05-expressiveness.adoc`, immediately after the existing "vocabulary
       of the codebase" paragraph. Added a paragraph stating that this
       consistency extends beyond code identifiers to comments, tests, and
       documentation, with a worked example (`order` vs. "purchase" vs.
@@ -109,7 +109,7 @@ TS-2 states a sharper or broader rule than TS-7's existing treatment.
       for brevity's sake.
 
       **Resolved.** Extended the "Naming things" section of
-      `04-expressiveness.adoc`, directly after the newcomer-precedent
+      `05-expressiveness.adoc`, directly after the newcomer-precedent
       addition above. Added a paragraph stating the complementary half of
       the clarity-over-brevity rule — omit words that carry no information —
       with a worked example (`userAccountData` vs. `userAccount`) showing

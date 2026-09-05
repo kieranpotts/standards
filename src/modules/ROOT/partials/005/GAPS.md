@@ -26,7 +26,7 @@ it.
       addressed anywhere in TS-5. Related material exists —
       partials/005/01-horizontal-layers.adoc:65 distinguishes "data models"
       from "domain models" in passing, and
-      partials/007/09-object-oriented-design.adoc:162-184 (value objects,
+      partials/007/10-object-oriented-design.adoc:162-184 (value objects,
       avoiding primitive obsession) touches invalid-state prevention at the
       level of individual values — but neither states the broader thesis
       that the data model should be treated as the foundation of the
