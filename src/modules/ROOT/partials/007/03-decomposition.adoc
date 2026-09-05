@@ -11,6 +11,8 @@
 * An orphan module – a small, standalone module with no obvious existing home – is an acceptable outcome. Don't force it
   into an unrelated module.
 * Optimization is a common source of over-engineering. Optimize only with evidence, and stop once requirements are met.
+* Keep the total number of distinct design patterns in use across a codebase small, so a reader doesn't have to relearn
+  a new idiom in each part of it.
 ****
 
 Decomposition is the process of breaking complex code into smaller and smaller abstractions – typically functions,
@@ -162,3 +164,22 @@ between performance and other design qualities in more detail. Once code works a
 stop engineering it further. Continue simplifying where you can, but resist the urge to keep optimizing past the point
 where it's justified by evidence – the complexity and coupling it introduces are a lasting cost, paid whether or not the
 optimization was ever necessary.
+
+== A small vocabulary of patterns
+
+Decomposition decisions accumulate into a codebase-wide vocabulary of design patterns – the recurring shapes a reader
+learns to recognize, such as "this kind of problem gets solved with a factory here" or "cross-cutting concerns are
+handled with middleware in this codebase." A reader who has learned how one part of the system expresses an idea should
+not need to relearn new structures to understand another part that solves a similar problem.
+
+This is a cross-cutting discipline, distinct from choosing the right pattern for a given problem. It is entirely
+possible for every individual decomposition decision in a codebase to be locally well-reasoned, and for the codebase as
+a whole to still be hard to work in, because it uses a different idiom to solve the same recurring kind of problem in
+every module – one repository layer built around the active record pattern, another around a repository interface,
+a third talking to the database directly. Each choice might be individually defensible. Together, they multiply the
+number of distinct mental models a reader has to hold to work anywhere in the system.
+
+Favor the pattern the codebase already uses for a given kind of problem over introducing a new one, even where the new
+pattern would be a marginally better fit in isolation. Reserve a genuinely new pattern for a kind of problem the
+codebase has not previously had to solve, and once introduced, treat it as the new default for that kind of problem
+elsewhere in the codebase, rather than letting it become a third or fourth alternative alongside the existing ones.

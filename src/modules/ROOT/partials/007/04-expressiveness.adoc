@@ -9,6 +9,7 @@
 * Expressive code is more resilient to refactoring and requirements changes.
 * Prefer positive conditionals to negative ones.
 * Replace magic numbers and string literals with named constants.
+* Avoid "magic" – implicit behavior driven by convention, reflection, or framework machinery the reader cannot see.
 ****
 
 Expressiveness refers to how clearly code communicates its intent and behavior. Expressive code reads like a narrative.
@@ -56,11 +57,27 @@ specific preconditions, that information belongs in the name. For example, `fetc
 `fetchUserData` if caching is involved. Some programming contexts benefit from distinguishing between synchronous and
 asynchronous operations; `fetchUserDataAsync` would be acceptable in this situation.
 
-Avoid jargon and acronyms unless they are universally understood in your domain.
+Avoid jargon and acronyms unless they are universally understood in your domain. But favor precise, specialized
+terminology over generic words that could be misunderstood, and respect established precedent in the domain and in the
+surrounding ecosystem, even where that precedent is less approachable to newcomers. A term already in wide use among the
+people who work in this domain and this codebase every day should not be replaced with a friendlier synonym for the
+benefit of readers passing through once; the daily maintainers pay the cost of relearning a name far more often than a
+newcomer pays the cost of looking one up.
+
+The same discipline applies to word count in the other direction. Include every word needed to remove ambiguity, and
+omit every word that carries no information. Favoring clarity over brevity, as recommended above, is not license to pad
+names with words that add nothing – `userAccountData` says nothing that `userAccount` doesn't already say, if the value
+in question is not raw data but a fully-formed account object.
 
 Names form a catalog of things that are relevant to a computer program. Every abstraction adds an entry to the
 vocabulary of the codebase, and so the names are like words in a custom language that is unique to each program. Naming
 conventions should be consistent throughout a program, for this reason.
+
+This consistency extends beyond the identifiers in code. Once a term is chosen for a domain concept, use that same term
+everywhere the concept appears – in code, comments, tests, and documentation alike – rather than letting synonyms
+accumulate. A concept called `order` in the code but "purchase" in the tests and "transaction" in the documentation
+forces every reader to first work out that the three words denote one thing, before they can begin to understand what
+that thing does.
 
 Magic numbers – unexplained numeric literals or string constants embedded directly in logic – are a naming problem. A
 condition like `if (statusCode === 403)` is less expressive than `if (statusCode === FORBIDDEN)`. Replace such literal
@@ -102,6 +119,32 @@ const transformed = filtered.map(m)
 const result = [newElm, ...transformed]
 return result
 ----
+
+== Avoiding magic
+
+Expressiveness is undermined just as much by what a reader cannot see as by what is badly named. "Magic" is behavior
+that happens implicitly – through naming convention, reflection, decorators, dependency injection, or other framework
+machinery – rather than through an explicit call the reader can follow at the point of use.
+
+A test runner that discovers test functions by scanning for names prefixed with `test_`, an ORM that populates a
+model's fields by reflecting over a database schema, or a dependency injection container that wires up a class's
+constructor arguments by inspecting their type annotations, are all magic in this sense. Each saves the author a small
+amount of explicit wiring code. Each also means that a reader who has not memorized the framework's rules cannot tell,
+from the code alone, what is going to happen – they must already know the convention, or go looking for
+documentation that explains it.
+
+This is a direct trade-off against the goal of this section: code that reads as narrative. Explicit code may be more
+verbose, but its behavior is discoverable by reading it. Magic code is more compact, but its behavior is only
+discoverable by already knowing – or by going elsewhere to learn – the convention or reflection rules the framework
+applies. The more of a codebase's behavior depends on such conventions, the more a new reader has to learn before they
+can trust their reading of any single file.
+
+Some magic is a reasonable trade, particularly where a framework's conventions are widely known throughout its
+ecosystem and are consistently documented and applied. But where a framework offers both an explicit and an implicit
+way to achieve the same result, prefer the explicit one, and be sparing with magic that is bespoke to one codebase
+rather than a well-known convention of a widely-used framework. Bespoke magic imposes the full cost of learning a
+hidden convention without the benefit of that convention being documented and understood anywhere outside the one
+codebase that invented it.
 
 == Programming paradigms
 
