@@ -1,18 +1,18 @@
 = Qualities
 
-The qualities of a system are its non-functional requirements (NFRs) — also known as quality requirements (QRs) or
-cross-functional requirements (CFRs). They define the operational constraints within which the software system is
+The qualities of a system are its *non-functional requirements (NFRs)* — also known as *quality requirements (QRs)* or
+*cross-functional requirements (CFRs)*. They define the operational constraints within which a software system is
 expected to work. They include, but are not limited to, security, performance (throughput, latency, responsiveness),
-scalability, availability, portability, data retention requirements, and so on.
+scalability, availability, portability, and data retention requirements.
 
 Many NFRs are architecturally significant, heavily influencing fundamental design choices such as technology stacks and
 databases. For example, scalability and durability require big up-front decisions on both the software architecture and
 the production infrastructure, eg. planning for redundancy in additional hardware, network, or bandwidth capacity. For
 these reasons, non-functional requirements can be much harder to change than functional requirements (FRs) later in
-a project. Some NFRs, such as uptime guarantees, will also be reflected in Service Level Agreements (SLA) and are therefore
-significant to business stakeholders and customers.
+a project. Some NFRs, such as uptime guarantees, will also be reflected in *service level agreements (SLAs)* and are
+therefore significant to business stakeholders and customers.
 
-For these reasons, quality requirements MUST be comprehensively specified _before_ major design and construction work
+For these reasons, quality requirements MUST be comprehensively specified before major design and construction work
 begins on a new system. In general, the same is not true of functional requirements, for which there is usually more
 scope to specify incrementally.
 
@@ -28,10 +28,10 @@ RECOMMENDED to keep static qualities out-of-scope for the requirements specifica
 
 == Organizing qualities
 
-Qualities SHOULD be grouped by quality characteristic, using the product quality model of {link-iso-25010}[ISO/IEC 25010]
-as the RECOMMENDED taxonomy.
+Qualities SHOULD be grouped by quality characteristic, using the product quality model of
+{link-iso-25010}[ISO/IEC 25010] as the RECOMMENDED taxonomy.
 
-* *Functional suitability.* Covers functional completeness, correctness, and appropriateness.
+* *Functional suitability.* Covers functional completeness, correctness, and appropriateness — see xref:002.adoc[TS-2].
 * *Performance efficiency.* Time behavior, resource utilization, capacity.
 * *Compatibility.* Co-existence, interoperability.
 * *Interaction capability.* Usability, accessibility, learnability.
@@ -41,8 +41,8 @@ as the RECOMMENDED taxonomy.
 * *Safety.* Operational constraint, fail-safe, hazard warning.
 
 This technical standard excludes the ISO/IEC 25010 category of *maintainability* (modularity, reusability, testability)
-from the taxonomy. These are static qualities — design concerns addressed through code design and refactoring, not
-requirements the business specifies. Where a maintenance concern is genuinely observable at runtime, such as the time
+from the taxonomy. These are primarily static qualities — design concerns addressed through code design and refactoring,
+not requirements the business specifies. Where a maintenance concern is genuinely observable at runtime, such as the time
 taken to restore service after a fault, it belongs under *reliability* as a recoverability requirement.
 
 == Acceptance criteria
@@ -52,10 +52,33 @@ testable benchmarks. For example, "the system handles 1,000 concurrent users" ca
 measuring performance under it.
 
 A quality requirement that cannot be measured against a benchmark cannot be verified. So, wherever a quality is
-objectively measurable, it MUST be stated as a concrete threshold, eg. "list responses within 300ms at the 95th
-percentile under normal load".
+objectively measurable, it MUST be stated as a concrete threshold. Some examples follow.
 
-Prefer to use specific metrics such as Mean Time Between Failures (MTBF) and Mean Time to Recover/Repair (MTTR).
+* Availability: 99.9% uptime during business hours.
+* Responsiveness: Page loads under 2 seconds for 95% of requests.
+* Maintainability: New features are implemented and shipped in under 5 days on average.
+* Defect escape rate: Less than 1 critical bug per 1,000 line of new code.
+
+Prefer to use specific metrics such as Mean Time Between Failures (MTBF) and Mean Time to Recover/Repair (MTTR). It is
+RECOMMENDED to track the core DORA metrics as a minimum. These metrics, analyzed in aggregate, measure how effectively
+a team delivers software changes by balancing speed of value delivery against the stability of the evolving software.
+
+* Delivery metrics:
+
+  **  *Deployment frequency.* How often you successfully release to production. High frequency usually means small,
+      low-risk changes and fast feedback.
+
+  **  *Lead time for changes.* How long it takes a commit to reach production. This reflects the efficiency of your
+      CI/CD pipeline.
+
+* Stability metrics:
+
+  **  *Change failure rate.* The percentage of deployments that cause a production issue requiring rollback, hotfix, or
+      patch. It makes breakage visible.
+
+  **  *Time to restore service.* How long it takes to recover from a failure. Also known as MTTR. Fast recovery is a
+      hallmark of resilient systems.
+
 More indirect measurements such as the open/close rates of incidents, and user analytics such as shopping cart
 abandonment rate, may also be useful.
 
@@ -80,11 +103,17 @@ I want to change the email server settings via a UI
 so that I don't need to raise IT change requests to do this
 ----
 
+Avoid vanity metrics. Metrics like test coverage and ticket churn are still worth tracking for other reasons, but they
+don't make good quality benchmarks. High test coverage does not tell you anything about the quality of your tests.
+The velocity of tickets closed does not tell you anything about the value delivered to users. At their worst, when
+metrics are treated as targets they can distort people's behavior in a way that leads to worse outcomes, not better
+ones, eg. writing meaningless tests, over-fragmenting work tasks, or creating lots of noise in `git log`.
+
 == Choosing thresholds
 
 "Availability of 99.99%" is a quality requirement with a concrete, testable threshold. But that threshold is an entirely
 arbitrary one unless the value of meeting it exceeds the cost. Thresholds should be set at levels where they offer the
-optimum cost-benefit trade-off given the domain and the business's appetite for risk, etc.
+optimum cost-benefit trade-off, given the domain and the business's appetite for risk, etc.
 
 The general rule is to choose thresholds that can be justified by what failing to meet it would cost the business. For
 example, a manufacturer whose process-control system has to run continuously, with no downtime acceptable at all, will
@@ -97,21 +126,21 @@ Quality requirements SHOULD include the business justification for the threshold
 == Subjective quality requirements
 
 Some NFRs are more nebulous and subjective. User experience is a case in point. UX is an entirely subjective quality,
-difficult to specify and measure in quantifiable terms. It must instead be satisfied through the development process via
-user research, continuous testing via A/B strategies, or user satisfaction surveys.
+difficult to specify and measure in quantifiable terms. It must instead be satisfied through the development process
+via user research, continuous testing via A/B strategies, and/or user satisfaction surveys.
 
 In some cases, qualities can be translated into quantifiable metrics. *Net Promoter Score (NPS)* is one such metric.
-It is a methodology for tracking user sentiment. It's based on a single core curvey question: "How likely are you
+It is a methodology for tracking user sentiment. It's based on a single core survey question: "How likely are you
 to recommend our product/service/company to a friend or colleague?" Respondents rate their likelihood on a scale from
 zero (not likely) to 10 (extremely likely). Based on the responses, customers are categorized into three groups:
 promoters (score 9-01), loyal customers who are likely to help fuel growth; passives (7-8), satisfied but unenthusiastic
 customers who are vulnerable to competitive offerings; and detractors (0-6), unhappy customers who can damage your brand
 and impede growth through negative word-of-mouth, ie. actively _discourage_ others from engaging. An overall NPS score
 is calculated by deducting the percentage of users who are detractors from the percentage of promoters. This is a hard
-number that can be monitored over time, and targets specified.
+number that can be tracked over time, and targets specified.
 
 Wherever practical, subjective qualities should be captured in more objective metrics through measurement. Where this
-is not possible, the requirements SHOULD still be specified but clearly marked as non-concrete.
+is not possible, the requirements SHOULD still be specified but be clearly marked as non-concrete.
 
 [#prioritizing-qualities]
 == Prioritizing qualities
