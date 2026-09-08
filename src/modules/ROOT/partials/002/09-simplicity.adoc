@@ -251,7 +251,7 @@ suitable error handling and security procedures.
 
 (Over-engineering should not be confused with *feature creep*. The two concepts are often conflated. Feature creep
 refers to functionality accumulating because stakeholders keep asking for it, though each individual feature request
-may be reasonable on its own. It is a produt failure, more than it is one of requirements specification and design.)
+may be reasonable on its own. It is a product failure, more than it is one of requirements specification and design.)
 
 Balancing complexity is a nuanced judgement, calibrated by feedback and improved through time and hands-on experience
 with the system. We can also turn to some broad principles to help us get the balance about right.
@@ -268,14 +268,6 @@ making assumptions about specific requirements for change in the future, and pre
 accommodate those changes, before the changes are known.
 
 == Coupling
-
-// TODO: Modularity.
-// The first is *excessive modularity*. The goal is well-managed coupling rather than minimal coupling, and the pursuit of
-// low coupling as an end in itself produces its own kind of complexity. A system decomposed into too many components,
-// each defensively isolated from the others, forces developers to trace a single behavior across many files and
-// indirections. That degrades simplicity just as surely as a tangled monolith does. Couple together the things that are
-// intended to change together. If two components almost always change in tandem, a dependency between them acknowledges
-// reality. If they are independent concerns that merely happen to coexist, keep them apart.
 
 Implementation simplicity, in its local dimension, comes down to how a system is divided into parts, and how those
 parts depend on one another. The division is *modularity* — decomposing a system into components that can each be
@@ -349,6 +341,16 @@ ____
 Not all coupling is bad. By definition, all software has coupling. Coupling is how the parts of a software system talk
 to each other. Software architecture is about making deliberate decisions about how and where that necessary coupling is
 done.
+
+It follows that the goal is well-managed coupling, not minimal coupling. Pursuing low coupling as an end in itself
+produces its own kind of complexity. A system decomposed into too many components, each defensively isolated from the
+others, forces developers to trace a single behavior across many files and layers of indirection. This *excessive
+modularity* is a form of over-engineering — a decomposition finer than the problem requires — and it degrades
+simplicity just as surely as a tangled monolith does.
+
+The heuristic is to couple together the things that are intended to change together. If two components almost always
+change in tandem, a dependency between them acknowledges reality. If they are independent concerns that merely happen
+to coexist, keep them apart.
 
 Different architectural patterns prioritize managing different categories of coupling. Building a complex system is not
 about removing coupling entirely, but about trading one type of coupling for another. For example, event-driven systems
@@ -428,37 +430,35 @@ complexity in its own right.
 
 == Appropriate abstraction
 
-The second is *unwarranted abstraction*. Abstractions are the primary tool for hiding accidental complexity, and used
-well they leave behind code that expresses only the essential complexity of the domain. But every abstraction is
-itself a thing to be learned, and a layer to be traced through when diagnosing a problem.
+Abstractions are the primary tool for hiding accidental complexity, and used well they leave behind code that
+expresses only the essential complexity of the domain. But every abstraction is itself a thing to be learned, and a
+layer to be traced through when diagnosing a problem.
 
 ****
 Introducing an abstraction is worthwhile only when the complexity added by the abstraction is less than the complexity
 of the problem it hides.
 ****
 
-This test is easy to state and easy to fail. Elaborate patterns applied to simple logic, or layers of indirection
-introduced in anticipation of requirements that never arrive, add complexity without hiding any. Dependency injection
-is a common example — valuable where object construction is genuinely complicated or genuinely needs to vary, but
-frequently applied at a granularity that adds ceremony without separating anything worth separating. Design patterns
-should be _adequate_ to the problem, and no more.
+This test is easy to state and easy to fail. *Unwarranted abstraction* — elaborate patterns applied to simple logic,
+or layers of indirection introduced in anticipation of requirements that never arrive — adds complexity without hiding
+any. Dependency injection is a common example — valuable where object construction is genuinely complicated or
+genuinely needs to vary, but frequently applied at a granularity that adds ceremony without separating anything worth
+separating. Design patterns should be _adequate_ to the problem, and no more.
 
 == Premature optimization
 
-The third is *premature optimization*. Speeding up a system almost always means adding state. A cache duplicates a
-value that already exists elsewhere. Denormalization duplicates data across boundaries that were previously
-independent. Batching couples requests that were previously handled in isolation. Each of these buys performance by
-tightening coupling somewhere in the system.
-That cost is often worth paying, but it is a cost rather than a free improvement, and it should be paid deliberately,
-once a real performance problem is in evidence — not speculatively, alongside the rest of the design. Stop optimizing
-once the system meets its performance requirements. The temptation to keep tuning past that point adds coupling that
-no requirement asked for.
+*Premature optimization* buys speed the system has not been shown to need, and it is never free. Speeding up a system
+almost always means adding state. A cache duplicates a value that already exists elsewhere. Denormalization duplicates
+data across boundaries that were previously independent. Batching couples requests that were previously handled in
+isolation. Each of these buys performance by tightening coupling somewhere in the system. That cost is often worth
+paying, but it is a cost rather than a free improvement, and it should be paid deliberately, once a real performance
+problem is in evidence — not speculatively, alongside the rest of the design. Stop optimizing once the system meets its
+performance requirements. The temptation to keep tuning past that point adds coupling that no requirement asked for.
 
 [quote, Donald Knuth]
 ____
 We should forget about small efficiencies, say about 97% of the time: premature optimization is the root of all evil.
 ____
-
 
 == Measuring complexity
 
@@ -485,12 +485,10 @@ each of those models is internally consistent, and only the relationships betwee
 of simplicity that resists measurement, and it is why the assessment cannot be delegated to tooling entirely.
 
 Even where coupling can be counted, the count is a question rather than a verdict. Tight coupling between two
-components that genuinely change together is good design. The identical measurement between two unrelated concerns is
-a defect. No number distinguishes the two cases — only knowledge of the domain does. The useful question is therefore
-not "how much coupling is there?" but "does the coupling that exists follow the lines along which this system actually
-changes?" Where the two align, the design is simple in the sense that matters. Where they diverge — where a routine
-change requires edits scattered across components that have no conceptual relationship to one another — the design is
-complex, whatever the raw dependency counts happen to say.
+components that genuinely change together is good design; the identical measurement between two unrelated concerns is
+a defect. No number distinguishes the two cases — only knowledge of the domain does. So the useful question is not
+"how much coupling is there?" but whether the coupling that exists follows the lines along which the system actually
+changes, and that is a judgment about the domain rather than a reading taken off a dependency graph.
 
 That simplicity resists direct measurement does not mean a team should track nothing. A small set of context-specific
 proxies is worth choosing deliberately and watching over time. The common candidates are the number of components, the
