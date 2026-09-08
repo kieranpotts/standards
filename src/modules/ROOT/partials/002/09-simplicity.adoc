@@ -208,7 +208,7 @@ and responsive tend to have very focused product offerings, because the effort r
 difficult decisions about what functions to include and what to leave out.
 
 A simple interface also buys consistency in design and behavior, which is central to <<usability,usability>>. A small,
-coherent set of UI concepts lets users predict how the system will behave from their previous experience of it
+coherent set of UI concepts lets users predict how the system will behave from their previous experience of it.
 
 == Under- and over-engineering
 
@@ -239,18 +239,20 @@ accumulation of unnecessary _functionality_; over-engineering is unnecessary com
 whatever functionality already exists. A system can be simple in what it does and baroque in how it does it, or the
 reverse.
 
-Note also that deliberate, temporary under-engineering is a legitimate strategy under the worse-is-better philosophy
-described above — shipping something simpler than the eventual solution, then improving it specifically where evidence
-shows improvement is needed. What distinguishes this from the failure mode is that it is a conscious choice, made with
+Deliberate, temporary under-engineering is a legitimate strategy under the <<new-jersey-style,worse-is-better>>
+philosophy — shipping something simpler than the eventual solution, then improving it specifically where evidence shows
+improvement is needed. What distinguishes this from the failure mode is that it is a conscious choice, made with
 knowledge of what has been deferred.
 
 Three sources of over-engineering deserve naming individually, because each of them can be mistaken for good practice.
+All three have code-level counterparts covered in xref:007.adoc[*TS-7: Code Design*]. The concern here is the design
+philosophy behind them.
 
 The first is *excessive modularity*. The goal is well-managed coupling rather than minimal coupling, and the pursuit of
 low coupling as an end in itself produces its own kind of complexity. A system decomposed into too many components,
 each defensively isolated from the others, forces developers to trace a single behavior across many files and
 indirections. That degrades simplicity just as surely as a tangled monolith does. Couple together the things that are
-intended to change together: if two components almost always change in tandem, a dependency between them acknowledges
+intended to change together. If two components almost always change in tandem, a dependency between them acknowledges
 reality. If they are independent concerns that merely happen to coexist, keep them apart.
 
 The second is *unwarranted abstraction*. Abstractions are the primary tool for hiding accidental complexity, and used
@@ -268,10 +270,10 @@ is a common example — valuable where object construction is genuinely complica
 frequently applied at a granularity that adds ceremony without separating anything worth separating. Design patterns
 should be _adequate_ to the problem, and no more.
 
-The third is *premature optimization*, which is the easiest of the three to mistake for virtue rather than risk.
-Speeding up a system almost always means adding state. A cache duplicates a value that already exists elsewhere;
-denormalization duplicates data across boundaries that were previously independent; batching couples requests that
-were previously handled in isolation. Each of these buys performance by tightening coupling somewhere in the system.
+The third is *premature optimization*. Speeding up a system almost always means adding state. A cache duplicates a
+value that already exists elsewhere. Denormalization duplicates data across boundaries that were previously
+independent. Batching couples requests that were previously handled in isolation. Each of these buys performance by
+tightening coupling somewhere in the system.
 That cost is often worth paying, but it is a cost rather than a free improvement, and it should be paid deliberately,
 once a real performance problem is in evidence — not speculatively, alongside the rest of the design. Stop optimizing
 once the system meets its performance requirements. The temptation to keep tuning past that point adds coupling that
@@ -288,7 +290,7 @@ A coherent design requires consistency between its interface and its implementat
 simplicity this section opened with.
 
 This is where domain modeling becomes critical. A well-designed domain model can serve as a bridge between the two.
-When the model is sound, the interfaces a system exposes align naturally with its internal structure: users encounter
+When the model is sound, the interfaces a system exposes align naturally with its internal structure. Users encounter
 concepts that make sense from their perspective, and those same concepts are reflected faithfully in the
 implementation. The alignment reduces cognitive load on both sides. See <<conceptual-integrity,conceptual integrity>>
 for domain modeling's wider role in holding a design together.
@@ -308,7 +310,7 @@ different parts of a system depend on each other.
 This is not about the volume of code. A large codebase can be simple if its components are loosely coupled with clear
 purposes. A small codebase can be impenetrably complex if its parts are tightly coupled.
 
-Michael T Nygard in the book _Release It!_ categorized coupling into five types.
+Michael T Nygard categorizes coupling into five types.
 
 * *Operational coupling.* Runtime coupling, eg. an application that won't even start up when its database server isn't
   available. A single flaky shared service can cause downtime across many dependent applications. This is the enemy of
@@ -318,28 +320,7 @@ Michael T Nygard in the book _Release It!_ categorized coupling into five types.
   on the same system. This coupling is where two components have to be changed together. Modification in one forces a
   coordinated modification in the other. The moment two components share a function or a data schema, neither can evolve
   fully independently. This problem gets exponentially more complicated as systems and teams grow in size and
-  complexity. Developmental coupling can be further categorized into a family of related properties.
-
-  ** *Efferent coupling.* The number of other components a given component depends upon. High efferent coupling means a
-    component cannot be understood, tested, or moved without dragging much of the system along with it.
-
-  ** *Afferent coupling.* The number of other components that depend upon a given component. High afferent coupling is
-    not inherently bad – shared foundations are supposed to be depended upon – but it does mean that changing a
-    component is expensive, so its interface should be small and stable.
-
-  ** *Directionality.* Whether dependencies flow consistently in one direction. Cycles between components are especially
-    damaging, because they eliminate any possibility of understanding, testing, or deploying either component alone.
-
-  ** *Temporal coupling.* Whether components must execute in a particular order, or within a particular window, for the
-    system to behave correctly. This form is easily overlooked, because it is invisible in the dependency graph.
-
-  ** *Data coupling.* Whether components share a mutable data structure, schema, or representation. Shared state is
-    coupling even when there is no direct call between the parties, and a shared database schema is one of the most
-    common sources of hidden coupling in practice.
-
-  ** *Control coupling.* Whether one component directs the internal behavior of another – typically via flag arguments or
-    mode parameters. This makes the callee harder to reason about in isolation, because its behavior is no longer a
-    property of the callee alone.
+  complexity.
 
 * *Semantic coupling.* Two or more components share a concept, eg. what an order contains. They may not share a single
   line of code, but they still can't change independently, because they have to agree on the _meaning_ of things to be
@@ -353,6 +334,32 @@ Michael T Nygard in the book _Release It!_ categorized coupling into five types.
 * *Incidental coupling.* Coupling that exists for no good reason at all, eg. a call from one module reaching right
   across a system to grab a value that it has no business knowing about. This is spaghetti code — the absence of
   architecture. It is pure accidental complexity, pure cost, and buys nothing in return.
+
+Those five categories describe what _kind_ of dependency exists between two components. A second vocabulary, drawn from
+structured design and from static dependency analysis, describes the _shape_ the dependency takes in the code. These
+properties cut across all five categories, but they are most useful when reading a codebase for developmental coupling,
+because each of them is a reason two components have to change together.
+
+* *Efferent coupling.* The number of other components a given component depends upon. High efferent coupling means a
+  component cannot be understood, tested, or moved without dragging much of the system along with it.
+
+* *Afferent coupling.* The number of other components that depend upon a given component. High afferent coupling is not
+  inherently bad — shared foundations are supposed to be depended upon — but it does mean that changing a component is
+  expensive, so its interface should be small and stable.
+
+* *Directionality.* Whether dependencies flow consistently in one direction. Cycles between components are especially
+  damaging, because they eliminate any possibility of understanding, testing, or deploying either component alone.
+
+* *Temporal coupling.* Whether components must execute in a particular order, or within a particular window, for the
+  system to behave correctly. This form is easily overlooked, because it is invisible in the dependency graph.
+
+* *Data coupling.* Whether components share a mutable data structure, schema, or representation. Shared state is
+  coupling even when there is no direct call between the parties, and a shared database schema is one of the most
+  common sources of hidden coupling in practice.
+
+* *Control coupling.* Whether one component directs the internal behavior of another, typically via flag arguments or
+  mode parameters. This makes the callee harder to reason about in isolation, because its behavior is no longer a
+  property of the callee alone.
 
 [quote, David Parnas]
 ____
@@ -386,9 +393,9 @@ stage by the next program along, and the resulting semantic coupling — a share
 bytes mean — is exactly the kind no tooling will warn you about. The bargain is a good one anyway, because it buys
 independent evolution of every component in exchange for a cost paid at the seams.
 
-The general lesson is that a small, stable interface is worth more than a rich one. Interface simplicity is not only a
-courtesy to users; it is what makes the components behind the interface replaceable, and so it is a structural property
-of the system rather than a presentational one. See xref:016.adoc[*TS-16: Command Line Interfaces (CLIs)*] for the
+The general lesson is that a small, stable interface is worth more than a rich one. Interface simplicity is what makes
+the components behind an interface replaceable, and so it is a structural property of the system rather than a
+presentational one. See xref:016.adoc[*TS-16: Command Line Interfaces (CLIs)*] for the
 composability rules that follow from this at the level of a single program's design.
 
 Coupling can go undetected, but it shows up in a number of recognizable symptoms.
@@ -434,7 +441,7 @@ generally, and not only of complexity in the narrow sense.
 Coupling is not only a technical property, either. It is shaped by how the people building a system are organized, and
 team boundaries tend to become service boundaries whether or not that was the intended design — see
 xref:005.adoc[*TS-5: Application Architecture*]. A related but distinct effect operates at the level of process rather
-than team topology: the more people who must be involved in a single design decision, the harder it becomes to arrive
+than team topology. The more people who must be involved in a single design decision, the harder it becomes to arrive
 at a simple result, independent of how those people's teams map onto the system's components. Keeping the design
 process itself lean — few enough participants that a decision can still be made coherently — is therefore a lever on
 complexity in its own right.
@@ -472,18 +479,19 @@ change requires edits scattered across components that have no conceptual relati
 complex, whatever the raw dependency counts happen to say.
 
 That simplicity resists direct measurement does not mean a team should track nothing. A small set of context-specific
-proxies is worth choosing deliberately and watching over time: the number of components, the number of interfaces
-between them, the lead time for a routine change, and the mean time to repair a failure are the common candidates.
-None of them measures simplicity itself. But a worsening trend in any of them is an early warning that complexity is
-accumulating faster than it is being managed, well before the effect shows up as missed deadlines or production
-incidents. Treat the trend as the signal rather than the absolute value, since what counts as a reasonable number of
-components or interfaces is entirely context-specific.
+proxies is worth choosing deliberately and watching over time. The common candidates are the number of components, the
+number of interfaces between them, and — from the {link-dora}[DORA] delivery metrics — the lead time for a routine
+change and the mean time to restore service after a failure. None of them measures simplicity itself. But a worsening
+trend in any of them is an early warning that complexity is accumulating faster than it is being managed, well before
+the effect shows up as missed deadlines or production incidents. Treat the trend as the signal rather than the absolute
+value, since what counts as a reasonable number of components or interfaces is entirely context-specific.
 
 == Boring technology
 
-Conceptual integrity asks that a system be built from a small, deliberate pool of languages, infrastructure, patterns,
-and libraries. Simplicity adds a corollary about which technologies belong in that pool: prefer the ones that are
-mature, stable, and well understood.
+<<conceptual-integrity,Conceptual integrity>> asks that a system be built from a small, deliberate pool of languages,
+infrastructure, patterns, and libraries. Simplicity adds a corollary about which technologies belong in that pool.
+Prefer the ones that are mature, stable, and well understood — what Dan McKinley called
+{link-boring-technology}[*boring technology*].
 
 Boring is not the same as bad. A boring technology is one whose capabilities are well understood and — more
 importantly — whose _failure modes_ are well understood. Every technology carries both known unknowns ("we don't know
@@ -495,12 +503,11 @@ Adding a technology to an organization carries a cost that is easy to overlook, 
 people. If a system is already built in one language, introducing a second brings complexity that must be weighed
 against whatever marginal advantage the new language offers for the problem at hand. Polyglot programming is sold on
 the promise that letting each team choose its own tools locally will make them more effective. The result, more often,
-is a system nobody can navigate as a whole — exactly the conceptual disunity that
-<<conceptual-integrity,conceptual integrity>> warns against.
+is a system nobody can navigate as a whole — exactly the conceptual disunity that principle warns against.
 
 The right question is therefore not which tool is best for a given problem in isolation, but which tool occupies the
 least-worst position across as many of the organization's problems as possible. Choosing technology this way is what
-makes it possible to think about larger questions; technology adopted for its own sake is a distraction. See
+makes it possible to think about larger questions. Technology adopted for its own sake is a distraction. See
 xref:005.adoc[*TS-5: Application Architecture*] for a fuller treatment of language choice specifically, including when
 crossing this boundary is justified.
 
