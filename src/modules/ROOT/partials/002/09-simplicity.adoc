@@ -81,6 +81,7 @@ distinguishes between interface simplicity and implementation simplicity.
 
 * *Interface simplicity* concerns the concepts and behaviors a system exposes to the people and programs that use it. A
   simple interface asks its users to understand the minimum set of concepts the problem genuinely requires.
+  This is closely related to the concepts of <<functional-completeness,functional completeness and appropriateness>>.
 
 * *Implementation simplicity* concerns the structure behind that interface — how the parts of the solution are arranged,
   and how tightly they depend on one another.
@@ -114,11 +115,11 @@ is the essential complexity in the software. It is the goal of *requirements eng
 essential complexity is, and to minimize it. Everything else is accidental complexity, and minimizing it is primarily
 the responsibility of software architects (who focus on global complexity) and programmers (who focus on the local).
 
-This separation of responsibilities between requirements engineering (essential complexity) and architecture (accidental)
-is not always so clear-cut. Nonetheless, it is a useful mental model for guiding our approach to achieving simplicity
-in our software systems. We should first identify the form of complexity before choosing how to reduce it. For example,
-if we identify essential complexity in a system, to consider how this might be reduced we should look first at the
-requirements specification.
+This separation of responsibilities between requirements (essential complexity) and design (accidental) is not always
+so clear-cut. Nonetheless, it is a useful mental model for guiding our approach to achieving simplicity in our software
+systems. We should first identify the form of complexity before choosing how to reduce it. For example, if we identify
+essential complexity in a system, to consider how this might be reduced we should look first at the requirements
+specification.
 
 We can combine both mental models in our identification of complexity. For example, essential complexity may show up in
 the implementation or the interface, or both. A system may have a highly complex implementation that is essential to
@@ -134,59 +135,30 @@ dead abstractions, and inconsistent use of patterns are all examples of local ac
 implementation. Two services that model the concept of a "customer" differently, or a single cross-cutting concern
 handled in three different ways, are examples of global accidental complexity in implementation.
 
-== Balancing complexity
+== Managing complexity
 
-Neither essential complexity nor accidental complexity can be eliminated. Any system that _does something_, anything,
-has some essential complexity. We can't refactor away all accidental complexity, either, because this is the outcome
-of making trade-offs between competing constraints and properties. If different design choices are made, accidental
-complexity would simply resurface in different forms.
+Simple software is more expensive to achieve than complex software. Complexity — in all its forms — is often the result
+of insufficient effort being put into the requirements and design.
+
+But neither essential complexity nor accidental complexity can be eliminated. Any system that _does something_, anything,
+has some essential complexity in it. We can't refactor away all accidental complexity, either, because this is the
+outcome of trade-offs having been made between competing constraints and properties. If different design choices are
+made, accidental complexity would simply resurface in different forms.
 
 Good system design is about managing complexity, not eliminating it.
 
-A key consideration in the management of complexity is the relative balance between its essential and accidental forms.
-Ideally both would be minimized, but in practice you usually have to prioritize one of the two. It helps to picture them
-as being placed on opposite sides of a set of scales. In many systems, you'll find one side will weigh more than the
-other. This determines where requirements and/or design effort will be best spent. You'll get the highest returns — for
-habitability, modifiability, and other qualities — by investing it reducing the most weighty form of complexity.
+We must choose where to focus on our efforts on reducing complexity. Our mental models of where complexity is located
+and from where it originates help us to decide how we will manage complexity.
 
-image::002/accidental-essential-complexity-scales.svg["This diagram shows a set of scales with 'accidental complexity' on one side and 'essential complexity' on the other.",opts=inline]
+Managing complexity is done throughout the software development lifecycle, but two phases are particularly critical:
+requirements analysis, for managing essential complexity, especially in the interface; and design, for managing
+accidental complexity, especially in the implementation.
 
-Where essential complexity is high and cannot be reduced further, accidental complexity is what remains under your
-control, and squeezing it out is where the remaining returns will be.
-
-Where essential complexity is low, and where the domain suggests the requirements will remain stable and so essential
-complexity is unlikely to increase, you may be able to afford to let some accidental complexity accumulate. With stable
-requirements, it's reasonable to assume a system will not be required to change much, so there may be little return to
-be had from refactoring. Effort may be better spent on holding the interface steady.
-
-
-
-
-
-
-== Managing complexity
-
-
-Simple software is more expensive to achieve than complex software. Complexity is often the result of a _lack_ of effort
-put into the requirements and design.
-
-
-
-The more complex the problem space, the more important it becomes to keep the solution space simple. A system modeling a
-genuinely intricate domain already carries a heavy load of essential complexity, and so has little headroom for
-accidental complexity on top. By contrast, a small, simple problem domain can absorb a certain amount of clumsiness in
-its solution and still remain tractable.
-
-Complex problems _require_ simple solutions. Simple problems _tolerate_ complex ones.
-
-Since essential complexity tends to grow over the lifetime of a system, as the domain it models grows richer, the budget
-for accidental complexity shrinks correspondingly. Continuous refactoring is therefore not optional housekeeping but a
-structural necessity.
-
-[quote, Meir Lehman]
-____
-An evolving system increases its complexity unless work is done to reduce it.
-____
+// PRIORITIZE REQUIREMENTS/ESSENTIAL OVER DESIGN/ACCIDENTAL.
+For new systems, and for major new requirements in existing systems, *shift left* the management of complexity in the
+delivery lifecycle as much as you can. This means tackling the essential complexity first, reducing that as much as
+possible through requirements refinement. Once essential complexity cannot be reduced further, accidental complexity
+is what remains under your control, and squeezing it out of the design is where the remaining returns will be.
 
 [quote, John Gall, The Systems Bible]
 ____
@@ -195,37 +167,53 @@ proposition also appears to be true: a complex system designed from scratch neve
 have to start over, beginning with a simple system.
 ____
 
-These two observations are halves of the same argument. Lehman describes the direction complexity travels in the
-absence of effort. Gall describes the only route by which a working complex system is ever reached. Together they say
-that a simple system is not a starting point to be left behind, but a state to be returned to, repeatedly, for as long
-as the system keeps growing.
+// TACKLE THE BIGGEST STUFF FIRST
+In existing systems, the first thing to appreciate is the forms that complexity already takes. For example, what is the
+relative balance between essential and accidental complexity? It helps to picture them as being placed on opposite sides
+of a set of scales. In many systems, you'll find one side will weigh more than the other. This determines where
+requirements and/or design effort will be best spent. You'll get the highest returns — for habitability, modifiability,
+and other qualities — by first investing in reducing the most weighty form of complexity.
 
-Gall's law is often misread as an argument against design. It is not. The claim is not that a system should go
-undesigned, but that its complexity should not be designed in up front, ahead of the evidence that would justify it.
-The design work still has to be done — which is why simplicity is expensive rather than free.
+image::002/accidental-essential-complexity-scales.svg["This diagram shows a set of scales with 'accidental complexity' on one side and 'essential complexity' on the other.",353,143,opts=inline]
 
-This bears directly on the priority order a design follows when simplicity of the implementation and completeness of
-the interface cannot both be had at once. That is the question <<new-jersey-style,the New Jersey style>> answers, and
-the answer it gives — protect the simplicity of the implementation, and let the interface stay rough — is a large part
-of what keeps a system cheap enough to go on growing.
+// COMPLEX PROBLEM SPACE = SIMPLE SOLUTION
+// SIMPLE PROBLEM SPACE = COMPLEX SOLUTION
+Another rule-of-thumb is that the more complex the problem space, the more important it becomes to keep the solution
+space simple. A system modeling a genuinely intricate domain already carries a heavy load of essential complexity, and
+so has little headroom for accidental complexity on top. By contrast, a small, simple problem domain can absorb a
+certain amount of clumsiness in its solution and still remain tractable.
 
-It is worth being precise about what that trades away, because the principle is easily stretched to cover things it
-does not. Worse-is-better sacrifices completeness at the interface in order to protect simplicity in the
-implementation. It does not sacrifice simplicity for speed of delivery, which is the trade that produces technical
-debt, and it does not make correctness negotiable in a system where correctness is the point. What it leaves is a
-tiebreaker: where a decision forces a choice between a simpler implementation and a more complete interface, the
-burden of proof sits with the more complete interface, because the simpler implementation is the one that will still
-be cheap to change once the requirement is better understood.
+Complex problems _require_ simple solutions. Simple problems _tolerate_ complex ones.
 
-Achieving simplicity in the interface of a system requires a disciplined approach to the specification of its
-requirements and to its design. It means resisting the temptation to add features users might someday want, and instead
-focusing on what they genuinely need right now.
+Since essential complexity tends to grow over the lifetime of a system, as the domain it models grows richer, the budget
+for accidental complexity shrinks correspondingly. *Continuous refactoring* is therefore critical to managing complexity
+over the lifetime of a software system.
+
+[quote, Meir Lehman]
+____
+An evolving system increases its complexity unless work is done to reduce it.
+____
+
+// STABLE REQUIREMENTS = LOW PRIORITY FOR ACCIDENTAL COMPLEXITY
+But where essential complexity is low, and where the domain suggests the requirements will remain stable, you may get
+away with allowing some accidental complexity to accumulate. With stable requirements, it's reasonable to assume a
+system will not be required to change much, so there may be little return to be had from refactoring away accidental
+complexity to support future change. In these systems, effort may be better spent on holding the interface steady.
+
+Consider, also, the relative balance of complexity in the interface versus the implementation. The
+<<new-jersey-style,New Jersey style>> prioritizes the simplicity of the implementation over the interface, because
+simple implementations are essential for maintaining <<modifiability,modifiability>>. The interface can be a little
+rough initially. A simple implementation will allow the interface to be easily changed once the users' _actual_
+requirements are better understood through feedback of their experience of using the software.
+
+And yet, a simple interface signals to users that you have thought carefully about what matters to them. It signals
+that the software is <<functional-completeness,functionally suitable>> for their needs.
+
+
 
 Companies that deliver software perceived as fast and responsive tend to have very focused product offerings – not by
 accident, but because the effort required to make software fast forces difficult decisions about what to include and
 what to leave out.
-
-This also sends a signal to users that you have thought carefully about what matters to them.
 
 Perhaps equally important is *consistency* in the design and behavior of the interface. Consistency allows users to
 intuitively predict how the system will behave based on their previous experience with it. It is what lets what a user
