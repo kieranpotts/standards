@@ -269,35 +269,34 @@ accommodate those changes, before the changes are known.
 
 == Coupling
 
-Implementation simplicity, in its local dimension, comes down to how a system is divided into parts, and how those
-parts depend on one another. The division is *modularity* — decomposing a system into components that can each be
-understood, changed, and tested on their own. Whether the division works is a matter of *coupling* — how tightly those
-components depend on each other. Modularity is the decision; coupling is what the decision costs.
+Implementation simplicity, in its local dimension, is primarily a question of how a system is divided into parts, and
+how those parts communicate with (and so depend on) one another. The decomposition of system into parts gives us
+*modularity* — components that can each be understood, changed, and tested on their own. But excessive modularity can
+result in *high coupling*.
 
-Coupling is also the mechanism behind the symptoms of complexity described earlier. Change amplification is a single
-requirement spread across many components. Cognitive load is the rest of the system that a developer must hold in mind
-before touching any part of it. *High coupling* makes systems brittle and difficult to change. *Low coupling* makes
-them flexible and adaptable.
+Coupling — to what degree modules depend on one another and must be changed in unison — is the source of much complexity.
+A highly coupled system is inherently brittle and difficult to change. Coupling is unavoidable. All modular systems have
+coupling. It's how modules talk to each other. The objective is not for zero coupling, but for a pragmatic degree of
+modularity that gives optimal *low coupling*, enough to make a system sufficiently <<malleable,flexible and adaptable>>.
 
-This is not about the volume of code. A large codebase can be simple if its components are loosely coupled with clear
-purposes. A small codebase can be impenetrably complex if its parts are tightly coupled.
+So far, we've defined coupling in broad terms. But coupling actually takes many forms. And we must pay attention to all
+forms of coupling in our perpetual battle against complexity.
 
-Michael T Nygard, in his talk {link-uncoupling}[_Uncoupling_], categorizes coupling into five types.
+Michael Nygard categorizes coupling into five types.
 
 * *Operational coupling.* Runtime coupling, eg. an application that won't even start up when its database server isn't
   available. A single flaky shared service can cause downtime across many dependent applications. This is the enemy of
-  fault tolerance — a system cannot degrade gracefully while it carries operational coupling.
+  fault tolerance. A system cannot degrade gracefully while it carries operational coupling.
 
 * *Developmental coupling.* This is about change. It bites as soon as more than a few people are working simultaneously
   on the same system. This coupling is where two components have to be changed together. Modification in one forces a
   coordinated modification in the other. The moment two components share a function or a data schema, neither can evolve
-  fully independently. This problem gets exponentially more complicated as systems and teams grow in size and
-  complexity.
+  independently. This problem gets exponentially more complicated as systems and teams grow in size and complexity.
 
-* *Semantic coupling.* Two or more components share a concept, eg. what an order contains. They may not share a single
-  line of code, but they still can't change independently, because they have to agree on the _meaning_ of things to be
-  able to work together. This is difficult to reason about, because no deterministic tooling will warn you about this
-  type of coupling.
+* *Semantic coupling.* Two or more components share a concept, eg. the attributes that a customer order contains. The
+  component may not share a single line of code, but they still can't change independently, because they have to agree
+  on the _meaning_ of things to be able to work together. This is difficult to reason about, because no deterministic
+  tooling will warn you about this type of coupling.
 
 * *Functional coupling.* Different parts of a system address the same problem in different ways, eg. two slightly
   different implementations of "calculate discount" or "validate email address". The result is inconsistent behavior in
@@ -308,12 +307,12 @@ Michael T Nygard, in his talk {link-uncoupling}[_Uncoupling_], categorizes coupl
   architecture. It is pure accidental complexity, pure cost, and buys nothing in return.
 
 Those five categories describe what _kind_ of dependency exists between two components. A second vocabulary, drawn from
-structured design and from static dependency analysis, describes the _shape_ the dependency takes in the code. These
-properties cut across all five categories, but they are most useful when reading a codebase for developmental coupling,
-because each of them is a reason two components have to change together.
+structured design and static dependency analysis, describes the _shape_ the dependency takes in the code. These
+properties cut across all five of the above categories, but they are most useful when analyzing a codebase for
+developmental coupling.
 
 * *Efferent coupling.* The number of other components a given component depends upon. High efferent coupling means a
-  component cannot be understood, tested, or moved without dragging much of the system along with it.
+  component cannot be understood, tested, or moved without dragging much of the rest of the system along with it.
 
 * *Afferent coupling.* The number of other components that depend upon a given component. High afferent coupling is not
   inherently bad — shared foundations are supposed to be depended upon — but it does mean that changing a component is
@@ -333,6 +332,30 @@ because each of them is a reason two components have to change together.
   mode parameters. This makes the callee harder to reason about in isolation, because its behavior is no longer a
   property of the callee alone.
 
+Now we understand the broader forms that coupling can take, we can appreciate that symptoms of coupling extend far
+beyond weaker malleability. Look for these smells in your coupling audits.
+
+* *Slow builds.*
+  Often a sign of circular dependencies.
+
+* *Complex test setup.*
+  Tests need to construct much more context than the component-under-test should require.
+
+* *Brittle tests.*
+  Tests break when you rename an internal class — a sign of coupling to implementation details, rather than to behavior.
+
+* *Blocked teams.*
+  Teams move at the pace of the slowest team, because of cross-team dependencies.
+
+* *Lockstep platform releases.*
+  Shared code demands that every dependent service take a new version at the same time.
+
+* *Long parameter lists.*
+  A function with eight parameters probably knows too much about its callers.
+
+* *Risky releases.*
+  Deployments that frequently require rollbacks.
+
 [quote, David Parnas]
 ____
 The connections between modules are the assumptions which the modules make about each other.
@@ -344,9 +367,9 @@ done.
 
 It follows that the goal is well-managed coupling, not minimal coupling. Pursuing low coupling as an end in itself
 produces its own kind of complexity. A system decomposed into too many components, each defensively isolated from the
-others, forces developers to trace a single behavior across many files and layers of indirection. This *excessive
-modularity* is a form of over-engineering — a decomposition finer than the problem requires — and it degrades
-simplicity just as surely as a tangled monolith does.
+others, forces developers to trace a single behavior across many files and layers of indirection. This
+*excessive modularity* is a form of over-engineering — a decomposition finer than the problem requires — and
+it degrades simplicity just as surely as a tangled monolith does.
 
 The heuristic is to couple together the things that are intended to change together. If two components almost always
 change in tandem, a dependency between them acknowledges reality. If they are independent concerns that merely happen
@@ -365,7 +388,7 @@ language hardly ever changes, and certainly not in a breaking way, but a databas
 The Unix philosophy is the canonical demonstration of both ideas at once. Its rules — write programs that do one thing
 well, and expect the output of every program to become the input to another — describe a system whose parts are heavily
 coupled, in the sense that a pipeline is nothing but a chain of dependencies. What makes that coupling cheap is what it
-is coupled _to_: a single narrow contract, the text stream, that has outlasted every program written against it. A tool
+is coupled _to_ — a single narrow contract, the text stream, that has outlasted every program written against it. A tool
 can be rewritten, replaced, or composed into a pipeline nobody anticipated, because nothing downstream depends on
 anything about it except its output.
 
@@ -377,25 +400,7 @@ independent evolution of every component in exchange for a cost paid at the seam
 
 The general lesson is that a small, stable interface is worth more than a rich one. Interface simplicity is what makes
 the components behind an interface replaceable, and so it is a structural property of the system rather than a
-presentational one. See xref:016.adoc[*TS-16: Command Line Interfaces (CLIs)*] for the
-composability rules that follow from this at the level of a single program's design.
-
-Coupling can go undetected, but it shows up in a number of recognizable symptoms.
-
-* *Slow builds.* Often a sign of circular dependencies.
-
-* *Complex test setup.* Tests need to construct much more context than the behavior under test should require.
-
-* *Brittle tests.* Tests break when you rename an internal class — a sign of coupling to implementation details rather
-  than to behavior.
-
-* *Blocked teams.* Teams move at the pace of the slowest team, because of cross-team dependencies.
-
-* *Lockstep platform releases.* Shared code demands that every dependent service take a new version at the same time.
-
-* *Long parameter lists.* A function with eight parameters probably knows too much about its callers.
-
-* *Risky releases.* Deployments that frequently require rollbacks.
+presentational one.
 
 == Coupling and the other qualities
 
