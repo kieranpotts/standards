@@ -17,97 +17,84 @@ It seems that perfection is reached not when there is nothing left to add, but r
 take away.
 ____
 
-More precisely, there are two distinct but interconnected dimensions to simplicity.
+There are two useful mental models for thinking about simplicity. The first is the distinction between interface
+simplicity and implementation simplicity.
 
-* *Interface simplicity* is about managing the *essential complexity* of the *problem domain*. From this perspective, a
-  simple design exposes only the minimum set of concepts and behaviors users must understand.
+* *Interface simplicity* concerns the concepts and behaviors a system exposes to the people and programs that use it. A
+  simple interface asks its users to understand the minimum set of concepts the problem genuinely requires.
 
-* *Implementation simplicity* is about minimizing *accidental complexity*, which means avoiding unnecessary structural
-  complexity in how we solve the problem in the *solution space*.
+* *Implementation simplicity* concerns the structure behind that interface — how the parts of the solution are arranged,
+  and how tightly they depend on one another.
 
-This distinction comes from Fred Brooks's classic 1986 paper _No Silver Bullet_. Essential complexity is inherent to the
-problem domain and cannot be designed away. A payroll system is inherently complicated because payroll is complicated.
+This categorization identifies the _location_ of complexity in a system. The second mental model, which comes from
+Fred Brooks's classic 1986 paper _No Silver Bullet_, identifies the _cause_ of complexity.
 
-Accidental complexity is complexity we introduce ourselves, through the way we choose to implement a solution. Broadly,
-it comes from two sources. Global complexity is related to the principle of <<conceptual-integrity,conceptual integrity>>,
-referring to how well a single conceptual framework is applied across a whole. Local complexity refers to things like
-code duplication, sprawl, dead abstractions, and the accumulated *technical debt* of decisions never revisited. The
-first category of accidental complexity tends to be the more expensive to rectify.
+* *Essential complexity* is inherent to the problem domain and cannot be designed away. A payroll system is inherently
+complicated because payroll is complicated.
 
-A well-specified, well-designed system exposes only essential complexity to the user while hiding accidental complexity
-in the implementation. The goal of *software architecture* is to minimize accidental complexity, while the goal of
-*requirements engineering* is to manage the essential complexity. But the line between the two is not always so clear-cut.
-For example, Moseley and Marks, in _Out of the Tar Pit_ (2006), argue that much of what Brooks classed as essential
-complexity is in fact state-induced, and therefore accidental. This implies that much of a system's essential complexity
-is, in fact, under the control of the architect.
+* *Accidental complexity* is complexity we introduce ourselves, through the way we choose to implement a solution.
+  Broadly, accidental complexity comes from two sources.
+
+  ** *Global complexity* is related to the principle of <<conceptual-integrity,conceptual integrity>>, referring to how
+     well a single conceptual framework is applied across a whole system.
+
+  ** *Local complexity* refers to things like code duplication, sprawl, dead abstractions, and the accumulated
+     *technical debt* of decisions never revisited. The first category of accidental complexity tends to be the more
+     expensive to rectify.
+
+Brooks's distinction between essential and accidental complexity is disputed. Moseley and Marks, in _Out of the Tar Pit_
+(2006), argue that much of what Brooks classed as essential is in fact state-induced, and so it is accidental complexity
+that derives from our design choices. They argue that everything a system does in pursuit of performance — caches,
+indexes, denormalization, partitioning — is accidental. Even though performance requirements come from the problem
+space, the particular forms of complexity that arise are determined by the design trade-offs we make in implementation
+of the requirements.
+
+We should not be overly concerned with the exact categorization of complexity. Outside of academia, for the practical
+application of software architecture, we can simply think of all specified requirements, both functional and
+non-functional, as being derived from the problem space, and so the minimum design needed to satisfy the requirements
+is the essential complexity in the software. It is the goal of *requirements engineering* to establish what the
+essential complexity is, and to minimize it. Everything else is accidental complexity, and minimizing it is primarily
+the responsibility of software architects and programmers.
+
+This separation of responsibilities between requirements engineering (essential complexity) and architecture (accidental)
+is not always so clear-cut. Nonetheless, it is a useful mental model for guiding our approach to achieving simplicity
+in our software systems. If we want to reduce essential complexity, we should look first at the requirements.
+
+Combining both mental models, essential complexity may show up in the implementation or the interface, or both. A system
+may have a highly complex implementation that is essential to achieving the functional and non-functional requirements
+placed upon it. A system required to sustain a high write throughput with strong durability guarantees will need
+partitioning, replication, and a consensus protocol — complexity that can't be designed away. Similarly, a well-factored
+codebase, one with low accidental complexity through all its layers, may still expose high complexity in its interface,
+if such complexity is essential to expose the operations and behaviors of the business domain.
+
+Accidental complexity, too, may show up in the implementation or the interface, or both. We can think of poor
+<<usability,usability>> as being accidental complexity that's leaked into the interface. Incidental coupling,
+dead abstractions, and inconsistent use of patterns are all examples of accidental complexity in the implementation.
 
 == Balancing complexity
 
-Neither type of complexity can be eliminated. Even accidental complexity is the outcome of trade-offs made between
-competing constraints and properties. If different design choices are made, accidental complexity would still arise in
-different forms.
+Neither essential complexity nor accidental complexity can be eliminated. Any system that _does something_, anything,
+has some essential complexity. We can't refactor away all accidental complexity, either, because this is the outcome
+of making trade-offs between competing constraints and properties. If different design choices are made, accidental
+complexity would simply resurface in different forms.
 
 Good system design is about managing complexity, not eliminating it.
 
-A key consideration in the management of complexity is the relative balance between its essential and accidental
-forms. Ideally, both would be minimized. But in practice you usually need to prioritize managing one of the two.
+A key consideration in the management of complexity is the relative balance between its essential and accidental forms.
+Ideally both would be minimized, but in practice you usually have to prioritize one of the two. It helps to picture them
+as being placed on opposite sides of a set of scales. In many systems, you'll find one side will weigh more than the
+other. This determines where requirements and/or design effort will be best spent. You'll get the highest returns — for
+habitability, modifiability, and other qualities — by investing it reducing the most weighty form of complexity.
 
-In many systems, one form of complexity will account for more weight than the other. Prioritizing the simplification
-of the higher-weighted form of complexity will usually yield the greatest returns for modifiability and other qualities.
+image::002/accidental-essential-complexity-scales.svg["This diagram shows a set of scales with 'accidental complexity' on one side and 'essential complexity' on the other.",opts=inline]
 
-image::diagrams/accidental-essential-complexity-seesaw.svg[This diagram shows a seesaw with "accidental complexity" on one side and "essential complexity" on the other.,opts=inline]
+Where essential complexity is high and cannot be reduced further, accidental complexity is what remains under your
+control, and squeezing it out is where the remaining returns will be.
 
-Consider, for example, a complex, large-scale, distributed system. It has high implementation complexity, which is an
-outcome of the requirements on its design and construction to handle high loads and run complex operations. There's
-only so much you can do to reduce the complexity of the implementation -
-
-This is necessary to keep development, maintenance, and operation costs relatively
-low at such a scale. Here, maintaining implementation simplicity should be prioritized, as that will yield the greatest
-returns for modifiability and other qualities.
-
-
-Consider, for example, a small utility program that runs on a single machine in a single process and performs one
-well-defined task. This is an inherently simple program, with a simple interface made possible from low essential
-complexity. Such a system can often get away with being not particularly well constructed. The code may not be pretty,
-and the structure may be a bit of a mess, but that won't matter too much because such programs still tend to be pretty
-easy to change. Nevertheless,
-
-, because the program  still easy to change.
-The focus here should be on preserving the simplicity of the program's interface — keeping the program focused on its
-core task.
-
-
-
-
-
-It will often be the case that one form of complexity will outweight the other.
-
-In an essentially complex system, the focus should be on managing the accidental
-complexity, because developers have more control over this. Conversely,
-in essentially simple systems – where the domain suggests scope won't
-substantially increase over time – you can afford to let some accidental
-complexity creep in. If requirements are relatively stable, the system will
-not change much, so refactoring work yields little value.
-
-As a general
-
-I like to think of the relative balance between essential and accidental
-complexity as a set of scales, or a seesaw. On one side is essential
-complexity, and on the other side is accidental complexity. In most systems,
-one of the two types will outweigh the other.
-
-
-
-Another visual metaphor is to think of a system's complete bundle of complexity
-as an area diagram: the total area is made up of a proportion of essential
-complexity and a proportion of accidental complexity. The overall volume of
-complexity matters less than the relative proportions of the two.
-
-The top diagram is what you should aim for. The bottom diagram is what you can
-sometimes get away with.
-
-image::diagrams/relative-essential-and-accidental-complexity.svg[This diagram has two boxes. One box is labelled "essential complexity" and it has a smaller box, labelled "accidental complexity", within it. The other box is labelled "accidental complexity" with a smaller box, labelled "essential complexity", inside it.,opts=inline]
-
+Where essential complexity is low, and where the domain suggests the requirements will remain stable and so essential
+complexity is unlikely to increase, you may be able to afford to let some accidental complexity accumulate. With stable
+requirements, it's reasonable to assume a system will not be required to change much, so there may be little return to
+be had from refactoring. Effort may be better spent on holding the interface steady.
 
 [#coupling]
 == Coupling
