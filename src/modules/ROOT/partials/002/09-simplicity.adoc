@@ -332,30 +332,6 @@ developmental coupling.
   mode parameters. This makes the callee harder to reason about in isolation, because its behavior is no longer a
   property of the callee alone.
 
-Now we understand the broader forms that coupling can take, we can appreciate that symptoms of coupling extend far
-beyond weaker malleability. Look for these smells in your coupling audits.
-
-* *Slow builds.*
-  Often a sign of circular dependencies.
-
-* *Complex test setup.*
-  Tests need to construct much more context than the component-under-test should require.
-
-* *Brittle tests.*
-  Tests break when you rename an internal class — a sign of coupling to implementation details, rather than to behavior.
-
-* *Blocked teams.*
-  Teams move at the pace of the slowest team, because of cross-team dependencies.
-
-* *Lockstep platform releases.*
-  Shared code demands that every dependent service take a new version at the same time.
-
-* *Long parameter lists.*
-  A function with eight parameters probably knows too much about its callers.
-
-* *Risky releases.*
-  Deployments that frequently require rollbacks.
-
 [quote, David Parnas]
 ____
 The connections between modules are the assumptions which the modules make about each other.
@@ -385,80 +361,114 @@ You can't eliminate coupling. You can only move it to where it is easier to mana
 As a rule-of-thumb, strong coupling is acceptable where the thing you're coupling to is stable. For example, the SQL
 language hardly ever changes, and certainly not in a breaking way, but a database schema is much more volatile.
 
-The Unix philosophy is the canonical demonstration of both ideas at once. Its rules — write programs that do one thing
-well, and expect the output of every program to become the input to another — describe a system whose parts are heavily
-coupled, in the sense that a pipeline is nothing but a chain of dependencies. What makes that coupling cheap is what it
-is coupled _to_ — a single narrow contract, the text stream, that has outlasted every program written against it. A tool
-can be rewritten, replaced, or composed into a pipeline nobody anticipated, because nothing downstream depends on
-anything about it except its output.
-
-The trade is the same one event-driven architectures make, and it is worth naming explicitly, because the Unix
-programs pay a real price for it. Text streams are weakly typed and lossy. Structure has to be reconstructed at every
-stage by the next program along, and the resulting semantic coupling — a shared, unenforced understanding of what the
-bytes mean — is exactly the kind no tooling will warn you about. The bargain is a good one anyway, because it buys
-independent evolution of every component in exchange for a cost paid at the seams.
-
-The general lesson is that a small, stable interface is worth more than a rich one. Interface simplicity is what makes
-the components behind an interface replaceable, and so it is a structural property of the system rather than a
-presentational one.
-
-== Coupling and the other qualities
+****
+The Unix philosophy demonstrates both ideas at once. Programs that do one thing well, chained so that each one's output
+becomes the next one's input, are heavily coupled — a pipeline is nothing but a chain of dependencies. What makes that
+coupling cheap is what they are coupled _to_: a single narrow contract, the text stream, that has outlasted every
+program written against it. It is the same trade event-driven architectures make, and the price is real. Text streams
+are weakly typed and lossy, leaving exactly the kind of semantic coupling no tooling will warn you about. The bargain
+is a good one anyway, because a small, stable interface is worth more than a rich one — it is what makes the components
+behind it replaceable, which is a structural property of the system rather than a presentational one.
+****
 
 Coupling is most closely associated with simplicity, but it is a cross-cutting diagnostic, and several of the other
-design qualities can be read through it.
-
-* *<<modifiability,Modifiability>>.* The blast radius of a change is a direct consequence of coupling. Cheap change
-  requires that the parts affected by a given requirement be few, and that they be known in advance.
-
-* *<<reliability,Reliability>>.* Coupling determines how far a failure propagates. The electrical grid analogy used
-  earlier in this standard is fundamentally a statement about coupling — a fault in one component does not bring down
-  the whole, because the components are not tightly bound to one another. Asynchronous messaging improves fault
-  tolerance precisely because it reduces coupling.
-
-* *Cohesion.* Coupling and cohesion are two views of the same decomposition. A well-chosen module boundary produces
-  high cohesion within the module and low coupling across it. When a decomposition is wrong, both degrade together.
-
-* *<<habitability,Habitability>>.* A component that can be read and understood without holding much of the rest of the
-  system in working memory is a component that is loosely coupled. Coupling is, in this sense, a proxy for the
-  cognitive load that a codebase imposes on the people working in it.
-
-Because coupling cuts across the qualities in this way, a rising trend in it is an early signal of design decay
-generally, and not only of complexity in the narrow sense.
+design qualities can be read through it. The blast radius of a change is a direct consequence of coupling, which makes
+it a measure of <<modifiability,modifiability>>. It determines how far a failure propagates — asynchronous messaging
+improves fault tolerance precisely because it decouples — which makes it a measure of <<reliability,reliability>>. A
+component that can be read without holding much of the rest of the system in working memory is a loosely coupled one,
+so coupling is also a proxy for the cognitive load a codebase imposes on the people working in it, and hence for its
+<<habitability,habitability>>. Coupling and cohesion, meanwhile, are two views of the same decomposition: a well-chosen
+module boundary produces high cohesion within the module and low coupling across it, and when a decomposition is wrong,
+both degrade together. Because coupling cuts across the qualities in this way, a rising trend in it is an early signal
+of design decay generally, and not only of complexity in the narrow sense.
 
 Coupling is not only a technical property, either. It is shaped by how the people building a system are organized, and
 team boundaries tend to become service boundaries whether or not that was the intended design — see
-xref:005.adoc[*TS-5: Application Architecture*]. A related but distinct effect operates at the level of process rather
-than team topology. The more people who must be involved in a single design decision, the harder it becomes to arrive
-at a simple result, independent of how those people's teams map onto the system's components. Keeping the design
-process itself lean — few enough participants that a decision can still be made coherently — is therefore a lever on
-complexity in its own right.
+xref:005.adoc[*TS-5: Application Architecture*]. A related effect operates at the level of process rather than team
+topology: the more people who must be involved in a single design decision, the harder it becomes to arrive at a simple
+result. Keeping the design process itself lean is therefore a lever on complexity in its own right.
+
+Now we understand the broader forms that coupling can take, we can appreciate that symptoms of coupling extend far
+beyond weaker malleability. Look for these smells in your coupling audits.
+
+* *Slow builds.*
+  Often a sign of circular dependencies.
+
+* *Complex test setup.*
+  Tests need to construct much more context than the component-under-test should require.
+
+* *Brittle tests.*
+  Tests break when you rename an internal class — a sign of coupling to implementation details, rather than to behavior.
+
+* *Blocked teams.*
+  Teams move at the pace of the slowest team, because of cross-team dependencies.
+
+* *Lockstep platform releases.*
+  Shared code demands that every dependent service take a new version at the same time.
+
+* *Long parameter lists.*
+  A function with eight parameters probably knows too much about its callers.
+
+* *Risky releases.*
+  Deployments that frequently require rollbacks.
 
 == Appropriate abstraction
 
-Abstractions are the primary tool for hiding accidental complexity, and used well they leave behind code that
-expresses only the essential complexity of the domain. But every abstraction is itself a thing to be learned, and a
-layer to be traced through when diagnosing a problem.
+Coupling is managed, in practice, through abstraction. Abstraction is the primary tool for hiding accidental
+complexity, and it is also what confines a dependency to a chosen place and allows a component to be understood on its
+own. Used well, an abstraction leaves behind code that expresses only the essential complexity of the domain, and it
+holds the two dimensions of simplicity in alignment: a small interface in front, an implementation that absorbs the
+detail behind it.
 
-****
-Introducing an abstraction is worthwhile only when the complexity added by the abstraction is less than the complexity
-of the problem it hides.
-****
+But every abstraction is itself a thing to be learned, and a layer to be traced through when diagnosing a problem. It
+buys a reduction in change amplification at the price of an addition to cognitive load — two of the three symptoms
+described above, traded off against each other.
+
+Hence the test. Introducing an abstraction is worthwhile only when the complexity added by the abstraction is less than
+the complexity of the problem it hides.
 
 This test is easy to state and easy to fail. *Unwarranted abstraction* — elaborate patterns applied to simple logic,
 or layers of indirection introduced in anticipation of requirements that never arrive — adds complexity without hiding
-any. Dependency injection is a common example — valuable where object construction is genuinely complicated or
-genuinely needs to vary, but frequently applied at a granularity that adds ceremony without separating anything worth
-separating. Design patterns should be _adequate_ to the problem, and no more.
+any. It is over-engineering in its most common form, and it usually arrives by the route YAGNI warns about:
+future-proofing against a change nobody has asked for. Dependency injection is a common example — valuable where object
+construction is genuinely complicated or genuinely needs to vary, but frequently applied at a granularity that adds
+ceremony without separating anything worth separating.
+
+It is a coupling failure as much as a complexity one. An abstraction that hides nothing does not remove the dependency
+underneath it, it renames it. The semantic coupling survives the indirection, and no tooling will warn you about what
+remains. Excessive modularity is the same mistake made at the scale of components rather than of types.
+
+Indirection is not abstraction. One adds a layer; the other removes a concern.
+
+Design patterns should be _adequate_ to the problem, and no more.
 
 == Premature optimization
 
-*Premature optimization* buys speed the system has not been shown to need, and it is never free. Speeding up a system
-almost always means adding state. A cache duplicates a value that already exists elsewhere. Denormalization duplicates
-data across boundaries that were previously independent. Batching couples requests that were previously handled in
-isolation. Each of these buys performance by tightening coupling somewhere in the system. That cost is often worth
-paying, but it is a cost rather than a free improvement, and it should be paid deliberately, once a real performance
-problem is in evidence — not speculatively, alongside the rest of the design. Stop optimizing once the system meets its
-performance requirements. The temptation to keep tuning past that point adds coupling that no requirement asked for.
+The other common form of over-engineering is *premature optimization*, which buys speed the system has not been shown
+to need. The earlier discussion of essential and accidental complexity has already anticipated it: the objection
+Moseley and Marks raised against Brooks was exactly this point, that everything a system does in pursuit of
+performance — caches, indexes, denormalization, partitioning — is accidental complexity, produced by our design
+choices rather than handed to us by the problem.
+
+The mechanism is state, and it is never free. Speeding up a system almost always means adding some. A cache duplicates
+a value that already exists elsewhere. Denormalization duplicates data across boundaries that were
+previously independent. Batching couples requests that were previously handled in isolation. Each of these buys
+performance by tightening coupling somewhere in the system — data coupling in the first two cases, temporal coupling in
+the third, and temporal coupling is the form that leaves no trace in the dependency graph.
+
+That cost is often worth paying, but it is a cost rather than a free improvement, and it should be paid deliberately,
+once a real performance problem is in evidence — not speculatively, alongside the rest of the design. This is the
+<<new-jersey-style,New Jersey>> preference for under-engineering, applied to performance: ship the simpler thing, and
+let measurement rather than anticipation justify the rework.
+
+The stopping condition comes from the requirements. <<runtime-quality,Runtime qualities>> are specified up-front, with
+acceptance criteria attached, so a system that meets its latency and throughput targets is finished. The temptation to
+keep tuning past that point adds coupling that no requirement asked for.
+
+One qualification. Not every optimization adds state. The cheapest ones take work away — a query that no longer runs, a
+feature that no longer has to be supported — and, as noted earlier, the effort of making software fast tends to force
+precisely those decisions about what to leave out. Optimization of that kind buys performance and simplicity together.
+It is optimization that buys speed with state that has to be justified by evidence.
 
 [quote, Donald Knuth]
 ____
@@ -503,7 +513,6 @@ trend in any of them is an early warning that complexity is accumulating faster 
 the effect shows up as missed deadlines or production incidents. Treat the trend as the signal rather than the absolute
 value, since what counts as a reasonable number of components or interfaces is entirely context-specific.
 
-[#boring-technology]
 == Boring technology
 
 <<conceptual-integrity,Conceptual integrity>> asks that a system be built from a small, deliberate pool of languages,
@@ -525,9 +534,7 @@ is a system nobody can navigate as a whole — exactly the conceptual disunity t
 
 The right question is therefore not which tool is best for a given problem in isolation, but which tool occupies the
 least-worst position across as many of the organization's problems as possible. Choosing technology this way is what
-makes it possible to think about larger questions. Technology adopted for its own sake is a distraction. See
-xref:005.adoc[*TS-5: Application Architecture*] for a fuller treatment of language choice specifically, including when
-crossing this boundary is justified.
+makes it possible to think about larger questions. Technology adopted for its own sake is a distraction.
 
 This argues for a default position. Choose proven, enduring technologies over innovative but embryonic ones, and reuse
 existing solutions in preference to building new ones. The bar for adopting something new should be that it solves a
