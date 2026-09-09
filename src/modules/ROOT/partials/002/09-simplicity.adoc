@@ -11,59 +11,64 @@ ____
 Simplicity is the ultimate sophistication.
 ____
 
+<<modifiability,Modifiability>> is one of the primary objectives in software design, and simplicity is what makes it
+possible.
+
 How well a software solution is made — its internal structure, its data flows, its architectural patterns — directly
 determines how easily it can be changed, debugged, tested, and deployed. A simple design can be modified with
 confidence. A complex design resists change.
 
-<<modifiability,Modifiability>> is one of the primary objectives in software design, and simplicity is what makes it
-possible. Simplicity matters for modifiability because our capacity to understand what we have built is the binding
-constraint on what we can continue to build.
+Complexity has a tendency to compound over time. As a system acquires features, dependencies accumulate between its
+parts, and so it becomes progressively harder to change.
 
-Simplicity is the foundation on which all other software design qualities depend. Designing for simplicity tends to
-bring higher reliability, better performance, and improved user experience, because each of those depends, in the end,
-on someone understanding the system well enough to get these things right.
+John Ousterhout, in _A Philosophy of Software Design_ (2018), identifies three symptoms of complexity.
+
+* *Change amplification.* A simple-sounding change requires edits in many places.
+
+* *Cognitive load.* A developer must hold a large amount of context in mind before they can make a change with
+  confidence.
+
+* *Unknown unknowns.* It is not possible to predict the full consequences of making a change. Estimates are
+  increasingly inaccurate.
+
+The primary bottleneck on modifiability is the developer's memory capacity. As complexity compounds in a system, it
+becomes increasingly unlikely that any single person can hold all the relevant factors in mind while making a change
+to that system. This slows the velocity at which change can be made. And a system becomes increasingly brittle, as
+changes introduce new defects, further slowing future modification.
+
+Our capacity to understand what we have built is the binding constraint on what we can continue to build.
 
 [quote, John Ousterhout, A Philosophy of Software Design (2018)]
 ____
 The greatest limitation in writing software is our ability to understand the systems we are creating.
 ____
 
-As a system acquires features, dependencies accumulate between its parts, and so it becomes progressively harder for
-anyone to hold all the relevant factors in mind while making a change. This slows development velocity. It also makes a
-system brittle, so change tends to introduce defects, further slowing delivery.
+Simplicity is the foundation on which all other software design qualities depend. Designing for simplicity tends to
+yield higher reliability, better performance, and improved user experience — not directly, but indirectly, because each
+of those depends, in the end, on someone understanding the system well enough to get these things right.
 
-John Ousterhout, in _A Philosophy of Software Design_ (2018), identifies three symptoms of this compounding complexity.
-
-* *Change amplification.* A simple-sounding change requires edits in many places.
-
-* *Cognitive load.* A developer must hold a large amount of context in mind before they can make a change with confidence.
-
-* *Unknown unknowns.* It is not possible to predict the full consequences of making a change. Estimates are therefore
-  increasingly inaccurate.
-
-Good tooling can offset the effects of complexity. High-level languages, type systems, static analysis, debuggers,
-observability platforms, and increasingly AI-assisted development, all these things can extend how much complexity a
-developer can work with productively. But there is a limit to what better tooling alone can achieve.
-
+Good tooling can offset some of the symptoms of complexity. High-level languages, type systems, static analysis,
+debuggers, observability platforms, and increasingly AI-assisted development, all of these things can extend how much
+complexity a developer can work with productively. But there is a limit to what better tooling alone can achieve.
 Tools raise our tolerance for complexity. They do not reduce the complexity itself.
 
-Beyond what tooling can achieve, only better system design can further raise the ceiling on what can be built. Simple
+Beyond what tooling can achieve, only better system design can further raise the ceiling on what can be built. Simpler
 designs allow for larger and more capable systems to be built.
 
 Software development is a perpetual fight against complexity. Design must be continuously reapplied to prevent
 complexity from compounding in a system over time. Outages, data breaches, and other disaster scenarios tend to arise,
 not from any single failure, but from the compound effects of multiple failures. Richard Cook's paper
-{link-how-complex-systems-fail}[_How Complex Systems Fail_] (1998),  which draws from research into healthcare and
+{link-how-complex-systems-fail}[_How Complex Systems Fail_] (1998), which draws from research into healthcare and
 aviation systems, observes that highly complex systems tend to run permanently with latent failures inside them. Each
 individual flaw is insufficient on its own to cause disaster, but multiple flaws compound to create the conditions for
 disasters. Such systems routinely operate in a degraded state, held together by human adaptation to their common
-failure scenarios, rather than by structural integrity.
+failure modes, rather than by structural integrity.
 
 To protect against systems decaying to such extreme levels of complexity, design must be applied continuously, rather
 than through sporadic corrections. *Continuous iterative design*, through refactoring, is the only defense against
 complexity compounding into disaster. For this reason, Ousterhout advocates a zero-tolerance stance toward all three of
-his symptoms of complexity. He says we must immediately respond to any hint of a symptom of compounding complexity,
-rather than waiting for the complexity to compound further.
+his symptoms of complexity. He says we must immediately respond to any hint of a symptom of complexity, rather than
+waiting for the complexity to compound further.
 
 == What do we mean by "simplicity"?
 
@@ -78,7 +83,7 @@ It seems that perfection is reached not when there is nothing left to add, but r
 take away.
 ____
 
-We can draw on some well-documented mental models to further refine our definition of simplicity. The first model
+We can draw on some well-known mental models to further refine our definition of simplicity. The first model
 distinguishes between interface simplicity and implementation simplicity.
 
 * *Interface simplicity* concerns the concepts and behaviors a system exposes to the people and programs that use it. A
@@ -109,7 +114,7 @@ Brooks's distinction between essential and accidental complexity is disputed. Mo
 that derives from our design choices. For example, they argue that everything a system does in pursuit of performance —
 caches, indexes, denormalization, partitioning — is, in fact, accidental. Even though performance requirements come from
 the problem space, the particular forms of complexity that arise are determined by the design trade-offs we make in the
-implementation of the requirements.
+implementation of the performance requirements.
 
 We should not be overly concerned with the exact categorization of complexity. Outside of academia, for the practical
 application of software architecture in the real-world we can simply think of all specified requirements, both functional
@@ -138,7 +143,9 @@ dead abstractions, and inconsistent use of patterns are all examples of local ac
 implementation. Two services that model the concept of a "customer" differently, or a single cross-cutting concern
 handled in different ways in different services, are examples of global accidental complexity in the implementation.
 
-We must first identify and properly categorize complexity in a system, before we can manage it properly.
+Complexity is not always so easily categorized. Nevertheless, identifying the form of complexity is the first step we
+MUST take before we can properly manage it. The form that complexity takes determines what we can do
+about it.
 
 == Managing complexity
 
@@ -150,13 +157,13 @@ Before we decide how we will manage complexity, we must first appreciate that th
 complexity. Neither essential complexity nor accidental complexity can be eliminated. Any system that _does something_,
 anything, has some essential complexity in it. We can't refactor away all accidental complexity, either, because this is
 the outcome of trade-offs having been made between competing constraints and properties. If different design choices are
-made, accidental complexity would simply resurface in different forms.
+made, accidental complexity would simply resurface in different places.
 
 Good system design is about managing complexity — finding the right _balance_ of it — not eliminating it entirely.
 
-In deciding how we will manage complexity, and where we will focus our efforts, we can draw on our mental models of
-where complexity is located in a  system (interface versus implementation) and when it surfaces in the development
-lifecycle (essential versus accidental).
+In deciding how we will manage complexity, and where we will focus our efforts on reducing it, we should draw on our
+mental models of where complexity is located in a  system (interface versus implementation) and when it surfaces in the
+development lifecycle (essential versus accidental, and global versus local).
 
 Managing complexity is done throughout the software development lifecycle, but two phases are particularly critical:
 requirements analysis, for managing essential complexity, especially in the interface; and design, for managing
@@ -182,17 +189,17 @@ and other qualities — by first investing in reducing the most weighty form of 
 
 image::002/accidental-essential-complexity-scales.svg["This diagram shows a set of scales with 'accidental complexity' on one side and 'essential complexity' on the other.",353,143,opts=inline]
 
-Another rule-of-thumb is that the more complex the problem space, the more important it becomes to keep the solution
+A good rule-of-thumb is that the more complex the problem space, the more important it becomes to keep the solution
 space simple. A system modeling a genuinely intricate domain already carries a heavy load of essential complexity, and
-so has little headroom for accidental complexity on top. By contrast, a small, simple problem domain can absorb a
+so has little headroom for accidental complexity on top. By contrast, a small, simple problem can absorb a
 certain amount of clumsiness in its solution and still remain tractable.
 
 Complex problems _require_ simple solutions. Simple problems _tolerate_ complex ones.
 
 Since essential complexity tends to grow over the lifetime of a system, as the domain it models grows richer, the budget
 for accidental complexity shrinks correspondingly. *Continuous refactoring* becomes necessary to keep accidental
-complexity — sprawl, cruft, technical debt — in check. In an ever-expanding system, in which essential complexity
-continuously expands, the goals should be for accidental complexity to be continuously reduced.
+complexity — sprawl, cruft, technical debt — in check. In an continuously developed system, in which essential complexity
+continuously expands, the goal should be for accidental complexity to be continuously reduced, as a counter-balance.
 
 [quote, Meir Lehman]
 ____
@@ -206,31 +213,29 @@ complexity to support future change. In these systems, effort may be better spen
 
 Consider, also, the relative balance of complexity in the interface versus the implementation. The
 <<new-jersey-style,New Jersey style>> prioritizes the simplicity of the implementation over the interface, because
-simple implementations are essential for maintaining <<modifiability,modifiability>>. The interface can be a little
-rough initially. A simple implementation will allow the interface to be easily changed once the users' _actual_
-requirements are better understood, through feedback of their experience of using the software.
+simple implementations are necessary for maintaining <<modifiability,modifiability>>. The interface can be a little
+rough initially, as long as the implementation is simple. A simple implementation will allow the interface to be easily
+changed once the users' requirements are better understood, through feedback of their experience of using the
+software.
 
-And yet, a simple interface signals to users that you have thought carefully about what matters to them — that the
-software is <<functional-completeness,functionally suitable>> for their needs. This extends to the
-<<runtime-quality,runtime qualities>> observed through the interface. Companies whose software is perceived as fast
-and responsive tend to have very focused product offerings, because the effort required to make software fast forces
-difficult decisions about what functions to include and what to leave out.
-
-A simple interface also buys consistency in design and behavior, which is central to <<usability,usability>>. A small,
-coherent set of UI concepts lets users predict how the system will behave from their previous experience of it.
+And yet, simple interfaces are important too. A simple interface signals to users that you have thought carefully about
+what matters to them — that the software is <<functional-completeness,functionally suitable>> for their needs. Focusing
+design effort on the interface — on <<usability,usability>> — is a useful constraint that can force good design choices
+through the implementation. For example, if you prioritize making software fast and responsive —
+<<runtime-quality,runtime qualities>> that are observed through the interface — this will force simplicity in the
+implementation. It also tends to make for more focused, functionally suitable products. The effort required to make
+software fast forces difficult decisions about what functions to include and what to leave out.
 
 So both simplicity of the interface and simplicity of implementation, but for different reasons and the relative
-emphasis placed on each will vary — between projects, and even at different points of a single system's lifespan.
-But the two are not inseparable. On the contrary, it is important for the interface and the implementation to be
-_aligned_. This means that a coherent set of concepts, originating from the business day, flow through the whole
-system, through both its interface and implementation.
+emphasis placed on each will vary. And the two are not inseparable. On the contrary, it is important for the interface
+and the implementation to be _aligned_. This means that a coherent set of concepts, originating from the business day,
+flow through the whole system, through both its interface and implementation.
 
-Domain modeling is the tool to reach to, to keep alignment between the interface and the implementation. A well-design
-domain model can serve as the bridge between the two. When the model is sound, the interfaces a system exposes align
-naturally with its internal structure. Users encounter concepts that make sense from their perspective, and those same
-concepts are reflected faithfully in the implementation. The alignment reduces cognitive load on both sides — users
-and developers. See the section on <<conceptual-integrity,conceptual integrity>> for domain modeling's wider role in
-holding a design together.
+To keep alignment between the interface and the implementation, turn to *domain modeling*. A well-design domain model
+will serve as the bridge between the interface and the implementation. When the model is sound, the interfaces a system
+exposes align naturally with its internal structure. Users encounter concepts that make sense from their perspective,
+and those same concepts are reflected faithfully in the implementation. The alignment reduces cognitive load on both
+sides — users and developers.
 
 When interface and implementation are misaligned — when a system exposes one set of concepts but is internally
 organized around a different model — the design becomes unnecessarily complex. Bridges and translation layers are
@@ -251,35 +256,84 @@ suitable error handling and security procedures.
 
 (Over-engineering should not be confused with *feature creep*. The two concepts are often conflated. Feature creep
 refers to functionality accumulating because stakeholders keep asking for it, though each individual feature request
-may be reasonable on its own. It is a product failure, more than it is one of requirements specification and design.)
+may be reasonable on its own. It is a product management failure, more than it is one of requirements specification
+and design.)
 
 Balancing complexity is a nuanced judgement, calibrated by feedback and improved through time and hands-on experience
 with the system. We can also turn to some broad principles to help us get the balance about right.
 
 First, in keeping with the <<new-jersey-style,New Jersey design philosophy>>, it is generally preferable to err on the
 side of under-engineering, rather than over-engineering. Prefer to ship something simpler than planned, then improve it
-where evidence — gathered through various feedback loops —  proves rework is needed. Over-engineering tends to have
-greater costs.
+where evidence — gathered through various feedback loops —  shows where rework is most needed.
+
+Over-engineering tends to make systems rigid, and therefore less modifiable. On top of the initial costs of the extra
+engineering effort, over-engineering leads to higher engineering costs for the vendor over the long-term, because
+of the system's increased resistance to future change.
 
 Second, to guard against over-engineering, apply the principle of *YAGNI* — "you aren't gonna need it". Solve today's
 problems, and trust that good design will keep tomorrow's problems affordable to solve. This principle pushes back on
 the tendency toward *perfectionism* — pursuing design purity that brings no business value — and *future-proofing* —
 making assumptions about specific requirements for change in the future, and prematurely optimizing the system to
-accommodate those changes, before the changes are known.
+accommodate those changes.
+
+Third, a point related to YAGNI, avoid *prematurely optimizing* a system for performance or other quality attributes
+that it has not yet demonstrated it requires. Doing so almost always involves adding new complexity. A cache duplicates
+a value that already exists elsewhere. Denormalization duplicates data across boundaries that were previously independent.
+Batching couples requests that were previously handled in isolation. Each of these buys performance by tightening
+coupling somewhere in the system (data coupling in the first two cases, temporal coupling in the third).
+
+[quote, Donald Knuth]
+____
+We should forget about small efficiencies, say about 97% of the time: premature optimization is the root of all evil.
+____
+
+That said, some strong arguments can be made _for_ premature optimization. There are plenty of examples of optimization
+strategies that involve reducing complexity, by taking things away or decoupling parts. These can be well worthwhile
+doing early. And you still want to deal with your main non-functional requirements, which are typically cross-cutting
+concerns, through big up-front design, not iterative design. Setting performance and other runtime quality constraints
+from the start also plays the useful role of a forcing function to make the customer think carefully about
+prioritization of features.
+
+Finally, prefer to choose *old, boring technology* over new, exciting technology. This is where over-engineering enters
+the level of the technology stack. In most domains, technology preferences should be biased toward mature, stable,
+well-understood tools. Every technology carries both known unknowns ("we don't know what happens when this database
+hits 100% CPU") and unknown unknowns. Old, boring technology has more of those unknown unknowns converted at least to
+known unknowns, maybe better. Critically, older, enduring technology is proven through extensive real-world usage, and
+more of its failure modes have been uncovered, documented, and compensated for.
+
+Related to the last point, beware *technical sprawl*. Organizations should constrain themselves to a narrow pool of 
+pre-approved technologies in their production stacks. The question changes from "which tool is best for a given problem 
+in isolation?" to "which tool occupies the least-worst position across the most of our problems?" The bar for adopting
+something new is that it should solve a specific, long-standing problem that existing tools do not.
 
 == Coupling
 
 Implementation simplicity, in its local dimension, is primarily a question of how a system is divided into parts, and
-how those parts communicate with (and so depend on) one another. The decomposition of system into parts gives us
-*modularity* — components that can each be understood, changed, and tested on their own. But excessive modularity can
-result in *high coupling*.
+how those parts communicate with (and so depend on) one another. The decomposition of a system into parts gives us
+*modularity* — components that can each be understood, changed, and tested on their own. Modularity is a good thing
+for simplicity. But, as always, its about balance. Excessive modularity can result in *high coupling*, a bad thing.
 
 Coupling — to what degree modules depend on one another and must be changed in unison — is the source of much complexity.
-A highly coupled system is inherently brittle and difficult to change. Coupling is unavoidable. All modular systems have
-coupling. It's how modules talk to each other. The objective is not for zero coupling, but for a pragmatic degree of
-modularity that gives optimal *low coupling*, enough to make a system sufficiently <<malleable,flexible and adaptable>>.
+A highly coupled system is inherently brittle and difficult to change. The blast radius of a change is a direct
+consequence of coupling. <<Modifiability,modifiability>> is primarily a property of coupling.
 
-So far, we've defined coupling in broad terms. But coupling actually takes many forms. And we must pay attention to all
+Besides weaker malleability, high coupling has other symptoms. It can show up in slow builds (often a sign of circular
+dependencies), brittle tests (test break when you rename an internal class, a sign of tests being coupled to
+implementation detail rather than behavior), blocked feature delivery (due to cross-team dependency), and risky
+releases (requiring synchronization of multiple service deployments, or deployments that frequently require rollback).
+
+In fact, coupling impacts almost all other quality attributes. It impacts <<resilience,resilience>>, for example, by
+determining how far a failure propagates. Coupling — many forms of which can be measured cheaply through static code
+analysis — can be used as a proxy metric for the cognitive load a codebase imposes on the people developing and
+operating it. And coupling tends to go hand-in-hand with cohesion. A well-chosen module boundary tends to produce high
+cohesion within a module and low coupling with components that depend on it. All these factors determine the
+<<habitability,habitability>> of a codebase.
+
+Coupling is unavoidable. All modular systems have coupling. It's how modules talk to each other. The design objective in
+the implementation is not for zero coupling, but for a pragmatic degree of modularity that gives optimal *low coupling*,
+enough to make a system sufficiently <<modifiability,modifiable>> for the requirements of its domain.
+
+So far, we've defined coupling in broad terms. But coupling actually takes many forms. We must pay attention to all
 forms of coupling in our perpetual battle against complexity.
 
 Michael Nygard categorizes coupling into five types.
@@ -289,12 +343,13 @@ Michael Nygard categorizes coupling into five types.
   fault tolerance. A system cannot degrade gracefully while it carries operational coupling.
 
 * *Developmental coupling.* This is about change. It bites as soon as more than a few people are working simultaneously
-  on the same system. This coupling is where two components have to be changed together. Modification in one forces a
-  coordinated modification in the other. The moment two components share a function or a data schema, neither can evolve
-  independently. This problem gets exponentially more complicated as systems and teams grow in size and complexity.
+  on the same system. This form coupling is where two components have to be changed together. Modification in one forces
+  a coordinated modification in the other. The moment two components share a function or a data schema, neither can
+  evolve independently. This problem gets exponentially more complicated as systems grow in size — this form of
+  complexity is particularly prone to compounding.
 
 * *Semantic coupling.* Two or more components share a concept, eg. the attributes that a customer order contains. The
-  component may not share a single line of code, but they still can't change independently, because they have to agree
+  components may not share a single line of code, but they still can't change independently, because they have to agree
   on the _meaning_ of things to be able to work together. This is difficult to reason about, because no deterministic
   tooling will warn you about this type of coupling.
 
@@ -307,7 +362,7 @@ Michael Nygard categorizes coupling into five types.
   architecture. It is pure accidental complexity, pure cost, and buys nothing in return.
 
 Those five categories describe what _kind_ of dependency exists between two components. A second vocabulary, drawn from
-structured design and static dependency analysis, describes the _shape_ the dependency takes in the code. These
+structured design and static dependency analysis, describes the _shape_ that dependencies take in the code. These
 properties cut across all five of the above categories, but they are most useful when analyzing a codebase for
 developmental coupling.
 
@@ -337,208 +392,108 @@ ____
 The connections between modules are the assumptions which the modules make about each other.
 ____
 
-Not all coupling is bad. By definition, all software has coupling. Coupling is how the parts of a software system talk
-to each other. Software architecture is about making deliberate decisions about how and where that necessary coupling is
-done.
+We've already said that coupling can't be avoided, and that a simple implementation is one with a pragmatic balance of
+coupling that gives a suitable degree of <<malleability,malleability>> in the software, as required in the domain.
+We can now extend this objective to state that the concern of software architecture is to make decisions about what
+forms of coupling are acceptable, and so _where_ coupling is allowed to exist in a system.
 
-It follows that the goal is well-managed coupling, not minimal coupling. Pursuing low coupling as an end in itself
-produces its own kind of complexity. A system decomposed into too many components, each defensively isolated from the
-others, forces developers to trace a single behavior across many files and layers of indirection. This
-*excessive modularity* is a form of over-engineering — a decomposition finer than the problem requires — and
-it degrades simplicity just as surely as a tangled monolith does.
+The goal, then, is to manage coupling deliberately, not simply to reduce it. Indeed, pursuing low coupling as an end in
+itself can simply shift complexity elsewhere. For example, a system decomposed finer than the problem requires — into too
+many components, each defensively isolated from the others — will force developers into tracing behaviors across many
+files and layers of indirection. This is the excessive modularity that leads to high coupling, mentioned earlier.
+This is a classic example of over-engineering, where dogmatically pursuing the goal of a design principle — in this case,
+low coupling — actually increases complexity.
 
-The heuristic is to couple together the things that are intended to change together. If two components almost always
-change in tandem, a dependency between them acknowledges reality. If they are independent concerns that merely happen
+Rather than striving for the lowest amount of coupling, the approach should be to manage coupling deliberately through
+strategic decision-making about the trade-offs between the different forms of complexity.
+
+Most day-to-day programming decisions are concerned with developmental coupling. The heuristic is to couple together
+the things that are intended to change together. If two components almost always change in tandem, a dependency between
+them acknowledges reality. Deliberate coupling is beneficial here. If they are independent concerns that merely happen
 to coexist, keep them apart.
 
-Different architectural patterns prioritize managing different categories of coupling. Building a complex system is not
-about removing coupling entirely, but about trading one type of coupling for another. For example, event-driven systems
-trade operational coupling for developmental coupling — components are coupled by contract, in the form of data message
-structures, rather than by their operational runtimes, since there are no more direct calls between them.
+Another rule-of-thumb, it is generally okay to strongly couple to things that are stable. Focus your efforts on isolating
+the things that are volatile. For example, the SQL language hardly ever changes, certainly not in a breaking way, but a
+database scheme is much more volatile. You should hide the schema behind a repository pattern, but the repository
+component itself might directly execute SQL.
 
-You can't eliminate coupling. You can only move it to where it is easier to manage.
+At the architectural level, choosing between architectural patterns is primarily a decision about trading undesirable
+forms of coupling for more desirable forms of it. For example, event-driven systems trade operational coupling for
+developmental coupling. Components are coupled by contract, in the form of data message structures, rather than by their
+operational runtimes, since there are no direct calls between them. Event-driven architectural patterns don't remove
+coupling, they only move it to where it is easier to manage.
 
-As a rule-of-thumb, strong coupling is acceptable where the thing you're coupling to is stable. For example, the SQL
-language hardly ever changes, and certainly not in a breaking way, but a database schema is much more volatile.
+The pipes-and-filters pattern trades developmental coupling for semantic coupling. The most well-known implementation
+of this pattern is Unix, where separate programs, developed and maintained entirely independently of each other, can be
+chained into pipelines so that one program's output becomes the next one's input. The programs composed into a pipeline
+are coupled though a lightweight contract, the text stream. This makes the coupling cheap, which is why it is so easy
+to configure pipelines by swapping programs. Unfortunately, text streams are weakly typed and lossy, so the coupling is
+semantic. All programs in a pipeline must agree on the data formats required for their input and output. This is a form
+of coupling that deterministic tools are not generally good at identifying.
 
-****
-The Unix philosophy demonstrates both ideas at once. Programs that do one thing well, chained so that each one's output
-becomes the next one's input, are heavily coupled — a pipeline is nothing but a chain of dependencies. What makes that
-coupling cheap is what they are coupled _to_: a single narrow contract, the text stream, that has outlasted every
-program written against it. It is the same trade event-driven architectures make, and the price is real. Text streams
-are weakly typed and lossy, leaving exactly the kind of semantic coupling no tooling will warn you about. The bargain
-is a good one anyway, because a small, stable interface is worth more than a rich one — it is what makes the components
-behind it replaceable, which is a structural property of the system rather than a presentational one.
-****
+The optimal forms of coupling in a system vary between domains, and throughout the lifetime of a single system as its
+requirements, scale, and production loads evolve.
 
-Coupling is most closely associated with simplicity, but it is a cross-cutting diagnostic, and several of the other
-design qualities can be read through it. The blast radius of a change is a direct consequence of coupling, which makes
-it a measure of <<modifiability,modifiability>>. It determines how far a failure propagates — asynchronous messaging
-improves fault tolerance precisely because it decouples — which makes it a measure of <<reliability,reliability>>. A
-component that can be read without holding much of the rest of the system in working memory is a loosely coupled one,
-so coupling is also a proxy for the cognitive load a codebase imposes on the people working in it, and hence for its
-<<habitability,habitability>>. Coupling and cohesion, meanwhile, are two views of the same decomposition: a well-chosen
-module boundary produces high cohesion within the module and low coupling across it, and when a decomposition is wrong,
-both degrade together. Because coupling cuts across the qualities in this way, a rising trend in it is an early signal
-of design decay generally, and not only of complexity in the narrow sense.
-
-Coupling is not only a technical property, either. It is shaped by how the people building a system are organized, and
-team boundaries tend to become service boundaries whether or not that was the intended design — see
-xref:005.adoc[*TS-5: Application Architecture*]. A related effect operates at the level of process rather than team
-topology: the more people who must be involved in a single design decision, the harder it becomes to arrive at a simple
-result. Keeping the design process itself lean is therefore a lever on complexity in its own right.
-
-Now we understand the broader forms that coupling can take, we can appreciate that symptoms of coupling extend far
-beyond weaker malleability. Look for these smells in your coupling audits.
-
-* *Slow builds.*
-  Often a sign of circular dependencies.
-
-* *Complex test setup.*
-  Tests need to construct much more context than the component-under-test should require.
-
-* *Brittle tests.*
-  Tests break when you rename an internal class — a sign of coupling to implementation details, rather than to behavior.
-
-* *Blocked teams.*
-  Teams move at the pace of the slowest team, because of cross-team dependencies.
-
-* *Lockstep platform releases.*
-  Shared code demands that every dependent service take a new version at the same time.
-
-* *Long parameter lists.*
-  A function with eight parameters probably knows too much about its callers.
-
-* *Risky releases.*
-  Deployments that frequently require rollbacks.
+Coupling is not only a technical property, either. It is shaped by how the people building a system are organized,
+and how they collaborate. In distributed systems, team boundaries tend to become service boundaries, whether or not
+that was the intended design. Team topologies is another lever, a less obvious one, in the fight against complexity
+through coupling.
 
 == Appropriate abstraction
 
-Coupling is managed, in practice, through abstraction. Abstraction is the primary tool for hiding accidental
-complexity, and it is also what confines a dependency to a chosen place and allows a component to be understood on its
-own. Used well, an abstraction leaves behind code that expresses only the essential complexity of the domain, and it
-holds the two dimensions of simplicity in alignment: a small interface in front, an implementation that absorbs the
-detail behind it.
+After the diligent management of coupling, the next most powerful tool we have to fight complexity is abstraction.
 
-But every abstraction is itself a thing to be learned, and a layer to be traced through when diagnosing a problem. It
-buys a reduction in change amplification at the price of an addition to cognitive load — two of the three symptoms
-described above, traded off against each other.
+Abstraction is the primary tool for hiding accidental complexity. Done well, an abstraction leaves behind code that
+expresses only the essential complexity of the domain, hiding all the implementation details behind a small
+domain-oriented interface.
 
-Hence the test. Introducing an abstraction is worthwhile only when the complexity added by the abstraction is less than
-the complexity of the problem it hides.
+But every abstraction is itself a thing to be learned, and a layer of indirection to be traced through when diagnosing
+a problem. As always, use of abstraction must be balanced.
 
-This test is easy to state and easy to fail. *Unwarranted abstraction* — elaborate patterns applied to simple logic,
-or layers of indirection introduced in anticipation of requirements that never arrive — adds complexity without hiding
-any. It is over-engineering in its most common form, and it usually arrives by the route YAGNI warns about:
-future-proofing against a change nobody has asked for. Dependency injection is a common example — valuable where object
-construction is genuinely complicated or genuinely needs to vary, but frequently applied at a granularity that adds
-ceremony without separating anything worth separating.
+The heuristic is that introducing an abstraction is worthwhile only when the complexity added by the abstraction is
+less than the complexity of the problem it hides. Easy to say, but abstractions often fail this test. It is not
+uncommon to see elaborate patterns applied to simple logic, o layers of indirection introduced in anticipation of
+requirements that may or may not one day arrive. Overzealous use of dependency injection is a code smell that flags
+potentially unwarranted abstraction. Dependency injection is valuable where object construction of the dependency is
+genuinely complicated, or where the behavior of the parent genuinely needs to be variable dynamically. But it is
+frequently done for the sake of separating things that are not worth separating.
 
-It is a coupling failure as much as a complexity one. An abstraction that hides nothing does not remove the dependency
-underneath it, it renames it. The semantic coupling survives the indirection, and no tooling will warn you about what
-remains. Excessive modularity is the same mistake made at the scale of components rather than of types.
-
-Indirection is not abstraction. One adds a layer; the other removes a concern.
-
-Design patterns should be _adequate_ to the problem, and no more.
-
-== Premature optimization
-
-The other common form of over-engineering is *premature optimization*, which buys speed the system has not been shown
-to need. The earlier discussion of essential and accidental complexity has already anticipated it: the objection
-Moseley and Marks raised against Brooks was exactly this point, that everything a system does in pursuit of
-performance — caches, indexes, denormalization, partitioning — is accidental complexity, produced by our design
-choices rather than handed to us by the problem.
-
-The mechanism is state, and it is never free. Speeding up a system almost always means adding some. A cache duplicates
-a value that already exists elsewhere. Denormalization duplicates data across boundaries that were
-previously independent. Batching couples requests that were previously handled in isolation. Each of these buys
-performance by tightening coupling somewhere in the system — data coupling in the first two cases, temporal coupling in
-the third, and temporal coupling is the form that leaves no trace in the dependency graph.
-
-That cost is often worth paying, but it is a cost rather than a free improvement, and it should be paid deliberately,
-once a real performance problem is in evidence — not speculatively, alongside the rest of the design. This is the
-<<new-jersey-style,New Jersey>> preference for under-engineering, applied to performance: ship the simpler thing, and
-let measurement rather than anticipation justify the rework.
-
-The stopping condition comes from the requirements. <<runtime-quality,Runtime qualities>> are specified up-front, with
-acceptance criteria attached, so a system that meets its latency and throughput targets is finished. The temptation to
-keep tuning past that point adds coupling that no requirement asked for.
-
-One qualification. Not every optimization adds state. The cheapest ones take work away — a query that no longer runs, a
-feature that no longer has to be supported — and, as noted earlier, the effort of making software fast tends to force
-precisely those decisions about what to leave out. Optimization of that kind buys performance and simplicity together.
-It is optimization that buys speed with state that has to be justified by evidence.
-
-[quote, Donald Knuth]
-____
-We should forget about small efficiencies, say about 97% of the time: premature optimization is the root of all evil.
-____
-
-== Boring technology
-
-Over-engineering enters at the level of the technology stack, too, and not only at the level of the code.
-<<conceptual-integrity,Conceptual integrity>> asks that a system be built from a small, deliberate pool of languages,
-infrastructure, patterns, and libraries. Simplicity adds a corollary about which technologies belong in that pool.
-Prefer the ones that are mature, stable, and well understood — what Dan McKinley called
-{link-boring-technology}[*boring technology*].
-
-Boring is not the same as bad. A boring technology is one whose capabilities are well understood and — more
-importantly — whose _failure modes_ are well understood. Every technology carries both known unknowns ("we don't know
-what happens when this database hits 100% CPU") and unknown unknowns ("it didn't occur to us that writing stats would
-cause garbage-collection pauses"). Neither set is ever empty, even for software that has existed for decades. But for
-new and fashionable technology the second set is very much larger, and its contents are discovered in production.
-
-Adding a technology to an organization carries a cost that is easy to overlook, because it is paid later and by other
-people. If a system is already built in one language, introducing a second brings complexity that must be weighed
-against whatever marginal advantage the new language offers for the problem at hand. Polyglot programming is sold on
-the promise that letting each team choose its own tools locally will make them more effective. The result, more often,
-is a system nobody can navigate as a whole — exactly the conceptual disunity that principle warns against.
-
-The right question is therefore not which tool is best for a given problem in isolation, but which tool occupies the
-least-worst position across as many of the organization's problems as possible. Choosing technology this way is what
-makes it possible to think about larger questions. Technology adopted for its own sake is a distraction.
-
-This argues for a default position. Choose proven, enduring technologies over innovative but embryonic ones, and reuse
-existing solutions in preference to building new ones. The bar for adopting something new should be that it solves a
-specific, long-standing problem that existing tools do not. That situation is rarer than it appears. It is the same
-YAGNI discipline applied to the stack rather than to the design: adopt for a problem you have, not for one you
-anticipate.
+More generally, the heuristic is that all design patterns should be adequate to the problem, and no more.
 
 == Measuring complexity
 
-Simplicity in software is not a perfectly measurable property. Unlike correctness, which is more binary in nature, a
-software system can be more or less simple. So, assessing simplicity requires careful, qualitative judgment rather than
-concrete metrics.
+Complexity must be continuously designed out of long-lived systems, to counter the dangerous effects of complexity
+compounding through continuous change in its requirements.
 
-Coupling is more tractable. Dependencies can be counted, their direction traced, and cycles among them detected — often
-mechanically, using static analysis tools built for the purpose. A dependency graph makes efferent and afferent coupling
-visible at a glance, and cycle-detection algorithms can flag circular dependencies. Coupling is therefore the most
-useful instrument we have for turning an assessment of simplicity from an opinion into something closer to an
-observation.
+Continuous management of complexity requires understanding of what sorts of complexity we're dealing with. This 
+requires measurement. Complexity must be continuously measured.
 
-Cyclomatic complexity is a related, narrower metric, measuring the number of independent paths through a single unit of
-code — a function or method — by counting its branch points. It is a proxy for how hard that unit is to reason about and
-test. A function with a cyclomatic complexity of 15 has at least 15 distinct paths that tests would need to cover for
-full branch coverage. But it says nothing about coupling between components, and a codebase can score well on it while
-still being tightly coupled and hard to change. So cyclomatic complexity complements structural coupling metrics rather
-than substituting for them.
+Coupling is the easiest thing to measure. Dependencies can be counted, their direction traced, and cycles among them 
+detected — often mechanically, using static analysis tools built for the purpose. A *dependency graph* makes efferent and 
+afferent coupling visible at-a-glance, and *cycle-detection* algorithms can flag circular dependencies. 
 
-What no metric reaches is the global dimension. A codebase can show low efferent coupling, no dependency cycles, and
-healthy cyclomatic complexity throughout, and still be built on three incompatible models of the same domain — because
-each of those models is internally consistent, and only the relationships between them are confused. This is the part
-of simplicity that resists measurement, and it is why the assessment cannot be delegated to tooling entirely.
+*Cyclomatic complexity* is a useful companion metric. While coupling metrics represent complexity in the static
+structure of a system, cyclometric complexity represents the the complexity of the runtime sequence of a single unit
+of code, typically a function or method. It does this simply by counting branch points in that unit of code. 
+Cyclometric complexity is a proxy for how hard a component is to inhabit and to test. A function with a cyclomatic 
+complexity of 15 has at least 15 distinct paths that tests would need to cover for full branch coverage. 
 
-Even where coupling can be counted, the count is a question rather than a verdict. Tight coupling between two
-components that genuinely change together is good design; the identical measurement between two unrelated concerns is
-a defect. No number distinguishes the two cases — only knowledge of the domain does. So the useful question is not
-"how much coupling is there?" but whether the coupling that exists follows the lines along which the system actually
-changes, and that is a judgment about the domain rather than a reading taken off a dependency graph.
+Also worth measuring are deployment metrics. The {link-dora}[DORA] metrics should be treated as a baseline for 
+measurement: deployment frequency and lead time for changes as measures of change velocity, balanced against change
+failure rate and failed deployment recovery time as measures of the stability of the system through change. See
+<<good-enough,How good is good enough?>>.
 
-That simplicity resists direct measurement does not mean a team should track nothing. A small set of context-specific
-proxies is worth choosing deliberately and watching over time. The common candidates are the number of components, the
-number of interfaces between them, and — from the {link-dora}[DORA] delivery metrics — the lead time for a routine
-change and the mean time to restore service after a failure. None of them measures simplicity itself. But a worsening
-trend in any of them is an early warning that complexity is accumulating faster than it is being managed, well before
-the effect shows up as missed deadlines or production incidents. Treat the trend as the signal rather than the absolute
-value, since what counts as a reasonable number of components or interfaces is entirely context-specific.
+But concrete metrics only get you so far in an assessment of complexity in a system. A codebase can show low efferent 
+coupling, no dependency cycles, and healthy cyclomatic complexity throughout, and still be built on three inconsistent 
+models of the same domain, for example. Many forms of complexity cannot be quantified automatically. They require manual,
+qualitative judgment.
+
+Ultimately, whether a system is considered to be simple or not, is a matter of opinion. Even quantifiable metrics need
+judgment applied in their interpretation. Dependency graphs, for example, reveal both bad and good developmental 
+coupling, and don't distinguish between them. Whether the coupling in a system takes the forms along which the system
+actually changes is a judgment that requires deep understanding, not only of the solution, but also of the problem —
+it requires both architecture and domain expertise.
+
+It is RECOMMENDED to choose a small set of concrete metrics as proxies for an overall measure of complexity, to measure
+these things continuously, as using them as the basis for an early warning system that alerts for compounding
+complexity.
