@@ -1,96 +1,119 @@
 [#vector-graphics]
 = Vector graphics
 
-[#svg-as-the-default-vector-format]
-== SVG as the default vector format
-
 SVG is the only vector graphics format the web platform supports natively, and SHOULD be used for every
-graphical UI component that is not a photograph — icons, logos, illustrations, diagrams, and charts alike. It
-is preferred over an icon font (Font Awesome and similar) or a sprite sheet: an icon font repurposes a
-text-rendering pipeline for graphics, which brings font-loading failure modes and accessibility problems (an
-icon font glyph read aloud as its fallback character) that an inline SVG does not have.
+graphical UI component that is not a photograph — icons, logos, illustrations, diagrams, and charts alike. SVG
+is preferred over an icon font (Font Awesome and similar) or a sprite sheet. An icon font repurposes a
+text-rendering pipeline for graphics, which brings font-loading failure modes and accessibility problems.
 
 == Linking versus inlining
 
-An SVG can be referenced like a raster image (`<img src="icon.svg">`, a CSS `background-image`) or embedded
-directly in the HTML as `<svg>...
-</svg>`. Inlining is RECOMMENDED:
+From HTML, an SVG can be referenced like a regular raster image, via `<img src="icon.svg">` or even in CSS via
+`background-image`. Alternatively, SVG source code can be inlined directly in HTML via `<svg>...</svg>` tags.
+
+Inlining is RECOMMENDED for the following reasons.
 
 * It costs one fewer HTTP request per graphic.
-* An inlined SVG's internal elements are addressable and styleable from the page's own CSS and JavaScript —
-  a linked SVG's internals are opaque to the linking document.
-* An inlined SVG can carry `<title>`/`<desc>` that assistive technology reads directly as part of the page's
-  own accessibility tree; a linked SVG depends on the surrounding `<img alt>` instead, which cannot expose
-  the SVG's own internal structure.
 
-A linked SVG (where linking is chosen) MUST be self-contained — no external stylesheet or script reference
-inside the SVG file — since a browser's handling of an external resource reference from within a linked SVG
-is inconsistent. `<object>` is a workaround for accessing a linked SVG's internals from the outer document,
-at the cost of extra markup and its own quirks, and is only worth reaching for where inlining is not
-practical.
+* An inlined SVG's internal elements can be queries and styled from the page's own CSS and JavaScript.
+
+* An inlined SVG can carry `<title>`/`<desc>` that assistive technology reads directly as part of the page's
+  own accessibility tree.
+
+Where linking is chosen instead, the linked SVG MUST be self-contained. This means no external stylesheet or
+script is referenced from inside the SVG file. The reason is that browsers vary in how they handle external references
+from inlined SVGs.
+
+`<object>` can be used as a workaround for accessing a linked SVG's internals from the outer document, at the cost of
+extra markup and its own quirks, and is only worth reaching for where inlining is not practical.
 
 Where more than one inlined SVG on the same page defines an `id` (commonly on a `<clipPath>`, a `<mask>`, or
-a gradient definition), every `id` MUST be unique across the *whole document*, not just within its own SVG —
-two inlined SVGs both defining `id="icon-mask"` collide, and the second silently overrides the first.
+a gradient definition), every `id` MUST be unique across the whole document, not just within its own SVG.
+Two inlined SVGs both defining `id="icon-mask"` collide, and the second silently overrides the first.
 Namespacing generated IDs per component, or rendering each reusable icon inside a Web Component's shadow DOM
 (which scopes IDs to that shadow tree), both avoid the collision at scale.
 
-A linked SVG (the non-default case above) MUST be served with the file extension `.svg` and the
-`image/svg+xml` MIME type.
+A linked SVG MUST be served with the file extension `.svg` and the `image/svg+xml` MIME type.
+
+== SVG coding style
+
+SVG source code SHOULD follow the same coding conventions as HTML — see <<coding-style,coding style>> — with
+the exceptions below, which follow from SVG being an XML vocabulary rather than an HTML one.
+
+* Indentation MUST use four spaces, never tabs, consistent with HTML. Each element MUST start on its own
+  line, other than a `<path>`'s `d` attribute value, which MAY stay on one line regardless of its length.
+
+* Element and attribute names MUST NOT be forced to lowercase. Unlike HTML, SVG is case-sensitive, and many
+  of its own elements and attributes are legitimately mixed-case, eg. `linearGradient`, `clipPath`,
+  `viewBox`, `preserveAspectRatio`, `gradientTransform`. Match the SVG specification's own casing exactly.
+  A lowercased `viewbox` or `clippath` is not merely a style violation, it is a silent failure (the rendering
+  engine will ignore it).
+
+* Attribute values MUST use double quotes, as in HTML.
+
+* Every element MUST be explicitly closed, as in HTML. But unlike HTML's void-element exceptions, XML
+  requires every empty element to use the self-closing form, with no preceding space, eg. `<rect/>`, `<stop/>`,
+  `<use/>` — not `<rect />` or `<rect></rect>`.
+
+* Attributes on the same element SHOULD be written in alphabetical order, as in HTML, except that `id` (where
+  present) SHOULD be listed first, for readability.
+
+* Presentational attributes (`fill`, `stroke`, `stroke-width`, and similar) SHOULD be moved to a `<style>`
+  block or an external stylesheet wherever the same value is reused across more than one element, for the
+  same reason CSS is preferred over inline `style` attributes in HTML.
 
 == SVG attributes
 
 * `viewBox` MUST be treated as mandatory. It defines the SVG's internal coordinate system independently of
   its rendered size, which is what lets the graphic scale cleanly via CSS.
-* `width` and `height` are likewise mandatory on the root `<svg>` element — older browser versions (Internet
+
+* `width` and `height` are likewise mandatory on the root `<svg>` element. Older browser versions (Internet
   Explorer 9–11 in particular) fail to render an SVG with no explicit dimensions even where `viewBox` is
   present.
-* `x` and `y` position an SVG (or a nested `<svg>`) within its parent coordinate system, where relevant.
-* `version="1.1"` SHOULD be kept for maximum compatibility, even though SVG 2 is the current specification;
+
+* `x` and `y` position an SVG, or a nested `<svg>`, within its parent coordinate system, where relevant.
+
+* `version="1.1"` SHOULD be kept for maximum compatibility, even though SVG 2 is the current specification.
   SVG 2 does not introduce a version attribute value of its own, and 1.1 remains the safe, broadly supported
   declaration.
+
 * `xmlns="http://www.w3.org/2000/svg"` is mandatory on the root element. `xmlns:xlink` is additionally
   required only where the SVG uses an `xlink:href` reference (a `<use>` element, for example) rather than
   the SVG2 bare `href`.
+
 * `<title>` and `<desc>` are the SVG equivalent of an `<img>`'s `alt` text, and SHOULD be included on any SVG
   conveying real information — `<title>` for a short accessible name, `<desc>` for a longer description
   where needed.
-* `role="presentation"` (or `aria-hidden="true"`) SHOULD be set on an inlined SVG that is purely decorative —
-  an icon that duplicates adjacent visible text — so assistive technology does not announce it as a
+
+* `role="presentation"` (or `aria-hidden="true"`) SHOULD be set on an inlined SVG that is purely decorative,
+  eg. an icon that duplicates adjacent visible text, so assistive technology does not announce it as a
   separate, unlabeled graphic.
-
-== SVG filters
-
-SVG filter primitives (`<feGaussianBlur>`, `<feColorMatrix>`, and others) apply blur, color manipulation, and
-compositing effects directly within the SVG. They are supported in every current browser, with the
-historical exception of Internet Explorer 9 and earlier and Android 4.4 and earlier — not a live constraint
-for a production standard targeting current browsers, but worth knowing if a project has a legacy support
-requirement.
 
 [#svg-animation]
 == SVG animation
 
-Three independent mechanisms can animate SVG content:
+Three mechanisms can be used to animate SVG content.
 
-* Direct DOM scripting — manipulating attribute or style values via JavaScript, giving full programmatic
-  control at the cost of writing the animation logic by hand.
-* CSS transitions and animations — the same CSS mechanisms used elsewhere on the page apply directly to SVG
-  properties, and are the RECOMMENDED default for straightforward animations, consistent with the general
-  preference for CSS-driven animation over JavaScript (see <<progressive-enhancement>>).
-* SMIL (`<animate>`, `<animateTransform>`, and related elements) — animation declared natively within the
+* Direct DOM scripting, which involves manipulating attribute or style values via JavaScript, giving full
+  programmatic control at the cost of writing the animation logic by hand.
+
+* CSS transitions and animations, the same CSS mechanisms applied to HTML elements. This is the RECOMMENDED
+  default approach for straightforward animations.
+
+* SMIL (`<animate>`, `<animateTransform>`, and related elements). Animation is declared natively within the
   SVG markup itself. SMIL has inconsistent and, in some browsers, deprecated support, and SHOULD NOT be
-  relied on for new work; use CSS animation instead.
+  relied on for new work. Use CSS animation instead.
 
 A JavaScript animation library (Snap.svg, svg.js, Velocity.js, and similar) MAY be reached for where an
-animation's complexity genuinely exceeds what CSS can express — coordinated multi-element sequences with
-runtime-computed values, for example — but is unnecessary overhead for anything CSS transitions or
-animations already handle.
+animation's complexity genuinely exceeds what CSS can express, eg. coordinated multi-element sequences with
+runtime-computed values. But it is unnecessary overhead for anything CSS transitions or animations already
+handle.
 
 == SVG keyboard navigation
 
 An inlined SVG that contains interactive elements (a clickable icon button rendered as SVG shapes, for
-example) is subject to the same keyboard-accessibility requirements as any other interactive control — see
-<<keyboard-navigation>> in the accessibility section. A purely decorative SVG MUST NOT be focusable at all;
-where a browser's default behavior makes an inlined SVG focusable regardless of its content,
-`focusable="false"` (or `tabindex="-1"` combined with `aria-hidden="true"`) MUST be set to remove it from the
-tab order.
+example) is subject to the same keyboard-accessibility requirements as any other interactive control.
+
+A purely decorative SVG MUST NOT be focusable at all. Where a browser's default behavior makes an inlined
+SVG focusable regardless of its content, `focusable="false"` (or `tabindex="-1"` combined with
+`aria-hidden="true"`) MUST be set to remove it from the tab order.
