@@ -30,6 +30,20 @@ starting point for a new standard, and treat it as the canonical demonstration o
   page. Therefore, cross-references _within_ the same standard MUST use the explicit-anchor convention from TS-28
   (`[#id]` / `<<id>>`), never a `link:` to the partial file.
 
+## Line wrapping
+
+- Prose in `.adoc` files MUST NOT be soft wrapped. Each paragraph, list item, admonition, description-list entry, and
+  table cell MUST sit on a single source line, however long. A soft wrap that falls inside a bold or italic span, a
+  link macro, or an `xref:` can silently break its rendering. Leave visual wrapping to the editor.
+
+- Verbatim content (source, listing, literal, passthrough, and verse blocks) keeps its own line structure, and a line
+  ending in a hard line break (` +`) is intentional. Examples of AsciiDoc markup inside verbatim blocks SHOULD follow
+  the same one-line-per-paragraph rule, so the examples demonstrate it.
+
+This reiterates the normative rule in
+[TS-28: AsciiDoc § Line length and wrapping](https://kieranpotts.com/standards/028), which takes precedence. This
+Markdown file, like the repository's other Markdown files, is governed by TS-27 instead, and is wrapped.
+
 ## File naming
 
 - Content files MUST be named with a two-digit numeric prefix followed by a hyphen and a descriptive kebab-case name,
