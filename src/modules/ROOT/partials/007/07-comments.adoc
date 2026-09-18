@@ -1,3 +1,4 @@
+[#comments]
 = Comments
 
 .TL;DR
@@ -5,6 +6,10 @@
 * Reject "clean code" orthodoxy that discourages comments.
 * Comments _are_ valuable for algorithms, business rules, design rationales, and assumptions.
 * The focus of code comments should be on what's not obvious from the code alone.
+* A useful comment sits at a different level of detail than the code it describes – more abstract, or more precise.
+* Long names are not a substitute for comments. They are a worse medium for the same information.
+* Write the interface comment before the implementation. A comment that is hard to write is a design signal.
+* Comment rot is a real cost, but it is an argument for maintaining comments, not for omitting them.
 * Programs written in low-level languages, like shell scripts, benefit from more comments.
 * `TODO` comments are acceptable for work-in-progress code in the context of continuous integration procedures.
 * If in doubt: leave a comment!
@@ -32,6 +37,14 @@ about business rules, rationales for non-obvious design decisions, and assumptio
 work – all these things cannot be fully captured by code alone, and yet this is important knowledge that other
 developers will need to understand and maintain the code in the future.
 
+The usual substitute offered for a comment is a longer, more descriptive name. This standard recommends expressive
+naming (see <<expressiveness>>), but naming and commenting are not interchangeable, and treating them as though they
+were leads to identifiers that are neither good names nor good documentation. A name is read at every call site, so it
+has to stay short enough to read inline; a comment is read once, at the declaration, so it can afford to be a
+paragraph. Compressing a precondition, a unit, an error case, and a rationale into an identifier produces something
+long enough to disrupt every line it appears in, and still too terse to say what was needed. Name the abstraction for
+what it does. Put the rest in a comment above it.
+
 Comments are most useful when they explain things that are not obvious from the code itself. Programs written in
 low-level languages, like shells and other scripting languages, tend to require more comments, because low-level
 languages provide fewer constructs for abstraction, and the syntax tends to be quite cryptic and non-intuitive, too. In
@@ -58,6 +71,84 @@ comments where they make things easier to understand, or where you want to commu
 be ascertained from the code alone – even with good abstractions.
 
 _If in doubt: leave a comment!_
+
+== What a comment should say
+
+"Explain what isn't obvious from the code" is the right instinct but a vague test, and it is the reason so many
+comments end up merely restating their subject line in English. A sharper formulation is this: a useful comment sits at
+a *different level of detail* than the code beneath it. It is either more abstract than the code, or more precise than
+the code. A comment pitched at the same level as the code it sits above has nothing to add, and that is exactly the
+comment the "self-documenting code" argument is right to object to.
+
+Comments that go *higher* than the code state intent, strategy, and rationale – what this block is for, why this
+approach was chosen over the obvious alternative, what invariant is being maintained. They let a reader skip the
+implementation entirely when they don't need it, which is the whole point of an abstraction and something the code by
+itself can never offer.
+
+Comments that go *lower* than the code state the details the syntax has no way to carry – the units a number is
+expressed in, whether a range is inclusive, what a caller must guarantee before calling, what state the code leaves
+behind on failure, which error conditions are possible, whether a returned collection may be empty or null. This is
+the information a caller needs and would otherwise have to acquire by reading the implementation, which defeats the
+abstraction.
+
+[source,javascript]
+----
+// Restates the code. Adds nothing.
+// Increment the retry counter.
+retries += 1
+
+// Higher than the code: explains why.
+// Retry on 5xx only. 4xx responses are caller errors and will fail identically
+// on retry, so retrying them just delays the error the caller needs to see.
+if (isServerError(response)) { ... }
+
+// Lower than the code: states what the signature cannot.
+// Returns null (not an empty array) if the account has never been billed.
+// `since` is inclusive; timestamps are UTC milliseconds.
+function getInvoices(accountId, since) { ... }
+----
+
+== Comments as a design tool
+
+Comments are usually treated as something added after the code works. Written in the other order, they do useful work
+as a design check.
+
+Write the comment describing an abstraction's interface – what it does, what a caller must provide, what it guarantees
+in return – *before* writing its implementation. If that comment turns out to be long, or full of conditions and
+exceptions, or impossible to write without describing how the thing works internally, that difficulty is telling you
+something about the design, and it is telling you at the cheapest possible moment: before the implementation exists,
+before there are callers, and before anything has to be refactored. An abstraction whose interface is hard to describe
+in a few sentences usually has an interface that is hard to use.
+
+This also guards against the failure mode in which comments are written last, by someone who has just spent an hour in
+the implementation and can no longer see which of its details are surprising. A comment written first describes the
+abstraction; a comment written last tends to describe the code.
+
+== Comment rot
+
+The strongest argument against comments is that they go stale. Code is changed, the comment beside it is not, and a
+confidently-worded lie now sits in the codebase – worse than no comment at all, because a reader has no way to tell it
+from the truth until they are misled by it.
+
+The risk is real and should not be dismissed. But it is an argument for maintaining comments, not for omitting them.
+Information that is genuinely necessary does not stop being necessary because recording it creates an upkeep
+obligation; omitting it simply transfers the cost from the author to every future reader, permanently. The same
+argument, applied consistently, would rule out tests, type annotations, and documentation of every kind.
+
+Several of the recommendations elsewhere in this standard reduce the exposure directly:
+
+* *Keep a comment adjacent to what it describes.* A comment in the same hunk as the code it explains will be in front
+  of the reviewer's eyes in the diff that invalidates it. A comment in a separate document will not.
+
+* *Comment the things least likely to churn.* Intent, rationale, invariants, and contracts are more stable than the
+  implementation details beneath them. A comment that narrates the steps of an algorithm rots with every edit; a
+  comment explaining why the algorithm was chosen usually survives the rewrite.
+
+* *Don't duplicate a fact in two comments.* Describe each thing once, in the place a reader will look for it, and
+  cross-reference rather than restate it. Every duplicate is another copy that can fall out of step.
+
+* *Treat a stale comment as a defect.* Updating the comments a change invalidates is part of making the change, not a
+  follow-up task, and reviewers should hold changes to that standard as they would any other.
 
 == Other forms of documentation
 

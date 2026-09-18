@@ -50,6 +50,36 @@ tests. TDD is most valuable when the design direction is reasonably clear. When 
 early exploration or prototyping — it can be more practical to experiment with different approaches first and write
 tests once the design stabilizes.
 
+== How small should the cycle be?
+
+The trade-off above turns on a question the red-green-refactor description leaves open: how much behavior one iteration
+should cover. The strictest formulation, Robert C. Martin's three laws of TDD, answers it tightly — write no production
+code until a failing test exists, write no more of a test than is sufficient to fail, and write no more production code
+than is sufficient to pass that test — producing a cycle measured in seconds rather than minutes.
+
+The objection to working at that granularity, argued by John Ousterhout in a public exchange with Martin,
+{link-aposd-vs-clean-code}[_A Philosophy of Software Design vs. Clean Code_], is that a cycle this tight makes design
+an afterthought. Each iteration asks only "what is the smallest change that makes this test pass?", which is a
+question about the next few lines, not about the shape of the thing being built. Design is supposed to be recovered in
+the refactor step, but the refactor step is the one with no failing test driving it, and so it is the one most often
+skipped under delivery pressure. The result is a system arrived at incrementally rather than designed — what Ousterhout
+calls tactical, as opposed to strategic, programming.
+
+The alternative he proposes is *bundling*: design and write a coherent unit of implementation first — a whole method,
+or a small class with a considered interface — then write the tests for it. The unit is still small enough to hold in
+your head and to test thoroughly, but it is large enough that designing it requires thinking about the interface as a
+whole rather than about the next assertion.
+
+Note what is _not_ in dispute. Both positions treat comprehensive unit tests as essential, expect them written close in
+time to the code, and expect the suite to be run constantly. The disagreement is narrower than it is usually presented:
+it is about ordering and increment size, not about whether to test.
+
+The practical guidance is therefore to treat cycle size as a variable, not a constant. Tighten it for work where the
+design is already settled and the risk is in the details — a well-understood algorithm, a bug fix, a parser, anything
+with a clear specification and awkward edge cases. Loosen it toward bundling for work where the interface is the hard
+part and writing an assertion first would commit you to a design you have not yet thought through. What matters is that
+the design thinking happens somewhere; TDD's small cycle is a device for scheduling it, not a substitute for it.
+
 The real objective is what Martin Fowler called *self-testing code*: a codebase in which you can confidently verify
 correct behavior with a single command. TDD is the recommended means of getting there, but the end is more important
 than the means. Developers SHOULD default to writing tests before code, while recognizing that this is a guideline, not

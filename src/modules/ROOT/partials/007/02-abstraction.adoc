@@ -4,9 +4,13 @@
 ****
 * Abstraction hides complexity behind simplified interfaces.
 * It compresses code and enables code reuse.
-* Trade-off: deep abstractions are hard to understand and can be leaky.
-* The best abstractions are small, simple, and focused.
-* But deep abstractions are sometimes useful, too.
+* A *module* is anything with an interface and an implementation – a function, a class, a package, or a service.
+* A module's *depth* is the ratio of functionality it hides to interface it exposes. Prefer deep modules to shallow
+  ones.
+* Depth is a ratio, not a size. A small module can be deep, and a large one can be shallow.
+* It matters more that a module's interface is simple than that its implementation is.
+* Depth is no excuse for a vague interface. If you can't describe what a module does briefly _and_ completely, its
+  interface is not simple.
 * Avoid premature abstraction. Extract once you're confident you can keep the abstraction's interface stable.
 * Evolve interfaces in a backwards-compatible way. If you can't do that, create a new abstraction and incrementally
   deprecate the old one.
@@ -55,53 +59,97 @@ create problems, too.
 Be moderate in your application of abstraction. Avoid extremes and seek balance between the trade-offs, which we'll
 discuss next.
 
-== Abstraction depth
+[#modules]
+== Modules
 
-In most types of abstraction, the complexity that is hidden behind the facade – the "common pattern" that is abstracted
-away – is replaced by an identifier of some kind, like a function name or class name.
+To talk about the quality of an abstraction, we need a name for the thing being abstracted. This standard uses
+*module*, in the general sense used by John Ousterhout in _A Philosophy of Software Design_: any unit of code that has
+an interface and an implementation. A function is a module. So is a class, a package, a library, and a network service.
+The term is used more narrowly elsewhere in this standard – in <<Decomposition>>, for instance, where it means a
+file-or-directory-sized unit – but here it covers everything from a three-line function upwards, because the same
+reasoning applies at every scale.
 
-For code to remain understandable, the names given to abstractions SHOULD accurately express _all_ the important details
-of the logic and data they hide. The important details are everything that users of the abstraction need to understand.
+A module's *interface* is everything a caller must know in order to use it correctly. That is more than its signature.
+It includes the documented behavior, the units and ranges of its parameters, its side effects, the errors it can
+produce, any ordering or threading constraints on calling it, and any invariant the caller is expected to maintain.
+Some of this is expressed in the language's syntax and is checked by the compiler; the rest is expressed in
+documentation and comments, and is not. Both halves are part of the interface, and both are paid for by every caller.
 
-Creating good names for abstractions is easier to do when those abstractions are small, simple, and focused.
+A module's *implementation* is everything else – the code that fulfills the interface, which callers should be able to
+ignore entirely.
 
-For this reason, shallow abstractions are preferred to deep ones. A shallow abstraction is something like a function
-with a single responsibility. The function does just one very specific thing. It has a simple interface that clearly
-expresses the function's expected behavior, without revealing the technical details of its internal implementation.
+[#module-depth]
+== Module depth
 
-A deep abstraction may also have a simple interface, but it hides significant complexity. The user sees a
-straightforward interface but the component does substantial work.
+The interface is a cost and the implementation hidden behind it is the benefit. The interface must be learned by
+everyone who uses the module, and relearned whenever it changes; the implementation, if the interface is any good, need
+never be learned at all. The quality of an abstraction is therefore a matter of the ratio between the two, and that
+ratio has a name: *depth*.
 
-Deep abstractions can be very desirable for some requirements. Consider, for example, a file I/O library where you call
-`read(file)` and the library handles buffering, caching, and error handling internally. Or a database client where you
-call `query()` and it handles connection pooling, parsing, optimization, and networking. These are deep abstractions,
-because they hide a lot of implementation detail. But they also have simple interfaces, because much of their
-implementation detail does not need to be surfaced to users. These are good abstractions.
+A *deep* module presents a simple interface over a substantial implementation. Unix file I/O is the canonical example:
+`open`, `read`, `write`, `close` and a couple of others, hiding block allocation, buffering, permissions, device
+drivers, and multiple on-disk filesystem formats. A database client where you call `query()` and it handles connection
+pooling, statement parsing, query planning, and networking is the same shape. In both cases a caller learns a handful
+of operations and gets an enormous amount of behavior in exchange.
 
-But generally, deep abstractions, which hide complex operations, tend to be quite difficult to express with sufficient
-precision and accuracy. Consider, for example, a single function call that hides hundreds of lines of logic, including
-important business rules, and that has multiple interactions with various external systems. It would be hard to come up
-with a name that expresses all of the abstraction's important behavior – stuff that is important to users of the
-abstraction. Such an abstraction would also be pretty difficult to debug, to reuse in different contexts, and to modify
-and extend.
+A *shallow* module is one whose interface is nearly as complex as the implementation it hides. The caller has to learn
+almost as much as they would have had to learn by reading the code, so the abstraction has bought them little or
+nothing – and once the indirection is counted, often less than nothing. Single-caller wrapper functions that do nothing
+but forward their arguments, classes whose entire public surface is getters and setters over their own fields, and
+"manager" or "helper" types that exist to hold one method are the usual examples. A module is also shallow in practice
+when its interface leaks – see <<leaky-abstractions>> – because a caller who must understand the implementation anyway
+has gained no insulation from it.
 
-It's much more important for an abstraction to have a simple interface than a simple implementation. Though we ought to
-be wary of over abstracting things, deep abstractions can be effective as long as their interfaces can be made to be
-simple and stable. The goal of abstraction is primarily to create _simple and stable representations_ of discrete units
-of logic and/or data – however simple or complex those extracted units of logic and data are.
+Depth is a ratio, not a size. This is the point most often lost. A small module can be perfectly deep: a well-named
+function of ten lines that hides a fiddly calculation the caller genuinely does not want to think about is a good
+abstraction. A large module can be thoroughly shallow: a thousand-line class with forty public methods, each of which
+maps one-to-one onto an internal operation, hides nothing. It follows that neither "make it smaller" nor "make it
+bigger" is design advice. The question is always what the caller has been relieved of knowing.
 
-Thus, we should not put arbitrary limits on abstractions. We should not, for example, cap the number of statements
-allowed in a function body, or restrict the number of protected or private methods within a class. Abstractions should
-be as deep as they need to be to sufficiently hide their internal implementation details.
+It matters more that a module's interface is simple than that its implementation is. A complicated implementation is
+paid for once, by the person maintaining it. A complicated interface is paid for repeatedly, by everyone who calls it,
+and it propagates: complexity exposed through an interface tends to be passed along into the interfaces of the callers
+in turn. Where complexity cannot be eliminated, the design goal is to pull it downwards, into implementations, and away
+from the boundaries where it multiplies.
+
+This is why arbitrary structural limits are a mistake. Capping the number of statements in a function body, or the
+number of methods in a class, optimizes for module size – which is not the thing that determines whether the design is
+any good – and it pushes directly against depth, because the usual way to satisfy such a cap is to split one deep
+module into several shallow ones. See <<function-length>> for the practical consequences.
 
 Remember, the primary purpose of an abstraction is to extract complexity from elsewhere in the application code. Do what
 you need to do to hide that complexity from users of the abstraction.
 
+[#depth-and-specification]
+=== Depth is not an excuse for vagueness
+
+Depth is about how much a module hides, not about how vaguely it describes what it does. These are easy to confuse,
+because both produce a short interface.
+
+A function that hides several hundred lines of business logic and a number of interactions with external systems, and
+that is called `processOrder()`, has a short signature but not a simple interface. The caller still needs to know which
+of those external systems are touched, in what order, what happens if the third one fails, and what state the system is
+left in afterwards – and none of that has gone away by not being written down. It has simply moved from the interface
+into folklore, to be rediscovered by each new maintainer reading the implementation.
+
+The test is whether you can describe what a module does briefly _and_ completely. If a full description is short, the
+module is deep. If a full description is long, the module is not deep, however short its signature; the interface is
+just under-documented, and the implementation is likely doing several things that should be separated. A useful check
+is the one described in <<comments>>: try writing the interface comment before the implementation, and treat difficulty
+in writing it as a finding about the design.
+
+[#leaky-abstractions]
 == Leaky abstractions
 
-Deep abstractions tend to be leaky. Because deep abstractions encapsulate lots of complexity, there's a greater chance
-that some of that complexity will necessarily be exposed through the abstractions' public interfaces. Implementation
-details leak out through the interface.
+Depth is what we are aiming for, but the more a module hides, the more opportunity there is for some of what it hides
+to escape. An abstraction *leaks* when a caller cannot use it correctly without knowing something about its
+implementation – a performance characteristic that only holds for certain inputs, an error that only makes sense in
+terms of the underlying mechanism, an ordering requirement imposed by internal state.
+
+A leak is not merely untidy. It converts a nominally deep module into a shallow one. The implementation detail that
+escapes becomes part of the interface in practice, whether or not it is documented as such, because every caller has to
+know it; the module's real interface is therefore larger than its stated one, and the benefit the depth was supposed to
+buy has been given back.
 
 The problem with leaky abstractions is that, if their internal implementations change, they typically require
 corresponding changes to their public interfaces. If you need to change the public interface to an abstraction, you will

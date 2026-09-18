@@ -4,6 +4,9 @@
 .TL;DR
 ****
 * Don't abstract implementation details that are better kept visible.
+* Over-decomposition produces entanglement – several interfaces to learn where one would have done.
+* There is no defensible numeric limit on function length. Extract when the caller loses more complexity than the new
+  interface adds.
 * Cohesion is a property of one module. Aim for modules whose elements all serve a single, well-defined purpose.
 * "Don't repeat yourself" (DRY) does not mean "avoid all code duplication".
 * Extract duplication to shared abstractions only when components are semantically related.
@@ -38,10 +41,12 @@ too.)
 
 If you cannot understand the purpose of one function without reading the internal logic of several others, you have
 over-decomposed. The decomposition has not actually reduced complexity, it has only distributed it across more
-boundaries.
+boundaries. This condition has a name – *entanglement* – and it is the clearest symptom that a set of abstractions is
+not paying for itself. An entangled group of functions presents the reader with several interfaces to learn instead of
+one, without ever allowing them to stop at an interface and trust it.
 
 You don't need much indirection to make things really difficult for humans. The average person can hold only 3-5 pieces
-of information in working memory at a time. Each context switch, introduced by a new abstraction, however shallow the
+of information in working memory at a time. Each context switch, introduced by a new abstraction, however trivial that
 abstraction, takes up one of those slots. The more memory tokens we use up in trying to understand a piece of code, the
 more likely we are to let bugs slip through.
 
@@ -52,6 +57,39 @@ Not everything benefits from decomposition into abstractions. If it is desirable
 its implementation details, then it's probably best if those implementation details are not abstracted away. Don't
 abstract things that would be better left explicit and visible. Think about the users of your code, and what knowledge
 they need to have in order to integrate with it, to analyze and debug it, and to maintain it.
+
+[#function-length]
+== Function length
+
+The most concrete form this trade-off takes is the question of how long a function should be. One school of thought,
+associated with Robert C. Martin's _Clean Code_, holds that functions should be very short – a handful of lines – and
+that a function doing more than "one thing" should be extracted until it does not. The opposing view, argued by John
+Ousterhout in _A Philosophy of Software Design_, is that decomposing this aggressively produces a proliferation of
+shallow modules – functions too small to carry the cost of their own interfaces, in the sense described in
+<<module-depth>> – and that the resulting entanglement costs the reader more than the original length ever did.
+
+Both authors set out their positions at length in a public exchange,
+{link-aposd-vs-clean-code}[_A Philosophy of Software Design vs. Clean Code_], which is worth reading in full. It is
+instructive less for who wins than for what it demonstrates: two experienced practitioners, agreeing on the goals –
+modularity, testability, and reducing what a reader has to hold in their head – working through the same example code
+and reaching opposite conclusions about how far to decompose it. That is a reasonable signal that no fixed threshold is
+defensible as a general rule.
+
+This standard therefore takes no position on function length as a number, for the same reason it rejects arbitrary
+structural limits generally. Length is not the thing being measured; depth is. The test is whether extracting a piece
+of logic into its own function removes more complexity from the caller than the new interface adds to the reader's
+burden.
+A function called from exactly one place, whose name has to restate the caller's context to mean anything, and that
+cannot be understood without also reading that caller, has failed the test regardless of how few lines it contains.
+Conversely, a long function whose parts are sequential steps in a single operation, none of which has any independent
+meaning, may be better left long.
+
+A function that is genuinely too long usually has a second problem underneath the length – it is doing work at several
+different levels of abstraction, or it is holding state that several of its parts read and write. Those are the defects
+worth acting on. Fix them and the length usually resolves itself; chase the length alone and it merely relocates.
+
+Where a long function is the right answer, and the length is likely to invite a well-meaning refactoring later, say so
+in a comment. See <<comments>>.
 
 [#cohesion]
 == Cohesion
