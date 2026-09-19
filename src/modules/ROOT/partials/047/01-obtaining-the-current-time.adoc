@@ -1,0 +1,30 @@
+= Obtaining the current time
+
+Code that reads the system clock directly, through a call such as `Date.now()` in JavaScript, `System.currentTimeMillis()` in Java, or `time.time()` in Python, has a hidden input that changes on every call. Its result depends on when it runs. That makes it hard to test repeatably, and hardest of all where the interval between two readings is what matters: a timeout, an expiry, a rate limit, or a scheduled job. A test of a 24-hour expiry either waits 24 hours or does not test the expiry.
+
+Application code SHOULD obtain the current time from a clock abstraction that it receives as a dependency, rather than reading the system clock itself. In production, the abstraction is backed by the system clock. In tests, it is backed by a fake clock that the test sets to a known instant and advances explicitly. A test can then move time forward by a day without waiting a day, and get the same result on every run.
+
+[source,typescript]
+----
+interface Clock {
+  now(): Date;
+}
+
+const systemClock: Clock = { now: () => new Date() };
+
+class SessionManager {
+  constructor(private readonly clock: Clock) {}
+
+  isExpired(session: Session): boolean {
+    return this.clock.now() >= session.expiresAt;
+  }
+}
+----
+
+A test constructs `SessionManager` with a fake clock set just before the session's expiry, asserts the session is live, advances the clock past the expiry, and asserts the session has expired. No real time passes, and the test does not depend on the speed of the machine it runs on.
+
+The same applies to monotonic clocks used to measure elapsed time, such as `performance.now()` in JavaScript or `System.nanoTime()` in Java. Code that measures durations SHOULD read them through an injected abstraction too, so a test can control the durations it observes.
+
+Where the platform already provides a clock abstraction, use it rather than defining a new one. Java's `java.time.Clock` is one example, with `Clock.systemUTC()` for production and `Clock.fixed()` or a hand-written subclass for tests. The system clock MAY be read directly at the outermost edge of the application, where the production clock is constructed and passed in.
+
+This is a specific case of the "Repeatable" principle in xref:013.adoc[*TS-13: Functional Testing*], which requires tests to control time rather than depend on it.
