@@ -4,6 +4,8 @@ Each Java source file SHOULD contain exactly one class-like construct. However, 
 
 Source files are distinguished by the `.java` file extension. The name of a source file MUST match the name of the main class-like construct it contains exactly, including letter case.
 
+A source file SHOULD NOT exceed about 2,000 lines. A file of that length is hard to navigate and to review, and usually means its main class has taken on more than one responsibility, so the remedy is to split the class rather than the file.
+
 The contents of source files MUST be laid out in the following order, from top to bottom:
 
 1. License or copyright notice, if required.
@@ -20,6 +22,8 @@ Each section MUST be separated by a single blank line. Consecutive top-level cla
 
 A Javadoc comment MUST be preceded by a single blank line, except where it is the first thing in the file, in which case it MAY start on line 1.
 
+Every source file except `module-info.java` MUST have a `package` statement. Compact source files (JDK 25 or later), which omit the package statement and the enclosing class declaration so a small program can be written as bare methods, MUST NOT be used. They exist for single-file programs and teaching, and a class in the unnamed package cannot be imported by code in any other package. The `package` statement MUST NOT be line-wrapped, and MAY exceed the column limits.
+
 [#special-source-files]
 == Special source files
 
@@ -27,13 +31,14 @@ Two files carry special structures that fall outside the ordinary top-to-bottom 
 
 A `package-info.java` file holds only a package-level Javadoc comment, package-level annotations, any import statements those annotations need, and the `package` statement itself. It MUST NOT contain a class-like construct.
 
-A `module-info.java` file declares a Java module. It contains the `module` declaration and its directives, and MUST NOT contain a `package` statement. The module directives MUST appear in this order: `requires`, `exports`, `opens`, `uses`, `provides`. Each directive kind forms its own block, separated from the next by a blank line.
+A `module-info.java` file declares a Java module. It contains the `module` declaration and its directives, and MUST NOT contain a `package` statement. The module directives MUST appear in this order: `requires`, `exports`, `opens`, `uses`, `provides`. Each directive kind forms its own block, separated from the next by a blank line. Where a `requires` directive has modifiers, they MUST appear in the order `transitive static`. The module's own name follows the rules for package names (see <<package-names,Package names>>).
 
 [source,java]
 ----
 module com.example.myapp {
   requires java.sql;
-  requires com.example.mylib;
+  requires transitive com.example.mylib;
+  requires static com.example.annotations;
 
   exports com.example.myapp.api;
 

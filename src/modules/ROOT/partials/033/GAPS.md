@@ -26,9 +26,9 @@ instead, and is listed as out-of-scope. Several reference rules conflict with
 deliberate TS-33 choices, and those are also listed as out-of-scope rather
 than as gaps.
 
-**Status:** 16 of 35 actionable gaps closed (12 missing, 4 partial); 6
-missing, 13 partial, and 9 out-of-scope remain open. First run: 2026-09-19.
-Last worked: 2026-09-19 (second batch).
+**Status:** 24 of 35 actionable gaps closed (all 18 missing, 6 partial); 11
+partial and 9 out-of-scope remain open. First run: 2026-09-19. Last worked:
+2026-09-19 (third batch).
 
 ## Missing
 
@@ -167,12 +167,25 @@ Last worked: 2026-09-19 (second batch).
       propagating it or calling `Thread.currentThread().interrupt()`, shown in a
       `queue.take()` example.
 
-- [ ] https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md#manage-threads-properly
+- [x] https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md#manage-threads-properly
       (manage the lifecycle of spawned threads, understand daemon versus
       non-daemon threads, and shut down an `ExecutorService` correctly) is
       not addressed anywhere in the standard. TS-7's "Concurrency" chapter
       covers the principles but not the Java APIs. Recommend a new
       "Concurrency" section in 05-programming-constructs.adoc.
+
+      **Resolved.** Closed by `05-programming-constructs.adoc`, new
+      "Concurrency" section after "Resource management", which links TS-7 (Code
+      Design) for concurrency principles and covers only the Java APIs.
+      Application code SHOULD use an `ExecutorService` rather than starting
+      threads directly. The code that starts a thread or executor MUST stop it:
+      the section explains how non-daemon threads keep the JVM alive, and why
+      daemon threads are no fix. A block-scoped executor SHOULD be a
+      try-with-resources resource (JDK 19+). A long-lived executor MUST be shut
+      down in the two phases the `ExecutorService` Javadoc describes, with an
+      example. Long tasks SHOULD respond to interruption. The `ExecutorService`
+      Javadoc (Java SE 21) and the `Thread` Javadoc's daemon rules were read;
+      the former was added to `99-references.adoc`.
 
 - [x] https://source.android.com/docs/setup/contribute/code-style#use-standard-java-annotations
       (`@SuppressWarnings` only where a warning is impossible to eliminate,
@@ -225,13 +238,24 @@ Last worked: 2026-09-19 (second batch).
       testing through the public interface instead. Uses Twitter's
       `ConfigReader` constant example.
 
-- [ ] https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md#stringbuilder-over-stringbuffer,
+- [x] https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md#stringbuilder-over-stringbuffer,
       #scheduledexecutorservice-over-timer, and #list-over-vector (prefer the
       modern API over the legacy synchronized or single-threaded one), plus
       https://source.android.com/docs/setup/contribute/code-style#java-library-rules
       (never use deprecated libraries in new code) are not addressed anywhere
       in the standard. Recommend a new "Legacy APIs" section in
       08-java-api-specifications.adoc.
+
+      **Resolved.** Closed by `08-java-api-specifications.adoc`, new "Legacy
+      APIs" section after "Jakarta Persistence (JPA)". New code MUST NOT use
+      deprecated APIs, and existing code MAY keep them for consistency, per
+      AOSP. A table maps superseded classes to replacements with reasons:
+      `StringBuffer` to `StringBuilder`; `Vector`, `Stack`, and `Hashtable` to
+      `ArrayList`, `ArrayDeque`, and `HashMap`, or a concurrent collection; and
+      `Timer` to `ScheduledExecutorService`, using Twitter's failure-mode
+      reasons. Beyond the sources, it adds `Date`, `Calendar`, and
+      `SimpleDateFormat` to `java.time`, linking TS-47 (Dates and Times). The
+      "Concurrency" section points here for `Timer`.
 
 - [x] https://www.oracle.com/java/technologies/javase/codeconventions-declarations.html#16817
       (6.3: avoid local declarations that hide declarations at a higher
@@ -247,7 +271,7 @@ Last worked: 2026-09-19 (second batch).
       Oracle Code Conventions were already in `99-references.adoc`; the page
       needed a direct fetch, as WebFetch returned 403.
 
-- [ ] https://google.github.io/styleguide/javaguide.html#s3.3.1.1-module-imports
+- [x] https://google.github.io/styleguide/javaguide.html#s3.3.1.1-module-imports
       (module imports, `import module java.base;`, are not used) and
       https://google.github.io/styleguide/javaguide.html#s3.2-package-declaration
       (compact source files are not used, and every file except
@@ -257,7 +281,18 @@ Last worked: 2026-09-19 (second batch).
       package-declaration and compact-source-file rules in the file layout
       at 02-source-files.adoc:7.
 
-- [ ] https://google.github.io/styleguide/javaguide.html#s5.2.1-package-names
+      **Resolved.** Module imports: "Import statements" in
+      `05-programming-constructs.adoc` now says module imports (JDK 25+) MUST
+      NOT be used, because they share the wildcard import's drawbacks at a
+      larger scale. Package declarations: a new paragraph after the file-layout
+      list in `02-source-files.adoc` requires a `package` statement in every
+      file except `module-info.java` and rules out compact source files (JDK
+      25+). It explains they are meant for single-file programs, and that
+      classes in the unnamed package cannot be imported. The statement MUST NOT
+      be wrapped and MAY exceed the column limits, per Google 3.2. JEPs 511 and
+      512 were read for the feature details and added to `99-references.adoc`.
+
+- [x] https://google.github.io/styleguide/javaguide.html#s5.2.1-package-names
       (module names follow the same rules as package names) and
       https://google.github.io/styleguide/javaguide.html#s4.8.7-modifiers
       (`requires` directive modifiers are ordered `transitive static`) are
@@ -266,15 +301,34 @@ Last worked: 2026-09-19 (second batch).
       modifier order with the `module-info.java` rules at
       02-source-files.adoc:30.
 
-- [ ] https://www.oracle.com/java/technologies/javase/codeconventions-fileorganization.html
+      **Resolved.** "Package names" in `03-naming-conventions.adoc` gained an
+      explicit anchor and a sentence saying module names follow the same rules.
+      The `module-info.java` paragraph in `02-source-files.adoc`, under "Special
+      source files", now requires `requires` modifiers in the order `transitive
+      static` and links to "Package names". Its example now shows `requires
+      transitive` and `requires static` directives.
+
+- [x] https://www.oracle.com/java/technologies/javase/codeconventions-fileorganization.html
       (3: files longer than 2000 lines are cumbersome and should be avoided)
       is not addressed anywhere in the standard. Recommend placing in
       "Source files", 02-source-files.adoc:3.
 
-- [ ] https://www.oracle.com/java/technologies/javase/codeconventions-statements.html#438
+      **Resolved.** Closed by a new paragraph in the opening of "Source files"
+      in `02-source-files.adoc`. A source file SHOULD NOT exceed about 2,000
+      lines, because such a file usually means its class has more than one
+      responsibility, so the class should be split rather than the file. The
+      Oracle page was fetched directly and confirms the figure.
+
+- [x] https://www.oracle.com/java/technologies/javase/codeconventions-statements.html#438
       (7.3: a `return` value is not parenthesized unless the parentheses
       make it clearer) is not addressed anywhere in the standard. Recommend
       placing in "Grouping parentheses", 04-code-style.adoc:251.
+
+      **Resolved.** Closed by a new paragraph in "Grouping parentheses" in
+      `04-code-style.adoc`. A `return` value SHOULD NOT be wrapped in
+      parentheses. Parentheses MAY be kept around part of the value where they
+      help, shown with the condition of a conditional expression, after Oracle
+      7.3's example.
 
 ## Partial
 
@@ -379,15 +433,26 @@ Last worked: 2026-09-19 (second batch).
       `Exception` or `Throwable`, but MUST say why in a comment and MUST record
       the failure.
 
-- [ ] https://google.github.io/styleguide/javaguide.html#s3.3.3-import-ordering-and-spacing
+- [x] https://google.github.io/styleguide/javaguide.html#s3.3.3-import-ordering-and-spacing
       covers this more thoroughly than 05-programming-constructs.adoc:13 —
       specifically, imported names are in ASCII sort order, which differs
       from sorting the import lines because `.` sorts before `;`.
 
-- [ ] https://google.github.io/styleguide/javaguide.html#s3.4.2-ordering-class-contents
+      **Resolved.** "Import statements" in `05-programming-constructs.adoc` now
+      sorts imports in ASCII order of the imported names, not alphabetically. A
+      worked `com.example.Foo` / `com.example.Foo.Bar` example shows why that
+      differs from sorting the lines, since `.` sorts before `;`.
+
+- [x] https://google.github.io/styleguide/javaguide.html#s3.4.2-ordering-class-contents
       covers this more thoroughly than 05-programming-constructs.adoc:29 —
       specifically, new methods are not habitually appended to the end of a
       class, since the order they were added in is not a logical order.
+
+      **Resolved.** The ordering paragraph in "Classes and interfaces" in
+      `05-programming-constructs.adoc` now says a class's maintainer SHOULD be
+      able to explain its order. It adds that new methods SHOULD NOT be
+      habitually appended to the end, since that order is chronological rather
+      than logical, and should sit beside related members.
 
 - [ ] https://google.github.io/styleguide/javaguide.html#s5.3-camel-case
       covers this more thoroughly than 03-naming-conventions.adoc:16 —

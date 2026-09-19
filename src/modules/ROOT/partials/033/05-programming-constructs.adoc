@@ -3,14 +3,14 @@
 [#import-statements]
 == Import statements
 
-Wildcard imports, static or otherwise, SHOULD NOT be used.
+Wildcard imports, static or otherwise, SHOULD NOT be used. Module imports (`import module java.base;`, JDK 25 or later) MUST NOT be used either. A module import brings in every public type of every package the module exports, so it has the same drawbacks as a wildcard import, at a larger scale: a reader cannot tell where a name comes from, and a new type added to any of those packages can make an existing simple name ambiguous.
 
 Imports SHOULD be grouped into the following categories, in this order.
 
 * Static imports.
 * Non-static imports.
 
-There SHOULD be exactly one blank line between the two groups to separate them. Within each group, imports SHOULD be sorted alphabetically based on the names of the imports. There SHOULD NOT be any other blank lines between import statements.
+There SHOULD be exactly one blank line between the two groups to separate them. Within each group, imports SHOULD be sorted in ASCII order of the imported names. This is not quite the same as sorting the import lines, because `.` sorts before `;`: `com.example.Foo` sorts before `com.example.Foo.Bar` by name, but `import com.example.Foo.Bar;` sorts before `import com.example.Foo;` as a line. There SHOULD NOT be any other blank lines between import statements.
 
 Static imports SHOULD NOT be used for static nested classes. They SHOULD be imported with normal imports.
 
@@ -103,7 +103,7 @@ There SHOULD be a logical ordering to the contents of classes and other class-li
 3. Constructors.
 4. Methods.
 
-Class and instance fields MAY be ordered by visibility: first public, then protected, then package-scoped (no modifier), then private. But it is generally better to order and group methods logically, rather than by visibility (public, protected, private), type (static, instance), or by name (eg. alphabetical ordering). Authors SHOULD order the contents of a class in whatever way they feel most helps to understand the class's purpose and logic.
+Class and instance fields MAY be ordered by visibility: first public, then protected, then package-scoped (no modifier), then private. But it is generally better to order and group methods logically, rather than by visibility (public, protected, private), type (static, instance), or by name (eg. alphabetical ordering). Authors SHOULD order the contents of a class in whatever way they feel most helps to understand the class's purpose and logic. Whatever the order, its maintainer SHOULD be able to explain it. In particular, a new method SHOULD NOT be habitually appended to the end of the class, since the order members were added in is chronological, not logical. Place it beside the members it relates to.
 
 However, overloaded methods — methods of a class that share the same name, but which have different parameters — MUST be grouped together, with no other members between them. This requirement also applies to overloaded constructors.
 
@@ -155,6 +155,50 @@ try {
   lock.unlock();
 }
 ----
+
+[#concurrency]
+== Concurrency
+
+The principles of concurrent design — keeping concurrency apart from business logic, minimizing shared mutable state, and designing thread-safe classes — are covered in xref:007.adoc[*TS-7: Code Design*]. This section covers the Java APIs.
+
+Application code SHOULD NOT create and start `Thread` objects directly. Submit tasks to an `ExecutorService` instead, created from one of the `Executors` factory methods or configured explicitly with a `ThreadPoolExecutor`, so that the number of threads is bounded, threads are reused, and the tasks' lifecycle has a single owner.
+
+Every thread and every executor has a lifecycle, and the code that starts it MUST also arrange for it to stop. A platform thread is either a daemon or a non-daemon thread, and the JVM begins its shutdown sequence only once every started non-daemon thread has terminated. The threads of an executor built with the default thread factory are non-daemon threads, so an executor that is never shut down keeps the JVM alive after `main` returns, and the application appears to hang on exit. Making the threads daemon threads is not a fix, since the JVM then halts them mid-task at shutdown, without running their `finally` blocks.
+
+An `ExecutorService` that is scoped to a block of code SHOULD be declared as a try-with-resources resource (JDK 19 or later, where `ExecutorService` implements `AutoCloseable`). Its `close()` method stops accepting new tasks, waits for submitted tasks to complete, and cancels them if the waiting thread is interrupted.
+
+[source,java]
+----
+try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+  for (var request : requests) {
+    executor.submit(() -> handle(request));
+  }
+} // Waits here until every task has completed.
+----
+
+An executor that lives as long as a service MUST be shut down when the service stops, in two phases: `shutdown()` to reject new tasks and let submitted ones finish, then, after a bounded wait, `shutdownNow()` to interrupt any that are still running. The `ExecutorService` Javadoc gives this procedure, which also restores the interrupted status if the waiting thread is itself interrupted (see <<exceptions,Exceptions>>).
+
+[source,java]
+----
+void stop() {
+  executor.shutdown();
+  try {
+    if (!executor.awaitTermination(30, TimeUnit.SECONDS)) {
+      executor.shutdownNow();
+      if (!executor.awaitTermination(30, TimeUnit.SECONDS)) {
+        log.warn("Executor did not terminate.");
+      }
+    }
+  } catch (InterruptedException e) {
+    executor.shutdownNow();
+    Thread.currentThread().interrupt();
+  }
+}
+----
+
+A task that runs for a long time SHOULD respond to interruption, by checking `Thread.currentThread().isInterrupted()` between units of work or by letting `InterruptedException` propagate from blocking calls. Otherwise `shutdownNow()` has no way to stop it.
+
+Scheduled work SHOULD use a `ScheduledExecutorService` rather than `java.util.Timer` (see <<legacy-apis,Legacy APIs>>).
 
 == Enums
 
@@ -306,6 +350,7 @@ myFoo.doSomething(); // Bad
 somethingThatReturnsFoo().doSomething(); // Very bad
 ----
 
+[#exceptions]
 == Exceptions
 
 It is very rarely correct to do nothing in response to a caught exception. Where a `catch` block does nothing, the reason MUST be documented in a comment within it.
