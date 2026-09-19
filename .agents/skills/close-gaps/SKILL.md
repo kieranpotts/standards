@@ -290,15 +290,16 @@ prompt the user for clarification.
 
     - Prose follows `docs/style-guide.md`, TS-26, and TS-28: American English,
       RFC 2119 keywords for normative statements, bold lead-ins terminated
-      with a period, explicit Arabic numbering, 80-character lines, language
-      on every code block, long-form admonition blocks, plain double quotes.
+      with a period, explicit Arabic numbering, one source line per
+      paragraph, list item, and table cell (no soft wraps), language on every
+      code block, long-form admonition blocks, plain double quotes. Where the
+      file being extended is still soft-wrapped, write the new prose unwrapped
+      anyway, and leave the existing wrapping for `unwrap-prose` to remove.
 
     - A cross-reference to another standard is
       `xref:NNN.adoc[*TS-N: Title*]`, with the bold tight around the link
       text inside the macro's brackets — never wrapped around the whole
-      macro, never a relative path, never a section fragment. The whole macro
-      MUST sit on one source line, even where that puts the line over 80
-      characters.
+      macro, never a relative path, never a section fragment.
 
     - A cross-reference to another section of the *same* standard is
       `<<Section title>>`, never an `xref:` to the standard's own page. Each
@@ -306,35 +307,42 @@ prompt the user for clarification.
       reader to the page they are already reading.
 
     - Where the gap cites a source, add that source to the standard's
-      reference list. This is what TS-6 and TS-2 did for every source that fed
-      new content, and it is why their reference lists read as a provenance
-      trail. The entry follows the author-date form in the style guide, and
-      its trailing annotation names the section the source fed, by
-      `<<Section title>>` xref:
+      reference list, so the list records every source that fed the
+      standard's content. Use the plain author-date form from TS-26's
+      "References sections in the technical standards". Each entry is one
+      `*` bullet over two lines, with the author and year, then the linked
+      title. Entries MUST NOT carry a trailing description or annotation,
+      such as a note naming the section the source fed. The linked title is
+      enough to identify the source. Omit the year where the source states
+      none, rather than guessing one.
 
       ```asciidoc
       * Allegro Tech (2024).
-        https://blog.allegro.tech/2024/04/ten-years-microservices.html[_Ten Years of Microservices at Allegro_].
-        — The source for the service-sizing guidance in
-        <<Microservices at scale>>.
+        {link-allegro-2024}[_Ten Years of Microservices at Allegro_].
       ```
 
-      The list lives in a `== References` section on the page, per the style
-      guide. Create it there if the standard has none — most standards do not.
+      The URL is never inlined in the entry. Declare it once as a
+      `:link-<slug>:` attribute in `partials/<NNN>/00-attributes.adoc`, which
+      holds all of the standard's link attributes in one block sorted by
+      slug. Keep the block's column alignment. Add the entry to the list in
+      alphabetical order by author, or by organization where there is no
+      individual author, and by title where two entries share an author.
 
-      Where the standard already keeps its references in a trailing partial,
-      add the entry to that list where it is; relocating it is a style-guide
-      divergence for `deep-dive`'s conventions tier to settle, not a side
-      effect of closing a gap. Report it.
+      The list lives in its own `partials/<NNN>/99-references.adoc` partial,
+      included last on the page, per the style guide. Create it, and its
+      `include::` line, if the standard has none. Where a standard's existing
+      list still uses an older form, such as bare inline links, add the new
+      entry in the plain form without converting the old entries. Converting
+      them is a job for `deep-dive`'s conventions tier, not a side effect of
+      closing a gap. Report it.
 
-      Judge that by what the list *is*, not by where it sits. A provenance
-      trail — sources that fed the standard's own claims, annotated with the
-      sections they fed — is a reference list, whatever the file is called.
-      A curated reading list of books, tools, and further material, such as
-      TS-54's `09-useful-links.adoc`, is not: it serves the reader rather
-      than recording where the content came from. Do not file a source there.
-      Create the page-level `== References` instead, and report the
-      near-miss.
+      Judge a list by what it *is*, not by where it sits. A list of the
+      sources that fed the standard's own claims is a reference list,
+      whatever the file is called. A curated reading list of books, tools,
+      and further material, such as TS-54's `09-useful-links.adoc`, is not.
+      It serves the reader rather than recording where the content came
+      from. Do not file a source there. Create `99-references.adoc` instead,
+      and report the near-miss.
 
     Then tick the item and append the resolution note as an indented paragraph
     inside the same bullet, leaving the original text untouched:
@@ -348,8 +356,8 @@ prompt the user for clarification.
           `stty echo` sequence, requires the terminal state be restored from
           an `EXIT` trap so an interrupted script does not leave echo off,
           and notes that the reference's `read -s` is a Bashism excluded by
-          this standard's POSIX scope. Source added to the page's
-          `== References`.
+          this standard's POSIX scope. Source added to
+          `99-references.adoc`.
     ```
 
     Two variants, for items that produced no content:
@@ -382,17 +390,23 @@ prompt the user for clarification.
 10. Update the `**Status:**` line, then verify mechanically before reporting.
     Each check below exists because its absence has produced a false report.
 
-    - Count characters, not bytes. `awk 'length>80'` counts bytes, and an em
-      dash is three bytes in UTF-8, so every em-dash line reads two columns
-      wider than it is. Use Python:
+    - Check that no prose you added to an `.adoc` file is soft-wrapped. Each
+      new paragraph, list item, and table cell MUST sit on one source line,
+      however long. A soft wrap inside a bold span, a link macro, or an
+      `xref:` can silently break its rendering.
+
+    - Check line length in `GAPS.md` only. It is Markdown, governed by TS-27,
+      and is wrapped. Count characters, not bytes: `awk 'length>80'` counts
+      bytes, and an em dash is three bytes in UTF-8, so every em-dash line
+      reads two columns wider than it is. Use Python:
 
       ```python
       for i, l in enumerate(open(fn).read().split('\n'), 1):
           if len(l) > 80: print(f'{fn}:{i} ({len(l)})')
       ```
 
-      A line over 80 characters is only acceptable where a link macro or a
-      table row cannot be broken.
+      A line over 80 characters is only acceptable where a URL cannot be
+      broken.
 
     - Resolve every `xref:`, `include::`, and `link:` target you introduced.
       An `xref:` to another standard's page is `NNN.adoc` — confirm that file

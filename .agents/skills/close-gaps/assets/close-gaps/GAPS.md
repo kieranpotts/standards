@@ -30,7 +30,7 @@ it is the first thing a resuming agent reads.
       names, the exception it carves out. Two or three clauses, enough that
       a reader who has not seen the diff knows what exists.] Cross-references
       TS-[N] ([Title]) for [the adjacent concern it hands off]. Source added
-      to the page's `== References`.
+      to `99-references.adoc`.
 
 - [x] [reference source] is not addressed anywhere in the standard.
       Recommend placing at [file]:[line].
@@ -57,8 +57,8 @@ it is the first thing a resuming agent reads.
 
       **Resolved.** Closed by a new "[Subsection title]" subsection in
       `[NN-file].adoc`, extending the existing [section] rather than adding
-      a section of its own. [What the subsection adds.] Source added to the
-      page's `== References`.
+      a section of its own. [What the subsection adds.] Source added to
+      `99-references.adoc`.
 
 - [ ] [reference source] covers this more thoroughly than [file]:[line] —
       specifically, [what the reference adds that the standard omits].
