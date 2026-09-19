@@ -10,6 +10,8 @@
 * Expressive code is more resilient to refactoring and requirements changes.
 * Prefer positive conditionals to negative ones.
 * Replace magic numbers and string literals with named constants.
+* Put a quantity's unit in its name, or better in its type. Leave the value's type and scope out of its name.
+* Return expressions directly, without redundant boolean branches, superfluous temporaries, or placeholder assignments.
 * Avoid "magic" – implicit behavior driven by convention, reflection, or framework machinery the reader cannot see.
 ****
 
@@ -70,6 +72,10 @@ omit every word that carries no information. Favoring clarity over brevity, as r
 names with words that add nothing – `userAccountData` says nothing that `userAccount` doesn't already say, if the value
 in question is not raw data but a fully-formed account object.
 
+Two kinds of word rarely carry information in a name: the value's type and its scope. A name such as `idToUserMap` or `valueString` repeats what the declaration already says, and becomes wrong as soon as the type changes, when the map is replaced by a cache or the string is parsed into a number. Name the value for its purpose instead, as in `usersById` or `value`. Prefixes and suffixes that encode scope, such as `_value`, `mValue`, or `gConfig`, and Hungarian-style type prefixes, such as `strName`, have the same problem and SHOULD NOT be used. The exception is a marker that an established language or ecosystem convention requires for a distinction the language cannot otherwise express, such as a leading underscore for a private member in a language without access modifiers. Follow that convention, but add no markers beyond it.
+
+Units are the opposite case. A unit is information a name SHOULD carry wherever the type cannot carry it. A variable called `timeout` holding `30` could be in seconds or milliseconds, and a caller who guesses wrong writes a bug that no type checker will catch. Where a quantity has a unit, put the unit in the name, as in `timeoutMs`, `pollIntervalSeconds`, or `fileSizeGb`. Better still, where the language or a library provides a type that carries the unit, such as a duration type in place of a bare integer, use it. The unit then travels with the value, and every conversion between units is explicit.
+
 Names form a catalog of things that are relevant to a computer program. Every abstraction adds an entry to the
 vocabulary of the codebase, and so the names are like words in a custom language that is unique to each program. Naming
 conventions should be consistent throughout a program, for this reason.
@@ -99,6 +105,21 @@ Prefer positive conditionals over negative ones. A condition written as `if (isA
 negatives – such as `if (!isNotAuthorized)` – should always be refactored into their affirmative equivalent. If no
 natural positive form of a predicate exists, that is often a sign that the underlying concept is not well named.
 
+Return a boolean expression directly, rather than branching on it only to return a literal `true` or `false`. The branch adds lines and a second place to read, and says nothing the expression does not already say. The same applies to a branch whose only job is to choose between two return values, which a conditional expression states in one line.
+
+[source,javascript]
+----
+// Redundant.
+if (session.expiresAt <= now) {
+  return true
+} else {
+  return false
+}
+
+// Direct.
+return session.expiresAt <= now
+----
+
 Wherever possible, use language features that express the domain problem directly rather than forcing readers to
 translate between low-level mechanics and high-level intent.
 
@@ -117,8 +138,25 @@ return (await fetchData()).filter(f).map(m).unshift(newElm)
 const data = await fetchData()
 const filtered = data.filter(f)
 const transformed = filtered.map(m)
-const result = [newElm, ...transformed]
-return result
+return [newElm, ...transformed]
+----
+
+Naming an intermediate step is worthwhile when the name says something the expression does not. A variable that is assigned and then immediately returned, under a name such as `result` or a name that repeats the function's own, says nothing. It SHOULD be removed, and the expression returned directly, as the final step of the chaining example does.
+
+For a similar reason, do not initialize a variable to a placeholder value, such as `null`, `0`, or an empty string, that every path through the code overwrites before the variable is read. The placeholder is never used, but a reader has to check every path to be sure of that. In a language that checks definite assignment, such as Java, C#, or TypeScript, declaring the variable without an initializer lets the compiler prove that every path assigns it. Where a branch chooses the value, prefer an expression that yields it directly, such as a conditional expression or a small function, so the variable can be declared constant.
+
+[source,typescript]
+----
+// A placeholder that is never used.
+let label: string = ''
+if (count === 1) {
+  label = 'item'
+} else {
+  label = 'items'
+}
+
+// Direct.
+const label = count === 1 ? 'item' : 'items'
 ----
 
 == Avoiding magic
