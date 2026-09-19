@@ -1,6 +1,41 @@
 [#logging]
 = Logging
 
-Personal Identifiable Information (PII) MUST NOT be sent to log output.
+Personally identifiable information (PII) MUST NOT be sent to log output. The same applies to any other private information, and to protected content, such as credentials, secrets, access tokens, session identifiers, payment details, and the content of users' documents and messages. Code that logs data passed to it from elsewhere, particularly framework and library code, cannot know in advance which of that data is private. Such code SHOULD log identifiers and metadata rather than payloads.
 
 Runtime errors MUST be logged, so that issues can be detected and investigated.
+
+[#log-levels]
+== Log levels
+
+Every log entry MUST be assigned a level that reflects the consequence of the event it records. This standard uses the five levels defined below, from most to least severe. Logging libraries name them differently, eg. `WARNING` for `WARN` or `VERBOSE` for `TRACE`, and some add a level above `ERROR`, such as `FATAL` or `CRITICAL`. Map a library's levels onto this scale.
+
+ERROR:: Something has failed with consequences that users will see, and the system cannot recover from it without intervention. A request could not be served, data could not be written, or a dependency has stayed unavailable beyond its retry budget. Always logged. An `ERROR` entry is a candidate for alerting or error reporting.
+
+WARN:: Something serious and unexpected has happened, with consequences that users may see, but the system has recovered, or can recover without data loss, by retrying, falling back, or restarting. Always logged.
+
+INFO:: Something noteworthy has happened that is likely to have a wide impact, though it is not an error, such as a service starting or stopping, a configuration change taking effect, or a failover. Always logged. Only the component that is authoritative for the event SHOULD log it at this level, so that one event is not recorded again by every component it passes through.
+
+DEBUG:: Detail that helps to investigate unexpected behavior. Log only what is needed to understand what a component is doing. `DEBUG` logging MAY be enabled in production, and it MUST be possible to disable it there without a code change.
+
+TRACE:: Everything else, including step-by-step detail of normal operation. Disabled in production by default.
+
+Conditions that are expected in normal operation are not errors, and SHOULD NOT be logged above `DEBUG`. Invalid input from an untrusted source, such as a malformed request or a corrupt file on shared storage, is expected. So is a transient loss of network connectivity that the system retries.
+
+Log each failure once. Within a component, the code that detects a failure and handles it SHOULD log it, and code that only passes the failure on SHOULD NOT. Do not log an error and then throw it, since whichever code catches it will log it again. Where an exception or error value already carries everything a log entry would record, logging it at the point it is raised adds nothing.
+
+[#rate-limiting]
+== Rate limiting
+
+A condition that can recur many times in quick succession, such as a failing dependency that is called on every request, can flood the log with copies of the same message. The flood costs storage and ingestion, buries the messages around it, and in a bounded buffer can push other messages out before anyone reads them.
+
+Log statements on paths where this can happen SHOULD be rate-limited. Log the first occurrence, suppress repeats for an interval, and then log a count of the occurrences that were suppressed, so that the log still records how often the condition arose. Many logging libraries and log shippers provide rate limiting. Prefer these to a hand-written limiter.
+
+[#cost-of-disabled-log-statements]
+== The cost of disabled log statements
+
+A log statement below the enabled level writes nothing, but it is not free. In most languages, a function's arguments are evaluated before it is called, so a message built by string concatenation or formatting is built in full and then discarded. Where the message is cheap to build, this does not matter. On a hot path, or where building the message serializes a large object, it does.
+
+Log statements SHOULD NOT do expensive work that is discarded when their level is disabled. Prefer a logging API that defers formatting, taking a message template and its arguments and formatting them only when the entry will be written. Where the message needs an expensive computation of its own, guard the statement with a check of the enabled level, or pass a function that the logging API calls only when the level is enabled. Any such guard MUST contain only the logging, never logic that the program depends on, because disabling the level removes it.
+
+Language standards set out the idioms for their language. For Java, see xref:033.adoc[*TS-33: Java*].
