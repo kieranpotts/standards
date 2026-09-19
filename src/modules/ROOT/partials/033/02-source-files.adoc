@@ -24,6 +24,27 @@ Each section MUST be separated by a single blank line. Consecutive top-level cla
 
 A Javadoc comment MUST be preceded by a single blank line, except where it is the first thing in the file, in which case it MAY start on line 1.
 
+[source,java]
+----
+/* Copyright 2026 Example Ltd. Licensed under the Apache License 2.0. */
+
+package com.example.orders;
+
+import static java.util.Objects.requireNonNull;
+
+import java.util.List;
+
+/// An order placed by a customer.
+public final class Order {
+  // …
+}
+
+/// A single line of an [Order]. Used only by [Order].
+final class OrderLine {
+  // …
+}
+----
+
 Every source file except `module-info.java` MUST have a `package` statement. Compact source files (JDK 25 or later), which omit the package statement and the enclosing class declaration so a small program can be written as bare methods, MUST NOT be used. They exist for single-file programs and teaching, and a class in the unnamed package cannot be imported by code in any other package. The `package` statement MUST NOT be line-wrapped, and MAY exceed the column limits.
 
 [#special-source-files]
@@ -32,6 +53,15 @@ Every source file except `module-info.java` MUST have a `package` statement. Com
 Two files carry special structures that fall outside the ordinary top-to-bottom layout above.
 
 A `package-info.java` file holds only a package-level Javadoc comment, package-level annotations, any import statements those annotations need, and the `package` statement itself. It MUST NOT contain a class-like construct.
+
+[source,java]
+----
+/// Order capture and fulfillment.
+@NullMarked
+package com.example.orders;
+
+import org.jspecify.annotations.NullMarked;
+----
 
 A `module-info.java` file declares a Java module. It contains the `module` declaration and its directives, and MUST NOT contain a `package` statement. The module directives MUST appear in this order: `requires`, `exports`, `opens`, `uses`, `provides`. Each directive kind forms its own block, separated from the next by a blank line. Where a `requires` directive has modifiers, they MUST appear in the order `transitive static`. The module's own name follows the rules for package names (see <<package-names,Package names>>).
 
@@ -99,20 +129,19 @@ Whitespace characters included in source code MUST be limited to the line termin
 System.out.println("She said \"Hello!\" to me.");
 ----
 
-Any other whitespace character SHOULD be encoded as a Unicode escape sequence (eg. ` `) rather than included literally.
+Any other whitespace character SHOULD be encoded as a Unicode escape sequence (eg. `\u2004`) rather than included literally.
 
 [source,java]
 ----
-System.out.println(" "); // three-per-em space
+System.out.println("\u2004"); // three-per-em space
 ----
 
 [WARNING]
 ====
-Unicode escape sequences are translated before the source code is parsed, so a Unicode escape for a line terminator — `
-` or `` — ends the line wherever it appears, including inside a string literal, and the code does not compile. Use `\n` and `\r` instead.
+Unicode escape sequences are translated before the source code is parsed, so a Unicode escape for a line terminator — `\u000a` or `\u000d` — ends the line wherever it appears, including inside a string literal, and the code does not compile. Use `\n` and `\r` instead.
 ====
 
-Non-whitespace (ie. printable) characters outside of the ASCII range SHOULD be written as the actual Unicode character (eg. `∞`, `μ`). Alternatively, Unicode escape sequences (eg. `∞`) MAY be used, where doing so improves the overall readability of the code.
+Non-whitespace (ie. printable) characters outside of the ASCII range SHOULD be written as the actual Unicode character (eg. `∞`, `μ`). Alternatively, Unicode escape sequences (eg. `\u221e`) MAY be used, where doing so improves the overall readability of the code.
 
 [source,java]
 ----
@@ -123,5 +152,5 @@ For every character that is encoded as an escape sequence, except those that are
 
 [source,java]
 ----
-return "﻿" + content; // byte order mark
+return "\ufeff" + content; // byte order mark
 ----

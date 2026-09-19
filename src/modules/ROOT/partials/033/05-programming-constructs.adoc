@@ -12,6 +12,18 @@ Imports SHOULD be grouped into the following categories, in this order.
 
 There SHOULD be exactly one blank line between the two groups to separate them. Within each group, imports SHOULD be sorted in ASCII order of the imported names. This is not quite the same as sorting the import lines, because `.` sorts before `;`: `com.example.Foo` sorts before `com.example.Foo.Bar` by name, but `import com.example.Foo.Bar;` sorts before `import com.example.Foo;` as a line. There SHOULD NOT be any other blank lines between import statements.
 
+[source,java]
+----
+import static java.util.Objects.requireNonNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import com.example.orders.Order;
+import com.example.orders.OrderLine;
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+----
+
 Static imports SHOULD NOT be used for static nested classes. They SHOULD be imported with normal imports.
 
 Import statements MAY exceed the column limits, and MUST NOT be line-wrapped (see <<line-wrapping,Line-wrapping>>).
@@ -26,6 +38,25 @@ Local variables SHOULD NOT be habitually declared at the beginning of their cont
 Local variable declarations SHOULD typically have initializers, or SHOULD be initialized immediately after the declaration.
 
 Inner assignment — assigning a variable as a side effect inside a larger expression, eg. `String s = Integer.toString(i = 2);` — SHOULD be avoided. An assignment SHOULD occur as its own top-level statement, so a reader scanning an expression for its value is not also scanning it for side effects. The one common exception is the header of a `for` loop, where an assignment as part of the loop's initialization or update clause is idiomatic.
+
+[source,java]
+----
+/* ✗ Declared together, far from use, and assigned inside an expression. */
+int count, total;
+// …
+if ((count = queue.drainTo(batch)) > 0) {
+  total = sum(batch);
+  // …
+}
+
+/* ✓ One variable per declaration, declared where first used. */
+// …
+int count = queue.drainTo(batch);
+if (count > 0) {
+  int total = sum(batch);
+  // …
+}
+----
 
 A local variable or parameter SHOULD NOT hide a field, or any other declaration at a higher level, by reusing its name. The compiler already rejects a local that hides another local in an enclosing block, but it accepts a local that hides a field, and every use of the name inside that scope then silently refers to the local. A reader who knows the field is easily misled, and a later edit that deletes the local declaration changes the code's meaning without a compile error.
 
@@ -60,6 +91,20 @@ The following rules keep `var` on the right side of that trade.
 
 [source,java]
 ----
+/* ✗ The type is not evident from the initializer, and the name adds nothing. */
+var result = service.fetch(request);
+
+/* ✓ The type is stated explicitly. */
+CustomerPage result = service.fetch(request);
+
+/* ✓ The name carries what the type no longer shows. */
+var customers = service.fetch(request);
+----
+
+In each of the following, the initializer makes the type obvious, or the `var` names an intermediate step.
+
+[source,java]
+----
 var outputStream = new ByteArrayOutputStream();
 var reader = Files.newBufferedReader(path);
 
@@ -90,7 +135,17 @@ var base = 17;       // ✗ int, not long
 var total = 0L;      // ✓ long
 ----
 
-The same care applies to floating-point values. A variable declared `double` but initialized from a `float` constant is widened to `double`, but the same declaration rewritten with `var` infers `float`, silently narrowing its precision. Other literals carry their type with them unambiguously, and MAY be used with `var` freely: `true`, `'a'`, `"text"`, `1.0f`, and `2.0`.
+The same care applies to floating-point values. A variable declared `double` but initialized from a `float` constant is widened to `double`, but the same declaration rewritten with `var` infers `float`, silently narrowing its precision.
+
+[source,java]
+----
+static final float RATE = 0.1f;
+
+double interest = RATE;  // ✓ double
+var interest = RATE;     // ✗ float
+----
+
+Other literals carry their type with them unambiguously, and MAY be used with `var` freely: `true`, `'a'`, `"text"`, `1.0f`, and `2.0`.
 
 `var` applies only to local variables. The types of fields, method parameters, and return types are always written explicitly, and the guidance on choosing them is in <<generics-and-collections,Generics and collections>>.
 
@@ -113,7 +168,39 @@ Every constructor in a `public` or `protected` class SHOULD be explicit. An impl
 
 A utility class — one containing only `static` methods and constants — SHOULD NOT have a `public` constructor. Instead, explicitly declare its constructor `private` (or `protected` if the class is intended to be subclassed).
 
+[source,java]
+----
+public final class Checksums {
+  private Checksums() {}
+
+  public static long crc32(byte[] data) {
+    // …
+  }
+}
+----
+
 A class that overrides `equals()` MUST also override `hashCode()`. The `equals()`/`hashCode()` contract requires that two objects considered equal by `equals()` produce the same hash code; violating this breaks the class's behavior in any hash-based collection (`HashMap`, `HashSet`, and similar), where an object may become unfindable even by a key that `equals()` says is identical to the one it was stored under.
+
+[source,java]
+----
+public final class Sku {
+  private final String code;
+
+  // …
+
+  @Override
+  public boolean equals(Object other) {
+    return (other instanceof Sku that) && code.equals(that.code);
+  }
+
+  @Override
+  public int hashCode() {
+    return code.hashCode();
+  }
+}
+----
+
+A record generates `equals()` and `hashCode()` together from its components, and is the simpler choice for a class whose equality is defined entirely by its fields.
 
 `Object.finalize` MUST NOT be overridden. Finalization is unreliable, and the finalization mechanism has been deprecated for removal from the Java platform since JDK 18. A class that holds a resource releases it through an explicit `close()` method instead (see <<resource-management,Resource management>>).
 
@@ -122,19 +209,35 @@ A class that overrides `equals()` MUST also override `hashCode()`. The `equals()
 
 A class that holds a resource which must be released — a file handle, a socket, a database connection, a lock, a native buffer — SHOULD implement `AutoCloseable` (or its I/O subtype `Closeable`), and release the resource in `close()`. The class's Javadoc SHOULD say that instances must be closed, and by whom: the code that created the instance, or the code it was handed to.
 
+[source,java]
+----
+/// A connection to the audit log. The code that opens a connection
+/// must close it.
+public final class AuditLogConnection implements AutoCloseable {
+  private final Socket socket;
+
+  // …
+
+  @Override
+  public void close() throws IOException {
+    socket.close();
+  }
+}
+----
+
 Code that uses an `AutoCloseable` MUST close it deterministically, and SHOULD do so with a try-with-resources statement (JDK 7 or later) rather than an explicit `finally` block. The statement closes every resource it declares when the block exits, whether normally or by an exception, closes them in the reverse order of their initialization, and skips any resource that was never initialized to a non-null value. An exception thrown by `close()` while another exception is already propagating is attached to that exception with `addSuppressed`, rather than replacing it, so the original failure is not lost. A hand-written `finally` block gets all of this wrong by default.
 
 Where one resource wraps another, each layer SHOULD be declared as a separate resource. A single nested expression, eg. `new BufferedReader(new InputStreamReader(socket.getInputStream()))`, leaves the inner stream open if a later constructor throws, because only the outermost object is a declared resource.
 
 [source,java]
 ----
-// ✗ If the InputStreamReader constructor throws, the stream is never closed.
+/* ✗ If the InputStreamReader constructor throws, the stream is never closed. */
 try (var reader = new BufferedReader(
     new InputStreamReader(socket.getInputStream(), charset))) {
   return reader.readLine();
 }
 
-// ✓ Each layer is closed, innermost last.
+/* ✓ Each layer is closed, innermost last. */
 try (var inputStream = socket.getInputStream();
     var streamReader = new InputStreamReader(inputStream, charset);
     var reader = new BufferedReader(streamReader)) {
@@ -143,6 +246,16 @@ try (var inputStream = socket.getInputStream();
 ----
 
 An existing resource held in a `final` or effectively final variable MAY be named directly in the resource specification (JDK 9 or later), eg. `try (connection) { … }`, rather than being redeclared.
+
+[source,java]
+----
+final var connection = AuditLogConnection.open(host);
+connection.authenticate(credentials);
+
+try (connection) {
+  connection.write(entry);
+}
+----
 
 Where the paired operation is not an `AutoCloseable` — releasing a `Lock`, restoring a changed setting, unregistering a listener — the release MUST be in a `finally` block that immediately follows the acquisition, so it runs however the `try` block exits. This applies whether or not the code in between throws checked exceptions, since any statement can throw an unchecked one.
 
@@ -198,6 +311,18 @@ void stop() {
 
 A task that runs for a long time SHOULD respond to interruption, by checking `Thread.currentThread().isInterrupted()` between units of work or by letting `InterruptedException` propagate from blocking calls. Otherwise `shutdownNow()` has no way to stop it.
 
+[source,java]
+----
+void reindexAll(List<Document> documents) {
+  for (var document : documents) {
+    if (Thread.currentThread().isInterrupted()) {
+      return;
+    }
+    reindex(document);
+  }
+}
+----
+
 Scheduled work SHOULD use a `ScheduledExecutorService` rather than `java.util.Timer` (see <<legacy-apis,Legacy APIs>>).
 
 == Enums
@@ -234,6 +359,17 @@ Class and member modifiers, when present, SHOULD appear in the following order, 
 ----
 public protected private abstract default static final
 sealed non-sealed transient volatile synchronized native strictfp
+----
+
+[source,java]
+----
+/* ✗ Modifiers out of order. */
+final static private Logger log = LoggerFactory.getLogger(Foo.class);
+synchronized public static void reset() { … }
+
+/* ✓ Modifiers in the recommended order. */
+private static final Logger log = LoggerFactory.getLogger(Foo.class);
+public static synchronized void reset() { … }
 ----
 
 For classes, the `public` access modifier MUST be added only if the class is intended to be used outside of its package.
@@ -333,7 +469,7 @@ Where a suppression is necessary, it MUST be scoped as narrowly as possible: on 
 
 [source,java]
 ----
-// The map only ever holds values of the key's type parameter, enforced by put().
+/* The map only holds values of the key's type parameter, as put() ensures. */
 @SuppressWarnings("unchecked")
 T value = (T) values.get(key);
 ----
@@ -346,9 +482,9 @@ References to static class members MUST be qualified with the name of the class,
 ----
 Foo myFoo = new Foo();
 
-Foo.doSomething(); // Good
-myFoo.doSomething(); // Bad
-somethingThatReturnsFoo().doSomething(); // Very bad
+Foo.doSomething();                       // ✓
+myFoo.doSomething();                     // ✗
+somethingThatReturnsFoo().doSomething(); // ✗ Also evaluates the call.
 ----
 
 [#exceptions]
@@ -391,7 +527,27 @@ void setServerPort(String value) throws ConfigurationException {
 
 Where an API declares a checked exception that the arguments rule out — eg. `new String(bytes, "UTF-8")` declares `UnsupportedEncodingException`, although every Java platform is required to support UTF-8 — the `catch` block SHOULD throw an `AssertionError` with the caught exception as its cause. If the "impossible" case ever happens, it fails loudly instead of being absorbed.
 
+[source,java]
+----
+try {
+  digest = MessageDigest.getInstance("SHA-256");
+} catch (NoSuchAlgorithmException e) {
+  /* Every Java platform is required to support SHA-256. */
+  throw new AssertionError(e);
+}
+----
+
 A method SHOULD declare the narrowest exception types it throws, and MUST NOT declare `throws Exception`, which forces every caller either to catch everything or to declare `throws Exception` in turn. Equally, a public method SHOULD NOT expose the exception types of its implementation, such as a `SQLException` thrown from a repository whose callers are not meant to know it is backed by SQL. Wrap such exceptions in a type that belongs to the method's own API, as in the second alternative above.
+
+[source,java]
+----
+/* ✗ Too broad, and leaks the storage technology. */
+Customer findCustomer(CustomerId id) throws Exception;
+Customer findCustomer(CustomerId id) throws SQLException;
+
+/* ✓ A narrow exception type that belongs to the method's API. */
+Customer findCustomer(CustomerId id) throws CustomerNotFoundException;
+----
 
 A caught `InterruptedException` MUST NOT be swallowed. Catching it clears the thread's interrupted status, so code further up the stack that checks the status — a thread pool shutting down, for example — no longer sees that the thread was asked to stop. Either let the exception propagate, or restore the status before continuing.
 
@@ -432,6 +588,18 @@ Where the specific exceptions need different handling, split the code into small
 
 The one permitted case for a broad catch is top-level code whose job is to stop any failure escaping — a thread's `run()` loop that must keep a batch job alive, a request dispatcher that must turn every failure into an error response, or a test harness — MAY catch `Exception` or `Throwable`. The `catch` block MUST carry a comment saying why the broad catch is intended, and MUST record the failure rather than discard it.
 
+[source,java]
+----
+for (var job : jobs) {
+  try {
+    job.run();
+  } catch (Exception e) {
+    /* One failed job must not stop the rest of the batch. */
+    log.error("Job {} failed.", job.id(), e);
+  }
+}
+----
+
 [#preconditions-and-assertions]
 == Preconditions and assertions
 
@@ -456,6 +624,17 @@ A project that already depends on Guava MAY use its `Preconditions` class (`chec
 
 The `assert` statement SHOULD NOT be used. Assertions are disabled by default, and enabled only when the JVM is started with `-ea`, so an invariant checked with `assert` is typically not checked at all in production, which is where the check matters. An argument check MUST NOT use `assert`. An internal invariant that is worth checking is worth checking always, with an explicit test that throws `IllegalStateException` or `AssertionError`.
 
+[source,java]
+----
+/* ✗ Not checked unless the JVM runs with -ea. */
+assert balance >= 0 : "Negative balance";
+
+/* ✓ Always checked. */
+if (balance < 0) {
+  throw new IllegalStateException("Negative balance: " + balance);
+}
+----
+
 [#switch-statements]
 == Switch statements
 
@@ -479,6 +658,21 @@ switch (input) {
 ----
 
 Each switch statement MUST include a `default` statement group, even if it has no code. Only a switch statement over an `enum` or `sealed` type MAY omit the `default` statement group, and only if it includes explicit cases that cover all possible values of the type. This enables static analysis tools to issue warnings if cases are missed.
+
+.A switch over every constant of an enum, which may omit `default`
+[source,java]
+----
+switch (suit) {
+  case CLUBS:
+  case SPADES:
+    drawBlack(card);
+    break;
+  case HEARTS:
+  case DIAMONDS:
+    drawRed(card);
+    break;
+}
+----
 
 == Arrow-style switch
 

@@ -12,6 +12,21 @@ Special prefixes or suffixes SHOULD NOT, generally, be used on identifiers. For 
 
 A single underscore (`_`) MAY be used as an unnamed variable or parameter wherever Java's unnamed-variable syntax applies (JDK 22 or later), eg. for a local variable, pattern-match binding, or lambda parameter whose value is never read. It signals to the reader that the value is deliberately unused.
 
+[source,java]
+----
+try {
+  port = Integer.parseInt(value);
+} catch (NumberFormatException _) {
+  port = DEFAULT_PORT;
+}
+
+stockLevels.forEach((_, quantity) -> checkNotNegative(quantity));
+
+if (shape instanceof Circle(Point center, _)) {
+  // …
+}
+----
+
 [#naming-styles]
 == Naming styles
 
@@ -132,6 +147,17 @@ Interfaces SHOULD follow the same naming conventions as classes, and MAY be noun
 
 Interfaces SHOULD NOT mirror exactly the names of the classes that implement them. This is a code smell, since it suggests the interface is too tightly coupled to a single implementation. But if there really is no better name for an interface, the interface name MAY take the class name plus the suffix "Contract".
 
+[source,java]
+----
+/* ✗ The interface only restates its one implementation. */
+interface SmtpMailer { … }
+class SmtpMailerImpl implements SmtpMailer { … }
+
+/* ✓ The interface names the capability, the class names the mechanism. */
+interface Mailer { … }
+class SmtpMailer implements Mailer { … }
+----
+
 Interfaces SHOULD NOT be prefixed with "I" or suffixed with "Interface". These conventions are common in other languages, such as C#, but are not widely used in Java.
 
 Records MUST also be named using UpperCamelCase. A record's name SHOULD be a singular noun or noun phrase describing the data the record holds, eg. `Point`, `OrderLine`.
@@ -143,7 +169,7 @@ Enums MUST also be named using UpperCamelCase, and SHOULD be named in the singul
 enum Protocol { HTTP, HTTPS, FTP }
 ----
 
-Test classes MUST have a name that ends with `Test`. If the test covers a single class, the test class name SHOULD be the name of the class being tested, with `Test` appended.
+Test classes MUST have a name that ends with `Test`. If the test covers a single class, the test class name SHOULD be the name of the class being tested, with `Test` appended, eg. `OrderValidatorTest` for `OrderValidator`.
 
 == Method names
 
@@ -152,6 +178,19 @@ Methods MUST be named using lowerCamelCase (see <<naming-styles,Naming styles>>)
 Method names SHOULD, typically, be verbs or verb phrases, eg. `sendMessage`, `stop`, `computeTotal`.
 
 Underscores MAY be used in JUnit test methods to separate logical components of the name, with each component written lowerCamelCase, eg. `transferMoney_deductsFromSource`.
+
+[source,java]
+----
+@Test
+void transferMoney_deductsFromSource() {
+  // …
+}
+
+@Test
+void transferMoney_insufficientFunds_throwsException() {
+  // …
+}
+----
 
 == Field, variable, and parameter names
 
@@ -163,11 +202,11 @@ One-character names SHOULD be avoided for fields, variables, and parameters alik
 
 [source,java]
 ----
-// ✗
+/* ✗ Single letters say nothing about the values. */
 private final int a;
 private final String m;
 
-// ✓
+/* ✓ Each name says what the value is. */
 private final int ageInYears;
 private final String maidenName;
 ----
@@ -223,6 +262,17 @@ Type variables SHOULD be named in one of two ways.
 * A single capital letter, optionally followed by a single numeral, eg. `T`, `E`, `X`, `T2`, `T3`.
 
 * A name in the form used for classes (see <<class-and-interface-names,Class, interface, record, and enum names>>), followed by the capital letter `T`, eg. `RequestT`, `FooBarT`.
+
+[source,java]
+----
+public interface Converter<S, T> {
+  T convert(S source);
+}
+
+public class RpcClient<RequestT, ResponseT> {
+  // …
+}
+----
 
 == Annotation names
 

@@ -73,10 +73,35 @@ Several JDK classes are not deprecated, but have been superseded by replacements
 | The legacy date classes are mutable, and `SimpleDateFormat` is not thread-safe. Date and time handling in general is covered by xref:047.adoc[*TS-47: Dates and Times*].
 |===
 
+[source,java]
+----
+/* ✗ Legacy classes. */
+Stack<Node> pending = new Stack<>();
+Date due = new Date(System.currentTimeMillis() + 86_400_000L);
+
+/* ✓ Their modern replacements. */
+Deque<Node> pending = new ArrayDeque<>();
+Instant due = Instant.now().plus(Duration.ofDays(1));
+----
+
 [#console-output]
 == Console output
 
 Production code MUST NOT write diagnostic output to `System.out` or `System.err`, whether directly, eg. with `System.out.println()`, or indirectly, eg. with `Throwable.printStackTrace()`. Output written this way bypasses the logging framework. It carries no level, timestamp, or logger name, it cannot be filtered, routed, or rate-limited, and in some runtime environments it is discarded altogether. Use the project's logging API instead. Logging practice in general is covered by xref:057.adoc[*TS-57: Logging, Monitoring, Observability*].
+
+[source,java]
+----
+/* ✗ Bypasses the logging framework. */
+} catch (IOException e) {
+  System.err.println("Could not load config: " + e.getMessage());
+  e.printStackTrace();
+}
+
+/* ✓ Logged, with the exception as the last argument. */
+} catch (IOException e) {
+  logger.error("Could not load config from {}.", path, e);
+}
+----
 
 A command-line program whose purpose is to write to standard output or standard error is the exception, for that output only.
 
@@ -89,10 +114,10 @@ Pass a message template and its arguments, rather than a pre-built string, where
 
 [source,java]
 ----
-// Builds the string even when DEBUG is disabled.
+/* Builds the string even when DEBUG is disabled. */
 logger.debug("Loaded " + items.size() + " items for " + user);
 
-// Formats the message only when DEBUG is enabled.
+/* Formats the message only when DEBUG is enabled. */
 logger.debug("Loaded {} items for {}", items.size(), user);
 ----
 
@@ -100,13 +125,22 @@ Where computing an argument is itself expensive, pass a `Supplier` that the logg
 
 [source,java]
 ----
-// java.util.logging. The lambda runs only when FINE is enabled.
+/* java.util.logging. The lambda runs only when FINE is enabled. */
 logger.fine(() -> "Cache state: " + cache.describe());
 
-// SLF4J 2. The supplier runs only when DEBUG is enabled.
+/* SLF4J 2. The supplier runs only when DEBUG is enabled. */
 logger.atDebug()
     .addArgument(() -> cache.describe())
     .log("Cache state: {}");
 ----
 
 Where neither form fits, for example where several statements share one expensive computation, guard them with a level check, such as `logger.isDebugEnabled()` in SLF4J or `logger.isLoggable(Level.FINE)` in `java.util.logging`. The guarded block MUST contain only logging, never logic that the program depends on, because disabling the level removes it.
+
+[source,java]
+----
+if (logger.isDebugEnabled()) {
+  var snapshot = cache.snapshot();
+  logger.debug("Cache entries: {}", snapshot.size());
+  logger.debug("Cache hit rate: {}", snapshot.hitRate());
+}
+----

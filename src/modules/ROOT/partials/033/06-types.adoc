@@ -25,6 +25,22 @@ The opening `"""` MUST begin a new line. That line follows the same indentation 
 
 The closing `"""` MUST be on a new line with the same indentation as the opening `"""`, and MAY be followed on that line by further code, eg. `""".formatted(name);`. Each line of text within the block MUST be indented at least as much as the two delimiters. The compiler strips the indentation of the least-indented line from every line, so a line indented further than the delimiters keeps the extra spaces at the start of that line in the string's value.
 
+[source,java]
+----
+String query =
+    """
+    SELECT id, name
+      FROM customer
+     WHERE region = ?
+    """;
+
+String greeting =
+    """
+    Dear %s,
+    Your order has shipped.
+    """.formatted(name);
+----
+
 Unlike an ordinary string literal, a text block's contents MAY exceed the column limits, since reflowing the text would change the string's value.
 
 == Arrays
@@ -51,10 +67,10 @@ Authors SHOULD NOT write C-style array declarations. The square brackets SHOULD 
 
 [source,java]
 ----
-// ✓
+/* ✓ The brackets are part of the type. */
 String[] args
 
-// ✗
+/* ✗ C-style, with the brackets on the variable. */
 String args[]
 ----
 
@@ -65,10 +81,10 @@ A field, method parameter, or return type SHOULD be declared with the most gener
 
 [source,java]
 ----
-// ✗ Every implementation must return an ArrayList.
+/* ✗ Every implementation must return an ArrayList. */
 ArrayList<User> getUsers();
 
-// ✓ Implementations are free to return any list, or a lazy view.
+/* ✓ Implementations are free to return any list, or a lazy view. */
 List<User> getUsers();
 ----
 
@@ -92,12 +108,12 @@ A method MUST NOT return a mutable collection that is part of its object's inter
 public final class Team {
   private final List<Member> members = new ArrayList<>();
 
-  // ✗ Callers can add or remove members directly.
+  /* ✗ Callers can add or remove members directly. */
   public List<Member> getMembers() {
     return members;
   }
 
-  // ✓ An unmodifiable snapshot.
+  /* ✓ An unmodifiable snapshot. */
   public List<Member> getMembers() {
     return List.copyOf(members);
   }
@@ -105,6 +121,13 @@ public final class Team {
 ----
 
 `List.copyOf`, `Set.copyOf`, and `Map.copyOf` (JDK 10 or later) return an unmodifiable copy, and reject `null` elements. `Collections.unmodifiableList` and its siblings return an unmodifiable _view_, which reflects later changes to the underlying collection. The same care applies in reverse: a constructor or setter that stores a collection passed to it SHOULD store a copy, so the caller cannot mutate the object's state through the reference it kept.
+
+[source,java]
+----
+public Team(List<Member> members) {
+  this.members = List.copyOf(members);
+}
+----
 
 The general case for immutability, beyond collections, is made in xref:007.adoc[*TS-7: Code Design*].
 
@@ -126,6 +149,16 @@ System.out.println(a == b);      // false
 `float` and `double` SHOULD NOT be used for values that require exact decimal precision, such as currency amounts. Binary floating-point cannot represent most decimal fractions exactly, so arithmetic on `float`/`double` values accumulates small rounding errors that compound over repeated calculations.
 
 Instead, use `BigDecimal` for monetary and other precision-sensitive decimal values.
+
+[source,java]
+----
+System.out.println(0.1 + 0.2);  // 0.30000000000000004
+
+var total = new BigDecimal("0.1").add(new BigDecimal("0.2"));
+System.out.println(total);      // 0.3
+----
+
+A `BigDecimal` SHOULD be created from a `String` or with `BigDecimal.valueOf`, not with the `BigDecimal(double)` constructor. The constructor takes the `double` exactly as stored, so `new BigDecimal(0.1)` is `0.1000000000000000055511151231257827021181583404541015625`, and the rounding error the class was chosen to avoid is already in the value.
 
 == Nullability
 
@@ -170,9 +203,32 @@ final var baz = getFoo()
 
 A method whose return type is not `Optional<X>` MUST NOT return `null`, except in the narrow cases, described at the end of this section, where its return type is annotated `@Nullable`. Where a meaningful value genuinely cannot be produced, throw an exception instead of returning `null` from a non-`Optional` return type. Outside those cases, the possibility of an absent return value MUST be communicated using type `Optional<X>`.
 
+[source,java]
+----
+/* ✗ Nothing in the signature warns the caller to check for null. */
+Customer findByEmail(String email) {
+  return customersByEmail.get(email);
+}
+
+/* ✓ The return type tells the caller the result may be absent. */
+Optional<Customer> findByEmail(String email) {
+  return Optional.ofNullable(customersByEmail.get(email));
+}
+----
+
 `Optional` does not eliminate `NullPointerException` instances entirely. Java gives no guarantee that an `Optional` reference itself is not `null`.
 
 `Optional` SHOULD NOT be used for method input parameters. It exists to communicate an absent return value, not to express an optional argument.
+
+[source,java]
+----
+/* ✗ Callers must wrap every argument, and can still pass null. */
+List<Order> findOrders(CustomerId id, Optional<Status> status);
+
+/* ✓ An overload for each form of the call. */
+List<Order> findOrders(CustomerId id);
+List<Order> findOrders(CustomerId id, Status status);
+----
 
 A number of annotation libraries exist to make nullability explicit in code that does not use `Optional`, each providing its own `@NonNull`/`@Nullable` (or similarly named) annotations.
 

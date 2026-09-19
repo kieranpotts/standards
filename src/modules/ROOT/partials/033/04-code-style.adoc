@@ -12,6 +12,16 @@ Comments and Javadoc comments MUST be indented to the same level as the code to 
 
 There MUST be no more than one statement per line.
 
+[source,java]
+----
+/* ✗ Two statements on one line. */
+count++; total += price;
+
+/* ✓ One statement per line. */
+count++;
+total += price;
+----
+
 == Line length (column limits)
 
 Lines SHOULD be no longer than 80 characters, including the whitespace used for indentation, and SHOULD NOT exceed 120 characters. A line longer than 120 characters SHOULD be line-wrapped (see <<line-wrapping,Line-wrapping>>).
@@ -43,6 +53,24 @@ Commas SHOULD stay attached to the token that precedes them. A method, construct
 
 [source,java]
 ----
+/* ✓ Break before a binary operator, so the operator leads the line. */
+boolean eligible = customer.isActive()
+    && customer.getAge() >= MINIMUM_AGE
+    && !customer.isBlocked();
+
+/* ✓ Break after the assignment operator. */
+Map<CustomerId, List<Order>> ordersByCustomer =
+    orderRepository.findAllGroupedByCustomer();
+
+/* ✗ Break after the binary operator, which hides it at the end of the line. */
+boolean eligible = customer.isActive() &&
+    customer.getAge() >= MINIMUM_AGE;
+----
+
+Lambda expressions are wrapped in the same way. The break goes after the assignment operator, or after the arrow where a single unbraced expression follows it.
+
+[source,java]
+----
 MyLambda<String, Long, Object> lambda =
     (String label, Long value, Object obj) -> {
       // …
@@ -58,11 +86,11 @@ Where a chain of method calls is wrapped, each call SHOULD start its own line, b
 
 [source,java]
 ----
-// ✗ Breaks follow the line length, not the calls.
+/* ✗ Breaks follow the line length, not the calls. */
 Iterable<Module> modules = ImmutableList.<Module>builder().add(new LifecycleModule())
     .add(new AppLauncherModule()).addAll(application.getModules()).build();
 
-// ✓ One call per line.
+/* ✓ One call per line. */
 Iterable<Module> modules = ImmutableList.<Module>builder()
     .add(new LifecycleModule())
     .add(new AppLauncherModule())
@@ -207,6 +235,18 @@ return new MyClass() {
 
 Braces MUST be used with `if`, `else`, `for`, `do`, and `while` statements, even when the body of the statement is empty or contains only a single statement.
 
+[source,java]
+----
+/* ✗ A second statement added later looks guarded, but is not. */
+if (cache.isStale())
+  cache.refresh();
+
+/* ✓ Braces, even around a single statement. */
+if (cache.isStale()) {
+  cache.refresh();
+}
+----
+
 For empty block-like constructs, the block SHOULD be written as `{}` on the same line as the statement that opens the block.
 
 [source,java]
@@ -244,6 +284,26 @@ The one exception is fields. Logical groupings of fields MAY be created by omitt
 Single blank lines MAY be added wherever doing so improves the readability of the code (eg. using vertical whitespace to separate logical sections of a method) or makes the code's structure clearer (eg. organizing fields into logical groupings).
 
 A blank line before the first member of a class, or after its last member, is neither required nor forbidden.
+
+[source,java]
+----
+public final class Connection {
+  private final String host;
+  private final int port;
+
+  private Duration timeout = DEFAULT_TIMEOUT;
+  private int retries = DEFAULT_RETRIES;
+
+  public Connection(String host, int port) {
+    this.host = host;
+    this.port = port;
+  }
+
+  public void open() {
+    // …
+  }
+}
+----
 
 Multiple consecutive blank lines SHOULD NOT be included in any Java code.
 
@@ -289,6 +349,19 @@ It follows that no space appears in the following places.
 
 * Between a unary operator and its operand: `-x`, `!done`, `i++`, `--count`.
 
+[source,java]
+----
+/* ✗ Spaces missing where required, and added where not. */
+for(int i=0;i<count;i ++){
+  total+=( int )values [i];
+}
+
+/* ✓ Spaces only where the rules call for them. */
+for (int i = 0; i < count; i++) {
+  total += (int) values[i];
+}
+----
+
 A space MAY be included inside the curly braces of an array initializer. Both `new int[] {1, 2, 3}` and `new int[] { 1, 2, 3 }` are valid.
 
 Authors MAY include additional spaces before end-of-line comments to achieve vertical alignment.
@@ -306,5 +379,18 @@ There MUST NOT be any superfluous whitespace at the end of lines. It is strongly
 == Grouping parentheses
 
 Optional grouping parentheses SHOULD be kept unless the expression cannot reasonably be misread without them. Don't assume readers have Java's operator precedence memorized.
+
+[source,java]
+----
+/* ✗ Correct, but only for a reader who knows && binds tighter than ||. */
+if (isAdmin || isOwner && !isLocked) {
+  // …
+}
+
+/* ✓ The parentheses make the grouping explicit. */
+if (isAdmin || (isOwner && !isLocked)) {
+  // …
+}
+----
 
 The value of a `return` statement is not an expression that needs grouping, so it SHOULD NOT be wrapped in parentheses, eg. `return size;`, not `return (size);`. Parentheses MAY be kept around part of the value where they make it easier to read, such as the condition of a conditional expression: `return (size > 0) ? size : defaultSize;`.

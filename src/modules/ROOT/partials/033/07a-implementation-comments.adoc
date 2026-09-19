@@ -17,9 +17,46 @@ The single-line implementation comment syntax MUST be used in only two cases.
 
 Java's multi-line implementation comment syntax, `+/* … */+`, SHOULD be used for both single-line and multi-line implementation comments. For short comments that fit within the 80-character line length, the opening `+/*+` and closing `+*/+` SHOULD be written on the same line as the comment. But as soon as the comment text needs to be wrapped to two or more lines, the opening `+/*+` and the closing `+*/+` SHOULD be moved to their own lines, with the text lines sandwiched between them.
 
+[source,java]
+----
+/* No timeout, since the upstream batch export can take several minutes. */
+response = client.send(request);
+
+/*
+The upstream API returns 200 with an error body for rate-limited requests,
+so the status code alone cannot tell success from failure. Check the body's
+"error" field before treating the response as a success.
+*/
+
+if (response.body().has("error")) {
+  // …
+}
+----
+
+[source,java]
+----
+/* ✗ A block-level comment written with //. */
+// No timeout, since the upstream batch export can take several minutes.
+
+/* ✗ Wrapped text with the delimiters on the text lines. */
+/* The upstream API returns 200 with an error body for rate-limited
+   requests, so the status code alone cannot tell success from failure. */
+----
+
 Where the multi-line comment syntax `+/* … */+` is used to enclose a single-line comment, there MUST be exactly one space after the opening `+/*+` and another before the closing `+*/+`. The single-line comment syntax `+//+` MUST also be followed by exactly one space, and then the code or comment.
 
 Block-level comments MUST be indented to the same level as the code to which they relate. Comments MUST NOT be enclosed in boxes drawn with asterisks or other characters.
+
+[source,java]
+----
+/* ✗ A box drawn with asterisks. */
+/*************************************************
+ * Rebuild the search index from scratch.        *
+ *************************************************/
+
+/* ✓ The comment alone. */
+/* Rebuild the search index from scratch. */
+----
 
 Multi-line block-level comments SHOULD have a blank line both before and after the comment block. Single-line block-level comments SHOULD have a blank line before them, and MAY have a blank line after.
 
@@ -54,3 +91,18 @@ System.out.println(7 % 2); // 1
 ----
 
 Implementation comments SHOULD communicate only information that is not readily available from the code itself, but which is relevant to the understanding of that code. For example, implementation comments SHOULD be used to document the reasons behind a particular choice of design pattern that, without context, may seem unusual or even counterintuitive to developers who are looking at the code for the first time. See xref:007.adoc[*TS-7: Code Design*] for further general guidance on code-level implementation comments.
+
+[source,java]
+----
+/* ✗ Restates the code. */
+/* Loop over the entries in reverse order. */
+for (int i = entries.size() - 1; i >= 0; i--) {
+  // …
+}
+
+/* ✓ Explains what the code cannot. */
+/* Iterate in reverse so that removing an entry does not shift the rest. */
+for (int i = entries.size() - 1; i >= 0; i--) {
+  // …
+}
+----

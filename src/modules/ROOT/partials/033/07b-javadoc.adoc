@@ -59,11 +59,50 @@ public String getCanonicalName() {
 
 Javadoc MUST distinguish overloaded methods and constructors from each other. Each overload's summary fragment SHOULD identify what makes it distinct, rather than repeating the same description across every overload.
 
+[source,java]
+----
+/// Parses a date in ISO 8601 format, such as `2026-09-19`.
+public static LocalDate parse(String text) {
+  // …
+}
+
+/// Parses a date in the given format.
+public static LocalDate parse(String text, DateTimeFormatter format) {
+  // …
+}
+----
+
 Where a class or method is safe for concurrent use, its Javadoc MUST say so, and state the guarantees it makes — for example, whether it is immutable, or which of its operations are atomic. Absent such a statement, a caller is entitled to assume that the class or method is not thread-safe.
+
+[source,java]
+----
+/// A counter of requests per client. This class is thread-safe: each
+/// method is atomic, but a sequence of calls is not.
+public final class RequestCounter {
+  // …
+}
+----
 
 == Placement
 
 A Javadoc comment MUST immediately precede the declaration it documents, and MUST come before any annotations on that declaration. It MUST NOT be positioned inside a method or constructor body. The Javadoc tool only recognizes a Javadoc comment that immediately precedes the declaration of a module, package, class, interface, field, constructor, or method, so a Javadoc comment placed anywhere else documents nothing.
+
+[source,java]
+----
+/* ✗ The annotation separates the comment from the declaration. */
+@Override
+/// Closes this connection and releases its socket.
+public void close() {
+  // …
+}
+
+/* ✓ The Javadoc comes before the annotation. */
+/// Closes this connection and releases its socket.
+@Override
+public void close() {
+  // …
+}
+----
 
 == Markup
 
@@ -98,6 +137,25 @@ Where a Javadoc comment refers to a Java keyword, a package name, a class, inter
 
 A link to another class, method, or field SHOULD be written as a Markdown reference link — for example, `[List]`, `[List#add(Object)]`, or `[the list][List]`. The Javadoc tool resolves and checks these links. Inline tags such as `{@return}` and `{@inheritDoc}` are still available in Markdown Javadoc comments.
 
+[source,java]
+----
+/// Splits a string into its comma-separated fields, trimming whitespace
+/// from each. Empty fields are kept, so the result always has one more
+/// element than the number of commas in `text`.
+///
+/// ```java
+/// var fields = Fields.split("a, b,,c");  // ["a", "b", "", "c"]
+/// ```
+///
+/// To join the fields again, use [#join(List)].
+///
+/// @param text the string to split
+/// @return the fields, in order, as a [List] of strings
+public static List<String> split(String text) {
+  // …
+}
+----
+
 [#classic-html-javadoc]
 === Classic HTML Javadoc comments
 
@@ -121,6 +179,29 @@ Code MUST be formatted with the `{@code …}` inline tag rather than `<code>` ta
 
 A link to another class, method, or field SHOULD be written with the `{@link}` inline tag.
 
+The Markdown example above, written in the classic notation:
+
+[source,java]
+----
+/**
+ * Splits a string into its comma-separated fields, trimming whitespace
+ * from each. Empty fields are kept, so the result always has one more
+ * element than the number of commas in {@code text}.
+ *
+ * <pre>{@code
+ * var fields = Fields.split("a, b,,c");  // ["a", "b", "", "c"]
+ * }</pre>
+ *
+ * <p>To join the fields again, use {@link #join(List)}.
+ *
+ * @param text the string to split
+ * @return the fields, in order, as a {@link List} of strings
+ */
+public static List<String> split(String text) {
+  // …
+}
+----
+
 The `{@return}` inline tag requires JDK 16 or later. A codebase that targets an older runtime MUST use the `@return` block tag instead.
 
 == The summary
@@ -130,6 +211,17 @@ The first sentence of a Javadoc comment is its summary. The Javadoc tool treats 
 The summary SHOULD be a brief fragment — a noun phrase or verb phrase, not a complete sentence, but capitalized and punctuated as if it were one. It SHOULD NOT be a detailed description.
 
 A method's summary SHOULD start with a third-person descriptive verb (eg. "Gets the label", not "Get the label"). A class, interface, or field summary SHOULD instead state what the thing represents (eg. "A button label"), avoiding phrasing such as "This class…" or "This method…".
+
+[source,java]
+----
+/* ✗ Wordy, and phrased as "This method…" and "This class…". */
+/// This method will get the label of the button.
+/// This class is used to represent a label for a button.
+
+/* ✓ A verb phrase for the method, a noun phrase for the class. */
+/// Gets the label of this button.
+/// A button label.
+----
 
 == Wording
 
@@ -175,6 +267,23 @@ A blank line (containing only the comment's line prefix) SHOULD appear before a 
 
 A block tag's description is tag content, not prose. It SHOULD be a single sentence fragment, without a capitalized first word or a terminal period. Columns MAY be aligned across a run of block tags, but this is a cosmetic choice, not a requirement.
 
+[source,java]
+----
+/// Transfers an amount between two accounts, as a single transaction.
+///
+/// @param source the account to debit
+/// @param target the account to credit
+/// @param amount the amount to transfer, which must be positive
+/// @return the ID of the completed transfer
+/// @throws IllegalArgumentException if `amount` is zero or negative
+/// @throws InsufficientFundsException if `source` cannot cover `amount`
+/// @see Ledger#reverse(TransferId)
+public TransferId transfer(Account source, Account target, Money amount)
+    throws InsufficientFundsException {
+  // …
+}
+----
+
 === @param and @return
 
 `@param` and `@return` are REQUIRED — for every parameter, including type parameters, and for every non-`void` method, respectively — even where their purpose seems obvious from the signature alone. `@param` takes the parameter name, not its data type, and MUST NOT format that name as code. A type parameter is named in angle brackets (eg. `@param <T>`). Where a method has more than one `@param` tag, they MUST appear in the same order as the parameters are declared. Where `@return` describes a collection, it SHOULD state the type of element the collection contains.
@@ -195,6 +304,19 @@ The `@throws` tag is distinct from the method's `throws` clause. An unchecked ex
 
 `@deprecated` MUST be paired with the `@Deprecated` annotation. The annotation makes the compiler warn about any use of the deprecated element, while the tag documents the reason. The tag's description SHOULD explain why the element is deprecated and link to its replacement; where there is no replacement, it SHOULD say "No replacement". Unlike other block tag descriptions, it MAY be written in complete sentences.
 
+[source,java]
+----
+/// Gets the customer's given and family names, separated by a space.
+///
+/// @return the full name
+/// @deprecated This drops any middle names, and assumes a name order
+///   that not every culture uses. Use [#displayName()] instead.
+@Deprecated
+public String fullName() {
+  // …
+}
+----
+
 === Other block tags
 
 The `@since`, `@author`, and `@version` tags SHOULD NOT be used. The version control system already tracks when and by whom a declaration was introduced, and these tags are of more use to library maintainers publishing a versioned API than to application developers.
@@ -206,6 +328,22 @@ For reference, the full block tag order defined by the Javadoc tool's documentat
 == Package-level Javadoc
 
 Package-level Javadoc is written in the Javadoc comment that precedes the `package` declaration in a `package-info.java` file (see <<special-source-files,Special source files>>). It SHOULD follow a three-part structure: a summary sentence describing the package's purpose, a "Package Specification" section for any formal contract the package as a whole makes, and a "Related Documentation" section linking out to other relevant material.
+
+[source,java]
+----
+/// Order capture and fulfillment: the entities, repositories, and services
+/// that take an order from checkout to dispatch.
+///
+/// ## Package Specification
+///
+/// Every public method in this package rejects a `null` argument with a
+/// `NullPointerException`, unless its documentation says otherwise.
+///
+/// ## Related Documentation
+///
+/// - [Order lifecycle](https://docs.example.com/orders/lifecycle)
+package com.example.orders;
+----
 
 == Images
 
