@@ -79,3 +79,34 @@ Several JDK classes are not deprecated, but have been superseded by replacements
 Production code MUST NOT write diagnostic output to `System.out` or `System.err`, whether directly, eg. with `System.out.println()`, or indirectly, eg. with `Throwable.printStackTrace()`. Output written this way bypasses the logging framework. It carries no level, timestamp, or logger name, it cannot be filtered, routed, or rate-limited, and in some runtime environments it is discarded altogether. Use the project's logging API instead. Logging practice in general is covered by xref:057.adoc[*TS-57: Logging, Monitoring, Observability*].
 
 A command-line program whose purpose is to write to standard output or standard error is the exception, for that output only.
+
+[#deferred-log-formatting]
+== Deferred log formatting
+
+A log statement below the enabled level writes nothing, but Java evaluates a method's arguments before calling it, so a message built by string concatenation is built in full and then discarded. Log statements SHOULD NOT do work that is thrown away when their level is disabled. The general rule is set out in xref:057.adoc[*TS-57: Logging, Monitoring, Observability*]. This section gives the Java idioms.
+
+Pass a message template and its arguments, rather than a pre-built string, wherever the logging API supports it. With SLF4J, the `{}` placeholders are filled in only when the entry is written. The arguments themselves are still evaluated. What is deferred is the formatting, including each argument's `toString()`.
+
+[source,java]
+----
+// Builds the string even when DEBUG is disabled.
+logger.debug("Loaded " + items.size() + " items for " + user);
+
+// Formats the message only when DEBUG is enabled.
+logger.debug("Loaded {} items for {}", items.size(), user);
+----
+
+Where computing an argument is itself expensive, pass a `Supplier` that the logging API calls only when the level is enabled. Every level method of `java.util.logging.Logger` has an overload that accepts a `Supplier<String>`, and the fluent API of SLF4J 2 accepts a `Supplier` for each argument.
+
+[source,java]
+----
+// java.util.logging. The lambda runs only when FINE is enabled.
+logger.fine(() -> "Cache state: " + cache.describe());
+
+// SLF4J 2. The supplier runs only when DEBUG is enabled.
+logger.atDebug()
+    .addArgument(() -> cache.describe())
+    .log("Cache state: {}");
+----
+
+Where neither form fits, for example where several statements share one expensive computation, guard them with a level check, such as `logger.isDebugEnabled()` in SLF4J or `logger.isLoggable(Level.FINE)` in `java.util.logging`. The guarded block MUST contain only logging, never logic that the program depends on, because disabling the level removes it.
