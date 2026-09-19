@@ -26,9 +26,9 @@ instead, and is listed as out-of-scope. Several reference rules conflict with
 deliberate TS-33 choices, and those are also listed as out-of-scope rather
 than as gaps.
 
-**Status:** 8 of 35 actionable gaps closed (7 missing, 1 partial); 11
-missing, 16 partial, and 9 out-of-scope remain open. First run: 2026-09-19.
-Last worked: 2026-09-19.
+**Status:** 16 of 35 actionable gaps closed (12 missing, 4 partial); 6
+missing, 13 partial, and 9 out-of-scope remain open. First run: 2026-09-19.
+Last worked: 2026-09-19 (second batch).
 
 ## Missing
 
@@ -127,7 +127,7 @@ Last worked: 2026-09-19.
       immutability in general, using the JDK idioms rather than Twitter's Guava
       `ImmutableMap.copyOf`.
 
-- [ ] https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md#clean-up-with-finally
+- [x] https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md#clean-up-with-finally
       (release resources deterministically, even without checked
       exceptions), https://source.android.com/docs/setup/contribute/code-style#dont-use-finalizers
       (give a resource an explicit `close()` method, and document when it
@@ -140,6 +140,18 @@ Last worked: 2026-09-19.
       05-programming-constructs.adoc:50. None of the references names
       try-with-resources as a rule, so the wording will need a primary
       source such as the JLS.
+
+      **Resolved.** Closed by `05-programming-constructs.adoc`, new "Resource
+      management" section after "Classes and interfaces", which the finalizer
+      rule now points to. A resource-holding class SHOULD implement
+      `AutoCloseable` and document who closes it; users MUST close
+      deterministically, preferably with try-with-resources, whose JLS 14.20.3
+      semantics (reverse-order close, null resources skipped, `addSuppressed`)
+      are summarized. Each wrapped I/O layer SHOULD be its own resource, with
+      the socket-reader example from the LVTI guide. Adds JDK 9 effectively
+      final resources, and requires a `finally` block straight after acquiring a
+      non-`AutoCloseable` resource such as a `Lock`, per Twitter. JLS (Java SE
+      21) added to `99-references.adoc`.
 
 - [x] https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md#when-interrupted-reset-thread-interrupted-state
       (a caught `InterruptedException` MUST restore the interrupt flag with
@@ -162,14 +174,24 @@ Last worked: 2026-09-19.
       covers the principles but not the Java APIs. Recommend a new
       "Concurrency" section in 05-programming-constructs.adoc.
 
-- [ ] https://source.android.com/docs/setup/contribute/code-style#use-standard-java-annotations
+- [x] https://source.android.com/docs/setup/contribute/code-style#use-standard-java-annotations
       (`@SuppressWarnings` only where a warning is impossible to eliminate,
       with a comment explaining why, and scoped as narrowly as possible) is
       not addressed anywhere in the standard. Recommend a new
       `@SuppressWarnings` subsection in the "Annotations" section,
       05-programming-constructs.adoc:96, beside `@Override`.
 
-- [ ] https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md#avoid-assert
+      **Resolved.** Closed by a new "@SuppressWarnings" subsection after
+      "@Override" in the "Annotations" section of
+      `05-programming-constructs.adoc`. Rules that it SHOULD be used only where
+      a warning cannot be eliminated and that fixable warnings MUST be fixed,
+      requires the narrowest scope (a local declaration or method, never a
+      class, extracting code where needed), and requires a comment explaining
+      why, with an unchecked-cast example. AOSP asks for a TODO-prefixed
+      comment; the standard asks for an explanatory comment, leaving TODO format
+      to TS-7 (Code Design).
+
+- [x] https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md#avoid-assert
       (don't rely on `assert`, which can be disabled at run time) and
       https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md#preconditions
       (check arguments with precondition checks, and null-check the object
@@ -179,11 +201,29 @@ Last worked: 2026-09-19.
       05-programming-constructs.adoc. Twitter's examples use Guava's
       `checkNotNull`; the JDK equivalent is `Objects.requireNonNull`.
 
-- [ ] https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md#visiblefortesting
+      **Resolved.** Closed by `05-programming-constructs.adoc`, new
+      "Preconditions and assertions" section after "Exceptions". Public
+      constructors and methods SHOULD check arguments on entry. Object
+      parameters MUST be null-checked unless the Javadoc allows `null`, using
+      `Objects.requireNonNull`, with `IllegalArgumentException` and
+      `IllegalStateException` for other failures, shown in a `readLater` example
+      adapted from Twitter's. Guava `Preconditions` MAY be used, but not mixed
+      with the JDK style. `assert` SHOULD NOT be used and MUST NOT check
+      arguments, because it is disabled unless the JVM runs with `-ea`.
+
+- [x] https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md#visiblefortesting
       (members widened for test access are kept package-private and marked
       as such) is not addressed anywhere in the standard. Recommend placing
       in the "Modifiers" section, 05-programming-constructs.adoc:79, noting
       that `@VisibleForTesting` comes from Guava rather than the JDK.
+
+      **Resolved.** Closed by a new paragraph and example at the end of the
+      "Modifiers" section of `05-programming-constructs.adoc`. A member widened
+      for tests SHOULD go no further than package-private and SHOULD be marked,
+      with Guava's `@VisibleForTesting` named as the usual marker, a comment as
+      the fallback without Guava, and a note that many such members suggest
+      testing through the public interface instead. Uses Twitter's
+      `ConfigReader` constant example.
 
 - [ ] https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md#stringbuilder-over-stringbuffer,
       #scheduledexecutorservice-over-timer, and #list-over-vector (prefer the
@@ -193,10 +233,19 @@ Last worked: 2026-09-19.
       in the standard. Recommend a new "Legacy APIs" section in
       08-java-api-specifications.adoc.
 
-- [ ] https://www.oracle.com/java/technologies/javase/codeconventions-declarations.html#16817
+- [x] https://www.oracle.com/java/technologies/javase/codeconventions-declarations.html#16817
       (6.3: avoid local declarations that hide declarations at a higher
       level) is not addressed anywhere in the standard. Recommend placing in
       "Variable declarations", 05-programming-constructs.adoc:19.
+
+      **Resolved.** Closed by a new paragraph and example at the end of
+      "Variable declarations" in `05-programming-constructs.adoc`. Rules that a
+      local variable or parameter SHOULD NOT hide a field or other higher-level
+      declaration, explains that the compiler rejects a local hiding a local but
+      accepts one hiding a field, and shows Oracle's `count` example. Allows the
+      `this.name = name` constructor and setter idiom as the one exception. The
+      Oracle Code Conventions were already in `99-references.adoc`; the page
+      needed a direct fetch, as WebFetch returned 403.
 
 - [ ] https://google.github.io/styleguide/javaguide.html#s3.3.1.1-module-imports
       (module imports, `import module java.base;`, are not used) and
@@ -259,7 +308,7 @@ Last worked: 2026-09-19.
       that _every_ switch, not only a colon-style switch statement
       (05-programming-constructs.adoc:206), is exhaustive.
 
-- [ ] https://google.github.io/styleguide/javaguide.html#s4.8.5.3-method-annotation-style
+- [x] https://google.github.io/styleguide/javaguide.html#s4.8.5.3-method-annotation-style
       and #s4.8.5.2-class-annotation-style cover this more thoroughly than
       05-programming-constructs.adoc:96 — specifically, the exception that
       a single parameterless annotation may share the signature line (eg.
@@ -269,11 +318,27 @@ Last worked: 2026-09-19.
       https://source.android.com/docs/setup/contribute/code-style#use-standard-java-annotations
       adds that annotations precede all other modifiers.
 
-- [ ] https://google.github.io/styleguide/javaguide.html#s6.1-override-annotation
+      **Resolved.** Closed by additions to the "Annotations" section of
+      `05-programming-constructs.adoc`. A new opening rule says declaration
+      annotations MUST precede all other modifiers (per AOSP), with type-use
+      annotations excepted. The class rule now extends to `package-info.java`
+      and `module-info.java`, and says the line breaks between annotations are
+      not line-wrapping. After the method example, a single parameterless
+      annotation MAY share the signature line, shown with `@Override public int
+      hashCode()`.
+
+- [x] https://google.github.io/styleguide/javaguide.html#s6.1-override-annotation
       covers this more thoroughly than 05-programming-constructs.adoc:140 —
       specifically, that `@Override` also applies to an explicitly declared
       record accessor, and to an interface method that respecifies a
       superinterface method.
+
+      **Resolved.** Closed by rewriting the rule in the "@Override" subsection
+      of `05-programming-constructs.adoc`. `@Override` MUST now be used wherever
+      it is legal, listing the four cases from Google 6.1, including an
+      interface method respecifying a superinterface method and an explicit
+      record accessor, with a `record Team` example whose accessor returns a
+      defensive copy. The `@Deprecated` exception is kept.
 
 - [x] https://google.github.io/styleguide/javaguide.html#s6.2-caught-exceptions
       and https://source.android.com/docs/setup/contribute/code-style#dont-ignore-exceptions
@@ -299,11 +364,20 @@ Last worked: 2026-09-19.
       implementation-specific types such as `SQLException`. AOSP source added to
       `99-references.adoc`.
 
-- [ ] https://source.android.com/docs/setup/contribute/code-style#dont-catch-generic-exception
+- [x] https://source.android.com/docs/setup/contribute/code-style#dont-catch-generic-exception
       covers this more thoroughly than 05-programming-constructs.adoc:183 —
       specifically, it also rules out `Throwable`, gives multi-catch as the
       alternative, and allows the one exception of top-level code and tests
       that must catch everything, with a comment explaining why.
+
+      **Resolved.** Closed by additions to the end of the "Exceptions" section
+      of `05-programming-constructs.adoc`. The broad-catch rule now names
+      `Throwable`. New paragraphs prescribe multi-catch for exceptions sharing
+      handling, with a `ClassNotFoundException | NoSuchMethodException` example,
+      and smaller `try` blocks or propagation where handling differs. Top-level
+      code (a batch loop, a request dispatcher, a test harness) MAY catch
+      `Exception` or `Throwable`, but MUST say why in a comment and MUST record
+      the failure.
 
 - [ ] https://google.github.io/styleguide/javaguide.html#s3.3.3-import-ordering-and-spacing
       covers this more thoroughly than 05-programming-constructs.adoc:13 —

@@ -27,6 +27,22 @@ Local variable declarations SHOULD typically have initializers, or SHOULD be ini
 
 Inner assignment — assigning a variable as a side effect inside a larger expression, eg. `String s = Integer.toString(i = 2);` — SHOULD be avoided. An assignment SHOULD occur as its own top-level statement, so a reader scanning an expression for its value is not also scanning it for side effects. The one common exception is the header of a `for` loop, where an assignment as part of the loop's initialization or update clause is idiomatic.
 
+A local variable or parameter SHOULD NOT hide a field, or any other declaration at a higher level, by reusing its name. The compiler already rejects a local that hides another local in an enclosing block, but it accepts a local that hides a field, and every use of the name inside that scope then silently refers to the local. A reader who knows the field is easily misled, and a later edit that deletes the local declaration changes the code's meaning without a compile error.
+
+[source,java]
+----
+private int count;
+
+void recount() {
+  if (isStale()) {
+    int count = 0;  // ✗ Hides the field.
+    // …
+  }
+}
+----
+
+A constructor or setter parameter that shares its name with the field it initializes, assigned with `this.name = name`, is the one common exception. The idiom is universal, the `this.` qualifier makes the distinction explicit, and the scope is a single assignment.
+
 [#local-variable-type-inference]
 == Local variable type inference
 
@@ -99,7 +115,46 @@ A utility class — one containing only `static` methods and constants — SHOUL
 
 A class that overrides `equals()` MUST also override `hashCode()`. The `equals()`/`hashCode()` contract requires that two objects considered equal by `equals()` produce the same hash code; violating this breaks the class's behavior in any hash-based collection (`HashMap`, `HashSet`, and similar), where an object may become unfindable even by a key that `equals()` says is identical to the one it was stored under.
 
-`Object.finalize` MUST NOT be overridden. Finalization is unreliable, and the finalization mechanism has been deprecated for removal from the Java platform since JDK 18.
+`Object.finalize` MUST NOT be overridden. Finalization is unreliable, and the finalization mechanism has been deprecated for removal from the Java platform since JDK 18. A class that holds a resource releases it through an explicit `close()` method instead (see <<resource-management,Resource management>>).
+
+[#resource-management]
+== Resource management
+
+A class that holds a resource which must be released — a file handle, a socket, a database connection, a lock, a native buffer — SHOULD implement `AutoCloseable` (or its I/O subtype `Closeable`), and release the resource in `close()`. The class's Javadoc SHOULD say that instances must be closed, and by whom: the code that created the instance, or the code it was handed to.
+
+Code that uses an `AutoCloseable` MUST close it deterministically, and SHOULD do so with a try-with-resources statement (JDK 7 or later) rather than an explicit `finally` block. The statement closes every resource it declares when the block exits, whether normally or by an exception, closes them in the reverse order of their initialization, and skips any resource that was never initialized to a non-null value. An exception thrown by `close()` while another exception is already propagating is attached to that exception with `addSuppressed`, rather than replacing it, so the original failure is not lost. A hand-written `finally` block gets all of this wrong by default.
+
+Where one resource wraps another, each layer SHOULD be declared as a separate resource. A single nested expression, eg. `new BufferedReader(new InputStreamReader(socket.getInputStream()))`, leaves the inner stream open if a later constructor throws, because only the outermost object is a declared resource.
+
+[source,java]
+----
+// ✗ If the InputStreamReader constructor throws, the stream is never closed.
+try (var reader = new BufferedReader(
+    new InputStreamReader(socket.getInputStream(), charset))) {
+  return reader.readLine();
+}
+
+// ✓ Each layer is closed, innermost last.
+try (var inputStream = socket.getInputStream();
+    var streamReader = new InputStreamReader(inputStream, charset);
+    var reader = new BufferedReader(streamReader)) {
+  return reader.readLine();
+}
+----
+
+An existing resource held in a `final` or effectively final variable MAY be named directly in the resource specification (JDK 9 or later), eg. `try (connection) { … }`, rather than being redeclared.
+
+Where the paired operation is not an `AutoCloseable` — releasing a `Lock`, restoring a changed setting, unregistering a listener — the release MUST be in a `finally` block that immediately follows the acquisition, so it runs however the `try` block exits. This applies whether or not the code in between throws checked exceptions, since any statement can throw an unchecked one.
+
+[source,java]
+----
+lock.lock();
+try {
+  updateSharedState();
+} finally {
+  lock.unlock();
+}
+----
 
 == Enums
 
@@ -145,7 +200,20 @@ Most instance fields SHOULD be `private`, to adhere to the principle of data hid
 
 Package-private members — which have no access modifier, as this is the default access level — SHOULD generally be avoided, particularly in applications. However, package-private access can be useful in some cases, particularly in libraries, and in the implementation of the aggregate root design pattern.
 
+A member that would be `private` except that a test needs to reach it SHOULD be widened no further than package-private, since tests conventionally live in the same package as the code under test. The reason for the wider access SHOULD be marked on the member, so a later reader does not treat it as part of the class's intended surface and start calling it from production code. Guava's `@VisibleForTesting` annotation is the common marker; the JDK has no equivalent, and a project without Guava SHOULD use a short comment instead. A test that needs many such members is usually a sign that the class should be tested through its public interface, or split.
+
+[source,java]
+----
+class ConfigReader {
+  @VisibleForTesting static final String USER_FIELD = "user";
+
+  // …
+}
+----
+
 == Annotations
+
+A declaration annotation MUST precede all other modifiers of the element it annotates, eg. `@Deprecated public static`, not `public @Deprecated static`. Type-use annotations are the exception, and are placed as described below.
 
 Field annotations SHOULD all be listed on the same line.
 
@@ -163,7 +231,7 @@ final @Nullable String name;
 public @Nullable Person getPersonByName(String name);
 ----
 
-Annotations applying to a class MUST each be listed on separate lines before the class declaration, and immediately after any preceding Javadoc.
+Annotations applying to a class MUST each be listed on separate lines before the class declaration, and immediately after any preceding Javadoc. The same rule applies to annotations on a package declaration (in `package-info.java`) and a module declaration (in `module-info.java`). The line breaks between these annotations are not line-wrapping, so the lines that follow are not given continuation indentation (see <<line-wrapping,Line-wrapping>>).
 
 [source,java]
 ----
@@ -185,13 +253,45 @@ public String getNameIfPresent() {
 }
 ----
 
+The one exception is a method or constructor with a single annotation that takes no parameters, which MAY share the first line of the signature.
+
+[source,java]
+----
+@Override public int hashCode() {
+  // …
+}
+----
+
 There are no specific rules for formatting annotations on parameters or local variables.
 
 === @Override
 
-The `@Override` annotation MUST be used on all methods that are intended to override a method in a superclass or an interface.
+The `@Override` annotation MUST be used on every method declaration where it is legal. That covers a method that overrides a superclass method, a method that implements an interface method, an interface method that respecifies a method of a superinterface, and an explicitly declared accessor method for a record component.
+
+[source,java]
+----
+record Team(List<Member> members) {
+  @Override
+  public List<Member> members() {
+    return List.copyOf(members);
+  }
+}
+----
 
 There is one exception, which is that `@Override` MAY be omitted when the parent method is `@Deprecated`.
+
+=== @SuppressWarnings
+
+`@SuppressWarnings` SHOULD be used only where a compiler or static-analysis warning cannot be eliminated by changing the code, eg. an unchecked cast that the type system cannot express but the surrounding logic guarantees is safe. A warning that can be fixed MUST be fixed rather than suppressed.
+
+Where a suppression is necessary, it MUST be scoped as narrowly as possible: on the single local variable declaration or method that needs it, never on a whole class. Where the warning arises inside a larger method, extract the offending code into a small method or a local variable so that only that piece is annotated. A comment MUST explain why the warning cannot be fixed, so a later reader can tell whether the reason still holds.
+
+[source,java]
+----
+// The map only ever holds values of the key's type parameter, enforced by put().
+@SuppressWarnings("unchecked")
+T value = (T) values.get(key);
+----
 
 == Static members
 
@@ -269,7 +369,46 @@ try {
 } catch (NoSuchElementException expected) {}
 ----
 
-`java.lang.Exception`, `java.lang.Error`, and `java.lang.RuntimeException` SHOULD NOT be caught directly. Catching one of these broad types risks silently swallowing a failure the `catch` block was never written to handle — a `NullPointerException` or an `OutOfMemoryError`, for example — that should be allowed to propagate rather than being absorbed by a handler meant for a narrower, expected failure. Instead, catch the most specific exception type the code can meaningfully recover from.
+`java.lang.Throwable`, `java.lang.Exception`, `java.lang.Error`, and `java.lang.RuntimeException` SHOULD NOT be caught directly. Catching one of these broad types risks silently swallowing a failure the `catch` block was never written to handle — a `NullPointerException` or an `OutOfMemoryError`, for example — that should be allowed to propagate rather than being absorbed by a handler meant for a narrower, expected failure. Instead, catch the most specific exception type the code can meaningfully recover from.
+
+Where several specific exceptions need the same handling, catch them together in a multi-catch block (JDK 7 or later), rather than widening the `catch` to a common supertype.
+
+[source,java]
+----
+try {
+  handler = loadHandler(className);
+} catch (ClassNotFoundException | NoSuchMethodException e) {
+  throw new ConfigurationException("No handler " + className + ".", e);
+}
+----
+
+Where the specific exceptions need different handling, split the code into smaller `try` blocks, each with its own narrow `catch`, or let the exceptions propagate to a level that can handle them.
+
+The one permitted case for a broad catch is top-level code whose job is to stop any failure escaping — a thread's `run()` loop that must keep a batch job alive, a request dispatcher that must turn every failure into an error response, or a test harness — MAY catch `Exception` or `Throwable`. The `catch` block MUST carry a comment saying why the broad catch is intended, and MUST record the failure rather than discard it.
+
+[#preconditions-and-assertions]
+== Preconditions and assertions
+
+A public constructor or method SHOULD check its arguments on entry, and throw immediately when they are invalid. A check at the boundary reports the failure where the bad value came in, with a message naming it, rather than letting it travel on and fail later — possibly on another thread, or long after the caller has returned — with a stack trace that points nowhere near the cause.
+
+Object parameters of public constructors and methods MUST be checked for `null`, unless the Javadoc states that `null` is allowed. Use `Objects.requireNonNull`, which throws a `NullPointerException` carrying the given message. Other invalid arguments throw `IllegalArgumentException`, and a call that is invalid for the object's current state throws `IllegalStateException`.
+
+[source,java]
+----
+void readLater(Path file, Consumer<String> callback) {
+  Objects.requireNonNull(file, "file");
+  Objects.requireNonNull(callback, "callback");
+  if (!Files.isReadable(file)) {
+    throw new IllegalArgumentException("Not readable: " + file);
+  }
+
+  executor.schedule(() -> callback.accept(read(file)), 1, TimeUnit.HOURS);
+}
+----
+
+A project that already depends on Guava MAY use its `Preconditions` class (`checkNotNull`, `checkArgument`, `checkState`) instead, which reads more compactly. A project SHOULD NOT mix the two styles.
+
+The `assert` statement SHOULD NOT be used. Assertions are disabled by default, and enabled only when the JVM is started with `-ea`, so an invariant checked with `assert` is typically not checked at all in production, which is where the check matters. An argument check MUST NOT use `assert`. An internal invariant that is worth checking is worth checking always, with an explicit test that throws `IllegalStateException` or `AssertionError`.
 
 == Switch statements
 
