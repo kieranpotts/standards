@@ -14,7 +14,7 @@ The FIRST acronym summarizes five properties that every well-designed test shoul
 *Fast.* Functional tests should run quickly. A functional test suite that takes a long time to execute will be run less
 frequently, reducing its value as a feedback mechanism. Unit tests in particular should run in milliseconds. Slow tests
 are usually a sign of unnecessary I/O, real network calls, or excessive setup — all of which should be replaced with
-test doubles or eliminated through better design.
+test doubles or eliminated through better design. Fast is a property of the test, not something the test asserts. A functional test MUST NOT assert that the code under test completes within a time limit or reaches a given throughput. Such an assertion measures the machine running the suite as much as the code. It passes on an idle workstation and fails on a loaded CI runner, which breaks the *Repeatable* principle. Performance is a quality attribute, tested separately in a controlled environment. See xref:014.adoc[*TS-14: Quality Attribute Testing*].
 
 *Independent.* Each test should be independent of all others. Tests must not rely on shared mutable state or on a
 specific execution order. A test that passes only when run after another test, or that fails when run in isolation,
@@ -23,8 +23,8 @@ execution, and to diagnose failures in isolation.
 
 *Repeatable.* A test should produce the same result every time it is run, in any environment. Tests that pass on one
 machine and fail on another — or that fail intermittently due to timing, randomness, or external dependencies —
-undermine confidence in the test suite. Eliminate non-determinism by controlling time, seeding randomness, and replacing
-external dependencies with test doubles.
+undermine confidence in the test suite. Eliminate non-determinism by controlling time, using fixed rather than random
+test data, and replacing external dependencies with test doubles. See <<controlling-non-determinism,Controlling non-determinism>>.
 
 *Self-validating.* A test must have a clear, automated pass/fail outcome. It should not require a developer to manually
 inspect output, logs, or a database to determine whether the test passed. The assertion within the test is the
@@ -34,7 +34,7 @@ should be necessary.
 *Timely.* Tests should be written at the same time as — or before — the code they verify. Tests written long after the
 fact are harder to write well, because the code may not have been designed with testability in mind. Writing tests early
 (or first, as in test-driven development) keeps code testable and ensures that tests actually reflect the intended
-behavior.
+behavior. See <<designing-for-testability,Designing for testability>>.
 
 == Readability
 
@@ -98,3 +98,62 @@ of behavior.
 
 Where a single piece of behavior genuinely produces multiple observable outcomes, it is acceptable to assert all of them
 in one test. The spirit of this guideline is focus and clarity, not mechanical adherence to a line count.
+
+[#designing-for-testability]
+== Designing for testability
+
+Code that is easy to test was designed to be tested. The most common obstacle to testing a unit in isolation is a unit that constructs its own collaborators. A class that opens a file from a path it is given, creates its own HTTP client, or reads its configuration from a fixed location cannot be tested without the real file, the real network, or the real environment. Its tests have to create temporary files, run servers, or mutate global state, which makes them slower, more fragile, and harder to run in parallel.
+
+Units SHOULD accept the objects they depend on from their callers, rather than constructing those objects themselves. Accept a stream rather than a file name, a client rather than a URL, and a configuration object rather than a path to a configuration file. Production callers pass the real thing. Tests pass an in-memory equivalent, such as a stream over a string, a stub client, or a configuration literal. Where a unit genuinely needs to create objects of its own, one per request for example, pass it a factory instead.
+
+[source,typescript]
+----
+// Hard to test. Every test must manage a real file on disk.
+class ConfigReader {
+  private readonly source: Readable
+
+  constructor(fileName: string) {
+    this.source = fs.createReadStream(fileName)
+  }
+}
+
+// Easy to test. A test passes Readable.from('key=value').
+class ConfigReader {
+  constructor(private readonly source: Readable) {}
+}
+----
+
+The same applies to the sources of non-determinism covered in <<controlling-non-determinism,Controlling non-determinism>>, namely the clock, the random number generator, and the executor or scheduler that runs work on other threads. Each SHOULD be passed in rather than reached for.
+
+This is dependency injection, applied for the sake of testability. See xref:007.adoc[*TS-7: Code Design*] for the design principle itself.
+
+[#controlling-non-determinism]
+== Controlling non-determinism
+
+The *Repeatable* principle requires a test to produce the same result on every run. Time, randomness, and concurrency are the three most common reasons a test does not. Each has to be brought under the test's control, rather than left to the machine the test happens to run on.
+
+=== Time
+
+Code under test SHOULD obtain the current time from an injected clock, so that a test can set the time to a known instant and advance it explicitly. See xref:047.adoc[*TS-47: Dates and Times*] for the clock abstraction.
+
+Tests MUST NOT sleep to wait for something to happen. A sleep encodes an assumption that some other work will finish while the test waits. When that work is not scheduled in time, on a loaded CI runner for example, the test fails for a reason that has nothing to do with the code. When the work finishes early, the test waits anyway. Every sleep also sets a floor on the test's duration, however fast the machine. Wait on the event itself instead, through a callback, a promise or future, a latch, or a fake clock that the test advances. Where a test has to poll for an outcome it cannot observe directly, it SHOULD poll at a short interval with a generous overall timeout, so that it finishes as soon as the outcome arrives, and waits out the full timeout only when it is failing.
+
+=== Randomness
+
+Tests SHOULD use fixed input data, chosen to exercise known edge cases, rather than randomly generated input. Random input appears to cover more cases with less code, but the author loses control over which cases are covered. Any given run may miss the empty string, the boundary value, or the duplicate entry that the test was written to catch. Seeding the generator makes a failure reproducible, but does not make the coverage deliberate, and in practice seeded random input rarely finds a defect that a well-chosen fixed example would not.
+
+Generated input is appropriate where generation is the point of the technique, as in property-based testing and fuzzing, which run large numbers of generated inputs against an invariant rather than checking one example. Such a test MUST report the seed or the failing input when it fails, so that the failure can be reproduced. Each failing input it finds SHOULD be added to the suite as a fixed example, so that the case is covered on every run, whatever the generator produces next.
+
+Where the randomness is in the code under test rather than in the test data, inject the random number generator, and supply one with a fixed sequence in tests.
+
+=== Concurrent code
+
+Most concurrent code is ordinary logic that happens to run on another thread, or on a schedule. Test that logic deterministically, on the test's own thread, wherever possible. The following techniques cover most cases.
+
+* *Run scheduled work directly.* Where code schedules a task to run later or periodically, test the task by invoking it directly. Test separately, against a test double of the scheduler, that the task is scheduled with the right delay or interval.
+
+* *Inject the executor.* Where code hands work to a thread pool or executor, inject it, and supply one in tests that runs each task synchronously on the calling thread. The work then completes before the test's assertions run, in the order the test expects.
+
+* *Synchronize explicitly where threads are unavoidable.* Where a test has to run several threads, coordinate them with synchronizers such as latches, barriers, or blocking queues, so that each thread reaches a known point before the test proceeds. Never coordinate them with sleeps.
+
+Deterministic tests verify the logic of concurrent code. They do not show that the code is free of race conditions. See xref:007.adoc[*TS-7: Code Design*] for stress testing and the tooling that exposes those.
