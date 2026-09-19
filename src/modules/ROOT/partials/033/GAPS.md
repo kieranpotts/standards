@@ -26,12 +26,13 @@ instead, and is listed as out-of-scope. Several reference rules conflict with
 deliberate TS-33 choices, and those are also listed as out-of-scope rather
 than as gaps.
 
-**Status:** 18 missing, 17 partial, 9 out-of-scope, all open. First run:
-2026-09-19.
+**Status:** 8 of 35 actionable gaps closed (7 missing, 1 partial); 11
+missing, 16 partial, and 9 out-of-scope remain open. First run: 2026-09-19.
+Last worked: 2026-09-19.
 
 ## Missing
 
-- [ ] https://openjdk.org/projects/amber/guides/lvti-style-guide#P1 to
+- [x] https://openjdk.org/projects/amber/guides/lvti-style-guide#P1 to
       #P4 and #G1 to #G4 (the reader-first principles for `var`: choose
       names that carry the information the type no longer shows, minimize
       the scope of `var` variables, use `var` where the initializer makes the
@@ -42,19 +43,44 @@ than as gaps.
       05-programming-constructs.adoc, after "Variable declarations"
       (05-programming-constructs.adoc:19).
 
-- [ ] https://openjdk.org/projects/amber/guides/lvti-style-guide#G6 (`var`
+      **Resolved.** Closed by `05-programming-constructs.adoc`, new "Local
+      variable type inference" section after "Variable declarations". States
+      that `var` MAY be used only where the reader loses nothing by it, then
+      gives four numbered rules: name the variable for what the type no longer
+      shows; keep `var` variables' scope small (cross-referencing "Variable
+      declarations"); prefer `var` where the initializer states the type, and
+      avoid it where a method's return type is not evident from its name; and
+      use `var` locals to break up long chained expressions, with an example.
+      Source added to `99-references.adoc`.
+
+- [x] https://openjdk.org/projects/amber/guides/lvti-style-guide#G6 (`var`
       combined with diamond or a generic method with no informative
       arguments infers `Object`, eg. `var list = List.of()` is
       `List<Object>`) is not addressed anywhere in the standard. Recommend
       placing in the same new "Local variable type inference" subsection.
 
-- [ ] https://openjdk.org/projects/amber/guides/lvti-style-guide#G7 (`var`
+      **Resolved.** Closed by the same "Local variable type inference" section
+      in `05-programming-constructs.adoc`. Rules that `var` MUST NOT be combined
+      with the diamond operator or a generic method unless the arguments supply
+      the type argument, and shows the `PriorityQueue<>()` and `List.of()` cases
+      that infer `Object` beside the corrected forms.
+
+- [x] https://openjdk.org/projects/amber/guides/lvti-style-guide#G7 (`var`
       with integer literals always infers `int`, and with a `float`
       initializer can silently change a former `double`) is not addressed
       anywhere in the standard. Recommend placing in the same new "Local
       variable type inference" subsection.
 
-- [ ] https://openjdk.org/projects/amber/guides/lvti-style-guide#G5 (`var`
+      **Resolved.** Closed by the same "Local variable type inference" section
+      in `05-programming-constructs.adoc`. Rules that `var` SHOULD NOT be used
+      with an integer literal where the intended type is not `int`, requires a
+      `long` to be declared explicitly or with an `L`-suffixed literal
+      (cross-referencing "Numeric literals", which gained an explicit anchor),
+      explains how a `float` initializer that an explicit `double` would widen
+      instead narrows under `var`, and lists the literals that are safe with
+      `var`.
+
+- [x] https://openjdk.org/projects/amber/guides/lvti-style-guide#G5 (`var`
       infers the concrete type, so programming to the interface still
       matters for fields, parameters, and return types) and
       https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md#use-general-types
@@ -63,17 +89,43 @@ than as gaps.
       anywhere in the standard. Recommend a new "Generics and collections"
       section in 06-types.adoc.
 
-- [ ] https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md#always-use-type-parameters
+      **Resolved.** Closed by `06-types.adoc`, new "Generics and collections"
+      section after "Arrays". Its opening rule says fields, parameters, and
+      return types SHOULD use the most general type that supports their use,
+      with an `ArrayList<User>` versus `List<User>` example, and explains
+      choosing between `Iterable`, `Collection`, and `List` by the promise
+      callers need. A following paragraph carries G5's concession that local
+      variables, including `var` locals, MAY use the concrete type. The `var`
+      section in `05-programming-constructs.adoc` points here for non-local
+      types. Twitter source added to `99-references.adoc`.
+
+- [x] https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md#always-use-type-parameters
       (no raw types; use a wildcard or a wide type where the type argument is
       unknown) is not addressed anywhere in the standard. Recommend placing
       in the same new "Generics and collections" section in 06-types.adoc.
 
-- [ ] https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md#favor-immutability
+      **Resolved.** Closed by the same "Generics and collections" section in
+      `06-types.adoc`. Rules that a parameterized type MUST NOT be used as a raw
+      type, explains that raw types disable compile-time checks and defer the
+      failure to a `ClassCastException`, and prescribes `List<?>` or a broad
+      type argument where the element type is unknown, with an example of each.
+
+- [x] https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md#favor-immutability
       (don't return mutable internal collections; return an immutable copy
       or an accessor instead) is not addressed anywhere in the standard.
       TS-7 covers immutability in general, but not the Java collection
       idioms. Recommend placing in the same new "Generics and collections"
       section in 06-types.adoc.
+
+      **Resolved.** Closed by the same "Generics and collections" section in
+      `06-types.adoc`. Rules that a method MUST NOT return a mutable collection
+      that is part of its object's internal state, with a `Team.getMembers()`
+      example returning `List.copyOf(members)`. Distinguishes `List.copyOf` and
+      its siblings (unmodifiable copies, which reject `null`) from
+      `Collections.unmodifiableList` (a live view), and adds the reverse case: a
+      stored collection argument SHOULD be copied. Links TS-7 (Code Design) for
+      immutability in general, using the JDK idioms rather than Twitter's Guava
+      `ImmutableMap.copyOf`.
 
 - [ ] https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md#clean-up-with-finally
       (release resources deterministically, even without checked
@@ -89,11 +141,19 @@ than as gaps.
       try-with-resources as a rule, so the wording will need a primary
       source such as the JLS.
 
-- [ ] https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md#when-interrupted-reset-thread-interrupted-state
+- [x] https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md#when-interrupted-reset-thread-interrupted-state
       (a caught `InterruptedException` MUST restore the interrupt flag with
       `Thread.currentThread().interrupt()`) is not addressed anywhere in the
       standard. Recommend placing in the "Exceptions" section,
       05-programming-constructs.adoc:157.
+
+      **Resolved.** Closed by a new paragraph and example at the end of the
+      "Exceptions" section in `05-programming-constructs.adoc`. Rules that a
+      caught `InterruptedException` MUST NOT be swallowed, explains that
+      catching it clears the interrupted status that code higher up the stack
+      (eg. a shutting-down thread pool) relies on, and requires either
+      propagating it or calling `Thread.currentThread().interrupt()`, shown in a
+      `queue.take()` example.
 
 - [ ] https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md#manage-threads-properly
       (manage the lifecycle of spawned threads, understand daemon versus
@@ -215,7 +275,7 @@ than as gaps.
       record accessor, and to an interface method that respecifies a
       superinterface method.
 
-- [ ] https://google.github.io/styleguide/javaguide.html#s6.2-caught-exceptions
+- [x] https://google.github.io/styleguide/javaguide.html#s6.2-caught-exceptions
       and https://source.android.com/docs/setup/contribute/code-style#dont-ignore-exceptions
       cover this more thoroughly than 05-programming-constructs.adoc:157 —
       specifically, what to do instead of swallowing an exception, in order
@@ -226,6 +286,18 @@ than as gaps.
       https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md#throw-appropriate-exception-types
       adds never declaring `throws Exception`, and hiding
       implementation-specific exception types behind a custom one.
+
+      **Resolved.** Closed by new content in the "Exceptions" section of
+      `05-programming-constructs.adoc`, after the existing empty-`catch`
+      example. Frames the empty `catch` block as the last resort, then lists the
+      alternatives in AOSP's order of preference: propagate, wrap at the
+      caller's level of abstraction passing the cause, substitute a documented
+      default, or rethrow unchecked, with a `ConfigurationException` example.
+      Adds Google's `AssertionError` rule for a declared checked exception the
+      arguments rule out, using `new String(bytes, "UTF-8")`. Adds Twitter's
+      rules: a method MUST NOT declare `throws Exception`, and SHOULD NOT expose
+      implementation-specific types such as `SQLException`. AOSP source added to
+      `99-references.adoc`.
 
 - [ ] https://source.android.com/docs/setup/contribute/code-style#dont-catch-generic-exception
       covers this more thoroughly than 05-programming-constructs.adoc:183 —

@@ -1,5 +1,6 @@
 = Types
 
+[#numeric-literals]
 == Numeric literals
 
 An uppercase `L` suffix MUST be used for long literals, eg. `3000000000L`, not `3000000000l`. This is because the lowercase `l` can be easily confused with the digit `1`.
@@ -53,6 +54,56 @@ String[] args
 // ✗
 String args[]
 ----
+
+[#generics-and-collections]
+== Generics and collections
+
+A field, method parameter, or return type SHOULD be declared with the most general type that supports what the code does with it — usually an interface such as `List`, `Map`, `Collection`, or `Iterable` — rather than a concrete implementation such as `ArrayList` or `HashMap`. A concrete type in a signature leaks an implementation detail into the API. Callers become able to depend on it, and the implementation can no longer change without breaking them.
+
+[source,java]
+----
+// ✗ Every implementation must return an ArrayList.
+ArrayList<User> getUsers();
+
+// ✓ Implementations are free to return any list, or a lazy view.
+List<User> getUsers();
+----
+
+Choose the general type by what callers need, not by what is available. `Iterable<User>` promises only iteration, `Collection<User>` adds size and containment, and `List<User>` adds ordering and indexed access. Returning a narrower promise leaves the implementation more room to change.
+
+Local variables are the exception. A local variable's type does not leak beyond the method, so a local MAY be declared with its concrete type, and a local declared with `var` necessarily is (see <<local-variable-type-inference,Local variable type inference>>).
+
+A parameterized type MUST NOT be used as a raw type. A raw type such as `List` rather than `List<String>` switches off the compiler's type checks for every use of the variable, and moves any mismatch from a compile-time error to a `ClassCastException` somewhere else at run time. Where the type argument is genuinely unknown, use a wildcard, eg. `List<?>`, or a broad type argument, eg. `List<Object>`, so the omission is explicit and still checked.
+
+[source,java]
+----
+List names = new ArrayList();            // ✗ Raw type.
+List<String> names = new ArrayList<>();  // ✓
+List<?> items = loadItems();             // ✓ Element type unknown.
+----
+
+A method MUST NOT return a mutable collection that is part of its object's internal state. A caller that modifies the returned collection modifies the object behind its back, bypassing whatever invariants the object maintains. Return an unmodifiable copy instead, or an unmodifiable view where the caller needs to see later changes.
+
+[source,java]
+----
+public final class Team {
+  private final List<Member> members = new ArrayList<>();
+
+  // ✗ Callers can add or remove members directly.
+  public List<Member> getMembers() {
+    return members;
+  }
+
+  // ✓ An unmodifiable snapshot.
+  public List<Member> getMembers() {
+    return List.copyOf(members);
+  }
+}
+----
+
+`List.copyOf`, `Set.copyOf`, and `Map.copyOf` (JDK 10 or later) return an unmodifiable copy, and reject `null` elements. `Collections.unmodifiableList` and its siblings return an unmodifiable _view_, which reflects later changes to the underlying collection. The same care applies in reverse: a constructor or setter that stores a collection passed to it SHOULD store a copy, so the caller cannot mutate the object's state through the reference it kept.
+
+The general case for immutability, beyond collections, is made in xref:007.adoc[*TS-7: Code Design*].
 
 == Strings
 
