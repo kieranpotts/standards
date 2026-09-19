@@ -4,10 +4,10 @@
 
 Wildcard imports, static or otherwise, SHOULD NOT be used.
 
-Imports SHOULD be grouped by:
+Imports SHOULD be grouped into the following categories.
 
-* Static imports
-* Non-static imports
+* Static imports.
+* Non-static imports.
 
 There SHOULD be exactly one blank line between the two groups to separate them. Within each group, imports SHOULD be sorted alphabetically based on the names of the imports. There SHOULD NOT be any other blank lines between import statements.
 
@@ -27,22 +27,26 @@ Inner assignment — assigning a variable as a side effect inside a larger expre
 
 == Classes and interfaces
 
-There SHOULD be a logical ordering to the contents of classes and other class-like constructs. There is no single "correct" ordering that works well for all classes, but the following order is a good starting point:
+There SHOULD be a logical ordering to the contents of classes and other class-like constructs. There is no single ordering that works well for all classes, but the following order is a good starting point.
 
-1. Class (`static`) variables
-2. Instance variables
-3. Constructors
-4. Methods
+1. Class (`static`) variables.
+2. Instance variables.
+3. Constructors.
+4. Methods.
 
-Class and instance fields MAY be ordered by visibility: first public, then protected, then package-scoped (no modifier), then private. But it is, generally, better to order and group methods logically, rather than by visibility (public, protected, private), type (static, instance), or by name (eg. alphabetical ordering). Authors SHOULD order the contents of a class in a way whatever way they feel most helps to understand the class's purpose and logic.
+Class and instance fields MAY be ordered by visibility: first public, then protected, then package-scoped (no modifier), then private. But it is, generally, better to order and group methods logically, rather than by visibility (public, protected, private), type (static, instance), or by name (eg. alphabetical ordering). Authors SHOULD order the contents of a class in whatever way they feel most helps to understand the class's purpose and logic.
 
 However, it is REQUIRED that methods of a class that share the same name, but which have different parameters, be grouped together. This requirement also applies to variadic constructors.
 
-Constructor and method declarations MUST be separated by a blank line. Constants and fields MAY be. (See *vertical whitespace*.)
+Constructor and method declarations MUST be separated by a blank line. Constants and fields MAY be.
 
-Every constructor in a `public` or `protected` class SHOULD be explicit — an implicit default constructor SHOULD NOT be relied upon in a class-like construct that forms part of a public API. Declaring the constructor explicitly forces a deliberate decision about its access level, and prevents a class from becoming publicly instantiable by accident.
+Every constructor in a `public` or `protected` class SHOULD be explicit. An implicit default constructor SHOULD NOT be relied upon in a class-like construct that forms part of a public API. Declaring the constructor explicitly forces a deliberate decision about its access level, and prevents a class from becoming publicly instantiable by accident.
 
-A utility class — one containing only `static` methods and constants, per <<class-and-interface-names,Class and interface names>> — SHOULD NOT have a `public` constructor. Declare its constructor `private` (or `protected` if the class is intended to be subclassed) instead. Instantiating a utility class serves no purpose, and a forgotten default constructor leaves it publicly instantiable by accident, which the explicit-constructor rule above does not by itself prevent — an explicit `public` constructor is still `public`.
+A utility class — one containing only `static` methods and constants — SHOULD NOT have a `public` constructor. Instead, explicitly declare its constructor `private` (or `protected` if the class is intended to be subclassed).
+
+A class that overrides `equals()` MUST also override `hashCode()`. The `equals()`/`hashCode()` contract requires that two objects considered equal by `equals()` produce the same hash code; violating this breaks the class's behavior in any hash-based collection (`HashMap`, `HashSet`, and similar), where an object may become unfindable even by a key that `equals()` says is identical to the one it was stored under.
+
+`Object.finalize` MUST NOT be overridden. Finalization is unreliable, and the finalization mechanism is scheduled for removal from the Java language.
 
 == Enums
 
@@ -69,19 +73,22 @@ private enum Answer {
 }
 ----
 
-Enums should be named using singular forms. The thinking is that you're not selecting multiple `Protocols`, but rather one `Protocol` of the possible choices.
+Enums should be named using singular forms.
 
 [source,java]
 ----
 enum Protocol { HTTP, HTTPS, FTP }
 ----
 
+Users of this enum will not be selecting multiple "protocols", but rather one "protocol" from the possible choices.
+
 == Modifiers
 
-Class and member modifiers, when present, SHOULD appear in the order recommended by the https://docs.oracle.com/javase/specs/jls/se17/html/index.html[Java Language Specification], which is:
+Class and member modifiers, when present, SHOULD appear in the order recommended by the https://docs.oracle.com/javase/specs/jls/se17/html/index.html[Java Language Specification], which is the following.
 
 ----
-public protected private abstract default static final sealed non-sealed transient volatile synchronized native strictfp
+public protected private abstract default static final
+sealed non-sealed transient volatile synchronized native strictfp
 ----
 
 For classes, the `public` access modifier MUST be added only if the class is intended to be used outside of its package.
@@ -138,7 +145,7 @@ There are no specific rules for formatting annotations on parameters or local va
 
 The `@Override` annotation MUST be used on all methods that are intended to override a method in a superclass or an interface.
 
-There is one exception: `@Override` MAY be omitted when the parent method is `@Deprecated`.
+There is one exception, which is that `@Override` MAY be omitted when the parent method is `@Deprecated`.
 
 == Static members
 
@@ -181,15 +188,11 @@ try {
 
 Avoid catching `java.lang.Exception`, `java.lang.Error`, or `java.lang.RuntimeException` directly. Catching one of these broad types risks silently swallowing a failure the `catch` block was never written to handle — a `NullPointerException` or an `OutOfMemoryError`, for example — that should be allowed to propagate rather than being absorbed by a handler meant for a narrower, expected failure. Catch the most specific exception type the code can meaningfully recover from instead.
 
-`Object.finalize` MUST NOT be overridden. Finalization is unreliable, and Java has scheduled the finalization mechanism for removal.
-
-A class that overrides `equals()` MUST also override `hashCode()`. The `equals()`/`hashCode()` contract requires that two objects considered equal by `equals()` produce the same hash code; violating this breaks the class's behavior in any hash-based collection (`HashMap`, `HashSet`, and similar), where an object may become unfindable even by a key that `equals()` says is identical to the one it was stored under.
-
 == Switch statements
 
 After a switch label (`case <label>:`, `default:`), there SHOULD be a line break, and then the indentation increased by one level (ie. two spaces) for the statement group.
 
-The comment `// fall through` SHOULD be included at the bottom of any statement group where execution will or _might_ continue into the next statement group. This special comment is NOT REQUIRED for the last statement group. It is also NOT REQUIRED for empty statement groups.
+The comment `// fall through` SHOULD be included at the bottom of any statement group where execution will or might continue into the next statement group. This special comment is NOT REQUIRED for the last statement group. It is also NOT REQUIRED for empty statement groups.
 
 [source,java]
 ----
@@ -206,11 +209,11 @@ switch (input) {
 }
 ----
 
-Each switch statement MUST include a `default` statement group, even if it has no code. Only a switch statement for an `enum` type MAY omit the `default` statement group, and only if it includes explicit cases that cover all possible values of the type (this enables static analysis tools to issue warnings if cases are missed).
+Each switch statement MUST include a `default` statement group, even if it has no code. Only a switch statement for an `enum` type MAY omit the `default` statement group, and only if it includes explicit cases that cover all possible values of the type. This enables static analysis tools to issue warnings if cases are missed.
 
 == Switch expressions
 
-Java also supports new-style, arrow-labeled switch syntax, which SHOULD be preferred over the old-style `case … :`/`break`/fall-through form above for new code. Each label is followed by `->` and either a single expression, a block, or a `throw` statement — never a `break` — and there is no fall-through between labels.
+Java also supports arrow-style switch syntax, which SHOULD be preferred over the old-style `case … :`/`break`/fall-through form for new code. Each label is followed by `->` and either a single expression, a block, or a `throw` statement — never a `break` — and there is no fall-through between labels.
 
 [source,java]
 ----
@@ -221,4 +224,4 @@ String result = switch (input) {
 };
 ----
 
-A switch _expression_ — one whose result is assigned or returned, as in the example above — MUST use the new-style arrow syntax; the old-style `case … :` form is not permitted there. A switch _statement_, which does not produce a value, MAY use either form, but arrow syntax is RECOMMENDED for consistency and to avoid unintended fall-through.
+A switch _expression_ — one whose result is assigned or returned, as in the example above — MUST use the new-style arrow syntax. A switch _statement_, which does not produce a value, MAY use either form, but arrow syntax is RECOMMENDED for consistency and to avoid unintended fall-through.
