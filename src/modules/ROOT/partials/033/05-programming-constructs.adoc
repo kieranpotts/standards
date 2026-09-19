@@ -1,19 +1,20 @@
 = Programming constructs
 
+[#import-statements]
 == Import statements
 
 Wildcard imports, static or otherwise, SHOULD NOT be used.
 
-Imports SHOULD be grouped into the following categories.
+Imports SHOULD be grouped into the following categories, in this order.
 
 * Static imports.
 * Non-static imports.
 
 There SHOULD be exactly one blank line between the two groups to separate them. Within each group, imports SHOULD be sorted alphabetically based on the names of the imports. There SHOULD NOT be any other blank lines between import statements.
 
-Import statements SHOULD NOT be line-wrapped. Import statements MAY exceed the column limits.
-
 Static imports SHOULD NOT be used for static nested classes. They SHOULD be imported with normal imports.
+
+Import statements MAY exceed the column limits, and MUST NOT be line-wrapped (see <<line-wrapping,Line-wrapping>>).
 
 == Variable declarations
 
@@ -29,16 +30,16 @@ Inner assignment — assigning a variable as a side effect inside a larger expre
 
 There SHOULD be a logical ordering to the contents of classes and other class-like constructs. There is no single ordering that works well for all classes, but the following order is a good starting point.
 
-1. Class (`static`) variables.
-2. Instance variables.
+1. Static fields.
+2. Instance fields.
 3. Constructors.
 4. Methods.
 
-Class and instance fields MAY be ordered by visibility: first public, then protected, then package-scoped (no modifier), then private. But it is, generally, better to order and group methods logically, rather than by visibility (public, protected, private), type (static, instance), or by name (eg. alphabetical ordering). Authors SHOULD order the contents of a class in whatever way they feel most helps to understand the class's purpose and logic.
+Class and instance fields MAY be ordered by visibility: first public, then protected, then package-scoped (no modifier), then private. But it is generally better to order and group methods logically, rather than by visibility (public, protected, private), type (static, instance), or by name (eg. alphabetical ordering). Authors SHOULD order the contents of a class in whatever way they feel most helps to understand the class's purpose and logic.
 
-However, it is REQUIRED that methods of a class that share the same name, but which have different parameters, be grouped together. This requirement also applies to variadic constructors.
+However, overloaded methods — methods of a class that share the same name, but which have different parameters — MUST be grouped together, with no other members between them. This requirement also applies to overloaded constructors.
 
-Constructor and method declarations MUST be separated by a blank line. Constants and fields MAY be.
+The blank lines between members are covered in <<vertical-whitespace,Vertical whitespace>>.
 
 Every constructor in a `public` or `protected` class SHOULD be explicit. An implicit default constructor SHOULD NOT be relied upon in a class-like construct that forms part of a public API. Declaring the constructor explicitly forces a deliberate decision about its access level, and prevents a class from becoming publicly instantiable by accident.
 
@@ -46,7 +47,7 @@ A utility class — one containing only `static` methods and constants — SHOUL
 
 A class that overrides `equals()` MUST also override `hashCode()`. The `equals()`/`hashCode()` contract requires that two objects considered equal by `equals()` produce the same hash code; violating this breaks the class's behavior in any hash-based collection (`HashMap`, `HashSet`, and similar), where an object may become unfindable even by a key that `equals()` says is identical to the one it was stored under.
 
-`Object.finalize` MUST NOT be overridden. Finalization is unreliable, and the finalization mechanism is scheduled for removal from the Java language.
+`Object.finalize` MUST NOT be overridden. Finalization is unreliable, and the finalization mechanism has been deprecated for removal from the Java platform since JDK 18.
 
 == Enums
 
@@ -57,7 +58,7 @@ An enum class with no methods and no documentation on its constants MAY be forma
 private enum Suit { CLUBS, HEARTS, SPADES, DIAMONDS }
 ----
 
-Otherwise, the enum constants SHOULD be listed on separate lines, with a comma after each constant, and the opening brace on the same line as the enum name. There SHOULD NOT be any blank lines within enum bodies, except where required around comments.
+Otherwise, the enum constants SHOULD be listed on separate lines, with a comma after each constant except the last, and the opening brace on the same line as the enum name. There SHOULD NOT be any blank lines within enum bodies, except where required around comments.
 
 [source,java]
 ----
@@ -73,18 +74,11 @@ private enum Answer {
 }
 ----
 
-Enums should be named using singular forms.
-
-[source,java]
-----
-enum Protocol { HTTP, HTTPS, FTP }
-----
-
-Users of this enum will not be selecting multiple "protocols", but rather one "protocol" from the possible choices.
+The naming of enums is covered in <<class-and-interface-names,Class, interface, record, and enum names>>.
 
 == Modifiers
 
-Class and member modifiers, when present, SHOULD appear in the order recommended by the https://docs.oracle.com/javase/specs/jls/se17/html/index.html[Java Language Specification], which is the following.
+Class and member modifiers, when present, SHOULD appear in the following order, which combines the orders recommended by the https://docs.oracle.com/javase/specs/jls/se17/html/index.html[Java Language Specification] for classes, fields, and methods.
 
 ----
 public protected private abstract default static final
@@ -93,11 +87,11 @@ sealed non-sealed transient volatile synchronized native strictfp
 
 For classes, the `public` access modifier MUST be added only if the class is intended to be used outside of its package.
 
-For members, access modifiers SHOULD be added in most cases. It is good practice to be explicit about the access level of class methods and data members, even where the default access level is appropriate.
+For members, an access modifier SHOULD be declared in most cases, so that each member's access level is an explicit choice.
 
-Most instance variables SHOULD be `private`, to adhere to the principle of data hiding. Methods, most of the time, will be `public`, unless the method is intended to be used only within the current class or a derived classes, in which case it SHOULD be `protected`, or `private` on `final` classes.
+Most instance fields SHOULD be `private`, to adhere to the principle of data hiding. Most methods will be `public`, unless the method is intended to be used only within the current class or its subclasses, in which case it SHOULD be `protected` — or `private`, in a `final` class.
 
-Generally, package-scoped members – which have no modifier, as this is the default scope – SHOULD be avoided, particularly in applications. However, using package-level visibility can be useful in some cases. It is particularly useful in the context of libraries, and also in the implementation of the aggregate root design pattern.
+Package-private members — which have no access modifier, as this is the default access level — SHOULD generally be avoided, particularly in applications. However, package-private access can be useful in some cases, particularly in libraries, and in the implementation of the aggregate root design pattern.
 
 == Annotations
 
@@ -162,7 +156,7 @@ somethingThatReturnsFoo().doSomething(); // Very bad
 
 == Exceptions
 
-It is very rarely correct to do nothing in response to a caught exception. Where you do this, the reason MUST be documented in a comment within the `catch` block.
+It is very rarely correct to do nothing in response to a caught exception. Where a `catch` block does nothing, the reason MUST be documented in a comment within it.
 
 [source,java]
 ----
@@ -176,7 +170,7 @@ try {
 return handleTextResponse(response);
 ----
 
-In tests, the following is a very common idiom for ensuring that the code under test _does_ throw an exception of the `expected` type. A comment within the `catch` block is not necessary here.
+In tests, the following is a common idiom for ensuring that the code under test _does_ throw an exception of the `expected` type. The variable name `expected` explains the empty `catch` block, so a comment is not necessary here. Where the test framework provides an assertion for this, such as JUnit's `assertThrows`, that assertion SHOULD be preferred.
 
 [source,java]
 ----
@@ -186,7 +180,7 @@ try {
 } catch (NoSuchElementException expected) {}
 ----
 
-Avoid catching `java.lang.Exception`, `java.lang.Error`, or `java.lang.RuntimeException` directly. Catching one of these broad types risks silently swallowing a failure the `catch` block was never written to handle — a `NullPointerException` or an `OutOfMemoryError`, for example — that should be allowed to propagate rather than being absorbed by a handler meant for a narrower, expected failure. Catch the most specific exception type the code can meaningfully recover from instead.
+`java.lang.Exception`, `java.lang.Error`, and `java.lang.RuntimeException` SHOULD NOT be caught directly. Catching one of these broad types risks silently swallowing a failure the `catch` block was never written to handle — a `NullPointerException` or an `OutOfMemoryError`, for example — that should be allowed to propagate rather than being absorbed by a handler meant for a narrower, expected failure. Instead, catch the most specific exception type the code can meaningfully recover from.
 
 == Switch statements
 
@@ -209,11 +203,11 @@ switch (input) {
 }
 ----
 
-Each switch statement MUST include a `default` statement group, even if it has no code. Only a switch statement for an `enum` type MAY omit the `default` statement group, and only if it includes explicit cases that cover all possible values of the type. This enables static analysis tools to issue warnings if cases are missed.
+Each switch statement MUST include a `default` statement group, even if it has no code. Only a switch statement over an `enum` or `sealed` type MAY omit the `default` statement group, and only if it includes explicit cases that cover all possible values of the type. This enables static analysis tools to issue warnings if cases are missed.
 
-== Switch expressions
+== Arrow-style switch
 
-Java also supports arrow-style switch syntax, which SHOULD be preferred over the old-style `case … :`/`break`/fall-through form for new code. Each label is followed by `->` and either a single expression, a block, or a `throw` statement — never a `break` — and there is no fall-through between labels.
+Java also supports arrow-style switch syntax (JDK 14 or later). Each label is followed by `->` and either a single expression, a block, or a `throw` statement — never a `break` — and there is no fall-through between labels.
 
 [source,java]
 ----
