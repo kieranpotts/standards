@@ -49,7 +49,7 @@ To form a name in any of these styles from a phrase of ordinary words, follow th
 
 1. Transliterate the phrase to plain ASCII (eg. "Müller" to "Mueller") and remove any apostrophes (eg. "Müller's algorithm" to "Muellers algorithm").
 
-2. Split the result into words at space and punctuation boundaries, including hyphens (eg. "non-blocking" becomes "non" and "blocking").
+2. Split the result into words at space and punctuation boundaries, including hyphens (eg. "non-blocking" becomes "non" and "blocking"). A word that is already written in camel case in common usage SHOULD also be split into its parts (eg. "AdWords" becomes "ad" and "words"). This does not apply to a word whose capitalization follows no convention, such as "iOS", which stays one word.
 
 3. Lowercase every word, including acronyms and abbreviations (eg. "URL" becomes "url").
 
@@ -58,6 +58,10 @@ To form a name in any of these styles from a phrase of ordinary words, follow th
 5. Join the words, delimited by an underscore for UPPER_SNAKE_CASE, and with no delimiter for other conventions.
 
 Because acronyms are lowercased before the style is applied, they are treated as ordinary words, eg. `UrlConnection` and `parseXmlDocument`, not `URLConnection` and `parseXMLDocument`.
+
+Digits have no case, so two adjacent numbers cannot be told apart once their separators are removed. In the rare case where a name must contain them, such as a multipart version number, they MAY be separated with underscores, eg. `guava33_4_6` rather than `guava3346`.
+
+Where the English spelling of a word is itself ambiguous about hyphenation, both resulting names are correct. "Nonempty" and "non-empty" are both standard, so `checkNonempty` and `checkNonEmpty` are both valid, though a codebase SHOULD settle on one.
 
 .Examples of names formed from phrases
 [cols="2,2,2,2"]
@@ -155,7 +159,18 @@ Fields, variables (including local variables), and parameters MUST be named usin
 
 These SHOULD generally be nouns or noun phrases, eg. `index`, `height`, `computedValues`.
 
-One-character parameter names in public methods SHOULD be avoided.
+One-character names SHOULD be avoided for fields, variables, and parameters alike, since a single letter tells the reader nothing about what the value is for. The exception is a short-lived throwaway variable whose role is obvious from its immediate context, such as a loop index (`i`, `j`, `k`). In a public method, where the parameter names form part of the documented API, one-character parameter names SHOULD NOT be used at all.
+
+[source,java]
+----
+// ✗
+private final int a;
+private final String m;
+
+// ✓
+private final int ageInYears;
+private final String maidenName;
+----
 
 == Constant names
 
@@ -213,4 +228,4 @@ Type variables SHOULD be named in one of two ways.
 
 Annotation types are types, and MUST be named using UpperCamelCase (see <<naming-styles,Naming styles>>), like any other class-like construct, eg. `@CheckReturnValue`. This is the convention used throughout the Java standard library, eg. `@Override`, `@FunctionalInterface`.
 
-Annotation names MAY be verbs or nouns, depending on their purpose.
+The case is settled, but there is no established convention for the choice of words. An annotation name MAY be a verb phrase (`@CheckReturnValue`), a noun (`@Entity`), or an adjective (`@Deprecated`), depending on its purpose.

@@ -255,6 +255,7 @@ class ConfigReader {
 }
 ----
 
+[#annotations]
 == Annotations
 
 A declaration annotation MUST precede all other modifiers of the element it annotates, eg. `@Deprecated public static`, not `public @Deprecated static`. Type-use annotations are the exception, and are placed as described below.
@@ -455,6 +456,7 @@ A project that already depends on Guava MAY use its `Preconditions` class (`chec
 
 The `assert` statement SHOULD NOT be used. Assertions are disabled by default, and enabled only when the JVM is started with `-ea`, so an invariant checked with `assert` is typically not checked at all in production, which is where the check matters. An argument check MUST NOT use `assert`. An internal invariant that is worth checking is worth checking always, with an explicit test that throws `IllegalStateException` or `AssertionError`.
 
+[#switch-statements]
 == Switch statements
 
 After a switch label (`case <label>:`, `default:`), there SHOULD be a line break, and then the indentation increased by one level (ie. two spaces) for the statement group.
@@ -492,3 +494,19 @@ String result = switch (input) {
 ----
 
 A switch _expression_ — one whose result is assigned or returned, as in the example above — MUST use the new-style arrow syntax. A switch _statement_, which does not produce a value, MAY use either form, but arrow syntax is RECOMMENDED for consistency and to avoid unintended fall-through.
+
+As with a colon-style switch, the contents of the switch block are indented by two spaces, and each switch rule starts at that indentation. A rule MAY sit on a single line, as in the example above, provided it fits within the column limits. A rule whose arrow is followed by a non-empty block MUST break after the opening brace, and the block's contents are indented a further two spaces relative to the rule's label.
+
+[source,java]
+----
+switch (event) {
+  case Started s -> log.info("Started.");
+  case Failed f -> {
+    log.error("Failed.", f.cause());
+    scheduleRetry(f);
+  }
+  default -> {}
+}
+----
+
+The exhaustiveness rule in <<switch-statements,Switch statements>> applies to _every_ switch, whichever syntax it uses. Switch expressions, and switches that match patterns, are already required by the compiler to be exhaustive. An arrow-style switch statement over constants is not, and MUST include a `default` rule, even an empty one, unless its cases cover every value of an `enum` or `sealed` type.

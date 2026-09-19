@@ -11,7 +11,8 @@ A multi-line string literal SHOULD use a text block (`""" … """`, JDK 15 or la
 
 [source,java]
 ----
-String html = """
+String html =
+    """
     <html>
       <body>
         <p>Hello, world.</p>
@@ -20,7 +21,9 @@ String html = """
     """;
 ----
 
-The opening `"""` is always followed by a line break, as the language requires. The closing `"""` MUST be on its own line, indented to match the indentation of the text block's content. Each line of text within the block MUST be indented at least as much as the closing delimiter, since the least-indented line determines how much indentation is stripped from every line.
+The opening `"""` MUST begin a new line. That line follows the same indentation rules as any other continuation line, or MAY start at the left margin with no indentation at all, which leaves the most room for wide content. The opening `"""` is always followed by a line break, as the language requires.
+
+The closing `"""` MUST be on a new line with the same indentation as the opening `"""`, and MAY be followed on that line by further code, eg. `""".formatted(name);`. Each line of text within the block MUST be indented at least as much as the two delimiters. The compiler strips the indentation of the least-indented line from every line, so a line indented further than the delimiters keeps the extra spaces at the start of that line in the string's value.
 
 Unlike an ordinary string literal, a text block's contents MAY exceed the column limits, since reflowing the text would change the string's value.
 
@@ -165,7 +168,7 @@ final var baz = getFoo()
     .orElse(null);
 ----
 
-A method whose return type is not `Optional<X>` MUST NOT return `null` under any circumstance. Where a meaningful value genuinely cannot be produced, throw an exception instead of returning `null` from a non-`Optional` return type. The possibility of an absent return value MUST always be communicated using type `Optional<X>`.
+A method whose return type is not `Optional<X>` MUST NOT return `null`, except in the narrow cases, described at the end of this section, where its return type is annotated `@Nullable`. Where a meaningful value genuinely cannot be produced, throw an exception instead of returning `null` from a non-`Optional` return type. Outside those cases, the possibility of an absent return value MUST be communicated using type `Optional<X>`.
 
 `Optional` does not eliminate `NullPointerException` instances entirely. Java gives no guarantee that an `Optional` reference itself is not `null`.
 
@@ -202,4 +205,23 @@ A number of annotation libraries exist to make nullability explicit in code that
 | `lombok`
 |===
 
-None of these libraries is bulletproof. Each works differently, and none can guarantee null-safety the way a language with built-in non-nullable types can. But where `Optional` does not fit, an annotation library is the best mechanism Java offers.
+None of these libraries is bulletproof. Each works differently, and none can guarantee null-safety the way a language with built-in non-nullable types can. But where `Optional` does not fit, an annotation library is the best mechanism Java offers. A codebase SHOULD use a single library throughout.
+
+Every reference is non-null by default. A field, parameter, local variable, or return value that may hold `null` MUST be annotated `@Nullable`, whatever its visibility, including `private` fields and methods. The absence of the annotation is then a statement that the value is never `null`, which a reader, and a static-analysis tool, can rely on. Where the library's annotation is a type-use annotation, it is placed immediately before the type (see <<annotations,Annotations>>).
+
+[source,java]
+----
+class Database {
+  private @Nullable Connection connection;
+
+  @Nullable Connection getConnection() {
+    return connection;
+  }
+
+  void setConnection(@Nullable Connection connection) {
+    this.connection = connection;
+  }
+}
+----
+
+The annotation does not relax the rule for return values given earlier in this section. A method's return type is `Optional<X>` wherever it can be. The `@Nullable` return type is for the cases where it cannot: an implementation of an interface from outside the codebase whose contract returns `null`, such as `Map.get`, and code not yet migrated to `Optional`.

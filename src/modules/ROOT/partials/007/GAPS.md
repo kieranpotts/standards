@@ -5,6 +5,11 @@ resources:
 
 - partials/002/06-habitability.adoc:47-73 (the "Code design" section of
   TS-2's Habitability chapter)
+- https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md
+  (Twitter Commons, Java Style Guide; added 2026-09-19)
+- https://www.oracle.com/java/technologies/javase/codeconventions-programmingpractices.html
+  (Oracle, Code Conventions for the Java Programming Language, chapter 10;
+  added 2026-09-19)
 
 **Assessment.** The reference excerpt is narrow — 27 lines on naming,
 terminology, magic, and documentation — and almost entirely within TS-7's
@@ -13,7 +18,20 @@ already covered, in some cases nearly verbatim. What remains is one clearly
 missing topic (avoiding implicit "magic" behavior) and several places where
 TS-2 states a sharper or broader rule than TS-7's existing treatment.
 
-**Status:** All 5 gaps closed. Last run: 2026-09-05.
+The Twitter and Oracle items were added on 2026-09-19. They are
+language-neutral code-design points found during TS-33 (Java)'s gap analysis,
+which the user confirmed out of scope for TS-33 and asked to record here.
+Most of that material is already covered by TS-7: magic numbers and named
+constants (05-expressiveness.adoc:83), DRY (03-decomposition.adoc:126), the
+Law of Demeter (10-object-oriented-design.adoc:127), premature optimization
+(03-decomposition.adoc:187), oversized classes (Twitter's "Stay out of
+Texas", covered by 03-decomposition.adoc), consistency
+(09-code-structure.adoc:50), and function length. On function length TS-7
+deliberately takes no numeric position (03-decomposition.adoc:62), so AOSP's
+40-line guideline is not recorded as a gap. Only the items below are new.
+
+**Status:** The 5 original gaps are closed (last run 2026-09-05). 3 missing
+and 1 partial gap, added 2026-09-19 from TS-33's analysis, are open.
 
 ## Missing
 
@@ -59,6 +77,32 @@ TS-2 states a sharper or broader rule than TS-7's existing treatment.
       existing pattern for a given kind of problem over a marginally better
       new one, reserving new patterns for genuinely new kinds of problems.
       Added a corresponding TL;DR bullet.
+
+- [ ] https://www.oracle.com/java/technologies/javase/codeconventions-programmingpractices.html#333
+      (10.5.2: return a boolean expression directly, eg. `return
+      booleanExpression;` rather than `if (booleanExpression) { return true; }
+      else { return false; }`) is not addressed anywhere in the standard.
+      "Syntax and control structures" (05-expressiveness.adoc:88) covers
+      guard clauses and negated conditions, but not redundant boolean
+      branching. Recommend placing in that section.
+
+- [ ] https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md#superfluous-temporary-variables
+      (a variable that is assigned and immediately returned only clutters the
+      code; return the expression) and #unneeded-assignment (don't initialize
+      a variable to a placeholder such as `null` that every path overwrites;
+      declare it without an initializer so the compiler checks definite
+      assignment) are not addressed anywhere in the standard. Recommend
+      placing in "Syntax and control structures" (05-expressiveness.adoc:88).
+      TS-7 may want to reconcile the first with the opposite advice, to
+      introduce an explaining variable where it names a concept.
+
+- [ ] https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md#include-units-in-variable-names
+      (put the unit of a quantity in its name, eg. `pollIntervalMs`,
+      `fileSizeGb`, or better, carry the unit in the type) is not addressed
+      in "Naming things". The only mention of units is
+      07-comments.adoc:88, which says comments state the units a number is
+      measured in; it does not say names should. Recommend placing in
+      "Naming things" (05-expressiveness.adoc:26).
 
 ## Partial
 
@@ -114,6 +158,14 @@ TS-2 states a sharper or broader rule than TS-7's existing treatment.
       the clarity-over-brevity rule — omit words that carry no information —
       with a worked example (`userAccountData` vs. `userAccount`) showing
       that favoring clarity is not license to pad names with empty words.
+
+
+- [ ] https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md#dont-embed-metadata-in-variable-names
+      covers this more thoroughly than 05-expressiveness.adoc:68-71 —
+      specifically, it names the two kinds of metadata to leave out: the
+      variable's type (`idToUserMap`, `valueString`; prefer `usersById`,
+      `value`) and its scope (`_value`, `mValue`). TS-7 only says to omit
+      words that carry no information, with the `userAccountData` example.
 
 ## Out-of-scope
 

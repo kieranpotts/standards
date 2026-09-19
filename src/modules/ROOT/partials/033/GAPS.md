@@ -26,9 +26,10 @@ instead, and is listed as out-of-scope. Several reference rules conflict with
 deliberate TS-33 choices, and those are also listed as out-of-scope rather
 than as gaps.
 
-**Status:** 24 of 35 actionable gaps closed (all 18 missing, 6 partial); 11
-partial and 9 out-of-scope remain open. First run: 2026-09-19. Last worked:
-2026-09-19 (third batch).
+**Status:** Fully worked. All 35 actionable gaps are closed (18 missing, 17
+partial), and all 9 out-of-scope items were confirmed by the user. Items
+belonging to other standards were recorded in the GAPS.md files of TS-7,
+TS-13, TS-47, and TS-57. First run: 2026-09-19. Last worked: 2026-09-19.
 
 ## Missing
 
@@ -332,7 +333,7 @@ partial and 9 out-of-scope remain open. First run: 2026-09-19. Last worked:
 
 ## Partial
 
-- [ ] https://google.github.io/styleguide/javaguide.html#s4.5.1-line-wrapping-where-to-break
+- [x] https://google.github.io/styleguide/javaguide.html#s4.5.1-line-wrapping-where-to-break
       and #s4.5.2-line-wrapping-indent cover this more thoroughly than
       04-code-style.adoc:24 — specifically, breaking before `&` in type
       bounds and `|` in multi-catch, treating the enhanced-`for` colon like
@@ -345,7 +346,21 @@ partial and 9 out-of-scope remain open. First run: 2026-09-19. Last worked:
       https://www.oracle.com/java/technologies/javase/codeconventions-indentation.html
       (4.2) adds layouts for wrapped ternary expressions.
 
-- [ ] https://google.github.io/styleguide/javaguide.html#s4.6.2-horizontal-whitespace
+      **Resolved.** "Line-wrapping" in `04-code-style.adoc` now covers every
+      point in the item. The break-before bullet adds `&` in type bounds and `|`
+      in multi-catch. The break-after bullet treats the enhanced-`for` colon
+      like an assignment. The lambda bullet now also covers switch-rule arrows,
+      forbidding a break next to either arrow except after one followed by a
+      single unbraced expression. Record class names join method and constructor
+      names in staying attached to `(`. The continuation rule allows equal
+      indentation only for syntactically parallel elements. New paragraphs with
+      examples require one call per line in a wrapped method chain (Twitter's
+      `ImmutableList` builder example) and one parameter per line in a wrapped
+      declaration. A wrapped conditional expression breaks before `?` and `:`;
+      of Oracle 4.2's three layouts, that is the one consistent with the
+      standard's break-before-operators rule.
+
+- [x] https://google.github.io/styleguide/javaguide.html#s4.6.2-horizontal-whitespace
       covers this more thoroughly than 04-code-style.adoc:207 —
       specifically, it states that a single space appears _only_ in the
       listed places, that `::` and the dot separator take no spaces, and
@@ -355,12 +370,30 @@ partial and 9 out-of-scope remain open. First run: 2026-09-19. Last worked:
       (8.2) adds no space between a unary operator and its operand, and no
       space between a method name and its `(`.
 
-- [ ] https://google.github.io/styleguide/javaguide.html#s4.8.4.1-switch-indentation
+      **Resolved.** "Horizontal whitespace" in `04-code-style.adoc` now says the
+      listed spaces appear only in those places, apart from within literals,
+      comments, and Javadoc. It adds the switch-rule arrow and a space between
+      `//` and the comment's text, plus a space between a type annotation and
+      `[]` or `...`. A new "no space" list covers `.` and `::`, a method name
+      and its `(` (with Oracle 8.2's point that this distinguishes calls from
+      keywords), and a unary operator and its operand.
+
+- [x] https://google.github.io/styleguide/javaguide.html#s4.8.4.1-switch-indentation
       and #s4.8.4.3-switch-default cover this more thoroughly than
       05-programming-constructs.adoc:208 — specifically, how arrow-style
       switch rules are indented and when one may sit on a single line, and
       that _every_ switch, not only a colon-style switch statement
       (05-programming-constructs.adoc:206), is exhaustive.
+
+      **Resolved.** Closed by new content at the end of "Arrow-style switch" in
+      `05-programming-constructs.adoc`, and a new anchor on "Switch statements".
+      Switch rules are indented like colon-style labels, and MAY sit on one line
+      within the column limits. A rule with a non-empty block MUST break after
+      `{` and indents its contents a further two spaces, shown with a
+      pattern-matching example. The exhaustiveness rule now explicitly covers
+      every switch: expressions and pattern switches are exhaustive by language
+      rule, and arrow-style statements over constants MUST have a `default`
+      unless they cover an `enum` or `sealed` type.
 
 - [x] https://google.github.io/styleguide/javaguide.html#s4.8.5.3-method-annotation-style
       and #s4.8.5.2-class-annotation-style cover this more thoroughly than
@@ -454,56 +487,116 @@ partial and 9 out-of-scope remain open. First run: 2026-09-19. Last worked:
       habitually appended to the end, since that order is chronological rather
       than logical, and should sit beside related members.
 
-- [ ] https://google.github.io/styleguide/javaguide.html#s5.3-camel-case
+- [x] https://google.github.io/styleguide/javaguide.html#s5.3-camel-case
       covers this more thoroughly than 03-naming-conventions.adoc:16 —
       specifically, splitting words that already look camel-cased in common
       usage ("AdWords" becomes "ad words"), underscores between adjacent
       numbers (eg. `guava33_4_6`), and both forms being correct for
       ambiguously hyphenated words.
 
-- [ ] https://www.oracle.com/java/technologies/javase/codeconventions-namingconventions.html#15429
+      **Resolved.** The naming procedure in "Naming styles" in
+      `03-naming-conventions.adoc` now tells step 2 to split words already
+      camel-cased in common usage ("AdWords" becomes "ad" and "words"),
+      excepting conventionless forms such as "iOS". New paragraphs after the
+      procedure allow underscores between adjacent numbers (`guava33_4_6`), and
+      say both names are correct for ambiguously hyphenated words
+      (`checkNonempty` and `checkNonEmpty`), with a codebase settling on one.
+
+- [x] https://www.oracle.com/java/technologies/javase/codeconventions-namingconventions.html#15429
       and https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md#extremely-short-variable-names-should-be-reserved-for-instances-like-loop-indices
       cover this more thoroughly than 03-naming-conventions.adoc:157 —
       specifically, one-character names are avoided for all variables, not
       only public-method parameters, except throwaway variables such as
       loop indices.
 
-- [ ] https://google.github.io/styleguide/javaguide.html#s4.8.9-text-blocks
+      **Resolved.** The one-line rule in "Field, variable, and parameter names"
+      in `03-naming-conventions.adoc` was replaced. One-character names SHOULD
+      be avoided for all fields, variables, and parameters, except short-lived
+      throwaway variables such as loop indices. The stricter existing rule for
+      public-method parameters is kept. Twitter's `ageInYears` / `maidenName`
+      example is included.
+
+- [x] https://google.github.io/styleguide/javaguide.html#s4.8.9-text-blocks
       covers this differently from 06-types.adoc:22 — Google puts the
       closing `"""` at the same indentation as the _opening_ line, allows
       the opening line to sit at the left margin, and allows code after the
       closing delimiter. TS-33 aligns the closing `"""` with the content.
       Needs a decision on which rule to keep.
 
-- [ ] https://google.github.io/styleguide/javaguide.html#s7.1.3-javadoc-block-tags
+      **Resolved.** The user chose to adopt Google's rule (2026-09-19). "Text
+      blocks" in `06-types.adoc` now says the opening `"""` MUST begin a new
+      line, indented as a continuation line or at the left margin. The closing
+      `"""` MUST sit on a new line at the same indentation as the opening one,
+      and MAY be followed by code such as `.formatted(name)`. Content lines are
+      indented at least as far as the delimiters, and the section explains that
+      further indentation stays in the string's value. The example now puts
+      `"""` on its own line after `String html =`. The previous rule, which
+      aligned the closing delimiter with the content, was replaced.
+
+- [x] https://google.github.io/styleguide/javaguide.html#s7.1.3-javadoc-block-tags
       conflicts with 07b-javadoc.adoc:166 — for Markdown Javadoc, Google
       indents block-tag continuation lines by exactly _two_ spaces, because
       four can start a code block. TS-33 says four spaces for both
       notations.
 
-- [ ] https://google.github.io/styleguide/javaguide.html#s7.1.2-javadoc-paragraphs
+      **Resolved.** The user chose two spaces for Markdown and four for classic
+      Javadoc (2026-09-19). "Block tags" in `07b-javadoc.adoc` now indents
+      block-tag continuation lines exactly two spaces from the `@` in Markdown
+      Javadoc and four in classic HTML Javadoc. It explains that four spaces can
+      start a Markdown code block, and gives a `///` `@param` example.
+
+- [x] https://google.github.io/styleguide/javaguide.html#s7.1.2-javadoc-paragraphs
       covers this more thoroughly than 07b-javadoc.adoc:118 — specifically,
       block-level HTML elements such as `<ul>` and `<table>` are not
       preceded by `<p>` in classic Javadoc.
 
-- [ ] https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md#nullable
+      **Resolved.** "Classic HTML Javadoc comments" in `07b-javadoc.adoc` now
+      says the tags of other block-level HTML elements (`<ul>`, `<ol>`,
+      `<table>`, `<pre>`) begin their own block and MUST NOT be preceded by
+      `<p>`.
+
+- [x] https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md#nullable
       covers this more thoroughly than 06-types.adoc:123 — specifically,
       treating non-null as the default and annotating every nullable
       variable, parameter, and return value, even private ones.
 
-- [ ] https://google.github.io/styleguide/javaguide.html#s4.4-column-limit
+      **Resolved.** The user chose to annotate everything, including return
+      values, alongside `Optional` (2026-09-19). New paragraphs at the end of
+      "Nullability" in `06-types.adoc` make every reference non-null by default.
+      Any field, parameter, local, or return value that may be `null` MUST be
+      annotated `@Nullable`, whatever its visibility, with type-use placement
+      per "Annotations" (which gained an anchor), using Twitter's `Database`
+      example. A codebase SHOULD use one annotation library. To keep the section
+      consistent, the existing "MUST NOT return `null` under any circumstance"
+      sentence now carves out `@Nullable` returns, limited to implementations of
+      external contracts that return `null` (eg. `Map.get`) and code not yet
+      migrated to `Optional`. `Optional` remains the required mechanism
+      everywhere else.
+
+- [x] https://google.github.io/styleguide/javaguide.html#s4.4-column-limit
       covers this more thoroughly than 04-code-style.adoc:21 —
       specifically, very long identifiers are an allowed exception, and the
       limit counts Unicode code points, not display width.
 
-- [ ] https://google.github.io/styleguide/javaguide.html#s4.6.1-vertical-whitespace
+      **Resolved.** "Line length (column limits)" in `04-code-style.adoc` now
+      names very long identifiers as an allowed exception. A new paragraph
+      defines a character as one Unicode code point regardless of display width,
+      and allows earlier wrapping for fullwidth characters.
+
+- [x] https://google.github.io/styleguide/javaguide.html#s4.6.1-vertical-whitespace
       covers this more thoroughly than 04-code-style.adoc:197 —
       specifically, a blank line before the first member or after the last
       is neither encouraged nor discouraged. TS-33 is silent on it.
 
+      **Resolved.** "Vertical whitespace" in `04-code-style.adoc` now says a
+      blank line before a class's first member or after its last is neither
+      required nor forbidden. The existing SHOULD NOT on multiple consecutive
+      blank lines is deliberately stricter than Google's "permitted" and was
+      left unchanged.
+
 ## Out-of-scope
 
-- [ ] https://www.oracle.com/java/technologies/javase/codeconventions-programmingpractices.html#1255
+- [x] https://www.oracle.com/java/technologies/javase/codeconventions-programmingpractices.html#1255
       (magic numbers) and #333 (return a boolean expression directly), and
       https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md#superfluous-temporary-variables,
       #unneeded-assignment, #extract-constants-whenever-it-makes-sense,
@@ -514,13 +607,28 @@ partial and 9 out-of-scope remain open. First run: 2026-09-19. Last worked:
       partials/007/05-expressiveness.adoc:12 on magic numbers). Flagged for
       the user to confirm or overrule.
 
-- [ ] https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md#include-units-in-variable-names
+      **Confirmed out-of-scope.** 2026-09-19. General code design belongs to
+      TS-7 (Code Design), and the user asked for the uncovered points to be
+      recorded there. TS-7 already covers magic numbers and named constants,
+      DRY, the Law of Demeter, premature optimization, and oversized classes
+      ("Stay out of Texas"). Recorded in
+      `src/modules/ROOT/partials/007/GAPS.md`: returning a boolean expression
+      directly (Missing), and superfluous temporary variables and unneeded
+      assignment (Missing).
+
+- [x] https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md#include-units-in-variable-names
       and #dont-embed-metadata-in-variable-names (put units in names, and
       don't put the type or scope in names) cover this, but naming advice
       that applies to any language plausibly belongs in TS-7's "Naming
       things". Flagged for the user to confirm or overrule.
 
-- [ ] https://google.github.io/styleguide/javaguide.html#s4.8.6.2-todo-comments,
+      **Confirmed out-of-scope.** 2026-09-19. Language-neutral naming advice
+      belongs to TS-7 (Code Design). Recorded in
+      `src/modules/ROOT/partials/007/GAPS.md`: units in names (Missing), and
+      leaving type and scope out of names (Partial, against TS-7's existing
+      "omit words that carry no information" rule).
+
+- [x] https://google.github.io/styleguide/javaguide.html#s4.8.6.2-todo-comments,
       https://source.android.com/docs/setup/contribute/code-style#use-todo-comments,
       https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md#leave-no-todo-unassigned,
       and https://www.oracle.com/java/technologies/javase/codeconventions-programmingpractices.html#395
@@ -529,14 +637,29 @@ partial and 9 out-of-scope remain open. First run: 2026-09-19. Last worked:
       disagree: Google avoids naming a person, and Twitter requires an owner.
       Flagged for the user to confirm or overrule.
 
-- [ ] https://source.android.com/docs/setup/contribute/code-style#log-sparingly
+      **Confirmed out-of-scope.** 2026-09-19. TS-7 (Code Design)'s "TODO
+      comments" section governs the format for every language, so the
+      references' conflicting conventions are not adopted in TS-33.
+
+- [x] https://source.android.com/docs/setup/contribute/code-style#log-sparingly
       and #log-sparingly-notes cover logging levels, rate-limiting, and
       avoiding private data in logs, but that belongs to TS-57: Logging,
       Monitoring, Observability. One Java-specific point, never using
       `System.out.println()` in production code, may still be worth a line in
       TS-33. Flagged for the user to confirm or overrule.
 
-- [ ] https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md#writing-testable-code,
+      **Confirmed out-of-scope.** 2026-09-19. Logging policy belongs to TS-57
+      (Logging, Monitoring, Observability). Recorded in a new
+      `src/modules/ROOT/partials/057/GAPS.md`: log levels, rate-limiting, and
+      the cost of disabled log statements (Missing), and private data beyond PII
+      (Partial). At the user's request, the Java-specific point was written into
+      TS-33. `08-java-api-specifications.adoc` has a new "Console output"
+      section: production code MUST NOT write diagnostics to `System.out` or
+      `System.err`, directly or through `printStackTrace()`, because the output
+      bypasses the logging framework. It links TS-57 and exempts command-line
+      programs whose purpose is to write to those streams.
+
+- [x] https://github.com/twitter/commons/blob/master/src/java/com/twitter/common/styleguide.md#writing-testable-code,
       #fakes-and-mocks, #let-your-callers-construct-support-objects,
       #testing-multithreaded-code, #the-hidden-stress-test, #threadsleep,
       and #avoid-randomness-in-tests cover test design, which belongs to
@@ -544,12 +667,31 @@ partial and 9 out-of-scope remain open. First run: 2026-09-19. Last worked:
       calling `System.currentTimeMillis()`) plausibly belongs to TS-47: Dates
       and Times. Flagged for the user to confirm or overrule.
 
-- [ ] https://source.android.com/docs/setup/contribute/code-style#be-consistent
+      **Confirmed out-of-scope.** 2026-09-19. Test design belongs to TS-13
+      (Functional Testing), and time-dependence to TS-47 (Dates and Times).
+      Recorded in a new `src/modules/ROOT/partials/013/GAPS.md`: design for
+      testability, testing multithreaded code, and performance assertions in
+      unit tests (Missing), and `Thread.sleep` and randomness in tests
+      (Partial). Fakes versus mocks was not recorded, because TS-13's
+      "Trade-offs" section already covers it. Recorded in a new
+      `src/modules/ROOT/partials/047/GAPS.md`: injecting a clock rather than
+      reading the wall clock directly (Missing).
+
+- [x] https://source.android.com/docs/setup/contribute/code-style#be-consistent
       (match the style of surrounding code) and #write-short-methods (about
       40 lines) cover these, but TS-7 owns consistency and function length.
       Flagged for the user to confirm or overrule.
 
-- [ ] https://www.oracle.com/java/technologies/javase/codeconventions-fileorganization.html#3441
+      **Confirmed out-of-scope.** 2026-09-19. Both points belong to TS-7 (Code
+      Design), which already covers them, so nothing new was recorded there.
+      Consistency is covered by "Consistency and automation"
+      (partials/007/09-code-structure.adoc:50). On method length, TS-7
+      deliberately takes no numeric position
+      (partials/007/03-decomposition.adoc:62), so AOSP's 40-line guideline is
+      excluded rather than recorded as a gap. The TS-7 file's assessment notes
+      this.
+
+- [x] https://www.oracle.com/java/technologies/javase/codeconventions-fileorganization.html#3441
       (a beginning comment with version and date),
       https://www.oracle.com/java/technologies/javase/codeconventions-filenames.html#253
       (`GNUmakefile`, `README`), and
@@ -557,7 +699,14 @@ partial and 9 out-of-scope remain open. First run: 2026-09-19. Last worked:
       (the AOSP copyright template) are project-specific or superseded by
       version control. Flagged for the user to confirm or overrule.
 
-- [ ] Several reference rules conflict with positions TS-33 takes
+      **Confirmed out-of-scope.** 2026-09-19. The specific header formats are
+      not adopted. At the user's request, a new paragraph after the file-layout
+      list in `02-source-files.adoc` says that the form of the license or
+      copyright notice, and of any other header comment, SHOULD be specified per
+      project. It also says a header SHOULD NOT repeat what version control
+      records (authors, versions, modification dates).
+
+- [x] Several reference rules conflict with positions TS-33 takes
       deliberately, so they are not gaps: Oracle's four-space indentation,
       declarations at the start of blocks, and two blank lines between
       sections
@@ -574,7 +723,11 @@ partial and 9 out-of-scope remain open. First run: 2026-09-19. Last worked:
       #s4.1.3-braces-empty-blocks). Flagged for the user to confirm or
       overrule.
 
-- [ ] https://google.github.io/styleguide/javaguide.html#s5.2.2-class-names
+      **Confirmed out-of-scope.** 2026-09-19. The user confirmed each of TS-33's
+      existing positions as a deliberate difference from Oracle, AOSP, and
+      Google. No change.
+
+- [x] https://google.github.io/styleguide/javaguide.html#s5.2.2-class-names
       says there are "no specific rules or even well-established conventions
       for naming annotation types", while 03-naming-conventions.adoc:213 now
       states that UpperCamelCase is the established convention. Read in
@@ -583,6 +736,13 @@ partial and 9 out-of-scope remain open. First run: 2026-09-19. Last worked:
       UpperCamelCase. Not a gap, but the wording at
       03-naming-conventions.adoc:213 could be checked. Flagged for the user
       to confirm or overrule.
+
+      **Confirmed out-of-scope.** 2026-09-19. Not a gap: Google's remark
+      concerns word choice, not case. At the user's request, "Annotation names"
+      in `03-naming-conventions.adoc` was reworded. It keeps the UpperCamelCase
+      rule and now says there is no established convention for word choice, so a
+      name MAY be a verb phrase (`@CheckReturnValue`), a noun (`@Entity`), or an
+      adjective (`@Deprecated`).
 
 ## Unresolved
 

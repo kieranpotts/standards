@@ -18,7 +18,9 @@ Lines SHOULD be no longer than 80 characters, including the whitespace used for 
 
 Package and import statements MAY exceed the column limits. They MUST NOT be line-wrapped.
 
-Other code MAY exceed the column limits, but only where line-wrapping it would reduce its readability (eg. command lines written in comments) or where keeping within the limits is simply not possible (eg. long URLs in comments).
+Other code MAY exceed the column limits, but only where line-wrapping it would reduce its readability (eg. command lines written in comments) or where keeping within the limits is simply not possible (eg. long URLs in comments). A very long identifier, on the rare occasions one is called for, is another such case.
+
+A character, for the purpose of the column limits, is one Unicode code point, whatever its display width. A line containing fullwidth characters, which display at twice the width of ASCII, MAY be wrapped earlier than the limits strictly require.
 
 [#line-wrapping]
 == Line-wrapping
@@ -31,13 +33,13 @@ There are no deterministic rules for line-wrapping in Java, but the following gu
 
 * Otherwise, prefer to break at a higher syntactic level rather than on lower-level breaks. Examples:
 
-** Break _before_ non-assignment operators, as well as operator-like symbols such as the dot separator (`.`) and double colons for method references (`::`).
+** Break _before_ non-assignment operators, as well as operator-like symbols: the dot separator (`.`), the double colons of a method reference (`::`), the ampersand in a type bound (`<T extends Foo & Bar>`), and the pipe in a multi-catch block (`catch (FooException | BarException e)`).
 
-** Break _after_ assignment operators.
+** Break _after_ assignment operators. The colon in an enhanced `for` statement is treated the same way.
 
-** Break _after_ the arrow in a lambda expression, if the lambda body is a single un-braced statement.
+** Never break adjacent to the arrow in a lambda expression or a switch rule, except _after_ the arrow where what follows it is a single unbraced expression.
 
-Commas SHOULD stay attached to the token that precedes them. A method or constructor name SHOULD stay attached to the opening parenthesis that follows it.
+Commas SHOULD stay attached to the token that precedes them. A method, constructor, or record class name SHOULD stay attached to the opening parenthesis that follows it.
 
 [source,java]
 ----
@@ -50,7 +52,46 @@ Predicate<String> predicate = str ->
     longExpressionInvolving(str);
 ----
 
-Continuation lines SHOULD be indented by an additional *four spaces* — double the normal indentation level, so that they stand out from the nested block that follows.
+Continuation lines SHOULD be indented by an additional *four spaces* — double the normal indentation level, so that they stand out from the nested block that follows. Where there are several continuation lines, two of them SHOULD share an indentation level only if they begin with syntactically parallel elements, such as successive arguments or successive calls in a chain. A continuation nested inside another MAY be indented further.
+
+Where a chain of method calls is wrapped, each call SHOULD start its own line, beginning with the dot. Breaking a chain wherever the line happens to fill hides its structure, and leaves no obvious place for the next call to go.
+
+[source,java]
+----
+// ✗ Breaks follow the line length, not the calls.
+Iterable<Module> modules = ImmutableList.<Module>builder().add(new LifecycleModule())
+    .add(new AppLauncherModule()).addAll(application.getModules()).build();
+
+// ✓ One call per line.
+Iterable<Module> modules = ImmutableList.<Module>builder()
+    .add(new LifecycleModule())
+    .add(new AppLauncherModule())
+    .addAll(application.getModules())
+    .build();
+----
+
+The same applies to the parameter list of a method or constructor declaration that does not fit on one line. Rather than filling each line with as many parameters as fit, break after the opening parenthesis and put each parameter on its own continuation line. Every parameter is then equally easy to find, and adding or removing one changes a single line.
+
+[source,java]
+----
+public String download(
+    Internet internet,
+    Tubes tubes,
+    Blogosphere blogs,
+    Amount<Long, Data> bandwidth) {
+  tubes.download(internet);
+  // …
+}
+----
+
+A conditional expression that does not fit on one line SHOULD be broken before the `?` and before the `:`, so that each alternative starts its own continuation line.
+
+[source,java]
+----
+String label = (count == 1)
+    ? "one item"
+    : count + " items";
+----
 
 == Brace style
 
@@ -202,11 +243,13 @@ The one exception is fields. Logical groupings of fields MAY be created by omitt
 
 Single blank lines MAY be added wherever doing so improves the readability of the code (eg. using vertical whitespace to separate logical sections of a method) or makes the code's structure clearer (eg. organizing fields into logical groupings).
 
+A blank line before the first member of a class, or after its last member, is neither required nor forbidden.
+
 Multiple consecutive blank lines SHOULD NOT be included in any Java code.
 
 == Horizontal whitespace
 
-Besides what is required by the Java language, a single ASCII space character SHOULD appear in the following scenarios.
+Besides what is required by the Java language, and apart from within literals, comments, and Javadoc, a single ASCII space character SHOULD appear in the following scenarios, and only in these.
 
 * To separate reserved words such as `if`, `for`, and `catch` from the opening parenthesis that follows them on the same line.
 
@@ -232,7 +275,19 @@ Besides what is required by the Java language, a single ASCII space character SH
 
 ** The arrow in a lambda expression: `(String str) -> str.length()`.
 
-* Before and after a double slash (`//`) that begins an end-of-line comment, and between the double slash and commented-out code that follows.
+** The arrow in a switch rule: `case 1 -> "one"`.
+
+* Before and after a double slash (`//`) that begins an end-of-line comment, and between the double slash and the comment's text or commented-out code that follows.
+
+* Between a type annotation and a following `[]` or `...`: `String @NonNull [] names`.
+
+It follows that no space appears in the following places.
+
+* Around the dot separator (`.`) or the double colons of a method reference (`String::length`).
+
+* Between a method name and the opening parenthesis of its argument or parameter list: `length()`, not `length ()`. The space after a keyword and the absence of one after a method name are what tell the two apart.
+
+* Between a unary operator and its operand: `-x`, `!done`, `i++`, `--count`.
 
 A space MAY be included inside the curly braces of an array initializer. Both `new int[] {1, 2, 3}` and `new int[] { 1, 2, 3 }` are valid.
 
