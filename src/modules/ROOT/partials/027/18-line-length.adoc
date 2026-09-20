@@ -1,20 +1,54 @@
 [#line-length]
 = Line length and wrapping
 
-Prose MUST NOT be "soft wrapped" — that is, continued on the next source line without any special line-break syntax. Each paragraph, list item, blockquote paragraph, callout body, and table cell MUST be written on a single source line, however long that line is.
+In CommonMark, a single newline inside a paragraph is a soft break, and it renders as a space. A paragraph split across several source lines therefore renders identically to the same paragraph written on one line. How prose is wrapped in the source is a decision about diffs, editing, and review, not about rendering. The same is true of most other lightweight markup languages.
 
-CommonMark joins the adjacent lines of a paragraph into a single line in the rendered output, so a soft wrap usually makes no difference to how a document renders. The risk is in the exceptions. A wrap that falls inside an inline construct — a bold or italic span, an inline code span, a link — separates the markup from the text it applies to, and depending on the construct, it may silently fail to render, or fail loudly by rendering the raw syntax as literal text. The wrap points also shift every time a sentence is edited, which invites exactly that kind of breakage when a paragraph is reflowed by hand or by a tool. Keeping each paragraph on one line removes the whole class of problem.
+The one exception is a line break that falls inside an inline construct — a bold or italic span, an inline code span, a link. Depending on the construct, the break can separate the markup from the text it applies to, so it may silently fail to render, or fail loudly by rendering the raw syntax as literal text. A wrapped line that happens to begin with a list marker, `#`, or `>` may also be parsed as the start of a new block.
 
-Visual wrapping is left to the editor. Authors SHOULD enable soft wrapping in their editor's display settings (eg. `"editor.wordWrap": "on"` in VS Code) rather than in the source text. Because a one-word edit changes a paragraph's whole line, reviewers SHOULD use a word-level diff (eg. `git diff --word-diff`) to read changes to prose.
+There are three common approaches to wrapping prose in the source. Each has costs and benefits.
 
-Where a line break is needed in the rendered output, use a hard line break. See <<paragraphs-and-line-breaks,Paragraphs and line breaks>>.
+== One line per paragraph
 
-The rule applies to prose only. It does not apply to:
+Each paragraph is written on a single source line, however long, and the editor soft wraps it for display (eg. `"editor.wordWrap": "on"` in VS Code).
 
-* *Verbatim content.* Fenced and indented code blocks keep the line structure their content needs. Code samples follow the line-length rules of the relevant language standard, and reformatting a sample to fit a prose line-length guideline would misrepresent it.
+* *Benefits.* It is the simplest approach. There is no reflow, and no wrap points to break an inline construct. It matches what most WYSIWYG-adjacent tools, such as note apps and Markdown exporters, produce.
 
-* *Hard line breaks.* A line that ends with a hard line break (a trailing backslash, or two or more trailing spaces) is intentional, and the text that follows it stays on its own line.
+* *Costs.* A one-word edit changes the whole paragraph's line in a line-based diff. Word-level diffs (eg. `git diff --word-diff`) and the intra-line highlighting in most code review tools take most of the sting out of this, but reviewers cannot comment on a specific sentence without quoting it.
 
-* *Table rows.* The cells of a table row MAY be written one per line. Each cell's content is itself prose, so it MUST NOT be soft wrapped.
+== Fixed-width hard wrapping
 
-A heading MUST NOT be broken across lines in any case. Markdown has no continuation syntax for a heading, so a wrap would either break it or become part of the heading text.
+Lines are broken at a fixed column, usually 80, sometimes 72 or 100.
+
+* *Benefits.* It is traditional, and it reads well in a terminal or plain-text viewer. It is the only sensible option where the consumer of the text cannot reflow it, such as commit messages, plain `.txt` files, and READMEs that are meant to be read with `cat`.
+
+* *Costs.* Inserting a word near the top of a paragraph reflows every line below it. That inflates diffs, and it manufactures merge conflicts on exactly the kind of text that several people edit concurrently. Reflowing by hand invites the inline-construct breakage described above, so it works best with an editor or formatter that reflows automatically.
+
+== Semantic line breaks
+
+Lines are broken at sentence ends, and sometimes at clause boundaries, but never at a column count. This is also called _ventilated prose_, or "one sentence per line". Brandon Rhodes popularised the approach in a 2012 essay, and https://sembr.org[sembr.org] later wrote it up as a loose specification.
+
+* *Benefits.* It gives the diff granularity of fixed-width wrapping without the reflow churn, because editing one sentence touches one line. Reviewers can comment on a specific sentence. It also makes over-long sentences visually obvious in the source.
+
+* *Costs.* The raw file looks odd to people who have not seen the convention. Contributors who do not know about it will quietly reintroduce mixed styles.
+
+== Choosing an approach
+
+This standard does not mandate one approach. It does set some ground rules for whichever is chosen:
+
+* A repository SHOULD choose one approach for its Markdown prose and record the choice where contributors will find it, such as its contributing guide or `AGENTS.md`.
+
+* Within a file, the chosen approach MUST be applied consistently. A file that mixes approaches has the costs of each and the benefits of none.
+
+* When editing an existing file, follow the approach it already uses. Content MUST NOT be reflowed to a different approach as a side effect of an unrelated change.
+
+* Where the text will be consumed without reflow, such as a commit message or a plain-text file, fixed-width hard wrapping SHOULD be used.
+
+* A link MUST NOT be broken across lines (see <<links,Links>>), so a line that contains a long link may run past the wrap column.
+
+* A heading MUST NOT be broken across lines in any case. Markdown has no continuation syntax for a heading, so a wrap would either break it or become part of the heading text.
+
+* The cells of a table row MUST each sit on a single source line, because the pipe table syntax requires it.
+
+* Where a line break is needed in the rendered output, use a hard line break. See <<paragraphs-and-line-breaks,Paragraphs and line breaks>>.
+
+Wrapping applies to prose only. Fenced and indented code blocks keep the line structure their content needs, and code samples follow the line-length rules of the relevant language standard.
