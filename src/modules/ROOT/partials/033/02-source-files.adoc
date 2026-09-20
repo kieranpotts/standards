@@ -1,28 +1,28 @@
 = Source files
 
-Each Java source file SHOULD contain exactly one class-like construct. However, in special circumstances, a source file MAY have exactly one top-level public class plus additional class-like constructs that are deliberately tightly coupled to the main class, and that are not shared with any other classes. The top-level public class MUST be the first construct within the file.
+Each Java source file SHOULD contain exactly one class-like construct.
+
+Except, in special circumstances, a source file MAY have exactly one top-level public class plus additional class-like constructs that are deliberately tightly coupled to the main class, and that are not shared with any other classes. The top-level public class MUST be the first construct within such a file.
 
 Source files are distinguished by the `.java` file extension. The name of a source file MUST match the name of the main class-like construct it contains exactly, including letter case.
 
-A source file SHOULD NOT exceed about 2,000 lines. A file of that length is hard to navigate and to review, and usually means its main class has taken on more than one responsibility, so the remedy is to split the class rather than the file.
+A source file SHOULD NOT exceed about 2,000 lines. A file of that length is hard to navigate and to review, and usually means its main class has taken on more than one responsibility. But big classes are merely a *code smell*, not an *anti-pattern*.
 
-The contents of source files MUST be laid out in the following order, from top to bottom:
+The contents of source files MUST be laid out in the following order, from top to bottom.
 
-1. License or copyright notice, if required.
+1. License or copyright notice, if required by the project.
 
 2. Package statement.
 
-3. Import statements (see <<import-statements,Import statements>>).
+3. Import statements.
 
-4. The main top-level class-like construct, eg. a public class.
+4. The main class-like construct.
 
-5. Other class-like constructs used by the main construct.
+5. Other class-like constructs used by the main construct (and not by any other component).
 
-The form of the license or copyright notice, and whether a file carries any other header comment, SHOULD be specified on a per-project basis, since it depends on the project's license and its owner's requirements. A header SHOULD NOT repeat information that version control already records, such as authors, version numbers, or modification dates, since a copy in the file goes stale.
+Each section MUST be separated by a single blank line. Consecutive top-level class-like constructs MUST also be separated by a single blank line.
 
-Each section MUST be separated by a single blank line. Consecutive top-level class-like constructs MUST also be separated by a single blank line. The blank lines between members are covered in <<vertical-whitespace,Vertical whitespace>>.
-
-A Javadoc comment MUST be preceded by a single blank line, except where it is the first thing in the file, in which case it MAY start on line 1.
+Every Javadoc comment MUST be preceded by a single blank line, except where the comment is the first thing in the file, in which case it MAY start on line 1.
 
 [source,java]
 ----
@@ -45,12 +45,14 @@ final class OrderLine {
 }
 ----
 
-Every source file except `module-info.java` MUST have a `package` statement. Compact source files (JDK 25 or later), which omit the package statement and the enclosing class declaration so a small program can be written as bare methods, MUST NOT be used. They exist for single-file programs and teaching, and a class in the unnamed package cannot be imported by code in any other package. The `package` statement MUST NOT be line-wrapped, and MAY exceed the column limits.
+Every source file except `module-info.java` MUST have a `package` statement. The `package` statement MUST NOT be line-wrapped, and MAY exceed the column limits.
+
+Compact source files (JDK 25 or later), which omit the `package` statement and the enclosing class declaration, so a small program can be written as bare methods, MUST NOT be used. This is intended for single-file programs and teaching.
 
 [#special-source-files]
 == Special source files
 
-Two files carry special structures that fall outside the ordinary top-to-bottom layout above.
+Two files carry special structures that fall outside the ordinary top-to-bottom layout, defined above.
 
 A `package-info.java` file holds only a package-level Javadoc comment, package-level annotations, any import statements those annotations need, and the `package` statement itself. It MUST NOT contain a class-like construct.
 
@@ -63,7 +65,7 @@ package com.example.orders;
 import org.jspecify.annotations.NullMarked;
 ----
 
-A `module-info.java` file declares a Java module. It contains the `module` declaration and its directives, and MUST NOT contain a `package` statement. The module directives MUST appear in this order: `requires`, `exports`, `opens`, `uses`, `provides`. Each directive kind forms its own block, separated from the next by a blank line. Where a `requires` directive has modifiers, they MUST appear in the order `transitive static`. The module's own name follows the rules for package names (see <<package-names,Package names>>).
+A `module-info.java` file declares a Java module. It contains the `module` declaration and its directives, and MUST NOT contain a `package` statement. The module directives MUST appear in this order: `requires`, `exports`, `opens`, `uses`, `provides`. Each directive kind forms its own block, separated from the next by a blank line. Where a `requires` directive has modifiers, they MUST appear in the order `transitive static`. The module's own name follows the rules for <<package-names,package names>>.
 
 [source,java]
 ----
@@ -89,10 +91,12 @@ Source files MUST be encoded using UTF-8.
 
 Source files MUST use Unix-style line endings — the line feed (`LF`) character, represented by the escape sequence `\n`. Source files MUST NOT use Windows-style line endings — a carriage return and line feed (`CRLF`) pair, represented by the escape sequence `\r\n`.
 
-Whitespace characters included in source code MUST be limited to the line termination sequence and the horizontal space character. Other whitespace characters MAY be included only in string and character literals, and they MUST be represented by escape sequences. Whitespace characters that have a https://docs.oracle.com/javase/tutorial/java/data/characters.html[special escape sequence] in Java MUST be encoded using that escape sequence.
+Whitespace characters written verbatim in source code MUST be limited to the line termination sequence and the horizontal space character. Other whitespace characters MAY be included only in string and character literals, and they MUST be represented by escape sequences rather than literal characters.
+
+Whitespace characters that have a https://docs.oracle.com/javase/tutorial/java/data/characters.html[special escape sequence] in Java MUST be encoded using that escape sequence.
 
 .Escape sequences in Java
-[cols="1,2"]
+[cols="1,4"]
 |===
 | Escape sequence | Description
 
@@ -124,13 +128,15 @@ Whitespace characters included in source code MUST be limited to the line termin
 | Insert a backslash character in the text at this point.
 |===
 
+.Example
 [source,java]
 ----
 System.out.println("She said \"Hello!\" to me.");
 ----
 
-Any other whitespace character SHOULD be encoded as a Unicode escape sequence (eg. `\u2004`) rather than included literally.
+Any other whitespace character MUST be encoded as a Unicode escape sequence, eg. `\u2004`.
 
+.Example
 [source,java]
 ----
 System.out.println("\u2004"); // three-per-em space

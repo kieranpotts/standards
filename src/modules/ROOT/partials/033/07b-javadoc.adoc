@@ -1,27 +1,25 @@
 [#javadoc]
 = Javadoc
 
-Javadoc is a developer tool, intended to help developers understand, maintain, change, and extend the code. Javadoc comments are read by humans in passing, as they read through the code. They're also parsed by tools: code editors display them alongside the code they document, and the Javadoc tool generates API documentation from them.
+Javadoc is a developer tool, intended to help developers understand, maintain, change, and extend the code. Javadoc comments are read by humans in passing, as they read through the code. They're also parsed by tools. Code editors display them alongside the code they document, and the Javadoc tool generates API documentation from them.
 
 == Purpose
 
-Javadoc comments serve two distinct purposes.
+Javadoc comments SHOULD be used as *API specification*. They specify an interface contract, including parameter ranges and thrown exception types, plus behavior that a caller can rely on, including edge cases.
 
-* *API specification.* Javadoc comments specify an interface contract, including parameter ranges and thrown exception types, plus behavior that a caller can rely on, including edge cases.
+Javadoc comments SHOULD NOT be used as a *programming guide* — illustrative material such as extended usage examples, term definitions, conceptual overviews, and notes on known bugs or workarounds. That material SHOULD instead be placed in a README or other out-of-band document, which the Javadoc links to.
 
-* *Programming guide.* Javadoc comments provide illustrative material such as short usage examples, term definitions, conceptual overviews, and notes on known bugs or workarounds.
+A single Javadoc comment MUST NOT mix the two concerns. Where a comment would need to both specify a contract and explain a concept, the contract SHOULD stay in the Javadoc and the explanation SHOULD move out-of-band, unless it is short.
 
-As a rule of thumb, a single Javadoc comment SHOULD NOT mix these two concerns. It should either specify an API contract or serve as a programming guide. In a typical codebase, most Javadoc comments will be API specifications.
-
-A short, focused usage example MAY be included in a Javadoc comment. A long, discursive description or an extended example SHOULD instead be placed in a README or other out-of-band document that the Javadoc links to.
+A short, focused usage example MAY be included in a Javadoc comment where it clarifies the contract itself — for example, showing the shape of an accepted input.
 
 Javadoc MUST NOT be used to document implementation details, such as the algorithm used in a method. Implementation comments MUST be used for that purpose. Information about a class, interface, field, or method that is not appropriate for a Javadoc comment SHOULD instead go in an implementation comment immediately after the declaration.
 
 == Scope
 
-Javadoc SHOULD be used to document every _visible_ top-level class-like construct and every visible member — visibility here meaning any class, interface, record, field, or method that is not `private`, plus every component of a `public` or `protected` record.
+Javadoc SHOULD be used to document every visible top-level class-like construct and every visible member — visibility here meaning any class, interface, record, field, or method that is not `private`, plus every component of a `public` or `protected` record.
 
-Javadoc MAY be skipped for any member that is simple and obvious, such as a trivial getter or setter, but only where there is truly nothing else worthwhile to say about it. It MAY also be skipped for a method that overrides a supertype method which is already documented, since the supertype method's documentation is inherited.
+Javadoc MAY be skipped for any member that is simple and obvious, such as a trivial getter or setter. It MAY also be skipped for a method that overrides a supertype method which is already documented, since the supertype method's documentation is inherited.
 
 A `private` member is not required to carry Javadoc, but it SHOULD where it is complex, or where it is called from multiple places. Where a private method is called from only one place, its documentation MAY instead live in the calling method's Javadoc.
 
@@ -29,11 +27,30 @@ The Javadoc tool does not document anonymous classes. Any content that would doc
 
 Javadoc MAY also be written for any other declaration, where it helps the reader.
 
-The conventions in the rest of this section apply in full to the Javadoc that the rules above require or recommend. Where Javadoc is written beyond that scope, following those conventions is RECOMMENDED but not REQUIRED.
+== Placement
+
+A Javadoc comment MUST immediately precede the declaration it documents, and MUST come before any annotations on that declaration. It MUST NOT be positioned inside a method or constructor body. The Javadoc tool only recognizes a Javadoc comment that immediately precedes the declaration of a module, package, class, interface, field, constructor, or method, so a Javadoc comment placed anywhere else documents nothing.
+
+[source,java]
+----
+/* ✗ The annotation separates the comment from the declaration. */
+@Override
+/// Closes this connection and releases its socket.
+public void close() {
+  // …
+}
+
+/* ✓ The Javadoc comes before the annotation. */
+/// Closes this connection and releases its socket.
+@Override
+public void close() {
+  // …
+}
+----
 
 == Content
 
-Javadoc content SHOULD NOT duplicate the information encoded in method names or signatures, or other adjacent code. For example, the following Javadoc is redundant. It restates the method's name and return type, and tells the reader nothing new.
+Javadoc SHOULD NOT duplicate the information encoded in method names or signatures, or other adjacent code. For example, the following Javadoc is redundant. It restates the method's name and return type, and tells the reader nothing new.
 
 [source,java]
 ----
@@ -57,7 +74,7 @@ public String getCanonicalName() {
 }
 ----
 
-Javadoc MUST distinguish overloaded methods and constructors from each other. Each overload's summary fragment SHOULD identify what makes it distinct, rather than repeating the same description across every overload.
+Javadoc MUST distinguish overloaded methods and constructors from each other. Each overload's summary fragment SHOULD identify what makes it distinct, rather than repeating the same description.
 
 [source,java]
 ----
@@ -76,30 +93,9 @@ Where a class or method is safe for concurrent use, its Javadoc MUST say so, and
 
 [source,java]
 ----
-/// A counter of requests per client. This class is thread-safe: each
+/// A counter of requests per client. This class is thread-safe. Each
 /// method is atomic, but a sequence of calls is not.
 public final class RequestCounter {
-  // …
-}
-----
-
-== Placement
-
-A Javadoc comment MUST immediately precede the declaration it documents, and MUST come before any annotations on that declaration. It MUST NOT be positioned inside a method or constructor body. The Javadoc tool only recognizes a Javadoc comment that immediately precedes the declaration of a module, package, class, interface, field, constructor, or method, so a Javadoc comment placed anywhere else documents nothing.
-
-[source,java]
-----
-/* ✗ The annotation separates the comment from the declaration. */
-@Override
-/// Closes this connection and releases its socket.
-public void close() {
-  // …
-}
-
-/* ✓ The Javadoc comes before the annotation. */
-/// Closes this connection and releases its socket.
-@Override
-public void close() {
   // …
 }
 ----
@@ -108,16 +104,16 @@ public void close() {
 
 Java supports two notations for Javadoc comments: the classic `/** … */` notation, with HTML markup, and the Markdown `///` notation, introduced by {link-jep-467}[JEP 467] in JDK 23 as a final (not preview) feature. The Markdown notation is the newer of the two, but it does not replace the classic notation, which remains fully supported and is not deprecated. Most existing Java code, including most of the JDK's own source, still uses the classic notation.
 
-A codebase that targets JDK 23 or later SHOULD write Javadoc comments in Markdown. Before adopting it, check that the tools in use — IDEs, formatters, and linters — support Markdown Javadoc comments, as tool support is still maturing.
+A codebase that targets JDK 23 or later SHOULD write Javadoc comments in Markdown. Before adopting it, check that the tools in use — code editors, formatters, and linters — support Markdown Javadoc comments, as tool support is still maturing.
 
 [IMPORTANT]
 ====
-The Javadoc tool in JDK 22 and earlier treats `///` lines as ordinary line comments, and does not process them as Javadoc. A codebase that targets a runtime older than JDK 23 MUST use classic HTML Javadoc comments instead, as described in <<classic-html-javadoc,Classic HTML Javadoc comments>>. A codebase MUST NOT mix the two notations.
+The Javadoc tool in JDK 22 and earlier treats `///` lines as ordinary line comments, and does not process them as Javadoc. A codebase that targets a runtime older than JDK 23 MUST use classic HTML Javadoc comments instead. A codebase MUST NOT mix the two notations.
 ====
 
 In the Markdown notation, each line of the comment begins with `///`, and a run of consecutive `///` lines forms a single comment.
 
-A Javadoc comment may be a single line or multiple lines:
+A Javadoc comment may be a single line or multiple lines.
 
 [source,java]
 ----
@@ -179,8 +175,6 @@ Code MUST be formatted with the `{@code …}` inline tag rather than `<code>` ta
 
 A link to another class, method, or field SHOULD be written with the `{@link}` inline tag.
 
-The Markdown example above, written in the classic notation:
-
 [source,java]
 ----
 /**
@@ -223,39 +217,54 @@ A method's summary SHOULD start with a third-person descriptive verb (eg. "Gets 
 /// A button label.
 ----
 
+Where the first sentence would not make a good summary — because it runs long, or because it contains a period followed by a space that the tool would mistake for the end of the sentence — the `{@summary}` inline tag (JDK 10 or later) MAY be used to mark the summary explicitly. It MUST be the first thing in the comment, and it MUST NOT be combined with `{@return}`, which generates a summary of its own.
+
+[source,java]
+----
+/// {@summary Approximates pi to the given precision.} The result is
+/// accurate to within 1.0 e-6 of the true value.
+public static double pi(int digits) {
+  // …
+}
+----
+
 == Wording
 
 Where Javadoc refers to the object it is attached to, it SHOULD use "this" rather than "the" (eg. "Gets the toolkit for this component"). Where it refers to a method in its general form, it SHOULD omit parentheses and argument types (eg. "the `add` method"), and include argument types only when referring to one specific overload (eg. "the `add(int, Object)` method").
 
-Curly (smart) quotes MUST NOT appear in Javadoc text; use straight quotes throughout.
+Curly (smart) quotes MUST NOT appear in Javadoc text. Use straight quotes throughout.
 
-Latin abbreviations SHOULD be avoided in favor of their English equivalents: "also known as" rather than "aka", "that is" rather than "i.e.", "for example" rather than "e.g.", and "in other words" or "namely" rather than "viz.". An abbreviation such as "e.g." also ends the summary early, because its period is followed by a space.
+Latin abbreviations SHOULD be avoided in favor of their English equivalents: "also known as" rather than "aka", "that is" rather than "i.e.", "for example" rather than "eg.", and "in other words" or "namely" rather than "viz.". An abbreviation such as "eg." also ends the summary early, because its period is followed by a space.
 
 == Block tags
 
 The standard block tags are:
 
-* `@param` for method, constructor, and type parameters
-* `@return` for the return value of a method
-* `@throws` for exceptions thrown by a method or constructor
-* `@see` for a cross-reference to related material
-* `@deprecated` to indicate that an API element is deprecated
+* `@param` for method, constructor, and type parameters.
+* `@return` for the return value of a method.
+* `@throws` for exceptions thrown by a method or constructor.
+* `@see` for a cross-reference to related material.
+* `@deprecated` to indicate that an API element is deprecated.
 
-Block tags MUST come after the comment's description, and MUST NOT appear in a single-line Javadoc comment. A common mistake is to write a single-line comment that consists of only a block tag:
+Block tags MUST come after the comment's description, and MUST NOT appear in a single-line Javadoc comment. A common mistake is to write a single-line comment that consists of only a block tag.
 
 [source,java]
 ----
 /// @return the customer ID
+
+/** @return the customer ID */
 ----
 
-This is not permitted. It should instead be written with the `{@return}` inline tag, which generates both the summary and the return-value description:
+This is not permitted. It should instead be written with the `{@return}` inline tag, which generates both the summary and the return-value description.
 
 [source,java]
 ----
 /// {@return the customer ID}
+
+/** {@return the customer ID} */
 ----
 
-Each block tag MUST be written on its own line, in the order listed above. Each block tag MUST be followed by a space and then a description, which MUST NOT be empty. When the description is long, it SHOULD be wrapped with continuation lines indented from the position of the `@` symbol: by exactly two spaces in a Markdown Javadoc comment, and by four spaces in a classic HTML Javadoc comment (see <<classic-html-javadoc,Classic HTML Javadoc comments>>). The Markdown notation needs the smaller indent because a line indented four spaces can be read as the start of an indented code block.
+Each block tag MUST be written on its own line, in the order listed above. Each block tag MUST be followed by a space and then a description, which MUST NOT be empty. When the description is long, it SHOULD be wrapped with continuation lines indented from the position of the `@` symbol, by exactly two spaces in a Markdown Javadoc comment, and by four spaces in a classic HTML Javadoc comment. (The Markdown notation needs the smaller indent because a line indented four spaces can be read as the start of an indented code block.)
 
 [source,java]
 ----
@@ -265,7 +274,9 @@ Each block tag MUST be written on its own line, in the order listed above. Each 
 
 A blank line (containing only the comment's line prefix) SHOULD appear before a group of block tags, separating them from the preceding prose.
 
-A block tag's description is tag content, not prose. It SHOULD be a single sentence fragment, without a capitalized first word or a terminal period. Columns MAY be aligned across a run of block tags, but this is a cosmetic choice, not a requirement.
+A block tag's description is tag content, not prose. It SHOULD be a single sentence fragment, without a capitalized first word or a terminal period.
+
+Columns MAY be aligned across a run of block tags, but this is a cosmetic choice, not a requirement.
 
 [source,java]
 ----
@@ -286,15 +297,21 @@ public TransferId transfer(Account source, Account target, Money amount)
 
 === @param and @return
 
-`@param` and `@return` are REQUIRED — for every parameter, including type parameters, and for every non-`void` method, respectively — even where their purpose seems obvious from the signature alone. `@param` takes the parameter name, not its data type, and MUST NOT format that name as code. A type parameter is named in angle brackets (eg. `@param <T>`). Where a method has more than one `@param` tag, they MUST appear in the same order as the parameters are declared. Where `@return` describes a collection, it SHOULD state the type of element the collection contains.
+`@param` and `@return` are REQUIRED — for every parameter, including type parameters, and for every non-`void` method, respectively — even where their purpose seems obvious from the signature alone.
+
+`@param` takes the parameter name, not its data type, and MUST NOT format that name as code. A type parameter is named in angle brackets (eg. `@param <T>`). Where a method has more than one `@param` tag, they MUST appear in the same order as the parameters are declared.
+
+Where `@return` describes a collection, it SHOULD state the type of element the collection contains.
 
 The `{@return}` inline tag MAY be used in place of a `@return` block tag. It MUST appear at the start of the comment, where it generates both the summary and the return-value description.
 
 === @throws
 
-`@throws` SHOULD cover every checked exception a method can throw, and any unchecked exception a caller might reasonably want to catch — except `NullPointerException`, which SHOULD NOT be documented. Subclasses of `Error` SHOULD NOT be documented. An unchecked exception tied to a specific implementation SHOULD be documented by its general supertype rather than the concrete subtype (eg. `IndexOutOfBoundsException`, not `ArrayIndexOutOfBoundsException`). Where a method has more than one `@throws` tag, they MUST appear in alphabetical order by exception name.
+`@throws` SHOULD cover every checked exception a method can throw, and any unchecked exception a caller might reasonably want to catch — except `NullPointerException`, which SHOULD NOT be documented. Subclasses of `Error` SHOULD NOT be documented, either. An unchecked exception tied to a specific implementation SHOULD be documented by its general supertype rather than the concrete subtype (eg. `IndexOutOfBoundsException`, not `ArrayIndexOutOfBoundsException`).
 
-The `@throws` tag is distinct from the method's `throws` clause. An unchecked exception SHOULD NOT be declared in the `throws` clause; it SHOULD be documented with `@throws` only.
+Where a method has more than one `@throws` tag, they MUST appear in alphabetical order by exception name.
+
+The `@throws` tag is distinct from the method's `throws` clause. An unchecked exception SHOULD NOT be declared in the `throws` clause. It SHOULD be documented with `@throws` only.
 
 === @see
 
@@ -302,7 +319,11 @@ The `@throws` tag is distinct from the method's `throws` clause. An unchecked ex
 
 === @deprecated
 
-`@deprecated` MUST be paired with the `@Deprecated` annotation. The annotation makes the compiler warn about any use of the deprecated element, while the tag documents the reason. The tag's description SHOULD explain why the element is deprecated and link to its replacement; where there is no replacement, it SHOULD say "No replacement". Unlike other block tag descriptions, it MAY be written in complete sentences.
+`@deprecated` MUST be paired with the `@Deprecated` annotation. The annotation makes the compiler warn about any use of the deprecated element, while the tag documents the reason.
+
+The tag's description SHOULD explain why the element is deprecated and link to its replacement. Where there is no replacement, it SHOULD say "no replacement".
+
+Unlike other block tag descriptions, it MAY be written in complete sentences.
 
 [source,java]
 ----
@@ -319,7 +340,9 @@ public String fullName() {
 
 === Other block tags
 
-The `@since`, `@author`, and `@version` tags SHOULD NOT be used. The version control system already tracks when and by whom a declaration was introduced, and these tags are of more use to library maintainers publishing a versioned API than to application developers.
+The `@since`, `@author`, and `@version` tags are of most use to maintainers of published, versioned APIs — libraries and frameworks with multiple contributors and consumers who can't see the source history. In that context, `@since` in particular earns its place. It tells a caller which release they need, which is something the version control system can't tell them from the published Javadoc alone. Where a project already uses these tags, they MUST be kept accurate. A stale `@since` is worse than none.
+
+In closed-source application code, these tags SHOULD NOT be used. The version control system already records when and by whom each declaration was introduced, and duplicating that in a comment only creates something else to get out-of-date. In general, don't restate in a Javadoc tag what version control already provides.
 
 The serialization tags each belong on a specific kind of declaration: `@serial` on a serializable field, `@serialField` on the `serialPersistentFields` member, and `@serialData` on a serialization method such as `writeObject`. Where used, they MUST come after `@see` and before `@deprecated`.
 
