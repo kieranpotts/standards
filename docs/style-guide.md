@@ -40,9 +40,7 @@ starting point for a new standard, and treat it as the canonical demonstration o
   ending in a hard line break (` +`) is intentional. Examples of AsciiDoc markup inside verbatim blocks SHOULD follow
   the same one-line-per-paragraph rule, so the examples demonstrate it.
 
-This reiterates the normative rule in
-[TS-28: AsciiDoc § Line length and wrapping](https://kieranpotts.com/standards/028), which takes precedence. This
-Markdown file, like the repository's other Markdown files, is governed by TS-27 instead, and is wrapped.
+This reiterates the normative rule in [TS-28: AsciiDoc § Line length and wrapping](https://kieranpotts.com/standards/028), which takes precedence. This Markdown file, like the repository's other Markdown files, is governed by [TS-27: Markdown § Line length and wrapping](https://kieranpotts.com/standards/027) instead, which now carries the same rule. Markdown files in this repository that are still soft wrapped are awaiting that conversion.
 
 ## File naming
 
