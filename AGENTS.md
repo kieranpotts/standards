@@ -107,6 +107,13 @@ authoring standards are defined in the [style guide](docs/style-guide.md). Those
 conventions are normative for all content under `src/`, and that document is the
 single source of truth for them.
 
+- MUST NOT soft-wrap prose in `.adoc` files. Write one line per paragraph, list
+  item, admonition, description-list entry, and table cell, however long, and
+  let the editor soft-wrap. This is this repository's chosen approach under
+  [TS-28](https://kieranpotts.com/standards/028), and the style guide's
+  [Line wrapping](docs/style-guide.md#line-wrapping) section is normative. Do
+  not reflow a file's existing prose as a side effect of an unrelated change.
+
 ## Skills
 
 Skills specific to this project are installed in the
