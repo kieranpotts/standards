@@ -13,11 +13,11 @@ starting point for a new standard, and treat it as the canonical demonstration o
 ## Page structure
 
 - A standard's page (`pages/NNN.adoc`) MUST begin with a level-1 title in the form `= TS-N: Title`, followed by
-  any `:link-*:` attributes, the introduction (included from `partials/NNN/00-introduction.adoc`), then the `include::`
+  any `:link-*:` attributes, the introduction (included from `partials/NNN/01-introduction.adoc`), then the `include::`
   directives for the standard's numbered content files.
 
-- Content files (`partials/NNN/01-topic.adoc`, `02-topic.adoc`, etc.) MUST start with a level-1 section header (`=`),
-  which becomes a level-2 heading when included with `[leveloffset=+1]`. `00-attributes.adoc and `00-introduction.adoc`
+- Content files (`partials/NNN/02-topic.adoc`, `03-topic.adoc`, etc.) MUST start with a level-1 section header (`=`),
+  which becomes a level-2 heading when included with `[leveloffset=+1]`. `00-attributes.adoc and `01-introduction.adoc`
   are the only exceptions — they do not have a section header.
 
 - `include::` directives MUST use `[leveloffset=+1]` and target their partial with the `partial$` resource ID, eg
@@ -64,8 +64,8 @@ This reiterates the normative rule in [TS-28: AsciiDoc § Line length and wrappi
   MUST NOT be content files in a standard's `partials/NNN/` directory that are not included by the page – except
   examples, which MUST go in an `examples/` subdirectory.
 
-- The introduction MUST be split out into its own `partials/NNN/00-introduction.adoc` partial:
-  `include::partial$NNN/00-introduction.adoc[leveloffset=+1]`. It SHOULD describe the scope and
+- The introduction MUST be split out into its own `partials/NNN/01-introduction.adoc` partial:
+  `include::partial$NNN/01-introduction.adoc[leveloffset=+1]`. It SHOULD describe the scope and
   purpose of the standard, and SHOULD link to related standards where appropriate.
 
 - A references section MAY be added to list external sources that informed the content of the standard. It MUST be
