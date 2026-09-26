@@ -5,219 +5,100 @@
 ****
 * Don't abstract implementation details that are better kept visible.
 * Over-decomposition produces entanglement – several interfaces to learn where one would have done.
-* There is no defensible numeric limit on function length. Extract when the caller loses more complexity than the new
-  interface adds.
+* There is no defensible numeric limit on function length. Extract when the caller loses more complexity than the new interface adds.
 * Cohesion is a property of one module. Aim for modules whose elements all serve a single, well-defined purpose.
 * "Don't repeat yourself" (DRY) does not mean "avoid all code duplication".
 * Extract duplication to shared abstractions only when components are semantically related.
 * Wait for the third occurrence of duplicated logic before consolidating it (the Rule of Three).
-* An orphan module – a small, standalone module with no obvious existing home – is an acceptable outcome. Don't force it
-  into an unrelated module.
+* An orphan module – a small, standalone module with no obvious existing home – is an acceptable outcome. Don't force it into an unrelated module.
 * Optimization is a common source of over-engineering. Optimize only with evidence, and stop once requirements are met.
-* Keep the total number of distinct design patterns in use across a codebase small, so a reader doesn't have to relearn
-  a new idiom in each part of it.
+* Keep the total number of distinct design patterns in use across a codebase small, so a reader doesn't have to relearn a new idiom in each part of it.
 ****
 
-Decomposition is the process of breaking complex code into smaller and smaller abstractions – typically functions,
-classes, or modules. Generally, decomposition is a good thing, but as with everything in software design, there are
-trade-offs. Decomposition actually increases overall system complexity, because it creates new dependencies between
-components. We get localized simplicity (through abstraction) at the cost of more global complexity (through dependency
-graphs).
+Decomposition is the process of breaking complex code into smaller and smaller abstractions – typically functions, classes, or modules. Generally, decomposition is a good thing, but as with everything in software design, there are trade-offs. Decomposition actually increases overall system complexity, because it creates new dependencies between components. We get localized simplicity (through abstraction) at the cost of more global complexity (through dependency graphs).
 
-There is a danger in decomposing code too aggressively. If you break logic into too many small functions or components,
-you can end up with many tiny abstractions that are tightly coupled to one another. So we should be wary of applying
-principles like "single responsibility" too rigidly. Aggressive decomposition for the sake of purity of design can make
-codebases harder to change, not easier.
+There is a danger in decomposing code too aggressively. If you break logic into too many small functions or components, you can end up with many tiny abstractions that are tightly coupled to one another. So we should be wary of applying principles like "single responsibility" too rigidly. Aggressive decomposition for the sake of purity of design can make codebases harder to change, not easier.
 
-Each abstraction is a new layer of indirection in our understanding of the code. If abstraction has the effect of
-pulling apart related units of logic and data, the code loses locality of reference. This is the principle that things
-that are related to one another should be kept close together, while unrelated things should be kept far apart. This may
-be a literal spacing on the filesystem.
+Each abstraction is a new layer of indirection in our understanding of the code. If abstraction has the effect of pulling apart related units of logic and data, the code loses locality of reference. This is the principle that things that are related to one another should be kept close together, while unrelated things should be kept far apart. This may be a literal spacing on the filesystem.
 
-This principle of locality of reference has cognitive benefits. When related logic is colocated in a single file or
-function, it requires less context-switching to understand. The reader can see the whole picture without jumping between
-files. (Locality of reference is also important in performance engineering – it can help machines to interpret code,
-too.)
+This principle of locality of reference has cognitive benefits. When related logic is colocated in a single file or function, it requires less context-switching to understand. The reader can see the whole picture without jumping between files. (Locality of reference is also important in performance engineering – it can help machines to interpret code, too.)
 
-If you cannot understand the purpose of one function without reading the internal logic of several others, you have
-over-decomposed. The decomposition has not actually reduced complexity, it has only distributed it across more
-boundaries. This condition has a name – *entanglement* – and it is the clearest symptom that a set of abstractions is
-not paying for itself. An entangled group of functions presents the reader with several interfaces to learn instead of
-one, without ever allowing them to stop at an interface and trust it.
+If you cannot understand the purpose of one function without reading the internal logic of several others, you have over-decomposed. The decomposition has not actually reduced complexity, it has only distributed it across more boundaries. This condition has a name – *entanglement* – and it is the clearest symptom that a set of abstractions is not paying for itself. An entangled group of functions presents the reader with several interfaces to learn instead of one, without ever allowing them to stop at an interface and trust it.
 
-You don't need much indirection to make things really difficult for humans. The average person can hold only 3-5 pieces
-of information in working memory at a time. Each context switch, introduced by a new abstraction, however trivial that
-abstraction, takes up one of those slots. The more memory tokens we use up in trying to understand a piece of code, the
-more likely we are to let bugs slip through.
+You don't need much indirection to make things really difficult for humans. The average person can hold only 3-5 pieces of information in working memory at a time. Each context switch, introduced by a new abstraction, however trivial that abstraction, takes up one of those slots. The more memory tokens we use up in trying to understand a piece of code, the more likely we are to let bugs slip through.
 
-Abstraction should be a net remover of complexity. Don't introduce abstractions purely for the sake of separating
-concerns if that separation doesn't yield a noticeable reduction in overall system complexity.
+Abstraction should be a net remover of complexity. Don't introduce abstractions purely for the sake of separating concerns if that separation doesn't yield a noticeable reduction in overall system complexity.
 
-Not everything benefits from decomposition into abstractions. If it is desirable for the user of some code to know about
-its implementation details, then it's probably best if those implementation details are not abstracted away. Don't
-abstract things that would be better left explicit and visible. Think about the users of your code, and what knowledge
-they need to have in order to integrate with it, to analyze and debug it, and to maintain it.
+Not everything benefits from decomposition into abstractions. If it is desirable for the user of some code to know about its implementation details, then it's probably best if those implementation details are not abstracted away. Don't abstract things that would be better left explicit and visible. Think about the users of your code, and what knowledge they need to have in order to integrate with it, to analyze and debug it, and to maintain it.
 
 [#function-length]
 == Function length
 
-The most concrete form this trade-off takes is the question of how long a function should be. One school of thought,
-associated with Robert C. Martin's _Clean Code_, holds that functions should be very short – a handful of lines – and
-that a function doing more than "one thing" should be extracted until it does not. The opposing view, argued by John
-Ousterhout in _A Philosophy of Software Design_, is that decomposing this aggressively produces a proliferation of
-shallow modules – functions too small to carry the cost of their own interfaces, in the sense described in
-<<module-depth>> – and that the resulting entanglement costs the reader more than the original length ever did.
+The most concrete form this trade-off takes is the question of how long a function should be. One school of thought, associated with Robert C. Martin's _Clean Code_, holds that functions should be very short – a handful of lines – and that a function doing more than "one thing" should be extracted until it does not. The opposing view, argued by John Ousterhout in _A Philosophy of Software Design_, is that decomposing this aggressively produces a proliferation of shallow modules – functions too small to carry the cost of their own interfaces, in the sense described in <<module-depth>> – and that the resulting entanglement costs the reader more than the original length ever did.
 
-Both authors set out their positions at length in a public exchange,
-{link-aposd-vs-clean-code}[_A Philosophy of Software Design vs. Clean Code_], which is worth reading in full. It is
-instructive less for who wins than for what it demonstrates: two experienced practitioners, agreeing on the goals –
-modularity, testability, and reducing what a reader has to hold in their head – working through the same example code
-and reaching opposite conclusions about how far to decompose it. That is a reasonable signal that no fixed threshold is
-defensible as a general rule.
+Both authors set out their positions at length in a public exchange, {link-aposd-vs-clean-code}[_A Philosophy of Software Design vs. Clean Code_], which is worth reading in full. It is instructive less for who wins than for what it demonstrates: two experienced practitioners, agreeing on the goals – modularity, testability, and reducing what a reader has to hold in their head – working through the same example code and reaching opposite conclusions about how far to decompose it. That is a reasonable signal that no fixed threshold is defensible as a general rule.
 
-This standard therefore takes no position on function length as a number, for the same reason it rejects arbitrary
-structural limits generally. Length is not the thing being measured; depth is. The test is whether extracting a piece
-of logic into its own function removes more complexity from the caller than the new interface adds to the reader's
-burden.
-A function called from exactly one place, whose name has to restate the caller's context to mean anything, and that
-cannot be understood without also reading that caller, has failed the test regardless of how few lines it contains.
-Conversely, a long function whose parts are sequential steps in a single operation, none of which has any independent
-meaning, may be better left long.
+This standard therefore takes no position on function length as a number, for the same reason it rejects arbitrary structural limits generally. Length is not the thing being measured; depth is. The test is whether extracting a piece of logic into its own function removes more complexity from the caller than the new interface adds to the reader's burden. A function called from exactly one place, whose name has to restate the caller's context to mean anything, and that cannot be understood without also reading that caller, has failed the test regardless of how few lines it contains. Conversely, a long function whose parts are sequential steps in a single operation, none of which has any independent meaning, may be better left long.
 
-A function that is genuinely too long usually has a second problem underneath the length – it is doing work at several
-different levels of abstraction, or it is holding state that several of its parts read and write. Those are the defects
-worth acting on. Fix them and the length usually resolves itself; chase the length alone and it merely relocates.
+A function that is genuinely too long usually has a second problem underneath the length – it is doing work at several different levels of abstraction, or it is holding state that several of its parts read and write. Those are the defects worth acting on. Fix them and the length usually resolves itself; chase the length alone and it merely relocates.
 
-Where a long function is the right answer, and the length is likely to invite a well-meaning refactoring later, say so
-in a comment. See <<comments>>.
+Where a long function is the right answer, and the length is likely to invite a well-meaning refactoring later, say so in a comment. See <<comments>>.
 
 [#cohesion]
 == Cohesion
 
-Decomposition raises the question of what belongs inside a module and what does not. *Cohesion* is the name for the
-answer. Larry Constantine and Ed Yourdon, who introduced the term in _Structured Design_ (1979), defined it as the
-degree to which the elements within a single module belong together — how strongly related, and how singly focused,
-the responsibilities inside one boundary are. A highly cohesive module does one thing. A poorly cohesive one is a
-collection of loosely associated parts that happen to share a file.
+Decomposition raises the question of what belongs inside a module and what does not. *Cohesion* is the name for the answer. Larry Constantine and Ed Yourdon, who introduced the term in _Structured Design_ (1979), defined it as the degree to which the elements within a single module belong together — how strongly related, and how singly focused, the responsibilities inside one boundary are. A highly cohesive module does one thing. A poorly cohesive one is a collection of loosely associated parts that happen to share a file.
 
-Cohesion is one half of a pair. Coupling describes the strength of the connections _between_ modules, cohesion the
-strength of the relationships _within_ one. The general aim is low coupling and high cohesion, and the two tend to move
-together. Logic that belongs together and is kept together does not need to reach across a boundary to do its work,
-while logic scattered across modules that have no reason to hold it generates connections that would not otherwise
-exist. xref:002.adoc[TS-2] covers coupling, and its several distinct forms, in detail.
+Cohesion is one half of a pair. Coupling describes the strength of the connections _between_ modules, cohesion the strength of the relationships _within_ one. The general aim is low coupling and high cohesion, and the two tend to move together. Logic that belongs together and is kept together does not need to reach across a boundary to do its work, while logic scattered across modules that have no reason to hold it generates connections that would not otherwise exist. xref:002.adoc[TS-2] covers coupling, and its several distinct forms, in detail.
 
-Constantine and Yourdon ranked cohesion on a scale, running from *coincidental* cohesion at the weakest end — elements
-grouped for no reason at all, the catch-all `utils` module being the familiar example — through *logical*, *temporal*,
-*procedural*, *communicational*, and *sequential* cohesion, to *functional* cohesion at the strongest, where every
-element in the module contributes to a single, well-defined task. The scale is more useful as a diagnostic vocabulary
-than as a grading system. Its value is in naming the weak forms, so that a module held together only by "these things
-all run at startup" (temporal) or "these things all touch the customer record" (communicational) can be recognized as
-such, and a deliberate judgment made about whether that is a good enough reason.
+Constantine and Yourdon ranked cohesion on a scale, running from *coincidental* cohesion at the weakest end — elements grouped for no reason at all, the catch-all `utils` module being the familiar example — through *logical*, *temporal*, *procedural*, *communicational*, and *sequential* cohesion, to *functional* cohesion at the strongest, where every element in the module contributes to a single, well-defined task. The scale is more useful as a diagnostic vocabulary than as a grading system. Its value is in naming the weak forms, so that a module held together only by "these things all run at startup" (temporal) or "these things all touch the customer record" (communicational) can be recognized as such, and a deliberate judgment made about whether that is a good enough reason.
 
-Cohesion is not an argument for decomposing without limit. A module that does one thing is not automatically better
-than one that does two closely related things, and splitting modules until every unit is functionally cohesive produces
-exactly the over-decomposition described above, in which many tiny abstractions end up tightly coupled to one another.
-Treat cohesion as a reason to move logic that clearly doesn't belong, not as a target to optimize for its own sake.
+Cohesion is not an argument for decomposing without limit. A module that does one thing is not automatically better than one that does two closely related things, and splitting modules until every unit is functionally cohesive produces exactly the over-decomposition described above, in which many tiny abstractions end up tightly coupled to one another. Treat cohesion as a reason to move logic that clearly doesn't belong, not as a target to optimize for its own sake.
 
-Note also that cohesion is a local property. Every module in a system can be highly cohesive while the system as a whole
-is still built on several inconsistent ideas. That system-wide property is conceptual integrity, and it is a separate
-concern, covered in xref:002.adoc[TS-2].
+Note also that cohesion is a local property. Every module in a system can be highly cohesive while the system as a whole is still built on several inconsistent ideas. That system-wide property is conceptual integrity, and it is a separate concern, covered in xref:002.adoc[TS-2].
 
 == Don't repeat yourself
 
-One of the objectives of abstraction is to promote code reuse. By decomposing "common patterns" into constructs like
-functions and modules, we can define those patterns once and reuse them in multiple contexts.
+One of the objectives of abstraction is to promote code reuse. By decomposing "common patterns" into constructs like functions and modules, we can define those patterns once and reuse them in multiple contexts.
 
-The principle of "don't repeat yourself" (DRY) states that we should use abstraction to extract and encapsulate discrete
-units of _knowledge_. This means having an abstraction for each distinct business rule or domain concept, which can then
-be reused in different contexts. The objective is to need to make changes to important business logic, domain entities,
-and data representations in only one place.
+The principle of "don't repeat yourself" (DRY) states that we should use abstraction to extract and encapsulate discrete units of _knowledge_. This means having an abstraction for each distinct business rule or domain concept, which can then be reused in different contexts. The objective is to need to make changes to important business logic, domain entities, and data representations in only one place.
 
-Somewhere along the way, "don't repeat yourself" came to be misunderstood as meaning "don't copy-and-paste any logic or
-data". It is wrongly viewed as a directive to eliminate all code duplication. But this interpretation leads to premature
-abstraction and tightly coupled code.
+Somewhere along the way, "don't repeat yourself" came to be misunderstood as meaning "don't copy-and-paste any logic or data". It is wrongly viewed as a directive to eliminate all code duplication. But this interpretation leads to premature abstraction and tightly coupled code.
 
-When two components contain what appears to be duplicate code, but when those components are semantically unrelated to
-one another, the code duplication is coincidental. If we extracted this replica code to a shared abstraction, we only
-optimize locally (fewer lines of code per module) but at the expense of increased system complexity (poorer modularity).
-We create a coupling between two modules, increasing the difficulty of evolving the behavior of each independently of
-the other.
+When two components contain what appears to be duplicate code, but when those components are semantically unrelated to one another, the code duplication is coincidental. If we extracted this replica code to a shared abstraction, we only optimize locally (fewer lines of code per module) but at the expense of increased system complexity (poorer modularity). We create a coupling between two modules, increasing the difficulty of evolving the behavior of each independently of the other.
 
-The true cost of complexity comes not from lines of code, but from _dependencies and indirection_. A small codebase with
-many abstractions can be more complex than a big codebase with less indirection.
+The true cost of complexity comes not from lines of code, but from _dependencies and indirection_. A small codebase with many abstractions can be more complex than a big codebase with less indirection.
 
-Modern tools — IDEs with static analysis, automated refactoring, and AI code assistants — have made the cost of code
-duplication much cheaper. Refactoring is easier than ever. This means we can afford to repeat code now and extract
-abstractions later, once we have high confidence the abstractions will be worthwhile. In other words, we should write
-everything twice (WET) before abstracting, to gain confidence that the planned abstraction will be stable and valuable.
+Modern tools — IDEs with static analysis, automated refactoring, and AI code assistants — have made the cost of code duplication much cheaper. Refactoring is easier than ever. This means we can afford to repeat code now and extract abstractions later, once we have high confidence the abstractions will be worthwhile. In other words, we should write everything twice (WET) before abstracting, to gain confidence that the planned abstraction will be stable and valuable.
 
 == The Rule of Three
 
-Waiting for high confidence before abstracting is one thing; knowing when that confidence has actually arrived is
-another. A useful trigger is the Rule of Three: writing the same logic once is fine, writing it a second time is
-acceptable, but writing it a third time is the signal to consolidate.
+Waiting for high confidence before abstracting is one thing; knowing when that confidence has actually arrived is another. A useful trigger is the Rule of Three: writing the same logic once is fine, writing it a second time is acceptable, but writing it a third time is the signal to consolidate.
 
-The reasoning is about data points, not aesthetics. A single instance of some logic tells you nothing about how it might
-vary. A second instance gives you one comparison, which is rarely enough to distinguish an incidental similarity from a
-genuine shared pattern. By the third instance, you have enough examples to see which parts are truly common and which
-parts vary – and a good abstraction can only be designed once you know that.
+The reasoning is about data points, not aesthetics. A single instance of some logic tells you nothing about how it might vary. A second instance gives you one comparison, which is rarely enough to distinguish an incidental similarity from a genuine shared pattern. By the third instance, you have enough examples to see which parts are truly common and which parts vary – and a good abstraction can only be designed once you know that.
 
-Consolidating too early, from a single instance or a hasty second one, risks building an abstraction around an
-accidental resemblance. As the copies continue to diverge with each new use, the interface you guessed at either grows
-special cases to accommodate variations it didn't anticipate, or forces callers to bend their needs to fit an
-abstraction that was never quite right for them. Waiting for the third occurrence costs nothing but a little
-duplication, and buys the information needed to abstract well.
+Consolidating too early, from a single instance or a hasty second one, risks building an abstraction around an accidental resemblance. As the copies continue to diverge with each new use, the interface you guessed at either grows special cases to accommodate variations it didn't anticipate, or forces callers to bend their needs to fit an abstraction that was never quite right for them. Waiting for the third occurrence costs nothing but a little duplication, and buys the information needed to abstract well.
 
 == Orphan modules
 
-Decomposition sometimes produces a unit of logic – a function, a small class, a handful of related utilities – that
-doesn't obviously belong to any existing module. The natural temptation is to find the closest existing module and add
-the new logic there, even when the fit is poor, rather than create a new module for something that, on its own, looks
-too small to justify one.
+Decomposition sometimes produces a unit of logic – a function, a small class, a handful of related utilities – that doesn't obviously belong to any existing module. The natural temptation is to find the closest existing module and add the new logic there, even when the fit is poor, rather than create a new module for something that, on its own, looks too small to justify one.
 
-Resist that temptation. An orphan module – a small, standalone module that exists because nothing else was the right
-home for it – is a perfectly acceptable outcome. It is a better outcome than forcing unrelated logic into a module where
-it doesn't belong, which erodes that module's cohesion and makes both the original logic and the newly added logic
-harder to find and reason about later.
+Resist that temptation. An orphan module – a small, standalone module that exists because nothing else was the right home for it – is a perfectly acceptable outcome. It is a better outcome than forcing unrelated logic into a module where it doesn't belong, which erodes that module's cohesion and makes both the original logic and the newly added logic harder to find and reason about later.
 
-Creating a new module for orphan logic keeps the codebase's structure honest: each module contains what actually belongs
-together, and a module's size or its coupling to a specific location in the codebase are not treated as a proxy for
-whether a new module is warranted.
+Creating a new module for orphan logic keeps the codebase's structure honest: each module contains what actually belongs together, and a module's size or its coupling to a specific location in the codebase are not treated as a proxy for whether a new module is warranted.
 
 == Optimization as a source of over-engineering
 
-Over-decomposition is not the only route to over-engineering. Performance optimization is another common one, and it
-deserves specific caution because it tends to arrive with its own justification already attached – "this needs to be
-fast" is rarely questioned the way "this needs another layer of abstraction" is.
+Over-decomposition is not the only route to over-engineering. Performance optimization is another common one, and it deserves specific caution because it tends to arrive with its own justification already attached – "this needs to be fast" is rarely questioned the way "this needs another layer of abstraction" is.
 
-Optimization introduces complexity. Optimized code is frequently harder to read than its straightforward equivalent,
-because it trades a direct expression of intent for a more convoluted implementation chosen for its runtime
-characteristics. It also tends to introduce tighter coupling – between components, between layers, and sometimes across
-business processes – as code is reshaped around data flows and access patterns that favor performance over clean
-separation of concerns.
+Optimization introduces complexity. Optimized code is frequently harder to read than its straightforward equivalent, because it trades a direct expression of intent for a more convoluted implementation chosen for its runtime characteristics. It also tends to introduce tighter coupling – between components, between layers, and sometimes across business processes – as code is reshaped around data flows and access patterns that favor performance over clean separation of concerns.
 
-Optimize only once you have evidence – profiling data, load-testing results, or production metrics – that a specific
-piece of code is actually a bottleneck. xref:002.adoc[TS-2] covers the broader trade-off
-between performance and other design qualities in more detail. Once code works and meets its performance requirements,
-stop engineering it further. Continue simplifying where you can, but resist the urge to keep optimizing past the point
-where it's justified by evidence – the complexity and coupling it introduces are a lasting cost, paid whether or not the
-optimization was ever necessary.
+Optimize only once you have evidence – profiling data, load-testing results, or production metrics – that a specific piece of code is actually a bottleneck. xref:002.adoc[TS-2] covers the broader trade-off between performance and other design qualities in more detail. Once code works and meets its performance requirements, stop engineering it further. Continue simplifying where you can, but resist the urge to keep optimizing past the point where it's justified by evidence – the complexity and coupling it introduces are a lasting cost, paid whether or not the optimization was ever necessary.
 
 == A small vocabulary of patterns
 
-Decomposition decisions accumulate into a codebase-wide vocabulary of design patterns – the recurring shapes a reader
-learns to recognize, such as "this kind of problem gets solved with a factory here" or "cross-cutting concerns are
-handled with middleware in this codebase." A reader who has learned how one part of the system expresses an idea should
-not need to relearn new structures to understand another part that solves a similar problem.
+Decomposition decisions accumulate into a codebase-wide vocabulary of design patterns – the recurring shapes a reader learns to recognize, such as "this kind of problem gets solved with a factory here" or "cross-cutting concerns are handled with middleware in this codebase." A reader who has learned how one part of the system expresses an idea should not need to relearn new structures to understand another part that solves a similar problem.
 
-This is a cross-cutting discipline, distinct from choosing the right pattern for a given problem. It is entirely
-possible for every individual decomposition decision in a codebase to be locally well-reasoned, and for the codebase as
-a whole to still be hard to work in, because it uses a different idiom to solve the same recurring kind of problem in
-every module – one repository layer built around the active record pattern, another around a repository interface,
-a third talking to the database directly. Each choice might be individually defensible. Together, they multiply the
-number of distinct mental models a reader has to hold to work anywhere in the system.
+This is a cross-cutting discipline, distinct from choosing the right pattern for a given problem. It is entirely possible for every individual decomposition decision in a codebase to be locally well-reasoned, and for the codebase as a whole to still be hard to work in, because it uses a different idiom to solve the same recurring kind of problem in every module – one repository layer built around the active record pattern, another around a repository interface, a third talking to the database directly. Each choice might be individually defensible. Together, they multiply the number of distinct mental models a reader has to hold to work anywhere in the system.
 
-Favor the pattern the codebase already uses for a given kind of problem over introducing a new one, even where the new
-pattern would be a marginally better fit in isolation. Reserve a genuinely new pattern for a kind of problem the
-codebase has not previously had to solve, and once introduced, treat it as the new default for that kind of problem
-elsewhere in the codebase, rather than letting it become a third or fourth alternative alongside the existing ones.
+Favor the pattern the codebase already uses for a given kind of problem over introducing a new one, even where the new pattern would be a marginally better fit in isolation. Reserve a genuinely new pattern for a kind of problem the codebase has not previously had to solve, and once introduced, treat it as the new default for that kind of problem elsewhere in the codebase, rather than letting it become a third or fourth alternative alongside the existing ones.
