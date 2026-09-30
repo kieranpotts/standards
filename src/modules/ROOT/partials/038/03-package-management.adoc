@@ -1,12 +1,12 @@
 = Package management
 
-An application MUST commit its lockfile (`package-lock.json`, `yarn.lock`, or `pnpm-lock.yaml`, depending on the chosen package manager) to version control. The lockfile is what makes a build reproducible across machines and over time; a `package.json` alone only pins version *ranges*, which resolve to different concrete versions as the registry gains new releases.
+An application MUST commit its lockfile (`package-lock.json`, `yarn.lock`, or `pnpm-lock.yaml`, depending on the chosen package manager) to version control. The lockfile is what makes a build reproducible across machines and over time. A `package.json` alone only pins version *ranges*, which resolve to different concrete versions as the registry gains new releases.
 
-Dependency versions in `package.json` SHOULD use the caret range (`^1.2.3`) for libraries the application does not need to pin exactly, reserving an exact pin (`1.2.3`) for a dependency with a history of breaking changes in minor or patch releases, or one the application patches locally. A caret range still resolves deterministically for any given install because the lockfile records the exact version actually installed.
+Dependency versions in `package.json` SHOULD use the caret range (`^1.2.3`) for libraries the application does not need to pin exactly, reserving an exact pin (`1.2.3`) for a dependency with a history of breaking changes in minor or patch releases, or one the application patches locally. A caret range still resolves deterministically for any given install because the lockfile records the exact version installed.
 
 CI MUST install dependencies with the package manager's frozen-lockfile mode (`npm ci`, `yarn install --immutable`, `pnpm install --frozen-lockfile`), not the mutating install command (`npm install`). The frozen mode fails the build if `package.json` and the lockfile have drifted apart, rather than silently re-resolving and writing a new lockfile inside the CI job.
 
-An application MUST distinguish `dependencies` from `devDependencies`. Anything required at runtime — including a framework, an ORM, or a logging library — belongs in `dependencies`; anything used only to build, test, or lint the codebase — a bundler, a test runner, a linter — belongs in `devDependencies`. This distinction determines what a production install (`npm ci --omit=dev`) actually ships, and an application that gets it wrong either ships an oversized production image or is missing a runtime dependency that only manifests once `devDependencies` is dropped.
+An application MUST distinguish `dependencies` from `devDependencies`. Anything required at runtime — including a framework, an ORM, or a logging library — belongs in `dependencies`. Anything used only to build, test, or lint the codebase — a bundler, a test runner, a linter — belongs in `devDependencies`. This distinction determines what a production install (`npm ci --omit=dev`) ships, and an application that gets it wrong either ships an oversized production image or is missing a runtime dependency that only manifests once `devDependencies` is dropped.
 
 [NOTE]
 ======

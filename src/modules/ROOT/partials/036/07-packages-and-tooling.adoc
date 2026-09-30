@@ -32,7 +32,7 @@ A package MAY include.
 
 == Package manifests
 
-The `package.json` file is a _de facto_ manifest standard for JavaScript packages. It is not part of the ECMAScript specification; rather, it evolved by convention, originally for the NPM package manager and subsequently extended by Node and other tools.
+The `package.json` file is a _de facto_ manifest standard for JavaScript packages. It is not part of the ECMAScript specification. Rather, it evolved by convention, originally for the NPM package manager and subsequently extended by Node and other tools.
 
 In general, `package.json` files serve two purposes: they provide metadata for shareable packages, and they define development dependencies, run-scripts, and other configuration for the development, testing, building, and distribution of those packages. These concerns SHOULD be separated, with a _package manifest_ distinct from the _repository manifest_ (see <<repository-manifests,Repository manifests>>). This keeps manifests simpler and means production `dependencies` never co-exist with `devDependencies` in the same `node_modules` directory, which makes production dependency trees easier to audit.
 
@@ -89,50 +89,50 @@ This is the template for package manifests.
 
 Most of these fields provide metadata for package management tools and registries, based on NPM's specification. Node extends this with `type`, `main`, `exports`, and `imports`, which determine how packages are imported and interpreted at runtime.
 
-=== `name` and `version`
+=== name and version
 
 The `name` field specifies a unique identifier for a package. It is REQUIRED for publicly-distributed packages, and MUST be unique among all packages in the registry via which it is distributed. Package names can be global (eg. `lodash-es`) or scoped (`@[scope]/[name]`, eg. `@babel/core`). It is strongly RECOMMENDED that all new packages be distributed with scoped names, since only the scope MUST be unique in the registry.
 
 A `version` is REQUIRED for packages distributed via public registries. See <<dependency-management,Dependency management>> for guidance on version constraints.
 
-=== `description`, `keywords`, `author`, and `contributors`
+=== description, keywords, author, and contributors
 
 These fields are OPTIONAL and are used only to make packages easier to find in registries.
 
-=== `license`, `homepage`, `repository`, and `bugs`
+=== license, homepage, repository, and bugs
 
 These fields provide metadata linking to the package's license, homepage, source repository, and issue tracker.
 
-=== `files`
+=== files
 
 The `files` field whitelists the files included in the published package archive. It SHOULD be used to keep published artifacts small and to avoid leaking development-only files.
 
 [#engines-package-manifest]
-=== `engines`
+=== engines
 
-The `engines` field specifies with which versions of Node a package is compatible. For publicly-distributed packages, it is our policy to support only the active and maintenance LTS releases of Node. At any time there are usually three supported versions; only when a "current" release becomes the active LTS release do we bump support. See <<Runtimes>> for further guidance.
+The `engines` field specifies with which versions of Node a package is compatible. For publicly-distributed packages, it is our policy to support only the active and maintenance LTS releases of Node. At any time there are usually three supported versions. Only when a "current" release becomes the active LTS release do we bump support. See <<Runtimes>> for further guidance.
 
 [#type-field-package-manifest]
-=== `type`
+=== type
 
 The `type` field is used by Node as an "implicit toggle" for its module interpreter. By default, Node interprets all `.js` files as CommonJS scripts. If a package is mostly composed of ES modules, this field SHOULD be set to `"module"` so all `.js` files are treated as ES modules. The possible values are `"commonjs"` (the default) and `"module"`.
 
 All package manifests MUST include the `type` field, even when the value is `"commonjs"`. This future-proofs the package and makes it easier for tools to determine how `.js` files should be interpreted. See <<Modules>> for background on the `type` field.
 
-=== `bin`
+=== bin
 
 The `bin` field maps command names to executable scripts. See <<package-command-line-interfaces,Package command line interfaces>>.
 
-=== `main`, `module`, and `exports`
+=== main, module, and exports
 
 These fields configure the entry points to a package. See <<package-exports,Package exports>>.
 
-=== `dependencies` and `peerDependencies`
+=== dependencies and peerDependencies
 
 Only production `dependencies` and `peerDependencies` SHOULD be defined in package manifests. `devDependencies` SHOULD be used only in repository manifests.
 
 [#scripts-package-manifest]
-=== `scripts`
+=== scripts
 
 The `scripts` field configures run-scripts that automate phases of the development, testing, and release lifecycle. It SHOULD NOT be included in package manifests, only in repository manifests (see <<repository-manifests,Repository manifests>>).
 
@@ -150,7 +150,7 @@ import { pkgName } from '@pkg/name'
 import { config } from '../config.js'
 ----
 
-=== `main`
+=== main
 
 The `main` field is Node's legacy methodology for defining a package's entry point. It can define only a single entry point.
 
@@ -163,7 +163,7 @@ The `main` field is Node's legacy methodology for defining a package's entry poi
 
 If neither `main` nor `exports` is defined, Node will attempt to resolve the package to `index.js` or `index.node`.
 
-=== `module`
+=== module
 
 For years after ESM was standardized but before Node supported it natively, bundlers such as Webpack and Rollup drove a convention to use a custom `module` property to point to the ESM entry point, with `main` pointing to the CommonJS entry point.
 
@@ -177,7 +177,7 @@ For years after ESM was standardized but before Node supported it natively, bund
 
 The `module` convention has largely been superseded by `exports`, but publicly-distributed libraries MAY maintain this field for the benefit of consuming applications that run on deprecated Node lines or use older transpilation toolchains.
 
-=== `exports`
+=== exports
 
 Since v12.20 and v14.13, Node has supported an `exports` field (an "export map") with far more extensive capabilities than `main`. Where `exports` is present, it overrides `main` and prevents consumers from importing entry points that are not explicitly defined. The `exports` field allows packages to have multiple entry points and conditional exports.
 
@@ -293,11 +293,11 @@ Conditional exports can be combined with multiple entry points.
 }
 ----
 
-Hybrid packages MAY use the conventional `.js` extension for both CJS and ESM files; the `require` and `import` keys of `exports` are enough to select the correct interpreter. When developing hybrid packages, all exported modules MUST be stateless: because ESM and CJS run through different interpreters, an application could import two separate instances of the same module, and a stateful module could then behave unexpectedly.
+Hybrid packages MAY use the conventional `.js` extension for both CJS and ESM files. The `require` and `import` keys of `exports` are enough to select the correct interpreter. When developing hybrid packages, all exported modules MUST be stateless: because ESM and CJS run through different interpreters, an application could import two separate instances of the same module, and a stateful module could then behave unexpectedly.
 
 === Putting it together
 
-A combination of `main`, `module`, and `exports` supports a very wide range of runtimes.
+A combination of `main`, `module`, and `exports` supports a wide range of runtimes.
 
 [source,json]
 ----
@@ -383,7 +383,7 @@ console.log(out)
 
 == Distributing packages
 
-Before publishing updates to a package, you MUST test it extensively — not just by running the test scripts, but by fully testing the end-to-end journey of installing and consuming the package. You SHOULD test locally before uploading to the NPM registry.
+Before publishing updates to a package, you MUST test it extensively — not only by running the test scripts, but by fully testing the end-to-end journey of installing and consuming the package. You SHOULD test locally before uploading to the NPM registry.
 
 Test the package via its command line interface, then verify the package archive with `npm pack`, which generates a `<packagename>-<version>.tgz` archive.
 
@@ -414,7 +414,7 @@ Run this whenever you want to publish updates. To remove a package from the regi
 $ npm unpublish --force <packagename>[@<version>]
 ----
 
-Once published, a package or version can no longer be fully removed without breaking dependents; instead, mark it as deprecated to discourage use.
+Once published, a package or version can no longer be fully removed without breaking dependents. Instead, mark it as deprecated to discourage use.
 
 [source,bash]
 ----
@@ -428,7 +428,7 @@ The `npm` program maintains a local cache of downloaded packages. To ensure you 
 $ npm cache clean
 ----
 
-Generally, local installs are preferred to global installs; use global installs cautiously and only for build tools used across multiple projects.
+Generally, local installs are preferred to global installs. Use global installs cautiously and only for build tools used across multiple projects.
 
 == Vendor packages
 
@@ -499,7 +499,7 @@ This is the filesystem structure for the source control repositories of ECMAScri
 
 The top-level directories have the following uses.
 
-* *`dist`.* Temporary directory capturing compiled artifacts; excluded from source control.
+* *`dist`.* Temporary directory capturing compiled artifacts. Excluded from source control.
 
 * *`docs`.* Documentation for developers and maintainers of the project.
 
@@ -529,7 +529,7 @@ The same directory structure is used for both multi-repos and mono-repos, so a r
       └─ [pkg3]
 ----
 
-The source code for each package's libraries (the modules exported from the package) MUST be encapsulated in a sub-directory called `lib`. If the package exposes a CLI as well as an API, the binaries MUST be encapsulated in a sub-directory called `bin`. Automated test scripts MAY be included in an adjacent `test` directory, and behavioral specifications in a `specs` directory; these SHOULD be excluded from distributable artifacts.
+The source code for each package's libraries (the modules exported from the package) MUST be encapsulated in a sub-directory called `lib`. If the package exposes a CLI as well as an API, the binaries MUST be encapsulated in a sub-directory called `bin`. Automated test scripts MAY be included in an adjacent `test` directory, and behavioral specifications in a `specs` directory. These SHOULD be excluded from distributable artifacts.
 
 ==== Applications
 
@@ -568,22 +568,22 @@ This is the template for repository manifests.
 }
 ----
 
-==== `private`
+==== private
 
 For repository manifests, the `name` and `version` fields SHOULD be omitted and `private` MUST be set to `true`. This prevents the repository from being accidentally published to a package registry — `npm publish` will fail if the manifest declares the package private. Most other metadata fields (`description`, `keywords`, `author`, `license`, `homepage`, etc.) can also be omitted.
 
-==== `name`
+==== name
 
 The `name` field has no significance for a private manifest but is often read by development tools (eg. prompt customizers render it in the terminal prompt). In a repository manifest, its value SHOULD be the name of the project.
 
-==== `workspaces`
+==== workspaces
 
 The `workspaces` key is picked up by package managers such as Yarn and npm and helps manage mono-repos — single repositories that store the source for multiple packages. See <<workspaces-topic,Workspaces>>.
 
 [#engines-repository-manifest]
-==== `engines`
+==== engines
 
-In a repository manifest, the `engines` field specifies which versions of Node and `npm`/`yarn` MUST be used in development and test environments. This SHOULD be more constrained than in package manifests. A package manifest's `engines` describes the target production system; a repository manifest's `engines` describes the baseline requirements for development environments.
+In a repository manifest, the `engines` field specifies which versions of Node and `npm`/`yarn` MUST be used in development and test environments. This SHOULD be more constrained than in package manifests. A package manifest's `engines` describes the target production system. A repository manifest's `engines` describes the baseline requirements for development environments.
 
 [source,json]
 ----
@@ -596,16 +596,16 @@ In a repository manifest, the `engines` field specifies which versions of Node a
 ----
 
 [#type-field-repository-manifest]
-==== `type`
+==== type
 
 Since most source code is compliant with the ES module standard, it is RECOMMENDED to set `"type": "module"` at the repository level to toggle Node's default interpreter. See <<Modules>> for background.
 
-==== `devDependencies`
+==== devDependencies
 
 The `devDependencies` field SHOULD be managed by the package manager rather than edited manually.
 
 [#scripts-repository-manifest]
-==== `scripts`
+==== scripts
 
 The `scripts` field configures run-scripts that automate phases of the development, testing, and release lifecycle. It SHOULD NOT be included in package manifests but MAY be included in the top-level manifest of the original code repository.
 
@@ -691,17 +691,17 @@ All contributors to an ECMAScript project SHOULD use the same package manager. Y
 
 Transpilation is source-to-source compilation: transforming modern JavaScript syntax (and polyfilling missing APIs) into a form supported by the target runtime. Modern runtimes support most recent syntax natively, so transpilation is needed only when targeting older runtimes or proposed features not yet widely supported.
 
-https://babeljs.io/[Babel] is the standard transpiler; the source remains standard JavaScript, transformed via https://babeljs.io/docs/en/babel-preset-env[`@babel/preset-env`] to the configured targets. Prefer Babel over compile-to-JavaScript languages — it keeps the source as standard JavaScript and future-proofs it.
+https://babeljs.io/[Babel] is the standard transpiler. The source remains standard JavaScript, transformed via https://babeljs.io/docs/en/babel-preset-env[`@babel/preset-env`] to the configured targets. Prefer Babel over compile-to-JavaScript languages — it keeps the source as standard JavaScript and future-proofs it.
 
 Bundling combines many modules into one (or a few) artifacts, reducing the number of requests needed to load a web application. Bundlers include https://rollupjs.org/[Rollup], https://webpack.js.org/[Webpack], and https://parceljs.org/[Parcel]. Bundlers also enable *tree shaking* — eliminating unused exports — which requires ES modules. Use dynamic `import()` (see <<Modules>>) and bundler code-splitting to lazy-load code on demand rather than shipping one large bundle.
 
 The goal is to transpile and bundle as little as possible: prefer native ES modules (loaded asynchronously per the spec) over transpiled, synchronously loaded bundles wherever the target runtimes support them.
 
-When bundling is warranted, separate first-party application code from third-party vendor code into distinct bundles. Vendor code changes rarely and benefits from being cached independently of the application: a deploy that changes only application code does not invalidate the cached vendor bundle, and users do not re-fetch libraries they already have. This split also makes it easier to produce multiple application bundles that share one vendor bundle — for example, separate bundles for public pages and an authenticated dashboard. Modern bundlers support this via explicit entry points or cache-group configuration; do not rely on a single monolithic bundle.
+When bundling is warranted, separate first-party application code from third-party vendor code into distinct bundles. Vendor code changes rarely and benefits from being cached independently of the application: a deploy that changes only application code does not invalidate the cached vendor bundle, and users do not re-fetch libraries they already have. This split also makes it easier to produce multiple application bundles that share one vendor bundle — for example, separate bundles for public pages and an authenticated dashboard. Modern bundlers support this via explicit entry points or cache-group configuration. Do not rely on a single monolithic bundle.
 
 == Package design
 
-*Package cohesion.* Classes within a package SHOULD be a closely related family and either all reusable or none of them; tightly coupled classes belong in the same package, and unrelated classes should be split out.
+*Package cohesion.* Classes within a package SHOULD be a closely related family and either all reusable or none of them. Tightly coupled classes belong in the same package, and unrelated classes should be split out.
 
 *Package coupling.* Prefer a dependency hierarchy where higher-order packages depend only on lower-order, simpler ones, and avoid dependencies between large packages, which risk circular references. Packages may iterate rapidly but their public APIs and behavior SHOULD be stable.
 

@@ -20,19 +20,19 @@ Message delivery systems MUST implement reasonable timeout values for message de
 [#retries-and-circuit-breakers]
 == Retries and circuit breakers
 
-It is RECOMMENDED to implement *retry logic* with *exponential backoff* plus *jitter* for failed deliveries. A common pattern is immediate retry, then delays of 1min, 5min, 30min, 2hrs, and 8hrs, before giving up and marking the message's delivery as failed. Adjust the intervals based on the time-sensitivity of each message; shorter initial intervals may be appropriate for some use cases.
+It is RECOMMENDED to implement *retry logic* with *exponential backoff* plus *jitter* for failed deliveries. A common pattern is immediate retry, then delays of 1 min, 5 min, 30 min, 2 h, and 8 h, before giving up and marking the message's delivery as failed. Adjust the intervals based on the time-sensitivity of each message. Shorter initial intervals may be appropriate for some use cases.
 
 It is RECOMMENDED to add random jitter to retry intervals. When multiple clients experience failures simultaneously — which will be the case for a service outage — they may all retry at the same intervals.
 
-* Client A: Retry at 30sec, 1min, 2min, 5min...
-* Client B: Retry at 30sec, 1min, 2min, 5min...
-* Client C: Retry at 30sec, 1min, 2min, 5min...
+* Client A: Retry at 30 s, 1 min, 2 min, 5 min...
+* Client B: Retry at 30 s, 1 min, 2 min, 5 min...
+* Client C: Retry at 30 s, 1 min, 2 min, 5 min...
 
 The effect is "retry storms" or the "thunder herd" problem, in which lots of retries are seemingly synchronized across multiple clients, enough to overwhelm a service while it is still recovering from failure, causing new failures. Adding randomness (jitter) to retry intervals helps to spread out retry requests more evenly over time.
 
-* Client A: Retry at 38s, 1min 15sec, 2min 5sec, 5min 35sec...
-* Client B: Retry at 42s, 1min 5sec, 2min 25sec, 4min 50sec...
-* Client C: Retry at 25s, 59sec, 2min 10sec, 5min 10sec...
+* Client A: Retry at 38 s, 1 min 15 s, 2 min 5 s, 5 min 35 s...
+* Client B: Retry at 42 s, 1 min 5 s, 2 min 25 s, 4 min 50 s...
+* Client C: Retry at 25 s, 59 s, 2 min 10 s, 5 min 10 s...
 
 Producers MUST implement sensible defaults for retry intervals. In some cases it will be desirable to customize retry intervals for different types of message. Consumers SHOULD be able to configure the retry intervals for messages sent to them, overriding the defaults.
 
@@ -48,13 +48,13 @@ Consumers MAY use the `Retry-After` header to inform producers when they are bei
 
 == Statelessness
 
-Where possible, producers SHOULD design events to be xref:garden::stateless.adoc[*stateless*]. This means that each message is *self-contained*; it includes all the information needed for the consumer to process it, without relying on any external state or context.
+Where possible, producers SHOULD design events to be xref:garden::stateless.adoc[*stateless*]. This means that each message is *self-contained*. It includes all the information needed for the consumer to process it, without relying on any external state or context.
 
 This is especially beneficial when the processing of events is not dependent upon the processing of prior events — since there can be no guarantees that those prior events will have been received or processed successfully.
 
 Therefore, it is RECOMMENDED to avoid using `sequence` fields in event metadata, and not to require consumers to reconstruct state from the full sequence of events, processed in the right order without gaps.
 
-An alternative design is to transmit no state at all in events. Such messages would not have payloads. These events are simply notifications that something has changed in the publisher service. Consumers are required to synchronize their state by making regular requests to API endpoints, in response to those notifications.
+An alternative design is to transmit no state at all in events. Such messages would not have payloads. These events are notifications that something has changed in the publisher service. Consumers are required to synchronize their state by making regular requests to API endpoints, in response to those notifications.
 
 There are pros and cons to both approaches. "Thin" payloads tends to be beneficial in webhooks in public HTTP APIs, while "fat" payloads tend to be more appropriate for internal messaging systems. The right balance depends on the specific use case.
 
@@ -101,4 +101,4 @@ When messages are delivered over HTTP, the consumer MUST return an HTTP status c
 * `4xx` (client error) — The message was rejected due to a problem with the message itself (eg. malformed payload, schema validation failure, authentication failure). The producer SHOULD NOT retry, since retrying the same message will produce the same error. The consumer SHOULD include a descriptive error message in the response body.
 * `5xx` (server error) — The consumer encountered an error while processing the message. The producer SHOULD retry, following the retry logic described above.
 
-A `2xx` response acknowledges receipt; it does not guarantee that processing has completed. For at-least-once delivery semantics, the producer MUST treat any non-`2xx` response as a failure and retry.
+A `2xx` response acknowledges receipt. It does not guarantee that processing has completed. For at-least-once delivery semantics, the producer MUST treat any non-`2xx` response as a failure and retry.

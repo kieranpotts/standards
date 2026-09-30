@@ -10,11 +10,11 @@ The C and C++ specifications classify most memory errors — reading or writing 
 
 1.  *A compiler MAY optimize on the assumption that undefined behavior never occurs.* A bounds or overflow check written _after_ the operation it is meant to guard is, by the specification's own reasoning, unreachable, and the compiler is free to delete it — silently removing a check the author believed was protecting the program. Checks MUST therefore be written so that they are well-defined in their own right: test the operands before the operation, never the result after it.
 
-2.  *What actually happens is decided below the specification*, by the compiler, the standard library, the allocator, and the hardware. That is also where an attacker works.
+2.  *What happens is decided below the specification*, by the compiler, the standard library, the allocator, and the hardware. That is also where an attacker works.
 
 [quote, Elhage N, Computers Can Be Understood (2020)]
 ____
-Understanding security issues very often requires working at multiple levels of abstraction. An attacker attacking a system isn't bound by the documented or intended behavior of any layer. [...] The C specification says only that a buffer overflow is "undefined behavior"; understanding how to turn one into remote-code-execution, or reasoning about countermeasures like ASLR or DEP requires a deep understanding of the actual implementation of the abstract C specification by the compiler, libc, underlying hardware, and more.
+Understanding security issues often requires working at multiple levels of abstraction. An attacker attacking a system isn't bound by the documented or intended behavior of any layer. [...] The C specification says only that a buffer overflow is "undefined behavior". Understanding how to turn one into remote-code-execution, or reasoning about countermeasures like ASLR or DEP requires a deep understanding of the actual implementation of the abstract C specification by the compiler, libc, underlying hardware, and more.
 ____
 
 The practical requirement this imposes is on triage. "The standard says this is undefined" is where the analysis of a memory-safety defect begins, not where it ends: it establishes that the program has no defined behavior, and says nothing about what an attacker can make it do. Determining that MUST be done against the implementation — the compiler, its optimization settings, the allocator, and the target architecture — and by engineers who are willing to work at those layers.
@@ -25,7 +25,7 @@ Compilers, linkers, and operating systems provide mitigations that make a memory
 
 * *Address space layout randomization (ASLR).* Randomizes the base addresses of the stack, the heap, the executable, and shared libraries at load time, so an attacker cannot predict the address of the code or data they need to reach. The executable itself must be built as position-independent (PIE), otherwise only the libraries move.
 
-* *Data execution prevention (DEP), also called NX or W^X.* Marks writable pages non-executable, so a payload written into a buffer cannot simply be jumped to.
+* *Data execution prevention (DEP), also called NX or W^X.* Marks writable pages non-executable, so a payload written into a buffer cannot be jumped to.
 
 * *Stack canaries.* Place a guard value between local buffers and the saved return address and check it before returning, so a linear stack overflow is detected rather than followed.
 
@@ -42,7 +42,7 @@ A mitigation raises the cost of exploitation. It does not remove the defect. A m
 
 The SAST, DAST, and SCA tooling required by <<vulnerability-scanning,Vulnerability scanning>> MUST NOT be relied on as the primary control for memory safety. Static analysis of memory errors is undecidable in the general case, and these tools are tuned for a different class of finding. Two additional controls apply to memory-unsafe code.
 
-* *Sanitizers.* Instrumented builds — AddressSanitizer, UndefinedBehaviorSanitizer, MemorySanitizer, ThreadSanitizer — detect the errors described above at the moment they occur, rather than at the arbitrary later point where the corruption becomes visible. At least one CI run of the test suite MUST execute against a sanitized build. Sanitizers only find what the tests actually exercise, which is what makes the next control necessary.
+* *Sanitizers.* Instrumented builds — AddressSanitizer, UndefinedBehaviorSanitizer, MemorySanitizer, ThreadSanitizer — detect the errors described above at the moment they occur, rather than at the arbitrary later point where the corruption becomes visible. At least one CI run of the test suite MUST execute against a sanitized build. Sanitizers only find what the tests exercise, which is what makes the next control necessary.
 
 * *Fuzzing.* Any component that parses untrusted input — file formats, network protocols, compressed or serialized data — SHOULD be fuzzed continuously against a sanitized build, with the corpus retained between runs so that coverage accumulates. Every crash found MUST be retained as a regression test.
 

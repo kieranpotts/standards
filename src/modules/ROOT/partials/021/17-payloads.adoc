@@ -26,7 +26,7 @@ JSON's own type system is looser than most programming languages assume, and sev
 
 *Strings.* A `string` field SHOULD always declare an explicit `minLength` and `maxLength`. Without a `maxLength`, it is not possible to reliably size a database column to store the value, nor to know in advance whether a future change to the value's length would be a breaking change. Without a `minLength`, clients are typically able to submit an empty string in a field that should never be empty. `pattern` SHOULD be used to further constrain a string's format where appropriate, eg. for structured identifiers, but fields SHOULD NOT be over-constrained without a good technical reason to do so.
 
-*Numbers.* JSON defines only one numeric type, an unbounded fixed-point value; the distinction between `number` and `integer` exists only in JSON Schema, for validation purposes. Many languages and runtimes, notably JavaScript, cannot safely represent every value permitted by this type — for example, any integer larger than 2^53 loses precision when parsed by a JavaScript JSON deserializer. For this reason:
+*Numbers.* JSON defines only one numeric type, an unbounded fixed-point value. The distinction between `number` and `integer` exists only in JSON Schema, for validation purposes. Many languages and runtimes, notably JavaScript, cannot safely represent every value permitted by this type — for example, any integer larger than 2^53 loses precision when parsed by a JavaScript JSON deserializer. For this reason:
 
 * The JSON Schema `number` type SHOULD NOT be used. Depending on the receiving language, its values may be interpreted as either fixed-point or floating-point, which is a common source of rounding bugs. Decimal and monetary values SHOULD instead be represented as a `string`, constrained with `pattern`, `minLength`, and `maxLength`. This applies to any value that may exceed 2^53 or otherwise exceed IEEE 754 double-precision range, not only monetary amounts, eg. a 64-bit database identifier exposed in a response. (An API MAY instead adopt a convention such as OData's `IEEE754Compatible` mode, in which large integers are serialized as JSON strings only when a client opts in via a request header, but this standard's simpler default is to always use a `string` for such values.)
 
@@ -40,7 +40,7 @@ JSON's own type system is looser than most programming languages assume, and sev
 
 * Where new values might plausibly be added over time, use a `string` type instead, constrained by `pattern` to the naming convention for enumerated values (see the section on naming conventions, below), and document the currently-known set of values in prose rather than enforcing it in the schema. Clients consuming such a field MUST be built to tolerate unrecognized values gracefully.
 
-*Null values.* APIs SHOULD NOT produce or consume `null` values. A field that has no value SHOULD simply be omitted from the JSON object, rather than being present with a value of `null`. This distinction between "absent" and "defined as null" is a frequent source of confusion in strongly-typed client languages, where a deserializer often cannot tell the two cases apart. Omitting unset fields entirely avoids the ambiguity.
+*Null values.* APIs SHOULD NOT produce or consume `null` values. A field that has no value SHOULD be omitted from the JSON object, rather than being present with a value of `null`. This distinction between "absent" and "defined as null" is a frequent source of confusion in strongly-typed client languages, where a deserializer often cannot tell the two cases apart. Omitting unset fields entirely avoids the ambiguity.
 
 *Additional properties.* JSON Schema's `additionalProperties: false` keyword locks an object down to precisely the set of properties declared in its `properties` map. For schemas that describe extensible business data, eg. the `attributes` of a `ResourceItem` (see below), this keyword SHOULD NOT be set to `false`, because doing so turns the addition of any new field — ordinarily a backwards-compatible, additive change — into a schema-breaking one for any client that validates strictly against the schema. The envelope-level schemas defined later in this document are a deliberate exception: they describe the fixed structural "shape" of a message (the `resources`/`metadata`/`links`/`messages` envelope, links, errors, and so on), which SHOULD change only alongside a major version bump, so locking them down is intentional and appropriate. The distinction to draw when authoring a schema is between structure (lock it down) and business data (leave it open).
 
@@ -475,7 +475,7 @@ By default, the "related" field is populated at the server's discretion. An API 
 GET /v1/vault/payment-cards/{id}?expand=history/orders
 ----
 
-Where supported, the `expand` query parameter's value SHOULD be a comma-separated list of the `type` values (in the same `\{namespace}/\{resource}` form used by the "related" field's own `type` property) that the client wants embedded. An API MAY restrict which relations are expandable, and MUST document the supported set for each endpoint. An `expand` value naming an unsupported relation SHOULD be ignored rather than causing the request to fail, consistent with this standard's tolerant-reader posture towards client input.
+Where supported, the `expand` query parameter's value SHOULD be a comma-separated list of the `type` values (in the same `\{namespace}/\{resource}` form used by the "related" field's own `type` property) that the client wants embedded. An API MAY restrict which relations are expandable, and MUST document the supported set for each endpoint. An `expand` value naming an unsupported relation SHOULD be ignored rather than causing the request to fail, consistent with this standard's tolerant-reader posture toward client input.
 
 == Links
 
@@ -704,7 +704,7 @@ Embedding hypermedia links serves several concrete purposes beyond general disco
 
 * For a namespace that exposes mostly independent, action-oriented endpoints rather than resources (see *Actions*), the `GET /v\{major}/\{namespace}/actions` endpoint described in *Actions* serves as the entry point, linking to each available action.
 
-Clients SHOULD treat every `href` value as an opaque identifier, rather than attempting to construct or otherwise compose URIs themselves from constituent parts. The responsibility for URI construction belongs to the server; a client that parses or builds URLs by convention forfeits the ability of new versions of the API to change unrelated parts of the URL structure without breaking that client.
+Clients SHOULD treat every `href` value as an opaque identifier, rather than attempting to construct or otherwise compose URIs themselves from constituent parts. The responsibility for URI construction belongs to the server. A client that parses or builds URLs by convention forfeits the ability of new versions of the API to change unrelated parts of the URL structure without breaking that client.
 
 *Service-controlled flow.* Because the set of links returned with a resource MAY vary based on that resource's current state, links can be used to communicate which operations are presently valid, without the client needing to embed that business logic itself. For example, a `cancel` link SHOULD only be present on an order while it is in a cancellable state, eg. `pending`, and SHOULD be absent once the order reaches a terminal state, eg. `completed`. This allows new state transitions to be introduced on the server side over time without requiring a corresponding client-side change to recognize them.
 
@@ -771,7 +771,7 @@ The following rules govern the use of status codes and error responses.
 
 * For client errors (`4xx`), the error response SHOULD provide enough information for the client to determine what caused the error and how to fix it.
 
-* For server errors (`5xx`), the error response SHOULD limit the amount of information to avoid exposing internal service implementation details. Service developers SHOULD use logging and tracking utilities to capture additional diagnostic information. In particular, an error response MUST NOT include a stack trace or any other information that could assist an attacker in understanding the server's internals; see also *Security*.
+* For server errors (`5xx`), the error response SHOULD limit the amount of information to avoid exposing internal service implementation details. Service developers SHOULD use logging and tracking utilities to capture additional diagnostic information. In particular, an error response MUST NOT include a stack trace or any other information that could assist an attacker in understanding the server's internals. See also *Security*.
 
 * `5xx` status codes SHOULD NOT be used for validation or logic errors. These are client-side errors and MUST be reported with `4xx` status codes.
 
@@ -1119,9 +1119,9 @@ An organization maintaining multiple HTTP APIs SHOULD adopt a shared, canonical 
 * `NOT_FOUND`: The requested resource does not exist.
 * `ALREADY_EXISTS`: The resource the client attempted to create already exists.
 * `ABORTED`: The operation was aborted, typically due to a concurrency conflict (see *Concurrency control*).
-* `UNAVAILABLE`: The service is currently unavailable; the request is retryable.
+* `UNAVAILABLE`: The service is currently unavailable. The request is retryable.
 
-An API-specific error catalog MAY define further `name` values for conditions specific to its own domain, alongside these canonical ones. Once published, adding a new top-level canonical name to the shared vocabulary is a breaking change (see *Versioning*); a new, narrower error condition SHOULD instead be expressed as a `details` entry under an existing canonical name.
+An API-specific error catalog MAY define further `name` values for conditions specific to its own domain, alongside these canonical ones. Once published, adding a new top-level canonical name to the shared vocabulary is a breaking change (see *Versioning*). A new, narrower error condition SHOULD instead be expressed as a `details` entry under an existing canonical name.
 
 == JSON schema
 

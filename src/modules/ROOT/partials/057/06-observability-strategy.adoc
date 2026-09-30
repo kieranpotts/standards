@@ -1,6 +1,6 @@
 = Observability strategy
 
-Observability is the degree to which a system's internal state can be inferred from its external outputs. Logging, monitoring, alerting, and metrics are the mechanisms; observability is the outcome — the ability to ask arbitrary questions of a running system without having to instrument it anew for each question.
+Observability is the degree to which a system's internal state can be inferred from its external outputs. Logging, monitoring, alerting, and metrics are the mechanisms. Observability is the outcome — the ability to ask arbitrary questions of a running system without having to instrument it anew for each question.
 
 A system with extensive telemetry but poor structure is not observable. The value of observability comes from treating it as a product: designed for the engineers who use it, consistent across systems, and exercised before it is needed.
 
@@ -36,13 +36,13 @@ Each level SHOULD link to the next, so an engineer moves down the hierarchy with
 
 * *Use a consistent design system.* Dashboards created by different teams SHOULD follow the same layout, color, and panel conventions, so an engineer comfortable with one dashboard can transfer that familiarity to any other.
 
-* *Split metrics by outcome.* Where a request can have several outcomes (eg. `success`, `rate_limited`, `error`), metrics SHOULD be split by outcome so the dashboard shows not just how many requests there were, but how they were handled.
+* *Split metrics by outcome.* Where a request can have several outcomes (eg. `success`, `rate_limited`, `error`), metrics SHOULD be split by outcome so the dashboard shows not only how many requests there were, but how they were handled.
 
 == Event logs
 
 Each significant unit of work SHOULD emit a single, consistently formatted *event log* on completion, regardless of outcome (success, error, or panic). An event log records the event name, duration, outcome, and the IDs of the resources involved — the high-cardinality data that cannot be captured in metrics.
 
-Event logs bridge the gap between metrics and logs: a metric tells you *that* something is wrong; the event log gives you a specific example of *what* went wrong. Event logs SHOULD share labels with the corresponding metrics so an engineer can move from a chart to a log line without changing query.
+Event logs bridge the gap between metrics and logs: a metric tells you *that* something is wrong. The event log gives you a specific example of *what* went wrong. Event logs SHOULD share labels with the corresponding metrics so an engineer can move from a chart to a log line without changing query.
 
 [NOTE]
 ======
@@ -65,7 +65,7 @@ Traces show where a single request spent its time. They are the tool of last res
 
 Observability supplies the raw material — logs, traces, metrics, dumps — but turning that material into a root cause is a separate skill: forming a hypothesis, finding the observation that would confirm or refute it, and repeating until the cause is isolated. Treat debugging as a discipline to practice, not an ability engineers either have or lack.
 
-* *Reason across layers.* The hardest bugs span multiple abstraction layers — application code, runtime, kernel, network, hardware — and root-causing them requires moving between layers rather than staying at the one where the symptom appeared. An engineer with a strong mental model of the full stack can sometimes single-shot a bug from one observation, by reasoning through what system state would produce it; an engineer without that model has to fall back to trial and error.
+* *Reason across layers.* The hardest bugs span multiple abstraction layers — application code, runtime, kernel, network, hardware — and root-causing them requires moving between layers rather than staying at the one where the symptom appeared. An engineer with a strong mental model of the full stack can sometimes single-shot a bug from one observation, by reasoning through what system state would produce it. An engineer without that model has to fall back to trial and error.
 
 * *Form a hypothesis before gathering more data.* Undirected log-scrolling is slow. State what you expect to be true if the hypothesis holds, find the cheapest observation that would confirm or refute it, and only then look.
 
@@ -79,7 +79,7 @@ Where deductive understanding is impractical, switch to an empirical strategy in
 
 * *Treat behavior statistically.* Instead of explaining any one failure, characterize the failure rate, its distribution across inputs or instances, and how it moves in response to changes. A statistical answer ("errors correlate with payload size above 1&nbsp;MB") is often actionable even where a full causal explanation is not.
 
-* *Invest in fault tolerance over root-causing every failure.* In a distributed system, some component failures are not worth explaining individually — retries, circuit breakers, and graceful degradation absorb them more cheaply than root-causing each one. Root-cause the failures that recur or that the fault-tolerance layer does not absorb; let the fault-tolerance layer handle the rest. See xref:006.adoc[TS-6] for the resilience patterns this relies on.
+* *Invest in fault tolerance over root-causing every failure.* In a distributed system, some component failures are not worth explaining individually — retries, circuit breakers, and graceful degradation absorb them more cheaply than root-causing each one. Root-cause the failures that recur or that the fault-tolerance layer does not absorb. Let the fault-tolerance layer handle the rest. See xref:006.adoc[TS-6] for the resilience patterns this relies on.
 
 This is a judgment call, not a rule with a fixed threshold: attempt deductive root-causing first, and switch to empirical methods once the cost of building an accurate mental model clearly exceeds the cost of living with a statistical answer.
 

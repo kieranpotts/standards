@@ -12,7 +12,7 @@ Each branch type can be mapped to a deployment environment where the software is
 * *Staging/Pre-production* (`ready` branch) — Production-like environment used for final validation before release
 * *Production* (`release` branch) — Live environment serving end users or customers
 
-The specific environments you implement depend on your project type, team size, risk tolerance, and available infrastructure. Minimal setups might have just local development and production; larger projects might have development, testing, staging, and production environments, plus additional specialized environments for performance testing, user acceptance testing, or canary deployments.
+The specific environments you implement depend on your project type, team size, risk tolerance, and available infrastructure. Minimal setups might have just local development and production. Larger projects might have development, testing, staging, and production environments, plus additional specialized environments for performance testing, user acceptance testing, or canary deployments.
 
 == Ephemeral preview environments
 
@@ -31,13 +31,13 @@ Common implementations include.
 * *Per-PR Kubernetes namespaces* — Self-hosted setups can use ArgoCD ApplicationSets, Argo Rollouts, or custom CI workflows (GitHub Actions, GitLab CI, etc.) to spin up a namespace per PR or per branch.
 * xref:garden::database-branching.adoc[*Database branching*] — Services like Neon, PlanetScale, and Supabase support per-branch database copies that pair naturally with per-branch application deployments, so each preview gets its own isolated data layer.
 
-Preview environments complement, but do not replace, the trunk-based environments. They give fast, interactive feedback on individual changes; the trunk environments validate the integrated state of the codebase across all merged work. Both layers are needed: a preview tells you that *your* change works in isolation, but only the integration environment can detect conflicts between your change and other parallel work.
+Preview environments complement, but do not replace, the trunk-based environments. They give fast, interactive feedback on individual changes. The trunk environments validate the integrated state of the codebase across all merged work. Both layers are needed: a preview tells you that *your* change works in isolation, but only the integration environment can detect conflicts between your change and other parallel work.
 
 Operational considerations.
 
 * *Resource cost* — A long-running PR with many revisions can keep an environment alive for weeks. Configure automatic teardown on inactivity, and budget infrastructure capacity for the expected number of concurrent previews.
 * *Data privacy* — Preview environments SHOULD use synthetic, anonymized, or scrubbed data, never copies of real production data. Where production-like data is required, the same constraints that apply to staging environments apply here.
-* *Secret handling* — Preview environments MUST use environment-scoped secrets, not production secrets. Most CI/CD platforms support this via environment-specific secret stores; treat it as a hard requirement.
+* *Secret handling* — Preview environments MUST use environment-scoped secrets, not production secrets. Most CI/CD platforms support this via environment-specific secret stores. Treat it as a hard requirement.
 * *Public exposure* — Preview URLs are often guessable or indexed. Either gate them behind authentication (the platform's built-in protection or a reverse proxy) or assume any URL is effectively public and design preview content accordingly.
 
 == Continuous integration and deployment
@@ -99,7 +99,7 @@ Environment-specific configuration (database URLs, API endpoints, secrets, featu
 
 This separation ensures that code can be promoted through environments without modification, supporting reproducible, automated deployments.
 
-As with secrets, it is RECOMMENDED to manage feature flags through a dedicated external service (eg. LaunchDarkly, Split, Unleash) rather than a homegrown mechanism, once a project has more than a handful of flags. A dedicated service externalizes flag state from the deployment pipeline entirely — flags can be scheduled, targeted at a percentage or segment of traffic, and toggled instantly without a deploy — and typically provides approval workflows and metrics integration so a flag's impact can be observed before a wider rollout. Homegrown flag systems tend to accrete into unmaintained bespoke infrastructure; this is rarely a good use of engineering effort compared to adopting an existing tool.
+As with secrets, it is RECOMMENDED to manage feature flags through a dedicated external service (eg. LaunchDarkly, Split, Unleash) rather than a homegrown mechanism, once a project has more than a handful of flags. A dedicated service externalizes flag state from the deployment pipeline entirely — flags can be scheduled, targeted at a percentage or segment of traffic, and toggled instantly without a deploy — and typically provides approval workflows and metrics integration so a flag's impact can be observed before a wider rollout. Homegrown flag systems tend to accrete into unmaintained bespoke infrastructure. This is rarely a good use of engineering effort compared to adopting an existing tool.
 
 == Testing strategy across environments
 

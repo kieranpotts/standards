@@ -3,7 +3,7 @@
 
 Web GUIs SHOULD be designed to be as fast and responsive as possible.
 
-Performance is not only a satisfaction metric. Response time changes how users use an interface: a sub-100ms response invites interactive, iterative use, and a slow tool is used differently — and less often — than a fast one that solves the same problem. See xref:015.adoc[TS-15], "Feedback and system status", for the general response-time thresholds (100 ms/400 ms/1s/10s) and this effect, which applies to any interface and is not repeated here.
+Performance is not only a satisfaction metric. Response time changes how users use an interface: a sub-100 ms response invites interactive, iterative use, and a slow tool is used differently — and less often — than a fast one that solves the same problem. See xref:015.adoc[TS-15], "Feedback and system status", for the general response-time thresholds (100 ms/400 ms/1s/10s) and this effect, which applies to any interface and is not repeated here.
 
 For the fastest possible web GUIs, the following optimizations are RECOMMENDED. This standard follows a *progressive enhancement* model: serve a static baseline that works without JavaScript or CSS, then layer enhancements on top of it. Anything that requires JavaScript to function MUST be injected by JavaScript, not present in the initial markup and then broken without it.
 
@@ -12,7 +12,7 @@ For the fastest possible web GUIs, the following optimizations are RECOMMENDED. 
 
 *Time to First Byte* (TTFB) is the time between a browser requesting a page and receiving the first byte of the response. It is a foundational performance metric — every other rendering metric (LCP, FCP) is delayed by however long TTFB takes, so optimizing rendering without addressing TTFB has a ceiling.
 
-* TTFB has four main contributors: network latency, request routing, the time the application takes to run and query its data sources, and (for server-rendered pages) the cost of generating the HTML response itself. Each SHOULD be measured separately to find where time is actually spent.
+* TTFB has four main contributors: network latency, request routing, the time the application takes to run and query its data sources, and (for server-rendered pages) the cost of generating the HTML response itself. Each SHOULD be measured separately to find where time is spent.
 
 * Use a CDN to reduce network latency and, where practical, cache rendered HTML at the edge — even briefly — or move dynamic logic to edge compute, so fewer requests travel all the way back to an origin server.
 
@@ -30,11 +30,11 @@ For the fastest possible web GUIs, the following optimizations are RECOMMENDED. 
 
 * Place `<script>` elements before the closing `</body>` tag, or use the `defer` attribute, so script downloading and execution does not block HTML parsing and rendering.
 
-* Use `defer` for scripts that must run in document order after the DOM is parsed; use `async` for independent scripts (such as analytics) that do not depend on DOM state and can execute as soon as they are downloaded, regardless of order.
+* Use `defer` for scripts that must run in document order after the DOM is parsed. Use `async` for independent scripts (such as analytics) that do not depend on DOM state and can execute as soon as they are downloaded, regardless of order.
 
 * Load scripts after stylesheets in the document, so style information is available before any script that might read computed styles runs.
 
-* Minimize the JavaScript actually shipped. Prefer a Baseline widely-available platform feature over a JavaScript reimplementation of the same capability; use a coverage tool (eg. Chrome DevTools' Coverage panel) to find and remove unused code; and periodically prune tag-manager tags that have accumulated without being removed.
+* Minimize the JavaScript shipped. Prefer a Baseline widely-available platform feature over a JavaScript reimplementation of the same capability; use a coverage tool (eg. Chrome DevTools' Coverage panel) to find and remove unused code; and periodically prune tag-manager tags that have accumulated without being removed.
 
 [#Profiling]
 == Profiling
@@ -94,7 +94,7 @@ Diagnose a performance problem with browser DevTools before optimizing blind. Ch
 
 * *Inline CSS* in a `<style>` tag in the HTML `<head>` section, uglified. This SHOULD be restricted to just your *critical CSS*, which is the minimum CSS required to do an initial render of a page. Additional CSS, required only for an optional enhanced user experience, should be deferred to after the page is rendered. If the overall size of the CSS is small, it can all be inlined. This means the browser can start to render the page as soon as HTML is received, without waiting for separate CSS resources to be downloaded. This technique will give you the fastest possible time to first paint — a metric known as the (Largest Contentful Paint (LCP), which is the time is takes the browser to fully render the largest element on the page (ie. after all styles, fonts, images, and other dependencies are fetched).
 
-* Similarly, for JavaScript, try to serve only the subset of code that is required to enable dynamic functionality on the current page. This is known as *code splitting* and tools are available to do this automatically (at compile time or dynamically on the server-side). Avoid loading _all_ your JavaScript on _all_ your pages. Which strategy code splitting should target depends on the HTTP protocol in service — see <<http-2-and-asset-delivery,HTTP/2 and asset delivery>>. Code splitting decides *what* to serve; a build's module bundler decides *how* it is packaged for delivery, and the two decisions are related but distinct.
+* Similarly, for JavaScript, try to serve only the subset of code that is required to enable dynamic functionality on the current page. This is known as *code splitting* and tools are available to do this automatically (at compile time or dynamically on the server-side). Avoid loading _all_ your JavaScript on _all_ your pages. Which strategy code splitting should target depends on the HTTP protocol in service — see <<http-2-and-asset-delivery,HTTP/2 and asset delivery>>. Code splitting decides *what* to serve. A build's module bundler decides *how* it is packaged for delivery, and the two decisions are related but distinct.
 
 * Consider xref:garden::lazy-loading.adoc[*lazy loading*] additional JavaScript that enhances the user experience but is not required to enable the core functionality.
 
@@ -119,7 +119,7 @@ Diagnose a performance problem with browser DevTools before optimizing blind. Ch
 
 * Use `srcset` with `x` descriptors (`image.jpg 1x, image@2x.jpg 2x`) instead where the image's display size is fixed regardless of viewport — a logo or icon at a constant CSS size — and only the resolution needs to vary with device pixel ratio.
 
-* Use the `<picture>` element, with multiple `<source>` elements plus a fallback `<img>`, for *art direction*: serving a genuinely different crop or composition at different breakpoints, not just the same image at a different quality level. Reach for `srcset`/`sizes` alone when only the resolution should change; reach for `<picture>` only when the image itself should change.
+* Use the `<picture>` element, with multiple `<source>` elements plus a fallback `<img>`, for *art direction*: serving a genuinely different crop or composition at different breakpoints, not only the same image at a different quality level. Reach for `srcset`/`sizes` alone when only the resolution should change. Reach for `<picture>` only when the image itself should change.
 
 * Put fixed `width` and `height` attributes on images, or use an inline `style` attribute to set the `width` and `height` CSS properties of the images' containers. This allows the browser to allocate space for an image before it is downloaded, which prevents the page from jumping around as images are loaded — which counts as another re-render. For elements whose width is responsive but whose aspect ratio is fixed, use the CSS `aspect-ratio` property to reserve the correct space without hardcoding pixel dimensions. Where the final size cannot be known in advance (eg. user-generated content of variable length), set a `min-height` as a fallback to at least bound how severe the layout shift can be.
 

@@ -9,7 +9,7 @@ A caller that does not receive a response cannot distinguish between "the reques
 
 - *At-least-once.* A request is retried until it is acknowledged, which means it may be delivered, and acted on, more than once. This is the semantic every distributed system gets by default the moment it adds retries, and it is the semantic assumed throughout xref:023.adoc[TS-23].
 
-- *Exactly-once.* The request is guaranteed to be acted on exactly one time, no matter how many times it is retried. True exactly-once delivery — at the network layer — is not achievable in an asynchronous distributed system: the caller can never be certain the callee has not already acted, so it can never be correct to simply stop retrying. What systems that advertise "exactly-once" actually provide is at-least-once delivery combined with idempotent processing at the receiver, which produces an exactly-once *effect* even though delivery itself happened more than once.
+- *Exactly-once.* The request is guaranteed to be acted on exactly one time, no matter how many times it is retried. True exactly-once delivery — at the network layer — is not achievable in an asynchronous distributed system: the caller can never be certain the callee has not already acted, so it can never be correct to stop retrying. What systems that advertise "exactly-once" provide is at-least-once delivery combined with idempotent processing at the receiver, which produces an exactly-once *effect* even though delivery itself happened more than once.
 
 A system SHOULD default to at-least-once delivery plus idempotent processing. It is the only one of the three that is both achievable and safe by default.
 
@@ -23,7 +23,7 @@ The standard mechanism is an *idempotency key*: the caller generates a unique id
 2. If yes, returns the stored result of the original attempt without re-executing the operation.
 3. If no, executes the operation, stores the result keyed by the idempotency key, and returns it.
 
-This turns "retry until acknowledged" into a safe default regardless of how many times the request is retried, or how many of those retries actually reach the receiver. Idempotency keys SHOULD be retained for a bounded window (24 hours is a common default) — long enough to cover realistic retry scenarios, not indefinitely, since indefinite retention turns the key store into an ever-growing liability.
+This turns "retry until acknowledged" into a safe default regardless of how many times the request is retried, or how many of those retries reach the receiver. Idempotency keys SHOULD be retained for a bounded window (24 hours is a common default) — long enough to cover realistic retry scenarios, not indefinitely, since indefinite retention turns the key store into an ever-growing liability.
 
 Where an operation is naturally idempotent — a `PUT` that sets a resource to an absolute value, a database upsert keyed on a natural key — no separate idempotency key mechanism is needed. Reserve the explicit key mechanism for operations that are not naturally idempotent by construction, most commonly anything that creates a new record or has an external side effect (charging a payment, sending an email, incrementing a counter).
 

@@ -51,7 +51,7 @@ Atomic commits add cognitive overhead, but there are numerous advantages to the 
 
 Stage changes deliberately. Avoid `git add -A` and `git commit -a` for routine work — they assume that every local change is intended for the next commit, which conflicts with the atomic-commit principle and makes it easy to bundle unrelated changes (or accidentally stage build outputs, debug prints, or stray edits). Prefer `git add <path>` for specific files, or `git add -p` to stage individual hunks. A Git GUI that supports hunk-level staging serves the same purpose.
 
-Avoid combining a file rename with substantial edits to that file in the same commit. Git relies on content similarity to detect renames; mixing rename and edit can cause Git to show the change as a delete-plus-add rather than a rename, which makes the diff harder to review and can break tools like `git log --follow` that trace a file's history through renames. Commit the rename in one revision, then commit the edits in a separate revision.
+Avoid combining a file rename with substantial edits to that file in the same commit. Git relies on content similarity to detect renames. Mixing rename and edit can cause Git to show the change as a delete-plus-add rather than a rename, which makes the diff harder to review and can break tools like `git log --follow` that trace a file's history through renames. Commit the rename in one revision, then commit the edits in a separate revision.
 
 Note that `git mv` does not affect rename detection — it is just a convenience for `mv && git rm && git add`. Git detects renames from content similarity at diff and log time, regardless of which commands were used to perform the move.
 
@@ -120,7 +120,7 @@ This sequencing produces two atomic commits in place of one mixed commit: a `ref
 
 Applied consistently, a high proportion of a project's commits will be `refactor` commits — roughly half is a reasonable target. A commit log with few or no `refactor` commits is a signal that changes are being forced into code that was not first reshaped to accommodate them, which tends to produce larger, less atomic commits and code that accretes complexity around each new requirement instead of being continuously reshaped to fit it.
 
-xref:007.adoc[TS-7] and xref:008.adoc[TS-8] cover the design and ticketing sides of refactoring work; this discipline is the version-control-level practice that keeps the resulting commits atomic and the history readable.
+xref:007.adoc[TS-7] and xref:008.adoc[TS-8] cover the design and ticketing sides of refactoring work. This discipline is the version-control-level practice that keeps the resulting commits atomic and the history readable.
 
 A *style* commit applies presentation-only changes to code — updates to whitespace, indentation, line wrapping, or code style. These changes affect the appearance of the code without altering its structure, logic, or behavior. Formatter runs (eg. `prettier`, `black`, `gofmt`) and bulk code-style adjustments belong here, distinct from `refactor` commits, which restructure logic, data, or design. Keeping pure reformatting in its own commit type also makes it easier to filter such commits out when reviewing history with tools like `git log` and `git bisect`.
 
@@ -239,7 +239,7 @@ ____
 If applied, this commit will <description>.
 ____
 
-Generally, the `<description>` SHOULD start with a verb describing the _action_ that is being taken by applying the commit. There are some exceptions. Bug fixes need only describe the _problem_ that is being fixed. And version commits can simply give the version number of the release.
+Generally, the `<description>` SHOULD start with a verb describing the _action_ that is being taken by applying the commit. There are some exceptions. Bug fixes need only describe the _problem_ that is being fixed. And version commits can give the version number of the release.
 
 ----
 fix: invalid yaml formatting
@@ -362,7 +362,7 @@ But the focus of the message body should be on recording the motivation for the 
 
 While the header line describes _what_ changed (summarizing the commit's diff), the commit body goes into detail about the _why_.
 
-Use the message body to share any knowledge learnt through the lifecycle of the revision, that cannot be intuited from the changes to the artifacts under version control themselves. You might also consider including information about things that the code does _not_ do, and why these things were omitted. Indeed, any information that may be relevant to the future maintainers of the code should be included in the message body.
+Use the message body to share any knowledge learned through the lifecycle of the revision, that cannot be intuited from the changes to the artifacts under version control themselves. You might also consider including information about things that the code does _not_ do, and why these things were omitted. Indeed, any information that may be relevant to the future maintainers of the code should be included in the message body.
 
 Do not write redundant information in the message body that can be extracted from the commit object itself. For example, there is no reason to list the files that changed — that can already be deduced from the commit's diff. The message body is for providing any other knowledge or context about the revision that would not otherwise be available, and which would risk being lost if not recorded with the revision.
 
@@ -378,7 +378,7 @@ step: improve robustness and flexibility of /realize prompt arguments
 - Other input argument hygiene.
 ----
 
-The length of any individual line SHOULD NOT exceed 72 characters. This is slightly longer than the RECOMMENDED maximum line length of the message header — 50 characters. It provides more practical space for writing out lengthy descriptions, while still benefitting from good readability in terminal output. For example, `git log` does not do any special formatting of commit messages. The default pager is set to `less -S`, so long lines will simply flow off the edge of the window. In a traditional 80-column terminal, if we subtract 4 columns for the left indent and 4 more for symmetry on the right, we are left with 72 columns.
+The length of any individual line SHOULD NOT exceed 72 characters. This is slightly longer than the RECOMMENDED maximum line length of the message header — 50 characters. It provides more practical space for writing out lengthy descriptions, while still benefitting from good readability in terminal output. For example, `git log` does not do any special formatting of commit messages. The default pager is set to `less -S`, so long lines will flow off the edge of the window. In a traditional 80-column terminal, if we subtract 4 columns for the left indent and 4 more for symmetry on the right, we are left with 72 columns.
 
 .Example
 ----
@@ -441,7 +441,7 @@ Closes: #123
 Closes: #456
 ----
 
-Repeat the footer key once per issue rather than listing multiple issue numbers against a single key. Most providers' auto-close parsers match one issue reference per keyword instance, so `Closes: #123, #456` typically auto-closes only the first issue; the second is left open even though it appears in the same footer value. Since footer keys are not required to be unique (see above), repeating `Closes:` for each issue is valid syntax and is the reliable way to auto-close more than one issue from a single commit.
+Repeat the footer key once per issue rather than listing multiple issue numbers against a single key. Most providers' auto-close parsers match one issue reference per keyword instance, so `Closes: #123, #456` typically auto-closes only the first issue. The second is left open even though it appears in the same footer value. Since footer keys are not required to be unique (see above), repeating `Closes:` for each issue is valid syntax and is the reliable way to auto-close more than one issue from a single commit.
 
 It is RECOMMENDED to cross-reference any issues or pull requests that are relevant to the changes being implemented in a commit. If you do not want to close the referenced issues automatically on integration of the changes, you can use the `Refs` footer instead.
 

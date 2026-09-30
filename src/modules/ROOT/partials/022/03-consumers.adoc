@@ -4,7 +4,7 @@ Consumers implement _private_ endpoints — the "webhooks" themselves — to rec
 
 Webhook endpoints may sit alongside a public HTTP API (or another kind of web interface), or they may be hosted independently. But webhook endpoints are not part of the public interface of the service that exposes them. Webhooks are special-purpose endpoints that exist only to facilitate integration with third-party systems on which the service depends. These endpoints are not used directly by the service's own users/customers, and are not included in any user-facing documentation.
 
-The design of webhook endpoints may be very different from the adjacent endpoints of the service's own HTTP API. The main design consideration for consumers is the URL scheme of their webhook endpoints. Indeed, often this will be the only thing over which the consumer will have any control. The upstream service that produces the events will dictate things like the payload schema and the authentication method that their consumers' webhook endpoints will be required to support.
+The design of webhook endpoints may be different from the adjacent endpoints of the service's own HTTP API. The main design consideration for consumers is the URL scheme of their webhook endpoints. Indeed, often this will be the only thing over which the consumer will have any control. The upstream service that produces the events will dictate things like the payload schema and the authentication method that their consumers' webhook endpoints will be required to support.
 
 == URL schemes
 
@@ -69,9 +69,9 @@ If a producer does not explicitly version their webhook payload schema (this hap
 
 == Timeouts
 
-Producers of webhook events will often impose timeouts on how long they will wait for a response from their consumers' webhook endpoints. If a consumer does not respond within the timeout period, the producer will treat it as a failed delivery attempt. Some producers may retry failed messages; others may not.
+Producers of webhook events will often impose timeouts on how long they will wait for a response from their consumers' webhook endpoints. If a consumer does not respond within the timeout period, the producer will treat it as a failed delivery attempt. Some producers may retry failed messages. Others may not.
 
-The timeout period is normally specified in the producer's documentation. This is usually quite short, typically 15 to 30 seconds. If the producer does not specify a timeout period, then it is RECOMMENDED to assume a timeout of 10 seconds.
+The timeout period is normally specified in the producer's documentation. This is usually short, typically 15 to 30 seconds. If the producer does not specify a timeout period, then it is RECOMMENDED to assume a timeout of 10 seconds.
 
 Due to the potentially high latency of network communication, and the variable load on the consumer's servers, it is RECOMMENDED that webhook endpoints be designed to handle messages asynchronously. This means that the consumer should log messages on a queue, to be processed later, and quickly return success status codes to the producer — `202 Accepted` is appropriate here.
 
@@ -90,4 +90,4 @@ To indicate errors, if the producer does not specify what error codes it expects
 * `403 Forbidden` for failed authorization checks (permissions, scopes).
 * `404 Not Found` when the webhook endpoint does not exist, for example it has been deprecated or moved.
 * `429 Too Many Requests` when rate limits have been exceeded.
-* `500 Internal Server Error` for any scenario in which your application encounters an unexpected condition that prevents it from completing its handling of the message. When you return a `5xx` code, you are basically saying to the client "please retry this later, I can't handle your request right now".
+* `500 Internal Server Error` for any scenario in which your application encounters an unexpected condition that prevents it from completing its handling of the message. When you return a `5xx` code, you are saying to the client "please retry this later, I can't handle your request right now".

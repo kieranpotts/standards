@@ -23,7 +23,7 @@ A gateway SHOULD be used at the boundary between the outside world and the syste
 
 A service mesh extends the same idea — centralizing cross-cutting concerns outside application code — to *internal* service-to-service traffic. Instead of each service linking a shared library for retries, timeouts, circuit breaking, mutual TLS, and observability (see xref:020.adoc[TS-20] and xref:057.adoc[TS-57] for those concerns individually), a lightweight proxy is deployed alongside each service instance (the *sidecar* pattern) and intercepts all traffic to and from it. A control plane configures every sidecar's behavior centrally.
 
-The mesh's principal payoff is that cross-cutting behavior can be changed for every service at once, from one place, without touching application code or coordinating a rollout across every team that owns a service. Mutual TLS between every service is the canonical example: enabling it via a shared library requires every service to adopt a new library version on its own schedule; enabling it via a service mesh is a control-plane configuration change that applies mesh-wide.
+The mesh's principal payoff is that cross-cutting behavior can be changed for every service at once, from one place, without touching application code or coordinating a rollout across every team that owns a service. Mutual TLS between every service is the canonical example: enabling it via a shared library requires every service to adopt a new library version on its own schedule. Enabling it via a service mesh is a control-plane configuration change that applies mesh-wide.
 
 A service mesh is infrastructure with its own operational cost — an extra proxy hop on every call, and a control plane that is itself a critical dependency of the whole system. It SHOULD be adopted once the number of services and the pain of keeping cross-cutting behavior consistent across them (particularly a shared library that many teams struggle to keep up to date — see <<shared-libraries-at-scale,Shared libraries at scale>>) outweighs that operational cost, not as a default starting point for a system with a handful of services.
 
@@ -45,6 +45,6 @@ A shared library that every service links is the natural first way to keep cross
 
 1. *Move the concern into infrastructure.* Where the concern can be externalized to a proxy or the platform (as with a service mesh, above), do so — infrastructure can be upgraded once, centrally, without any application code change.
 
-2. *Automate the upgrade, not just the release.* For behavior that genuinely must live in application code, invest in tooling that opens the update as a change against every consuming repository automatically, rather than relying on every team to notice and act on a new release.
+2. *Automate the upgrade, not only the release.* For behavior that genuinely must live in application code, invest in tooling that opens the update as a change against every consuming repository automatically, rather than relying on every team to notice and act on a new release.
 
 A library-upgrade backlog that grows faster than it is worked down is a signal that the concern it addresses belongs in infrastructure, not in a library every service must remember to update.

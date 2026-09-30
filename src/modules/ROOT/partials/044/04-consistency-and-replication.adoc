@@ -5,17 +5,17 @@ The ACID-vs-BASE trade-off and the CAP theorem that underlies it are covered in 
 
 == Consistency is usually tunable, not fixed
 
-Where a relational database offers a small set of named isolation levels that apply uniformly to transactions, many NoSQL databases expose consistency as a tunable, per-operation setting. A wide-column store commonly lets each read or write specify how many replicas must acknowledge before the operation returns — a lower number is faster and more available under a partition; a higher number is more consistent, at the cost of latency and availability. Strong consistency and eventual consistency are therefore not a single up-front choice about the database, but a choice the application can make differently per query, based on what that specific read or write actually requires.
+Where a relational database offers a small set of named isolation levels that apply uniformly to transactions, many NoSQL databases expose consistency as a tunable, per-operation setting. A wide-column store commonly lets each read or write specify how many replicas must acknowledge before the operation returns — a lower number is faster and more available under a partition. A higher number is more consistent, at the cost of latency and availability. Strong consistency and eventual consistency are therefore not a single up-front choice about the database, but a choice the application can make differently per query, based on what that specific read or write requires.
 
 == Read-your-writes and session guarantees
 
-A common practical requirement is not full strong consistency, but a session guarantee: a client that just wrote a value SHOULD see that value on its own subsequent read, even if a concurrent client elsewhere might briefly see the old value. Most NoSQL databases can provide this — reading from the same replica a write went to, or from a quorum large enough to guarantee overlap — without paying for cluster-wide strong consistency on every read. Reach for this before reaching for full strong consistency: it solves the case users actually notice (their own write appearing to vanish) at a fraction of the cost.
+A common practical requirement is not full strong consistency, but a session guarantee: a client that just wrote a value SHOULD see that value on its own subsequent read, even if a concurrent client elsewhere might briefly see the old value. Most NoSQL databases can provide this — reading from the same replica a write went to, or from a quorum large enough to guarantee overlap — without paying for cluster-wide strong consistency on every read. Reach for this before reaching for full strong consistency: it solves the case users notice (their own write appearing to vanish) at a fraction of the cost.
 
 == Conflict resolution
 
 Where writes can happen concurrently on different replicas — common in a multi-region, eventually-consistent deployment — the database needs a way to resolve two writes to the same key that arrive out of order or at the same time. Common strategies, in increasing order of application involvement.
 
-* *Last-write-wins.* The write with the latest timestamp wins; the other is discarded. Simple and requires no application logic, but silently loses data — acceptable only where losing a losing write is genuinely harmless.
+* *Last-write-wins.* The write with the latest timestamp wins. The other is discarded. Simple and requires no application logic, but silently loses data — acceptable only where losing a losing write is genuinely harmless.
 
 * *Vector clocks.* The database tracks enough causal-ordering metadata to detect when two writes are genuinely concurrent (neither is a descendant of the other) rather than just out of order, and surfaces the conflict to the application to resolve instead of guessing.
 

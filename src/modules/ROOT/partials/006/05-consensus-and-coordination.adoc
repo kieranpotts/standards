@@ -15,11 +15,11 @@ A cluster that loses its majority (a "minority partition") MUST stop accepting w
 
 == Leader election and replicated logs
 
-Raft and Paxos are the two consensus algorithms most systems build on; Raft is more widely implemented in modern infrastructure (etcd, Consul, CockroachDB, Kafka's KRaft mode) specifically because it was designed to be easier to reason about and implement correctly than Paxos.
+Raft and Paxos are the two consensus algorithms most systems build on. Raft is more widely implemented in modern infrastructure (etcd, Consul, CockroachDB, Kafka's KRaft mode) specifically because it was designed to be easier to reason about and implement correctly than Paxos.
 
 Raft decomposes consensus into two separable problems.
 
-1. *Leader election.* Nodes hold randomized-timeout elections; a candidate that wins votes from a majority becomes leader for a fixed term. Only one leader can exist per term, because winning requires a majority and any two majorities overlap.
+1. *Leader election.* Nodes hold randomized-timeout elections. A candidate that wins votes from a majority becomes leader for a fixed term. Only one leader can exist per term, because winning requires a majority and any two majorities overlap.
 
 2. *Log replication.* All writes go through the leader, which appends them to a replicated log and only acknowledges a write once a majority of followers have persisted it. A log entry acknowledged by a majority is *committed* and will survive the failure of any minority of nodes, including the leader.
 
@@ -29,13 +29,13 @@ A team building a new distributed system SHOULD NOT implement Raft or Paxos from
 
 A distributed lock is the most common consumer-facing use of a consensus system: it lets otherwise-independent processes coordinate mutually exclusive access to a resource. A distributed lock MUST have a lease with an expiry — never an indefinite hold — so that a process that crashes while holding the lock does not block every other process forever.
 
-A lease-based lock does not, by itself, guarantee mutual exclusion under all failure modes: a process can be paused (garbage collection, virtual machine migration, CPU starvation) for longer than the lease timeout, have its lease expire and be granted to another process, then resume and act as though it still holds the lock. Where the action guarded by the lock is not itself idempotent or safe to perform twice, the lock MUST be paired with a fencing token — a monotonically increasing number issued with each lease grant, which the protected resource checks and rejects if it has already seen a higher token. The lock alone is a performance optimization to reduce contention; the fencing token is what actually guarantees correctness.
+A lease-based lock does not, by itself, guarantee mutual exclusion under all failure modes: a process can be paused (garbage collection, virtual machine migration, CPU starvation) for longer than the lease timeout, have its lease expire and be granted to another process, then resume and act as though it still holds the lock. Where the action guarded by the lock is not itself idempotent or safe to perform twice, the lock MUST be paired with a fencing token — a monotonically increasing number issued with each lease grant, which the protected resource checks and rejects if it has already seen a higher token. The lock alone is a performance optimization to reduce contention. The fencing token is what guarantees correctness.
 
 == Coordination without consensus
 
 Not every coordination problem needs a consensus system. Weaker, cheaper techniques are often sufficient.
 
-- *Optimistic concurrency (versioning).* Readers and writers proceed without locking, and a write is accepted only if the version it read still matches; see xref:046.adoc[TS-46] for the mechanics. Avoids the cost of consensus entirely where conflicts are rare.
+- *Optimistic concurrency (versioning).* Readers and writers proceed without locking, and a write is accepted only if the version it read still matches. See xref:046.adoc[TS-46] for the mechanics. Avoids the cost of consensus entirely where conflicts are rare.
 
 - *Idempotent operations.* If an operation is safe to perform more than once, coordination to prevent duplicate execution is unnecessary — see <<idempotency-and-delivery-semantics,Idempotency and delivery semantics>>.
 

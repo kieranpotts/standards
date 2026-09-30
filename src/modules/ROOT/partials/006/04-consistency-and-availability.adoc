@@ -23,21 +23,21 @@ This choice MUST be made explicitly and per data set, not implicitly by whicheve
 
 CAP only describes behavior *during* a partition, which is a relatively rare event. PACELC extends it with the trade-off that exists at all other times: if there is a *P*artition, choose between *A*vailability and *C*onsistency (as in CAP); *E*lse, in normal operation, choose between *L*atency and *C*onsistency.
 
-Even when the network is healthy, a system that wants strong consistency across replicas MUST coordinate between them before acknowledging a write, which adds latency proportional to the number of replicas and their physical distance from each other. A system that wants the lowest possible latency MUST relax that coordination and accept that replicas may briefly diverge. PACELC is the more complete framework for evaluating a distributed data store or consensus system, because the latency/consistency trade-off applies during the overwhelming majority of a system's uptime, not just during partitions.
+Even when the network is healthy, a system that wants strong consistency across replicas MUST coordinate between them before acknowledging a write, which adds latency proportional to the number of replicas and their physical distance from each other. A system that wants the lowest possible latency MUST relax that coordination and accept that replicas may briefly diverge. PACELC is the more complete framework for evaluating a distributed data store or consensus system, because the latency/consistency trade-off applies during the overwhelming majority of a system's uptime, not only during partitions.
 
 == Consistency models
 
 "Consistency" is not binary. In descending order of strength.
 
-1. *Strict/linearizable consistency.* Every operation appears to take effect instantaneously at some point between its invocation and its response, and all nodes agree on that single global order. The strongest, most expensive guarantee; typically reserved for a small amount of coordination state (leader election, distributed locks), not for application data at scale.
+1. *Strict/linearizable consistency.* Every operation appears to take effect instantaneously at some point between its invocation and its response, and all nodes agree on that single global order. The strongest, most expensive guarantee. Typically reserved for a small amount of coordination state (leader election, distributed locks), not for application data at scale.
 
 2. *Sequential consistency.* All nodes see operations in the same order, but that order is not required to match real-time invocation order.
 
-3. *Causal consistency.* Operations that are causally related (a write that happens after a read that observed a prior write) are seen in that order by every node; unrelated operations may be seen in different orders on different nodes. Strong enough to prevent a user from seeing a reply before the comment it replies to, at a fraction of the cost of linearizability.
+3. *Causal consistency.* Operations that are causally related (a write that happens after a read that observed a prior write) are seen in that order by every node. Unrelated operations may be seen in different orders on different nodes. Strong enough to prevent a user from seeing a reply before the comment it replies to, at a fraction of the cost of linearizability.
 
 4. xref:garden::eventual-consistency.adoc[*Eventual consistency*]. Given no new writes, all replicas will *eventually* converge on the same value, with no bound on how long convergence takes and no guarantee about the order in which intermediate states are observed. The weakest and cheapest guarantee, and the default for AP systems.
 
-A system SHOULD choose the weakest consistency model that its use case can tolerate, and no weaker. Defaulting every data set to strong consistency pays an availability and latency cost that most data does not need; defaulting every data set to eventual consistency pushes reasoning about staleness into every consumer of that data, which is rarely what a system designer actually intended.
+A system SHOULD choose the weakest consistency model that its use case can tolerate, and no weaker. Defaulting every data set to strong consistency pays an availability and latency cost that most data does not need. Defaulting every data set to eventual consistency pushes reasoning about staleness into every consumer of that data, which is rarely what a system designer intended.
 
 [IMPORTANT]
 ======

@@ -31,7 +31,7 @@ git checkout <target-branch>
 git merge <source-branch>
 ----
 
-Because there are no new commits on the target branch, Git will handle the merge by simply fast-forwarding the target branch to the tip of the source branch, which is commit "E". The end result is both branches referencing the same commit. Therefore, both branches have identical commit histories.
+Because there are no new commits on the target branch, Git will handle the merge by fast-forwarding the target branch to the tip of the source branch, which is commit "E". The end result is both branches referencing the same commit. Therefore, both branches have identical commit histories.
 
 Finally, the source branch is deleted, leaving no trace of its existence.
 
@@ -42,7 +42,7 @@ image::009/integration-strategies/merge-ff.svg[opts=inline]
 This behavior is equivalent to using the `--ff` flag. However, since it is the default behavior of `git merge`, the flag can be omitted in most cases.
 ======
 
-The fast-forward merge integration strategy has numerous advantages. It preserves the history of commits in their true chronological order, and the end result is a clean, linear history. It is also a very fast and reliable operation. Fast-forward merging never requires resolution of merge conflicts.
+The fast-forward merge integration strategy has numerous advantages. It preserves the history of commits in their true chronological order, and the end result is a clean, linear history. It is also a fast and reliable operation. Fast-forward merging never requires resolution of merge conflicts.
 
 Fast-forwarding is the default behavior of the `git merge` command. If a merge cannot be fast-forwarded, an explicit merge commit will be recorded instead. Alternatively, you can tell Git to fail a merge operation if fast-forwarding is not possible. You do this by supplying the `--ff-only` (fast-forward-only) flag.
 
@@ -54,11 +54,11 @@ git merge --ff-only <source-branch>
 
 === Explicit merging
 
-In busy projects, it is common for new commits to be introduced to the target branch that do not exist in the history of the source branch. In this situation, Git cannot simply fast-forward the tip of the target branch to the tip of the source branch, else the new commits on the target branch would be lost.
+In busy projects, it is common for new commits to be introduced to the target branch that do not exist in the history of the source branch. In this situation, Git cannot fast-forward the tip of the target branch to the tip of the source branch, else the new commits on the target branch would be lost.
 
 Instead, Git records an explicit merge commit on the target branch. The merge commit will reference its two parent commits, and so create a non-linear history through two parallel branches of development. The merge commit will also record any changes needed to resolve conflicts arising from divergence between the merged branches.
 
-The following animation demonstrates a no-fast-forward merge. As in the previous example, "A" and "B" are initial commits on the target branch, the source branch is created from commit "B", and commits "C", "D", and "E" are introduced to the source branch. But this time commits "F" and "G" are introduced to the target branch. These commits do not exist on the source branch. When the source branch is merged into the target branch, because the target branch has changes that do not exist in the source branch, the target branch cannot be simply fast-forwarded to the tip commit on the source branch. So Git handles the merge by recording an explicit merge commit, "H", on the target branch.
+The following animation demonstrates a no-fast-forward merge. As in the previous example, "A" and "B" are initial commits on the target branch, the source branch is created from commit "B", and commits "C", "D", and "E" are introduced to the source branch. But this time commits "F" and "G" are introduced to the target branch. These commits do not exist on the source branch. When the source branch is merged into the target branch, because the target branch has changes that do not exist in the source branch, the target branch cannot be fast-forwarded to the tip commit on the source branch. So Git handles the merge by recording an explicit merge commit, "H", on the target branch.
 
 image::009/integration-strategies/merge-no-ff.svg[opts=inline]
 
@@ -134,7 +134,7 @@ Like squash-merging, rebasing gives users considerable flexibility. Rebasing ope
 
 === Conflict-resolution strategies
 
-`git merge`, `git rebase`, and `git cherry-pick` all resolve conflicting hunks through the same underlying three-way merge machinery, and all three accept a `-X` (strategy option) flag that biases *automatic* conflict resolution towards one side of the conflict, rather than stopping and requiring manual resolution.
+`git merge`, `git rebase`, and `git cherry-pick` all resolve conflicting hunks through the same underlying three-way merge machinery, and all three accept a `-X` (strategy option) flag that biases *automatic* conflict resolution toward one side of the conflict, rather than stopping and requiring manual resolution.
 
 [source,sh]
 ----
@@ -146,7 +146,7 @@ git rebase -X theirs <branch>
 git cherry-pick -X ours <commit>
 ----
 
-This only affects hunks that Git cannot merge cleanly on its own; hunks that merge cleanly are merged normally regardless of the flag. It is not the same as the whole-branch `-s ours` merge strategy, which discards the other side's changes entirely and unconditionally, even where no conflict exists.
+This only affects hunks that Git cannot merge cleanly on its own. Hunks that merge cleanly are merged normally regardless of the flag. It is not the same as the whole-branch `-s ours` merge strategy, which discards the other side's changes entirely and unconditionally, even where no conflict exists.
 
 `-X ours`/`-X theirs` MUST NOT be used as a default or blanket setting to suppress conflicts in application code — doing so can silently discard changes that a reviewer never sees, which undermines the *provenance* objective far more than a manual conflict resolution would. It MAY be used narrowly, for a specific, well-understood file that is expected to diverge predictably and where one side is always correct by construction — for example, a generated lock file, or a changelog header — most commonly when backporting a fix across long-term support pipelines (see <<patching-across-multiple-pipelines,Patching across multiple pipelines>>), where the same conflicting hunk (eg. a version string) recurs on every backport.
 
@@ -208,7 +208,7 @@ git checkout temp/*
 git rebase dev
 ----
 
-This ensures that the `temp` branch is compatible with the latest changes in `dev`, and conflicts are resolved in the `temp` branch before integration into the shared trunk. The rebase replay means that when the final integration happens, it can simply fast-forward without additional conflict resolution.
+This ensures that the `temp` branch is compatible with the latest changes in `dev`, and conflicts are resolved in the `temp` branch before integration into the shared trunk. The rebase replay means that when the final integration happens, it can fast-forward without additional conflict resolution.
 
 image::009/integration-workflows/rebase.svg[opts=inline]
 
@@ -266,7 +266,7 @@ git commit
 
 image::009/integration-workflows/squash-merge.svg[opts=inline]
 
-After squash-merging, delete the source branch immediately. Because the squashed commit is not linked to the original commits, Git cannot recognize they've been integrated; a future merge would reintroduce them and cause conflicts.
+After squash-merging, delete the source branch immediately. Because the squashed commit is not linked to the original commits, Git cannot recognize they've been integrated. A future merge would reintroduce them and cause conflicts.
 
 The trade-off is reduced traceability on the trunk: how changes were implemented within the epic, and how conflicts were resolved during merge-downs from `dev`, is not preserved as individual commits. The epic's full commit history can be preserved through the PR's audit log if needed.
 
