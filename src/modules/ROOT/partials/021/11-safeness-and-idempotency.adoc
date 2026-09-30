@@ -80,7 +80,7 @@ Validity of idempotency keys SHOULD be time-based, allowing for servers to optim
 
 An idempotency key's record SHOULD carry a `locked_at` timestamp, acquired when a request first arrives with that key and released once the request finishes. This lock serializes concurrent attempts to process the same key, which the cache-and-replay behavior above does not by itself prevent — two requests bearing the same key could otherwise both observe "no cached response yet" and proceed to execute the underlying operation twice.
 
-On receiving a request, the server MUST attempt to acquire the lock as part of looking up or creating the idempotency-key record, atomically:
+On receiving a request, the server MUST attempt to acquire the lock as part of looking up or creating the idempotency-key record, atomically.
 
 * If no record exists for the key, one is created, locked, and the request proceeds.
 * If a record exists, is unlocked (or its lock has exceeded a configured timeout, indicating a previous attempt is no longer actually in progress), and its parameters match the current request, the lock is acquired and the request proceeds.
@@ -104,7 +104,7 @@ A request implemented this way is a simple state machine whose states are its re
 
 === Atomic phases
 
-Each transition between recovery points is implemented as an *atomic phase*: a set of local, ACID-transactional state mutations, executed together with the update to `recovery_point` itself, that runs *between* two foreign state mutations (or between `started` and the first foreign mutation, or between the last foreign mutation and `finished`). Structure a multi-stage transaction's phases according to three rules:
+Each transition between recovery points is implemented as an *atomic phase*: a set of local, ACID-transactional state mutations, executed together with the update to `recovery_point` itself, that runs *between* two foreign state mutations (or between `started` and the first foreign mutation, or between the last foreign mutation and `finished`). Structure a multi-stage transaction's phases according to three rules.
 
 * The idempotency-key upsert and lock acquisition described above is its own phase, always the first.
 * Every foreign state mutation gets its own phase, isolated from all others, since it is the one part of the sequence a local transaction cannot make atomic.
@@ -122,7 +122,7 @@ Where a foreign state mutation fails, and the foreign service offers no idempote
 
 === Completer and reaper
 
-Two background processes support the idempotency-key mechanism in production:
+Two background processes support the idempotency-key mechanism in production.
 
 * A *completer* periodically scans for idempotency-key records that are locked but have not progressed for longer than would be expected, meaning the originating client most likely disconnected before the request finished. The completer resumes and drives these requests to completion itself, from their last recovery point, so that abandoned requests do not languish half-done indefinitely.
 

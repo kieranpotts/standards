@@ -24,7 +24,7 @@ All HTTP messages sent to consumer webhook endpoints MUST use HTTP's `POST` meth
 
 == HTTP headers
 
-As per Standard Webhooks, the following three HTTP headers are REQUIRED to be sent with every webhook message:
+As per Standard Webhooks, the following three HTTP headers are REQUIRED to be sent with every webhook message.
 
 * `Webhook-ID`: A unique identifier for each discrete webhook message. It is RECOMMENDED to be a UUID. It MUST remain the same for every attempted delivery of the same message, eg. when a message is retried after a failed delivery. Consumers can use this an an idempotency key, so they process each message once only. The webhook ID also plays a role in the security scheme.
 
@@ -49,7 +49,7 @@ The payload MUST be encoded in the body of HTTP messages. HTTP headers MUST NOT 
 
 The payload SHOULD be in the JSON format, with a `Content-Type` header of `application/json`. In rare cases, other formats such as XML or form-encoded data MAY be used if there is a specific requirement for it. But JSON is by far the most widely used format for webhooks and it offers the best interoperability.
 
-The payload structure is an object with the following top-level properties:
+The payload structure is an object with the following top-level properties.
 
 * `type`: Identifies the event type.
 * `timestamp`: The date and time when the event occurred, in ISO 8601 format.
@@ -125,7 +125,7 @@ The `data` object is the actual event data that is communicated with the consume
 
 Each event type MUST have a well-defined schema for its associated data object. This is the main design consideration when implementing webhook events. Standard Webhooks specifies everything else about the HTTP messages used to package webhook events. All that producers have left to decide is what information they want to send to their consumers.
 
-In designing your event data schema, err on the side of "thin" objects that communicate just the minimal data that a consumer may need to sync its state. Example:
+In designing your event data schema, err on the side of "thin" objects that communicate just the minimal data that a consumer may need to sync its state. Example.
 
 [source,json]
 ----
@@ -154,7 +154,7 @@ An extreme implementation of thin data schema would see no state being communica
 }
 ----
 
-By comparison, a "full" data object would include _all_ the fields associated with the resource identified by the event type. It may even include information about related entities. This is a xref:garden::stateful.adoc[*stateful*] design, in which the consumer is given all the information it needs to update its own state without having to make any further API calls to the producer service. Example:
+By comparison, a "full" data object would include _all_ the fields associated with the resource identified by the event type. It may even include information about related entities. This is a xref:garden::stateful.adoc[*stateful*] design, in which the consumer is given all the information it needs to update its own state without having to make any further API calls to the producer service. Example.
 
 [source,json]
 ----
@@ -204,7 +204,7 @@ The `metadata` object MUST be used only to communicate metadata about _resources
 
 === Links
 
-The `links` property is OPTIONAL. If included, its value MUST be an array with one or more objects that conform to the following schema:
+The `links` property is OPTIONAL. If included, its value MUST be an array with one or more objects that conform to the following schema.
 
 [source,json]
 ----
@@ -264,13 +264,13 @@ Standards Webhooks specifies how to version signature schemes, but not how to ve
 
 There are a number of ways to version webhook payload schemas. Two common options are described below.
 
-The first option, which is RECOMMENDED by this technical standard, is to define the schema version in an HTTP header. This would be an extension to the Standard Webhooks headers, so it would conform to their naming convention:
+The first option, which is RECOMMENDED by this technical standard, is to define the schema version in an HTTP header. This would be an extension to the Standard Webhooks headers, so it would conform to their naming convention.
 
 ----
 Webhook-Version: 1
 ----
 
-Alternatively, a `version` field MAY be included in the payload, extending the Standard Webhooks schema:
+Alternatively, a `version` field MAY be included in the payload, extending the Standard Webhooks schema.
 
 [source,json]
 ----
@@ -459,7 +459,7 @@ It is not enough to use strong cryptographic primitives for the signature. HTTP 
 
 A secure signature scheme requires that not only the authenticity of the message payload be verifiable, but also the message's metadata — its unique identifier, and its timestamp (representing the time of the delivery attempt).
 
-Thus, the following HTTP headers are all part of the security scheme:
+Thus, the following HTTP headers are all part of the security scheme.
 
 * `Webhook-ID`: A unique identifier for the webhook message.
 * `Webhook-Timestamp`: Unix timestamp when the message was sent.
@@ -494,7 +494,7 @@ The `Webhook-ID` is a unique identifier associated with a specific logged event.
 
 === Signature scheme
 
-For full security, the signature MUST sign all of:
+For full security, the signature MUST sign all of.
 
 * The message identifier (from the `Webhook-ID` header)
 * The message timestamp (from the `Webhook-Timestamp` header)
@@ -535,7 +535,7 @@ The `Webhook-ID` and `Webhook-Timestamp` MUST be generated by the producer and M
 
 === Signature systems
 
-Standard Webhooks specifies two HTTP signature systems:
+Standard Webhooks specifies two HTTP signature systems.
 
 * Symmetric keys: HMAC-SHA256 signatures using a shared secret key.
 * Asymmetric keys: Ed25519 signatures using a public/private key pair.
@@ -625,7 +625,7 @@ IP allow-listing adds an extra layer of security, but it is only a traffic _filt
 
 === Other security requirements
 
-Achieving good security in webhook implementations requires a multi-layered approach. The right mix will depend on the threat model and the sensitivity of the data, but as a starting point the following combination is a RECOMMENDED baseline:
+Achieving good security in webhook implementations requires a multi-layered approach. The right mix will depend on the threat model and the sensitivity of the data, but as a starting point the following combination is a RECOMMENDED baseline.
 
 * Secure message transport over TLS/HTTPS.
 * HMAC or asymmetric signatures for primary authentication and to validate message integrity.
@@ -656,7 +656,7 @@ Consumers SHOULD store the `Webhook-ID` values of recently processed messages. T
 
 When verifying asymmetric signatures, consumers SHOULD be encouraged to use battle-tested cryptographic libraries, and to keep this dependency up-to-date. Producers SHOULD recommend a list of suitable libraries for consumers to use.
 
-When verifying symmetric signatures, consumers are RECOMMENDED to use a constant time comparison function, rather than just a regular string comparison, when verifying the actual signature against the expected signature. Consider the following code:
+When verifying symmetric signatures, consumers are RECOMMENDED to use a constant time comparison function, rather than just a regular string comparison, when verifying the actual signature against the expected signature. Consider the following code.
 
 [source,python]
 ----
@@ -725,7 +725,7 @@ Producers MUST NOT batch process the delivery of webhook messages, to avoid over
 
 Producers of webhook messages will need to consider the status codes that they will require consumer services to return in response to their webhook messages.
 
-The following policy is RECOMMENDED:
+The following policy is RECOMMENDED.
 
 * To accept any `2xx` status code to indicate successful processing of a webhook message, ie. any `2xx` code will be treated by you as `202 Accepted`.
 
@@ -772,7 +772,7 @@ Delivery of webhook events MUST be disabled by default for each customer/user. C
 
 For some event types, webhook notifications MAY be delivered alongside other notification channels such as email or SMS. This is RECOMMENDED for security notifications and alerts, for example.
 
-Consumers SHOULD be able to manage the configuration of their webhook messages, and other notification channels, in an automated way — ideally via an API, GUI, or both. Configurations that consumers SHOULD be able to control include, but are not limited to:
+Consumers SHOULD be able to manage the configuration of their webhook messages, and other notification channels, in an automated way — ideally via an API, GUI, or both. Configurations that consumers SHOULD be able to control include, but are not limited to.
 
 * Webhook endpoint URLs.
 * Retry policies.

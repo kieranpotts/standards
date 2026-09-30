@@ -22,7 +22,7 @@ Message delivery systems MUST implement reasonable timeout values for message de
 
 It is RECOMMENDED to implement *retry logic* with *exponential backoff* plus *jitter* for failed deliveries. A common pattern is immediate retry, then delays of 1min, 5min, 30min, 2hrs, and 8hrs, before giving up and marking the message's delivery as failed. Adjust the intervals based on the time-sensitivity of each message; shorter initial intervals may be appropriate for some use cases.
 
-It is RECOMMENDED to add random jitter to retry intervals. When multiple clients experience failures simultaneously — which will be the case for a service outage — they may all retry at the same intervals:
+It is RECOMMENDED to add random jitter to retry intervals. When multiple clients experience failures simultaneously — which will be the case for a service outage — they may all retry at the same intervals.
 
 * Client A: Retry at 30sec, 1min, 2min, 5min...
 * Client B: Retry at 30sec, 1min, 2min, 5min...
@@ -78,7 +78,7 @@ Alerts SHOULD be configured for: a consumer's circuit breaker opening (see <<ret
 
 Producers frequently need to update their own data and notify other services of that update in a single unit of work — for example, saving an order to the database and publishing an `order.placed` event. Enqueuing the message directly within the same request or transaction as the database write creates a *dual-write problem*: the database transaction and the message enqueue cannot be made atomic, so a rollback after the message has already been enqueued produces a message describing data that was never committed, and a crash between commit and enqueue silently loses the message altogether. A related but distinct failure mode arises even without a crash or rollback: a fast message transport can deliver the message to a consumer before the producer's transaction has committed, so the consumer's attempt to read the data the message refers to finds nothing there yet. See xref:006.adoc[TS-6] for a full treatment of the dual-write problem and how the transactional outbox pattern resolves it by writing the message to a staging table within the same local transaction as the business data, so the two either both commit or both roll back.
 
-This standard adds the following message-specific guidance on top of that pattern:
+This standard adds the following message-specific guidance on top of that pattern.
 
 * *Single enqueuer.* The separate process that drains the staging table and publishes messages to the real transport SHOULD run as a single instance, held under a lock, rather than as multiple competing workers reading the same table. A single enqueuer avoids the coordination overhead and race conditions of multiple workers selecting and deleting from the same rows.
 
