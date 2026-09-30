@@ -13,11 +13,12 @@ starting point for a new standard, and treat it as the canonical demonstration o
 ## Page structure
 
 - A standard's page (`pages/NNN.adoc`) MUST begin with a level-1 title in the form `= TS-N: Title`, followed by
-  any `:link-*:` attributes, the introduction (included from `partials/NNN/01-introduction.adoc`), then the `include::`
-  directives for the standard's numbered content files.
+  the `include::` directives for the standard's partials, in the order they should appear: the link attributes
+  (`partials/NNN/00-attributes.adoc`, omitted if the standard has none), the introduction
+  (`partials/NNN/01-introduction.adoc`), then the standard's numbered content files.
 
 - Content files (`partials/NNN/02-topic.adoc`, `03-topic.adoc`, etc.) MUST start with a level-1 section header (`=`),
-  which becomes a level-2 heading when included with `[leveloffset=+1]`. `00-attributes.adoc and `01-introduction.adoc`
+  which becomes a level-2 heading when included with `[leveloffset=+1]`. `00-attributes.adoc` and `01-introduction.adoc`
   are the only exceptions — they do not have a section header.
 
 - `include::` directives MUST use `[leveloffset=+1]` and target their partial with the `partial$` resource ID, eg.
@@ -26,7 +27,7 @@ starting point for a new standard, and treat it as the canonical demonstration o
 - Cross-references to _other_ standards MUST use a bold Antora cross-reference (`xref:NNN.adoc[*TS-N: Title*]`), never a
   relative link (`link:../NNN/...`).
 
-- Within a technical standard, all partials are merged into a ingle document from `include::` directives from the main
+- Within a technical standard, all partials are merged into a single document from `include::` directives from the main
   page. Therefore, cross-references _within_ the same standard MUST use the explicit-anchor convention from TS-28
   (`[#id]` / `<<id>>`), never a `link:` to the partial file.
 
@@ -78,7 +79,8 @@ This reiterates the normative rule in [TS-28: AsciiDoc § Line length and wrappi
   split out into its own `partials/NNN/99-references.adoc` partial:
   `include::partial$NNN/99-references.adoc[leveloffset=+1]`. The partial itself holds only the `*` bullet entries —
   every `:link-<slug>:` attribute, whether it's cited in the references list, the introduction, or elsewhere in the
-  body, is declared once in the single page-top attribute block described above, sorted alphabetically by slug.
+  body, is declared once in the standard's `partials/NNN/00-attributes.adoc`, in a single block sorted alphabetically by
+  slug, with the values aligned in a column.
 
 - A references section is a bibliography, not a plain link list. Each entry MUST be one `*` bullet on a single source
   line, in this fixed order. It is a reduced form of the citation format in TS-26, with a link on the title and a

@@ -310,15 +310,14 @@ prompt the user for clarification.
       reference list, so the list records every source that fed the
       standard's content. Use the plain author-date form from the style
       guide's rules for a references section. Each entry is one
-      `*` bullet over two lines, with the author and year, then the linked
-      title. Entries MUST NOT carry a trailing description or annotation,
-      such as a note naming the section the source fed. The linked title is
-      enough to identify the source. Omit the year where the source states
-      none, rather than guessing one.
+      `*` bullet on a single source line, with the author and year, then
+      the linked title. Entries MUST NOT carry a trailing description or
+      annotation, such as a note naming the section the source fed. The
+      linked title is enough to identify the source. Omit the year where
+      the source states none, rather than guessing one.
 
       ```asciidoc
-      * Allegro Tech (2024).
-        {link-allegro-2024}[_Ten Years of Microservices at Allegro_].
+      * Allegro Tech (2024). {link-allegro-2024}[_Ten Years of Microservices at Allegro_].
       ```
 
       The URL is never inlined in the entry. Declare it once as a
