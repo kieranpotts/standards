@@ -58,7 +58,7 @@ There are two ways to update resources:
 * Using `PUT` to fully replace the resource.
 * Using `PATCH` to partially update the resource.
 
-In both cases, the shape of the input data SHOULD be consistent with the shape of the resource representation returned by the API via the corresponding GET requests. The only difference is that `PATCH` may submit fewer fields – essentially a diff of what's changed since the last `GET`.
+In both cases, the shape of the input data SHOULD be consistent with the shape of the resource representation returned by the API via the corresponding GET requests. The only difference is that `PATCH` may submit fewer fields — essentially a diff of what's changed since the last `GET`.
 
 For `PUT` requests, system-calculated values such as `create_time` and `update_time` SHOULD be optional and SHOULD be ignored on deserialization by the server. For `PATCH` requests, clients SHOULD be expected to omit these fields from the request body, and the server SHOULD return `400 Bad Request` if they are included. For `PATCH` requests, the client is expected to submit only the fields that have been updated by the client, and since the client cannot update system-calculated values, trying to do so should be treated as a client error.
 
@@ -67,7 +67,7 @@ For `PUT` requests, system-calculated values such as `create_time` and `update_t
 PUT|PATCH /v{major}/{namespace}/{resource}/{resource_id}
 ----
 
-The plain partial-representation form of `PATCH` described above is equivalent to https://datatracker.ietf.org/doc/html/rfc7396[JSON Merge Patch], and where implemented as such SHOULD use the `application/merge-patch+json` media type. Because a `null` value in a JSON Merge Patch document means "delete this field", merge patch is not suitable for a resource that can legitimately hold an explicit `null` value in one of its own fields – there is no way to distinguish "set this field to `null`" from "delete this field" in the patch document itself.
+The plain partial-representation form of `PATCH` described above is equivalent to https://datatracker.ietf.org/doc/html/rfc7396[JSON Merge Patch], and where implemented as such SHOULD use the `application/merge-patch+json` media type. Because a `null` value in a JSON Merge Patch document means "delete this field", merge patch is not suitable for a resource that can legitimately hold an explicit `null` value in one of its own fields — there is no way to distinguish "set this field to `null`" from "delete this field" in the patch document itself.
 
 Alternatively, standards such as https://datatracker.ietf.org/doc/html/rfc6902[JSON Patch] MAY be implemented for `PATCH` requests, using the `application/json-patch+json` media type. Rather than sending a partial representation of the resource, clients instead send a list of operations to be made on particular members or fields of the resource. JSON Patch does not share Merge Patch's `null` ambiguity, and it additionally allows operations to be sequenced, which matters where the order changes MUST be applied in.
 
@@ -150,13 +150,13 @@ POST|PUT /v{major}/{namespace}/{resource}/{resource_id}
 
 `POST` operations are NOT idempotent by default, and therefore there is risk that duplicates of the same resource may be created if the client retries a `POST` request. Where it is necessary to prevent this, clients MUST include a unique identifier for the _request_ message (eg. `request_id`). The server will use the request ID to make sure it processes only the first instance that it receives of each distinct request.
 
-For `PUT` requests, system-calculated values – and other read-only fields – such as `create_time` and `update_time` SHOULD be made optional and SHOULD be ignored on deserialization by the server. But for `POST` requests, clients SHOULD be expected to omit these fields from the request body, and therefore the server SHOULD return `400 Bad Request` when such fields are included in the request content.
+For `PUT` requests, system-calculated values — and other read-only fields — such as `create_time` and `update_time` SHOULD be made optional and SHOULD be ignored on deserialization by the server. But for `POST` requests, clients SHOULD be expected to omit these fields from the request body, and therefore the server SHOULD return `400 Bad Request` when such fields are included in the request content.
 
 Otherwise, both operations SHOULD behave in the same way. Both `POST` and `PUT` payloads MAY include only a subset of input fields (only the required fields, for example), with the server filling in optional fields with default values.
 
 The number of required fields SHOULD be minimized as much as possible. Implement as many default/fallback values as can reasonably be applied for each business case.
 
-For both `POST` and `PUT` creation operations, successful outcomes MUST be signalled by a `201 Created` response, and a representation of the created resource MUST be returned in the response body – including any server-generated fields such as `create_time`.
+For both `POST` and `PUT` creation operations, successful outcomes MUST be signalled by a `201 Created` response, and a representation of the created resource MUST be returned in the response body — including any server-generated fields such as `create_time`.
 
 Response messages SHOULD include a list of hypermedia links that represent all the available operations that can be performed on the newly-created resource. For example, if only `GET` and `DELETE` operations are available:
 

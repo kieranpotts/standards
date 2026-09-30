@@ -6,7 +6,7 @@ It is RECOMMENDED to _always_ return some kind of content to the client, except 
 
 == Naming conventions
 
-Consistent naming – both within a single API and across an organization's whole portfolio of APIs – reduces the learning curve for developers integrating with more than one of them, and allows client tooling to make reliable assumptions about field shapes. The following conventions SHOULD be applied to JSON field names.
+Consistent naming — both within a single API and across an organization's whole portfolio of APIs — reduces the learning curve for developers integrating with more than one of them, and allows client tooling to make reliable assumptions about field shapes. The following conventions SHOULD be applied to JSON field names.
 
 * Field names SHOULD be lower_snake_case, consistent with the envelope fields described later in this document (`create_time`, `total_items`, and so on). Where a resource's `attributes` are sourced from a domain model that uses a different convention, eg. lowerCamelCase, that convention MAY be preserved within `attributes` for consistency with the domain model, but SHOULD NOT be mixed with lower_snake_case within the same object.
 
@@ -26,13 +26,13 @@ JSON's own type system is looser than most programming languages assume, and sev
 
 *Strings.* A `string` field SHOULD always declare an explicit `minLength` and `maxLength`. Without a `maxLength`, it is not possible to reliably size a database column to store the value, nor to know in advance whether a future change to the value's length would be a breaking change. Without a `minLength`, clients are typically able to submit an empty string in a field that should never be empty. `pattern` SHOULD be used to further constrain a string's format where appropriate, eg. for structured identifiers, but fields SHOULD NOT be over-constrained without a good technical reason to do so.
 
-*Numbers.* JSON defines only one numeric type, an unbounded fixed-point value; the distinction between `number` and `integer` exists only in JSON Schema, for validation purposes. Many languages and runtimes, notably JavaScript, cannot safely represent every value permitted by this type – for example, any integer larger than 2^53 loses precision when parsed by a JavaScript JSON deserializer. For this reason:
+*Numbers.* JSON defines only one numeric type, an unbounded fixed-point value; the distinction between `number` and `integer` exists only in JSON Schema, for validation purposes. Many languages and runtimes, notably JavaScript, cannot safely represent every value permitted by this type — for example, any integer larger than 2^53 loses precision when parsed by a JavaScript JSON deserializer. For this reason:
 
 * The JSON Schema `number` type SHOULD NOT be used. Depending on the receiving language, its values may be interpreted as either fixed-point or floating-point, which is a common source of rounding bugs. Decimal and monetary values SHOULD instead be represented as a `string`, constrained with `pattern`, `minLength`, and `maxLength`. This applies to any value that may exceed 2^53 or otherwise exceed IEEE 754 double-precision range, not only monetary amounts, eg. a 64-bit database identifier exposed in a response. (An API MAY instead adopt a convention such as OData's `IEEE754Compatible` mode, in which large integers are serialized as JSON strings only when a client opts in via a request header, but this standard's simpler default is to always use a `string` for such values.)
 
 * The `integer` type SHOULD be used only for values that fit within a 32-bit signed integer (`-2147483648` to `2147483647`), and an explicit `minimum` and `maximum` SHOULD always be declared. If a value could plausibly grow beyond this range in the future, use a `string` instead.
 
-*Arrays.* An `array` field SHOULD declare a `maxItems`, both to protect against unbounded response sizes and because several languages and runtimes place their own hard limits on array length. Unless there is a specific reason to choose a smaller limit, `32767` (`(2^15) - 1`) is a reasonable default upper bound. `maxItems` SHOULD NOT be used to communicate the page size of a paginated collection – that is a separate, independently-evolving concern (see the xref:garden::pagination.adoc[*Pagination*] section of *Collections*). `minItems` SHOULD also be declared, and will typically be `0` or `1`.
+*Arrays.* An `array` field SHOULD declare a `maxItems`, both to protect against unbounded response sizes and because several languages and runtimes place their own hard limits on array length. Unless there is a specific reason to choose a smaller limit, `32767` (`(2^15) - 1`) is a reasonable default upper bound. `maxItems` SHOULD NOT be used to communicate the page size of a paginated collection — that is a separate, independently-evolving concern (see the xref:garden::pagination.adoc[*Pagination*] section of *Collections*). `minItems` SHOULD also be declared, and will typically be `0` or `1`.
 
 *Enumerations.* The JSON Schema `enum` keyword is difficult to extend safely: adding a new value to an `enum` is a breaking change for any client that validates responses against a previously-obtained copy of the schema, even though the API's own major version has not changed. For this reason:
 
@@ -42,7 +42,7 @@ JSON's own type system is looser than most programming languages assume, and sev
 
 *Null values.* APIs SHOULD NOT produce or consume `null` values. A field that has no value SHOULD simply be omitted from the JSON object, rather than being present with a value of `null`. This distinction between "absent" and "defined as null" is a frequent source of confusion in strongly-typed client languages, where a deserializer often cannot tell the two cases apart. Omitting unset fields entirely avoids the ambiguity.
 
-*Additional properties.* JSON Schema's `additionalProperties: false` keyword locks an object down to precisely the set of properties declared in its `properties` map. For schemas that describe extensible business data, eg. the `attributes` of a `ResourceItem` (see below), this keyword SHOULD NOT be set to `false`, because doing so turns the addition of any new field – ordinarily a backwards-compatible, additive change – into a schema-breaking one for any client that validates strictly against the schema. The envelope-level schemas defined later in this document are a deliberate exception: they describe the fixed structural "shape" of a message (the `resources`/`metadata`/`links`/`messages` envelope, links, errors, and so on), which SHOULD change only alongside a major version bump, so locking them down is intentional and appropriate. The distinction to draw when authoring a schema is between structure (lock it down) and business data (leave it open).
+*Additional properties.* JSON Schema's `additionalProperties: false` keyword locks an object down to precisely the set of properties declared in its `properties` map. For schemas that describe extensible business data, eg. the `attributes` of a `ResourceItem` (see below), this keyword SHOULD NOT be set to `false`, because doing so turns the addition of any new field — ordinarily a backwards-compatible, additive change — into a schema-breaking one for any client that validates strictly against the schema. The envelope-level schemas defined later in this document are a deliberate exception: they describe the fixed structural "shape" of a message (the `resources`/`metadata`/`links`/`messages` envelope, links, errors, and so on), which SHOULD change only alongside a major version bump, so locking them down is intentional and appropriate. The distinction to draw when authoring a schema is between structure (lock it down) and business data (leave it open).
 
 == Schema composition
 
@@ -80,7 +80,7 @@ A flatter structure, with one optional field per variant, is easier for clients 
 }
 ----
 
-– where only the field named by `activity_type` is expected to be populated – over a single `extensions` field typed as `oneOf` a `payment` schema or a `money_request` schema.
+– where only the field named by `activity_type` is expected to be populated — over a single `extensions` field typed as `oneOf` a `payment` schema or a `money_request` schema.
 
 *Marking fields as immutable with `readOnly`.* Where a resource has fields that a client MUST NOT modify via `PUT` or `PATCH`, eg. server-generated identifiers or timestamps, these SHOULD be marked with `"readOnly": true` in the schema, rather than relying only on prose documentation. This allows tooling to flag accidental attempts by a client to submit a value for such a field.
 
@@ -311,7 +311,7 @@ The "items" key references a `ResourcesCollection` array. Each object in a `Reso
 
 The "attributes" field of the `ResourceItem` object is important. This is an object whose data is derived from the business domain of the application. Normally, this will be a representation of a domain object or other entity. Conceptually, individual attributes map to fields in a domain object or columns in a relational database table.
 
-For this reason, the naming convention for `ResourceItem` "attributes" fields – shown using the `\{field}` placeholder in the above code example – MAY differ from the naming convention for other properties of the response schema. For example, resource attributes might adopt a "lowerCamelCase" naming convention for their field names, differentiating them from the "lower_snake_case" convention for other fields in the schema.
+For this reason, the naming convention for `ResourceItem` "attributes" fields — shown using the `\{field}` placeholder in the above code example — MAY differ from the naming convention for other properties of the response schema. For example, resource attributes might adopt a "lowerCamelCase" naming convention for their field names, differentiating them from the "lower_snake_case" convention for other fields in the schema.
 
 It is RECOMMENDED that `ResourceItem` attributes be composed from a consistent set of common types, defined separately using JSON Schema. See xref:029.adoc[TS-29] for further guidance on best practices for defining libraries of common types using JSON Schema.
 
@@ -521,7 +521,7 @@ Each hypermedia link is composed of an object with three properties:
 
 * `href`: Specifies the URL of the resource. This MUST be an absolute URI, and SHOULD be resolvable as a URI Template per https://tools.ietf.org/html/rfc6570[RFC 6570] where it carries variables. Clients typically retain a link's `href` for later use, so an API MUST NOT return a relative path here.
 
-* `method`: Defines the HTTP method – eg. `GET`, `POST` – that can be used with the link. This property MAY be omitted, in which case it defaults to `GET`.
+* `method`: Defines the HTTP method — eg. `GET`, `POST` — that can be used with the link. This property MAY be omitted, in which case it defaults to `GET`.
 
 For example, a typical PayPal API response might include links like this:
 
@@ -775,7 +775,7 @@ The following rules govern the use of status codes and error responses.
 
 * `5xx` status codes SHOULD NOT be used for validation or logic errors. These are client-side errors and MUST be reported with `4xx` status codes.
 
-* A service that calls an upstream or downstream service MUST NOT blindly propagate that dependency's error response to its own caller. The service SHOULD instead re-map the error to a response appropriate to its own contract – for example, an upstream `400 Bad Request` caused by the service's own malformed call to that upstream SHOULD be reported to the service's own caller as a `500 Internal Server Error`, not forwarded as a `400`, since the fault lies with this service, not with its caller. Blindly forwarding an upstream error also risks exposing that upstream's implementation details to a caller who has no relationship with it.
+* A service that calls an upstream or downstream service MUST NOT blindly propagate that dependency's error response to its own caller. The service SHOULD instead re-map the error to a response appropriate to its own contract — for example, an upstream `400 Bad Request` caused by the service's own malformed call to that upstream SHOULD be reported to the service's own caller as a `500 Internal Server Error`, not forwarded as a `400`, since the fault lies with this service, not with its caller. Blindly forwarding an upstream error also risks exposing that upstream's implementation details to a caller who has no relationship with it.
 
 === Error response schema
 
@@ -1131,7 +1131,7 @@ The payload structure described above can be validated against the following JSO
 ****
 The schemas in this document are written against the https://json-schema.org/draft/2020-12/schema[2020-12] draft of JSON Schema, the current version at the time of writing. APIs SHOULD use the same draft for their own schemas, for consistency, and SHOULD declare it explicitly via the `$schema` keyword on every schema document.
 
-Be aware that tooling support for JSON Schema drafts lags behind the specification itself. Some API description formats, notably older versions of OpenAPI, only support a constrained subset of an older JSON Schema draft, and some documentation-generation, code-generation, and validation tools may not recognize newer keywords. Before adopting a given draft version across an API portfolio, verify that it is supported by every tool in the toolchain – editors, linters, code generators, and runtime validators alike. Where a tool cannot be upgraded, it may be necessary to either downgrade the schema's draft version to match, or to hand-maintain a compatible subset of keywords.
+Be aware that tooling support for JSON Schema drafts lags behind the specification itself. Some API description formats, notably older versions of OpenAPI, only support a constrained subset of an older JSON Schema draft, and some documentation-generation, code-generation, and validation tools may not recognize newer keywords. Before adopting a given draft version across an API portfolio, verify that it is supported by every tool in the toolchain — editors, linters, code generators, and runtime validators alike. Where a tool cannot be upgraded, it may be necessary to either downgrade the schema's draft version to match, or to hand-maintain a compatible subset of keywords.
 ****
 
 .Full JSON Schema

@@ -1,6 +1,6 @@
 = Architecture and design
 
-This section covers the structure and architecture of our JavaScript programs. The secret to building and maintaining large-scale programs is to compose them from many small autonomous components, designed and organized so that each can be developed, tested, and maintained – and perhaps compiled and deployed – with some degree of independence from the others. Structure becomes increasingly important as a program grows in size and complexity, with consequences for extensibility, maintainability, performance, robustness, and security.
+This section covers the structure and architecture of our JavaScript programs. The secret to building and maintaining large-scale programs is to compose them from many small autonomous components, designed and organized so that each can be developed, tested, and maintained — and perhaps compiled and deployed — with some degree of independence from the others. Structure becomes increasingly important as a program grows in size and complexity, with consequences for extensibility, maintainability, performance, robustness, and security.
 
 Our Node.js applications are built using Domain-Driven Design (DDD).
 
@@ -8,7 +8,7 @@ Our Node.js applications are built using Domain-Driven Design (DDD).
 
 Where an application spans a server, a web client, and one or more mobile or desktop clients, TypeScript SHOULD be the language of every tier, and of the packages shared between them. This is an architectural decision rather than a stylistic one, and it is taken for four reasons:
 
-1. *A single definition of the contract.* The schema that describes data crossing a tier boundary is written once and consumed by both sides, rather than being defined in one language and re-implemented in another. Drift between two hand-maintained implementations of the same contract – a common source of integration defects – has nowhere to occur.
+1. *A single definition of the contract.* The schema that describes data crossing a tier boundary is written once and consumed by both sides, rather than being defined in one language and re-implemented in another. Drift between two hand-maintained implementations of the same contract — a common source of integration defects — has nowhere to occur.
 
 2. *Code generation.* ECMAScript has mature tooling for parsing and manipulating its own abstract syntax tree, so type definitions, client libraries, and validators can be generated from a schema and regenerated whenever that schema changes.
 
@@ -22,13 +22,13 @@ How an application's tiers are divided in the first place is the subject of xref
 
 Only genuinely host-agnostic code MAY be shared across tiers: schemas, validation rules, domain types, pure business logic, and pure utility functions. Code that depends on host APIs MUST NOT be shared. See <<universal-javascript,Universal JavaScript>> for the feature-detection rules that apply to host-dependent code, and for why a component that branches on its own runtime is usually the wrong answer.
 
-A shared package couples the release cadence of every tier that depends on it. A breaking change to it forces a coordinated deployment of the server and every client, and a mobile client that is already installed on a user's device cannot be redeployed on demand. Shared packages MUST therefore be versioned, and changes to them MUST be additive for as long as an un-upgraded client is still in the field – see xref:011.adoc[TS-11].
+A shared package couples the release cadence of every tier that depends on it. A breaking change to it forces a coordinated deployment of the server and every client, and a mobile client that is already installed on a user's device cannot be redeployed on demand. Shared packages MUST therefore be versioned, and changes to them MUST be additive for as long as an un-upgraded client is still in the field — see xref:011.adoc[TS-11].
 
 === A shared type is not a validated input
 
 TypeScript's types are erased at compile time. Importing the same interface on both sides of a network boundary proves that both sides were compiled against the same contract; it proves nothing about the bytes that actually arrive at runtime. A server that treats a shared type as a guarantee is trusting its clients.
 
-Every value entering a program from outside it – a request body, a query parameter, a message from a queue, a response from a third-party API – MUST be validated at runtime, whether or not a shared type describes it. Derive the static type from the runtime validator rather than declaring the two separately, so that the pair cannot drift apart:
+Every value entering a program from outside it — a request body, a query parameter, a message from a queue, a response from a third-party API — MUST be validated at runtime, whether or not a shared type describes it. Derive the static type from the runtime validator rather than declaring the two separately, so that the pair cannot drift apart:
 
 [source,typescript]
 ----
@@ -47,7 +47,7 @@ const post: Post = Post.parse(await request.json())
 
 === Where the strategy stops
 
-One language across the stack is a default, not a mandate. A tier whose requirements ECMAScript serves poorly – sustained CPU-bound computation, a tight memory budget, a hard latency guarantee, or a problem domain whose only mature libraries exist elsewhere – SHOULD be written in the language that suits it, and the interoperability cost paid deliberately at that one boundary. The cost of the wrong language in a tier is paid for the life of that tier; the cost of a second language is a contract and a build step.
+One language across the stack is a default, not a mandate. A tier whose requirements ECMAScript serves poorly — sustained CPU-bound computation, a tight memory budget, a hard latency guarantee, or a problem domain whose only mature libraries exist elsewhere — SHOULD be written in the language that suits it, and the interoperability cost paid deliberately at that one boundary. The cost of the wrong language in a tier is paid for the life of that tier; the cost of a second language is a contract and a build step.
 
 Two consequences of the strategy MUST be accounted for wherever it is adopted:
 
@@ -67,7 +67,7 @@ Aim for consistency in the internal APIs of an application or library: consisten
 
 === Function overloading
 
-Function overloading – where a function's behavior is radically altered depending on the arguments passed – is best avoided. It is perhaps best illustrated by jQuery, where `load()`, `toggle()`, and the `jQuery()` constructor all do different things based on their input parameters. Overloaded functions are difficult to test (because of the large number of possible code paths) and usually increase the external complexity of a component rather than decrease it.
+Function overloading — where a function's behavior is radically altered depending on the arguments passed — is best avoided. It is perhaps best illustrated by jQuery, where `load()`, `toggle()`, and the `jQuery()` constructor all do different things based on their input parameters. Overloaded functions are difficult to test (because of the large number of possible code paths) and usually increase the external complexity of a component rather than decrease it.
 
 == Domain-driven design
 
@@ -75,11 +75,11 @@ Domain-Driven Design organizes a program into four layers.
 
 === Interfaces
 
-This layer holds everything that interacts with other systems – web services, web applications, and batch-processing frontends. It handles interpretation, validation, and translation of incoming data, and serialization of outgoing data (such as HTML or JSON across HTTP).
+This layer holds everything that interacts with other systems — web services, web applications, and batch-processing frontends. It handles interpretation, validation, and translation of incoming data, and serialization of outgoing data (such as HTML or JSON across HTTP).
 
 === Application
 
-The application layer drives the workflow of the application, matching the use cases at hand. Its operations are interface-independent and can be synchronous or message-driven. This layer is well suited for spanning transactions, high-level logging, and security. The application layer is thin in terms of domain logic – it merely coordinates domain layer objects to perform the actual work.
+The application layer drives the workflow of the application, matching the use cases at hand. Its operations are interface-independent and can be synchronous or message-driven. This layer is well suited for spanning transactions, high-level logging, and security. The application layer is thin in terms of domain logic — it merely coordinates domain layer objects to perform the actual work.
 
 === Domain
 
@@ -87,4 +87,4 @@ The domain layer is the heart of the software. There is one package per aggregat
 
 === Infrastructure
 
-Alongside the three vertical layers, the infrastructure supports all of them, facilitating communication between them. In simple terms, the infrastructure consists of everything that exists independently of the application: external libraries, the database engine, the application server, the messaging backend, and so on. Code and configuration that glues the other layers to the infrastructure – the database schema, repository interface implementations, and mapping configuration – is also part of the infrastructure layer. It should be possible to completely stub out the infrastructure in unit and scenario tests and still use the domain layer (and possibly the application layer) to work out the core business problems.
+Alongside the three vertical layers, the infrastructure supports all of them, facilitating communication between them. In simple terms, the infrastructure consists of everything that exists independently of the application: external libraries, the database engine, the application server, the messaging backend, and so on. Code and configuration that glues the other layers to the infrastructure — the database schema, repository interface implementations, and mapping configuration — is also part of the infrastructure layer. It should be possible to completely stub out the infrastructure in unit and scenario tests and still use the domain layer (and possibly the application layer) to work out the core business problems.
