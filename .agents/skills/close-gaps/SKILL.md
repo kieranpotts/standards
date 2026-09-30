@@ -308,8 +308,8 @@ prompt the user for clarification.
 
     - Where the gap cites a source, add that source to the standard's
       reference list, so the list records every source that fed the
-      standard's content. Use the plain author-date form from TS-26's
-      "References sections in the technical standards". Each entry is one
+      standard's content. Use the plain author-date form from the style
+      guide's rules for a references section. Each entry is one
       `*` bullet over two lines, with the author and year, then the linked
       title. Entries MUST NOT carry a trailing description or annotation,
       such as a note naming the section the source fed. The linked title is
