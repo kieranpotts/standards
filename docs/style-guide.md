@@ -50,6 +50,12 @@ This reiterates the normative rule in [TS-28: AsciiDoc § Line length and wrappi
 - The prefix MUST be purely numeric. A letter suffix (`01a-`, `05b-`) SHOULD NOT be used to slot a new section between
   two existing ones. Instead, renumber the files.
 
+- The one exception to the numeric prefix is TS-26. Its topics are a flat, alphabetical reference, so its topic files
+  are named by topic alone (`a-an.adoc`, `abbreviations.adoc`, ...) and included in alphabetical order, so that the
+  include order can be read straight from the file listing. Its `00-attributes.adoc`, `01-introduction.adoc`, and
+  `99-references.adoc` keep their numeric prefixes, so they sort first and last. Do not use this exception for any
+  other standard.
+
 - Images live under `images/NNN/`, referenced from `partials/NNN/` (or the page itself) with a family-relative
   `image::NNN/<file>[]`.
 
