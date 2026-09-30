@@ -24,7 +24,7 @@ Clients MUST NOT rely on the order in which fields appear within a JSON object i
 
 JSON's own type system is looser than most programming languages assume, and several of its primitives have known cross-language interoperability problems. Where JSON Schema is used to describe request and response payloads (see xref:029.adoc[TS-29]), the following constraints SHOULD be applied to each of the JSON primitive types.
 
-*Strings.* A `string` field SHOULD always declare an explicit `minLength` and `maxLength`. Without a `maxLength`, it is not possible to reliably size a database column to store the value, nor to know in advance whether a future change to the value's length would be a breaking change. Without a `minLength`, clients are typically able to submit an empty string in a field that should never be empty. `pattern` SHOULD be used to further constrain a string's format where appropriate, eg. for structured identifiers, but fields SHOULD NOT be over-constrained without a good technical reason to do so.
+*Strings.* A `string` field SHOULD always declare an explicit `minLength` and `maxLength`. Without a `maxLength`, it is not possible to reliably size a database column to store the value, nor to know in advance whether a future change to the value's length would be a breaking change. Without a `minLength`, clients are typically able to submit an empty string in a field that SHOULD never be empty. `pattern` SHOULD be used to further constrain a string's format where appropriate, eg. for structured identifiers, but fields SHOULD NOT be over-constrained without a good technical reason to do so.
 
 *Numbers.* JSON defines only one numeric type, an unbounded fixed-point value. The distinction between `number` and `integer` exists only in JSON Schema, for validation purposes. Many languages and runtimes, notably JavaScript, cannot safely represent every value permitted by this type — for example, any integer larger than 2^53 loses precision when parsed by a JavaScript JSON deserializer. For this reason:
 
@@ -46,7 +46,7 @@ JSON's own type system is looser than most programming languages assume, and sev
 
 == Schema composition
 
-JSON Schema provides several keywords for composing schemas out of other schemas. These keywords are powerful, but not all of them are well supported by the documentation-generation, code-generation, and validation tooling typically used with HTTP APIs. The following guidance SHOULD be followed when authoring schemas.
+JSON Schema provides several keywords for composing schemas out of other schemas. These keywords are expressive, but not all of them are well supported by the documentation-generation, code-generation, and validation tooling typically used with HTTP APIs. The following guidance SHOULD be followed when authoring schemas.
 
 *Extending a type with `allOf`.* The `allOf` keyword SHOULD be used where a schema needs to extend a common type with additional, API-specific fields. For example, a `shipping_address` field might reuse a shared `address` schema, while adding a field that is specific to shipping addresses:
 
@@ -895,7 +895,7 @@ An API that has already published a version identifying `field` by some other me
 
 === Input validation errors
 
-In validating requests, different types of input errors should be addressed in the following order of precedence:
+In validating requests, different types of input errors SHOULD be addressed in the following order of precedence:
 
 .Input validation error classification
 |===
@@ -917,7 +917,7 @@ This section provides sample error responses in various scenarios.
 
 *Validation error — single field.*
 
-The following sample shows a validation error in one field. Because this is a client error, a `400 Bad Request` HTTP status code should be returned.
+The following sample shows a validation error in one field. Because this is a client error, a `400 Bad Request` HTTP status code SHOULD be returned.
 
 [source,json]
 ----
@@ -963,7 +963,7 @@ The following sample shows validation errors of the same type in two fields. Not
 
 *Multiple heterogeneous errors (bulk operations).*
 
-For heterogeneous types of client-side errors, an `errors` array is returned. Each error instance is represented as an item in this array. Because these are client validation errors, a `400 Bad Request` HTTP status code should be returned.
+For heterogeneous types of client-side errors, an `errors` array is returned. Each error instance is represented as an item in this array. Because these are client validation errors, a `400 Bad Request` HTTP status code SHOULD be returned.
 
 [source,json]
 ----
@@ -1001,7 +1001,7 @@ For heterogeneous types of client-side errors, an `errors` array is returned. Ea
 
 *Semantic validation error.*
 
-In cases where client input is well-formed and valid, but the request action cannot be performed due to semantic errors (eg. insufficient account balance), an HTTP status code `422 Unprocessable Entity` should be returned.
+In cases where client input is well-formed and valid, but the request action cannot be performed due to semantic errors (eg. insufficient account balance), an HTTP status code `422 Unprocessable Entity` SHOULD be returned.
 
 [source,json]
 ----
@@ -1054,7 +1054,7 @@ An error catalog is a structured collection of error specifications (metadata) f
 
 * *Synchronization:* API documentation and runtime error responses remain in sync, increasing consumer confidence and reducing support costs.
 
-An error catalog is a JSON file containing a collection of error specifications. Each error specification includes the error name, message, issue details, and related links. The catalog supports multiple locales — there should be one default catalog (eg. in English) and corresponding locale-specific catalogs for each additional supported locale.
+An error catalog is a JSON file containing a collection of error specifications. Each error specification includes the error name, message, issue details, and related links. The catalog supports multiple locales — there SHOULD be one default catalog (eg. in English) and corresponding locale-specific catalogs for each additional supported locale.
 
 Each error specification SHOULD include.
 
@@ -1066,7 +1066,7 @@ Each error specification SHOULD include.
 
 * `http_status_codes`: The HTTP status codes applicable to this error.
 
-* `legacy_code`: An older error code, used if and only if a previously published version of the error catalog already used this code and it must continue to be supported for backward compatibility. This SHOULD NOT be used for new errors.
+* `legacy_code`: An older error code, used if and only if a previously published version of the error catalog already used this code and it MUST continue to be supported for backward compatibility. This SHOULD NOT be used for new errors.
 
 * `suggested_application_actions`: Practical actions that the developer of an application consuming the API could take to resolve the error.
 

@@ -67,7 +67,7 @@ The process of resolving a query to a shard is called shard routing. Implementat
 [#designing-a-sharding-strategy]
 == Designing a sharding strategy
 
-Sharding strategies should be designed with consideration of the data types and access patterns of the application. Consideration also needs to be give to how best to manage data consistency, how to achieve efficient and correct query routing, and how to maintain balanced shards (ie. have an even distribution of data and load across shards).
+Sharding strategies SHOULD be designed with consideration of the data types and access patterns of the application. Consideration also needs to be give to how best to manage data consistency, how to achieve efficient and correct query routing, and how to maintain balanced shards (ie. have an even distribution of data and load across shards).
 
 Horizontal sharding has the greatest scalability potential. You can just keep adding more and more shards as the data grows. There is also greater scope for automating the creation of new shards, as data reaches predefined thresholds.
 
@@ -79,17 +79,17 @@ In horizontal sharding, the choice of shard key is critical. The objective is to
 
 Range-based shard keys are often the simplest to implement, but be careful about the potential for data skew (where some shards store much more data than others) and hotspots (where some shards are accessed much more frequently than others). For example, is you shard by an auto-incrementing ID, and access patterns are biased toward the most recent data, then both read and write operations will be concentrated on the most recent shards.
 
-Data access should be relatively uniform across all shards, so that load is evenly distributed across the infrastructure. Shard keys that are based on hashes of the data values tend to result in more evenly distributed data and load than range-based keys.
+Data access SHOULD be relatively uniform across all shards, so that load is evenly distributed across the infrastructure. Shard keys that are based on hashes of the data values tend to result in more evenly distributed data and load than range-based keys.
 
-Shard keys should be chosen with the most common queries in mind. For example, if most queries filter data based on a specific column, such as a user ID, that column will be a strong candidate for the shard key. It will mean that the shard key will be known to the application, and so queries can be routed directly to the correct shard without requiring any intermediary lookups.
+Shard keys SHOULD be chosen with the most common queries in mind. For example, if most queries filter data based on a specific column, such as a user ID, that column will be a strong candidate for the shard key. It will mean that the shard key will be known to the application, and so queries can be routed directly to the correct shard without requiring any intermediary lookups.
 
 Composite keys — made up of the values of multiple columns — add the most complexity but they can also enable more granular control over data distribution, and queries can be optimized for multiple access patterns. But these keys often require custom routing logic, adding latency to query execution.
 
-In vertical sharding, data partitions should align with queries, such that cross-shard joins and transactions are kept to a minimum. Cross-shard operations will negate some of the benefits of sharding, notably performance.
+In vertical sharding, data partitions SHOULD align with queries, such that cross-shard joins and transactions are kept to a minimum. Cross-shard operations will negate some of the benefits of sharding, notably performance.
 
-Sharding strategies should plan for data growth and increased traffic in the future. Consider how will new shards be added over time, and how the shard creation process could be automated. Shard keys that naturally support range-based distribution are often good candidates for auto-scaling.
+Sharding strategies SHOULD plan for data growth and increased traffic in the future. Consider how will new shards be added over time, and how the shard creation process could be automated. Shard keys that naturally support range-based distribution are often good candidates for auto-scaling.
 
-Consider also the accuracy and efficiency of your routing logic. Shard routing should be quick and reliable. Application-level routing allows for customized routing logic, making it easier to optimize for specific use cases. If required, routing logic can be adjusted dynamically based on real-time data. Middleware and proxies can be used to centralize routing logic, extracting this accidental complexity from the application, leaving the application to specialize in the essential complexity of its domain — a neater separation of concerns. Proxies may also be shared by multiple applications that access the same data, and failover mechanisms can be built-in to the proxies, too. But this design introduces latency and the database proxy becomes a new single point of failure — more things to be considered.
+Consider also the accuracy and efficiency of your routing logic. Shard routing SHOULD be quick and reliable. Application-level routing allows for customized routing logic, making it easier to optimize for specific use cases. If required, routing logic can be adjusted dynamically based on real-time data. Middleware and proxies can be used to centralize routing logic, extracting this accidental complexity from the application, leaving the application to specialize in the essential complexity of its domain — a neater separation of concerns. Proxies may also be shared by multiple applications that access the same data, and failover mechanisms can be built-in to the proxies, too. But this design introduces latency and the database proxy becomes a new single point of failure — more things to be considered.
 
 Databases with built-in sharding capabilities, such as MongoDB, allow for easy sharding configuration out-of-the-box. The trade-offs with this approach include limited customization and commercial risks associated with greater vendor lock-in.
 

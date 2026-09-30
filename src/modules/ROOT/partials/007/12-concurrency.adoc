@@ -15,7 +15,7 @@ Concurrency — writing code that executes in parallel across multiple threads, 
 
 The single most important rule for concurrent code is to keep the concurrency mechanics separate from the business logic they are threading through. A function or class that simultaneously manages thread lifecycles, synchronization primitives, and domain behavior is doing too many things. It is harder to read, harder to test, and harder to reason about.
 
-Extract the concurrency infrastructure — thread pools, task queues, executors, async wrappers — into its own layer. Business logic should be written as if it were single-threaded, and composed with the concurrency layer at a higher level. This separation makes it possible to test the business logic in isolation, without the non-determinism of concurrent execution.
+Extract the concurrency infrastructure — thread pools, task queues, executors, async wrappers — into its own layer. Business logic SHOULD be written as if it were single-threaded, and composed with the concurrency layer at a higher level. This separation makes it possible to test the business logic in isolation, without the non-determinism of concurrent execution.
 
 == Shared mutable state
 
@@ -29,9 +29,9 @@ The most reliable way to avoid these problems is to eliminate shared mutable sta
 
 == Synchronization
 
-When shared mutable state cannot be avoided, it must be protected with synchronization mechanisms — locks, mutexes, semaphores, atomic operations, or language-level constructs like `synchronized` blocks.
+When shared mutable state cannot be avoided, it MUST be protected with synchronization mechanisms — locks, mutexes, semaphores, atomic operations, or language-level constructs like `synchronized` blocks.
 
-Keep synchronized sections as small as possible. Only the minimal critical section — the exact reads and writes that must be atomic — should be inside the lock. Holding a lock across large blocks of logic increases contention, reduces throughput, and raises the risk of deadlock.
+Keep synchronized sections as small as possible. Only the minimal critical section — the exact reads and writes that MUST be atomic — SHOULD be inside the lock. Holding a lock across large blocks of logic increases contention, reduces throughput, and raises the risk of deadlock.
 
 Be wary of acquiring multiple locks. Any code that must acquire more than one lock at a time is at risk of deadlock if other code acquires the same locks in a different order. If multiple locks are genuinely necessary, establish and document a consistent acquisition ordering across the codebase, and follow it without exception.
 
@@ -39,7 +39,7 @@ Be wary of acquiring multiple locks. Any code that must acquire more than one lo
 
 Not every class needs to be thread-safe, and making one thread-safe is not free. Decide deliberately, per class, rather than by blanket policy.
 
-*When to make a class thread-safe.* Base the decision on how the class is used: will instances be exposed to concurrent write/write or read/write access from your own code? If so, the class must be thread-safe. If a class is only ever used from a single thread, or only ever read concurrently after safe construction, synchronizing it adds cost for no benefit. A library or shared component whose usage context is not known in advance should offer both variants — see "Thread-safe wrappers" below — rather than guessing.
+*When to make a class thread-safe.* Base the decision on how the class is used: will instances be exposed to concurrent write/write or read/write access from your own code? If so, the class MUST be thread-safe. If a class is only ever used from a single thread, or only ever read concurrently after safe construction, synchronizing it adds cost for no benefit. A library or shared component whose usage context is not known in advance SHOULD offer both variants — see "Thread-safe wrappers" below — rather than guessing.
 
 *Synchronizing critical sections.* Where shared mutable state cannot be avoided (see "Shared mutable state" above), the standard technique is to make the relevant fields private and mark the code that reads and writes them as a critical section, guarded by a lock. Only code that controls access to the data through its own methods can enforce that access is safe — a public mutable field cannot be protected by any amount of synchronization elsewhere in the class. On platforms where only some primitive read/writes are atomic by default (for example the JVM, where `long` and `double` are not), treat those types with the same care as any other shared mutable field.
 

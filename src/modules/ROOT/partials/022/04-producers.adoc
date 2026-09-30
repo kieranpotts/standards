@@ -4,7 +4,7 @@ Producers are web services that push event notifications to the webhook endpoint
 
 This technical standard RECOMMENDS that producers follow the https://www.standardwebhooks.com/[Standard Webhooks] specification in their webhooks implementations. Standard Webhooks is a community-driven initiative to standardize around industry best practices for webhook design. The specification is based on common patterns and prevailing conventions for event naming, payload structure, security and authentication, and delivery patterns.
 
-The webhook ecosystem is highly fragmented, with each producer implementing webhooks differently. This makes it hard for producers and consumers to integrate with each other. Converging on a common standard for webhooks will make it easier for service providers to offer webhook notifications to their customers, and easier for their customers to integrate with them. It will also enable the development of shared tools and services that can be reused across multiple webhook implementations. The Standard Webhooks project already has a number of open source libraries, for multiple mainstream programming languages, to facilitate the implementation of webhooks in both producer and consumer systems.
+The webhook ecosystem is highly fragmented, with each producer implementing webhooks differently. This makes it hard for producers and consumers to integrate with each other. Converging on a common standard for webhooks will make it easier for service providers to offer webhook notifications to their customers, and easier for their customers to integrate with them. It will also enable the development of shared tools and services that can be reused across multiple webhook implementations. The Standard Webhooks project already has a number of open source libraries, for multiple mainstream programming languages, to help implement webhooks in both producer and consumer systems.
 
 Besides interoperability, the Standard Webhooks specification also promotes best security practices, offering solutions for attack vectors such as SSRF, spoofing, and replay attacks.
 
@@ -98,7 +98,7 @@ Best practice is for events to map to meaningful business-relevant state changes
 
 Coarser event types, such as ones that represents _all_ possible state changes in a particular entity type, may be appropriate where the changes in state are not likely to require differential processing on the consumer side. In this scenario, it would be expected that all state changes would be broadcast, and clients would be expected to process them all in the same way.
 
-As a general rule, consumers should want to implement different handlers (listeners) for each event type they subscribe to. If two or more events can be processed in much the same way, this is a design smell — the events may be too fine-grained and could be merged into a single event type.
+As a general rule, consumers SHOULD want to implement different handlers (listeners) for each event type they subscribe to. If two or more events can be processed in much the same way, this is a design smell — the events may be too fine-grained and could be merged into a single event type.
 
 === Timestamp
 
@@ -114,7 +114,7 @@ Replay attacks occur when an attacker intercepts a valid message and resends it 
 
 Including timestamp information in messages is a common technique to protect consumers from replay attacks. This value MUST be signed by message producers, so consumers can verify the integrity of the message's timestamp (not only the payload).
 
-With the authenticity of the message and its timestamp verified, consumers then have the option to reject messages older than a certain threshold. The appropriate threshold will vary by message type, and it should be sufficient to accommodate latency and clock-drift between different systems.
+With the authenticity of the message and its timestamp verified, consumers then have the option to reject messages older than a certain threshold. The appropriate threshold will vary by message type, and it SHOULD be sufficient to accommodate latency and clock-drift between different systems.
 ****
 
 === Data
@@ -326,7 +326,7 @@ The following table summarizes authentication mechanisms that can be used in web
 | ❌ Raw credentials transmitted +
   ❌ Depends on end-to-end HTTPS encryption +
   ❌ Message integrity remains unverified +
-  ❌ Zero-downtime secret rotation must be implemented on the consumer side
+  ❌ Zero-downtime secret rotation MUST be implemented on the consumer side
 
 | *Bearer token or API key*
 | The consumer generates a token that is shared with the producer. The producer returns the token to the consumer in its webhook messages, via the HTTP `Authorization` header. JSON Web Tokens (JWTs) are a common token format.
@@ -440,7 +440,7 @@ Unfortunately, asymmetric signatures are more complex to create (on the producer
 
 Asymmetric signatures are emerging as the gold standard for webhook authentication, but for now it is symmetric HMAC-SHA256 that still offers the best balance between security, simplicity, and interoperability for most use cases. For this reason, HMAC-SHA256 is the RECOMMENDED default choice for webhook authentication. Producers MAY offer Ed25519 as an alternative, but SHOULD do so alongside HMAC-SHA256 as the default signing scheme. For most webhook consumers, the simplicity and performance of HMAC-SHA256 will trump the additional security that asymmetric signatures offer.
 
-Asymmetric signatures are RECOMMENDED as the sole authentication mechanism in high-security scenarios, where the security of both the signing and verification keys is of paramount importance, and where the producer wants to offer the most robust guarantees that its messages are authentic and delivered to consumers intact.
+Asymmetric signatures are RECOMMENDED as the sole authentication mechanism in high-security scenarios, where the security of both the signing and verification keys is of paramount importance, and where the producer wants to offer the strongest guarantees that its messages are authentic and delivered to consumers intact.
 
 Signed bearer tokens, implemented as JWTs, MAY be used as an alternative to message signatures in use cases where there are good reasons to give consumers more control over access to their webhook endpoints (via scopes/permissions encoded in the tokens).
 
@@ -744,7 +744,7 @@ The following policy is RECOMMENDED.
 
 == Webhook management
 
-Due to their inherent unreliability, webhooks should be treated as an optional convenience tool that sits alongside a regular HTTP API (or other web service). Consumers SHOULD NOT depend on webhooks alone to synchronize their state, or to otherwise integrate successfully, with the producer service. This means that consumers SHOULD be able to retrieve everything they need by polling the producer's API in the normal way.
+Due to their inherent unreliability, webhooks SHOULD be treated as an optional convenience tool that sits alongside a regular HTTP API (or other web service). Consumers SHOULD NOT depend on webhooks alone to synchronize their state, or to otherwise integrate successfully, with the producer service. This means that consumers SHOULD be able to retrieve everything they need by polling the producer's API in the normal way.
 
 Webhooks SHOULD be treated like a subscription service, in which consumers explicitly opt-in (via HTTP API endpoints) to receive notifications of particular event types. Consumers SHOULD NOT be burdened with needing to handle webhook messages they're not interested in.
 
@@ -784,9 +784,9 @@ Consumers SHOULD be able to manage the configuration of their webhook messages, 
 * Expiration times (when consumers want to automatically stop receiving webhook messages).
 * The quantity of data communicated ("thin" versus "fat" payloads).
 
-In addition, through the webhook management tools, consumers SHOULD be able to initiate retries of failed messages, and even replays of successful ones. Messages should be available for replay for a reasonable period of time, such as 30 days, after their initial delivery and before they are deleted permanently. This gives consumers plenty of time to recover from long outages without missing messages.
+In addition, through the webhook management tools, consumers SHOULD be able to initiate retries of failed messages, and even replays of successful ones. Messages SHOULD be available for replay for a reasonable period of time, such as 30 days, after their initial delivery and before they are deleted permanently. This gives consumers plenty of time to recover from long outages without missing messages.
 
-Consumers SHOULD be able to read and query their webhook message history, including failed deliveries ("dead letters"), via regular HTTP API endpoints and/or via a GUI dashboard. For full visibility, consumers should be able to inspect the reasons why webhook messages were deemed to have failed.
+Consumers SHOULD be able to read and query their webhook message history, including failed deliveries ("dead letters"), via regular HTTP API endpoints and/or via a GUI dashboard. For full visibility, consumers SHOULD be able to inspect the reasons why webhook messages were deemed to have failed.
 
 Producers SHOULD offer monitoring and alerting solutions for their consumers, so they can be notified early of problems delivering messages to their webhook endpoints.
 

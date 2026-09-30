@@ -33,7 +33,7 @@ Two conventions compete for a primary key's column name: a bare `id`, or a table
 
 This standard's house style is the bare `id`, for consistency with the common ORM convention. `<table>_id` is a valid exception for a composite or aggregate key, where the plain `id` no longer identifies which part of the key a given column represents.
 
-This is the definitive rule for the primary-key column specifically. It takes precedence over the general column-naming guidance in <<naming-conventions,Naming conventions>>, which advises avoiding a bare `id` for non-primary-key identifier columns — the two are not in tension: `id` is reserved for the primary key alone, and every other identifier column should be more specific (`author_id`, `parent_category_id`).
+This is the definitive rule for the primary-key column specifically. It takes precedence over the general column-naming guidance in <<naming-conventions,Naming conventions>>, which advises avoiding a bare `id` for non-primary-key identifier columns — the two are not in tension: `id` is reserved for the primary key alone, and every other identifier column SHOULD be more specific (`author_id`, `parent_category_id`).
 
 == Modeling data as relations
 
@@ -51,7 +51,7 @@ Order and group column definitions within a `CREATE TABLE` statement so the grou
 
 === Default values
 
-A column's default value MUST be the same type as the column itself — a `DECIMAL` column must not take an `INTEGER` literal as its default, for example. Within a column definition, the default value follows the data-type declaration and comes before any `NOT NULL` constraint.
+A column's default value MUST be the same type as the column itself — a `DECIMAL` column MUST NOT take an `INTEGER` literal as its default, for example. Within a column definition, the default value follows the data-type declaration and comes before any `NOT NULL` constraint.
 
 [source,sql]
 ----
@@ -64,7 +64,7 @@ Do not encode business logic into a `DEFAULT` or `CHECK` constraint. A default o
 
 === Choosing keys
 
-Whether a primary key or a unique key on some other column, a key's underlying value should be.
+Whether a primary key or a unique key on some other column, a key's underlying value SHOULD be.
 
 * Unique, by definition.
 * Consistent in data type across the schema, and unlikely to change over the life of the system — a key that changes type or format forces a migration of every table that references it.
@@ -110,12 +110,12 @@ CREATE TABLE orders (
 
 Choose a foreign key's `ON DELETE` action based on the semantics of the relationship it enforces, not by reflex or by leaving it at the engine's default.
 
-* `NO ACTION` or `RESTRICT` — where the referenced row models an independent entity that can exist without the referencing row. A `products.category_id` reference to `categories` should block deletion of a category that still has products in it, rather than silently deleting or orphaning those products.
-* `CASCADE` — where the referencing row cannot meaningfully exist without its parent. An order's line items referencing their order should be deleted along with the order. A line item with no order to belong to is not a meaningful row.
-* `SET NULL` — for an optional, nullable reference where the parent's removal should orphan the referencing row rather than delete it or block the parent's deletion. An employee's `manager_id` should be set to `NULL` when the manager leaves, rather than deleting the employee or preventing the manager's removal.
-* `SET DEFAULT` — a rarely-needed fallback, for the uncommon case where a referencing column should revert to a specific non-`NULL` default rather than being nulled out or cascaded.
+* `NO ACTION` or `RESTRICT` — where the referenced row models an independent entity that can exist without the referencing row. A `products.category_id` reference to `categories` SHOULD block deletion of a category that still has products in it, rather than silently deleting or orphaning those products.
+* `CASCADE` — where the referencing row cannot meaningfully exist without its parent. An order's line items referencing their order SHOULD be deleted along with the order. A line item with no order to belong to is not a meaningful row.
+* `SET NULL` — for an optional, nullable reference where the parent's removal SHOULD orphan the referencing row rather than delete it or block the parent's deletion. An employee's `manager_id` SHOULD be set to `NULL` when the manager leaves, rather than deleting the employee or preventing the manager's removal.
+* `SET DEFAULT` — a rarely-needed fallback, for the uncommon case where a referencing column SHOULD revert to a specific non-`NULL` default rather than being nulled out or cascaded.
 
-Do not use a sentinel value — `0` or `-1`, for example — in a foreign-key or identifier column to represent "no value" where the column could instead be made nullable. A `manager_id` column in an employees table is the canonical case: not every employee has a manager, so `manager_id` should be a nullable foreign key with `SET NULL` on delete, not a `NOT NULL` column defaulting to a sentinel `0` that does not reference any real row. A sentinel value forces every query against the column to special-case it, and it is not enforced by the foreign-key constraint the way a genuine `NULL` is.
+Do not use a sentinel value — `0` or `-1`, for example — in a foreign-key or identifier column to represent "no value" where the column could instead be made nullable. A `manager_id` column in an employees table is the canonical case: not every employee has a manager, so `manager_id` SHOULD be a nullable foreign key with `SET NULL` on delete, not a `NOT NULL` column defaulting to a sentinel `0` that does not reference any real row. A sentinel value forces every query against the column to special-case it, and it is not enforced by the foreign-key constraint the way a genuine `NULL` is.
 
 === Adding and removing constraints on existing tables
 

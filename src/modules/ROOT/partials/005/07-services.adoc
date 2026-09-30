@@ -10,7 +10,7 @@ Developing business capabilities as services, rather than as features within a m
 
 Microservices take service orientation to its extreme. Each microservice is small, autonomous, aligned with a single bounded context, and — critically — independently deployable. Independent deployability is the defining characteristic: each service can be updated and released on its own schedule, without coordinating deployments with other services.
 
-But microservices are harder to implement well than many teams realize. The real challenge lies not in the individual services but in the design of the interfaces between them. These interfaces must be well-defined up-front, and kept stable and non-breaking over the long term, since independent deployability and loose coupling depend on it.
+But microservices are harder to implement well than many teams realize. The real challenge lies not in the individual services but in the design of the interfaces between them. These interfaces MUST be well-defined up-front, and kept stable and non-breaking over the long term, since independent deployability and loose coupling depend on it.
 
 == Bounded contexts and service interfaces
 
@@ -25,14 +25,14 @@ ____
 
 The practical implication is that a service decomposition which cuts against the team structure will be fought by the organization at every turn. Either align the teams to the intended architecture, or expect the architecture to drift toward the teams.
 
-The interfaces between services — the protocols and data structures used in their communication — should be treated as their own distinct bounded context.
+The interfaces between services — the protocols and data structures used in their communication — SHOULD be treated as their own distinct bounded context.
 
 [quote, Eric Evans]
 ____
 The language/protocol of the information that we use to communicate between services is a separate bounded context.
 ____
 
-This means that translation layers are needed at service boundaries. Services must transform domain concepts as they cross from one bounded context to another, so that each service's internal model remains consistent and self-contained.
+This means that translation layers are needed at service boundaries. Services MUST transform domain concepts as they cross from one bounded context to another, so that each service's internal model remains consistent and self-contained.
 
 Translation at the boundary does not mean that every pair of services invents its own format. The data exchanged over an interface SHOULD have a single, well-designed, documented representation, shared by every service on that interface. In domain-driven design this is called a *published language*. Each service then translates once, between the published language and its own internal model, rather than once for each service it talks to. Without a shared representation, each team writes its own converters and mappers for each of its neighbors, and inconsistencies creep in wherever two services interpret the same data differently.
 
@@ -52,15 +52,15 @@ Services can be modeled as *state machines*, which means that events produce cha
 
 This pattern externalizes accidental complexity and keeps each service focused on domain-level concerns.
 
-This is the essence of a https://www.reactivemanifesto.org/[reactive system] — a system that mutates domain models in response to events or messages. It is a simple and powerful model, and it is how serious infrastructure (including relational databases) works internally.
+This is the essence of a https://www.reactivemanifesto.org/[reactive system] — a system that mutates domain models in response to events or messages. It is a simple model, and it is how serious infrastructure (including relational databases) works internally.
 
 Reactive systems require reliable, durable messaging infrastructure. This becomes the primary failure point. Three constraints are critical.
 
-* *Ordering*: The order of messages MUST be preserved. If messages arrive out of order, services will end up in incorrect states. The system must also account for messages that are lost in transit.
+* *Ordering*: The order of messages MUST be preserved. If messages arrive out of order, services will end up in incorrect states. The system MUST also account for messages that are lost in transit.
 
 * *Determinism*: The state of a service can only be mutated via messages. There can be no backdoors — no alternative paths for state changes that bypass the message stream.
 
-* xref:garden::durability.adoc[*Durability*]: The messaging infrastructure must be highly available. If it goes down, services cannot process events, and the system stalls.
+* xref:garden::durability.adoc[*Durability*]: The messaging infrastructure MUST be highly available. If it goes down, services cannot process events, and the system stalls.
 
 Reactive design decouples services in both time and space. A service does not need to know where another service is located, or whether it is currently running. It only needs to publish or consume messages. This pairs naturally with microservices, since each service maintains its own unique, unshared state (and typically its own database).
 

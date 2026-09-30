@@ -26,9 +26,9 @@ Knowing the SOLID names is useful independent of the guidance itself: they give 
 
 === Liskov Substitution Principle
 
-A subtype must be substitutable for its base type without altering the correctness of the program. Any code written against the base type's interface should continue to behave correctly when a subtype is passed in its place.
+A subtype MUST be substitutable for its base type without altering the correctness of the program. Any code written against the base type's interface SHOULD continue to behave correctly when a subtype is passed in its place.
 
-Concretely, this means a subtype must not strengthen the preconditions its base type promises to accept, and must not weaken the postconditions its base type promises to deliver. A method override that throws on inputs its base class accepted, or that returns a narrower range of results than its base class documented, violates the principle — callers written against the base type's contract will break when handed the subtype, even though the type system raises no error.
+Concretely, this means a subtype MUST NOT strengthen the preconditions its base type promises to accept, and MUST NOT weaken the postconditions its base type promises to deliver. A method override that throws on inputs its base class accepted, or that returns a narrower range of results than its base class documented, violates the principle — callers written against the base type's contract will break when handed the subtype, even though the type system raises no error.
 
 In duck-typed and functional code, where there is no formal subtype relationship, the same discipline applies to any code that conforms to a shared interface or is passed as a substitutable implementation: keep the promises the interface declares. A retry-wrapped implementation of a function MUST accept everything the unwrapped version accepts and MUST deliver everything it promises to deliver — it MAY do more, such as retrying internally, but MUST NOT do less.
 
@@ -36,9 +36,9 @@ A common symptom of an LSP violation is calling code that has to check the concr
 
 === Interface Segregation Principle
 
-Clients should not be forced to depend on interface members they do not use. A large, general-purpose interface that bundles together methods serving several unrelated clients forces each client to depend on — and be affected by changes to — the whole interface, including the parts it never calls.
+Clients SHOULD NOT be forced to depend on interface members they do not use. A large, general-purpose interface that bundles together methods serving several unrelated clients forces each client to depend on — and be affected by changes to — the whole interface, including the parts it never calls.
 
-Prefer several small, role-specific interfaces over one broad interface. Where different callers use a component for genuinely different purposes, define a separate interface for each purpose, even if a single concrete class implements all of them. A caller that only ever reads from a repository should depend on a read-only interface, not the full read-write interface, even if the underlying implementation supports both.
+Prefer several small, role-specific interfaces over one broad interface. Where different callers use a component for genuinely different purposes, define a separate interface for each purpose, even if a single concrete class implements all of them. A caller that only ever reads from a repository SHOULD depend on a read-only interface, not the full read-write interface, even if the underlying implementation supports both.
 
 The benefit is reduced coupling. A client that depends only on the interface it uses is unaffected when the broader component changes in ways that do not touch that interface, and the interface it depends on is easier to understand and to substitute with a test double, because it only exposes what that client needs to see.
 
@@ -50,7 +50,7 @@ Better to compose complex logic from modules that each own their implementation 
 
 A notable exception to this rule is domain modeling. In this use case, inheritance hierarchies can be useful for modeling real-world taxonomies and ontologies. (This was the original intent of object-oriented programming, after all.)
 
-In most other use cases, inheritance hierarchies should be kept shallow, or inheritance avoided altogether.
+In most other use cases, inheritance hierarchies SHOULD be kept shallow, or inheritance avoided altogether.
 
 [#polymorphism-over-conditionals]
 == Polymorphism over conditionals
@@ -67,7 +67,7 @@ A related pressure: prefer guard clauses (early returns) over `if/else` chains. 
 
 == Law of Demeter
 
-The Law of Demeter, sometimes called the "principle of least knowledge", is a guideline for reducing coupling between abstractions. It states that a method should only interact with: the object itself; its direct fields; arguments passed to the method; and objects it creates directly. It should not "reach through" one object to call methods on another object obtained from it.
+The Law of Demeter, sometimes called the "principle of least knowledge", is a guideline for reducing coupling between abstractions. It states that a method SHOULD only interact with: the object itself; its direct fields; arguments passed to the method; and objects it creates directly. It SHOULD NOT "reach through" one object to call methods on another object obtained from it.
 
 Violations often manifest as chains of calls like `order.getCustomer().getAddress().getCity()`. Such chains make the calling code brittle, because it now depends not only on the `Order` abstraction but also on the internal structure of `Customer` and `Address`. If any intermediate representation changes — for example, the concept of an address is refactored — all such call chains throughout the codebase must be updated.
 
@@ -85,7 +85,7 @@ xref:garden::data-structure.adoc[*Data structures*] expose their data directly, 
 
 These constructs are not in competition — both are useful in different contexts. But they are complementary opposites, and conflating them into "hybrids" produces poor designs. A class that exposes its internal data through getters and setters _and_ also contains significant business logic is neither a clean object nor a clean data structure. Such hybrids attract additional responsibilities over time, making them harder to reason about and change. Choose one or the other: hide the data and expose behavior, or expose the data and keep behavior elsewhere.
 
-Where you do hide data behind behavior, follow the _Tell, Don't Ask_ principle: tell an object to do something, don't ask it for its data and then decide what to do with it. Decisions based on an object's state SHOULD live inside the object itself. Exposing state through getters so that callers can inspect it and act on it re-introduces the hybrid — the object becomes a data structure again, with the logic that should belong to it scattered across its callers.
+Where you do hide data behind behavior, follow the _Tell, Don't Ask_ principle: tell an object to do something, don't ask it for its data and then decide what to do with it. Decisions based on an object's state SHOULD live inside the object itself. Exposing state through getters so that callers can inspect it and act on it re-introduces the hybrid — the object becomes a data structure again, with the logic that SHOULD belong to it scattered across its callers.
 
 == Value objects
 
@@ -95,7 +95,7 @@ Prefer value objects over raw primitives for domain concepts. A `UserId`, `Email
 
 This is sometimes called avoiding _primitive obsession_: the tendency to represent meaningful domain concepts with generic language types rather than dedicated wrappers. Value objects make function signatures self-documenting and make misuse harder, because the type system can reject a value of the wrong kind passed in the wrong position.
 
-Value objects should be immutable. Once created with valid state, a value object should not be modifiable. This eliminates an entire class of bugs related to shared mutable state and makes value objects safe to pass between components without defensive copying.
+Value objects SHOULD be immutable. Once created with valid state, a value object SHOULD NOT be modifiable. This eliminates an entire class of bugs related to shared mutable state and makes value objects safe to pass between components without defensive copying.
 
 The same principle applies to collections. A class that contains a collection SHOULD contain no other instance variables — give each collection its own class so that the behaviors that operate on it (filtering, mapping, validation) have a home. This keeps collection logic out of the classes that merely use the collection, and treats the collection itself as a domain concept rather than a raw container.
 
