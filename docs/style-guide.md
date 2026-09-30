@@ -20,7 +20,7 @@ starting point for a new standard, and treat it as the canonical demonstration o
   which becomes a level-2 heading when included with `[leveloffset=+1]`. `00-attributes.adoc and `01-introduction.adoc`
   are the only exceptions — they do not have a section header.
 
-- `include::` directives MUST use `[leveloffset=+1]` and target their partial with the `partial$` resource ID, eg
+- `include::` directives MUST use `[leveloffset=+1]` and target their partial with the `partial$` resource ID, eg.
   `include::partial$NNN/01-topic.adoc[leveloffset=+1]`.
 
 - Cross-references to _other_ standards MUST use a bold Antora cross-reference (`xref:NNN.adoc[*TS-N: Title*]`), never a
