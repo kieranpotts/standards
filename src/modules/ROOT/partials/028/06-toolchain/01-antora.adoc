@@ -1,0 +1,88 @@
+[#antora]
+= Antora
+
+{link-antora}[Antora] is a documentation site generator. It collects AsciiDoc files from one or more Git repositories, and publishes them as a single website. Antora uses Asciidoctor to convert each page, so everything in this technical standard applies to the content of an Antora site. Antora adds the following conventions of its own.
+
+== Directory structure
+
+Antora only reads files that are stored in its standard directory structure. A documentation component is a directory that holds an `antora.yml` component descriptor and a `modules` directory. Each module sorts its files into family directories.
+
+[source,plaintext]
+----
+antora.yml
+modules/
+└── ROOT/
+    ├── nav.adoc
+    ├── pages/
+    ├── partials/
+    ├── examples/
+    ├── images/
+    └── attachments/
+----
+
+* *Pages.* Each file in `pages` is published as a page of the site.
+
+* *Partials.* Fragments of AsciiDoc that are included in pages. They are not published on their own.
+
+* *Examples.* Source code and other non-AsciiDoc files that are included in pages.
+
+* *Images.* Image files that are referenced from pages.
+
+* *Attachments.* Files that are offered for download.
+
+== Resource IDs
+
+Antora identifies every file by a resource ID, not by its location on the file system. A full resource ID has the following form.
+
+[source,plaintext]
+----
+<version>@<component>:<module>:<family>$<file>
+----
+
+Every part other than the file is optional, and defaults to that of the current page. A resource ID SHOULD be written in its shortest unambiguous form. A reference to a file in the same module therefore needs only the family and the file, and the family is itself omitted where it is the default for the macro being used.
+
+== Cross-references
+
+A cross-reference to another page MUST use the `xref:` macro with a resource ID as its target. The `pages` family is the default, so it is not written.
+
+[source,asciidoc]
+----
+xref:installation.adoc[Installation]
+xref:installation.adoc#supported-platforms[Supported platforms]
+xref:admin:backups.adoc[Backups]
+xref:other-component:ROOT:index.adoc[The other component]
+----
+
+Antora reports a cross-reference whose target does not exist, which it cannot do for a link to a published URL.
+
+== Includes
+
+The target of an include directive is also a resource ID. The family MUST be written, because there is no default.
+
+[source,asciidoc]
+----
+\include::partial$attributes.adoc[]
+\include::example$config.yml[]
+----
+
+Content that is included in more than one page MUST be stored in the `partials` or `examples` family, not in `pages`. A partial MAY include another file from the same directory using a relative path, such as `./sibling.adoc`.
+
+== Images
+
+The target of an image macro is resolved from the `images` family of the current module.
+
+[source,asciidoc]
+----
+image::request-flow.svg[Sequence diagram of a request passing through the gateway]
+image::admin:dashboard.png[Screenshot of the admin dashboard]
+----
+
+== Navigation
+
+The site's navigation menu is built from navigation files, which are conventionally named `nav.adoc`. A navigation file holds an unordered list of cross-references, and it is registered in the component descriptor. A page that is not listed in a navigation file is still published, but readers can only reach it by a link.
+
+== Attributes and the table of contents
+
+Attributes that apply to every page of a component SHOULD be declared in the component descriptor, under its `asciidoc.attributes` key, rather than repeated in each page.
+
+Antora's UI generates the table of contents for each page from the page's section titles, so the `toc` attribute and the `toc::[]` macro have no effect and SHOULD NOT be used.
