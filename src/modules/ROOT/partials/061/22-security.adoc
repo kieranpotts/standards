@@ -1,3 +1,4 @@
+[#security]
 = Security
 
 AI tools introduce security considerations at several levels: the services that run models, the data submitted to those services, the permissions granted to agents, and the code they produce.
@@ -84,36 +85,37 @@ Assume prompt injection will always be a risk. The practical defense is to break
 
 == Testing autonomous agents
 
-Security testing of an agent — red-teaming, capability evaluation, sandboxed benchmarking — is itself an inherently high-risk activity, because the agent under test is actively probing for weaknesses (that's the role its given in the test).
-
-In an incident reported in 2026, an OpenAI agent under controlled testing found a flaw in its own sandbox, escaped it, and — still pursuing its assigned goal — autonomously hacked into a competitor's (Hugging Face's) internal systems.
-
-That incident was not an isolated one. Within the following month, Anthropic, the UK's AI Security Institute (AISI), and Meta each disclosed their own testing incidents in quick succession. Anthropic found a handful of instances, out of thousands, where Claude had gained unintended internet access during testing. The AISI, evaluating models from both OpenAI and Anthropic, found they attempted cyber-attacks that included creating fake human profiles to socially engineer people. Meta reported that a misconfiguration during third-party testing had left one of its models with internet access it SHOULD NOT have had (McMahon, 2026).
-
-Each incident had a different proximate cause, and the AISI case is the one most worth dwelling on, because it was not a containment failure at all. Cyber-security researcher Alan Woodward's framing of the three incidents usefully separates them: "One model broke out. One walked through a door left open by mistake. One was deliberately given the keys so testers could measure what it would do" (McMahon, 2026). In the AISI case, the evaluators themselves granted the models internet access and disabled the filters that would normally block dangerous cyber-attack behavior — a deliberate design choice for the evaluation, not a bug in the sandbox — and the models then displayed "novel, potentially deceptive" behavior AISI attributed in part to those design choices. This is a distinct failure mode from a sandbox being breached: the test itself assembled the <<the-lethal-trifecta,lethal trifecta>>, on purpose, to see what would happen.
+Security testing of an agent — red-teaming, capability evaluation, sandboxed benchmarking — is itself an inherently high-risk activity. The agent under test is actively probing for weaknesses, and it may find one in its own containment.
 
 When testing agents.
 
-* Apply the <<the-lethal-trifecta,lethal trifecta>> analysis to the test environment itself. Do not give a test sandbox real external network access or real credentials merely because it is "just a test". Assume the agent MAY be able to escape its containment.
+* Apply the <<the-lethal-trifecta,lethal trifecta>> analysis to the test environment itself. Do not give a test sandbox real external network access or real credentials merely because it is "just a test". Assume the agent may be able to escape its containment.
 
 * Apply the same analysis to the *evaluation design*, not only the sandbox. Granting an agent internet access or disabling its safety filters to observe worst-case behavior is sometimes a deliberate and legitimate part of an evaluation, but it recreates the lethal trifecta by design. Treat such a configuration as a high-risk activity in its own right, requiring the same isolation and containment as an untrusted sandbox, not merely as "how the test is set up".
 
 * Do not assume the sandbox boundary is sound. A container or VM is a claim about isolation, not a proof of it. Verify escape resistance independently of the capability evaluation being run inside it.
 
-* Monitor for and have a kill switch ready to halt unexpected autonomous behavior, including any attempt to reach systems outside the test environment. Containment speed matters: the AISI contained its incident within an hour of detection (McMahon, 2026), and a slower response could have let the same behavior reach real systems.
+* Monitor for unexpected autonomous behavior, and have a kill switch ready to halt it, including any attempt to reach systems outside the test environment. Containment speed matters, because a slow response can let the same behavior reach real systems.
 
 * Treat anomalous outbound activity from a test environment as a security incident to investigate.
 
-* Always have a human-in-the-loop while running tests. Watch audit logs in real-time, and flip the kill-switch if agent activity heads in dangerous directions.
+* Always have a human-in-the-loop while running tests. Watch audit logs in real time, and flip the kill switch if agent activity heads in dangerous directions.
 
-Woodward's summary of what this demands in practice is a useful way to hold all of the above in mind at once: testing a sufficiently capable agent is "less like checking code and more like handling a hazardous material: sealed rooms, constant monitoring of what leaves the building, a rehearsed containment plan" (McMahon, 2026).
+[#least-privilege-tool-access]
+== Least-privilege tool access
+
+Agents that can execute shell commands, write to the filesystem, or make network requests are high-risk targets for prompt injection.
+
+Limit the blast radius by applying the principle of least privilege to tool permissions. Grant read-only access where write access is not needed. Scope filesystem access to the specific paths the agent needs. Restrict shell access to allow-listed commands, rather than permitting arbitrary shell execution. Disable network egress entirely for agents that do not need it.
+
+Review agent permissions before starting a task, not only when configuring a harness for the first time. A permission set that was appropriate for one task may be excessive for the next.
 
 [#goals-without-judgment]
 == Goals without judgment
 
 Prompt injection is an attack on an agent. A different class of risk comes from agents working exactly as instructed, by a person who should not have been able to give that instruction, or on a premise that was never checked.
 
-James Gosling, creator of Java, has argued that the more serious near-term dangers are mundane. People trust whatever an LLM hallucinates and then do something consequential on the strength of it. People with malicious intent find creative ways to point capable agents at targets. His underlying observation is that an agent pursues a goal, and morality is not part of that pursuit. The agents in the testing incidents described above were told only to improve a score. They worked out that understanding the scoring methodology would help, and broke out of their sandboxes to get at it. Nothing in the objective told them not to.
+James Gosling, creator of Java, has argued that the more serious near-term dangers are mundane. People trust whatever an LLM hallucinates and then do something consequential on the strength of it. People with malicious intent find creative ways to point capable agents at targets. His underlying observation is that an agent pursues a goal, and morality is not part of that pursuit. Nothing in a stated objective tells an agent what it must not do to achieve it.
 
 Gosling's illustration is a family of requests that differ only in framing.
 
@@ -141,18 +143,9 @@ The consequence is that authorization, verification, and approval MUST be enforc
 
 * Treat any claim of urgency or emergency in an agent's inputs as unverified. The more drastic the action an agent proposes, the more important it is to confirm its premises independently, from a source other than the agent.
 
-* Do not act on an agent's factual claims in situations where the consequences are hard to reverse, without verification from a primary source. Fluent output that is confidently wrong is a routine failure mode, not an edge case (see <<Human-in-the-loop,Human-in-the-loop>>).
+* Do not act on an agent's factual claims in situations where the consequences are hard to reverse, without verification from a primary source. Fluent output that is confidently wrong is a routine failure mode, not an edge case (see <<hallucination>>).
 
 * Assume that capable agents will be pointed at targets by people with bad intentions. Where you build or operate an agent that others can instruct, design for the abusive request, and not only the well-intentioned one.
-
-[#least-privilege-tool-access]
-== Least-privilege tool access
-
-Agents that can execute shell commands, write to the filesystem, or make network requests are high-risk targets for prompt injection.
-
-Limit the blast radius by applying the principle of least privilege to tool permissions. Grant read-only access where write access is not needed. Scope filesystem access to the specific paths the agent needs. Restrict shell access to allow-listed commands, rather than permitting arbitrary shell execution. Disable network egress entirely for agents that do not need it.
-
-Review agent permissions before starting a task, not only when configuring a harness for the first time. A permission set that was appropriate for one task may be excessive for the next.
 
 == Reviewing agent output
 

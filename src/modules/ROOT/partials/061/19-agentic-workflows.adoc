@@ -83,20 +83,14 @@ Single-agent systems are the recommended default. Upgrading to a multi-agent arc
 
 * *Fault isolation*: A sub-agent that goes off track — through flawed reasoning or runaway tool use — is contained to its own sub-task. It can be retried or discarded without corrupting the context or state of the overall task, whereas a single agent's error compounds into everything downstream in the same session.
 
-* *Independent verification*: An agent reviewing another agent's output needs fresh context, uncontaminated by the implementer's reasoning, to judge that output fairly rather than sycophantically (see <<guides-and-sensors,Guides and sensors>>, on inferential sensors).
+* *Independent verification*: An agent reviewing another agent's output needs fresh context, uncontaminated by the implementer's reasoning, to judge that output fairly rather than sycophantically (see <<sensors-in-the-pipeline,Sensors in the pipeline>>).
 
 * xref:garden::reusability.adoc[*Reusability*]: A well-scoped sub-agent (eg. a "Security Auditor" agent) becomes a composable unit that other workflows can invoke, not only the supervisor that first defined it (see <<composable-pipelines,Composable pipelines>>).
 
 [#model-tiering]
 == Model tiering
 
-To optimize for both quality and cost, agentic workflows SHOULD employ a tiered model strategy (see <<capability-tiers,capability tiers>>). Not every step requires the highest reasoning capability available.
-
-A hybrid approach, mixing frontier (premium cloud) models with efficient (smaller or local) models, is RECOMMENDED.
-
-Use frontier models for the role of the *supervisor agent*. These models are best suited for complex planning, architectural decision-making, and high-level quality assurance.
-
-Use smaller, faster, or locally-hosted models for the *sub-agents* that execute pre-approved plans. Once a frontier model has defined a precise, step-by-step path, efficient models are often perfectly capable of implementing the code or performing routine checks at a fraction of the cost and latency.
+To optimize for both quality and cost, agentic workflows SHOULD apply the tier assignments in <<tiers-in-a-workflow,Assigning tiers to workflow roles>>. Not every step requires the highest reasoning capability available. A frontier model fills the *supervisor agent* role, and smaller, faster, or locally hosted models fill the *sub-agent* roles that execute pre-approved plans.
 
 [mermaid]
 ....
@@ -109,40 +103,20 @@ flowchart LR
   R -->|verify| S
 ....
 
-By offloading the execution phase to efficient models while reserving the reasoning phase for frontier models, developers can maintain high output quality while significantly reducing token consumption and subscription costs (see <<cost-optimization,cost optimization>>).
+[#sensors-in-the-pipeline]
+== Sensors in the pipeline
 
-[#guides-and-sensors]
-== Guides and sensors
+Guides and sensors, and the difference between deterministic and inferential controls, are defined under <<guides-and-sensors,Guides and sensors>>. This section covers how sensors are placed in a workflow.
 
-Guardrails — constraints that bound agent behavior, reducing the risk of unintended or harmful actions — are important in AI-assisted workflows. They are critical in agentic ones, where humans are much less involved in the loop.
-
-It is useful to distinguish two categories of control over agent behavior: guides and sensors.
-
-*Guides* are feed-forward controls that steer an agent _before_ it acts, anticipating problems and increasing the odds of a good result on the first attempt. There are two main types:
-
-* *Behavioral instructions* (advisory): Rules embedded in system prompts, `AGENTS.md`, skills, and other instructions loaded into context, that direct how the agent SHOULD approach tasks. Examples: "create an explicit plan before making destructive changes" or "never commit directly to the main branch".
-
-* *Permission constraints* (enforced): Explicit allow/deny lists that control which tools, shell commands, file paths, or network endpoints an agent may access, configured in the agent harness rather than relied on via context/prompts. These are the most reliable form of guide because they are enforced by the runtime, not by the model's interpretation.
-
-*Sensors* are feedback controls that check an agent's output _after_ it acts. They are validation gates an agent must satisfy before proceeding, eg. running a test suite before committing code, or requesting human approval before an irreversible action.
-
-Sensors regulate agent output at multiple levels, including but not limited to: code quality (maintainability, style, complexity); architectural fitness (performance, scalability, observability); and behavioral correctness (whether the system meets its requirements).
+Sensors regulate agent output at multiple levels, including code quality (maintainability, style, complexity); architectural fitness (performance, scalability, observability); and behavioral correctness (whether the system meets its requirements).
 
 Of these levels, behavioral correctness ranks highest, and executable acceptance tests are the sensor that measures it. A linter or a type checker confirms only that a change is well-formed. An acceptance test confirms that it does what was required. A passing acceptance test is therefore the most decisive evidence an agent has that it is on the right track, which makes acceptance criteria expressed in executable form the highest-ranking sensor in an agentic workflow — the primary quality gate, and the deterministic check to invest in first.
 
 Sensors work best distributed across every step of the pipeline, rather than concentrated in a single gate at the end. The sooner a defect is caught, the cheaper it is to fix, and the less work an agent has to unwind.
 
-Sensors are of two kinds.
-
-* *Deterministic sensors* are scripts and tools that give the same verdict on the same input every time. Examples include linters, type checkers, and automated tests. These provide the strongest signal available, because their result does not depend on judgment. Wherever a rule is mechanically checkable, prefer enforcing it with a deterministic sensor over stating it as guidance and hoping the agent follows it.
-
-* An *inferential sensor* is a second agent tasked with judging the output of the first. These add value by bringing a fresh perspective (their context is not polluted by the reasoning of the implementation model). But they MUST NOT be treated as a substitute for deterministic checks, because their judgment is itself probabilistic.
-
 For work whose correctness lives in user-facing behavior — a UI flow, an end-to-end user journey — a deterministic sensor can drive the interface itself, eg. a browser-automation tool exercising the application as a user would, rather than only inspecting code or calling an API directly. This catches defects a unit test suite misses, because it exercises the same integrated path a user does. It is not complete coverage, though: some categories of interaction — native browser dialogs and modals are a known example — are difficult or impossible for automation to observe. Treat a passing end-to-end run as strong evidence, not as proof that every interaction path was exercised.
 
-A good agent harness consists of a mix of both guides and sensors, and of both the deterministic and inferential kinds (advisory guides and inferential sensors being the latter). An agent steered only by guides repeats the same undetected mistakes indefinitely. An agent checked only by sensors runs an expensive trial-and-error loop with no steering. Reliable agentic workflows need both.
-
-Where an inferential sensor is used, the agent reviewing the output MUST NOT be the same agent, in the same session, that produced it. Models exhibit sycophancy. An agent asked to critique its own recent work is biased toward judging it favorably, whereas a fresh agent with no visibility into the reasoning that produced the work is far more likely to surface real defects.
+An inferential sensor, a second agent that judges the output of the first, adds value by bringing a fresh perspective, because its context is not polluted by the reasoning of the implementation model. Its judgment is itself probabilistic, however. The agent reviewing the output MUST NOT be the same agent, in the same session, that produced it. Models exhibit sycophancy. An agent asked to critique its own recent work is biased toward judging it favorably, whereas a fresh agent with no visibility into the reasoning that produced the work is far more likely to surface real defects.
 
 Invoke inferential sensors as distinct agent sessions, and frame the evaluating agent adversarially. Instruct it to assume the work is broken and to actively verify that claim, rather than to assume it is correct and check for obvious problems. The latter framing tends to produce agreement with whatever it reads.
 
@@ -160,12 +134,6 @@ Guarding against this requires a hard guide and a soft guide, working together.
 Hard quotas alone are not enough, because an agent that does not know its budget cannot plan around it and will exhaust it unproductively. Soft budgets alone are not enough either, because advisory limits stated only in the prompt can be ignored or miscounted by the model. The two layers address different failure modes and SHOULD be used together.
 
 There is a trade-off in how tightly quotas are set. Tighter hard quotas keep agent runs fast and bounded in cost, but risk the agent hitting the limit before the task is complete. Looser quotas give the agent more freedom to be thorough, exploring more search results before concluding, for example. That may produce better outcomes, at the cost of slower and more expensive runs.
-
-As models become more capable, the balance shifts between prescriptive guides and model judgment. Overly detailed or redundant behavioral instructions can conflict with the model's own reasoning, causing it to follow explicit rules that diverge from what the context suggests is correct.
-
-The same token-efficiency principle from <<context-engineering,context engineering>> applies. Start with the minimum constraints necessary, and add guides only in response to observed failure modes.
-
-Guides SHOULD be reviewed when switching model versions, since one written to correct a failure mode in an older model may become unnecessary or counterproductive in a newer one.
 
 [#composable-pipelines]
 == Composable pipelines

@@ -1,20 +1,7 @@
 [#harness-engineering]
 = Harness engineering
 
-.The layers of abstraction over the model
-[mermaid]
-....
-flowchart TB
-  loop["Loop engineering"]:::off
-  harness["Harness engineering"]:::on
-  context["Context engineering"]:::off
-  tuning["Tuning model behavior"]:::off
-  model["Model"]:::base
-  loop --- harness --- context --- tuning --- model
-  classDef on fill:#cce5ff,stroke:#004085,color:#004085,stroke-width:2px
-  classDef off fill:#f8f9fa,stroke:#adb5bd,color:#6c757d,stroke-width:1px
-  classDef base fill:#e2e3e5,stroke:#4b5157,color:#383d41,stroke-width:2px
-....
+This section covers the harness engineering layer of the <<ai-engineering-stack,AI engineering stack>>.
 
 *Harness engineering* is the work of controlling the environment in which a model runs. That environment is what determines an agent's capabilities and constraints.
 
@@ -30,7 +17,7 @@ A harness is engineered along a small number of dimensions.
 
 * *The permissions enforced.* Which tools, commands, paths, and endpoints are allowed or denied, and where human approval is required.
 
-* *The checks that fire.* Validation gates bound to points in the agent's loop, discussed in <<hooks-and-deterministic-enforcement,Hooks and deterministic enforcement>> and in the section on <<guides-and-sensors,agentic workflows>>.
+* *The checks that fire.* Validation gates bound to points in the agent's loop, discussed in <<hooks-and-deterministic-enforcement,Hooks and deterministic enforcement>> and <<guides-and-sensors,Guides and sensors>>.
 
 * *The models assigned.* Which model serves which role, and at what reasoning effort, including the tiering of supervisor and sub-agent roles.
 
@@ -50,6 +37,23 @@ Harness configuration determines what agents may do inside a repository. It is a
 
 * Record the rationale for each non-obvious rule, in a comment or an adjacent document. A permission denial or a check whose reason is not recorded will eventually be removed by someone who cannot tell whether it still matters.
 
+[#guides-and-sensors]
+== Guides and sensors
+
+Guardrails are constraints that bound agent behavior, reducing the risk of unintended or harmful actions. They are important in AI-assisted workflows. They are critical in agentic ones, where humans are much less involved in the loop. It is useful to distinguish two categories of control over agent behavior: guides and sensors.
+
+*Guides* are feed-forward controls that steer an agent _before_ it acts, anticipating problems and increasing the odds of a good result on the first attempt. There are two main types.
+
+* *Behavioral instructions* (advisory). Rules embedded in system prompts, `AGENTS.md`, skills, and other instructions loaded into context, that direct how the agent SHOULD approach tasks. Examples: "create an explicit plan before making destructive changes" or "never commit directly to the main branch".
+
+* *Permission constraints* (enforced). Explicit allow/deny lists that control which tools, shell commands, file paths, or network endpoints an agent may access, configured in the agent harness rather than relied on via context or prompts. These are the most reliable form of guide because they are enforced by the runtime, not by the model's interpretation.
+
+*Sensors* are feedback controls that check an agent's output _after_ it acts. They are validation gates an agent must satisfy before proceeding, eg. running a test suite before committing code, or requesting human approval before an irreversible action. How sensors are placed in a workflow is covered under <<sensors-in-the-pipeline,Sensors in the pipeline>>.
+
+A good agent harness consists of a mix of both guides and sensors. An agent steered only by guides repeats the same undetected mistakes indefinitely. An agent checked only by sensors runs an expensive trial-and-error loop with no steering. Reliable agentic workflows need both.
+
+Separately, every guide and sensor is either inferential or deterministic, as described under <<inferential-and-deterministic-controls,Inferential and deterministic controls>>. Advisory guides and sensors that are themselves a model are inferential. Permission constraints, hooks, and scripted checks are deterministic.
+
 [#hooks-and-deterministic-enforcement]
 == Hooks and deterministic enforcement
 
@@ -57,7 +61,7 @@ Behavioral instructions are advisory. A model may follow them, may misread them,
 
 *Hooks* close the gap between the two. A hook is a program the harness runs automatically at a defined point in the agent's loop — before a tool call, after a file is written, when a session starts, when the agent believes it has finished. The harness executes it as an ordinary process and acts on its exit status. Its verdict therefore does not depend on the model's cooperation, its interpretation of an instruction, or its remembering to act at the right moment.
 
-Hooks map onto both halves of the guides-and-sensors taxonomy set out in the section on <<guides-and-sensors,agentic workflows>>.
+Hooks map onto both halves of the <<guides-and-sensors,guides and sensors>> taxonomy.
 
 * A hook that runs _before_ an action, and can block it, is an *enforced guide*. It is a programmable extension of a permission list: where a permission rule can say only that a tool is allowed or denied, a hook can decide against the arguments and the current state of the working tree.
 
@@ -71,6 +75,7 @@ The governing rule follows from this.
 
 Two constraints bound their use. First, a blocking hook MUST return an error message specific enough for the agent to correct itself, otherwise it converts a recoverable mistake into a stall. Second, hooks run on every matching event and their latency is added to the loop, so they SHOULD be fast, and expensive checks SHOULD be bound to infrequent events — the end of a task rather than every file write.
 
+[#inferential-and-deterministic-controls]
 === Inferential and deterministic controls
 
 Guides and sensors come in inferential and deterministic forms. (Böckeler, 2026 calls the latter _computational_.)

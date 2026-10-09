@@ -1,12 +1,41 @@
-[#prompt-engineering-roles-and-personas]
-= Prompt engineering: roles and personas
+[#prompt-engineering]
+= Prompt engineering
 
-<<tuning-model-behavior,Inference parameters>> shape _how_ a model samples its output. The prompt shapes _what_ it is trying to be. Before the broader machinery of <<context-engineering,context engineering>>, there is a narrower and higher-leverage discipline worth treating on its own: telling the model who it is supposed to be.
+xref:garden::prompt-engineering.adoc[*Prompt engineering*] is the practice of crafting effective input prompts. It is a subset of <<context-engineering,context engineering>>, which concerns the entire context passed to a model. <<tuning-model-behavior,Inference parameters>> shape _how_ a model samples its output. The prompt shapes _what_ it is trying to be.
+
+== Writing effective prompts
+
+Prompts, and system prompts in particular, SHOULD be clear and direct, using simple, plain language for instruction.
+
+Prompts SHOULD also be pitched at the optimum level of specificity, and there is a balance to be found between too specific and too general. At one extreme, hardcoding complex and brittle logic in a prompt, in an attempt to elicit exact behavior, creates fragility and increases maintenance overhead. At the other extreme, high-level guidance without concrete success criteria fails to give the model the strong signals it needs.
+
+The optimum is specific enough to guide behavior effectively, and flexible enough to leave the model with strong heuristics rather than brittle rules.
+
+Prompts MUST be token-efficient. Skills, rules, instructions, and other <<reusable-context,reusable prompt components>> SHOULD be concise and focused on the most critical information, so they do not crowd out other high-signal context in the window. Best practice is to start with the minimum prompt needed to describe the expected behavior, and to add instructions only to address specific failure modes observed in testing.
+
+Long prompts MUST be well structured. It is RECOMMENDED to organize prompts into distinct sections, like.
+
+----
+<background_information>
+
+<instructions>
+
+<success_criteria>
+----
+
+Use a structured language like YAML or Markdown to delineate sections. The exact formatting is likely to get much less important as models become more capable.
+
+A useful test for whether a prompt is too vague: could the same question be asked, unchanged, about a dozen unrelated problems? "Why isn't my code working?" passes that test — it fits any bug in any language, so it carries no signal the model can act on. A prompt that names the specific behavior, the specific input, and the specific deviation from what was expected does not pass, because it could only be asked about this one problem. Failing the test is a reliable signal to add context, not to retry the same prompt or switch models.
+
+[#prompt-engineering-roles-and-personas]
+== Roles and personas
+
+Before the broader machinery of context engineering, there is a narrower and higher-leverage discipline worth treating on its own: telling the model who it is supposed to be.
 
 A model does not have a fixed personality that it brings to every task. It infers one, per request, from the context it is given — and in the absence of explicit direction, it infers a default that is agreeable, eager, and anxious to please. Assigning a role deliberately, rather than accepting that default, is one of the cheapest ways to improve the quality of a model's output.
 
 [#role-following]
-== Role-following, and its shadow
+=== Role-following, and its shadow
 
 A language model will play whatever role you give it. Cast it as a skeptical security reviewer, a terse systems programmer, or a pedantic technical editor, and it will reason and write in that register — foregrounding the concerns that role would foreground, and applying the standards that role would apply. The technique is not confined to engineering personas: a teacher, a critic, a storyteller, a lawyer, a sub-editor, or a quality-assurance engineer each brings a different lens, and the same request answered through any two of them returns markedly different work. Ask it to review a piece of text in an "informal, chatty tone" and then to review the same input in a "critical, serious" way, and you get two markedly different responses — not only in wording but in what each one chooses to notice. This is one of the most useful properties of the technology. It is the mechanism behind <<beyond-code-generation,inferential quality checks>>: a reviewer agent is, in large part, a model told to be a reviewer.
 
@@ -15,7 +44,7 @@ The same property has a shadow. Because the model adopts whatever stance the con
 Sycophancy is corrosive precisely where a model is otherwise most valuable: as a <<using-ai-for-what-it-is-good-at,thinking companion>> that challenges your reasoning. A companion that agrees with everything reflects your blind spots straight back at you. The value of an "alien" mind is lost the moment it is prompted into a mirror.
 
 [#defining-a-persona]
-== Defining a persona
+=== Defining a persona
 
 The discipline that addresses this is deliberate *persona definition*: stating, as part of the prompt or the reusable context, the role the model is to occupy, the stance it is to take, and the standards it is to hold the work to. A few principles apply.
 
