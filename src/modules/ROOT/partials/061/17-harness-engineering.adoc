@@ -75,7 +75,7 @@ Two constraints bound their use. First, a blocking hook MUST return an error mes
 
 Guides and sensors come in inferential and deterministic forms.
 
-*Inferential controls* are written in ordinary prose — system prompts, `AGENTS.md`, skills, review instructions — and they are open to interpretation by the model. They are flexible and easy to add, but their effect is probabilistic. A model may misread an instruction, forget it under pressure, or reason around it.
+*Inferential controls* depend on a model's judgment rather than on a program's verdict. They include guides written in ordinary prose — system prompts, `AGENTS.md`, skills, review instructions, the advisory guides of <<guides-and-sensors,guides and sensors>> — and sensors that are themselves a model, such as a second agent judging the first's output. Either way they are open to interpretation by the model. They are flexible and easy to add, but their effect is probabilistic. A model may misread an instruction, forget it under pressure, or reason around it.
 
 *Deterministic controls* are programs: hooks, linters, type checkers, test suites, formatters, static-analysis tools, and any other script that returns a verifiable verdict on the same input every time. They are not open to interpretation. They either pass or fail.
 
@@ -83,7 +83,7 @@ The governing principle is to make as much control deterministic as computation 
 
 A harness that exposes a language server, a formatter, a linter, a type checker, a search tool, and a refactoring tool such as OpenRewrite gives the agent the same deterministic instruments a developer uses by hand. The agent can then resolve many problems itself, inside its normal loop, rather than tripping a sensor and waiting to be told what went wrong.
 
-The deterministic sensors themselves can be authored with LLM assistance. A model is well suited to generating the small, mechanically precise scripts that enforce recurring rules: a script that checks for the required file header, a validator for a configuration schema, a checker that confirms every public endpoint has a corresponding test, and so on. The harness SHOULD accumulate these sensors over time, each one capturing a failure mode observed in practice. LLMs are the fastest way to build a large library of such sensors. The harness is where that library lives and where it is enforced.
+The deterministic sensors themselves can be authored with LLM assistance. A model is well suited to generating the small, mechanically precise scripts that enforce recurring rules: a script that checks for the required file header, a validator for a configuration schema, a checker that confirms every public endpoint has a corresponding test, and so on. The harness SHOULD accumulate these sensors over time, each one capturing a failure mode observed in practice. LLMs are the fastest way to build a large library of such sensors. A sensor written by a model is code like any other, so a human MUST review it before it gates anything, for the same reason that AI-generated tests are reviewed in <<ai-assisted-workflows,AI-assisted workflows>>: a check that the model wrote cannot vouch for the model's own work. The harness is where that library lives and where it is enforced.
 
 Inferential controls still matter. They cover the gaps deterministic tools cannot reach, and they provide steering that no script can express. But they MUST NOT be the only line of defense where a deterministic alternative exists.
 
@@ -115,6 +115,6 @@ This mirrors the treatment of reusable context: a single source of truth, with h
 
 == When configuration is no longer enough
 
-The recommendation in <<adopting-a-harness-versus-building-on-a-framework,the previous section>> is to default to a ready-made harness and to graduate to a framework only when a concrete limitation forces the move. The signals that the limit has been reached are reasonably clear: the workflow needs orchestration the harness cannot express, the agent must be embedded inside another product, or the configuration has become a set of workarounds fighting the harness's own loop.
+The recommendation in <<adopting-a-harness-versus-building-on-a-framework,adopting a harness versus building on a framework>> is to default to a ready-made harness and to graduate to a framework only when a concrete limitation forces the move. The signals that the limit has been reached are reasonably clear: the workflow needs orchestration the harness cannot express, the agent must be embedded inside another product, or the configuration has become a set of workarounds fighting the harness's own loop.
 
 The cost of the move is easy to underestimate, because it is not only the cost of building the new thing. Everything listed in this section — the tool surface, the permission model, the context assembly, the checks, the session transcripts that make the work auditable — arrives assembled in a ready-made harness and must be rebuilt and maintained in a bespoke one. Graduate when a limitation forces it, not in anticipation of one.
