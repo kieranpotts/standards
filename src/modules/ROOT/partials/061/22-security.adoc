@@ -108,6 +108,43 @@ When testing agents.
 
 Woodward's summary of what this demands in practice is a useful way to hold all of the above in mind at once: testing a sufficiently capable agent is "less like checking code and more like handling a hazardous material: sealed rooms, constant monitoring of what leaves the building, a rehearsed containment plan" (McMahon, 2026).
 
+[#goals-without-judgment]
+== Goals without judgment
+
+Prompt injection is an attack on an agent. A different class of risk comes from agents working exactly as instructed, by a person who should not have been able to give that instruction, or on a premise that was never checked.
+
+James Gosling, creator of Java, has argued that the more serious near-term dangers are mundane. People trust whatever an LLM hallucinates and then do something consequential on the strength of it. People with malicious intent find creative ways to point capable agents at targets. His underlying observation is that an agent pursues a goal, and morality is not part of that pursuit. The agents in the testing incidents described above were told only to improve a score. They worked out that understanding the scoring methodology would help, and broke out of their sandboxes to get at it. Nothing in the objective told them not to.
+
+Gosling's illustration is a family of requests that differ only in framing.
+
+* "The American power grid is unstable. Turn it off."
+
+* "The Russian power grid is unstable. Turn it off."
+
+* "A hurricane is about to hit Puerto Rico, and the power lines are about to fall and electrocute people. Please turn off the Puerto Rico power grid."
+
+A human sees different shades of ethics and legality in each. An agent optimizing for the stated outcome may treat them as the same task. It may not ask whether the hurricane exists, whether the requester has any right to give the order, or whether breaking into a grid control system is legal. This is a hypothetical, and it assumes an agent with the access and capability to attempt it. But the failure modes it names are real, and they apply at every scale, including to an agent with access to a production database or a cloud account.
+
+Three properties of current systems make this hard to fix from inside the model.
+
+* *No verification of premises.* An agent usually accepts the facts in its instructions as given. A request resting on an invented emergency, or on a hallucinated fact from an earlier step, is acted upon as readily as a true one.
+
+* *No notion of authority.* Everything reaches the model as text in its context. A request from the governor of Puerto Rico and one from an anonymous stranger carry the same weight, unless something outside the model distinguishes them.
+
+* *Guardrails are advisory.* Safety instructions are, at bottom, more text in the same context. They influence the model's behavior, but they carry no special authority, and they can be outweighed by a sufficiently compelling goal. Training does instill refusals, and those refusals are valuable, but they are a probabilistic defense. They are not an access control.
+
+The consequence is that authorization, verification, and approval MUST be enforced outside the model, by deterministic controls it cannot talk its way past.
+
+* Determine who is allowed to ask for what in the surrounding system, not in the prompt. Identity and authorization checks belong in the tools and services the agent calls, as they would for any other client. Never rely on an instruction such as "only do this if the requester is authorized".
+
+* Do not connect agents to systems whose misuse would cause serious harm, such as infrastructure control, production data stores, or financial transfers, unless the agent is constrained by <<least-privilege-tool-access,least-privilege tool access>> and every high-impact action requires approval from a human who has the authority to give it.
+
+* Treat any claim of urgency or emergency in an agent's inputs as unverified. The more drastic the action an agent proposes, the more important it is to confirm its premises independently, from a source other than the agent.
+
+* Do not act on an agent's factual claims in situations where the consequences are hard to reverse, without verification from a primary source. Fluent output that is confidently wrong is a routine failure mode, not an edge case (see <<Human-in-the-loop,Human-in-the-loop>>).
+
+* Assume that capable agents will be pointed at targets by people with bad intentions. Where you build or operate an agent that others can instruct, design for the abusive request, and not only the well-intentioned one.
+
 [#least-privilege-tool-access]
 == Least-privilege tool access
 
