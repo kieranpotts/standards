@@ -1,4 +1,3 @@
-[#agent-skills]
 = Agent skills
 
 .Key requirements
@@ -65,7 +64,7 @@ A skill SHOULD be explicit about its inputs and outputs, in the same way a well-
 
 * What success criteria the output should be checked against.
 
-Documenting this contract is what lets a skill function as a discrete, composable step in an <<composable-pipelines,agentic workflow>>. A human or an orchestrating script can decide where it fits, wire its output into the next step, and validate what it produced, without needing to inspect the skill's internals.
+Documenting this contract is what lets a skill function as a discrete, composable step in an agentic workflow. A human or an orchestrating script can decide where it fits, wire its output into the next step, and validate what it produced, without needing to inspect the skill's internals.
 
 == Interactivity
 
@@ -73,17 +72,17 @@ Non-interactive skills can be run unattended, including by parallel sub-agents. 
 
 Reserve interactive skills for cases where human interaction _is_ the value the skill provides — a structured discovery interview, for example, where the dialogue itself is the point.
 
-This preference reflects a broader industry trend, sometimes called the _specs-to-code_ movement. It pushes interactive, human-in-the-loop work upstream into requirements-gathering and specification, so that downstream delivery can run non-interactively from executable acceptance criteria (see <<specification-driven-development,Specification-driven development>>).
+This preference reflects a broader industry trend, sometimes called the _specs-to-code_ movement. It pushes interactive, human-in-the-loop work upstream into requirements-gathering and specification, so that downstream delivery can run non-interactively from executable acceptance criteria.
 
 == Discovery
 
-As noted under <<competing-conventions,reusable context>>, agent harnesses are inconsistent in how they discover and load reusable context bundles. Most will load project-specific skills, but the expected location and naming of the files varies. The formal specification does not define a discovery path. The emerging convention is `.agents/skills/`, relative to the root of the project repository, but not all harnesses support this out-of-the-box.
+As noted under reusable context, agent harnesses are inconsistent in how they discover and load reusable context bundles. Most will load project-specific skills, but the expected location and naming of the files varies. The formal specification does not define a discovery path. The emerging convention is `.agents/skills/`, relative to the root of the project repository, but not all harnesses support this out-of-the-box.
 
 Some harnesses also look for global skills in the user's home directory. This is useful for sharing common workflow skills across multiple projects, but support is patchy. As of 2026, only a few harnesses, such as Pi, discover global skills automatically.
 
 Until the industry converges on universal standards, the location and naming of skills MUST be tailored to the conventions of the harnesses you use. See the https://github.com/JuliusBrussee/caveman/[Caveman] project for an example of how to install one set of source skills into the locations and formats that several mainstream harnesses auto-discover.
 
-One option is to use `AGENTS.md` to reference the location of your skills files, and to instruct agents to load them into context just-in-time, when certain conditions are met. The <<the-agents-md-standard,`AGENTS.md` template>> shows how to list local skills (via relative paths, unique to the project) alongside global skills (via absolute URLs, reused across projects).
+One option is to use `AGENTS.md` to reference the location of your skills files, and to instruct agents to load them into context just-in-time, when certain conditions are met. The `AGENTS.md` template shows how to list local skills (via relative paths, unique to the project) alongside global skills (via absolute URLs, reused across projects).
 
 == Structure
 
@@ -109,7 +108,7 @@ The `SKILL.md` file MUST contain YAML front-matter followed by a Markdown body. 
 
 * `name`: 1–64 characters of lowercase alphanumerics and hyphens (no spaces or punctuation). MUST NOT start or end with a hyphen, or contain consecutive hyphens. MUST match the parent directory name.
 
-* `description`: 1–1024 characters describing both _what_ the skill does and _when_ to use it. See <<loading-mechanisms,Loading mechanisms>> for more on this field.
+* `description`: 1–1024 characters describing both _what_ the skill does and _when_ to use it.
 
 OPTIONAL fields include.
 
@@ -145,7 +144,6 @@ metadata:
 Agent instructions...
 ----
 
-[#loading-mechanisms]
 == Loading mechanisms
 
 The `description` metadata field is the most important part of a skill. When an agent auto-discovers skills, it typically loads only the `name` and `description` fields into its context. The `name` field defines how users may explicitly invoke a skill. The `description` field defines the conditions under which agents should load the rest of that skill into context themselves.
@@ -198,7 +196,6 @@ Models tend to over-specify when drafting skills this way, producing verbose out
 
 Editing that draft down — cutting anything that fails the "would the agent get this wrong without this instruction?" test — is a key skill in its own right. It is where most of the value is added, once the agent has done the initial extraction.
 
-[#effective-instruction-patterns]
 == Effective instruction patterns
 
 Not every part of a skill needs the same level of prescriptiveness. Match the specificity of instructions to the fragility of the task. The following patterns have proven consistently effective across multiple agents and models:
@@ -223,9 +220,8 @@ Not every part of a skill needs the same level of prescriptiveness. Match the sp
 
 *Gotchas.* A dedicated section — named "edge cases", for example — that lists environment-specific facts that defy reasonable assumptions is often the highest-value content in a skill. These are not general advice but concrete corrections to mistakes the agent will make without being told otherwise: wrong field names, soft-delete filters, misleading health-check endpoints, non-obvious API constraints. Keep gotchas in `SKILL.md` itself — not a reference file — because the agent needs them before it encounters the situation. When an agent makes a mistake you have to correct, add the correction to the edge cases section.
 
-Reliability in <<agentic-workflows,agentic workflows>> comes primarily from the quality of these constraints, and only secondarily from the size or intelligence of the underlying model. A frontier model given vague guidance behaves less predictably than a smaller model given a tightly specified skill and a deterministic gate to pass. Tightening constraints is a more reliable lever than swapping in a stronger model.
+Reliability in agentic workflows comes primarily from the quality of these constraints, and only secondarily from the size or intelligence of the underlying model. A frontier model given vague guidance behaves less predictably than a smaller model given a tightly specified skill and a deterministic gate to pass. Tightening constraints is a more reliable lever than swapping in a stronger model.
 
-[#progressive-disclosure]
 == Progressive disclosure
 
 Once an agent activates a skill, the full body of `SKILL.md` loads into context. Keep `SKILL.md` under 500 lines, and push extended material into three OPTIONAL directories, which MUST be siblings of `SKILL.md`: `references/`, `assets/`, and `scripts/`.
@@ -391,15 +387,14 @@ Additional considerations apply when designing a skill for public sharing rather
 
 Before publishing a skill, validate its configuration with the `skills-ref` package: https://github.com/agentskills/agentskills/tree/main/skills-ref
 
-[#installing-third-party-skills]
 == Installing third-party skills
 
-A skill is a set of instructions that the agent follows and, often, scripts that the agent runs. A skill from a public registry is therefore third-party code and a third-party prompt at once. It MUST be treated as a software dependency, with the same scrutiny as an <<treat-mcp-servers-as-dependencies,MCP server>>. The same applies to rules files, plugins, and any other reusable context obtained from outside the project.
+A skill is a set of instructions that the agent follows and, often, scripts that the agent runs. A skill from a public registry is therefore third-party code and a third-party prompt at once. It MUST be treated as a software dependency, with the same scrutiny as an MCP server. The same applies to rules files, plugins, and any other reusable context obtained from outside the project.
 
-* Read the whole skill before installing it, including every script and reference file. Instructions in a reference file reach the model as readily as those in `SKILL.md`, and are a vector for <<prompt-injection,prompt injection>>.
+* Read the whole skill before installing it, including every script and reference file. Instructions in a reference file reach the model as readily as those in `SKILL.md`, and are a vector for prompt injection.
 
 * Prefer skills from publishers you already trust. A listing in a public registry is not a review.
 
 * Pin an installed skill to a specific version or commit, vendor it into the repository where practical, and review the diff before upgrading.
 
-* Check the skill's `allowed-tools` field and its scripts against <<least-privilege-tool-access,least-privilege tool access>>. A skill MUST NOT be granted tools that its stated purpose does not need.
+* Check the skill's `allowed-tools` field and its scripts against least-privilege tool access. A skill MUST NOT be granted tools that its stated purpose does not need.

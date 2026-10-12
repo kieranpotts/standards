@@ -1,4 +1,3 @@
-[#security]
 = Security
 
 .Key requirements
@@ -15,7 +14,6 @@ AI tools introduce security considerations at several levels: the services that 
 
 Apply the same security principles to AI tools as to any other development dependency.
 
-[#isolation]
 == Isolation
 
 Where possible, run AI models and tools in containers or virtual machines. This provides an isolation boundary between models, files, runtime processes, and the rest of the host system.
@@ -36,9 +34,8 @@ A container is not a complete isolation boundary by default, and a devcontainer 
 
 * *Network egress.* A container has unrestricted outbound network access unless it is configured otherwise.
 
-A default devcontainer therefore protects the rest of the host's filesystem and processes, but removes none of the three parts of the <<the-lethal-trifecta,lethal trifecta>>. To rely on a container as a sandbox for an agent, disable credential forwarding, keep secrets out of the mounted directory, and restrict egress to an allowlist of the hosts the task needs.
+A default devcontainer therefore protects the rest of the host's filesystem and processes, but removes none of the three parts of the lethal trifecta. To rely on a container as a sandbox for an agent, disable credential forwarding, keep secrets out of the mounted directory, and restrict egress to an allowlist of the hosts the task needs.
 
-[#network-exposure]
 == Network exposure
 
 Local model servers (such as Ollama) listen on `localhost` by default. Do not change this unless remote access is explicitly required.
@@ -55,12 +52,11 @@ Models are large binary files that encode learned behaviors. Treat them with the
 
 Only download models from official or well-known repositories. Do not use untrusted models to process sensitive data. Test unfamiliar models in an isolated environment before introducing them to regular workflows.
 
-The same scrutiny applies to everything else that is loaded into an agent from outside the project. See <<treat-mcp-servers-as-dependencies,Treat MCP servers as dependencies>> for MCP servers, and <<installing-third-party-skills,Installing third-party skills>> for skills, rules files, and plugins.
+The same scrutiny applies to everything else that is loaded into an agent from outside the project, including MCP servers and skills, rules files, and plugins.
 
-[#data-confidentiality]
 == Data confidentiality
 
-Everything placed in a model's context is disclosed to whoever runs the model. Proprietary code and personal data MUST NOT be submitted to a model service that has not been approved for that class of data (see <<team-policy,Team policy>>).
+Everything placed in a model's context is disclosed to whoever runs the model. Proprietary code and personal data MUST NOT be submitted to a model service that has not been approved for that class of data.
 
 Before approving a service, check the following in the provider's terms, for the specific plan and endpoint in use. The consumer, team, enterprise, and API plans of one provider often differ.
 
@@ -85,15 +81,14 @@ Then match the class of data to the class of service.
 | A service under a commercial agreement that excludes training use and bounds retention.
 
 | Personal data, and data under regulatory or contractual restriction
-| A service that both the agreement and xref:053.adoc[*TS-53: Privacy and Data Protection*] permit for that data, typically with zero retention and a fixed processing region, or an <<open-weight-models,open-weight model>> on infrastructure you control.
+| A service that both the agreement and xref:053.adoc[*TS-53: Privacy and Data Protection*] permit for that data, typically with zero retention and a fixed processing region, or an open-weight model on infrastructure you control.
 
 | Credentials and other secrets
-| None. See <<secrets-in-context,Secrets in context>>.
+| None.
 |===
 
 The same limits apply to everything a harness sends on the developer's behalf, which includes file contents, tool output, and telemetry as well as typed prompts.
 
-[#prompt-injection]
 == Prompt injection
 
 xref:garden::prompt-injection.adoc[*Prompt injection*] is an attack in which malicious instructions, embedded in data, cause an agent to take unintended actions. It takes two forms.
@@ -108,13 +103,12 @@ Mitigations include.
 
 * Treat all external content as data, not instructions. Where possible, pass it to the agent in a clearly delimited structure that separates it from the system prompt.
 
-* Grant agents only the tool permissions they need for the current task (see <<least-privilege-tool-access,Least-privilege tool access>>). A compromised agent can still only do what its connected tools allow.
+* Grant agents only the tool permissions they need for the current task. A compromised agent can still only do what its connected tools allow.
 
 * Prefer human confirmation before irreversible actions — file deletion, network requests, code execution — especially when the agent has processed external content.
 
-* Audit agent execution traces — ie. the session transcript (see <<Auditability,auditability>>) — when tasks involve untrusted sources.
+* Audit agent execution traces — ie. the session transcript — when tasks involve untrusted sources.
 
-[#the-lethal-trifecta]
 == The lethal trifecta
 
 Prompt injection becomes catastrophic when an agent simultaneously has all three of the following capabilities — a combination known as the xref:garden::lethal-trifecta.adoc[*lethal trifecta*], a term https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/[coined by Simon Willison].
@@ -143,7 +137,7 @@ Security testing of an agent — red-teaming, capability evaluation, sandboxed b
 
 When testing agents.
 
-* Apply the <<the-lethal-trifecta,lethal trifecta>> analysis to the test environment itself. Do not give a test xref:garden::sandbox.adoc[*sandbox*] real external network access or real credentials merely because it is "just a test". Assume the agent may be able to escape its containment.
+* Apply the lethal trifecta analysis to the test environment itself. Do not give a test xref:garden::sandbox.adoc[*sandbox*] real external network access or real credentials merely because it is "just a test". Assume the agent may be able to escape its containment.
 
 * Apply the same analysis to the *evaluation design*, not only the sandbox. Granting an agent internet access or disabling its safety filters to observe worst-case behavior is sometimes a deliberate and legitimate part of an evaluation, but it recreates the lethal trifecta by design. Treat such a configuration as a high-risk activity in its own right, requiring the same isolation and containment as an untrusted sandbox, not merely as "how the test is set up".
 
@@ -155,7 +149,6 @@ When testing agents.
 
 * Always have a human-in-the-loop while running tests. Watch audit logs in real time, and flip the kill switch if agent activity heads in dangerous directions.
 
-[#least-privilege-tool-access]
 == Least-privilege tool access
 
 Agents that can execute shell commands, write to the filesystem, or make network requests are high-risk targets for prompt injection.
@@ -164,7 +157,6 @@ Limit the blast radius by applying the principle of least privilege to tool perm
 
 Review agent permissions before starting a task, not only when configuring a harness for the first time. A permission set that was appropriate for one task may be excessive for the next.
 
-[#secrets-in-context]
 === Secrets in context
 
 An agent with file and shell access reads `.env` files, credential stores, shell history, and environment variables in the ordinary course of exploring a project, unless it is prevented. Anything it reads enters the context, is sent to the model provider, and is written to the session transcript.
@@ -179,20 +171,18 @@ An agent with file and shell access reads `.env` files, credential stores, shell
 
 See xref:052.adoc[*TS-52: Security and Secrets Management*] for the general rules on storing and rotating secrets.
 
-[#approval-modes]
 === Approval modes
 
 Most harnesses ask for human approval before a tool call that changes state, and most also have a mode that skips those prompts. Skipping them removes the last human checkpoint between an injected instruction and its execution.
 
 An agent MUST NOT run with approval prompts disabled unless both of the following hold.
 
-* It runs in a sandbox that it cannot leave, and that holds nothing the task does not need. A default devcontainer does not qualify (see <<isolation,Isolation>>).
+* It runs in a sandbox that it cannot leave, and that holds nothing the task does not need.
 
-* At least one part of the <<the-lethal-trifecta,lethal trifecta>> is absent by construction, not by instruction. In practice this usually means no credentials in the sandbox, or no network egress beyond an allowlist.
+* At least one part of the lethal trifecta is absent by construction, not by instruction. In practice this usually means no credentials in the sandbox, or no network egress beyond an allowlist.
 
 Where those conditions cannot be met, pre-approve specific low-risk commands through the harness's allowlist instead of disabling the prompts wholesale. Approving every prompt without reading it is equivalent to disabling them.
 
-[#goals-without-judgment]
 == Goals without judgment
 
 Prompt injection is an attack on an agent. A different class of risk comes from agents working exactly as instructed, by a person who should not have been able to give that instruction, or on a premise that was never checked.
@@ -221,28 +211,26 @@ The consequence is that authorization, verification, and approval MUST be enforc
 
 * Determine who is allowed to ask for what in the surrounding system, not in the prompt. Identity and authorization checks belong in the tools and services the agent calls, as they would for any other client. Never rely on an instruction such as "only do this if the requester is authorized".
 
-* Do not connect agents to systems whose misuse would cause serious harm, such as infrastructure control, production data stores, or financial transfers, unless the agent is constrained by <<least-privilege-tool-access,least-privilege tool access>> and every high-impact action requires approval from a human who has the authority to give it.
+* Do not connect agents to systems whose misuse would cause serious harm, such as infrastructure control, production data stores, or financial transfers, unless the agent is constrained by least-privilege tool access and every high-impact action requires approval from a human who has the authority to give it.
 
 * Treat any claim of urgency or emergency in an agent's inputs as unverified. The more drastic the action an agent proposes, the more important it is to confirm its premises independently, from a source other than the agent.
 
-* Do not act on an agent's factual claims in situations where the consequences are hard to reverse, without verification from a primary source. Fluent output that is confidently wrong is a routine failure mode, not an edge case (see <<hallucination>>).
+* Do not act on an agent's factual claims in situations where the consequences are hard to reverse, without verification from a primary source. Fluent output that is confidently wrong is a routine failure mode, not an edge case.
 
 * Assume that capable agents will be pointed at targets by people with bad intentions. Where you build or operate an agent that others can instruct, design for the abusive request, and not only the well-intentioned one.
 
-[#reviewing-agent-output]
 == Reviewing agent output
 
 Sandboxing constrains what an agent can do. It does not substitute for reviewing what the agent produces.
 
-Keep tasks small. Break work into reviewable steps rather than large, open-ended tasks (see <<implementation-phase,AI-assisted development workflows>>). Small diffs are easier to review, and problems are caught early, while course-correction is cheap.
+Keep tasks small. Break work into reviewable steps rather than large, open-ended tasks. Small diffs are easier to review, and problems are caught early, while course-correction is cheap.
 
 Treat agent output with the same scrutiny as a human contributor's changes. AI models are trained on enormous bodies of existing code, and some of that code contains vulnerabilities. Models are perfectly capable of reproducing the insecure patterns they learned from — hardcoded credentials, injection sinks, insecure defaults, missing input validation.
 
 Pay particular attention to code that handles authentication, authorization, cryptography, and external input.
 
-Check every dependency that an agent adds. A model can name a package that does not exist (see <<hallucination>>), and attackers register packages under the names that models are known to invent. Before installing a dependency that an agent proposed, confirm that the package exists in the official registry, that it is the project the agent appears to mean, and that its publisher and release history are plausible. An agent SHOULD NOT install new dependencies without human approval, and changes to a lockfile MUST be reviewed like any other change.
+Check every dependency that an agent adds. A model can name a package that does not exist, and attackers register packages under the names that models are known to invent. Before installing a dependency that an agent proposed, confirm that the package exists in the official registry, that it is the project the agent appears to mean, and that its publisher and release history are plausible. An agent SHOULD NOT install new dependencies without human approval, and changes to a lockfile MUST be reviewed like any other change.
 
-[#Auditability]
 == Auditability
 
 Reviewing agent output judges the artifact. Auditability concerns the durable record of _how_ that artifact came to be — what the agent was asked, what it did, and what data passed through it. In agentic workflows, where an agent takes many autonomous actions between human checkpoints, that record is essential for incident investigation, accountability, and demonstrating compliance.
@@ -251,7 +239,7 @@ The primary audit substrate is the *session transcript* — the full sequence of
 
 When something goes wrong — an agent leaks data, deletes a file, or acts on an injected instruction — the transcript is what lets you reconstruct the sequence of events after the fact. This is why the mitigations for prompt injection call for auditing agent execution traces. Those traces are the session transcript.
 
-This audit substrate complements, rather than duplicates, the version-controlled audit trail of workflow artifacts (see <<Persistence,agentic workflows>>). The two answer different questions. Version history records _what_ each step produced — the specification, the design, the plan, the code — as durable, diffable artifacts. The session transcript records _how_ an agent arrived at that output, through the prompts, reasoning, and tool calls in between. Together they give end-to-end traceability, from a triggering request through to a merged change.
+This audit substrate complements, rather than duplicates, the version-controlled audit trail of workflow artifacts. The two answer different questions. Version history records _what_ each step produced — the specification, the design, the plan, the code — as durable, diffable artifacts. The session transcript records _how_ an agent arrived at that output, through the prompts, reasoning, and tool calls in between. Together they give end-to-end traceability, from a triggering request through to a merged change.
 
 The following practices are RECOMMENDED.
 

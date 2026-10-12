@@ -1,4 +1,3 @@
-[#harness-engineering]
 = Harness engineering
 
 .Key requirements
@@ -9,7 +8,7 @@
 * A human MUST review a sensor written by a model before it gates anything.
 ****
 
-This section covers the harness engineering layer of the <<ai-engineering-stack,AI engineering stack>>.
+This section covers the harness engineering layer of the AI engineering stack.
 
 xref:garden::agent-harness.adoc[*Harness engineering*] is the work of controlling the environment in which a model runs. That environment is what determines an agent's capabilities and constraints.
 
@@ -25,7 +24,7 @@ A harness is engineered along a small number of dimensions.
 
 * *The permissions enforced.* Which tools, commands, paths, and endpoints are allowed or denied, and where human approval is required.
 
-* *The checks that fire.* Validation gates bound to points in the agent's loop, discussed in <<hooks-and-deterministic-enforcement,Hooks and deterministic enforcement>> and <<guides-and-sensors,Guides and sensors>>.
+* *The checks that fire.* Validation gates bound to points in the agent's loop.
 
 * *The models assigned.* Which model serves which role, and at what reasoning effort, including the tiering of supervisor and sub-agent roles.
 
@@ -45,7 +44,6 @@ Harness configuration determines what agents may do inside a repository. It is a
 
 * Record the rationale for each non-obvious rule, in a comment or an adjacent document. A permission denial or a check whose reason is not recorded will eventually be removed by someone who cannot tell whether it still matters.
 
-[#guides-and-sensors]
 == Guides and sensors
 
 xref:garden::guardrail.adoc[*Guardrails*] are constraints that bound agent behavior, reducing the risk of unintended or harmful actions. They are important in AI-assisted workflows. They are critical in agentic ones, where humans are much less involved in the loop. It is useful to distinguish two categories of control over agent behavior: guides and sensors.
@@ -56,20 +54,19 @@ xref:garden::guardrail.adoc[*Guardrails*] are constraints that bound agent behav
 
 * *Permission constraints* (enforced). Explicit allow/deny lists that control which tools, shell commands, file paths, or network endpoints an agent may access, configured in the agent harness rather than relied on via context or prompts. These are the most reliable form of guide because they are enforced by the runtime, not by the model's interpretation.
 
-*Sensors* are feedback controls that check an agent's output _after_ it acts. They are validation gates an agent must satisfy before proceeding, eg. running a test suite before committing code, or requesting human approval before an irreversible action. How sensors are placed in a workflow is covered under <<sensors-in-the-pipeline,Sensors in the pipeline>>.
+*Sensors* are feedback controls that check an agent's output _after_ it acts. They are validation gates an agent must satisfy before proceeding, eg. running a test suite before committing code, or requesting human approval before an irreversible action.
 
 A good agent harness consists of a mix of both guides and sensors. An agent steered only by guides repeats the same undetected mistakes indefinitely. An agent checked only by sensors runs an expensive trial-and-error loop with no steering. Reliable agentic workflows need both.
 
-Separately, every guide and sensor is either inferential or deterministic, as described under <<inferential-and-deterministic-controls,Inferential and deterministic controls>>. Advisory guides and sensors that are themselves a model are inferential. Permission constraints, hooks, and scripted checks are deterministic.
+Separately, every guide and sensor is either inferential or deterministic. Advisory guides and sensors that are themselves a model are inferential. Permission constraints, hooks, and scripted checks are deterministic.
 
-[#hooks-and-deterministic-enforcement]
 == Hooks and deterministic enforcement
 
 Behavioral instructions are advisory. A model may follow them, may misread them, or may be steered away from them by other content in its context. Permission lists are enforced, but they are declarative — they answer only whether a tool may be called.
 
 xref:garden::agent-hook.adoc[*Hooks*] close the gap between the two. A hook is a program the harness runs automatically at a defined point in the agent's loop — before a tool call, after a file is written, when a session starts, when the agent believes it has finished. The harness executes it as an ordinary process and acts on its exit status. Its verdict therefore does not depend on the model's cooperation, its interpretation of an instruction, or its remembering to act at the right moment.
 
-Hooks map onto both halves of the <<guides-and-sensors,guides and sensors>> taxonomy.
+Hooks map onto both halves of the guides and sensors taxonomy.
 
 * A hook that runs _before_ an action, and can block it, is an *enforced guide*. It is a programmable extension of a permission list: where a permission rule can say only that a tool is allowed or denied, a hook can decide against the arguments and the current state of the working tree.
 
@@ -83,12 +80,11 @@ The governing rule follows from this.
 
 Two constraints bound their use. First, a blocking hook MUST return an error message specific enough for the agent to correct itself, otherwise it converts a recoverable mistake into a stall. Second, hooks run on every matching event and their latency is added to the loop, so they SHOULD be fast, and expensive checks SHOULD be bound to infrequent events — the end of a task rather than every file write.
 
-[#inferential-and-deterministic-controls]
 === Inferential and deterministic controls
 
 Guides and sensors come in inferential and deterministic forms. (Böckeler, 2026 calls the latter _computational_.)
 
-*Inferential controls* depend on a model's judgment rather than on a program's verdict. They include guides written in ordinary prose — system prompts, `AGENTS.md`, skills, review instructions, the advisory guides of <<guides-and-sensors,guides and sensors>> — and sensors that are themselves a model, such as a second agent judging the first's output. Either way they are open to interpretation by the model. They are flexible and easy to add, but their effect is probabilistic. A model may misread an instruction, forget it under pressure, or reason around it.
+*Inferential controls* depend on a model's judgment rather than on a program's verdict. They include guides written in ordinary prose — system prompts, `AGENTS.md`, skills, review instructions — and sensors that are themselves a model, such as a second agent judging the first's output. Either way they are open to interpretation by the model. They are flexible and easy to add, but their effect is probabilistic. A model may misread an instruction, forget it under pressure, or reason around it.
 
 *Deterministic controls* are programs: hooks, linters, type checkers, test suites, formatters, static-analysis tools, and any other script that returns a verifiable verdict on the same input every time. They are not open to interpretation. They either pass or fail.
 
@@ -96,17 +92,17 @@ The governing principle is to make as much control deterministic as computation 
 
 A harness that exposes a language server, a formatter, a linter, a type checker, a search tool, and a refactoring tool such as OpenRewrite gives the agent the same deterministic instruments a developer uses by hand. The agent can then resolve many problems itself, inside its normal loop, rather than tripping a sensor and waiting to be told what went wrong.
 
-The deterministic sensors themselves can be authored with LLM assistance. A model is well suited to generating the small, mechanically precise scripts that enforce recurring rules: a script that checks for the required file header, a validator for a configuration schema, a checker that confirms every public endpoint has a corresponding test, and so on. The harness SHOULD accumulate these sensors over time, each one capturing a failure mode observed in practice. LLMs are the fastest way to build a large library of such sensors. A sensor written by a model is code like any other, so a human MUST review it before it gates anything, for the same reason that AI-generated tests are reviewed in <<ai-assisted-workflows,AI-assisted workflows>>: a check that the model wrote cannot vouch for the model's own work. The harness is where that library lives and where it is enforced.
+The deterministic sensors themselves can be authored with LLM assistance. A model is well suited to generating the small, mechanically precise scripts that enforce recurring rules: a script that checks for the required file header, a validator for a configuration schema, a checker that confirms every public endpoint has a corresponding test, and so on. The harness SHOULD accumulate these sensors over time, each one capturing a failure mode observed in practice. LLMs are the fastest way to build a large library of such sensors. A sensor written by a model is code like any other, so a human MUST review it before it gates anything, for the same reason that AI-generated tests are reviewed in AI-assisted workflows: a check that the model wrote cannot vouch for the model's own work. The harness is where that library lives and where it is enforced.
 
 Inferential controls still matter. They cover the gaps deterministic tools cannot reach, and they provide steering that no script can express. But they MUST NOT be the only line of defense where a deterministic alternative exists.
 
 == Evolving the harness
 
-A harness is not configured once. It accumulates rules in response to observed failure, and it decays as models, tools, and the codebase change around it. The same principles that govern <<reusable-context,reusable context>> apply to the whole harness.
+A harness is not configured once. It accumulates rules in response to observed failure, and it decays as models, tools, and the codebase change around it. The same principles that govern reusable context apply to the whole harness.
 
 * Start with the minimum configuration that works, and add to it only in response to failure modes observed. Configuration added in anticipation of problems tends to constrain the model against its own better judgment.
 
-* Change one thing at a time, and measure. Harness configuration is one of the components an eval suite exists to evaluate — see the section on <<Evaluation,evaluation>>. A new check, a narrowed permission, or a rewritten instruction either moves the pass rate, latency, or token cost, or it is not earning its keep.
+* Change one thing at a time, and measure. Harness configuration is one of the components an eval suite exists to evaluate. A new check, a narrowed permission, or a rewritten instruction either moves the pass rate, latency, or token cost, or it is not earning its keep.
 
 * Review the whole harness on a model upgrade, not only the instructions. Rules written to correct a weakness in an older model may be unnecessary or counterproductive against a newer one, and tool designs pitched at a less-capable model may now be needlessly fine-grained.
 
@@ -114,7 +110,7 @@ A harness is not configured once. It accumulates rules in response to observed f
 
 == Portability
 
-Harness configuration is the least portable layer of an AI toolchain. Reusable context has converging conventions in <<the-agents-md-standard,`AGENTS.md`>> and <<agent-skills,skills>>. Tool integration has <<model-context-protocol,MCP>>. Configuration — permissions, hooks, model assignment, session behavior — has nothing equivalent, and each harness expresses it in its own format.
+Harness configuration is the least portable layer of an AI toolchain. Reusable context has converging conventions in `AGENTS.md` and skills. Tool integration has MCP. Configuration — permissions, hooks, model assignment, session behavior — has nothing equivalent, and each harness expresses it in its own format.
 
 This creates a tension with the preceding advice. The most reliable enforcement mechanisms are the least portable ones, while the most portable mechanism, written instruction, is the weakest.
 
@@ -128,6 +124,6 @@ This mirrors the treatment of reusable context: a single source of truth, with h
 
 == When configuration is no longer enough
 
-The recommendation in <<adopting-a-harness-versus-building-on-a-framework,adopting a harness versus building on a framework>> is to default to a ready-made harness and to graduate to a framework only when a concrete limitation forces the move. The signals that the limit has been reached are reasonably clear: the workflow needs orchestration the harness cannot express, the agent must be embedded inside another product, or the configuration has become a set of workarounds fighting the harness's own loop.
+The recommendation is to default to a ready-made harness and to graduate to a framework only when a concrete limitation forces the move. The signals that the limit has been reached are reasonably clear: the workflow needs orchestration the harness cannot express, the agent must be embedded inside another product, or the configuration has become a set of workarounds fighting the harness's own loop.
 
 The cost of the move is easy to underestimate, because it is not only the cost of building the new thing. Everything listed in this section — the tool surface, the permission model, the context assembly, the checks, the session transcripts that make the work auditable — arrives assembled in a ready-made harness and must be rebuilt and maintained in a bespoke one. Graduate when a limitation forces it, not in anticipation of one.
