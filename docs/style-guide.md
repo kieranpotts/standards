@@ -27,9 +27,17 @@ starting point for a new standard, and treat it as the canonical demonstration o
 - Cross-references to _other_ standards MUST use a bold Antora cross-reference (`xref:NNN.adoc[*TS-N: Title*]`), never a
   relative link (`link:../NNN/...`).
 
+- Cross-references _within_ the same standard MUST be used sparingly. One is justified only where it removes content
+  that would otherwise have to be duplicated between two sections. A cross-reference MUST NOT be added merely because
+  a term or topic is covered elsewhere in the standard — not as a "see also", a signpost to an earlier or later section,
+  or a link on a passing mention. Internal cross-references are hard to maintain and add noise to the text, and a
+  well-structured standard, in which each section builds on the knowledge of the sections before it, does not need
+  them.
+
 - Within a technical standard, all partials are merged into a single document from `include::` directives from the main
-  page. Therefore, cross-references _within_ the same standard MUST use the explicit-anchor convention from TS-28
-  (`[#id]` / `<<id>>`), never a `link:` to the partial file.
+  page. Therefore, where a cross-reference _within_ the same standard is justified, it MUST use the explicit-anchor
+  convention from TS-28 (`[#id]` / `<<id>>`), never a `link:` to the partial file. An `[#id]` anchor SHOULD NOT be
+  declared on a section that no cross-reference targets.
 
 ## Line wrapping
 

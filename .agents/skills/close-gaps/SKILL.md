@@ -301,7 +301,13 @@ prompt the user for clarification.
       text inside the macro's brackets — never wrapped around the whole
       macro, never a relative path, never a section fragment.
 
-    - A cross-reference to another section of the *same* standard is
+    - A cross-reference to another section of the *same* standard MUST be used
+      sparingly. Add one only where it removes content that the new section and
+      the existing one would otherwise both have to carry. Do not link a passing
+      mention of a topic the standard covers elsewhere, and do not add "see also"
+      signposts — name the topic in plain words. Internal cross-references are
+      hard to maintain and add noise to the text, and a standard whose sections
+      build on one another does not need them. Where one is justified, it is
       `<<Section title>>`, never an `xref:` to the standard's own page. Each
       standard is one merged page, so an `xref:` to its own page links the
       reader to the page they are already reading.

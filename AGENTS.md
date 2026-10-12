@@ -96,6 +96,16 @@ algorithm for no real benefit over landing on the right page):
 `xref:NNN.adoc[*TS-N: Title*]`. The bold markup sits inside the macro's
 brackets, tight around the link text — not wrapped around the whole macro.
 
+A cross-reference to another section of the _same_ standard MUST be used
+sparingly. Add one only where it removes content that would otherwise be
+duplicated between the two sections. You MUST NOT add one as a "see also", as
+a signpost to an earlier or later section, or as a link on a passing mention of
+a topic the standard covers elsewhere — write the plain words instead. Internal
+cross-references are hard to maintain and add noise to the text, and a
+well-structured standard, in which each section builds on the sections before
+it, does not need them. The [style guide](docs/style-guide.md#page-structure)
+gives the syntax for the rare justified case.
+
 `GAPS.md`/`TODO.md` files are Markdown, outside Antora's reach, and keep
 their own convention. A link to another standard cites its canonical
 published URL, eg. `https://kieranpotts.com/standards/031`.

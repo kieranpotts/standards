@@ -122,7 +122,11 @@ prompt the user for clarification.
 
     5.  Convention conformance. Divergences from the yardsticks read in step
         2 — file naming, references, quotes, dashes, bold lead-ins, line
-        length, link syntax.
+        length, link syntax. This includes cross-references within the standard
+        that the style guide does not justify: one that removes no duplicated
+        content — a "see also", a signpost, a link on a passing mention — is a
+        finding, resolved by replacing it with its plain link text and removing
+        an anchor that nothing else targets.
 
     6.  Prose defects. Typos, hedging, filler, unfalsifiable normative
         statements ("as early as possible"), first-person "we", and examples
@@ -210,6 +214,8 @@ prompt the user for clarification.
 
 - Edits to the standard MUST follow TS-28 and `docs/style-guide.md`, and
   `TODO.md` MUST follow TS-27.
+
+- A fix MUST NOT add a cross-reference within the standard unless it removes content that would otherwise be duplicated between two sections. Where the same material sits at length in two places, keeping it in one and cross-referencing from the other is the justified case. Pointing a reader at related material is not.
 
 - Renaming or renumbering a file MUST use `git mv`, so Git history follows the
   file. Rename highest-numbered first, to avoid collisions. Afterwards, you
