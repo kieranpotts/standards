@@ -32,6 +32,8 @@ Finally, it is important to appreciate that a large language model is not capabl
 
 These properties of large language models converge on a single, defining failure mode. An xref:garden::hallucination.adoc[*hallucination*] is model output that is fluent and plausible but false. Hallucinations take the form of fabricated facts, non-existent APIs, invented citations, made-up introspection, and other confident-sounding answers to questions the model cannot actually answer.
 
+Because hallucination is intrinsic to the technology, it cannot be trusted away. It can only be checked away. A model cannot be relied on to check its own work, because its judgment of its output is subject to the same flaws as the output itself. Correctness MUST therefore be established by something that does not share those flaws: a human, or a deterministic check whose verdict is the same every time. Output MUST NOT be trusted on the model's confidence alone. Where the work can be reduced to a rule, prefer a deterministic check to a second opinion from another model.
+
 == When to use AI
 
 Hallucinations are a feature, not a bug, of large language models. Creativity in output is precisely what sets LLMs apart from classic systems of computation. It is this property that gives LLMs an entirely different set of use cases from traditional software, letting us automate whole categories of work that we previously could not automate, because that work cannot be reduced to fixed rules and logic.
@@ -46,9 +48,13 @@ Models work by probabilistic inference over patterns in language, code, and stru
 
 * *Exploring options.* Enumerating several approaches to a problem, with the trade-offs between them made explicit, as raw material for a human decision.
 
-* *Inferential quality checks.* Judgment-based checks that no deterministic tool can perform, eg. reviewing against intent, interrogating requirements, or detecting drift from a specification.
+* *Adversarial exploration.* Probing a system for the places it might give way, eg. threat modeling and the more creative forms of security testing, such as penetration testing. A penetration test is not a fixed checklist run to completion. It is an open-ended search, matching a system against a vast body of known weaknesses and exploit techniques, and inventing inputs to probe it. A practitioner is still needed to confirm, prioritize, and act on the findings.
+
+* *Inferential quality checks.* Judgment-based checks that no deterministic tool can perform, eg. reviewing a change against the project's conventions and architectural intent, interrogating requirements for ambiguity and unstated assumptions, detecting drift between an implementation and its design documents, or auditing a codebase for structural decay.
 
 * *Drafting.* Producing a first version — eg. of a function, a test, a commit message, a docstring, a design sketch — that a human then completes. Getting past the blank page is often the most expensive part of creative work.
+
+Code generation is the most visible application of AI to software development, and it attracts most of the attention. It may not be the most valuable. Most of the categories above concern the work that surrounds the code: understanding it, questioning it, and checking it. Much of that work was previously done rarely, if at all, because only a human could do it.
 
 Large language models also make for great *thinking companions*. Because they reason from patterns across an enormous body of language and code, rather than from lived experience of your problem, models do not share your assumptions, your blind spots, or your attachment to the approach you have already committed to. They can offer a fresh perspective to sharpen your own judgment. They can help you to enumerate alternatives, stress-test a design, or argue an opposing case.
 
@@ -59,6 +65,8 @@ Taken further, models can be engines of *innovation*. Innovation is mostly the p
 Playing to a model's strengths also means recognizing the tasks for which an AI tool is the wrong instrument, and a deterministic one would usually be better.
 
 * *When a deterministic tool already does the job.* Anything that can be checked mechanically, eg. syntax, types, schemas, formatting, or behavior under test, SHOULD be handled by the deterministic tool built for it. Those tools are faster, cheaper, and exact, and they do not hallucinate. Using a language model where a compiler, a linter, a formatter, or a codemod would serve is slower, more expensive, and less reliable. Agentic checks add to deterministic ones. They MUST NOT replace them.
+
+* *When the task is precise recall.* Direct recall of a specific, checkable fact is one of the weakest things to ask of a model. A model rarely answers "I don't know" unprompted. Faced with a question it has no basis to answer, it will usually emit the most probable continuation anyway, in the same confident register it uses for everything else. Nothing in the output distinguishes a recalled fact from a plausibly filled gap. Treat any output that reads like confident recall, eg. a date, a citation, an API signature, or a quoted figure, as the output most in need of independent verification. A search engine or an authoritative source will serve better, because it can return nothing at all rather than confabulate.
 
 * *When you cannot verify the output.* If neither you nor an engineered check can tell whether the result is correct, the model's fluency becomes a liability. A confident, plausible, wrong answer is worse than an obvious gap. Do not delegate work whose correctness you have no means of establishing. This applies especially in a domain you do not understand well enough to catch the errors yourself.
 
@@ -78,73 +86,6 @@ An AI tool is a force multiplier where it fits, and a multiplier of cost and ris
 
 The return on investment from an AI tool depends less on the underlying model's raw capability than on the fit between the task and what the model is good at. Match the task to the strength. Do not reach for the most capable available model to brute-force a poorly-fitting task. Reach instead for the task framing that plays to what the technology does well. A model can be used for work that is exact and repeatable, but it cannot be relied on for it, and that holds however capable the model is.
 
-A more capable model is not a more trustworthy one. Measured hallucination rates have been falling release over release, as model developers invest in curating training data, in post-training techniques, and, in some models, in an explicit "reflect and revise" step that lets a model reconsider part of its own output before returning it. None of this changes the underlying mechanism. A lower rate is not the absence of the failure mode, and the discipline of verification does not relax as the rate improves. Nor does wrapping a model in an agent change the picture. An agent is no more trustworthy than the model that drives it.
+A more capable model is not a more trustworthy one. Measured hallucination rates have been falling release over release, as model developers invest in curating training data, in post-training techniques, and, in some models, in an explicit "reflect and revise" step that lets a model reconsider part of its own output before returning it. None of this changes the underlying mechanism. A lower rate is not the absence of the failure mode, and the discipline of verification does not relax as the rate improves. The same goes for the techniques within your own control, such as careful prompting, cross-checking against a second context, and xref:garden::retrieval-augmented-generation.adoc[*retrieval-augmented generation*], which grounds the output by fetching the real source text into the context. They reduce how often a model hallucinates. None of them stops it. Nor does wrapping a model in an agent change the picture. An agent is no more trustworthy than the model that drives it. A harness can make an agent's outcomes more predictable, but that predictability is engineered around the model. It is not a property of the model.
 
-Choosing a model also means choosing where to sit on the trade-off between predictability and variety. Sampling randomness produces fresh, varied output, but it also widens the opening for hallucination. There is no setting that removes the trade-off, only ways of choosing where to sit on it for a given task. And the choice need not be a single model. For open-ended, exploratory work such as code review, each pass is a fresh analysis that returns a different, overlapping set of findings. Run the task more than once, or across more than one model, and take the union of what they surface.
-
-// Much of the craft covered in the rest of this standard — context engineering, harness design, evaluation — is about widening the range of tasks for which both properties can be made to hold.
-
-// == Consequences
-
-// A tool that is confidently wrong some fraction of the time, unpredictably, is a hazard wherever its output is acted on unchecked. A model cannot be trusted to check its own work, because its judgment is subject to the same flaws. Correctness MUST therefore be established by something that does not share them: a human, or a xref:garden::agent-harness.adoc#_guides_and_sensors[*deterministic check*] whose verdict is the same every time. Where the work can be reduced to a rule, prefer a deterministic check to a second opinion from another model. A model may inform a decision that matters, but the judgment, and the accountability for it, stay with a human.
-
-// This holds at the agent layer too, at least with the frontier models of 2026. Guides, sensors, and xref:garden::guardrail.adoc[*guardrails*] make outcomes more predictable (see agentic workflows, but the predictability is engineered around the model and is not a property of it.
-
-// === Where the technology shines
-
-// The same properties that make a model a poor substitute for deterministic software make it good at work that was once the preserve of humans. A language model is strong where the task is linguistic, open-ended, or a matter of judgment: writing and rewriting prose, analyzing and summarizing material, inventing options, making an educated guess under uncertainty, holding a conversation, and taking on a role or persona on demand. It is unreliable at what traditional software does effortlessly, which is automating a repeatable process with exact precision or carrying out a complex computation the same way every time. This is a new class of capability, not a more flexible scripting engine. Reach for a script, not a model, wherever the task is exact and repeatable.
-
-// == Beyond code generation
-
-// Code generation is the most visible application of AI to software development, and it attracts most of the attention. But it may not be the most valuable use case for AI tools in software development. Greater returns may be had from applying AI to the work that surrounds code generation.
-
-// Before AI, the only quality checks that could be automated were those reducible to deterministic rules: static analysis, type checking, schema validation, and the execution of behavioral tests.
-
-// Everything else required inference: judging whether an abstraction earns its keep; noticing that a design document no longer describes the system it documents; spotting that a change has widened the attack surface; or asking whether a specification describes what the customer needs.
-
-// These checks turn on judgment, opinion, and knowledge of context, so until recently only humans could perform them. And because humans are expensive, they were performed rarely — at a design review, a pre-release threat modeling workshop, or an annual architecture audit — if at all.
-
-// Frontier models, given good guides, do a lot of this work well. That changes the economics. Inferential checks that were affordable only occasionally can now run on every major change. Agents can be configured to.
-
-// * *Review code changes* against the project's standards, conventions, and architectural intent — not merely against its linting rules.
-
-// * *Run threat modeling workshops* on a far more regular cadence than a human-only team can sustain.
-
-// * *Detect drift* between the evolving implementation and the design documents, keeping the architectural artifacts synchronized with reality.
-
-// * *Interrogate requirements* for ambiguity, unstated assumptions, and missing acceptance criteria, before any code is written.
-
-// * *Propose architectures* from requirements specifications, with the options considered and the trade-offs between them made explicit.
-
-// * *Decompose designs* into small, incremental units of delivery, feeding backlogs and supporting continuous integration.
-
-// * *Audit a codebase* for structural drift — shallow abstractions, tangled dependencies, repeated patterns — and report a prioritized set of remedies.
-
-// * *Triage incoming issues*, reproducing reported defects and classifying them ahead of human review.
-
-// * *Validate delivered software against users' actual needs*, rather than only against the acceptance criteria agreed up front.
-
-// The common thread is that none of these are code generation. Each is a quality control activity that, until recently, only a human could perform.
-
-// The gain in offloading this work to agents is usually not that agents do it better — often, they will not. The gain is that the work happens at all, that it happens earlier in the development lifecycle, and on a much higher cadence.
-
-// Some of the items above are exceptions, and worth dwelling on: reviewing code changes and detecting drift. Both are, at their core, pattern-matching problems — holding a change up against a large body of standards, conventions, and architectural intent, or holding an implementation up against the design it is meant to embody, and flagging wherever the two diverge. This is precisely the work a model does faster and more tirelessly than a human. Across enough volume, its speed at pattern recognition can match or outrun a careful human reviewer, rather than merely relieving them of the labor.
-
-// Here the model's non-determinism — a liability wherever there is a single right answer — becomes an asset. Rather than suppress that variance, exploit it. A single human reviewer offers no comparable breadth across repeated passes. This is the same property the evaluation practice relies on when it samples a model several times to characterize its behavior.
-
-// The same reasoning extends to a use that surprises many: the more creative forms of security testing, penetration testing chief among them. A pen test is not a fixed checklist run to completion. It is open-ended, adversarial exploration — guessing where a system might give way and inventing inputs to probe it. That is pattern-matching against a vast corpus of known weaknesses and exploit techniques, and precisely the kind of divergent, breadth-first search at which a model excels. Its non-determinism is again the asset: each run reaches for a different attack path, so repeated and parallel runs cover more ground than a single deterministic sweep ever could. The same holds, more broadly, for design and architecture work, where enumerating unconventional approaches matters more than converging on one. None of this removes the human — findings still need a practitioner to confirm, prioritize, and act on — but the model is a genuinely capable partner in the exploratory work, not merely a labor-saver.
-
-
-
-
-
-//  (A harness that grounds the output against a real source — xref:garden::retrieval-augmented-generation.adoc[*retrieval-augmented generation*], in which the actual text is fetched and placed in the context — can correct this, precisely because it supplies the text the model does not hold.)
-
-// Because hallucination is intrinsic, it cannot be trusted away — only checked away. Output whose correctness cannot be established by a human or an engineered check MUST NOT be trusted on the model's confidence alone, and a confident, plausible, wrong answer is more dangerous than an obvious gap precisely because nothing in its surface marks it as wrong. This is the root reason agentic workflows depend on sensors: verification exists because the model cannot self-certify its output. The techniques that raise the truth rate — grounding the model in real sources, prompting well, cross-checking against a second context — reduce how often hallucination bites. None of them removes it, because none of them changes what the model fundamentally is.
-
-// One consequence is worth stating plainly, because it is easy to underestimate until you have been caught by it: a model rarely answers "I don't know" unprompted. Training has made models better at expressing uncertainty and asking clarifying questions, but faced with a question it has no basis to answer, a model will often still not fall silent or flag its own uncertainty — it emits the most probable continuation regardless, with the same fluency and the same confident register it uses for everything else. There is no dependable internal signal that distinguishes "I am recalling a fact" from "I am filling a gap plausibly", so nothing surfaces to warn you when the second is what happened. Treat any output that reads like confident recall — a specific date, a citation, an API signature, a quoted figure — as the case most worth independent verification, precisely because its surface gives no hint of which case you are in. Direct recall of a specific, checkable fact is one of the weakest things to ask a model for at all. A traditional search engine or an authoritative source will serve better, precisely because it can say nothing at all rather than confabulate.
-
-// This connects to a design trade-off worth understanding. A model that sticks closely to the statistical patterns in its training data reproduces what it has seen faithfully, but handles inputs unlike anything in that data poorly, producing output that is stale, generic, or subtly wrong. (Overfitting, a failure to generalize beyond the training data, is a training-time defect, and it is addressed in training.) At inference time, sampling randomness (ie. temperature) controls how much the output varies. Introducing controlled unpredictability means the model does not always default to the single most probable, most "seen-before" continuation.
-
-// Taken together this is the *AI paradox*: the same mechanism that makes a model prone to hallucinate — generating a plausible continuation with no anchor to whether the training data supports it — is what lets it reach genuinely novel connections that lie outside anything it was explicitly trained to do. Unreliability and creative reach are not two separate properties in tension. They are the same property, read in the two different lights of failure and capability. This is why the discipline this standard asks for is not to suppress the mechanism — that would suppress the capability along with the flaw — but to route each kind of task to where the mechanism helps rather than hurts: away from precise recall and mission-critical, error-intolerant work, and toward the open-ended, judgment-shaped, or genuinely novel work developed next.
-
+Choosing a model also means choosing where to sit on the trade-off between predictability and variety. Sampling randomness produces fresh, varied output, but it also widens the opening for hallucination. There is no setting that removes the trade-off, only ways of choosing where to sit on it for a given task. And the choice need not be a single model. For open-ended, exploratory work such as code review or security testing, each pass is a fresh analysis that returns a different, overlapping set of findings. Run the task more than once, or across more than one model, and take the union of what they surface.
