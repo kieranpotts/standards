@@ -6,9 +6,6 @@
 * Output MUST NOT be trusted on the model's confidence alone.
 * Agentic checks MUST NOT replace deterministic ones.
 * A model MUST NOT make the decisions that belong to a human.
-* The audit record of what an agent was asked and what it did MUST be engineered into a workflow.
-* Proprietary code and data MUST NOT be given to a tool that is not on the approved list.
-* Every change that an agent produces MUST have a named human owner.
 ****
 
 == Inherent properties of LLMs
@@ -17,9 +14,9 @@ Before we can decide where AI tools will be best placed to enhance software deli
 
 First, LLMs run on tokens, not facts. A token is a fragment of a word or image, and it is the only unit a model reads and writes. Training a model involves setting the model's *weights*, which encode semantic relationships between tokens, capturing which tokens tend to go together in which contexts.
 
-A model is not taught facts, and it does not store text or knowledge. Rather, factual output is a matter of probability. Where the training data is accurate and plentiful, the most probable continuation of a sequence of tokens will often happen to be factually correct. But where the training data is thin, contradictory, or plain wrong, models are more likely to produce output that is factually incorrect. Whether a model's output is correct or not is simply a probabilistic outcome determined by the quality of the original training data from which the model's weights were formulated.
+A model is not taught facts, and it does not store text or knowledge. Rather, factual output is a matter of probability. Where the training data is accurate and plentiful, the most probable continuation of a sequence of tokens will often happen to be factually correct. But where the training data is thin, contradictory, or plain wrong, models are more likely to produce output that is wrong. Whether a model's output is correct or not is simply a probabilistic outcome determined by the quality of the original training data from which the model's weights were formulated.
 
-A large language model does not "know" anything. You can see this for yourself. Ask a model directly — outside of a harness that may ground the responses in retrieved facts — to quote a famous passage from memory, and it will often get at least some of the words wrong. It will reconstruct the general shape of the quotation, rather than reproducing it perfectly. Ask repeatedly for a random number and watch how often 42 is returned. A model merely emits the tokens its training data made most probable in that context, and the culture its training data is drawn from has made 42 the most probable "random" number of all, thanks to Douglas Adams.
+A large language model does not "know" anything. You can see this for yourself. Ask a model directly — you need to do this outside of a harness that may ground the responses in retrieved facts — to quote a famous passage from memory, and it will often get at least some of the words wrong. It will reconstruct the general shape of the quotation, rather than reproducing it perfectly. Ask repeatedly for a random number and watch how often 42 is returned. A model merely emits the tokens its training data made most probable in that context, and the culture its training data is drawn from has made 42 the most probable "random" number of all, thanks to Douglas Adams.
 
 Models produce output that is convincing in its assertions, but it is merely a probabilistic guess at which tokens should come next, in light of statistical patterns in the training data and the context of the current conversation. A model's aim is only to produce text that is coherent and plausible, and that fits the context.
 
@@ -27,9 +24,9 @@ Models have no inherent notion of truth. Training can improve how well a model f
 
 Worse, models are impressionable. They will take on whatever role and stance is implied by the context, and they lean toward giving agreeable answers in a sycophantic tone. Model output can even be steered by framing the input text, for example by using flattery, urgency, or the promise of a reward. That's because every token in the context shifts the probabilities of which tokens come next.
 
-Sustained over time, this agreeableness becomes an echo chamber of one. A model reflects your own assumptions and viewpoints back at you, confirmed and elaborated, and the result is easily mistaken for an independent opinion. The fit is tighter than anything on social media, because the content is generated afresh for each person rather than merely selected for them. Prize a model's capacity to disagree, prompt deliberately for a position that does not share your premises, and treat comfortable agreement as a signal to seek an independent view.
+Sustained over time, this agreeableness becomes an echo chamber. A model will reflect your own assumptions and viewpoints back at you, confirmed and elaborated upon. The result is easily mistaken for an independent opinion.
 
-Models also carry the worldview of their training data. Most xref:garden::large-language-model.adoc[*pre-training*] data is drawn from the open web, which over-represents English-language and Western sources, and post-training is shaped by a comparatively narrow group of practitioners. A model's default assumptions, values, and frames of reference reflect those origins, and studies have repeatedly shown that language models can amplify stereotypes about race, gender, and other characteristics. Better-curated training data is making this bias less overt over time. But the subtler it becomes, the less likely a reader is to notice it. Treat a model's framing of anything socially, culturally, or politically loaded as a partial view to be checked against other sources, not a neutral one.
+Models also carry the worldview of their training data. Most xref:garden::large-language-model.adoc[*pre-training*] data is drawn from the open web, which over-represents English-language and Western sources, and post-training is shaped by a comparatively narrow group of practitioners. A model's default assumptions, values, and frames of reference reflect those origins, and studies have repeatedly shown that language models can amplify stereotypes about race, gender, and other characteristics. Better-curated training data is making this bias less overt over time. But the subtler that biases become, the less likely they are to be noticeable in the output.
 
 AI models can be surprisingly creative. What a model generates is not confined to solutions it has seen before, and it will sometimes reach for a novel solution that a human would not have tried. Dialing up a model's "temperature" setting increases the randomness of its output, yielding more innovative results. The trade-off is reduced predictability and correctness of output.
 
@@ -37,9 +34,7 @@ Output quality also deteriorates as the context grows. The longer an xref:garden
 
 Finally, it is important to appreciate that a large language model is not capable of explaining its own reasoning. If you ask a model to explain how it arrived at a particular output, it will just make stuff up. The explanation will simply be derived in the normal way — by predicting the next sequence of tokens based on the prior context. It is not true introspection as we humans understand it.
 
-These properties of large language models converge on a single, defining failure mode. An xref:garden::hallucination.adoc[*hallucination*] is model output that is fluent and plausible but false. Hallucinations take the form of fabricated facts, non-existent APIs, invented citations, made-up introspection, and other confident-sounding answers to questions the model cannot actually answer.
-
-Because hallucination is intrinsic to the technology, it cannot be trusted away. It can only be checked away. A model cannot be relied on to check its own work, because its judgment of its output is subject to the same flaws as the output itself. Correctness MUST therefore be established by something that does not share those flaws: a human, or a deterministic check whose verdict is the same every time. Output MUST NOT be trusted on the model's confidence alone. Where the work can be reduced to a rule, prefer a deterministic check to a second opinion from another model.
+These properties of large language models converge on a single, defining failure mode. An xref:garden::hallucination.adoc[*hallucination*] is model output that is fluent and plausible, but false. Hallucinations take the form of fabricated facts, non-existent APIs, invented citations, made-up introspection, and other confident-sounding answers to questions the model cannot actually answer.
 
 == When to use AI
 
@@ -49,6 +44,10 @@ Large language models are nothing like traditional software. Traditional softwar
 
 Models work by probabilistic inference over patterns in language, code, and structure. They do not work by following fixed rules and logic. That is precisely their power. Thus, the strongest use cases for AI tools in software delivery are wherever a task can be framed as recognizing, completing, transforming, or judging patterns. There are a few broad categories of work that fit this criterion.
 
+* *Code generation* is the most visible application of AI to software development, and it attracts most of the attention. LLMs are particularly good at producing a first version — eg. of a function, a test, a commit message, a docstring, a design sketch — that a human then completes. Getting past the blank page is often the most expensive part of creative work.
+
+* *Inferential quality checks.* More than code generation, the review and analysis of code may be one of the most valuable applications of AI tools in software delivery. Judgment-based checks that no deterministic tool can perform, eg. reviewing a change against the project's conventions and architectural intent, interrogating requirements for ambiguity and unstated assumptions, detecting drift between an implementation and its design documents, or auditing a codebase for structural decay. Whereas we've had code generation tools for a long time, much of the quality control work on generated code could previously only be done by humans, and it is enormously labor intensive.
+
 * *Translation.* Converting a structure from one representation to another, eg. a schema into types, an API response into a client, prose into markup, one language or framework's idioms into another's — anything where the mapping cannot be purely mechanical, because there's too much irregularity to reduce the translation to a set of fixed rules.
 
 * *Summarizing and explaining.* Compressing a large body of code or text into its essentials, explaining an unfamiliar module, or surfacing what a change does.
@@ -56,12 +55,6 @@ Models work by probabilistic inference over patterns in language, code, and stru
 * *Exploring options.* Enumerating several approaches to a problem, with the trade-offs between them made explicit, as raw material for a human decision.
 
 * *Adversarial exploration.* Probing a system for the places it might give way, eg. threat modeling and the more creative forms of security testing, such as penetration testing. A penetration test is not a fixed checklist run to completion. It is an open-ended search, matching a system against a vast body of known weaknesses and exploit techniques, and inventing inputs to probe it. A practitioner is still needed to confirm, prioritize, and act on the findings.
-
-* *Inferential quality checks.* Judgment-based checks that no deterministic tool can perform, eg. reviewing a change against the project's conventions and architectural intent, interrogating requirements for ambiguity and unstated assumptions, detecting drift between an implementation and its design documents, or auditing a codebase for structural decay.
-
-* *Drafting.* Producing a first version — eg. of a function, a test, a commit message, a docstring, a design sketch — that a human then completes. Getting past the blank page is often the most expensive part of creative work.
-
-Code generation is the most visible application of AI to software development, and it attracts most of the attention. It may not be the most valuable. Most of the categories above concern the work that surrounds the code: understanding it, questioning it, and checking it. Much of that work was previously done rarely, if at all, because only a human could do it.
 
 The gain in these cases is usually throughput, not accuracy. A model is often no more accurate than a human would have been. But it reads, searches, and summarizes far faster than a person, and it does not tire across volume. It can also take in and reason across far more material at once than a person can hold in their head, eg. an entire codebase, a long specification, or a sprawling log. So checks that were affordable only occasionally can now run on every major change. The economics of quality control shift, not only the economics of writing code. This is reach, not reliable recall. What a model holds in its context it may still misstate, or lose as the context fills.
 
@@ -81,7 +74,7 @@ Playing to a model's strengths also means recognizing the tasks for which an AI 
 
 * *When the task is precise recall.* Direct recall of a specific, checkable fact is one of the weakest things to ask of a model. A model rarely answers "I don't know" unprompted. Faced with a question it has no basis to answer, it will usually emit the most probable continuation anyway, in the same confident register it uses for everything else. Nothing in the output distinguishes a recalled fact from a plausibly filled gap. Treat any output that reads like confident recall, eg. a date, a citation, an API signature, or a quoted figure, as the output most in need of independent verification. A search engine or an authoritative source will serve better, because it can return nothing at all rather than confabulate.
 
-* *When you cannot verify the output.* If neither you nor an engineered check can tell whether the result is correct, the model's fluency becomes a liability. A confident, plausible, wrong answer is worse than an obvious gap. Do not delegate work whose correctness you have no means of establishing. This applies especially in a domain you do not understand well enough to catch the errors yourself.
+* *When you cannot verify the output.* Because hallucination is intrinsic to the technology, it cannot be trusted away. It can only be checked away. A model cannot be relied on to check its own work, because its judgment of its output is subject to the same flaws as the output itself. Correctness MUST therefore be established by something that does not share those flaws: a human, or a deterministic check whose verdict is the same every time. Output MUST NOT be trusted on the model's confidence alone. Where the work can be reduced to a rule, prefer a deterministic check to a second opinion from another model. If neither you nor an engineered check can tell whether the result is correct, the model's fluency becomes a liability. A confident, plausible, wrong answer is worse than an obvious gap. Do not delegate work whose correctness you have no means of establishing. This applies especially in a domain you do not understand well enough to catch the errors yourself.
 
 * *When the decision belongs to a human.* Tacit knowledge, judgment, and accountability cannot be delegated. Deciding what is worth building, weighing long-term trade-offs, pushing back on a requirement, and answering for the outcome remain human responsibilities. A model may inform these decisions. It MUST NOT make them.
 
@@ -94,41 +87,3 @@ Playing to a model's strengths also means recognizing the tasks for which an AI 
 * *When data must not leave your control.* Every prompt sent to a third-party model is data leaving your control. It may carry code, personal data, or secrets into a system whose retention and training practices you do not govern, and it may breach confidentiality, licensing, or data-protection obligations. Where it does, that constraint decides the matter, regardless of how well the task would otherwise fit. The exception is a workflow that runs on a model and infrastructure cleared for the data in question.
 
 An AI tool is a force multiplier where it fits, and a multiplier of cost and risk where it does not.
-
-== Choosing models
-
-The return on investment from an AI tool depends less on the underlying model's raw capability than on the fit between the task and what the model is good at. Match the task to the strength. Do not reach for the most capable available model to brute-force a poorly-fitting task. Reach instead for the task framing that plays to what the technology does well. A model can be used for work that is exact and repeatable, but it cannot be relied on for it, and that holds however capable the model is.
-
-A more capable model is not a more trustworthy one. Measured hallucination rates have been falling release over release, as model developers invest in curating training data, in post-training techniques, and, in some models, in an explicit "reflect and revise" step that lets a model reconsider part of its own output before returning it. None of this changes the underlying mechanism. A lower rate is not the absence of the failure mode, and the discipline of verification does not relax as the rate improves. The same goes for the techniques within your own control, such as careful prompting, cross-checking against a second context, and xref:garden::retrieval-augmented-generation.adoc[*retrieval-augmented generation*], which grounds the output by fetching the real source text into the context. They reduce how often a model hallucinates. None of them stops it. Nor does wrapping a model in an agent change the picture. An agent is no more trustworthy than the model that drives it. A harness can make an agent's outcomes more predictable, but that predictability is engineered around the model. It is not a property of the model.
-
-Choosing a model also means choosing where to sit on the trade-off between predictability and variety. Sampling randomness produces fresh, varied output, but it also widens the opening for hallucination. There is no setting that removes the trade-off, only ways of choosing where to sit on it for a given task. And the choice need not be a single model. For open-ended, exploratory work such as code review or security testing, each pass is a fresh analysis that returns a different, overlapping set of findings. Run the task more than once, or across more than one model, and take the union of what they surface.
-
-== Costs of adoption
-
-Some costs of AI tools do not show up in any single task. They accrue from the pattern of adoption across a team and over time. They are easy to discount, because none of them causes an obvious failure on the day it takes root.
-
-* *Growing dependence.* As workflows are built around AI tools, the organization comes to rely on their continued availability, pricing, and capability, none of which it controls. A model that is deprecated, repriced, or degraded upstream is a dependency risk like any other, but one whose reach grows with every workflow that assumes it. Prefer designs that keep the tool substitutable, and that degrade to a human or a deterministic path rather than stall. Treat concentration on a single provider as a risk to be managed.
-
-* *Loss of knowledge and skill.* The erosion of skill is a cost to the team as well as to the individual. A team that delegates the fundamentals loses the expertise that makes supervision of the tools possible. Guarding against this takes a deliberate policy about which skills the team keeps sharp, regardless of what the tools can do.
-
-* *No audit trail.* Unless a workflow is designed to record it, there is no durable account of what an agent was asked, what it did, and what data passed through it. That undermines incident investigation, accountability, and any obligation to demonstrate compliance. The record does not exist by default. It MUST be engineered in.
-
-* *Copyright and intellectual property.* A model can, on occasion, reproduce or closely derive from copyrighted material in its training data, so generated output carries a residual risk of infringing someone else's rights. The risk is usually small, and it is highest where the model reproduces a distinctive body of work at length. The underlying legal question of whether training a model on copyrighted work is itself lawful is unsettled, and it is being answered differently across jurisdictions. The exposure grows with how much generated material a team ships unreviewed and unattributed. Treat human review and, where it matters, provenance checking as the mitigation.
-
-* *Declining delivery stability.* Faster code production does not automatically translate into faster or safer delivery. The DevOps Research and Assessment (DORA) program's 2024 research associated each 25% increase in AI adoption with an estimated 1.5% decrease in delivery throughput and a 7.2% reduction in delivery stability, even as individual coding productivity rose. Its 2025 research found the throughput association had turned positive, while the association with instability persisted. More code, produced faster, raises batch size and risk, and pushes maintenance costs downstream. Treat throughput and stability, not lines of code or task-completion speed, as the metrics that decide whether an AI adoption effort is working.
-
-None of these is an argument against adoption. Each is a cost to be weighed and managed openly, so that the reach of the tools grows by decision rather than by default.
-
-== Team policy
-
-Adoption by decision requires the decisions to be written down. A team that uses AI tools SHOULD record a policy that covers at least the following.
-
-* *Approved tools.* Which models, harnesses, and services may be used, and for which classes of data. A tool that is not on the list MUST NOT be given proprietary code or data.
-
-* *Disclosure.* Whether and how AI authorship is disclosed in commits and pull requests, eg. with a commit trailer or a pull request label. Disclosure tells a reviewer where to direct their scrutiny. It does not transfer responsibility to the tool.
-
-* *Accountability.* Every change that an agent produces MUST have a named human owner, who answers for it exactly as for a change written by hand. For an interactive session, the owner is the developer who ran it. For an unattended workflow or a loop, the owner is the person or team that operates it.
-
-* *Retained skills.* Which skills the team keeps in practice, regardless of what the tools can do.
-
-Review the policy whenever a tool, a provider's terms, or the team's risk profile changes.
