@@ -6,6 +6,9 @@
 * Output MUST NOT be trusted on the model's confidence alone.
 * Agentic checks MUST NOT replace deterministic ones.
 * A model MUST NOT make the decisions that belong to a human.
+* The audit record of what an agent was asked and what it did MUST be engineered into a workflow.
+* Proprietary code and data MUST NOT be given to a tool that is not on the approved list.
+* Every change that an agent produces MUST have a named human owner.
 ****
 
 == Inherent properties of LLMs
@@ -23,6 +26,10 @@ Models produce output that is convincing in its assertions, but it is merely a p
 Models have no inherent notion of truth. Training can improve how well a model flags its own uncertainty and doubt, but this can never be depended upon. Models will always be prone to emitting fabrications as fluently as facts. A model's confidence in its output is no guide to the correctness of that output.
 
 Worse, models are impressionable. They will take on whatever role and stance is implied by the context, and they lean toward giving agreeable answers in a sycophantic tone. Model output can even be steered by framing the input text, for example by using flattery, urgency, or the promise of a reward. That's because every token in the context shifts the probabilities of which tokens come next.
+
+Sustained over time, this agreeableness becomes an echo chamber of one. A model reflects your own assumptions and viewpoints back at you, confirmed and elaborated, and the result is easily mistaken for an independent opinion. The fit is tighter than anything on social media, because the content is generated afresh for each person rather than merely selected for them. Prize a model's capacity to disagree, prompt deliberately for a position that does not share your premises, and treat comfortable agreement as a signal to seek an independent view.
+
+Models also carry the worldview of their training data. Most xref:garden::large-language-model.adoc[*pre-training*] data is drawn from the open web, which over-represents English-language and Western sources, and post-training is shaped by a comparatively narrow group of practitioners. A model's default assumptions, values, and frames of reference reflect those origins, and studies have repeatedly shown that language models can amplify stereotypes about race, gender, and other characteristics. Better-curated training data is making this bias less overt over time. But the subtler it becomes, the less likely a reader is to notice it. Treat a model's framing of anything socially, culturally, or politically loaded as a partial view to be checked against other sources, not a neutral one.
 
 AI models can be surprisingly creative. What a model generates is not confined to solutions it has seen before, and it will sometimes reach for a novel solution that a human would not have tried. Dialing up a model's "temperature" setting increases the randomness of its output, yielding more innovative results. The trade-off is reduced predictability and correctness of output.
 
@@ -56,9 +63,15 @@ Models work by probabilistic inference over patterns in language, code, and stru
 
 Code generation is the most visible application of AI to software development, and it attracts most of the attention. It may not be the most valuable. Most of the categories above concern the work that surrounds the code: understanding it, questioning it, and checking it. Much of that work was previously done rarely, if at all, because only a human could do it.
 
+The gain in these cases is usually throughput, not accuracy. A model is often no more accurate than a human would have been. But it reads, searches, and summarizes far faster than a person, and it does not tire across volume. It can also take in and reason across far more material at once than a person can hold in their head, eg. an entire codebase, a long specification, or a sprawling log. So checks that were affordable only occasionally can now run on every major change. The economics of quality control shift, not only the economics of writing code. This is reach, not reliable recall. What a model holds in its context it may still misstate, or lose as the context fills.
+
+AI tools also remove clerical and repetitive work that previously resisted automation. We no longer need to hold so many low-level details in our heads, eg. the nuances of our programming languages and the boilerplate of our application frameworks. That frees us to concentrate on higher-level concerns: design, security, maintainability, and problem-solving. This is the pattern of every earlier wave of programming automation. High-level languages, compilers, debuggers, and IDEs each automated away another layer of clerical work.
+
 Large language models also make for great *thinking companions*. Because they reason from patterns across an enormous body of language and code, rather than from lived experience of your problem, models do not share your assumptions, your blind spots, or your attachment to the approach you have already committed to. They can offer a fresh perspective to sharpen your own judgment. They can help you to enumerate alternatives, stress-test a design, or argue an opposing case.
 
 Taken further, models can be engines of *innovation*. Innovation is mostly the product of connecting ideas that were not related to begin with, and a language model is, quite literally, a connection-making machine. Training encodes associations between tokens that no human would think to draw explicitly. Ask a person to list unconventional uses for a paper clip and they will produce a dozen or so in two minutes. A capable model will produce many more, and faster. The loose boundary between real and fabricated associations that causes hallucination is the same property that makes these novel connections possible.
+
+In all of these uses, AI tools *amplify* engineering skill. They do not substitute for it. Power tools did not eliminate carpenters, and spreadsheets did not eliminate accountants. They changed what the job required, and what "skilled" meant within it. xref:garden::ai-coding-assistant.adoc[*Coding agents*] are the same kind of shift. The tasks that make up a software developer's day change, sometimes fundamentally, but the underlying job persists: understanding a problem, deciding what to build, and answering for the outcome. Early academic research suggests that the more skill and experience you have as a software developer, the better the results you will get from AI tools. AI augmentation raises the floor for less experienced developers, but it appears to widen the existing spread of ability rather than level it.
 
 == When not to use AI
 
@@ -78,7 +91,7 @@ Playing to a model's strengths also means recognizing the tasks for which an AI 
 
 * *When it would erode skill that must be kept.* Delegating the fundamentals you are still learning, or that your team must retain to supervise the tools at all, trades a short-term gain for a long-term loss. Judgment and taste are built by doing the work. A team that has outsourced all the underlying work loses its ability to tell good output from bad.
 
-* *When data must not leave your control.* Sending code or data to a third-party model may breach confidentiality, licensing, or data-protection obligations. Where it does, that constraint decides the matter, regardless of how well the task would otherwise fit. The exception is a workflow that runs on a model and infrastructure cleared for the data in question.
+* *When data must not leave your control.* Every prompt sent to a third-party model is data leaving your control. It may carry code, personal data, or secrets into a system whose retention and training practices you do not govern, and it may breach confidentiality, licensing, or data-protection obligations. Where it does, that constraint decides the matter, regardless of how well the task would otherwise fit. The exception is a workflow that runs on a model and infrastructure cleared for the data in question.
 
 An AI tool is a force multiplier where it fits, and a multiplier of cost and risk where it does not.
 
@@ -89,3 +102,33 @@ The return on investment from an AI tool depends less on the underlying model's 
 A more capable model is not a more trustworthy one. Measured hallucination rates have been falling release over release, as model developers invest in curating training data, in post-training techniques, and, in some models, in an explicit "reflect and revise" step that lets a model reconsider part of its own output before returning it. None of this changes the underlying mechanism. A lower rate is not the absence of the failure mode, and the discipline of verification does not relax as the rate improves. The same goes for the techniques within your own control, such as careful prompting, cross-checking against a second context, and xref:garden::retrieval-augmented-generation.adoc[*retrieval-augmented generation*], which grounds the output by fetching the real source text into the context. They reduce how often a model hallucinates. None of them stops it. Nor does wrapping a model in an agent change the picture. An agent is no more trustworthy than the model that drives it. A harness can make an agent's outcomes more predictable, but that predictability is engineered around the model. It is not a property of the model.
 
 Choosing a model also means choosing where to sit on the trade-off between predictability and variety. Sampling randomness produces fresh, varied output, but it also widens the opening for hallucination. There is no setting that removes the trade-off, only ways of choosing where to sit on it for a given task. And the choice need not be a single model. For open-ended, exploratory work such as code review or security testing, each pass is a fresh analysis that returns a different, overlapping set of findings. Run the task more than once, or across more than one model, and take the union of what they surface.
+
+== Costs of adoption
+
+Some costs of AI tools do not show up in any single task. They accrue from the pattern of adoption across a team and over time. They are easy to discount, because none of them causes an obvious failure on the day it takes root.
+
+* *Growing dependence.* As workflows are built around AI tools, the organization comes to rely on their continued availability, pricing, and capability, none of which it controls. A model that is deprecated, repriced, or degraded upstream is a dependency risk like any other, but one whose reach grows with every workflow that assumes it. Prefer designs that keep the tool substitutable, and that degrade to a human or a deterministic path rather than stall. Treat concentration on a single provider as a risk to be managed.
+
+* *Loss of knowledge and skill.* The erosion of skill is a cost to the team as well as to the individual. A team that delegates the fundamentals loses the expertise that makes supervision of the tools possible. Guarding against this takes a deliberate policy about which skills the team keeps sharp, regardless of what the tools can do.
+
+* *No audit trail.* Unless a workflow is designed to record it, there is no durable account of what an agent was asked, what it did, and what data passed through it. That undermines incident investigation, accountability, and any obligation to demonstrate compliance. The record does not exist by default. It MUST be engineered in.
+
+* *Copyright and intellectual property.* A model can, on occasion, reproduce or closely derive from copyrighted material in its training data, so generated output carries a residual risk of infringing someone else's rights. The risk is usually small, and it is highest where the model reproduces a distinctive body of work at length. The underlying legal question of whether training a model on copyrighted work is itself lawful is unsettled, and it is being answered differently across jurisdictions. The exposure grows with how much generated material a team ships unreviewed and unattributed. Treat human review and, where it matters, provenance checking as the mitigation.
+
+* *Declining delivery stability.* Faster code production does not automatically translate into faster or safer delivery. The DevOps Research and Assessment (DORA) program's 2024 research associated each 25% increase in AI adoption with an estimated 1.5% decrease in delivery throughput and a 7.2% reduction in delivery stability, even as individual coding productivity rose. Its 2025 research found the throughput association had turned positive, while the association with instability persisted. More code, produced faster, raises batch size and risk, and pushes maintenance costs downstream. Treat throughput and stability, not lines of code or task-completion speed, as the metrics that decide whether an AI adoption effort is working.
+
+None of these is an argument against adoption. Each is a cost to be weighed and managed openly, so that the reach of the tools grows by decision rather than by default.
+
+== Team policy
+
+Adoption by decision requires the decisions to be written down. A team that uses AI tools SHOULD record a policy that covers at least the following.
+
+* *Approved tools.* Which models, harnesses, and services may be used, and for which classes of data. A tool that is not on the list MUST NOT be given proprietary code or data.
+
+* *Disclosure.* Whether and how AI authorship is disclosed in commits and pull requests, eg. with a commit trailer or a pull request label. Disclosure tells a reviewer where to direct their scrutiny. It does not transfer responsibility to the tool.
+
+* *Accountability.* Every change that an agent produces MUST have a named human owner, who answers for it exactly as for a change written by hand. For an interactive session, the owner is the developer who ran it. For an unattended workflow or a loop, the owner is the person or team that operates it.
+
+* *Retained skills.* Which skills the team keeps in practice, regardless of what the tools can do.
+
+Review the policy whenever a tool, a provider's terms, or the team's risk profile changes.
