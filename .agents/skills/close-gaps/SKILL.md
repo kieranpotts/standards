@@ -283,7 +283,7 @@ prompt the user for clarification.
       partial (`NN-references.adoc` — eight standards do), new sections go
       before it, so it is renumbered too.
 
-    - Where the page opens with a `.TL;DR` block enumerating its sections, a
+    - Where the page opens with a `.Key requirements` block enumerating its sections, a
       new section MUST get a bullet in it. A page whose summary does not
       mention a section it contains is internally inconsistent, and the block
       is easy to miss because it sits above the include list you are editing.
