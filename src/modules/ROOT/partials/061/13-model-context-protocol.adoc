@@ -13,6 +13,7 @@ When connecting an agent to external tools or data, it is RECOMMENDED to use an 
 
 MCP is not the only proposal in this space. Google's xref:garden::agent2agent.adoc[*A2A (Agent-to-Agent)*], also a Linux Foundation project, is complementary rather than an alternative. It connects agents to each other, where MCP connects an agent to tools. The rest of this section is concerned with MCP specifically.
 
+[#treat-mcp-servers-as-dependencies]
 == Treat MCP servers as dependencies
 
 An MCP server is third-party code that runs with access to your tools, data, and actions. It MUST be treated with the same scrutiny as any other software dependency, and the normal supply-chain cautions apply. A malicious or compromised MCP server is a vector for xref:garden::data-exfiltration.adoc[*data exfiltration*]. It can transmit any data the agent can reach to an unauthorized destination, and take any action its tools permit.
@@ -23,6 +24,7 @@ Pin MCP server versions where possible, and review changes before upgrading.
 
 Test unfamiliar MCP servers in an isolated environment before introducing them to regular workflows.
 
+[#apply-least-privilege]
 == Apply least privilege
 
 An agent connected to many MCP servers has a correspondingly large action space, and that action space defines the blast radius of any xref:garden::prompt-injection.adoc[*prompt injection*] or misbehavior.
@@ -69,6 +71,8 @@ MCP servers may run locally (communicating over stdio) or remotely (over HTTP). 
 
 Remote MCP servers MUST authenticate their clients and MUST use encrypted transport. An unauthenticated MCP server MUST NOT be exposed on a public network interface — the same <<network-exposure,network-exposure discipline>> that applies to local model servers applies here too.
 
+The MCP specification defines the authentication mechanism. Authorization for HTTP transports is based on OAuth 2.1, with the MCP server acting as a resource server that validates the access tokens issued for it. A remote MCP server SHOULD implement this in preference to a static API key shared between clients. A local MCP server that communicates over stdio takes its credentials from its environment instead.
+
 Run MCP servers only while they are needed, rather than as always-on services.
 
 == Mind the context cost of connected servers
@@ -76,3 +80,24 @@ Run MCP servers only while they are needed, rather than as always-on services.
 Every connected MCP server injects its tool definitions into the context window, consuming tokens and attention budget on every inference call — not only when its tools are used.
 
 Connecting many MCP servers indiscriminately therefore degrades performance, through <<context-engineering,context rot>>, and increases cost, through <<cost-optimization,per-token billing>>.
+
+The first mitigation is to connect fewer MCP servers, as described under <<apply-least-privilege,Apply least privilege>>. Three more are available.
+
+* Enable only the tools a task needs from each MCP server, where the harness can filter tools individually.
+
+* Use deferred tool loading where the harness supports it. The harness then holds back tool definitions and loads each one only when the agent searches for it.
+
+* Replace an MCP server that is used rarely with a mechanism that has no standing context cost (see <<choosing-an-integration-mechanism,Choosing an integration mechanism>>).
+
+[#choosing-an-integration-mechanism]
+== Choosing an integration mechanism
+
+MCP is one of three ways to give an agent a capability, and it is not always the right one.
+
+* *A command-line tool* that the agent calls through its shell costs no context until it is used, and the agent learns its interface from `--help`. Prefer it where a suitable tool already exists, the agent has shell access, and the tool's credentials are already available in the environment. Models know the common command-line tools, eg. `git`, from their training data.
+
+* *A skill with a bundled script* suits a procedure that is specific to the project, where the agent needs instructions on when and how to run the script as well as the script itself. Only the skill's name and description are in context until the skill is activated (see <<progressive-disclosure,Progressive disclosure>>).
+
+* *An MCP server* suits a capability that must work for agents without shell access, that needs its own authentication and authorization, that holds state or a connection between calls, or that is shared by many clients and harnesses. It pays for this with tool definitions that are loaded on every inference call.
+
+Choose the mechanism with the lowest standing context cost that meets the need. The design rules under <<specialized-tools,Specialized tools>> apply to all three.

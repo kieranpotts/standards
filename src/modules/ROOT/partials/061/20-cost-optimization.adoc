@@ -8,14 +8,23 @@ The cost of a single inference call is calculated thus.
 ----
 (input tokens × input price)
   + (cached input tokens × cached input price)
+  + (cache write tokens × cache write price)
   + (output tokens × output price)
 ----
 
 The total cost of a task is this calculation repeated for every inference call made in the loop, until the success criteria are satisfied.
 
-Some hosting providers apply a multiplier to the total cost of inference via their flagship frontier models.
-
 Cost optimization is the practice of lowering this total without dropping output quality below what a task requires. The overarching principle is to spend tokens and model capability where they change the outcome, and to economize everywhere else.
+
+== Subscriptions and usage limits
+
+Per-token billing applies to direct API access. Most developers reach a harness through a flat-rate subscription instead, which includes an allowance of usage and slows or stops the service when the allowance is spent. Some subscriptions, eg. GitHub Copilot, meter the allowance in requests and count one request to a flagship frontier model as several, so the choice of model sets how fast the allowance drains.
+
+Under a subscription, the marginal cost of a token is zero until the limit is reached, and the thing to optimize is the allowance, not the bill. The practices in this section still apply, because each one stretches the allowance. Two further rules follow.
+
+* Spend the allowance where frontier capability changes the outcome. Move mechanical work to a cheaper model before the limit is reached, not after.
+
+* Unattended workflows and loops SHOULD use metered API access with a budget cap, not a personal subscription. Their consumption is hard to predict, a usage limit can halt them partway through a task, and a provider's terms may restrict automated use of a consumer plan.
 
 == Right-size the model
 
@@ -46,6 +55,10 @@ To benefit.
 * Place stable content — eg. system prompt, skills, large reference documents, codebase context — at the start of the prompt, and variable content — eg. the user's current query — at the end.
 
 * Keep that prefix byte-stable across calls. Even a small edit near the top invalidates the cache for everything after it.
+
+* Check what a cache write costs. Some providers charge more for input that writes a cache entry than for uncached input. A prefix that is written once and never read back then costs more than no caching at all, so caching pays only when the prefix is reused.
+
+* Reuse the prefix before the cache entry expires. An entry typically expires after a few minutes without use, so calls spaced further apart than that pay the write price every time.
 
 == Control output and reasoning length
 
