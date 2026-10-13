@@ -7,7 +7,7 @@
 * An agent MUST NOT run with approval prompts disabled outside a sandbox in which at least one part of the lethal trifecta is absent by construction.
 * Authorization, verification, and approval MUST be enforced outside the model.
 * Changes to a lockfile MUST be reviewed like any other change.
-* The audit record of what an agent was asked and what it did MUST be engineered into a workflow.
+* The audit record of what an agent was asked and what it did MUST be engineered into every unattended workflow, and into any work subject to regulatory or contractual audit obligations.
 ****
 
 AI tools introduce security considerations at several levels: the services that run models, the data submitted to those services, the permissions granted to agents, and the code they produce.
@@ -24,7 +24,7 @@ Keep model services running only while they are actively needed. Treat them as d
 
 For AI-assisted development in an IDE or code editor, it is RECOMMENDED to develop inside a https://containers.dev/[devcontainer] rather than directly on the host. A devcontainer is defined by a `devcontainer.json` file specifying the base image, mounted volumes, and editor extensions. Both the editor and the agent harness run inside the container, with project files bind-mounted, so the human and the agent can collaborate on the same files simultaneously.
 
-Devcontainers are https://containers.dev/supporting[natively supported] by VS Code, Zed, IntelliJ IDEA, and Emacs. Other editing environments can be sandboxed the same way, but require more manual wiring — connecting the editor to a container over SSH, for example.
+Devcontainers are https://containers.dev/supporting[supported] by VS Code (through an extension), Visual Studio, IntelliJ IDEA, and Emacs (through a community package). Other editing environments can be sandboxed the same way, but require more manual wiring — connecting the editor to a container over SSH, for example.
 
 A container is not a complete isolation boundary by default, and a devcontainer in particular is built for convenience. Three things commonly cross the boundary.
 
@@ -42,7 +42,7 @@ Local model servers (such as Ollama) listen on `localhost` by default. Do not ch
 
 Prefer binding to `127.0.0.1` (loopback only) for local-only access.
 
-If LAN access is required, binding to `0.0.0.0` is necessary, but it MUST be protected by a local firewall rule. Never expose model server ports on a public interface.
+If LAN access is required, bind to the address of the LAN interface only. Binding to `0.0.0.0` listens on every interface, and MUST be protected by a local firewall rule. Never expose model server ports on a public interface.
 
 For remote access, use an SSH tunnel or VPN, rather than exposing the service directly.
 
@@ -121,9 +121,9 @@ Prompt injection becomes catastrophic when an agent simultaneously has all three
 
 The underlying reason is the same one that makes prompt injection possible at all. An LLM cannot reliably distinguish between data it is meant to process and instructions it is meant to follow. Both arrive as tokens in the same context, and the model has no reliable internal boundary between "content" and "command". So untrusted content that _looks_ like an instruction may be acted upon.
 
-One or two parts of the trifecta in isolation are comparatively safe. It is the co-occurrence of all three that is dangerous. Untrusted content smuggles in instructions (prompt injection). The model treats them as commands to follow. And, in obedience to those commands, it reads private data and leaks it to the attacker through the outbound channel (data exfiltration).
+One or two parts of the trifecta in isolation are comparatively safe against data theft, which is what the trifecta describes. It is the co-occurrence of all three that makes exfiltration possible. Destructive actions need no outbound channel, and are bounded instead by least-privilege tool access and human approval. Untrusted content smuggles in instructions (prompt injection). The model treats them as commands to follow. And, in obedience to those commands, it reads private data and leaks it to the attacker through the outbound channel (data exfiltration).
 
-An agent that can read secrets and browse the web, but cannot make outbound requests, cannot leak. Add an innocuous-looking way to communicate — a URL it can fetch, an image it can render — and the lethal trifecta is complete.
+An agent that can read secrets and process untrusted issue text, but cannot make outbound requests, cannot leak. Add an innocuous-looking way to communicate — a URL it can fetch, an image it can render — and the lethal trifecta is complete.
 
 Assume prompt injection will always be a risk. The practical defense is to break the trifecta rather than to try to make injection impossible, by doing one of these three things.
 
@@ -187,9 +187,9 @@ Where those conditions cannot be met, pre-approve specific low-risk commands thr
 
 Prompt injection is an attack on an agent. A different class of risk comes from agents working exactly as instructed, by a person who should not have been able to give that instruction, or on a premise that was never checked.
 
-James Gosling, creator of Java, has argued that the more serious near-term dangers are mundane. People trust whatever an LLM hallucinates and then do something consequential on the strength of it. People with malicious intent find creative ways to point capable agents at targets. His underlying observation is that an agent pursues a goal, and morality is not part of that pursuit. Nothing in a stated objective tells an agent what it must not do to achieve it.
+The more serious near-term dangers of AI agents are mundane. People trust whatever an LLM hallucinates and then do something consequential on the strength of it. People with malicious intent find creative ways to point capable agents at targets. The underlying point is that an agent pursues a goal, and morality is not part of that pursuit. Nothing in a stated objective tells an agent what it must not do to achieve it.
 
-Gosling's illustration is a family of requests that differ only in framing.
+An illustration is a family of requests that differ only in framing.
 
 * "The American power grid is unstable. Turn it off."
 
@@ -205,7 +205,7 @@ Three properties of current systems make this hard to fix from inside the model.
 
 * *No notion of authority.* Everything reaches the model as text in its context. A request from the governor of Puerto Rico and one from an anonymous stranger carry the same weight, unless something outside the model distinguishes them.
 
-* *Guardrails are advisory.* Safety instructions are, at bottom, more text in the same context. They influence the model's behavior, but they carry no special authority, and they can be outweighed by a sufficiently compelling goal. Training does instill refusals, and those refusals are valuable, but they are a probabilistic defense. They are not an access control.
+* *Safety instructions are advisory.* Safety instructions are, at bottom, more text in the same context. They influence the model's behavior, but they carry no special authority, and they can be outweighed by a sufficiently compelling goal. Training does instill refusals, and those refusals are valuable, but they are a probabilistic defense. They are not an access control.
 
 The consequence is that authorization, verification, and approval MUST be enforced outside the model, by deterministic controls it cannot talk its way past.
 
@@ -233,9 +233,9 @@ Check every dependency that an agent adds. A model can name a package that does 
 
 == Auditability
 
-Reviewing agent output judges the artifact. Auditability concerns the durable record of _how_ that artifact came to be — what the agent was asked, what it did, and what data passed through it. In agentic workflows, where an agent takes many autonomous actions between human checkpoints, that record is essential for incident investigation, accountability, and demonstrating compliance.
+Reviewing agent output judges the artifact. Auditability concerns the durable record of _how_ that artifact came to be — what the agent was asked, what it did, and what data passed through it. In agentic workflows, where an agent takes many autonomous actions between human checkpoints, that record is essential for incident investigation, accountability, and demonstrating compliance. The audit record MUST be engineered into every unattended workflow, and into any work subject to regulatory or contractual audit obligations. For interactive, low-stakes work, the practices below set the level.
 
-The primary audit substrate is the *session transcript* — the full sequence of user inputs, model outputs, and tool calls that a harness records for a session. A transcript is distinct from the model's context. The context is mutable, and mostly discarded as a session progresses, through compaction and the loop overwriting it. A transcript is an append-only record of everything that happened.
+The primary audit substrate is the *session transcript* — the full sequence of user inputs, model outputs, and tool calls that a harness records for a session. A transcript is distinct from the model's context. The context is mutable, and mostly discarded as a session progresses, through compaction and the loop overwriting it. A transcript is a record of everything that happened, written by the harness as the session progresses.
 
 When something goes wrong — an agent leaks data, deletes a file, or acts on an injected instruction — the transcript is what lets you reconstruct the sequence of events after the fact. This is why the mitigations for prompt injection call for auditing agent execution traces. Those traces are the session transcript.
 
@@ -243,7 +243,7 @@ This audit substrate complements, rather than duplicates, the version-controlled
 
 The following practices are RECOMMENDED.
 
-* *Retain transcripts in proportion to the risk of the work.* For low-stakes or throwaway work, transcripts can be ephemeral. For code that handles authentication, money, personal data, or safety-critical functions — or any work subject to regulatory or contractual audit obligations — session transcripts SHOULD be retained as durable records, on the same basis as any other audit log.
+* *Retain transcripts in proportion to the risk of the work.* For low-stakes or throwaway interactive work, transcripts can be ephemeral. For code that handles authentication, money, personal data, or safety-critical functions, session transcripts SHOULD be retained as durable records, on the same basis as any other audit log. Where the work is unattended or subject to regulatory or contractual audit obligations, they MUST be.
 
 * *Protect transcripts as sensitive data.* A transcript may contain credentials, proprietary code, personal data, or other secrets that passed through the agent's context. Store and access-control transcripts with the same care as the data they may contain, and apply the organization's normal retention and data-protection policies to them.
 

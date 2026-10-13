@@ -18,7 +18,7 @@ Trust in the result is not assumed. It is earned incrementally, through guides a
 
 Agentic development requires more than a chat interface to a model. It requires a whole ecosystem of supporting development tools and methods, carefully choreographed into a cohesive system of checks and balances that steer agent output to the required level of correctness, completeness, and quality.
 
-Understood this way, a harness used for _agentic_ development, rather than merely AI-assisted development, is much bigger than a single program providing a user interface to a model. It is an extensive suite of methods and tools that extends far beyond the AI interface, of which reusable context bundles such as skills are only one component.
+Understood this way, the environment for _agentic_ development, rather than merely AI-assisted development, is much bigger than a harness. It is an extensive suite of methods and tools that extends far beyond the AI interface, of which the harness and reusable context bundles such as skills are only components.
 
 == Objectives
 
@@ -30,7 +30,7 @@ Beneath that sit four supporting objectives, each realized by practices describe
 
 * *Composability.* Each step in a workflow is a small, sharp tool with a well-defined interface, which any orchestrator — a human, a script, or an agent — can compose into new pipelines.
 
-* xref:garden::portability.adoc[*Portability*]. Reusable context encodes rules, not knowledge, staying technology- and domain-agnostic so it runs unmodified across projects and across models.
+* xref:garden::portability.adoc[*Portability*]. Shared workflow skills encode rules, not knowledge, staying technology- and domain-agnostic so they run unmodified across projects and across models.
 
 * *Context economy.* The quality of a model's output degrades as its context window fills, so workflows are designed to keep each agent's context trim — through small increments of work, narrowly-scoped skills, and persisting distilled outputs to disk rather than carrying working state forward in-conversation.
 
@@ -48,11 +48,11 @@ That flexibility is the flip side of determinism. Give an agent the same inputs 
 
 Automation is about execution of a known path. Agentic workflows are about navigation toward a known goal.
 
-This distinction matters when choosing between approaches. Not every task that can be automated SHOULD be made agentic. Traditional automation — scripts, pipelines, scheduled jobs — is preferable when the task is deterministic, the environment is stable, and the failure modes are well understood. Deterministic steps in the delivery lifecycle — linting, building, packaging, deploying, migrating — belong in scripts, not agents. Reserve agentic approaches for work that demands what a language model uniquely brings — judgment to weigh trade-offs, experimentation to try different paths, and reflection to assess its own progress — such as tasks involving genuine ambiguity, adaptive reasoning, or recovery from unexpected states.
+This distinction matters when choosing between approaches. Not every task that can be automated SHOULD be made agentic. Traditional automation — scripts, pipelines, scheduled jobs — is preferable when the task is deterministic, the environment is stable, and the failure modes are well understood. Deterministic steps in the delivery lifecycle — linting, building, packaging, deploying, migrating — belong in scripts, not agents. Reserve agentic approaches for work that demands what a language model uniquely brings — the ability to interpret ambiguous input, experimentation to try different paths, and reflection to assess its own progress — such as tasks involving genuine ambiguity, adaptive reasoning, or recovery from unexpected states.
 
 Agentic systems carry higher operational complexity and cost than equivalent automation scripts. That overhead is only justified where the model's reasoning capability is genuinely needed.
 
-This is starkest for exact multi-step computation, such as arithmetic on large numbers or tracing the execution of an algorithm. Such tasks are *computationally irreducible*: the only way to know the outcome is to carry out every step, not to predict it from learned patterns.
+This is starkest for exact multi-step computation, such as arithmetic on large numbers or tracing the execution of an algorithm. Such tasks have no pattern-matching shortcut: the only reliable way to know the outcome is to carry out every step, not to predict it from learned patterns.
 
 No model, however capable, reliably shortcuts this, because models are trained to extrapolate statistical patterns rather than to execute exact computation. Computational tasks MUST therefore be delegated to a tool that executes the steps — a code interpreter, a script, a calculator — rather than left to a model to guess token-by-token.
 
@@ -131,9 +131,9 @@ A recurring failure mode in agentic systems is the xref:garden::runaway-loop.ado
 
 Guarding against this requires a hard guide and a soft guide, working together.
 
-* *Tool quotas* (enforced): A hard cap, configured in the agent harness, on how many times a given tool may be called within an agent run. The harness counts each invocation and blocks any call that would exceed the limit, returning an error instead. Because this is enforced by the runtime rather than the model, it is a reliable backstop against runaway loops regardless of what the model does. This is a permission constraint, applied to call frequency rather than to which tools are accessible.
+* *Tool quotas* (enforced): A hard cap, configured in the agent harness, on how many times a given tool may be called within an agent run. The harness counts each invocation and blocks any call that would exceed the limit, returning an error instead. Because this is enforced by the runtime rather than the model, it is a reliable backstop against runaway loops regardless of what the model does. This is a permission constraint, applied to call frequency rather than to which tools are accessible. The quota holds only if it is enforced at the orchestrator, not left to each agent's own budget, because an agent can otherwise get around a quota on itself by spawning sub-agents, each with its own fresh budget.
 
-* *Budget awareness* (advisory): A behavioral instruction, stated in the system prompt, that tells the agent what quotas apply to it, eg. "you have 15 web searches available for this task". An agent that knows its budget can ration its tool use, working more conservatively as it approaches the limit. An agent with no visibility into its quotas has no reason to conserve, and will treat the hard cap as a wall it hits unexpectedly rather than a constraint it plans around. Note that budget awareness does not fully close off the failure mode. An agent can still work around a quota on itself by spawning sub-agents, each with its own fresh budget.
+* *Budget awareness* (advisory): A behavioral instruction, stated in the system prompt, that tells the agent what quotas apply to it, eg. "you have 15 web searches available for this task". An agent that knows its budget can ration its tool use, working more conservatively as it approaches the limit. An agent with no visibility into its quotas has no reason to conserve, and will treat the hard cap as a wall it hits unexpectedly rather than a constraint it plans around.
 
 Hard quotas alone are not enough, because an agent that does not know its budget cannot plan around it and will exhaust it unproductively. Soft budgets alone are not enough either, because advisory limits stated only in the prompt can be ignored or miscounted by the model. The two layers address different failure modes and SHOULD be used together.
 
@@ -188,7 +188,7 @@ The orchestrator of a workflow — whether a human, a script, or an agent — is
 
 Different steps in a pipeline SHOULD be assigned to different models, rather than running the same model end-to-end. Each model has its own blind spots and failure modes, and a pipeline that uses one model throughout lets those weaknesses compound across every step. Assigning steps to models from different providers breaks that chain: a gap one model misses is likely to be caught by a model trained on a different data mix with different biases. For example, use one model to perform gap analysis on a specification, and a different model to implement the findings.
 
-For high-stakes analytical steps, an even stronger pattern is to run two models independently on the same step and only act on the findings they both agree on. Discarding the disagreements filters out the idiosyncratic errors each model makes on its own, at the cost of some coverage. This consensus approach is worth the extra tokens where a false positive would send the pipeline down the wrong branch — gap analysis, triage, and review are good candidates.
+For high-stakes analytical steps, an even stronger pattern is to run two models independently on the same step and only act on the findings they both agree on. Discarding the disagreements filters out the idiosyncratic errors each model makes on its own, at the cost of some coverage. This consensus approach is worth the extra tokens where a false positive would send the pipeline down the wrong branch — gap analysis and triage are good candidates. Where a missed finding costs more than a false one, as in exploratory review and security testing, take the union of the findings instead.
 
 == Persistence
 

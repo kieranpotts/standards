@@ -46,7 +46,7 @@ Harness configuration determines what agents may do inside a repository. It is a
 
 == Guides and sensors
 
-xref:garden::guardrail.adoc[*Guardrails*] are constraints that bound agent behavior, reducing the risk of unintended or harmful actions. They are important in AI-assisted workflows. They are critical in agentic ones, where humans are much less involved in the loop. It is useful to distinguish two categories of control over agent behavior: guides and sensors.
+xref:garden::guardrail.adoc[*Guardrails*] are constraints that bound agent behavior, reducing the risk of unintended or harmful actions. They are important in AI-assisted workflows. They are critical in agentic ones, where humans are much less involved in the loop. It is useful to distinguish two categories of control over agent behavior: guides and sensors. Every guardrail is one or the other.
 
 *Guides* are feed-forward controls that steer an agent _before_ it acts, anticipating problems and increasing the odds of a good result on the first attempt. There are two main types.
 
@@ -54,7 +54,7 @@ xref:garden::guardrail.adoc[*Guardrails*] are constraints that bound agent behav
 
 * *Permission constraints* (enforced). Explicit allow/deny lists that control which tools, shell commands, file paths, or network endpoints an agent may access, configured in the agent harness rather than relied on via context or prompts. These are the most reliable form of guide because they are enforced by the runtime, not by the model's interpretation.
 
-*Sensors* are feedback controls that check an agent's output _after_ it acts. They are validation gates an agent must satisfy before proceeding, eg. running a test suite before committing code, or requesting human approval before an irreversible action.
+*Sensors* are feedback controls that check an agent's output _after_ it acts. They are validation gates an agent must satisfy before proceeding, eg. running a test suite before committing code, or a human reviewing a changeset before it is merged.
 
 A good agent harness consists of a mix of both guides and sensors. An agent steered only by guides repeats the same undetected mistakes indefinitely. An agent checked only by sensors runs an expensive trial-and-error loop with no steering. Reliable agentic workflows need both.
 
@@ -74,7 +74,7 @@ Hooks map onto both halves of the guides and sensors taxonomy.
 
 The governing rule follows from this.
 
-* Where a rule is mechanically checkable and can be expressed as a program, it SHOULD be enforced by a hook rather than stated as a behavioral instruction. Instructions compete for the model's attention budget on every inference call and are obeyed probabilistically. A hook costs no context and is obeyed absolutely.
+* Where a rule is mechanically checkable and can be expressed as a program, it SHOULD be enforced by a hook rather than stated as a behavioral instruction. Instructions compete for the model's attention budget on every inference call and are obeyed probabilistically. A hook adds no standing context, and the harness runs it whether or not the model cooperates.
 
 * An instruction that is observed to be ignored repeatedly is a candidate for promotion to a hook. Restating it more emphatically, or in more places, is the weaker response and the more expensive one.
 
@@ -100,9 +100,9 @@ Inferential controls still matter. They cover the gaps deterministic tools canno
 
 A harness is not configured once. It accumulates rules in response to observed failure, and it decays as models, tools, and the codebase change around it. The same principles that govern reusable context apply to the whole harness.
 
-* Start with the minimum configuration that works, and add to it only in response to failure modes observed. Configuration added in anticipation of problems tends to constrain the model against its own better judgment.
+* Start with the minimum configuration that works, and add to it only in response to failure modes observed. Configuration added in anticipation of problems tends to constrain the model against its own better judgment. Security and safety controls are the exception. Permission denials, sandboxing, and hard stops are put in place before any failure is observed, because the first failure may be the damaging one.
 
-* Change one thing at a time, and measure. Harness configuration is one of the components an eval suite exists to evaluate. A new check, a narrowed permission, or a rewritten instruction either moves the pass rate, latency, or token cost, or it is not earning its keep.
+* Change one thing at a time, and measure. Harness configuration is one of the components an eval suite exists to evaluate. A new check, a narrowed permission, or a rewritten instruction either moves the pass rate, latency, or token cost, or it is not earning its keep. This test does not apply to security and safety controls, which are justified by the harm they prevent.
 
 * Review the whole harness on a model upgrade, not only the instructions. Rules written to correct a weakness in an older model may be unnecessary or counterproductive against a newer one, and tool designs pitched at a less-capable model may now be needlessly fine-grained.
 
