@@ -19,13 +19,13 @@ The canonical specification lives at https://agentskills.io/specification.
 
 == Scope
 
-An emerging best practice is to use skills to define a small set of common workflow steps, and to keep knowledge — standards, policies, constraints, domain models — in separate reference documents that are loaded on demand from other sources.
+An emerging best practice, for skills that are shared across projects, is to use them to define a small set of common workflow steps, and to keep knowledge — standards, policies, constraints, domain models — in separate reference documents that each project supplies on demand.
 
-Workflow skills, such as "planning", "coding", "testing", "deploying", and "releasing", SHOULD be step-by-step, deterministic instructions, free of domain-specific facts. They then rarely change between projects and domains. Reference materials, by comparison, are dynamic and volatile.
+Shared workflow skills, such as "planning", "coding", "testing", "deploying", and "releasing", SHOULD be step-by-step, deterministic instructions, free of domain-specific facts. They then rarely change between projects and domains. Reference materials, by comparison, are dynamic and volatile.
 
 This separation makes workflow skills more reusable. A skill that says only _how_ to look something up and what to do with it, rather than hard-coding the answer, stays technology-agnostic and domain-agnostic. It runs unmodified against any project that supplies its own reference material on demand.
 
-If a piece of knowledge genuinely belongs to only one project, keep it local to that project rather than baking it into a shared workflow skill.
+If a piece of knowledge genuinely belongs to only one project, keep it local to that project rather than baking it into a shared workflow skill. A project-local skill is the right place for it. A skill that serves a single project carries that project's procedures, conventions, and edge cases directly.
 
 Pulling knowledge dynamically also keeps agentic workflows evergreen. And the separation of concerns makes agents easier to debug, because when something goes wrong you can ask.
 
@@ -34,7 +34,7 @@ Pulling knowledge dynamically also keeps agentic workflows evergreen. And the se
 
 == Single responsibility
 
-A skill SHOULD have exactly one responsibility — a single step in a workflow — and stop at a well-defined boundary, rather than reaching into adjacent work even where doing so would be convenient.
+A skill SHOULD have exactly one responsibility — one coherent unit of work, typically a single step in a workflow — and stop at a well-defined boundary, rather than reaching into adjacent work even where doing so would be convenient.
 
 In particular, a skill SHOULD NOT combine _evaluation_ and _implementation_. A skill that analyzes and reports findings — a review, an audit, a proofread — SHOULD be distinct from a skill that enacts a change — a fix, a migration, a refactor. A skill that reviews a pull request SHOULD NOT also apply the fixes it recommends.
 
@@ -78,7 +78,7 @@ This preference reflects a broader industry trend, sometimes called the _specs-t
 
 As noted under reusable context, agent harnesses are inconsistent in how they discover and load reusable context bundles. Most will load project-specific skills, but the expected location and naming of the files varies. The formal specification does not define a discovery path. The emerging convention is `.agents/skills/`, relative to the root of the project repository, but not all harnesses support this out-of-the-box.
 
-Some harnesses also look for global skills in the user's home directory. This is useful for sharing common workflow skills across multiple projects, but support is patchy. As of 2026, only a few harnesses, such as Pi, discover global skills automatically.
+Most locally running harnesses also look for global skills in the user's home directory, in a harness-specific location and, increasingly, in `~/.agents/skills/`. This is useful for sharing common workflow skills across multiple projects.
 
 Until the industry converges on universal standards, the location and naming of skills MUST be tailored to the conventions of the harnesses you use. See the https://github.com/JuliusBrussee/caveman/[Caveman] project for an example of how to install one set of source skills into the locations and formats that several mainstream harnesses auto-discover.
 
@@ -88,7 +88,7 @@ One option is to use `AGENTS.md` to reference the location of your skills files,
 
 A skill is a directory containing, at a minimum, a `SKILL.md` file. The directory MAY also contain `scripts/`, `references/`, and `assets/` subdirectories — for executable code, supplementary documentation, and static resources, respectively.
 
-Nothing stops you including other artifacts not defined by the Agent Skills specification, as long as they are referenced from the `SKILL.md` entry point.
+Nothing stops you including other artifacts not defined by the Agent Skills specification, as long as any that the agent is meant to read are referenced from the `SKILL.md` entry point.
 
 This technical standard RECOMMENDS including a `README.md`, documenting the skill's use for the benefit of its human maintainers.
 
@@ -136,7 +136,7 @@ allowed-tools: Bash(git:*) Bash(jq:*) Read
 license: MIT
 metadata:
   author: Hacks Ltd
-  last_updated: 2026-05-01
+  last_updated: "2026-05-01"
 ---
 
 # Database migration
@@ -156,7 +156,7 @@ The following principles help to produce descriptions that get the right skills 
 
 * Err on the side of explicitness. List every context where the skill applies, including cases where the user may not name the domain directly.
 
-* Stay under the 1024-character hard limit (content beyond it may be silently truncated).
+* Stay under the 1024-character hard limit.
 
 Different agent harnesses handle skill loading in different ways. The Agent Skills specification targets _on-demand_ activation, where conforming agents read each skill's `description` field and decide whether to load it based on the current task. But some harnesses also support _always-on_ loading, where the skill is injected at the start of every session, and _manual_ loading, where the user triggers the skill with a slash command.
 
@@ -168,7 +168,7 @@ Remember that skills are guidelines, not guarantees. An agent may activate a ski
 
 The Markdown body after the front-matter contains the agent's actual instructions. This is the context passed to the model when the agent decides to include the skill in the next inference call.
 
-As with `AGENTS.md`, no particular structure is required. Any freeform Markdown will do. Design the information architecture of each skill case-by-case, to optimize knowledge transfer to the AI.
+As with `AGENTS.md`, the specification requires no particular structure, and accepts any freeform Markdown. This technical standard is stricter, and requires an instructions section, a rules section, or both. Design the information architecture of each skill case-by-case, to optimize knowledge transfer to the AI.
 
 A common pitfall is asking an LLM to auto-generate a skill without giving it any domain-specific context, relying instead on the model's general training knowledge. The result is vague, generic advice — "handle errors appropriately", "follow best practices for authentication" — in place of the specific patterns, edge cases, and conventions that matter. A skill earns its place only when it supplies knowledge the models you use do not already hold.
 
@@ -176,7 +176,7 @@ A useful concrete test for every instruction in a skill is the question: "Would 
 
 Think of a well-crafted skill as the onboarding document you would write for a qualified new employee. Include only what they cannot independently discover: domain knowledge, edge cases, internal conventions, and product philosophy. Universal best practices that a capable agent already knows add token cost without adding value.
 
-When scoping a skill, aim for a coherent unit of work — analogous to how you would scope a well-designed function. Too narrow a scope forces the agent to load multiple skills for a single task, increasing overhead and the risk of conflicting instructions. Too broad a scope makes precise activation harder and dilutes the signal-to-noise ratio of the content. A skill that queries a database and formats results is likely a coherent unit. One that also covers database administration is probably too broad.
+When scoping a skill, aim for a coherent unit of work — analogous to how you would scope a well-designed function. Too narrow a scope forces the agent to load multiple skills for a single step in a workflow, increasing overhead and the risk of conflicting instructions. Too broad a scope makes precise activation harder and dilutes the signal-to-noise ratio of the content. A skill that queries a database and formats results is likely a coherent unit. One that also covers database administration is probably too broad.
 
 Aim for moderate detail rather than exhaustive coverage. Overly comprehensive skills hurt more than they help, because the agent struggles to extract what is relevant and may pursue unproductive paths. Concise stepwise guidance with a working example tends to outperform exhaustive documentation. When you find yourself wanting to cover every edge case, consider whether most are better left to model judgment.
 
@@ -281,9 +281,6 @@ metadata:
 
 Short introduction here.
 
-This skill extends [this skill](https://raw.githubusercontent.com/...) — all
-rules there apply here.
-
 **Input**: What input the skill consumes — a file, a prompt, a selection — and
 whether it is OPTIONAL or REQUIRED. State any default behavior when no input
 is given.
@@ -299,10 +296,9 @@ a report, a direct edit, a file, a commit, the conversation itself.
 
 1.  **Run the extract script.**
 
-    [source,sh]
-    ----
+    ```sh
     $ python3 scripts/extract.py
-    ----
+    ```
 
 2.  ...
 
@@ -310,21 +306,19 @@ a report, a direct edit, a file, a commit, the conversation itself.
 
 - **Base new scripts on this template:**
 
-  [source,sh]
-  ----
+  ```sh
   #!/usr/bin/env sh
   set -eu
 
   # ...
-  ----
+  ```
 
 - **Variable naming convention:**
 
   - `UPPER_SNAKE_CASE` for variables exported to the environment.
   - `lower_snake_case` for everything else, including functions.
 
-  [source,sh]
-  ----
+  ```sh
   # ❌ No:
   readonly OUTPUT_DIR="/tmp/out"
 
@@ -333,7 +327,7 @@ a report, a direct edit, a file, a commit, the conversation itself.
 
   # ✅ Yes:
   export MY_APP_LOG_LEVEL="info"
-  ----
+  ```
 
 ## Success criteria
 
@@ -347,7 +341,7 @@ a report, a direct edit, a file, a commit, the conversation itself.
 
 - **Some domain-specific check.**
 
-  Add one or two concrete, observable conditions specific to this skill — things the agent can verify without running external tooling.]
+  Add one or two concrete, observable conditions specific to this skill — things the agent can verify without running external tooling.
 
 ## Examples
 
@@ -365,10 +359,6 @@ Include a list of links with extended and related information. For each, include
 
 - [`assets/some-template.md`](./assets/some-template.md): The bundled template to fill out in step N.
 
-- [Adjacent skill](../skill-name/SKILL.md): Used for [purpose].
-
-- [External skill](https://raw.githubusercontent.com/.../SKILL.md): Used for [purpose].
-
 ----
 
 == Sharing skills publicly
@@ -385,7 +375,7 @@ Additional considerations apply when designing a skill for public sharing rather
 
 * *Keep skills current.* Use the `metadata` field to record a `last_updated` date, and review shared skills whenever the underlying tools or APIs change. A widely-referenced skill that goes stale can cause failures across many projects.
 
-Before publishing a skill, validate its configuration with the `skills-ref` package: https://github.com/agentskills/agentskills/tree/main/skills-ref
+Before publishing a skill, validate its front-matter and naming with the https://github.com/agentskills/agentskills/tree/main/skills-ref[`skills-ref`] reference library. Its maintainers describe it as intended for demonstration and not for production use, so run it by hand as a pre-publication check, and do not build a pipeline around it.
 
 == Installing third-party skills
 

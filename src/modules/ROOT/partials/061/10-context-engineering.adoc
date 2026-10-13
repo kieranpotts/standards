@@ -35,11 +35,11 @@ Techniques include compaction of long-horizon tasks, designing token-efficient t
 
 Tools extend the capabilities of AI agents by letting them interact with their environment, access external data, and perform specific actions. They are a critical component of agent design, because they define the contract between the model and its information and action space.
 
-In keeping with the Unix philosophy, tools SHOULD be small, self-contained, and focused on specific capabilities. Complex tasks SHOULD be decomposed into multiple tools that can be orchestrated together. Each tool SHOULD be well-defined, with clear boundaries in its responsibilities and no overlapping functionality with other tools. Input parameters MUST be descriptive and unambiguous. Bloated tools create ambiguous decision points for agents, filling the context with redundant information and increasing the likelihood of errors.
+Tools SHOULD be self-contained, each focused on one capability. Each tool SHOULD be well-defined, with clear boundaries in its responsibilities and no overlapping functionality with other tools. Input parameters MUST be descriptive and unambiguous. A bloated tool set, in which several tools could plausibly serve the same request, creates ambiguous decision points for agents, filling the context with redundant information and increasing the likelihood of errors.
 
-Providing agents with examples of tool usage — also known as *few-shot prompting* — is a demonstrably effective way to teach agents, within a single session, the correct use of tools. It is RECOMMENDED to curate a set of diverse, canonical examples, but not to overload the context with an exhaustive enumeration of edge cases. If you direct the agent to what it _should_ do, there is no need to overburden it with what it should _not_ do.
+Providing examples of the desired behavior in the prompt is known as *few-shot prompting*. Applied to tools, examples of correct usage are a demonstrably effective way to teach agents, within a single session, how to use them. It is RECOMMENDED to curate a set of diverse, canonical examples, but not to overload the context with an exhaustive enumeration of edge cases. If you direct the agent to what it _should_ do, there is no need to overburden it with what it should _not_ do.
 
-When designing a tool's interface, aim for an abstraction level that matches how the agent naturally reasons about the task. A single composite operation — one that retrieves, filters, and formats results in one call — is typically better than three separate low-level calls that mirror an implementation decomposition. Fine-grained, low-abstraction interfaces force the agent to manage implementation details, multiply the number of turns required to accomplish work, and consume context with intermediate state that has no lasting value.
+Focused does not mean fine-grained. When designing a tool's interface, aim for an abstraction level that matches how the agent naturally reasons about the task. A single composite operation — one that retrieves, filters, and formats results in one call — is typically better than three separate low-level calls that mirror an implementation decomposition. Fine-grained, low-abstraction interfaces force the agent to manage implementation details, multiply the number of turns required to accomplish work, and consume context with intermediate state that has no lasting value.
 
 == Just-in-time retrieval
 
@@ -55,11 +55,11 @@ There is a trade-off, of course. Runtime exploration is slower than precomputed 
 
 == Long-horizon tasks
 
-Long-horizon tasks may involve long sequences of actions, operating on large datasets, resulting in token counts that far exceed the LLM's context window. An agent performing a large codebase migration, for example, might need to analyze thousands of lines of code and make hundreds of decisions along the way. These use cases call for specialized techniques to manage the agent's attention and to maintain coherence across the whole task.
+Long-horizon tasks may involve long sequences of actions, operating on large datasets, resulting in token counts that far exceed the LLM's context window. An agent performing a large codebase migration, for example, might need to analyze hundreds of thousands of lines of code and make hundreds of decisions along the way. These use cases call for specialized techniques to manage the agent's attention and to maintain coherence across the whole task.
 
 *Compaction* is the practice of taking a conversation that is nearing the context window threshold, summarizing its contents, and re-initiating a new context window with that summary. It is typically the first lever to reach for in driving better coherence across long-horizon tasks. At its core, compaction distills the contents of a context window in a high-fidelity manner, so the agent can continue with minimal performance degradation.
 
-Compaction can be seen at work in the UIs of coding assistants like Claude Code. Long-running conversations are periodically compacted to preserve critical context — architectural decisions, unresolved bugs — while discarding low-signal messages, such as the raw outputs of tools that have already been processed.
+Compaction can be seen at work in the UIs of agent harnesses like Claude Code. Long-running conversations are periodically compacted to preserve critical context — architectural decisions, unresolved bugs — while discarding low-signal messages, such as the raw outputs of tools that have already been processed.
 
 The art of compaction lies in the selection of what to keep versus what to discard. Overly aggressive compaction loses subtle but critical context, the importance of which often only becomes evident later.
 
