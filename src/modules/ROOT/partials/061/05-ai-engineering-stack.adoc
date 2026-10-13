@@ -1,10 +1,10 @@
 = AI engineering stack
 
-A model is only the "brain" of an AI toolchain. On its own it consumes tokens and emits tokens. It cannot act, remember across calls, or run a process. Turning a raw model into a reliable tool is a matter of engineering — a series of decisions, each building on the one beneath it.
+An AI tool is built in layers, with a large language model at its core.
 
-The first and most consequential decision is the choice of model itself: the fixed base the rest of the toolchain is built on. Above it sit four layers of engineering, each the subject of its own section in this standard.
+The model is the "brain" of the tool. It consumes tokens and emits tokens, nothing more. On its own, a model cannot reach any data on its host system, run anything on that system, or remember information across inference calls. Turning a model into a useful engineering tool means wrapping it in layers of conventional software that augment the raw model with all these capabilities.
 
-.The engineering stack, from model selection up
+.The AI engineering stack
 [mermaid]
 ....
 flowchart TB
@@ -18,16 +18,14 @@ flowchart TB
   classDef choice fill:#d4edda,stroke:#155724,color:#155724,stroke-width:2px
 ....
 
-Working outward from the model.
+The first and most consequential decision in the AI engineering stack is the choice of model itself, and of the provider that serves it. Two questions frame that choice. Is the model *closed*, its weights withheld so that it can be consumed only as a vendor's service, or *open-weight*, free to download and run anywhere? And is it *hosted*, served by a third party and billed per token, or *self-hosted*, on infrastructure the team operates itself? The answers trade capability, cost, latency, data privacy, and vendor lock-in against one another.
 
-* *Tuning model behavior* controls _how_ the model samples its output — the xref:garden::inference.adoc[*inference*]-time parameters that shape determinism, length, creativity, and depth of reasoning, without changing the model or its input.
+The next layer of engineering involving *tuning* the model's behavior to contorl how it samples its output. This involves adjusting xref:garden::inference.adoc[*inference*]-time parameters that shape determinism, length, creativity, and depth of reasoning, without changing the model or its input prompts.
 
-* xref:garden::context-engineering.adoc[*Context engineering*] controls _what the model sees_ — the tokens placed in its working memory on each call: instructions, retrieved knowledge, tool definitions, and conversation history.
+Next, garden::context-engineering.adoc[*context engineering*] controls what the model sees at inference time. These are the tokens placed in its working memory on each call: instructions, retrieved knowledge, tool definitions, and conversation history.
 
-* *Harness engineering* controls _the environment the model runs in_ — the xref:garden::agent-loop.adoc#_tool_calls_and_tool_results[*tools*], guardrails, and sensors that determine what an agent can and cannot do.
+The next layer is *harness engineering*. This is the environment in which a model runs in. It controls the xref:garden::agent-loop.adoc[*agent loop*], executing tool calls on behalf of the model, placing guardrails around the model, and integrating sensors that deterministically check a model's output against quality requirements.
 
-* xref:garden::loop-engineering.adoc[*Loop engineering*] controls _how the whole workflow runs itself_ — automating a process end to end, so it wakes on a schedule, discovers its own work, and feeds its own output back as the next input.
+Beyond this, xref:garden::loop-engineering.adoc[*loop engineering*] is an optional engineering layer that facilitates *away-from-keyboard* invocation of AI tools, by building deterministic systems that run whole AI workflows autonomously. Loops typically run on schedules or are triggered by external events in a wider devops toolchain.
 
 Each layer adds control over the one below it, and each sits progressively further from the model itself.
-
-The sections that follow work through the stack from the bottom up.
