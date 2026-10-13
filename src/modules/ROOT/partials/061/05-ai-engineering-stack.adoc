@@ -1,8 +1,8 @@
 = AI engineering stack
 
-An AI tool is built in layers, with a large language model at its core.
+An AI tool is the product of several layers of engineering, with a large language model at its core.
 
-The model is the "brain" of the tool. It consumes tokens and emits tokens, nothing more. On its own, a model cannot reach any data on its host system, run anything on that system, or remember information across inference calls. Turning a model into a useful engineering tool means wrapping it in layers of conventional software that augment the raw model with all these capabilities.
+The model is the "brain" of the tool. It consumes tokens and emits tokens, nothing more. On its own, a model cannot reach any data on its host system, run anything on that system, or remember information across inference calls. Turning a model into a useful engineering tool takes several layers of engineering work, each building on the one below it: choosing the model, tuning its behavior, and then wrapping it in conventional software that supplies those missing capabilities.
 
 .The AI engineering stack
 [mermaid]
@@ -12,20 +12,19 @@ flowchart TB
   harness["Harness engineering"]:::on
   context["Context engineering"]:::on
   tuning["Tuning model behavior"]:::on
-  model["Model selection"]:::choice
+  model["Model selection"]:::on
   loop --- harness --- context --- tuning --- model
   classDef on fill:#cce5ff,stroke:#004085,color:#004085,stroke-width:2px
-  classDef choice fill:#d4edda,stroke:#155724,color:#155724,stroke-width:2px
 ....
 
-The first and most consequential decision in the AI engineering stack is the choice of model itself, and of the provider that serves it. Two questions frame that choice. Is the model *closed*, its weights withheld so that it can be consumed only as a vendor's service, or *open-weight*, free to download and run anywhere? And is it *hosted*, served by a third party and billed per token, or *self-hosted*, on infrastructure the team operates itself? The answers trade capability, cost, latency, data privacy, and vendor lock-in against one another.
+The first and most consequential decision in the AI engineering stack is the choice of model itself, and of the provider that serves it. Two questions frame that choice. Is the model *closed*, its weights withheld so that it can be consumed only as a vendor's service, or *open-weight*, its weights published for download and use under the terms of its license? And is it *hosted*, served by a third party and billed per token, or *self-hosted*, on infrastructure the team operates itself? A closed model is always hosted, so the second question arises only for open-weight models. The answers trade capability, cost, latency, data privacy, and vendor lock-in against one another.
 
-The next layer of engineering involving *tuning* the model's behavior to contorl how it samples its output. This involves adjusting xref:garden::inference.adoc[*inference*]-time parameters that shape determinism, length, creativity, and depth of reasoning, without changing the model or its input prompts.
+The next layer of engineering involves *tuning* the model's behavior to control how it samples its output. This involves adjusting xref:garden::inference.adoc[*inference*]-time parameters that shape determinism, length, creativity, and depth of reasoning, without changing the model or its input prompts.
 
-Next, garden::context-engineering.adoc[*context engineering*] controls what the model sees at inference time. These are the tokens placed in its working memory on each call: instructions, retrieved knowledge, tool definitions, and conversation history.
+Next, xref:garden::context-engineering.adoc[*context engineering*] controls what the model sees at inference time. These are the tokens placed in its working memory on each call: instructions, retrieved knowledge, tool definitions, and conversation history. xref:garden::prompt-engineering.adoc[*Prompt engineering*], the craft of writing those instructions, is part of this layer.
 
-The next layer is *harness engineering*. This is the environment in which a model runs in. It controls the xref:garden::agent-loop.adoc[*agent loop*], executing tool calls on behalf of the model, placing guardrails around the model, and integrating sensors that deterministically check a model's output against quality requirements.
+The next layer is xref:garden::agent-harness.adoc[*harness engineering*]. This is the work of controlling the environment in which a model runs. The harness controls the xref:garden::agent-loop.adoc[*agent loop*], executing tool calls on behalf of the model, placing guardrails around the model, and integrating sensors that deterministically check a model's output against quality requirements.
 
-Beyond this, xref:garden::loop-engineering.adoc[*loop engineering*] is an optional engineering layer that facilitates *away-from-keyboard* invocation of AI tools, by building deterministic systems that run whole AI workflows autonomously. Loops typically run on schedules or are triggered by external events in a wider devops toolchain.
+Beyond this, xref:garden::loop-engineering.adoc[*loop engineering*] is an optional engineering layer that facilitates *away-from-keyboard* invocation of AI tools, by building deterministic systems that run whole AI workflows autonomously. Loops typically run on schedules or are triggered by external events in a wider DevOps toolchain.
 
 Each layer adds control over the one below it, and each sits progressively further from the model itself.
