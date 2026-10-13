@@ -56,6 +56,20 @@ Identify the dominant capability a task demands, then choose the cheapest tier t
 
 Where a task is split into steps, assign each step the cheapest tier that satisfies it. Use frontier models for planning, architecture decisions, complex problem-solving, security analysis, and architectural compliance review. In a xref:garden::multi-agent-system.adoc[*multi-agent system*], that is the role of the supervisor agent. Use mid-tier or light models for executing pre-approved plans, small-scale refactoring, and routine chores. In a multi-agent system, that is the role of the xref:garden::agent-memory.adoc#_subagent[*sub-agents*]. Once a frontier model has defined a precise, step-by-step path, cheaper models are usually capable of following it, at a fraction of the cost and latency.
 
+== Other selection criteria
+
+Capability and tier are not the only properties that separate one model from another. Check the following before committing to a model.
+
+* *Knowledge cutoff.* A model knows nothing about events after its training data was collected. A library released after that date, or an API changed after it, is unknown to the model or misremembered by it. Where the work depends on recent material, supply the current documentation in the context.
+
+* *Context window.* The context window caps how much code, documentation, and conversation history a model can take in on one inference call. A larger window admits a larger task, but output quality still degrades as the window fills.
+
+* *Modalities.* Not every model accepts images or other non-text input. Work that depends on screenshots, diagrams, or scanned documents needs a model that does.
+
+* *Data-handling terms.* Providers differ in how long they retain prompts, whether they train on them, and where they process them. Confirm that the provider's terms are acceptable for the class of data the model will see, before any of that data is sent.
+
+* *Version stability.* Most providers publish each model under a fixed, versioned identifier, and also under an alias that moves to the newest release. Unattended workflows and evals SHOULD use the fixed identifier, so that behavior does not change without a change on your side. Providers also retire old versions on a published schedule. Track the retirement notices for the models you depend on, and re-run your evals before moving to a replacement.
+
 == Capability versus trustworthiness
 
 A more capable model is not a more trustworthy one. Measured hallucination rates have been falling release over release, as model developers invest in curating training data, in post-training techniques, and, in some models, in an explicit "reflect and revise" step that lets a model reconsider part of its own output before returning it. None of this changes the underlying mechanism. A lower rate is not the absence of the failure mode, and the discipline of verification does not relax as the rate improves.
@@ -79,5 +93,7 @@ But running your own weights transfers work to you. You take on the xref:garden:
 == Benchmarks and leaderboards
 
 Public benchmarks and leaderboards (eg. SWE-bench for coding, Terminal-Bench for agentic terminal tasks, LiveBench for contamination-resistant general capability) are a useful first filter when comparing candidate models. Cross-provider trackers (eg. Artificial Analysis, OpenRouter rankings, LMArena) give a view across labs. They do not all measure the same thing. OpenRouter's rankings, for example, order models by the tokens processed through its API, which shows adoption and not capability. Check what a ranking measures before relying on it.
+
+Read a public score with three caveats. A model may have seen the benchmark's tasks in its training data, which inflates its score. A benchmark on which the leading models all score near the maximum no longer separates them. And many published scores are reported by the model's own vendor, measured with a harness and settings of the vendor's choosing.
 
 But public benchmarks are no substitute for evaluating candidate models against your own representative tasks.

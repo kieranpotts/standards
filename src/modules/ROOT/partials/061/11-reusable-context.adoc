@@ -33,6 +33,10 @@ It is RECOMMENDED, therefore, to maintain a single source-of-truth collection of
 
 Despite the current proliferation of conventions, the industry is slowly converging on two open conventions: `AGENTS.md` and skills files. It is RECOMMENDED to adopt both for your source files, and to compile and distribute artifacts for different harnesses from them.
 
+The transformation is often trivial. Where a harness reads a different file name, a one-line file that imports `AGENTS.md`, or a symbolic link to it, keeps a single source. Where a harness needs a different format, generate its files with a script that is committed to the repository and run in CI, so that a generated file cannot drift from its source.
+
+Harness-specific mechanisms, such as path-scoped rules, slash commands, and saved prompts, are not covered individually in this technical standard, because each harness defines them differently. The general best practices apply to all of them. Where a harness supports skills, prefer a skill to a proprietary mechanism that does the same job, because the skill is portable.
+
 == The AGENTS.md convention
 
 `AGENTS.md` is an open convention designed to give coding agents a predictable way to understand and operate on software projects. It emerged from a collaboration between the teams behind OpenAI Codex, Amp, Google's Jules, Cursor, and Factory, to replace the fragmentation of tool-specific instructions, and is now stewarded by the Agentic AI Foundation under the Linux Foundation.
@@ -40,6 +44,10 @@ Despite the current proliferation of conventions, the industry is slowly converg
 The format is documented at https://agents.md.
 
 `AGENTS.md` is a loose convention rather than a strict standard. Any Markdown is supported. The specification suggests common sections — project overview, dev environment, build/test commands, code style, security — but none are required. An agent reads the `AGENTS.md` file nearest to the file it is editing, and the closest one takes precedence. A monorepo can therefore place a nested `AGENTS.md` file in each subproject.
+
+Harnesses differ on whether a nested file replaces the files above it or is merged with them. Do not rely on a nested file to cancel an instruction given in a parent.
+
+Everything in `AGENTS.md` is loaded in every session, whether or not the task needs it. Keep the root file to what every session needs, and move instructions that apply to one subproject, or to one kind of task, into a nested file or a skill.
 
 `AGENTS.md` is widely supported, including by Codex, Cursor, Gemini CLI, GitHub Copilot's coding agent, and VS Code. (Some tools require opt-in via a configuration option or command-line flag.) The full list is published at https://agents.md. Claude Code is not on that list and reads `CLAUDE.md` instead. A `CLAUDE.md` file containing the single line `@AGENTS.md` imports the shared instructions.
 

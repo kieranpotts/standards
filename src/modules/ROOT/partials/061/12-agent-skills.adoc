@@ -15,7 +15,7 @@ xref:garden::agent-skills.adoc[*Skills*] are a complementary open convention for
 
 Whereas `AGENTS.md` provides a static, always-loaded orientation to the project as a whole, skills encapsulate specific procedures, standards, runbooks, and playbooks. They are loaded dynamically, when they become relevant to the task an agent is undertaking.
 
-The canonical specification lives at https://agentskills.io/specification.
+The canonical specification lives at https://agentskills.io/specification. The format was originally developed by Anthropic, which released it as an open standard, and it is open to contributions.
 
 == Workflows versus knowledge
 
@@ -81,6 +81,8 @@ This preference reflects a broader industry trend, sometimes called the _specs-t
 As noted under reusable context, agent harnesses are inconsistent in how they discover and load reusable context bundles. Most will load project-specific skills, but the expected location and naming of the files varies. The formal specification does not define a discovery path. The emerging convention is `.agents/skills/`, relative to the root of the project repository, but not all harnesses support this out-of-the-box.
 
 Most locally running harnesses also look for global skills in the user's home directory, in a harness-specific location and, increasingly, in `~/.agents/skills/`. This is useful for sharing common workflow skills across multiple projects.
+
+Where a project-level skill and a user-level skill share a name, existing harnesses give precedence to the project-level one. Give skills distinct names, so that nothing depends on this.
 
 Until the industry converges on universal standards, the location and naming of skills MUST be tailored to the conventions of the harnesses you use. See the https://github.com/JuliusBrussee/caveman/[Caveman] project for an example of how to install one set of source skills into the locations and formats that several mainstream harnesses auto-discover.
 
@@ -193,6 +195,14 @@ Editing that draft down — cutting anything that fails the "would the agent get
 *Synthesize from project artifacts.* When you have a body of existing knowledge, feed it into an LLM and ask it to synthesize a skill. Effective source material includes internal documentation, runbooks, and style guides; API specifications and configuration files; code review comments and issue trackers; version control history, especially patches and fixes; and real-world failure cases and their resolutions.
 
 A skill synthesized from your team's actual incident reports will outperform one generated from a generic "best practices" article, because it captures your specific failure modes and recovery procedures.
+
+== Testing skills
+
+A skill can fail in two ways. It can load at the wrong times, either staying out of context when it is needed or loading when it is not. And, once loaded, it can produce poor output. Test for both.
+
+*Test the description.* Write around twenty realistic prompts, half of which ought to activate the skill and half of which ought not to. The most useful negative cases are near-misses, which share vocabulary with the skill but need something else. Run each prompt several times, because activation is not deterministic, and record how often the skill loads. Hold some prompts back from the set you revise the description against, so that you can tell whether a revision generalizes.
+
+*Test the output.* Run each of a few realistic tasks twice, in fresh sessions, once with the skill and once without it, or with its previous version. Judge the results against assertions that can be checked objectively, and by reading the output yourself. A skill that does not beat its baseline costs tokens and adds nothing.
 
 == Effective instruction patterns
 
@@ -392,3 +402,5 @@ A skill is a set of instructions that the agent follows and, often, scripts that
 * Pin an installed skill to a specific version or commit, vendor it into the repository where practical, and review the diff before upgrading.
 
 * Check the skill's `allowed-tools` field and its scripts against least-privilege tool access.
+
+The same caution applies to skills that arrive inside a repository. A harness may load the project-level skills of a freshly cloned third-party project as readily as your own. Read them before running an agent in a repository you do not trust. Where a harness asks whether to trust a project folder, read them before answering.
