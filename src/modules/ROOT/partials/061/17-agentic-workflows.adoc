@@ -31,9 +31,9 @@ Beneath that sit four supporting objectives, each realized by practices describe
 
 * *Composability.* Each step in a workflow is a small, sharp tool with a well-defined interface, which any orchestrator — a human, a script, or an agent — can compose into new pipelines.
 
-* xref:garden::portability.adoc[*Portability*]. Shared workflow skills encode rules, not knowledge, staying technology- and domain-agnostic so they run unmodified across projects and across models.
+* xref:garden::portability.adoc[*Portability.*] Shared workflow skills encode rules, not knowledge, staying technology- and domain-agnostic so they run unmodified across projects and across models.
 
-* *Context economy.* The quality of a model's output degrades as its context window fills, so workflows are designed to keep each agent's context trim — through small increments of work, narrowly-scoped skills, and persisting distilled outputs to disk rather than carrying working state forward in-conversation.
+* *Context economy.* The quality of a model's output degrades as its context window fills, so workflows are designed to keep each agent's context trim — through small increments of work, narrowly scoped skills, and persisting distilled outputs to disk rather than carrying working state forward in-conversation.
 
 * *Earned autonomy.* As deterministic verification proves itself, fewer human checkpoints are needed in the loop. The long-term goal is production-grade code delivered from specifications ("specs-to-code") with minimal human involvement downstream.
 
@@ -45,7 +45,7 @@ Automation consists of static, rules-based processes. An automation script is de
 
 Agentic workflows are dynamic and reasoning-based. Rather than following a rigid script, an agent uses a probabilistic model to reason through a problem. It can handle ambiguity, adapt to unexpected outputs from tools, and devise new strategies on-the-fly to overcome obstacles.
 
-That flexibility is the flip side of determinism. Give an agent the same inputs in different sessions and you may get different outputs each time, whereas an automation script always produces the same result. So an agentic step is worth adding wherever judgment cannot be reduced to a deterministic rule — and nowhere else.
+That flexibility comes at the cost of determinism. Give an agent the same inputs in different sessions and you may get different outputs each time, whereas an automation script always produces the same result. So an agentic step is worth adding wherever judgment cannot be reduced to a deterministic rule — and nowhere else.
 
 Automation is about execution of a known path. Agentic workflows are about navigation toward a known goal.
 
@@ -65,7 +65,7 @@ Depending on the complexity of the task, agentic systems can be organized into d
 
 The simplest architecture is the linear flow: `TASK → AGENT → SOLUTION`.
 
-A single agent is responsible for the entire lifecycle of the task: planning, execution, and verification. This is the recommended starting point for most tasks, and it is highly effective where goals are well defined and scope is limited.
+A single agent is responsible for the entire lifecycle of the task: planning, execution, and verification. Starting with a single agent is RECOMMENDED for most tasks. It is highly effective where goals are well defined and scope is limited.
 
 === Multi-agent systems
 
@@ -79,15 +79,15 @@ The supervisor never sees the context of its sub-agents. It captures their respo
 
 This architecture models real-world organizational structures. It also reduces the likelihood of a single agent becoming overwhelmed by a massive context window or a too-broad objective.
 
-To optimize for both quality and cost, the roles take different model tiers. A frontier model fills the supervisor role, and smaller, faster, or locally hosted models fill the sub-agent roles that execute pre-approved plans.
+To optimize for both quality and cost, the roles take different model tiers. A frontier model fills the supervisor role, and mid-tier or light models, which may be self-hosted, fill the sub-agent roles that execute pre-approved plans.
 
 .Supervisor and sub-agents
 [mermaid]
 ....
 flowchart LR
   T[Task] --> S["Supervisor agent<br/>(frontier model)<br/>plans &amp; reviews"]
-  S -->|step-by-step plan| A["Sub-agent<br/>(efficient model)<br/>executes"]
-  S -->|step-by-step plan| B["Sub-agent<br/>(efficient model)<br/>executes"]
+  S -->|step-by-step plan| A["Sub-agent<br/>(mid-tier or light model)<br/>executes"]
+  S -->|step-by-step plan| B["Sub-agent<br/>(mid-tier or light model)<br/>executes"]
   A --> R[Result]
   B --> R
   R -->|verify| S
@@ -95,23 +95,23 @@ flowchart LR
 
 === When to upgrade to multi-agent
 
-Single-agent systems are the recommended default. Upgrading to a multi-agent architecture introduces coordination overhead — aggregating results, reconciling conflicting outputs, orchestrating handoffs — so it SHOULD be a deliberate response to a specific limitation, not a default posture. Reasons to upgrade include.
+Single-agent systems are the RECOMMENDED default. Upgrading to a multi-agent architecture introduces coordination overhead — aggregating results, reconciling conflicting outputs, orchestrating handoffs — so it SHOULD be a deliberate response to a specific limitation, not a default posture. Reasons to upgrade include.
 
-* *Context management*: A single agent's context window fills with exploratory dead ends, tool output, and reasoning traces as a task grows. Splitting work across sub-agents keeps each agent's context focused on its own sub-task, improving reasoning quality and avoiding degradation as context grows.
+* *Context management.* A single agent's context window fills with exploratory dead ends, tool output, and reasoning traces as a task grows. Splitting work across sub-agents keeps each agent's context focused on its own sub-task, improving reasoning quality and avoiding degradation as context grows.
 
-* xref:garden::parallelism.adoc[*Parallelism*]: Independent sub-tasks — eg. reviewing multiple files, or running security, performance, and style checks — can execute concurrently across sub-agents rather than serially in one agent, reducing wall-clock time.
+* xref:garden::parallelism.adoc[*Parallelism.*] Independent sub-tasks — eg. reviewing multiple files, or running security, performance, and style checks — can execute concurrently across sub-agents rather than serially in one agent, reducing wall-clock time.
 
-* *Specialization*: Different sub-tasks may benefit from different models or tool access, eg. an efficient model for mechanical execution versus a frontier model for planning, or a sub-agent restricted to only the tools its role requires, tightening the permission surface.
+* *Specialization.* Different sub-tasks may benefit from different models or tool access, eg. a light model for mechanical execution versus a frontier model for planning, or a sub-agent restricted to only the tools its role requires, tightening the permission surface.
 
-* *Fault isolation*: A sub-agent that goes off track — through flawed reasoning or runaway tool use — is contained to its own sub-task. It can be retried or discarded without corrupting the context or state of the overall task, whereas a single agent's error compounds into everything downstream in the same session.
+* *Fault isolation.* A sub-agent that goes off track — through flawed reasoning or runaway tool use — is contained to its own sub-task. It can be retried or discarded without corrupting the context or state of the overall task, whereas a single agent's error compounds into everything downstream in the same session.
 
-* *Independent verification*: An agent reviewing another agent's output needs fresh context, uncontaminated by the implementer's reasoning, to judge that output fairly rather than sycophantically.
+* *Independent verification.* An agent reviewing another agent's output needs fresh context, uncontaminated by the implementer's reasoning, to judge that output fairly rather than sycophantically.
 
-* xref:garden::reusability.adoc[*Reusability*]: A well-scoped sub-agent (eg. a "Security Auditor" agent) becomes a composable unit that other workflows can invoke, not only the supervisor that first defined it.
+* xref:garden::reusability.adoc[*Reusability.*] A well-scoped sub-agent (eg. a "Security Auditor" agent) becomes a composable unit that other workflows can invoke, not only the supervisor that first defined it.
 
 == Sensors in the pipeline
 
-Guides and sensors, and the difference between deterministic and inferential controls. This section covers how sensors are placed in a workflow.
+This section covers where sensors are placed in a workflow.
 
 Sensors regulate agent output at multiple levels, including code quality (maintainability, style, complexity); architectural fitness (performance, scalability, observability); and behavioral correctness (whether the system meets its requirements).
 
@@ -131,9 +131,9 @@ A recurring failure mode in agentic systems is the xref:garden::runaway-loop.ado
 
 Guarding against this requires a hard guide and a soft guide, working together.
 
-* *Tool quotas* (enforced): A hard cap, configured in the agent harness, on how many times a given tool may be called within an agent run. The harness counts each invocation and blocks any call that would exceed the limit, returning an error instead. Because this is enforced by the runtime rather than the model, it is a reliable backstop against runaway loops regardless of what the model does. This is a permission constraint, applied to call frequency rather than to which tools are accessible. The quota holds only if it is enforced at the orchestrator, not left to each agent's own budget, because an agent can otherwise get around a quota on itself by spawning sub-agents, each with its own fresh budget.
+* *Tool quotas.* An enforced hard cap, configured in the agent harness, on how many times a given tool may be called within an agent run. The harness counts each invocation and blocks any call that would exceed the limit, returning an error instead. Because this is enforced by the runtime rather than the model, it is a reliable backstop against runaway loops regardless of what the model does. This is a permission constraint, applied to call frequency rather than to which tools are accessible. The quota holds only if it is enforced at the orchestrator, not left to each agent's own budget, because an agent can otherwise get around a quota on itself by spawning sub-agents, each with its own fresh budget.
 
-* *Budget awareness* (advisory): A behavioral instruction, stated in the system prompt, that tells the agent what quotas apply to it, eg. "you have 15 web searches available for this task". An agent that knows its budget can ration its tool use, working more conservatively as it approaches the limit. An agent with no visibility into its quotas has no reason to conserve, and will treat the hard cap as a wall it hits unexpectedly rather than a constraint it plans around.
+* *Budget awareness.* An advisory behavioral instruction, stated in the system prompt, that tells the agent what quotas apply to it, eg. "you have 15 web searches available for this task". An agent that knows its budget can ration its tool use, working more conservatively as it approaches the limit. An agent with no visibility into its quotas has no reason to conserve, and will treat the hard cap as a wall it hits unexpectedly rather than a constraint it plans around.
 
 Hard quotas alone are not enough, because an agent that does not know its budget cannot plan around it and will exhaust it unproductively. Soft budgets alone are not enough either, because advisory limits stated only in the prompt can be ignored or miscounted by the model. The two layers address different failure modes and SHOULD be used together.
 
@@ -145,6 +145,7 @@ An effective agentic workflow is a pipeline of agentic steps plus automated (scr
 
 Agentic steps do the reasoning-heavy work, while scripted steps — the deterministic sensors — catch failure modes and either feed back to an earlier step or escalate to a human.
 
+.A pipeline of agentic and scripted steps
 [mermaid]
 ....
 flowchart LR
@@ -192,7 +193,7 @@ For high-stakes analytical steps, an even stronger pattern is to run two models 
 
 == Persistence
 
-The input/output contract described above only decouples steps in the abstract. In practice, that decoupling holds only if a step's output outlives the session that produced it.
+The input/output contract only decouples steps in the abstract. In practice, that decoupling holds only if a step's output outlives the session that produced it.
 
 For one step in a pipeline to hand off to the next — whether that is a different agent, a different session, or a deterministic script — the step's output MUST be persisted to a durable store, not merely held in the conversation. An agent that finishes a planning step and writes its decisions to a plan document has produced something the next agent, in a fresh session with an empty context window, can read and act on.
 
@@ -204,7 +205,7 @@ A version control system like Git is the preferred substrate for this persistenc
 
 * Everything stays together, rather than being scattered across wikis, trackers, and shared filesystems.
 
-* Every artifact gets durability, diff-ability, and an audit trail for free, plus a stable path other steps can address it by. Rollback is built-in.
+* Every artifact gets durability, diff-ability, and an audit trail, plus a stable path other steps can address it by. Rollback is built-in.
 
 * Existing automation integrates easily — for example, a CI system can apply deterministic verification directly to agent output.
 
@@ -245,8 +246,6 @@ Concrete success criteria require imposing an opinion. You can only verify somet
 Where success criteria are recorded as a backlog the agent itself works through — a list of items each carrying a pass/fail status — that backlog MUST be treated as data the agent is graded against, not data it is trusted to maintain. An agent that can edit its own success criteria can satisfy them two ways: by finishing the work, or by narrowing, deleting, or marking-complete the item that describes it, and the two look identical from outside the session. Gate the write path to that backlog the same way any other output is gated — through review, a diff check, or a hook that blocks changes to the criteria file from the same session that is trying to satisfy it — so that "done" cannot be established by a change to the yardstick as well as by a change to the work.
 
 An agentic workflow, including a loop, MAY commit its output to a working branch with no human in the path. Merging that output into the trunk, or releasing it, MUST require approval from a human, except where the workflow has earned autonomy for that class of change. Autonomy is earned when executable acceptance criteria cover the change, an error is bounded and reversible, and a record exists of repeated changes of that class that passed review without rework. The owner of the workflow decides whether it has been earned, and SHOULD record the decision.
-
-Directed this way — toward well-defined problems, with clear criteria and rigorous oversight — developers move faster and make better decisions, for instance by using AI to explore more options before committing to one path.
 
 == Specification-driven development
 
