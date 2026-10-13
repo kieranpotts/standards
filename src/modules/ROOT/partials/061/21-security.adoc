@@ -32,6 +32,8 @@ Mitigations include.
 
 * Prefer human confirmation before irreversible actions — file deletion, outbound messages, code execution, financial transactions — especially when the agent has processed external content.
 
+* Review what an agent writes to persistent memory and to instruction files after any session that processed untrusted content. A poisoned note is reloaded in every later session.
+
 * Audit agent execution traces — ie. the session transcript — when tasks involve untrusted sources.
 
 == The lethal trifecta
@@ -55,6 +57,8 @@ Assume prompt injection will always be a risk. The practical defense is to break
 * Withhold access to sensitive data.
 * Isolate the agent from untrusted input.
 * Cut off external communication.
+
+Unattended workflows are where this matters most. An agent that triages incoming issues, or reviews pull requests from forks, in a CI job reads untrusted text, and the job usually holds repository credentials and network access. That is the whole trifecta, with no human to see it happen. For such a workflow, cut at least one part by construction: give the job a read-only token and no secrets, limit network egress to an allowlist, and have the agent propose its output, such as a label or a comment, for a deterministic step or a human to apply, rather than act on its own.
 
 == Isolation
 
@@ -94,7 +98,11 @@ Models are large binary files that encode learned behaviors. Treat them with the
 
 Only download models from official or well-known repositories. Do not use untrusted models to process sensitive data. Test unfamiliar models in an isolated environment before introducing them to regular workflows.
 
+Prefer weight formats that cannot execute code on load, such as safetensors and GGUF, to formats built on Python's pickle serialization, which include many legacy `.pt`, `.pth`, and `.bin` checkpoints. A pickle file can run arbitrary code when it is loaded. Where a pickle-based model has to be loaded, treat it as untrusted code, and load it in an isolated environment.
+
 The same scrutiny applies to everything else that is loaded into an agent from outside the project, including MCP servers and skills, rules files, and plugins.
+
+It applies to the harness configuration inside a repository, too. Hooks, MCP server definitions, and permission settings that a repository commits are applied by the harness when it opens that repository, and a hook is an arbitrary program. A cloned repository can therefore run its author's code. Read the harness configuration of a repository you do not trust before running an agent in it, and where the harness asks whether to trust the project folder, read it before answering.
 
 == Data confidentiality
 

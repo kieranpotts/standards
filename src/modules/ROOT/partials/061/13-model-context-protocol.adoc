@@ -11,7 +11,7 @@ Agents become useful when they can reach beyond the model — reading and writin
 
 Historically, each tool or data source required bespoke integration code written against a specific agent or harness. Then the *Model Context Protocol (MCP)* came along. It is an open standard, introduced by Anthropic in late 2024 and donated in December 2025 to the Agentic AI Foundation, part of the Linux Foundation, that defines how models, via agent harnesses, communicate with external tools and data sources.
 
-MCP is a client-server protocol. An *MCP server* exposes a set of tools and resources. An *MCP client* — typically an agent harness, or another AI application with a model at its core — connects to one or more MCP servers and uses their tools to fulfill tasks.
+MCP is a client-server protocol. An *MCP server* exposes a set of tools, resources, and prompts. An *MCP client* — typically an agent harness, or another AI application with a model at its core — connects to one or more MCP servers and uses their tools to fulfill tasks.
 
 A single MCP client can connect to many MCP servers at once, giving it a large, composable action space. This makes MCP particularly relevant to agentic workflows.
 
@@ -55,6 +55,8 @@ Apply the principle of least privilege at two levels.
 
 Data returned by an MCP server — web pages, file contents, API responses — is external content and a vector for indirect prompt injection. A trusted server can still relay untrusted content.
 
+A server can also make requests of the client. The protocol lets a server ask the client's model for a completion (sampling) and ask the user for input (elicitation), which reverses the direction of trust. Treat such a request as untrusted input. Require human approval for sampling requests. The specification forbids a server from using elicitation to request sensitive information, so treat one that asks for a password, key, or token as hostile.
+
 Treat the output of any server that fetches content from outside your control as untrusted, and audit the xref:garden::agent-transcript.adoc[*session transcript*] of tasks that use such servers.
 
 == Tool definitions are an attack surface
@@ -69,13 +71,15 @@ These are the same class of problem as indirect prompt injection, moved from too
 
 * Review an MCP server's tool definitions, not only its results, before connecting it. And re-review them after an upgrade, since a description can change without any change to a tool's observable behavior.
 
+* Pinning a version works only for a server you install. A remote server can change its tool definitions at any time, with no upgrade on your side. Record the definitions you have approved, using a harness or gateway that supports this where one is available, and treat a change as a new server to be reviewed.
+
 * Be wary of connecting multiple MCP servers whose tools share names or overlapping responsibilities.
 
 * Combined with least-privilege access, a poisoned or lookalike tool can still only reach what the agent's credentials and connected tools permit.
 
 == Transport and network exposure
 
-MCP servers may run locally (communicating over stdio) or remotely (over HTTP). Local MCP servers avoid network exposure entirely and SHOULD be preferred where the tool can run on the same host as the agent.
+MCP servers may run locally (communicating over stdio) or remotely (over HTTP). Local MCP servers avoid exposing a network endpoint and SHOULD be preferred where the tool can run on the same host as the agent. The trade-off is that a local server is code running on the host with the user's own privileges, with nothing between it and the user's files and credentials except the harness's own controls. A local server from a source you do not trust needs a sandbox as well as the supply-chain scrutiny above. A vendor-operated remote server runs on the vendor's machines, but receives whatever the agent sends it.
 
 Remote MCP servers MUST authenticate their clients and MUST use encrypted transport. An unauthenticated MCP server MUST NOT be exposed on a public network interface — the same network-exposure discipline that applies to local model servers applies here too.
 
