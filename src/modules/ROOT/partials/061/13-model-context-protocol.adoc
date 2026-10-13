@@ -19,13 +19,25 @@ Where an agent has to be connected to external tools or data through a service, 
 
 MCP is not the only proposal in this space. Google's xref:garden::agent2agent.adoc[*A2A (Agent-to-Agent)*], also a Linux Foundation project, is complementary rather than an alternative. It connects agents to each other, where MCP connects an agent to tools. The rest of this section is concerned with MCP specifically.
 
+== Choosing an integration mechanism
+
+MCP is one of three ways to give an agent a capability, and it is not always the right one.
+
+* *A command-line tool* that the agent calls through its shell costs no context until it is used, and the agent learns its interface from `--help`. Prefer it where a suitable tool already exists, the agent has shell access, and the tool's credentials are already available in the environment. Models know the common command-line tools, eg. `git`, from their training data.
+
+* *A skill with a bundled script* suits a procedure that is specific to the project, where the agent needs instructions on when and how to run the script as well as the script itself. Only the skill's name and description are in context until the skill is activated.
+
+* *An MCP server* suits a capability that must work for agents without shell access, that needs its own authentication and authorization, that holds state or a connection between calls, or that is shared by many clients and harnesses. It pays for this with tool definitions that are loaded on every inference call.
+
+Choose the mechanism with the lowest standing context cost that meets the need.
+
 == Treat MCP servers as dependencies
 
 An MCP server is third-party code that runs with access to your tools, data, and actions. It MUST be treated with the same scrutiny as any other software dependency, and the normal supply-chain cautions apply. A malicious or compromised MCP server is a vector for xref:garden::data-exfiltration.adoc[*data exfiltration*]. It can transmit any data the agent can reach to an unauthorized destination, and take any action its tools permit.
 
 Prefer official or well-known MCP servers. Review the source of community-provided servers before connecting them.
 
-Pin MCP server versions where possible, and review changes before upgrading.
+MCP server versions SHOULD be pinned where possible, and changes reviewed before upgrading.
 
 Test unfamiliar MCP servers in an isolated environment before introducing them to regular workflows.
 
@@ -39,19 +51,11 @@ Apply the principle of least privilege at two levels.
 
 * *Credential scope.* Scope each MCP server's own credentials to the minimum required. For example, read-only database access where writes are not needed.
 
-Review connected MCP servers and enabled tools before starting a task, not only when first configuring the harness. A connection set appropriate for one task may be excessive for the next.
-
 == Tool results are untrusted input
 
-Data returned by an MCP server — web pages, file contents, API responses — is external content and a vector for indirect prompt injection.
+Data returned by an MCP server — web pages, file contents, API responses — is external content and a vector for indirect prompt injection. A trusted server can still relay untrusted content.
 
-An agent cannot reliably distinguish data it SHOULD process from instructions it SHOULD follow. Therefore.
-
-* Treat all tool output as data, not instructions.
-
-* Prefer human confirmation before irreversible actions taken through MCP tools — file deletion, outbound messages, code execution, financial transactions — especially when the agent has just processed external content.
-
-* Audit agent execution traces — the xref:garden::agent-transcript.adoc[*session transcript*] — when tasks involve servers that fetch untrusted data.
+Treat the output of any server that fetches content from outside your control as untrusted, and audit the xref:garden::agent-transcript.adoc[*session transcript*] of tasks that use such servers.
 
 == Tool definitions are an attack surface
 
@@ -63,9 +67,9 @@ Tool results are not the only untrusted content an MCP server supplies. Its tool
 
 These are the same class of problem as indirect prompt injection, moved from tool output to tool metadata, and the same mitigations apply, reinforced by supply-chain discipline.
 
-* Review an MCP server's tool definitions, not only its results, before connecting it. And re-review them after an upgrade, since a description can change without any change to a tool's observable behavior. (This is why MCP server versions SHOULD be pinned.)
+* Review an MCP server's tool definitions, not only its results, before connecting it. And re-review them after an upgrade, since a description can change without any change to a tool's observable behavior.
 
-* Prefer official or well-known MCP servers, and be wary of connecting multiple MCP servers whose tools share names or overlapping responsibilities.
+* Be wary of connecting multiple MCP servers whose tools share names or overlapping responsibilities.
 
 * Combined with least-privilege access, a poisoned or lookalike tool can still only reach what the agent's credentials and connected tools permit.
 
@@ -92,15 +96,3 @@ The first mitigation is to connect fewer MCP servers. Three more are available.
 * Use deferred tool loading where the harness supports it. The harness then holds back tool definitions and loads each one only when the agent searches for it.
 
 * Replace an MCP server that is used rarely with a mechanism that has no standing context cost.
-
-== Choosing an integration mechanism
-
-MCP is one of three ways to give an agent a capability, and it is not always the right one.
-
-* *A command-line tool* that the agent calls through its shell costs no context until it is used, and the agent learns its interface from `--help`. Prefer it where a suitable tool already exists, the agent has shell access, and the tool's credentials are already available in the environment. Models know the common command-line tools, eg. `git`, from their training data.
-
-* *A skill with a bundled script* suits a procedure that is specific to the project, where the agent needs instructions on when and how to run the script as well as the script itself. Only the skill's name and description are in context until the skill is activated.
-
-* *An MCP server* suits a capability that must work for agents without shell access, that needs its own authentication and authorization, that holds state or a connection between calls, or that is shared by many clients and harnesses. It pays for this with tool definitions that are loaded on every inference call.
-
-Choose the mechanism with the lowest standing context cost that meets the need.

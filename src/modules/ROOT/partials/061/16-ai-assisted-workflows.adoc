@@ -7,7 +7,7 @@
 * A second human MUST approve the change wherever peer review is required of human-written code.
 ****
 
-This section covers the second of the three ways of working with AI: the synchronous one, in which the human developer drives, the AI assists, and every change is reviewed by hand. Agentic workflows are covered in the next section.
+This section covers the second of the three ways of working with AI: the synchronous one, in which the human developer drives, the AI assists, and every change is reviewed by hand. It follows a change through planning, implementation, testing, review, and retrospective phases. Agentic workflows are covered in the next section.
 
 The most effective approach to AI-assisted development is to split complex tasks into distinct planning and implementation phases, and to match the model tier to each. Frontier models plan code changes better than cheaper models, which are usually capable of executing the approved plan. This optimizes output quality while reducing subscription costs.
 
@@ -27,6 +27,8 @@ For large-scale or complex changes, document AI-assisted design decisions for te
 
 When using AI for code generation, provide clear, specific prompts based on pre-approved execution plans.
 
+Before implementation begins, it is often worth asking the agent to restate the task in its own words — what it understands the requirement to be, and how it plans to satisfy it — before it writes any code. This costs a small amount of context and catches a misunderstanding while it is still cheap to correct, rather than after a wrong implementation has been produced and must be reviewed, rejected, and re-explained.
+
 Define coding standards, style guides, and architectural conventions as concise, reusable prompt inputs.
 
 Ask the AI to implement execution plans incrementally, generating code in small, stable, independently-deployable increments. Incremental changes are easier to review and test than a single "big bang" changeset.
@@ -45,9 +47,7 @@ Use version control to track changes to AI-generated code, and to provide a reli
 
 When an agent gets stuck, avoid contaminating the context with irrelevant information. Instead, ask directly: "What information do you need that would let you implement this perfectly right now?" This forces the agent to identify its own knowledge gaps rather than flailing blindly.
 
-Before implementation begins, it is often worth asking the agent to restate the task in its own words — what it understands the requirement to be, and how it plans to satisfy it — before it writes any code. This costs a small amount of context and catches a misunderstanding while it is still cheap to correct, rather than after a wrong implementation has been produced and must be reviewed, rejected, and re-explained.
-
-Where an agent remains stuck after repeated correction, the better move is often not to keep correcting it in the same session. A conversation that has accumulated several rounds of misunderstanding carries that history forward as context the agent keeps re-consulting, which is a different failure from context rot but has a similar effect: the earlier confusion pollutes every subsequent attempt. Start a fresh session, with a single prompt informed by what the failed attempts revealed was missing, rather than layering further corrections onto a conversation that has already gone wrong.
+Where an agent remains stuck after repeated correction, start a fresh session rather than layering further corrections onto a conversation that has already gone wrong. Write a single prompt informed by what the failed attempts revealed was missing.
 
 == Testing phase
 
@@ -63,7 +63,7 @@ Taking a test-driven approach to AI-assisted development is RECOMMENDED where fe
 
 Prefer high-level tests such as end-to-end system tests and integration tests. This approach is more reliable and supports AI-assisted refactoring better than unit tests alone.
 
-=== Reviewing AI-authored changes
+== Review phase
 
 An AI tool produces code faster than a person can review it, so review becomes the constraint on throughput. Manage that constraint deliberately. Do not let the quality of review fall to match the volume of code.
 
@@ -81,7 +81,7 @@ After implementing a new feature or fixing a bug, ask the AI to propose updates 
 
 Agents, like humans, have a limited working memory. They cannot reliably learn from experience across sessions unless that learning is explicitly documented. And when an agent gets stuck, context matters greatly in finding a way forward. So it helps to give agents a record of how past bugs were fixed and features implemented. Future instances can then reference those solutions instead of reinventing them every time. The record is subject to the limits in reusable context: keep it minimal, prune it regularly, and do not let it grow into an ever-lengthening log.
 
-Best practice is to keep an `AGENTS.md` file in the root directory of your project, linking from it the files documenting context the agent SHOULD have access to. Link to an index or pointer, rather than every file, so the agent loads detail just in time (see just-in-time retrieval). Typical contents include:
+Record these notes in files that the project's `AGENTS.md` links to, not in the root file itself, which holds only what every session needs. Typical contents include:
 
 * Solutions to problems the agent previously encountered.
 * Technical decisions and their rationale.
