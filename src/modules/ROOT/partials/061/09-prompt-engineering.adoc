@@ -6,6 +6,8 @@
 * Long prompts MUST be well structured.
 ****
 
+This section and the next cover the context engineering layer of the AI engineering stack.
+
 xref:garden::prompt-engineering.adoc[*Prompt engineering*] is the practice of crafting effective input xref:garden::prompt.adoc[*prompts*]. It is a subset of context engineering, which concerns the entire context passed to a model. Inference parameters shape _how_ a model samples its output. The prompt shapes _what_ it is trying to be.
 
 == Writing effective prompts
@@ -16,7 +18,7 @@ Prompts SHOULD also be pitched at the optimum level of specificity, and there is
 
 The optimum is specific enough to guide behavior effectively, and flexible enough to leave the model with strong heuristics rather than brittle rules.
 
-Prompts MUST be token-efficient. This matters most for skills, rules, instructions, and other reusable prompt components, which are loaded repeatedly. Keep them concise and focused on the most critical information, so they do not crowd out other high-signal context in the window. Best practice is to start with the minimum prompt needed to describe the expected behavior, and to add instructions only to address specific failure modes observed in testing.
+Prompts MUST be token-efficient. This matters most for prompt components that are reused across sessions, which are loaded repeatedly. Keep them concise and focused on the most critical information, so they do not crowd out other high-signal context. Best practice is to start with the minimum prompt needed to describe the expected behavior, and to add instructions only to address specific failure modes observed in testing.
 
 Long prompts MUST be well structured. It is RECOMMENDED to organize prompts into distinct sections, like.
 
@@ -29,6 +31,8 @@ Long prompts MUST be well structured. It is RECOMMENDED to organize prompts into
 ----
 
 Use XML-style tags, as here, or Markdown headings to delineate sections. The exact formatting is likely to get much less important as models become more capable.
+
+Providing examples of the desired behavior in the prompt is known as *few-shot prompting*. It is RECOMMENDED to curate a set of diverse, canonical examples, but not to overload the context with an exhaustive enumeration of edge cases. If you direct the model to what it _should_ do, there is no need to overburden it with what it should _not_ do.
 
 A useful test for whether a prompt is too vague: could the same question be asked, unchanged, about a dozen unrelated problems? "Why isn't my code working?" fails that test — it fits any bug in any language, so it carries no signal the model can act on. A prompt that names the specific behavior, the specific input, and the specific deviation from what was expected passes, because it could only be asked about this one problem. Failing the test is a reliable signal to add context, not to retry the same prompt or switch models.
 
@@ -44,17 +48,15 @@ A language model will play whatever role you give it. Cast it as a skeptical sec
 
 The same property has a shadow. Because the model adopts whatever stance the context implies, and because its default lean is toward agreement, it is prone to *sycophancy*: telling you what it infers you want to hear rather than what is true. Ask "is this a good design?" and the framing itself invites a yes. Assert a premise confidently and the model will tend to build on it rather than challenge it — adopting the narrative you bring and returning answers that fit it, so that a mistaken assumption is confirmed rather than caught. Push back on a correct answer and it will too readily fold. The model is not being dishonest. It is doing exactly what it always does — matching the role the context implies — and the context implied that your approval was the goal.
 
-Sycophancy is corrosive precisely where a model is otherwise most valuable: as a thinking companion that challenges your reasoning. A companion that agrees with everything reflects your blind spots straight back at you. The value of an "alien" mind is lost the moment it is prompted into a mirror.
-
 === Defining a persona
 
-The discipline that addresses this is deliberate *persona definition*: stating, as part of the prompt or the reusable context, the role the model is to occupy, the stance it is to take, and the standards it is to hold the work to. A few principles apply.
+The discipline that addresses this is deliberate *persona definition*: stating, as part of the prompt, or of instructions that are reused across sessions, the role the model is to occupy, the stance it is to take, and the standards it is to hold the work to. A few principles apply.
 
 * *Assign a role explicitly.* Name the expertise and the perspective you want — "a security engineer reviewing this diff for injection and authorization flaws", not "review this diff". The more specific the role, the more sharply the model's attention is focused on the concerns that role carries.
 
 * *Prompt for the stance, not the verdict.* Ask the model to find what is wrong, to argue the opposing case, or to identify the weakest assumption — rather than asking whether something is good. Frame the task so that agreement is not the path of least resistance. "What would break this?" elicits better work than "does this look right?".
 
-* *State the standards to judge against.* A persona is sharper when it is told what "good" means — the conventions, the threat model, the acceptance criteria. This is where persona definition meets reusable context: durable role and standards definitions belong in project instructions and skills, not retyped each session.
+* *State the standards to judge against.* A persona is sharper when it is told what "good" means — the conventions, the threat model, the acceptance criteria. Durable role and standards definitions belong in instructions that are reloaded in every session, not retyped each time.
 
 * *Do not confuse persona with truth.* A role makes the model reason in a register; it does not make the model correct. A model told it is an expert is not more expert — it is only more likely to _sound_ like one, which can make its hallucinations more convincing. Persona improves the framing of the work; it does not remove the need to verify the output.
 
@@ -62,6 +64,6 @@ An adversarial persona is a partial defense against sycophancy, but only a parti
 
 == A discipline of diminishing, but not vanishing, returns
 
-A fully-specified, step-by-step prompt — a plan the model merely executes — produces predictable output, but at the cost of the model's own contribution: told exactly what to do, there is nothing left for it to bring beyond transcription. Frontier models are increasingly capable of inferring intent from a looser prompt, asking a clarifying question where the request is ambiguous rather than guessing, which narrows the gap between a carefully engineered prompt and an ordinary one. Expect that trend to continue, and do not over-invest in upfront prompt design for interactive sessions as a result — the marginal return on crafting the perfect first prompt is falling as models get better at meeting you where you are. This applies where you are present to correct course. For asynchronous, unattended work, nobody is there to ask or redirect, and the up-front investment described under choosing interfaces still applies.
+A fully-specified, step-by-step prompt — a plan the model merely executes — produces predictable output, but at the cost of the model's own contribution: told exactly what to do, there is nothing left for it to bring beyond transcription. Frontier models are increasingly capable of inferring intent from a looser prompt, asking a clarifying question where the request is ambiguous rather than guessing, which narrows the gap between a carefully engineered prompt and an ordinary one. Expect that trend to continue, and do not over-invest in upfront prompt design for interactive sessions as a result — the marginal return on crafting the perfect first prompt is falling as models get better at meeting you where you are. This applies where you are present to correct course. For asynchronous, unattended work, nobody is there to ask or redirect, and the up-front investment that asynchronous work requires still applies.
 
 What does not diminish is *iteration*. A single well-crafted prompt is a bet placed once. A short back-and-forth is a bet placed repeatedly, adjusted by what the model shows you each round. Treating a model as a fast, tireless collaborator for rapid refinement — rather than an oracle to be prompted correctly on the first attempt — gets more reliable results than front-loading all the effort into initial prompt engineering, and it is a lower-effort default besides.

@@ -17,7 +17,7 @@ Whereas `AGENTS.md` provides a static, always-loaded orientation to the project 
 
 The canonical specification lives at https://agentskills.io/specification.
 
-== Scope
+== Workflows versus knowledge
 
 An emerging best practice, for skills that are shared across projects, is to use them to define a small set of common workflow steps, and to keep knowledge — standards, policies, constraints, domain models — in separate reference documents that each project supplies on demand.
 
@@ -35,6 +35,8 @@ Pulling knowledge dynamically also keeps agentic workflows evergreen. And the se
 == Single responsibility
 
 A skill SHOULD have exactly one responsibility — one coherent unit of work, typically a single step in a workflow — and stop at a well-defined boundary, rather than reaching into adjacent work even where doing so would be convenient.
+
+When scoping a skill, aim for a coherent unit of work — analogous to how you would scope a well-designed function. Too narrow a scope forces the agent to load multiple skills for a single step in a workflow, increasing overhead and the risk of conflicting instructions. Too broad a scope makes precise activation harder and dilutes the signal-to-noise ratio of the content. A skill that queries a database and formats results is likely a coherent unit. One that also covers database administration is probably too broad.
 
 In particular, a skill SHOULD NOT combine _evaluation_ and _implementation_. A skill that analyzes and reports findings — a review, an audit, a proofread — SHOULD be distinct from a skill that enacts a change — a fix, a migration, a refactor. A skill that reviews a pull request SHOULD NOT also apply the fixes it recommends.
 
@@ -118,7 +120,7 @@ OPTIONAL fields include.
 
 * `metadata`: Arbitrary key-value pairs.
 
-* `allowed-tools`: A space-separated list of tools that are pre-approved to be run by the agent — currently experimental.
+* `allowed-tools`: A space-separated list of tools that are pre-approved to be run by the agent — currently experimental. A skill MUST NOT be granted tools that its stated purpose does not need.
 
 Individual tools support additional proprietary fields, too. You may wish to optimize your skills metadata for the capabilities of your chosen harness — see, for example, https://github.com/anthropics/skills/[Anthropic's] and https://code.visualstudio.com/docs/copilot/customization/agent-skills[VS Code's] documentation for agent skills.
 
@@ -174,27 +176,23 @@ A common pitfall is asking an LLM to auto-generate a skill without giving it any
 
 A useful concrete test for every instruction in a skill is the question: "Would the agent get this wrong without this instruction?" If not, cut it.
 
-Think of a well-crafted skill as the onboarding document you would write for a qualified new employee. Include only what they cannot independently discover: domain knowledge, edge cases, internal conventions, and product philosophy. Universal best practices that a capable agent already knows add token cost without adding value.
-
-When scoping a skill, aim for a coherent unit of work — analogous to how you would scope a well-designed function. Too narrow a scope forces the agent to load multiple skills for a single step in a workflow, increasing overhead and the risk of conflicting instructions. Too broad a scope makes precise activation harder and dilutes the signal-to-noise ratio of the content. A skill that queries a database and formats results is likely a coherent unit. One that also covers database administration is probably too broad.
+Think of a well-crafted skill as the onboarding document you would write for a qualified new employee. Include only what they cannot independently discover: domain knowledge, edge cases, internal conventions, and product philosophy.
 
 Aim for moderate detail rather than exhaustive coverage. Overly comprehensive skills hurt more than they help, because the agent struggles to extract what is relevant and may pursue unproductive paths. Concise stepwise guidance with a working example tends to outperform exhaustive documentation. When you find yourself wanting to cover every edge case, consider whether most are better left to model judgment.
 
 == Creating skills
 
-Effective skills are grounded in real expertise. Three approaches are RECOMMENDED.
+Effective skills are grounded in real expertise. Two approaches are RECOMMENDED.
 
-*Extract knowledge from a hands-on task.* Complete a real task in conversation with an agent, providing context, corrections, and preferences along the way. Pay attention to the sequence of actions that led to success, the corrections you made, the input and output formats, and the project-specific context you had to supply that the agent didn't already know. Then crystallize that experience into a new skill, for reuse next time you tackle the same problem.
-
-*Synthesize from project artifacts.* When you have a body of existing knowledge, feed it into an LLM and ask it to synthesize a skill. Effective source material includes internal documentation, runbooks, and style guides; API specifications and configuration files; code review comments and issue trackers; version control history, especially patches and fixes; and real-world failure cases and their resolutions.
-
-A skill synthesized from your team's actual incident reports will outperform one generated from a generic "best practices" article, because it captures your specific failure modes and recovery procedures.
-
-*Have the agent draft its own skill.* An agent can be instructed, at the end of a session, to distill what it just learned into a new or updated skill — a workflow it worked out, corrections it received, project-specific facts it had to be told. This captures reusable context that would otherwise be lost when the session ends. It complements the two approaches above rather than replacing them, because the agent has direct access to the session's corrections and context in a way that a human reconstructing it from memory does not.
+*Extract knowledge from a hands-on task.* Complete a real task in conversation with an agent, providing context, corrections, and preferences along the way. Pay attention to the sequence of actions that led to success, the corrections you made, the input and output formats, and the project-specific context you had to supply that the agent didn't already know. Then crystallize that experience into a new skill, for reuse next time you tackle the same problem. The agent can write the first draft. Instructed at the end of the session to distill what it learned into a new or updated skill — a workflow it worked out, corrections it received, project-specific facts it had to be told — it captures reusable context that would otherwise be lost when the session ends, and it has direct access to the session's corrections and context in a way that a human reconstructing them from memory does not.
 
 Models tend to over-specify when drafting skills this way, producing verbose output that hedges, restates the obvious, and covers edge cases that will never occur. Treat an agent-drafted skill as a first draft, not a finished artifact.
 
 Editing that draft down — cutting anything that fails the "would the agent get this wrong without this instruction?" test — is a key skill in its own right. It is where most of the value is added, once the agent has done the initial extraction.
+
+*Synthesize from project artifacts.* When you have a body of existing knowledge, feed it into an LLM and ask it to synthesize a skill. Effective source material includes internal documentation, runbooks, and style guides; API specifications and configuration files; code review comments and issue trackers; version control history, especially patches and fixes; and real-world failure cases and their resolutions.
+
+A skill synthesized from your team's actual incident reports will outperform one generated from a generic "best practices" article, because it captures your specific failure modes and recovery procedures.
 
 == Effective instruction patterns
 
@@ -220,17 +218,23 @@ Not every part of a skill needs the same level of prescriptiveness. Match the sp
 
 *Gotchas.* A dedicated section — named "edge cases", for example — that lists environment-specific facts that defy reasonable assumptions is often the highest-value content in a skill. These are not general advice but concrete corrections to mistakes the agent will make without being told otherwise: wrong field names, soft-delete filters, misleading health-check endpoints, non-obvious API constraints. Keep gotchas in `SKILL.md` itself — not a reference file — because the agent needs them before it encounters the situation. When an agent makes a mistake you have to correct, add the correction to the edge cases section.
 
-Reliability in agentic workflows comes primarily from the quality of these constraints, and only secondarily from the size or intelligence of the underlying model. A frontier model given vague guidance behaves less predictably than a smaller model given a tightly specified skill and a deterministic gate to pass. Tightening constraints is a more reliable lever than swapping in a stronger model.
+A smaller model given a tightly specified skill and a deterministic gate to pass often behaves more predictably than a frontier model given vague guidance.
 
 == Progressive disclosure
 
-Once an agent activates a skill, the full body of `SKILL.md` loads into context. Keep `SKILL.md` under 500 lines, and push extended material into three OPTIONAL directories, which MUST be siblings of `SKILL.md`: `references/`, `assets/`, and `scripts/`.
+Agents load a skill in three stages. The `name` and `description` of every discovered skill load at the start of a session. The full body of `SKILL.md` loads when the agent activates the skill. Bundled files load only when the instructions call for them.
+
+Keep `SKILL.md` under 500 lines, and push extended material into three OPTIONAL directories, which MUST be siblings of `SKILL.md`: `references/`, `assets/`, and `scripts/`.
 
 *References.* The `references/` directory holds documentation the agent reads only when needed. Keep each file focused on a single topic, and link to it with an explicit trigger condition rather than a generic pointer. "Read `references/api-errors.md` if the API returns a non-200 status code" beats "See `references/` for details". This stops agents from loading reference material speculatively and burning context.
 
 *Assets.* The `assets/` directory holds static resources: templates, images, data files.
 
-*Scripts.* The `scripts/` directory holds executable code the agent is allowed to run. Follow these guidelines:
+*Scripts.* The `scripts/` directory holds executable code the agent is allowed to run.
+
+== Bundled scripts
+
+Follow these guidelines when writing a script for a skill.
 
 - **No interactive prompts.** Assume the agent runs in a non-interactive shell that cannot respond to TTY prompts, password dialogs, or confirmation menus. Therefore, all input MUST be supplied via CLI flags, environment variables, or stdin — never an interactive prompt — or a script that blocks on input will hang indefinitely.
 
@@ -379,7 +383,7 @@ Before publishing a skill, validate its front-matter and naming with the https:/
 
 == Installing third-party skills
 
-A skill is a set of instructions that the agent follows and, often, scripts that the agent runs. A skill from a public registry is therefore third-party code and a third-party prompt at once. It MUST be treated as a software dependency, with the same scrutiny as an MCP server. The same applies to rules files, plugins, and any other reusable context obtained from outside the project.
+A skill is a set of instructions that the agent follows and, often, scripts that the agent runs. A skill from a public registry is therefore third-party code and a third-party prompt at once. It MUST be treated as a software dependency, with the scrutiny given to any third-party code. The same applies to rules files, plugins, and any other reusable context obtained from outside the project.
 
 * Read the whole skill before installing it, including every script and reference file. Instructions in a reference file reach the model as readily as those in `SKILL.md`, and are a vector for prompt injection.
 
@@ -387,4 +391,4 @@ A skill is a set of instructions that the agent follows and, often, scripts that
 
 * Pin an installed skill to a specific version or commit, vendor it into the repository where practical, and review the diff before upgrading.
 
-* Check the skill's `allowed-tools` field and its scripts against least-privilege tool access. A skill MUST NOT be granted tools that its stated purpose does not need.
+* Check the skill's `allowed-tools` field and its scripts against least-privilege tool access.

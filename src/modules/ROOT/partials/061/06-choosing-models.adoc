@@ -2,7 +2,7 @@
 
 The return on investment from an AI tool depends less on the underlying model's raw capability than on the fit between the task and what the model is good at. Using the most capable model for every task is tempting, but naive. Every model is the product of design trade-offs, so each category of model is strong at some kinds of task and weak at others.
 
-== Coding models
+== Training-data coverage
 
 Many models are optimized for particular tasks, such as computer programming or security testing.
 
@@ -12,31 +12,21 @@ A model's knowledge is bounded by its training data. When training LLMs, AI comp
 
 But no amount of fine-tuning overcomes gaps in the underlying training data. Where that data is biased toward certain languages, frameworks, or programming styles, the model will reflect those biases in its outputs.
 
-This is true of all AI models based on the transformer architecture, because a model's knowledge of semantic associations is learned from its training data.
-
-In neural networks, words act as addresses that unlock semantic relationships encoded in the model's parameters, and context shapes which relationships are retrieved. The word "bank" means something different when preceded by "river" or "central", for example. Larger models can make deeper contextual connections than smaller ones, because they have more parameters linked in more multidimensional ways, producing a richer map of semantic relationships.
-
 The practical effect is that today's AI coding agents are good at generating code in modern, well-represented languages like JavaScript and HTML, but poor at things like 6502 Assembly and niche domain-specific languages. They simply don't have the depth of semantic associations for those languages encoded in their parameters.
 
 The cheapest way to improve a model's capabilities in an under-represented domain is to feed the missing knowledge into the context. Instruction set references, grammar specifications, API documentation, and a handful of canonical, known-good examples will give the model material to work. Extend these guides with external verification checks — eg. a compiler, automated tests — will improve outcomes further by giving the model self-verifiable success criteria that it can iterate toward.
 
 The more expensive, but ultimately more effective, option is to fine-tune an xref:garden::open-weight-model.adoc[*open-weight model*] on your own data. This addresses the root cause rather than working around it, but it requires a substantial corpus, ML expertise, lots of compute, and repeated work on every base model upgrade.
 
-== The training-data ceiling
-
-Because a model's capability is bounded by the quality, quantity, and diversity of its training data, the supply of that data is itself a limit on how far models can advance. This matters when reasoning about the trajectory of the tools, not only about a single release.
-
-The frontier labs have already consumed most of the high-quality public text and code available to them, and the readily accessible supply is not growing nearly as fast as the appetite for it. On top of that, tightening copyright law and licensing disputes may narrow what the labs are permitted to train on, rather than widen it. The search for more, better, and more diverse sources of training data — including synthetic data and licensed private corpora — has consequently become a central concern for the labs.
-
-The practical implication for this standard is modest but worth stating: do not assume that model capability will keep improving at its recent pace indefinitely, or uniformly across domains. Under-represented languages and niche domains are the most exposed, because there was never much data for them to begin with and little new data is being created. The mitigations in this section — feeding missing knowledge into the context, or fine-tuning on your own corpus — remain the levers you control, regardless of what happens to the labs' data supply.
+The supply of training data is itself a limit on how far models can advance, so do not assume that model capability will keep improving at its recent pace, or uniformly across domains. Under-represented languages and niche domains are the most exposed, because there was never much data for them to begin with and little new data is being created.
 
 == Specialist versus general-purpose models
-
-The frontier models take most of the media attention, but a good deal of the more interesting work in the field is happening in quieter, more niche corners. One of these is the development of small, deliberately limited specialist models — models that are not trying to be capable of everything, only of one bounded job. A model that does nothing but answer customer-service questions about a particular product need not carry the weight of a general-purpose frontier model, and it is correspondingly cheap to run. Narrowing the remit is a feature, not a shortcoming.
 
 *General-purpose models* are adequate for many tasks in modern programming languages. But for more specialized tasks you may get better results from more specialized models.
 
 *Specialist models* are fine-tuned for a narrow domain rather than general-purpose use — a search-grounded model tuned for factual retrieval with citations, for example, or a code-completion model tuned for fill-in-the-middle IDE autocomplete.
+
+The frontier models take most of the media attention, but a good deal of the more interesting work in the field is happening in quieter, more niche corners. One of these is the development of small, deliberately limited specialist models — models that are not trying to be capable of everything, only of one bounded job. A model that does nothing but answer customer-service questions about a particular product need not carry the weight of a general-purpose frontier model, and it is correspondingly cheap to run. Narrowing the remit is a feature, not a shortcoming.
 
 Prefer a specialist model over a general-purpose one where the task matches its specialization closely.
 
@@ -50,13 +40,13 @@ Beyond domain fit, the next question is how much capability the task needs — a
 
 Models are commonly grouped into tiers that trade capability against speed and cost.
 
-* *Frontier* models are the current state of the art from well-resourced labs (eg. Anthropic's Claude Opus, OpenAI's GPT flagship, Google's Gemini Pro). They are the most capable but also the slowest and most expensive, so they SHOULD be reserved for work where their capability changes the outcome — planning, architecture, complex problem-solving, and security analysis.
+* *Frontier* models are the current state of the art from well-resourced labs (eg. Anthropic's Claude Opus, OpenAI's GPT flagship, Google's Gemini Pro). They are the most capable but also the slowest and most expensive, so they SHOULD be reserved for work where their capability changes the outcome.
 
 * *Mid-tier* models (eg. Claude Sonnet, GPT mid-tier releases, open-weight workhorses like Llama 70B or Qwen) balance capability, speed, and cost. They are adequate for most day-to-day tasks, including a large share of coding work.
 
 * *Light* models (eg. Claude Haiku, Gemini Flash, GPT mini) trade capability for speed and cost. They suit high-volume, latency-sensitive, or mechanical work — eg. classification, extraction, routing, simple lookups.
 
-Reasoning is not a fourth tier. It is a separate dial that applies within any tier. With reasoning turned up, a model spends extra compute on an internal chain of thought before answering, at the cost of latency and token spend. Use it for problems with a verifiable chain of logic — eg. maths, planning, multi-step analysis, complex debugging. Scale the reasoning effort to the task, rather than defaulting it to maximum.
+Reasoning is not a fourth tier. It is a separate dial that applies within any tier, set through the inference parameters that tune a model's behavior.
 
 Different task types stress different capabilities: language quality, step-by-step reasoning, factual grounding, or raw speed. Proofreading, for example, is linguistically demanding but reasoning-light, whereas a maths word problem is the reverse. A strong general-purpose model at low xref:garden::reasoning-effort.adoc[*reasoning effort*] suits the former task, while the same model at high effort suits the latter.
 
@@ -68,11 +58,11 @@ Where a task is split into steps, assign each step the cheapest tier that satisf
 
 == Capability versus trustworthiness
 
-A more capable model is not a more trustworthy one. Measured hallucination rates have been falling release over release, as model developers invest in curating training data, in post-training techniques, and, in some models, in an explicit "reflect and revise" step that lets a model reconsider part of its own output before returning it. None of this changes the underlying mechanism. A lower rate is not the absence of the failure mode, and the discipline of verification does not relax as the rate improves. The same goes for the techniques within your own control, such as careful prompting, cross-checking against a second context, and xref:garden::retrieval-augmented-generation.adoc[*retrieval-augmented generation*], which grounds the output by fetching the real source text into the context. They reduce how often a model hallucinates. None of them stops it. Nor does wrapping a model in an agent change the picture. An agent is no more trustworthy than the model that drives it. A harness can make an agent's outcomes more predictable, but that predictability is engineered around the model. It is not a property of the model.
+A more capable model is not a more trustworthy one. Measured hallucination rates have been falling release over release, as model developers invest in curating training data, in post-training techniques, and, in some models, in an explicit "reflect and revise" step that lets a model reconsider part of its own output before returning it. None of this changes the underlying mechanism. A lower rate is not the absence of the failure mode, and the discipline of verification does not relax as the rate improves.
 
-== Predictability versus variety
+The same goes for the techniques within your own control, such as careful prompting, cross-checking against a second context, and xref:garden::retrieval-augmented-generation.adoc[*retrieval-augmented generation*], which grounds the output by fetching the real source text into the context. They reduce how often a model hallucinates. None of them stops it.
 
-A related choice is where to sit on the trade-off between predictability and variety. That is set by the sampling parameters, not by the model. Sampling randomness produces fresh, varied output, but it also widens the opening for hallucination. There is no setting that removes the trade-off, only ways of choosing where to sit on it for a given task. And the choice need not be a single model. For open-ended, exploratory work such as code review or security testing, each pass is a fresh analysis that returns a different, overlapping set of findings. Run the task more than once, or across more than one model, and take the union of what they surface.
+Nor does wrapping a model in an agent change the picture. An agent is no more trustworthy than the model that drives it. A harness can make an agent's outcomes more predictable, but that predictability is engineered around the model. It is not a property of the model.
 
 == Open-weight models
 
