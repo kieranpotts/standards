@@ -17,7 +17,7 @@ and formatting conventions described below.
 - **Format.** AsciiDoc (`.adoc`) for all standard content, in a native
   [Antora](https://antora.org) module — this repository is a content source
   for [kieranpotts.com](https://kieranpotts.com), consumed the same way as the
-  `garden`, `thoughts`, and `bookmarks` sibling repositories. Markdown (`.md`)
+  `garden`, `essays`, and `bookmarks` sibling repositories. Markdown (`.md`)
   for repository meta-documents (README, AGENTS, CONTRIBUTING, etc.) and for
   each standard's `GAPS.md`/`TODO.md`, none of which are part of the
   published site.
