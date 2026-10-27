@@ -34,9 +34,15 @@ Arguments and flags are distinct from one another.
 
 * *Arguments* or *args* are positioned parameters to a command. For example, the file paths you provide to `cp` are arguments. Their order is significant: `cp foo bar` is not equivalent to `cp bar foo`. (Arguments look similar to, but are distinct from, subcommands. A command cannot have both arguments and subcommands.)
 
-* *Flags* are named parameters. Unlike arguments, the order of flags SHOULD NOT affect program behavior. In Unix-like systems, flags take one of these two formats:
+* *Flags* are named parameters. Unlike arguments, the order of flags MUST NOT affect program behavior. In Unix-like systems, flags take one of these two formats:
 
-* `--<name>`, where `<name>` is a word, eg. `--recursive`, or hyphenated phrase, eg. `--no-recursive`. * `-<x>`, where `<x>` is a single-letter abbreviation, eg. `-r`
+** `--<name>`, where `<name>` is a word, eg. `--recursive`, or hyphenated phrase, eg. `--no-recursive`.
+
+** `-<x>`, where `<x>` is a single-letter abbreviation, eg. `-r`.
+
+Program behavior includes which messages are printed, how they are formatted, and the exit status. `my-tool --bogus --no-color` and `my-tool --no-color --bogus` MUST print the same uncolored error. To guarantee this, a program MUST parse its complete command line before acting on any of it. In particular, it MUST NOT print output, including error messages, or exit partway through parsing. Once parsing is complete, act in a fixed order: first apply presentation flags such as `--no-color`, then honor `--help`, then `--version`, then report any usage errors, and only then run the command. `--help` always wins: it is honored even when the command line also contains `--version`, unknown flags, or other usage errors.
+
+Because the order of flags carries no meaning, flags that contradict each other — eg. `--color` and `--no-color`, or `--quiet` and `--verbose` — MUST be rejected as a usage error, rather than resolved by letting the last one win. Where contradictory flags are both presentation flags, neither is applied, and the error is printed with the program's default formatting.
 
 As a general rule, arguments SHOULD be used for required options and flags for optional ones. But there are plenty of exceptions to this rule. In some CLIs, it will make perfect sense to have optional arguments and mandatory flags.
 
@@ -140,7 +146,7 @@ Copyright (C) 2026 Example Org
 
 `--version` is also a reasonable place to print additional debugging information (build metadata, platform, dependency versions), and — for a program that makes HTTP requests — to source the string sent as the `User-Agent` header, which helps with server-side debugging of client issues. Version SHOULD also be reachable via a `version` subcommand, in addition to `--version`/`-V`.
 
-As with `--help` (see <<help-text,Help text>>), once `--version` is seen, all other options and arguments SHOULD be ignored, and the program SHOULD exit successfully after printing the version.
+As with `--help` (see <<help-text,Help text>>), when `--version` is given anywhere on the command line, all other options and arguments SHOULD be ignored, other than `--help` and presentation flags such as `--no-color`, and the program SHOULD exit successfully after printing the version.
 
 === The -- end-of-options delimiter
 
