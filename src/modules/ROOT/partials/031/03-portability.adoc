@@ -6,19 +6,54 @@ If in doubt, Bash — the "Bourne Again Shell" — is a good choice. It is widel
 
 But, if portability between different Unix shells is a requirement — for example, if you do not control the environments in which your scripts will be run — then it is best to stick to POSIX-compliant features and avoid shell-specific extensions.
 
-Many Unix shells have a "POSIX mode" that allows you to test a script's POSIX compliance by disabling the shell's non-POSIX features when a script is run. For example, Bash can be run in POSIX-mode using the commands `sh` or `bash --posix`. Alternatively, the following shebang can be added to the top of scripts to trip Bash into running them in POSIX-mode.
+Many Unix shells have a "POSIX mode", which changes the shell's behavior to match the POSIX standard wherever its default behavior differs. For example, Bash runs in POSIX mode when it is invoked as `sh` or with `bash --posix`. A script whose shebang names `sh` also runs Bash in POSIX mode, on systems where `sh` is Bash.
+
+POSIX mode is not a compliance test. It does not disable the shell's extensions, so Bash in POSIX mode still accepts Bashisms such as `local`, `[[ ]]`, and arrays. A script that runs correctly under Bash in POSIX mode may fail under another POSIX shell. Running the script under a minimal POSIX shell, such as dash, catches more, because dash implements few extensions. But dash still accepts some, including `local`. A linter is needed to catch the rest.
+
+== Shebang
+
+POSIX-compliant scripts SHOULD use the env-style shebang.
 
 ----
 #!/usr/bin/env sh
 ----
 
-The following shebang will also tell Bash (and other shells) to run in POSIX-mode. However, this version is a little less portable, because it depends on the path to the `sh` executable being consistent across runtime environments. The version above will instead lookup the `sh` executable in a wider range of paths (as configured in the `PATH` environment variable).
+The classic shebang, which names the path to `sh` directly, is an acceptable alternative.
 
 ----
 #!/bin/sh
 ----
 
-Scripts that use either of these shebangs MUST NOT contain Bashisms — like `local` variables — or other shell-specific syntax or built-ins. A linter MUST be used to identify POSIX compliance issues; https://www.shellcheck.net/[ShellCheck] IS RECOMMENDED for this purpose.
+Both shebangs work on all mainstream Unix-like systems — Linux, macOS, the BSDs, WSL, and Git for Windows. POSIX guarantees neither path. The difference between them is which program they expect to find at a fixed path, and whether the user's `PATH` decides which `sh` runs the script.
+
+The advantages of `#!/usr/bin/env sh` are.
+
+* It follows the same pattern as the shebangs for other interpreters, such as `#!/usr/bin/env bash` and `#!/usr/bin/env python3`. So one rule covers every script, which is easy to teach and to lint.
+* The user can choose the interpreter by putting a different `sh` earlier on their `PATH`. On a legacy system whose `/bin/sh` is not POSIX-compliant, such as Solaris 10 and earlier, this is the workaround.
+
+The disadvantages of `#!/usr/bin/env sh` are.
+
+* It swaps one fixed path for another. `/usr/bin/env` is no more guaranteed than `/bin/sh`.
+* The `PATH` lookup gains nothing for `sh`, which is at `/bin/sh` on all mainstream systems. The lookup is worthwhile only for interpreters whose location varies, such as Bash, Python, and Node.js.
+* Any `sh` earlier on the user's `PATH`, such as a toolchain shim or a script in `~/bin`, silently becomes the interpreter. The script's behavior then depends on the user's environment.
+* It starts slightly more slowly, because it runs an extra program and searches `PATH`. The difference is negligible for most scripts.
+
+The advantages of `#!/bin/sh` are.
+
+* The script always runs under the system's own POSIX shell, whatever the user's `PATH`.
+* There is no `PATH` search and no extra process.
+* It is the convention in long-established POSIX shell codebases. Git's own shell-script commands use it, for example.
+
+The disadvantages of `#!/bin/sh` are.
+
+* The user cannot substitute a different `sh`. On a system whose `/bin/sh` is not POSIX-compliant, the script fails unless it is invoked explicitly with a POSIX shell.
+* It departs from the env-style convention used for every other interpreter.
+
+Prefer `#!/bin/sh` where a predictable interpreter matters more than a uniform convention. For example, choose it where the script makes destructive changes, or where it extends a tool whose own scripts already use `#!/bin/sh`. A project that departs from the recommended shebang SHOULD record the decision and its reasons.
+
+The shebang MUST NOT be `#!/bin/env sh`. `/bin/env` exists only on Linux distributions that merge `/bin` into `/usr/bin`. It is absent on macOS, the BSDs, and Alpine Linux, where a script with this shebang fails to run.
+
+Scripts that use either the env-style or the classic shebang MUST NOT contain Bashisms — like `local` variables — or other shell-specific syntax or built-ins. A linter MUST be used to identify POSIX compliance issues; https://www.shellcheck.net/[ShellCheck] IS RECOMMENDED for this purpose.
 
 [TIP]
 ======
