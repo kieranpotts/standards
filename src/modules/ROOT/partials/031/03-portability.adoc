@@ -12,44 +12,44 @@ POSIX mode is not a compliance test. It does not disable the shell's extensions,
 
 == Shebang
 
-POSIX-compliant scripts SHOULD use the env-style shebang.
-
-----
-#!/usr/bin/env sh
-----
-
-The classic shebang, which names the path to `sh` directly, is an acceptable alternative.
+POSIX-compliant scripts SHOULD use the classic shebang, which names the path to `sh` directly.
 
 ----
 #!/bin/sh
 ----
 
+The env-style shebang is an acceptable alternative where the script must run on a system whose `/bin/sh` is not POSIX-compliant, or where users must be able to choose the interpreter.
+
+----
+#!/usr/bin/env sh
+----
+
 Both shebangs work on all mainstream Unix-like systems — Linux, macOS, the BSDs, WSL, and Git for Windows. POSIX guarantees neither path. The difference between them is which program they expect to find at a fixed path, and whether the user's `PATH` decides which `sh` runs the script.
-
-The advantages of `#!/usr/bin/env sh` are.
-
-* It follows the same pattern as the shebangs for other interpreters, such as `#!/usr/bin/env bash` and `#!/usr/bin/env python3`. So one rule covers every script, which is easy to teach and to lint.
-* The user can choose the interpreter by putting a different `sh` earlier on their `PATH`. On a legacy system whose `/bin/sh` is not POSIX-compliant, such as Solaris 10 and earlier, this is the workaround.
-
-The disadvantages of `#!/usr/bin/env sh` are.
-
-* It swaps one fixed path for another. `/usr/bin/env` is no more guaranteed than `/bin/sh`.
-* The `PATH` lookup gains nothing for `sh`, which is at `/bin/sh` on all mainstream systems. The lookup is worthwhile only for interpreters whose location varies, such as Bash, Python, and Node.js.
-* Any `sh` earlier on the user's `PATH`, such as a toolchain shim or a script in `~/bin`, silently becomes the interpreter. The script's behavior then depends on the user's environment.
-* It starts slightly more slowly, because it runs an extra program and searches `PATH`. The difference is negligible for most scripts.
 
 The advantages of `#!/bin/sh` are.
 
-* The script always runs under the system's own POSIX shell, whatever the user's `PATH`.
+* The script always runs under the system's own POSIX shell, whatever the user's `PATH`. Any `sh` earlier on the user's `PATH`, such as a toolchain shim or a script in `~/bin`, cannot silently become the interpreter.
 * There is no `PATH` search and no extra process.
 * It is the convention in long-established POSIX shell codebases. Git's own shell-script commands use it, for example.
+* The `PATH` lookup that the env-style shebang performs gains nothing for `sh`, which is at `/bin/sh` on all mainstream systems. Such a lookup is worthwhile only for interpreters whose location varies, such as Bash, Python, and Node.js.
 
 The disadvantages of `#!/bin/sh` are.
 
 * The user cannot substitute a different `sh`. On a system whose `/bin/sh` is not POSIX-compliant, the script fails unless it is invoked explicitly with a POSIX shell.
-* It departs from the env-style convention used for every other interpreter.
+* It departs from the env-style convention used for other interpreters, so one rule does not cover every script.
 
-Prefer `#!/bin/sh` where a predictable interpreter matters more than a uniform convention. For example, choose it where the script makes destructive changes, or where it extends a tool whose own scripts already use `#!/bin/sh`. A project that departs from the recommended shebang SHOULD record the decision and its reasons.
+The advantages of `#!/usr/bin/env sh` are.
+
+* It follows the same pattern as the shebangs for other interpreters, such as `#!/usr/bin/env bash` and `#!/usr/bin/env python3`. This is a matter of consistency, and it is the weaker argument.
+* The user can choose the interpreter by putting a different `sh` earlier on their `PATH`. This is the only substantive advantage, and it applies narrowly: to legacy systems whose `/bin/sh` is not POSIX-compliant, such as Solaris 10 and earlier. On those systems `/bin/sh` is the pre-POSIX Bourne shell, and the POSIX shell is installed elsewhere, at `/usr/xpg4/bin/sh`. Putting that directory first on the `PATH` makes an env-style script run under the right shell.
+
+The disadvantages of `#!/usr/bin/env sh` are.
+
+* It swaps one fixed path for another. `/usr/bin/env` is no more guaranteed than `/bin/sh`.
+* The script's behavior depends on the user's environment, because whichever `sh` comes first on the `PATH` becomes the interpreter.
+* It starts slightly more slowly, because it runs an extra program and searches `PATH`. The difference is negligible for most scripts.
+
+Prefer `#!/usr/bin/env sh` only where the script must run on a legacy system of the kind described above, or where the project has another reason to let users choose the interpreter. A project that departs from the recommended shebang SHOULD record the decision and its reasons.
 
 The shebang MUST NOT be `#!/bin/env sh`. `/bin/env` exists only on Linux distributions that merge `/bin` into `/usr/bin`. It is absent on macOS, the BSDs, and Alpine Linux, where a script with this shebang fails to run.
 
@@ -111,7 +111,7 @@ Different shells support extended non-POSIX options. For example, Bash supports 
 .POSIX sh
 [source,sh]
 ----
-#!/usr/bin/env sh
+#!/bin/sh
 set -eu
 ----
 
