@@ -1,0 +1,51 @@
+= State management
+
+An application's state falls into distinct kinds, each with its own home. They SHOULD NOT be mixed in one store.
+
+* *Local UI state* — whether a menu is open, the current value of an input — lives in the component that uses it, with `React.useState` or `React.useReducer`.
+
+* *Server state* — data that the server owns and the client caches — lives in a server-state library or the framework's data-loading API.
+
+* *URL state* — the current page, filters, a selected tab, search terms — lives in the URL, through the router, so that it survives a page reload and can be shared and bookmarked by users.
+
+* *Form state* — field values, validation errors, submission status — lives in the form, in uncontrolled inputs read through actions, or in a form library.
+
+* *Shared client state* — state that only the client owns and several distant parts of the tree need, such as the contents of a multi-step wizard or a shopping basket before checkout — lives in context, or in a centralized client-state store.
+
+== Local state
+
+`React.useReducer` SHOULD be preferred over several `useState` calls when a component's state has many fields that change together, or when the next state depends on the kind of action that occurred. A reducer puts every state transition in one pure function, which can be tested on its own.
+
+== Server state
+
+Server state MUST NOT be cached by hand in a client-state store, by fetching in an effect and writing the result into context, Zustand, or a Redux slice. A hand-written cache lacks what server data needs — eg. deduplication of identical requests, refetching when stale, retries, and invalidation after a mutation — and rebuilding the server store it is a large, error-prone job.
+
+Server state SHOULD be loaded through the framework's data-loading API (route loaders, Server Components), or through a dedicated server-state library, of which TanStack Query is RECOMMENDED. RTK Query MAY be used in an application that already uses Redux Toolkit. In a feature directory, the library's queries and mutations live under `queries/` and `mutations/`, wrapped in custom hooks named after the data (eg. `useAlertsQuery`, `useAlertMutation`). Query keys SHOULD be defined in one module per feature, not written inline at each call site, so that invalidation can't miss a key.
+
+Where an application must work offline, the server-state library's cache SHOULD be persisted to the device (TanStack Query's `persistQueryClient`), and mutations made while offline SHOULD be queued and replayed by the library, not by a hand-written queue.
+
+== Context
+
+Context passes a value down a subtree without threading it through every intermediate component's props. It SHOULD be used for values that many components need and that change rarely, such as the current theme, locale, or authenticated user, and for compound components that share state between their parts (eg. `<Tabs>`, `<Tabs.Panel>`).
+
+Every component that consumes a shared context re-renders when the context's value changes. So context SHOULD NOT carry state that changes frequently, or that only some of its consumers read. Context should be relevant to all its consumers — this is what separates context from global state handled by a state-management library.
+
+State that changes independently SHOULD be split into separate contexts. In particular, a frequently changing value SHOULD be in a different context from the functions that update it.
+
+A provider's `value` that is an object or a function SHOULD be memoized, or created outside of render, so it doesn't change identity, and re-render every consumer, each time the provider renders. (The React Compiler does this automatically.)
+
+A context SHOULD be consumed through a custom hook (eg. `useTheme()`) that throws a descriptive error when no provider is present, rather than with a bare `React.useContext` that silently returns the default value.
+
+In React 19, the context object can be rendered as its own provider (eg. `<ThemeContext value={theme}>`). The older API, `<ThemeContext.Provider>`, SHOULD NOT be used in new code.
+
+Prop drilling through two or three levels is not usually much of a proble. Before introducing a context, check whether passing `children` would remove the intermediate components from the data path altogether.
+
+== Client-state stores
+
+Where shared client state outgrows context, a small external store SHOULD be preferred over a large framework. Zustand is RECOMMENDED for this use case. Redux Toolkit MAY be used where its extra tooling (eg. time-travel debugging and middleware ecosystem) is needed. Jotai MAY be used where the state is many small, independent values that derive from one another.
+
+Components SHOULD subscribe to the narrowest slice of a store they need, through a selector, so that unrelated updates don't re-render them.
+
+A selector MUST NOT build a new object or array on each call, eg. `state => ({ items: state.items, total: state.total })`. This makes every store update look like a change to every individual value. Instead, select each value separately, or wrap the selector in the store's shallow-equality helper (eg. Zustand's `useShallow`).
+
+A store hand-written on top of a plain object MUST be connected to React with `React.useSyncExternalStore`, which prevents different parts of the interface from showing different values of the store during a concurrent render. The `subscribe` function passed to it SHOULD be defined outside the component, else React resubscribes on every render. And `getSnapshot` MUST return the same value until the store changes, else React re-renders indefinitely.

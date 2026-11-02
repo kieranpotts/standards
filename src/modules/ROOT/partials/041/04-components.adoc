@@ -1,0 +1,124 @@
+= Components
+
+== Function components
+
+Components MUST be written as function components. Class components MUST NOT be written for new code.
+
+The one exception is an error boundary, which React still supports only as a class. Prefer a maintained library such as `react-error-boundary` even for that.
+
+Components MUST be defined at the top level of a module, never inside another component. A component defined inside another is a new component type on every render of its parent, so React unmounts and remounts it each time, losing its state, its DOM nodes, and the focus within them.
+
+[source,tsx]
+----
+/* ❌ No: Row is a new component on every render of TicketList. */
+export function TicketList({ tickets }: TicketListProps) {
+  function Row({ ticket }: { ticket: Ticket }) {
+    return <li>{ticket.title}</li>
+  }
+
+  return <ul>{tickets.map(ticket => <Row key={ticket.id} ticket={ticket} />)}</ul>
+}
+
+/* ✅ Yes: Row is defined once. */
+function Row({ ticket }: { ticket: Ticket }) {
+  return <li>{ticket.title}</li>
+}
+----
+
+== Naming
+
+A component MUST be a named function. `export default () => {}` produces a component with no name in React DevTools and in stack traces.
+
+Component names MUST use PascalCase (`TicketList`), which is also how JSX tells a component apart from a native element. And element named `<ticketList>` would be rendered as an unknown HTML tag.
+
+A component's file SHOULD carry the same name as the component (`TicketList.tsx`).
+
+== Exports
+
+A module SHOULD export one public component. Small private helper components that only that component uses MAY live in the same file, unexported.
+
+Many React codebases default-export each file's one component, but React's own documentation leaves the choice to each team. Consistent with xref:036.adoc[*TS-36: ECMAScript*], this technical standard RECOMMENDS that React components use named exports, not default exports. A default export lets every importer give the component a different local name, while a named export fixes its name at every import site. This means every component has a single unique name everywhere it is used. A component can thus be searched for and renamed more reliably across a codebase.
+
+But a default export MUST be used where a framework or API requires one. Examples are a framework's route modules (Next.js's `page.tsx` and `layout.tsx`, React Router's route modules) and a module loaded with `React.lazy`, which renders the `default` property of the module it loads. For `React.lazy`, a named export can be adapted at the call site, rather than given a second, default export.
+
+[source,tsx]
+----
+const ReportChart = React.lazy(() =>
+  import("./ReportChart").then(module => ({ default: module.ReportChart })),
+)
+----
+
+== Props
+
+A component's props are its public API, and SHOULD be designed as carefully as any other API.
+
+* Every prop MUST be typed.
+
+* Optional props SHOULD have their defaults set in the destructuring of the props parameter (`{ size = "md" }`). Do not use `defaultProps`, which is removed for function components in React 19.
+
+* A prop that takes a callback SHOULD be named `on<Event>` (eg. `onSelect`, `onClose`). The name should reflect the event _having happened in the past_, rather than what the parent is expected to do.
+
+* The function a component passes to such a prop SHOULD be named `handle<Event>` (eg. `handleSelect`, `handleClose`).
+
+* A boolean prop SHOULD read as a statement about the component (eg. `isOpen`, `hasError`, `disabled`).
+
+* A set of mutually exclusive booleans (eg. `isSmall`, `isLarge`) SHOULD be replaced by a single prop taking a union of values (`size: "sm" | "md" | "lg"`).
+
+* A component SHOULD accept `children` rather than a growing set of props that each configure one piece of its content. Composition keeps a component's API small and lets consumers render whatever they need inside it. Where a component has several regions to fill, named props that take React nodes (`header`, `footer`) MAY be used alongside `children`.
+
+[source,tsx]
+----
+/* ❌ No: every new kind of content needs another prop. */
+<Dialog title="Delete file?" body="This cannot be undone." confirmLabel="Delete" />
+
+/* ✅ Yes: the consumer composes the content. */
+<Dialog title="Delete file?">
+  <p>This cannot be undone.</p>
+  <Button onClick={handleDelete}>Delete</Button>
+</Dialog>
+----
+
+== Composition patterns
+
+Stateful logic that several components need SHOULD be shared through a custom hook. Higher-order components (eg. `withAuth(Component)`) and render props SHOULD NOT be written for that purpose in new code. These should be considered to be deprecated React APIs. Both add wrapper components to the tree, and higher-order components hide where a prop comes from and stack awkwardly. A render prop MAY still be used where the child decides when and where each item renders and the parent decides what it renders, such as the rows of a virtualized list.
+
+A set of components that work together, such as a tab set or a menu, SHOULD be built as compound components (eg. `<Tabs>`, `<Tabs.List>`, `<Tabs.Panel>`) that share their state through context, rather than as one component configured by a large props object.
+
+Interactive elements with complex keyboard and ARIA behavior — dialogs, menus, comboboxes, tabs — SHOULD be built on a maintained headless component library, such as Radix Primitives or React Aria Components, which supplies the behavior and accessibility semantics without styles. Hand-written implementations of these widgets rarely handle every keyboard interaction and assistive technology correctly.
+
+== Controlled and uncontrolled components
+
+A component that holds a value the user can change — an input, a disclosure, a tab set — MUST be designed as either controlled or uncontrolled, and its API MUST make clear which.
+
+A controlled component takes its value from a prop (`value`, `isOpen`) and reports changes through a callback (`onChange`, `onOpenChange`), so the parent owns the state. An uncontrolled component holds its own state, and MAY accept an initial value under a `default` prefix (`defaultValue`, `defaultOpen`).
+
+A component MAY support both modes, but MUST NOT switch between them during its lifetime. React warns when an input changes from uncontrolled to controlled, which usually means its `value` started as `undefined`.
+
+== Keys
+
+Every element in a rendered list MUST have a `key` that is stable and unique among its siblings. It must be a stable value, and it normally taken from a data entity's unique ID.
+
+Array indexes MUST NOT be used as keys, except for static lists that are never reordered, filtered, or added to. React matches elements between renders by key, so an index key moves state, focus, and DOM nodes onto the wrong item when the list changes.
+
+Keys MUST NOT be generated during render (`key={crypto.randomUUID()}`), which remounts every item on every render.
+
+[source,tsx]
+----
+<ul>
+  {tickets.map(ticket => (
+    <li key={ticket.id}>{ticket.title}</li>
+  ))}
+</ul>
+----
+
+== Conditional rendering
+
+The left-hand side of a `&&` in JSX MUST be a boolean. React renders a falsy number as text, so `{count && <Badge count={count} />}` renders `0` when the count is zero. Convert the condition explicitly (`{count > 0 && …}`), or use a ternary.
+
+A component that renders nothing MUST return `null`, not `undefined` or `false`.
+
+== Fragments
+
+A component that returns sibling elements SHOULD wrap them in a fragment (`<>…</>`), not an extra `div`. A wrapper `div` adds a DOM node with no meaning, and can break layout (eg. a grid or flex container's children) and semantics (eg. a list's items, a table's rows).
+
+The long form, `<React.Fragment key={…}>`, is needed only when the fragment itself is a list item and needs a key.

@@ -1,0 +1,63 @@
+= Performance
+
+Performance work in React SHOULD start from measurement, using the React DevTools Profiler, the browser's performance panel, and field data on Core Web Vitals. This MUST be done before performance optimization techniques such as memoization are implemented.
+
+Profiling SHOULD be done against a production build of React, using the profiling build (`react-dom/profiling`) where React DevTools needs one. The development build runs extra checks, which make it much slower and distort the results.
+
+The Profiler's "Record why each component rendered while profiling" setting SHOULD be turned on, so that it reports which changed prop, state, hook, or context caused each render.
+
+== React Compiler
+
+The React Compiler SHOULD be enabled for new projects, and for existing ones whose code follows the rules of React. The compiler reached a stable 1.0 release in October 2025. At build time, it memoizes components, hooks, and the values they compute, removing most of the need for hand-written memoization.
+
+The compiler relies on React application code following the rules of React. It will skip any component or hook in which it detects a violation, and therefore fail to optimize those components through memoization. Use the `eslint-plugin-react-hooks` plugin to check that application code follows the rules of React.
+
+The compiler package SHOULD be pinned to an exact version (`npm install --save-exact`), and upgraded deliberately. A new version can change what it memoizes, and so change the behavior of code that depends on memoization.
+
+In an existing codebase, the compiler SHOULD be adopted incrementally, eg. by directory or feature, or in its annotation mode, in which only components and hooks that start with a `"use memo"` directive are compiled.
+
+A `"use no memo"` directive, which opts a component or hook out of compilation, MAY be used as a temporary measure while a rule violation — reported by `eslint-plugin-react-hooks` — is fixed. It MUST NOT be left in place as the permanent fix.
+
+Existing manual memoization SHOULD be left in place when the compiler is turned on, and removed only following testing. Removing memoization can change the compiled output.
+
+== Manual memoization
+
+In a project that uses the compiler, `React.memo`, `React.useMemo`, and `React.useCallback` SHOULD NOT be written by default. They MAY be used as escape hatches, where profiling shows a specific need the compiler doesn't meet, or where a value's identity has to be stable for correctness (an effect dependency that would otherwise loop).
+
+In a project without the compiler, `React.memo`, `React.useMemo`, and `React.useCallback`  SHOULD be applied where profiling shows that a re-render is expensive — not to every component and callback. Memoization has its own cost, and a memoized component still re-renders when it receives a new object or function prop that was not memoized, or JSX passed as `children`.
+
+Before memoizing a slow component, check whether the expensive part can be moved out of the path of the state that changes. Moving state down into the component that uses it, or passing the expensive subtree in as `children`, often removes the re-render without any memoization.
+
+== Keeping the interface responsive
+
+`React.useTransition` SHOULD be used to mark a state update as non-urgent — eg. switching tabs, filtering a large list — so that React can interrupt it to handle typing and clicks.
+
+Similarly, `React.useDeferredValue` SHOULD be used to render an expensive part of the interface from a value that lags behind the latest input, such as search results that update as the user types into the search field.
+
+The state of a controlled text input MUST NOT be updated in a transition. Instead, the input must update on each keystroke. Keep the input's own state urgent, and defer the expensive parts of the interface with `React.useDeferredValue`.
+
+In an async transition, state updates made after an `await` MUST be wrapped in another `React.startTransition` call, or React treats them as urgent.
+
+Transitions and deferred values change the priority of work, not its cost. A render that remains slow after it has been made non-urgent SHOULD still be optimized.
+
+Work triggered by typing that doesn't need to happen on each keystroke, such as a network request for search suggestions, SHOULD be debounced.
+
+Lists long enough to render slowly — hundreds of rows or more — SHOULD be virtualized (eg. using TanStack Virtual, `react-window`), so that only the visible rows are mounted.
+
+== Code splitting and lazy loading
+
+Routes SHOULD be code-split, so that a page loads only the code it uses. Frameworks do this automatically.
+
+In a client-only application, use `React.lazy` with `React.Suspense`. A component loaded with `React.lazy` MUST be declared at the top level of a module, not inside a component, where it would be recreated, and would lose its state, on every render.
+
+Large components that are not needed for the first render — eg. a rich text editor, a chart, a dialog behind a button — SHOULD be loaded lazily with `React.lazy`, inside a `Suspense` boundary with a fallback the size of the content it's waiting for, so the layout doesn't shift when the content arrives.
+
+== Dependency analysis
+
+The production bundle SHOULD be inspected with a bundle analyzer (such as `rollup-plugin-visualizer` for Vite, or `@next/bundle-analyzer`) whenever a dependency is added, and large dependencies replaced with smaller ones or loaded lazily.
+
+== Data fetching
+
+Requests that don't depend on one another SHOULD be started in parallel.
+
+A component that fetches its data only once it renders, inside a parent that renders it only once the parent's own data has arrived, creates a waterfall of sequential requests. Instead, start the requests together, in a route loader, a Server Component, or a single query, and pass the results or their promises down.

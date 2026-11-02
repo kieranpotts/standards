@@ -1,0 +1,115 @@
+= Filesystem
+
+A project's directory structure SHOULD follow the structure of the application — grouped by feature, with each feature's components, hooks, and data access kept together — rather than by technical kind, with every component in one `components/` directory and every hook in one `hooks/` directory.
+
+== File extensions
+
+Source files that contain JSX MUST use the `.tsx` extension (or `.jsx` in a JavaScript codebase). Files that contain no JSX MUST use `.ts` or `.js`. This is a toolchain requirement. TypeScript parses JSX only in `.tsx` files, and in a `.tsx` file it reads the angle-bracket type assertion syntax (`<Type>value`) as JSX. Thus, the two file extensions allow different code. Likewise, Vite and esbuild treat `.js` files as plain JavaScript by default, and fail on any JSX in them.
+
+== Filesystem structure
+
+The following filesystem structure is RECOMMENDED as a starting point. It divides components into three tiers.
+
+* *Elements* are the smallest building blocks of the application, such as buttons, form fields, and icons. This category also includes larger composite elements that are still generic and reusable, such as a calendar, data table, or modal dialog. Elements MUST NOT depend on features or views.
+
+* *Features* are libraries of domain-oriented components that are specific to the application, such as payment management, transaction history, and user authentication. Feature components are typically composed of multiple elements, and may include their own state management, data fetching, and business logic. A feature SHOULD expose its public API through its `index.ts`, and other features and views SHOULD import from that, not from the feature's internal files. Features SHOULD NOT import from one another. Where two features need the same code, move it down into `elements/` or a shared module, or compose the two features in a view.
+
+* *Views* are the top-level components that represent the different screens of the application. They are composed of features and elements, and are responsible for the overall layout and structure of each screen. They SHOULD NOT contain domain-specific logic, which belongs in the features, but they may contain UI logic such as routing and navigation. Where a framework's routing convention dictates where route modules live (eg. Next.js's `app/` directory), that directory takes the place of `views/`, and its route modules SHOULD stay thin, delegating to features.
+
+----
+src/
+├── assets/
+├── elements/
+│   ├── button/
+│   │   ├── Button.tsx
+│   │   └── index.ts
+│   └── calendar/
+│       ├── components/
+│       ├── types/
+│       ├── utils/
+│       └── index.ts
+├── features/
+│   ├── payments/
+│   │   ├── api/
+│   │   ├── components/
+│   │   │   ├── PaymentForm.tsx
+│   │   │   ├── PaymentList.tsx
+│   │   │   └── PaymentDetails.tsx
+│   │   ├── constants/
+│   │   ├── hooks/
+│   │   ├── mutations/
+│   │   ├── queries/
+│   │   ├── types/
+│   │   ├── utils/
+│   │   └── index.ts
+│   ├── transactions/
+│   │   ├── components/
+│   │   ├── ...
+│   │   └── index.ts
+│   └── auth/
+│       ├── components/
+│       ├── queries/
+│       └── index.ts
+├── views/
+│   ├── payments/
+│   │   ├── PaymentsView.tsx
+│   │   └── index.ts
+│   └── settings/
+│       ├── SettingsView.tsx
+│       └── index.ts
+└── tests/
+----
+
+Not every feature needs every subdirectory. Create a subdirectory when the feature first needs one. Keep the directory structure flat until a feature outgrows that.
+
+Tests MAY be colocated with the code they test (eg. `PaymentForm.test.tsx` beside `PaymentForm.tsx`), or placed in a separate `tests/` directory. Colocated tests are RECOMMENDED for large, complex projects, because they keep each feature self-contained. A dedicated top-level `tests/` directory tends to work well only for libraries and small applications.
+
+However, end-to-end tests, which cover the application as a whole rather than any one module, SHOULD live in a top-level directory of their own.
+
+== Naming rules
+
+The general rule is that files are named after the single things they export — eg. a component, a hook, a function — and so take that thing's name and case. A file that collects several related exports takes a kebab-case name describing them in aggregate.
+
+|===
+| Category | File/folder naming | Examples
+
+| Directories
+| kebab-case
+| `payments/`, `share-sheet/`, `date-picker/`
+
+| Components
+| PascalCase, named after the component
+| `Ticket.tsx`, `TicketList.tsx`, `TicketForm.tsx`
+
+| Views
+| PascalCase, suffixed `View`
+| `AlertsView.tsx`
+
+| Contexts
+| PascalCase, suffixed `Context`
+| `AlertsContext.tsx`
+
+| Hooks
+| camelCase, named after the hook
+| `useAlertMutation.ts` (wraps `useMutation`), `useAlertsQuery.ts` (wraps `useQuery`)
+
+| API
+| camelCase, named after the operation
+| `registerAlert.ts` (HTTP POST operation), `getAlerts.ts` (HTTP GET operation)
+
+| Queries
+| camelCase, named after the query
+| `treeReasonByParentIdQuery.ts` (GraphQL query)
+
+| Constants
+| kebab-case
+| `query-keys.ts` (query keys), `alert-limits.ts` (constants related to the feature)
+
+| Utils
+| kebab-case
+| `format-alert.ts` (utility functions related to the feature)
+
+| Types
+| kebab-case
+| `alert-types.ts` (types related to the feature)
+|===

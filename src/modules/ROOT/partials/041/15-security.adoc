@@ -1,0 +1,19 @@
+= Security
+
+JSX escapes every value it renders as text or as an attribute, which protects React applications from most cross-site scripting (XSS) by default. The exceptions below are where that protection does not apply, and they need care.
+
+* *`dangerouslySetInnerHTML`* SHOULD NOT be used. Where it can't be avoided — eg. rendering HTML from a CMS, or Markdown converted to HTML — the HTML MUST be sanitized with a maintained sanitizer such as DOMPurify, immediately before it's rendered.
+
+* *URLs from untrusted input* MUST be checked before they're rendered into `href`, `src`, or `action` attributes. React 19 replaces a `javascript:` URL with one that throws an error, but it doesn't block other dangerous schemes, such as `data:text/html`. Allow only the expected schemes (`https:`, `mailto:`).
+
+* *HTML written to the DOM directly*, bypassing React, MUST be sanitized as for `dangerouslySetInnerHTML`. This includes writes through a ref (`ref.current.innerHTML`), and third-party libraries that render HTML, such as rich-text editors and Markdown renderers, whose handling of untrusted input MUST be checked before they're adopted.
+
+* *Spreading untrusted objects as props* MUST NOT be done. `<div {...userData}>` lets the data set `dangerouslySetInnerHTML`, event handlers, or `href`.
+
+* *Secrets* MUST NOT be present in client-side code. Everything a bundle includes, including environment variables exposed to the client by the build (`NEXT_PUBLIC_*`, `VITE_*`), is public.
+
+* *Server-rendered state* that is serialized into the page as a `<script>` (to hydrate a client-side store, say) MUST be serialized with a function that escapes `<`, so that a string containing `</script>` can't break out of the script element.
+
+* *React and the framework* MUST be kept on their latest patch releases. In December 2025, critical vulnerabilities in React's Server Components packages, including unauthenticated remote code execution, were fixed only in patch releases.
+
+A strict Content Security Policy SHOULD be applied, to limit what any script that is injected despite these measures can do.

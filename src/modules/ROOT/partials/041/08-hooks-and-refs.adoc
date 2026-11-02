@@ -1,0 +1,25 @@
+= Custom hooks and refs
+
+== Custom hooks
+
+A function that calls other hooks MUST be named with a `use` prefix (eg. `useOnlineStatus`). A function that calls no hooks MUST NOT be named with a `use` prefix. The prefix is how React's lint rules, the React Compiler, and other developers recognize code that is subject to the rules of hooks.
+
+A custom hook shares stateful logic — not state. Each component that calls `useOnlineStatus()`, for example, gets its own independent state. To share one value between components, lift that state into a common ancestor component, or put it in context or a store.
+
+Logic SHOULD be extracted into a custom hook whenever it is reused. Custom hooks are also useful to hide the implementation details of effects. A custom hook SHOULD be named after its purpose (eg. `useFormDraft`), not its lifecycle (eg. `useMount`, `useUpdateEffect`). Lifecycle hooks re-create the class-component model that hooks replaced, and tend to hide missing dependencies.
+
+A custom hook SHOULD return an array of up to two values when consumers are expected to rename them, like `React.useState` (`const [value, setValue] = useToggle()`). Otherwise it SHOULD return an object.
+
+== Refs
+
+A ref holds a mutable value that persists across renders but whose changes do not cause a re-render.
+
+Refs SHOULD be used only for values that rendering doesn't depend on, eg. DOM nodes, timer IDs, or instances of non-React widgets.
+
+A value that appears in the rendered output MUST be held in state, not a ref.
+
+`ref.current` MUST NOT be read or written during render, except to initialize the ref lazily on first use. Reading a ref during render makes the output depend on a value React doesn't track, and the component stops being pure. Only read and write refs in event handlers and effects.
+
+In React 19, `ref` is an ordinary prop on function components, and a callback ref MAY return a cleanup function that React calls when the node is detached.
+
+`React.useImperativeHandle` MAY be used to expose a small, purpose-built set of methods to a parent (eg. `focus()`, `scrollToItem()`), in place of the underlying DOM node. It SHOULD be used sparingly. Behavior that can be expressed through props — opening, closing, selecting — MUST be expressed through props, not imperative methods.

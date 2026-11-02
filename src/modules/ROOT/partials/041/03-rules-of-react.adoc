@@ -1,0 +1,59 @@
+= Rules of React
+
+React's rendering model rests on a small set of rules that React itself does not enforce at runtime. Code that breaks them often appears to work, then fails under concurrent rendering, under Strict Mode, or once the React Compiler optimizes it. These rules are REQUIRED in every React codebase.
+
+== Components and hooks are pure
+
+Every React component MUST be idempotent. Given the same props, state, and context, it MUST return the same output.
+
+Every React component must be a pure function. React may render a component more than once for a single update, or render it and throw the result away. For these reasons, a component's rendering logic MUST NOT have side effects. Network requests, subscriptions, timers, logging, and writes to anything outside the component belong in event handlers or effects, never in the body of the component.
+
+Props, state, and the arguments and return values of hooks MUST be treated as immutable. A value MUST NOT be mutated after it is passed to JSX. To change state, create a new value and pass it to the state setter.
+
+[source,tsx]
+----
+/* ❌ No: mutates state in place. React sees the same array and may skip the render. */
+function addTodo(todo: Todo) {
+  todos.push(todo)
+  setTodos(todos)
+}
+
+/* ✅ Yes: a new array. */
+function addTodo(todo: Todo) {
+  setTodos(prevTodos => [...prevTodos, todo])
+}
+----
+
+Local mutation is fine. A component MAY create and mutate an object or array during render, provided the value was created in that render and is not shared beyond it.
+
+== React calls components and hooks
+
+A component function MUST NOT be called directly as a function (`Profile()`). It MUST be rendered as JSX (`<Profile />`). This means React will own its lifecycle, its state, and its position in the tree.
+
+Likewise, a hook MUST NOT be passed around as a value, or wrapped and swapped at runtime. It MUST be called by name, inside a component or another hook.
+
+== Rules of hooks
+
+Hooks MUST be called only at the top level of a component or custom hook. They MUST NOT be called inside conditions, loops, nested functions, `try`/`catch` blocks, or after an early `return`. React identifies each hook's state by the order of the hook calls, so that order MUST be the same on every render.
+
+Hooks MUST be called only from React function components and custom hooks, never from ordinary JavaScript functions or class components.
+
+React 19's `use` API is the one exception to the ordering rule. It MAY be called conditionally, because it reads a promise or a context, rather than holding state of its own.
+
+== Linting
+
+`eslint-plugin-react-hooks` MUST be enabled, using its recommended preset, with its rules reported as errors in CI.
+
+This plugin checks the rules of hooks and effect dependency arrays. Since version 6, it also includes rules powered by the React Compiler, which check purity, refs, and setting state during render.
+
+The linter's rules MUST NOT be disabled inline to silence a warning. A warning means the code breaks a rule, and the fix is to change the code.
+
+`eslint-plugin-jsx-a11y` SHOULD also be enabled, so that common accessibility defects in JSX — a missing `alt`, a click handler on a non-interactive element, a form control without a label — are caught at build time.
+
+== Strict Mode
+
+The application's root MUST be rendered inside `<React.StrictMode>`. In development, Strict Mode renders every component twice, runs every effect's setup and cleanup an extra time, and warns about deprecated APIs. That surfaces impure rendering and missing effect cleanup as visible bugs, instead of rare ones in production.
+
+Strict Mode is a no-op in production builds.
+
+A component that misbehaves under Strict Mode's double invocation has a bug. It MUST be fixed, not hidden by removing Strict Mode, or by a ref that stops an effect's setup from running a second time.

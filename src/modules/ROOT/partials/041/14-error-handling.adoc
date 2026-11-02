@@ -1,0 +1,23 @@
+= Error handling and loading states
+
+== Error boundaries
+
+An error thrown during render unmounts the entire React tree unless an error boundary above it catches the error. Every application MUST have an error boundary at its root, which renders a fallback page and reports the error to the application's error monitoring.
+
+Further error boundaries SHOULD be placed around independent regions of the interface — eg. a route's content, a dashboard widget, a sidebar — so that a failure in one region leaves the rest of the page usable. A boundary's fallback SHOULD explain what failed and offer a way to retry, such as resetting the boundary or reloading the data.
+
+Errors SHOULD also be reported through the root options that React 19 adds to `createRoot` and `hydrateRoot`: `onCaughtError` for errors a boundary caught, `onUncaughtError` for errors no boundary caught, and `onRecoverableError` for errors React recovered from automatically, such as a hydration mismatch.
+
+Error boundaries SHOULD be built with `react-error-boundary`, or with the framework's equivalent (eg. Next.js's `error.tsx`, React Router's `ErrorBoundary` route export), rather than as hand-written class components.
+
+Error boundaries catch errors thrown during rendering, in lifecycle methods, in effects, and, in React 19, in actions and transitions. They do not catch errors in event handlers or in asynchronous code that runs outside of render, such as a `setTimeout` callback or a promise that an effect starts. Those MUST be handled where they happen, and either turned into state that the component renders, or rethrown during render so that a boundary catches them.
+
+== Suspense boundaries
+
+`React.Suspense` shows a fallback while the components inside it wait for code (`React.lazy`) or data (`use`, or a framework or library that supports Suspense). Suspense boundaries SHOULD be placed where a loading state makes sense to the user — eg. around a page's main content, or a slow panel — rather than around every component that loads data, which fills the page with competing spinners.
+
+A fallback SHOULD match the size and shape of the content it stands in for, such as a skeleton, so that the layout doesn't shift when the content arrives. Content the user has already seen SHOULD NOT be replaced by a fallback during a later update. Make the update a transition, and React keeps showing the old content until the new content is ready.
+
+A promise read with `React.use` MUST NOT be created during render (`React.use(fetch(url))`). Each render creates a new promise, which suspends again. Promises SHOULD come from the framework, from a Suspense-enabled library that caches them, or from a Server Component that passes them to a Client Component as a prop.
+
+A component loaded with `React.lazy` throws when its code fails to load, for example after a deployment has removed the previous build's files. React caches the failure, so rendering the component again doesn't retry the download. The boundary around a lazily loaded component SHOULD offer to reload the page, which fetches the current build.

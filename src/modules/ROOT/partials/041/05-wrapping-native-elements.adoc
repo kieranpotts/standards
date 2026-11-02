@@ -1,0 +1,30 @@
+= Wrapping native elements
+
+A component that wraps a single native HTML element SHOULD accept every prop that element accepts, and pass the props it doesn't use itself through to the element. Destructure the props the component handles itself, and spread the rest onto the element.
+
+[source,tsx]
+----
+import * as React from "react"
+
+type ButtonProps = React.ComponentProps<"button"> & {
+  size?: "sm" | "md" | "lg"
+}
+
+export function Button({ size = "md", className, ...rest }: ButtonProps) {
+  const classes = [`button-${size}`, className].filter(Boolean).join(" ")
+
+  return <button type="button" {...rest} className={classes} />
+}
+----
+
+This pattern keeps the component simple, because it doesn't need to plan for every attribute the native element supports. It also keeps the component reusable, because a consumer can do anything with it that they could do with the plain HTML element, eg. set `aria-*` and `data-*` attributes, attach event handlers, or pass `ref`.
+
+Typing the props as `React.ComponentProps<"button">` means TypeScript rejects anything the native element doesn't accept — an useful, but OPTIONAL, safeguard against misuse.
+
+Note the order of the JSX attributes. Defaults go before the spread (eg. `type="button"`), so a consumer can override them. Values that the component merges with the consumer's own (eg. `className`) go after the spread, so the spread can't overwrite the merged value.
+
+A `<button>` SHOULD default to `type="button"`, because its native default is `submit`, which submits any form it sits inside.
+
+`ref` is an ordinary prop for function components in React 19. A wrapper that spreads its props passes `ref` on to the element without further code. `React.forwardRef` SHOULD NOT be used in new code.
+
+This pattern is for wrappers around a _single_ native element. A component composed of several elements, or of other components, MUST NOT spread its props onto any one of them. Its props are a declarative API of their own, and SHOULD be defined explicitly.

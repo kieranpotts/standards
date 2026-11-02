@@ -1,0 +1,49 @@
+= TypeScript
+
+React code SHOULD be written in TypeScript, with the conventions established in xref:036.adoc[*TS-36: ECMAScript*]. This section covers what's specific to React.
+
+== Typing props
+
+A component's props SHOULD be typed as a named type, declared next to the component and named after it (eg. `ButtonProps`), and annotated on the destructured parameter.
+
+[source,tsx]
+----
+type TicketListProps = {
+  tickets: Ticket[]
+  onSelect: (ticketId: string) => void
+  emptyState?: React.ReactNode
+}
+
+export function TicketList({ tickets, onSelect, emptyState = null }: TicketListProps) {
+  // ...
+}
+----
+
+`React.FC` SHOULD NOT be used to type components. It adds nothing that annotating the props doesn't, it complicates generic components, and it gets in the way of a component's return type being inferred.
+
+Content props, including `children`, SHOULD be typed as `React.ReactNode`, which accepts anything React can render. `React.ReactElement` or `JSX.Element` SHOULD be used only where a component inspects or clones the element it receives.
+
+Props that extend a native element's SHOULD be built from `React.ComponentProps<"element">`. A prop that wraps another component's props SHOULD use `React.ComponentProps<typeof OtherComponent>`, so the two can't drift apart.
+
+Props whose valid combinations depend on each other SHOULD be typed as a discriminated union, so that TypeScript rejects invalid combinations at the call site.
+
+[source,tsx]
+----
+type LinkOrButtonProps =
+  | { as: "link"; href: string }
+  | { as: "button"; onClick: () => void }
+----
+
+== Typing hooks and events
+
+`React.useState` SHOULD be given an explicit type argument when the initial value doesn't describe every value the state can hold (eg. `React.useState<User | null>(null)`). `React.useRef` for a DOM node SHOULD be typed with the element type and initialized to `null` (eg. `React.useRef<HTMLInputElement>(null)`).
+
+Event handlers declared outside JSX SHOULD be typed with React's event types (`React.ChangeEvent<HTMLInputElement>`, `React.FormEvent<HTMLFormElement>`), or as handler types (`React.ChangeEventHandler<HTMLInputElement>`). Handlers written inline in JSX infer their types and need no annotation.
+
+A context's type SHOULD include `null` or `undefined` for the no-provider case, which the context's custom hook narrows away by throwing.
+
+A reducer's actions SHOULD be typed as a discriminated union on their `type` property, so that TypeScript checks each action's payload and narrows it in each `case`.
+
+== Runtime type checking
+
+Types are erased at runtime, so TypeScript can't check data that enters the application from outside, such as API responses, URL parameters, `localStorage`, messages from other windows. Such data SHOULD be parsed with a schema validation library (eg. Zod, Valibot) at the point where it enters the system from the outside.

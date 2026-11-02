@@ -1,0 +1,53 @@
+= Rendering and frameworks
+
+== Choosing a framework
+
+React is a library for rendering components. A production application also needs routing, data loading, code splitting, and a choice of where each page is rendered — on the server, at build time, or in the browser. A new React application SHOULD be built on a framework that provides these, rather than assembling them by hand. Next.js or React Router (in its framework mode) are RECOMMENDED, in line with React's own guidance.
+
+A client-only single-page application, built with Vite, MAY be chosen where server rendering brings nothing, eg. an internal tool behind a login, an embedded widget, an application whose pages aren't indexed by search engines, or an offline-first application. Such an application still needs a router and a data-fetching approach, and SHOULD adopt established libraries for both (eg. React Router, TanStack Router, TanStack Query), not hand-written ones.
+
+Create React App is deprecated, and MUST NOT be used for new projects.
+
+== Routing
+
+Navigation that the user chooses SHOULD be rendered as a link (`<Link>`), not as a button that navigates from code. Links work with the keyboard and screen readers, and support opening in a new tab. Programmatic navigation (`navigate()`) SHOULD be kept for navigation that follows an action, such as redirecting after a form is saved.
+
+A router object (eg. React Router's `createBrowserRouter`) MUST be created at the top level of a module, not inside a component or in React state, so that it isn't recreated on render.
+
+== Server Components
+
+In a framework that supports React Server Components, components are Server Components by default. They render on the server only, can be `async`, can read data directly (eg. from a database, the file system, or an internal API), and send none of their source code to the browser.
+
+Components SHOULD stay Server Components unless they need state, effects, event handlers, or browser APIs. Code that needs any of those MUST be in a Client Component, marked by a `"use client"` directive at the top of its module.
+
+The `"use client"` boundary SHOULD be pushed as far down the tree as possible. Mark the interactive leaf (eg. the `LikeButton`) as a Client Component, not the whole page it sits in. Every module a Client Component imports is shipped to the browser with it.
+
+A Client Component MAY receive Server Components as `children` or other props. Thus, server-rendered content can sit inside interactive wrappers.
+
+Props passed from a Server Component to a Client Component MUST be serializable. Functions can't be passed, except Server Functions.
+
+Code that must never reach the browser — eg. secrets, database access — SHOULD be in modules that import the `server-only` package, so that the build fails if a Client Component imports them.
+
+Functions marked with `"use server"` (Server Functions) are public HTTP endpoints, whether or not the application links to them. Each MUST authenticate and authorize the caller, and validate its arguments, exactly as a web service API route would.
+
+== Hydration
+
+A server-rendered component MUST render the same output on the server and on its first render in the browser. Any difference is a hydration mismatch, which React reports as an error and recovers from by re-rendering the subtree on the client, throwing away the server-rendered HTML.
+
+Values that differ between server and client — eg. the current time, `Math.random()`, `window`, `localStorage`, the user's locale or time zone — MUST NOT be read during render. Instead, read them in an effect after the component mounts, or render them only on the client.
+
+In React 19.3 and later, `React.use(browser())` (with `browser` coming from `react-dom`) SHOULD be used to render a component only on the client, in place of a `typeof window` check or a "mounted" state variable set in an effect. Where possible, compute such a value once on the server and pass it down as a prop, so that both renders use it.
+
+IDs rendered into the markup MUST be generated with `React.useId`, which returns the same ID on the server and the client. A module-level counter or a random value doesn't.
+
+The rendered HTML MUST be valid. Browsers will repair invalid nesting, such as a `<div>` inside a `<p>`, which can mean that the rendered DOM does not match what React generated.
+
+`suppressHydrationWarning` MAY be used on a single element whose text is known to differ, such as a timestamp, or on `<html>` and `<body>` for attributes that browser extensions add, but MUST NOT be used to hide mismatches that have not been understood.
+
+== Document metadata
+
+In React 19, a component MAY render `<title>`, `<meta>`, and `<link>` elements, which React hoists into the document's `<head>`.
+
+Only one `<title>` SHOULD be rendered at a time.
+
+Where a nested route's metadata must override a parent's, the framework's metadata API (such as Next.js's `metadata` export, or React Router's `meta` export) SHOULD be used instead.

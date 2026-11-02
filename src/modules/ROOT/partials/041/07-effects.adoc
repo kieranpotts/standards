@@ -1,0 +1,108 @@
+= Effects
+
+`React.useEffect` is an escape hatch for synchronizing a component with a system outside React, eg. a network connection, a browser API, a third-party widget, or a subscription.
+
+It is not a general-purpose "run this when something changes" mechanism. Code that uses effects for that purpose is slower, because each effect costs an extra render pass. It is also less reliable, because it runs one render behind the data it depends on.
+
+An effect SHOULD NOT be written where one of the following does the job.
+
+* *Derived data* SHOULD be calculated during render. An effect that sets state from other state or props (eg. `useEffect(() => setFullName(…), [firstName, lastName])`) MUST be replaced by a plain calculation. If the calculation is expensive, memoize it.
+
+* *Responses to user actions* SHOULD go in the event handler for that action. An effect runs because a component rendered, not because the user did something. React can't tell which interaction caused the re-render. Ask yourself why the code runs. If it runs because the user clicked on something, it belongs in the click handler. If it runs because the component is rendered on screen, it may belong in an effect.
+
+* *Resetting state when a prop changes* SHOULD be done by changing the value of the component's `key` prop, not by using an effect that watches that prop.
+
+* *Notifying a parent of a change* SHOULD happen in the same event handler that makes the change, not in an effect that watches the child's state. React will then batches both updates into one render.
+
+* *Chains of effects*, in which one effect sets state that triggers another, MUST be collapsed into a single event handler or a single calculation.
+
+* *Subscribing to an external source* SHOULD NOT be done with a hand-written subscription effect, which will struggle to handle concurrent rendering and server rendering correctly. A third-party store (Zustand, Redux, TanStack Query) SHOULD be read through the library's own hooks, which already handle this. Browser state, such as `navigator.onLine` or a media query, SHOULD be read through a purpose-named custom hook (eg. `useOnlineStatus`) built on `React.useSyncExternalStore`.
+
+* *One-time initialization* for the whole application SHOULD run at module level, or behind a module-level guard. It MUST NOT rely on an effect with an empty dependency array, which Strict Mode runs twice.
+
+== Dependencies
+
+An effect's dependency array MUST list every reactive value the effect reads: props, state, and anything calculated from them in the component's body.
+
+The dependency array MUST NOT be edited to change when the effect runs. To make an effect run less often, change the code so that it reads fewer reactive values. Move an object or function that it uses inside the effect, or out of the component, or read the latest value of a prop inside an event handler instead. `react-hooks/exhaustive-deps` enforces this rule, and its warnings MUST NOT be suppressed.
+
+Where an effect needs the latest value of a prop or state variable, but a change to that value must not re-run the effect, the logic that reads it SHOULD be moved into an Effect Event, with `React.useEffectEvent` (React 19.2 and later). An Effect Event always sees the latest props and state, and is not a dependency. Effect Events MUST be called only from inside effects, and MUST NOT be passed to other components or hooks. They MUST NOT be used to keep a value out of the dependency array when a change to it should re-run the effect.
+
+[source,tsx]
+----
+function ChatRoom({ roomId, theme }: ChatRoomProps) {
+  const onConnected = React.useEffectEvent(() => {
+    showNotification("Connected", theme)
+  })
+
+  React.useEffect(() => {
+    const connection = createConnection(roomId)
+    connection.on("connected", () => onConnected())
+    connection.connect()
+    return () => connection.disconnect()
+  }, [roomId]) // A change of theme doesn't reconnect.
+}
+----
+
+An effect's callback MUST NOT be an `async` function. An async function returns a promise, which React can't distinguish from a custom cleanup function. Instead, declare the async function inside the effect and call it, then return a cleanup function that discards or aborts its result.
+
+[source,tsx]
+----
+React.useEffect(() => {
+  let ignore = false
+
+  async function loadResults() {
+    const results = await fetchResults(query)
+    if (!ignore) setResults(results)
+  }
+
+  loadResults()
+
+  return () => {
+    ignore = true
+  }
+}, [query])
+----
+
+== Cleanup
+
+Every effect that starts something — eg. a subscription, a timer, a connection, a listener — MUST return a cleanup function that stops it. React runs the cleanup before re-running the effect with new dependencies, and when the component unmounts.
+
+React also runs the cleanup when `<React.Activity>` hides a subtree, without unmounting it. So behavior that would otherwise carry on while hidden, such as video or audio playback, SHOULD be stopped in a cleanup function.
+
+Strict Mode's extra setup-and-cleanup cycle in development is there to catch a missing cleanup.
+
+== Race conditions
+
+An effect that fetches data MUST guard against race conditions, so that a slow response to an earlier request cannot overwrite the result of a later one.
+
+[source,tsx]
+----
+React.useEffect(() => {
+  const controller = new AbortController()
+
+  fetchResults(query, { signal: controller.signal })
+    .then(setResults)
+    .catch(error => {
+      if (error.name !== "AbortError") setError(error)
+    })
+
+  return () => controller.abort()
+}, [query])
+----
+
+Here the effect creates an `AbortController` and passes its `signal` to the request. When `query` changes, or the component unmounts, React runs the cleanup function, which calls `controller.abort()` and cancels the request still in flight. The cancelled request rejects with an `AbortError`, which the effect ignores, so a stale response never reaches `setResults`.
+
+Unlike the `ignore` flag in the previous example, aborting also stops the network request itself, so the browser doesn't spend bandwidth on a response that will be thrown away.
+
+Hand-written fetch effects like this SHOULD be rare in application code. Data fetching SHOULD go through the framework's data-loading API, or a server-state library, both of which handle caching, deduplication, and race conditions.
+
+== Effect hooks other than useEffect
+
+`React.useLayoutEffect` runs synchronously after the DOM is updated but before the browser paints. It SHOULD be used only to measure layout and re-render before the user sees the intermediate state, such as positioning a tooltip from its rendered size. It blocks painting, so it MUST NOT be used for anything else.
+
+Layout effects don't run during server rendering, so a server-rendered component shows its unmeasured layout until it hydrates. Such a component SHOULD render an acceptable layout without the measurement, or render only on the client.
+
+== Custom hooks
+
+A component SHOULD NOT have more than one or two effects. Effects SHOULD be extracted into custom hooks with a purpose-specific name and API (eg. `useOnlineStatus`, `useChatConnection`), so that components describe what they need rather than how it is synchronized.

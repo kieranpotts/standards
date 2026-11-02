@@ -1,0 +1,82 @@
+= State
+
+== Structuring state
+
+State SHOULD be the minimal set of values from which everything else the component shows can be calculated.
+
+* *Calculate derived values during render.* A value that can be computed from props or other state MUST NOT be stored in state as well. Duplicated state will inevitably get out-of-sync in time.
++
+[source,tsx]
+----
+/* ❌ No: fullName duplicates firstName and lastName. */
+const [fullName, setFullName] = React.useState("")
+
+/* ✅ Yes: calculated on every render. */
+const fullName = `${firstName} ${lastName}`
+----
+
+* *Do not mirror props in state.* `React.useState(props.color)` reads the prop only on the first render, and ignores every later change to it. Use the prop directly. Where a prop really is only an initial value, name it as such (eg. `initialColor`, `defaultColor`).
+
+* *Avoid contradictory state.* Several booleans that must never be true together (eg. `isLoading`, `isError`, `isSuccess`) SHOULD be replaced by one `status` value with a union type (eg. `"idle" | "loading" | "error" | "success"`). This makes the impossible combinations impossible to represent.
+
+* *Store IDs, not copies.* To track which item is selected, store `selectedId` and look the item up during render. A stored copy of the item goes stale when the list changes.
+
+* *Group values that change together.* Values that are always updated at the same time (eg. the `x` and `y` of a position) MAY share one state object.
+
+* *Avoid deep nesting.* Deeply nested state is hard to update immutably. Prefer a flat, normalized shape, with items keyed by ID. Where an update to nested state can't be avoided, Immer (via `use-immer`) MAY be used to write the update as a mutation on a draft.
+
+== Initial state
+
+React uses the initial value passed to `React.useState` only on the first render, but it will evaluate the argument on every render. So an initial value that is expensive to compute — eg. parsed from `localStorage`, or built from a large data set — SHOULD be passed as an initializer function, which React will therefore call once only.
+
+[source,tsx]
+----
+/* ❌ No: readDraft() runs on every render. */
+const [draft, setDraft] = React.useState(readDraft())
+
+/* ✅ Yes: readDraft runs on the first render only. */
+const [draft, setDraft] = React.useState(readDraft)
+----
+
+== Where state lives
+
+State SHOULD live in the closest common ancestor of the components that use it. When two sibling components need the same value, lift the state into their parent and pass it down as props, instead of trying to keep two copies in sync.
+
+== Resetting state
+
+To reset all of a component's state when one of its inputs changes, simply give the component a `key` derived from that input, eg. `<Profile key={userId} userId={userId} />`. React treats a component with a new key as a new component, and mounts it with fresh state.
+
+== Updating state
+
+When the next value of a state variable is calculated from its current value, the setter SHOULD be passed an updater function rather than the new value. React queues updates and applies them in order. An updater function receives the result of any updates queued before it. By contrast, a calculation from the variable captured in the render's closure only ever sees the value from that render.
+
+[source,tsx]
+----
+export function Counter() {
+  const [count, setCount] = React.useState(0)
+
+  /* ❌ No: count is the value from this render, so this adds 1, not 2. */
+  function addTwo() {
+    setCount(count + 1) // Next state: 0 + 1 = 1
+    setCount(count + 1) // Next state: 0 + 1 = 1
+  }
+
+  /* ✅ Yes: each updater receives the result of the previous update in the queue. */
+  function subtractTwo() {
+    setCount(c => c - 1) // Next state: 0 - 1 = -1
+    setCount(c => c - 1) // Next state: -1 - 1 = -2
+  }
+
+  return (
+    <div className="counter">
+      <button className="counter--minus" onClick={subtractTwo}>–</button>
+      <output className="counter--count">{count}</output>
+      <button className="counter--plus" onClick={addTwo}>+</button>
+    </div>
+  )
+}
+----
+
+When the next value doesn't depend on the current one — a value typed by the user, a response from the server — pass the value directly (`setName(event.target.value)`).
+
+An updater function MUST be pure, because React calls it during render, and in Strict Mode calls it twice. Its argument SHOULD be named after the state variable, either by its initials (`c => c + 1` for `count`) or in full (`count => count + 1`).

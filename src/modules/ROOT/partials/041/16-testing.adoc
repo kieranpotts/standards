@@ -1,0 +1,39 @@
+= Testing
+
+React components SHOULD be tested by how they behave for a user, not by how they're implemented. A test that renders a component, interacts with it as a user would, and checks what appears on the screen, is more likely to survive refactoring. A test that inspects a component's state or calls its internal functions will likely break every time the implementation changes, even when the behavior doesn't.
+
+== Component tests
+
+Component tests SHOULD be written with React Testing Library, running under Vitest (or Jest), with a DOM environment such as jsdom or happy-dom.
+
+Elements SHOULD be found by their accessible role and name (eg. `getByRole("button", { name: "Save" })`), falling back to the label text, then the visible text. A `data-testid` MAY be used only where no accessible query can identify the element. A test that can't find an element by role often points to an accessibility defect in the component.
+
+User interactions SHOULD be simulated with `@testing-library/user-event`, which dispatches the full sequence of events a real interaction produces, rather than `fireEvent`, which dispatches only one.
+
+Assertions about asynchronous updates SHOULD use the `findBy*` queries or `waitFor`, not fixed delays.
+
+Components that need providers — eg. context, a router, a query client — SHOULD be rendered through a project-wide custom `render` function that wraps them in the providers, rather than having each test assemble the providers itself.
+
+Network requests SHOULD be intercepted at the network layer with Mock Service Worker (MSW), not by mocking the data-fetching module. The component, its hooks, and the data-fetching library are then tested together, as they run in production.
+
+[source,tsx]
+----
+test("reveals the answer when the question is clicked", async () => {
+  const user = userEvent.setup()
+  render(<Faq question="What is React?" answer="A library for building user interfaces." />)
+
+  await user.click(screen.getByRole("button", { name: "What is React?" }))
+
+  expect(screen.getByText("A library for building user interfaces.")).toBeVisible()
+})
+----
+
+Shallow rendering and tests that assert on a component's internal state or props MUST NOT be written. Snapshot tests of rendered markup SHOULD NOT be written, because they record the implementation rather than specify the behavior, and are approved without being read when they change.
+
+== Testing hooks and logic
+
+Custom hooks SHOULD be tested through a component that uses them. `renderHook` MAY be used for a hook that is published as a reusable API in its own right. Pure logic — reducers, selectors, formatting — SHOULD be extracted from components and tested as ordinary functions.
+
+== End-to-end tests
+
+Behavior that crosses pages, depends on real browser layout, or relies on the real server — routing, authentication, Server Components, hydration — SHOULD be covered by end-to-end tests in a real browser with Playwright, not by component tests in a simulated DOM.

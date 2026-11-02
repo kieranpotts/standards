@@ -1,0 +1,53 @@
+= Forms
+
+A form SHOULD be built on a native `<form>` element with a submit button, so that the browser's keyboard submission, validation attributes, and accessibility semantics come for free.
+
+A form MUST NOT be submitted by a click handler on a button outside a `<form>`.
+
+== Actions
+
+In React 19, a `<form>` element's `action` prop may take a function. React calls it with the form's `FormData` on submission, inside a transition, and resets the form's uncontrolled fields once the function settles. For forms that submit to a server, actions SHOULD be preferred over a hand-written `onSubmit` handler that manages pending and error state itself.
+
+* `React.useActionState` SHOULD be used to hold the result of an action — eg. a validation error, a success message — along with its pending state.
+
+* `useFormStatus` (from `react-dom`) SHOULD be used by a component inside a form, such as a submit button, to read whether the form is submitting, instead of having the pending state passed to it as a prop.
+
+* `React.useOptimistic` MAY be used to show the expected result of an action immediately, while the request is in flight. React reverts the optimistic value automatically when the action finishes.
+
+[source,tsx]
+----
+import * as React from "react"
+import { useFormStatus } from "react-dom"
+
+export function NewsletterForm() {
+  const [state, formAction] = React.useActionState(subscribe, { error: null })
+  const emailId = React.useId()
+
+  return (
+    <form action={formAction}>
+      <label htmlFor={emailId}>Email</label>
+      <input id={emailId} name="email" type="email" required />
+      {state.error && <p role="alert">{state.error}</p>}
+      <SubmitButton />
+    </form>
+  )
+}
+
+function SubmitButton() {
+  const { pending } = useFormStatus()
+
+  return <button type="submit" disabled={pending}>Subscribe</button>
+}
+----
+
+== Controlled and uncontrolled inputs
+
+Inputs SHOULD be uncontrolled, read from `FormData` on submission, unless the component needs the value as the user types, eg. to validate as the user types, to format input, or to show or hide other fields depending on it.
+
+Controlling every input re-renders the form on each keystroke, for no benefit when the value is only read on submission. In addition, a file input (`<input type="file">`) is always uncontrolled, because only the user can set its value.
+
+Large forms with complex validation MAY use a form library. React Hook Form is RECOMMENDED, together with a schema validation library (eg. Zod, Valibot) whose schema is shared with the server's validation where possible. Client-side validation is a usability aid, but it MUST NOT replace validation on the server.
+
+== Labels
+
+Every input MUST have an associated `<label>`. IDs that associate a label, a description, or an error message with an input MUST be generated with `React.useId`, not hard-coded, so that two instances of the same component on one page don't share an ID.
