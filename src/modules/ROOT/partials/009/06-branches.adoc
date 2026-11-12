@@ -11,7 +11,9 @@ Git supports many branching and merging strategies, including.
 
 * *Release branching*: Versioned releases are cut from a stable branch, and the release is prepared in its own branch before being tagged with a release number.
 
-Each of these branching strategies solves different problems, and they can be combined in various ways to model all sorts of development workflows. Elements of all these branching strategies are used in the workflow described in this technical standard, combined to support continuous integration, quality control, and scalability.
+Each of these branching strategies solves different problems, and they can be combined in various ways to model all sorts of development workflows. Elements of all these branching strategies are combined in the workflow described in this technical standard, to support continuous integration, quality control, and scalability.
+
+Release branching is reserved for a special case, though. Releases are normally prepared in ordinary commits on the development trunk and marked by version tags. Release branches are cut only for releases that carry unique artifacts that must not flow back onto the trunk lines.
 
 == Branch types
 
@@ -52,7 +54,7 @@ This technical standard recommends seven main branch types:
 
 | *Release*
 | `release` \| `release/<version>`
-| Release-specific artifacts
+| The revision released to production \| Release-specific artifacts
 | Team
 | Permanent \| Temporary
 | Yes
@@ -102,7 +104,7 @@ image::009/branches/parallel-trunks-baseline.svg[opts=inline]
 
 All three trunks — `dev`, `test`, and `ready` — have an infinite lifetime and MUST NOT ever be deleted. Trunks MUST be treated as append-only stacks of commits, always fixing forward. This means that commits made to the trunks MUST be treated as immutable. Once a commit is made to a trunk, it MUST NOT be dropped or amended — though it can be reverted through a `git revert` operation, which safely adds a new commit without changing the original. These constraints are necessary because the trunks are shared by all developers and used by continuous integration and deployment pipelines and other automated processes. Volatile shared branches disrupt collaborative workflows.
 
-All commits originate on the development trunk. All working branches — `temp/*`, `epic/*`, and `spike/*` — MUST be cut from `dev`. New work does not originate on `test`, `ready`, or any release branch. Revisions are continuously integrated into `dev`, either via direct commits to that branch, or via temporary or epic branches that are subsequently integrated back.
+All commits originate on the development trunk. All working branches — `temp/*`, `epic/*`, and `spike/*` — MUST be cut from `dev`. New work does not originate on `test`, `ready`, `release`, or any release branch. Revisions are continuously integrated into `dev`, either via direct commits to that branch, or via temporary or epic branches that are subsequently integrated back.
 
 image::009/branches/parallel-trunks-with-temp-branch.svg[opts=inline]
 
@@ -126,13 +128,15 @@ image::009/branches/single-trunk-with-fast-forwards-alt.svg[opts=inline]
 
 The single track visualization is a more accurate representation of Git's lightweight branching model, where a branch is merely a reference to a commit.
 
-Releases are cut from the `ready` trunk via either a single long-lived `release` trunk (supporting continuous deployment) or multiple short-lived `release/<version>` branches (supporting release trains). This is covered in more detail in the section on release strategies.
+Releases are cut from the `ready` trunk. Each release is prepared in a version commit on `dev`, marked by a version tag once that commit reaches `ready`, and published by fast-forwarding a long-lived `release` trunk to it. In the special case of a release with unique artifacts that must not flow back onto the trunk lines, a short-lived `release/<version>` branch is cut from `ready` instead, and is never merged back. This is covered in more detail in the section on releases.
 
 The trunk names are chosen to be self-explanatory. They indicate the stage of the software development and release cycle that the tip commits in each trunk have reached. There is no `master` or `main` branch, because these words do not have any correlation to stages of the software development lifecycle. Does the tip of a `main` branch always hold production-grade code, or does it represent the latest increment of the software, including unstable and untested changes? The answer is it varies from one project to another. In this workflow, the trunk branches are named to be unambiguous about the stage of the software lifecycle that they represent: `dev` → `test` → `ready` → `release`. The semantics of this workflow's trunks and branches will not change from one project to another.
 
 === The development trunk
 
 The only REQUIRED branch in this workflow is the `dev` branch, the *integration branch* where all in-progress development work is brought together. It is equivalent to the `develop` branch in the legacy GitFlow workflow, and to the single `main` branch in trunk-based development. For this reason, it is RECOMMENDED that the `dev` trunk be configured as the default branch in reference repositories.
+
+The `dev` trunk is the only trunk that accepts direct commits. The downstream trunks — `test`, `ready`, and `release` — are protected, and only ever move by fast-forward. Release branches are protected too, and accept only commits that add release-specific artifacts.
 
 Note that Git itself has no concept of a default branch. This is a feature added by hosting services such as GitHub and GitLab, which use the configured default as the target for pull/merge requests and as the branch checked out by `git clone` without further arguments.
 
@@ -167,7 +171,7 @@ Continuous integration directly on the shared `dev` trunk is RECOMMENDED for mos
 
 * *Open source contributions* — Contributing to projects where you do not have write privileges on the reference repository.
 
-In all these cases, temporary branches MUST be cut from `dev` (never from `test`, `ready`, or any release branch) to keep your work isolated while it develops.
+In all these cases, temporary branches MUST be cut from `dev` (never from `test`, `ready`, `release`, or any release branch) to keep your work isolated while it develops.
 
 Temporary branches are the equivalent of feature branches (also known as task branches or topic branches) seen in other workflows. They are so-named in this workflow to emphasize the fact that temporary branches SHOULD be short-lived. Best practice is to err on the side of continuous integration rather than long-lived branch lines. Integrating all changes regularly helps to avoid merge conflicts.
 
@@ -198,7 +202,7 @@ The component parts of the temporary branch name are as follows.
 
 [NOTE]
 ======
-The `<description>` segment MUST comply with Git's ref-name rules: it MUST NOT contain a space, tilde (`~`), caret (`^`), colon (`:`), question mark (`?`), asterisk (`*`), square bracket (`[`), backslash (`\`), or two consecutive dots (`..`); it MUST NOT begin or end with a slash or a dot; and it MUST NOT end with `.lock`. Git rejects branch names that violate these constraints outright — see `git-check-ref-format(1)`. Beyond what Git enforces, `<description>` SHOULD use lowercase letters and hyphens only (no underscores or camelCase), and SHOULD be kept short enough to remain readable in terminal output and CI logs — as a guideline, under 50 characters, excluding the `<id>-` prefix. These same rules apply to the `<description>` segment of epic and spike branch names (see below).
+The `<description>` segment MUST comply with Git's ref-name rules: it MUST NOT contain a space, tilde (`~`), caret (`^`), colon (`:`), question mark (`?`), asterisk (`*`), square bracket (`[`), backslash (`\`), or two consecutive dots (`..`); it MUST NOT begin or end with a slash or a dot; and it MUST NOT end with `.lock`. Git rejects branch names that violate these constraints outright — see `git-check-ref-format(1)`. Beyond what Git enforces, `<description>` MUST use lowercase letters, digits, and hyphens only (no underscores or camelCase), and SHOULD be kept short enough to remain readable in terminal output and CI logs. Excluding the `<id>-` prefix, it SHOULD NOT exceed 50 characters, and MUST NOT exceed 72. These same rules apply to the `<description>` segment of epic and spike branch names (see below).
 ======
 
 Examples:
@@ -330,7 +334,7 @@ Design your branching strategy to fit the quality assurance requirements of your
 
 === The ready trunk
 
-The `ready` trunk is a permanent, protected branch designed to be *pristine*: every commit on `ready` MUST have passed all the quality assurance checks earlier in the pipeline, and the trunk MUST NOT carry unverified or in-progress work. The same pristine standard applies to the release trunk and any release branches downstream of `ready` (see <<Releases>>). They inherit their cleanliness from `ready` and MUST NOT receive direct commits either.
+The `ready` trunk is a permanent, protected branch designed to be *pristine*: every commit on `ready` MUST have passed all the quality assurance checks earlier in the pipeline, and the trunk MUST NOT carry unverified or in-progress work. The same pristine standard applies to the `release` trunk and any release branches downstream of `ready` (see <<Releases>>). They inherit their cleanliness from `ready`. The `release` trunk MUST NOT receive direct commits either, and a release branch MUST NOT receive any commit other than one that adds release-specific artifacts.
 
 The pristine quality is the reason for the multi-stage quality-assurance flow that runs ahead of `ready`. Revisions originate on `dev`, pass fast checks there, fast-forward to `test` for longer-running and more expensive validation, and only fast-forward to `ready` once all checks pass. By the time a commit lands on `ready`, the team can be confident that it is shippable.
 

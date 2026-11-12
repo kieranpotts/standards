@@ -162,7 +162,7 @@ The following animation demonstrates a cherry-pick operation. "A" and "B" are in
 
 image::009/integration-strategies/cherry-pick.svg[opts=inline]
 
-Cherry-picking is most useful when integrating an entire branch is not desirable or appropriate. A common scenario is backporting — applying a bug fix or security patch from a release branch to the current development trunk, so the fix is applied to the next release too. Cherry-picking is also useful when a single, well-scoped commit on a long-running feature branch needs to be promoted to a target branch ahead of the rest of the feature.
+Cherry-picking is most useful when integrating an entire branch is not desirable or appropriate. A common scenario is backporting — applying a bug fix or security patch from the latest development trunk to the development trunk of an older long-term support pipeline, so the fix ships in that pipeline's next release too. Cherry-picking is also useful when a single, well-scoped commit on a long-running feature branch needs to be promoted to a target branch ahead of the rest of the feature.
 
 The trade-off is that cherry-picked commits are copies. They are not linked to their originating commits in the source branch. If the source branch is later merged or rebased onto the same target branch in full, Git will not recognize that some of those incoming changes have already been applied. The result can be conflicts that are difficult to resolve. For this reason, cherry-picking is best treated as a targeted, exceptional tool rather than a routine integration strategy.
 
@@ -180,7 +180,7 @@ The choice of integration strategy depends on your goals for the commit history 
 
 === Integrating between trunk lines
 
-To maintain a clean, linear history on a project's trunk lines — so that `git log` is a useful, high-level changelog — fast-forward-only merging is the clear choice. This supports the objectives of *provenance* (clear change history) and *simplicity* (straightforward integration without merge commits). Use this for moving `test` to catch-up with `dev`, and `ready` to catch-up with `test`.
+To maintain a clean, linear history on a project's trunk lines — so that `git log` is a useful, high-level changelog — fast-forward-only merging is the clear choice. This supports the objectives of *provenance* (clear change history) and *simplicity* (straightforward integration without merge commits). Use this for moving `test` to catch-up with `dev`, `ready` to catch-up with `test`, and `release` to catch-up with `ready`.
 
 [source,sh]
 ----
@@ -252,6 +252,8 @@ This creates an explicit merge commit that records the integration point. Becaus
 Epic branches are long-lived, accumulating commits from multiple contributors over weeks or months. By the time they're ready for integration, their commit history is typically noisy with intermediate work-in-progress commits, merge-down commits from `dev`, and incremental steps that are meaningful within the context of the epic but add little to the trunk's changelog.
 
 For this reason, *squash-merge* is the RECOMMENDED integration strategy for epic branches. Squash-merge consolidates the epic's entire history into a single, well-described commit on `dev` that represents the completion of the epic's work.
+
+Because the squash erases the epic's individual commits from the trunk, its commit message MUST preserve what tooling downstream reads from them. The header takes the type with the most impact among the epic's commits. It MUST carry the `BREAKING` flag if any of the epic's commits does, or else the `INCOMPAT` flag if any does, so that version bumps derived from the commit history stay correct. The `WIP`, `TEMPORARY`, and `EXPERIMENT` flags describe intermediate states that the squash erases, and are dropped. The body SHOULD list the subjects of the epic's commits, oldest first.
 
 Epic integrations are typically performed via a pull request, which provides a structured forum for review and approval of the consolidated change. See <<pr-config,PR config>>.
 

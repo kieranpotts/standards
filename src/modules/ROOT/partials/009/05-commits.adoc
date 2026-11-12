@@ -59,11 +59,11 @@ Note that `git mv` does not affect rename detection — it is just a convenience
 
 Do not rewrite history that has been pushed to a shared branch. Rebasing, amending, squashing, or force-pushing a commit that other people may have pulled breaks references for everyone downstream — their local clones diverge silently, and recovering requires a coordinated reset. The fix-forward rule on trunks (see <<Branches>>) is one application of this principle.
 
-The rule applies differently to different branch types.
+The rule applies differently to different branch types. Trunks, release branches, and epic branches are *shared* branches. Temporary branches are *personal* branches.
 
-* *Trunks* (`dev`, `test`, `ready`, release branches): history MUST NOT be rewritten under any circumstances. Force-push MUST be disabled in repository configuration.
+* *Trunks and release branches* (`dev`, `test`, `ready`, `release`, `release/*`): history MUST NOT be rewritten under any circumstances. Force-push MUST be disabled in repository configuration.
 
-* *Temporary branches* (`temp/*`): owned by a single developer, so rewriting pushed history is technically safe. Cleanup via interactive rebase, amend, or squash before integration is RECOMMENDED to produce a clean, atomic series of commits.
+* *Temporary branches* (`temp/*`): personal, owned by a single developer, so rewriting pushed history is safe. Cleanup via interactive rebase, amend, or squash before integration is RECOMMENDED to produce a clean, atomic series of commits. Rebasing onto `dev` immediately before integration is part of the RECOMMENDED integration strategy for temporary branches, even where the branch has already been pushed.
 
 * *Epic branches* (`epic/*`): shared between multiple developers, so rewriting pushed history MUST be coordinated with all contributors. The merge-down sync strategy described in <<epic-branches,Epic branches>> deliberately avoids the need for rebases on epic branches.
 
@@ -128,7 +128,7 @@ A *style* commit applies presentation-only changes to code — updates to whites
 
 There also tends to be many small housekeeping *chores* around the maintenance of a code repository. Chores are small, insignificant maintenance tasks that are not important enough to be tracked via an issue tracker, whereas larger maintenance tasks normally are. Chores typically do not touch code or configuration, and so they will not even require peer review, and may therefore be committed directly to shared trunk lines, skipping the regular quality assurance gates.
 
-Finally, a *version* commit captures a set of changes made in preparation of a new software release, such as tagging the version number. It marks that a version has been cut, not that it has been deployed to production — see <<Releases>> for the distinction between a release candidate and an actual deployment. The remaining two commit types, *merge* and *revert*, are required to capture specific Git operations.
+Finally, a *version* commit captures the changes made in preparation of a new software release, promoting the changelog's unreleased section to the new version, and bumping the version string in any version manifests. It is made on the `dev` trunk, flows through the pipeline like any other commit, and is the commit that the release's version tag eventually marks — unless the release has unique artifacts of its own, in which case the tag marks the tip of a release branch cut from the version commit. It marks that a version has been prepared, not that it has been deployed to production — see <<Releases>> for the distinction between a release candidate and an actual deployment. The remaining two commit types, *merge* and *revert*, are required to capture specific Git operations.
 
 [NOTE]
 ======
@@ -491,7 +491,7 @@ It is RECOMMENDED to edit the header line to conform with other committing conve
 
 [NOTE]
 ======
-As described in the section on integration strategies, merge commits SHOULD generally be avoided in favor of fast-forward-only merging, which maintains a clean linear history. However, if explicit merge commits are necessary (eg. for integrations that require recording an integration point), prefer to specify the type of changes being introduced from the source branch as the prefix — eg. `behavior:`, `refactor:`, `quality:` — rather than a generic `merge:` prefix. This makes the commit history more informative by indicating what kind of work is being integrated via the merge commit.
+As described in the section on integration strategies, merge commits SHOULD generally be avoided in favor of fast-forward-only merging, which maintains a clean linear history. However, if explicit merge commits are necessary (eg. for integrations that require recording an integration point), prefer to specify the type of changes being introduced from the source branch as the prefix — eg. `behavior:`, `refactor:`, `quality:` — rather than a generic `merge:` prefix. This makes the commit history more informative by indicating what kind of work is being integrated via the merge commit. The exception is a merge-down from `dev` into an epic branch, which brings in a mix of change types, and so takes the `merge:` type, eg. `merge: sync with dev`.
 ======
 
 *Revert commits.*

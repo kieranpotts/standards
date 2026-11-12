@@ -11,14 +11,22 @@ The choice of release *cadence* (big bang, release trains, or continuous deploym
 
 == Release workflows
 
-To support all release cadences, this technical standard RECOMMENDS two different processes for managing releases via version control systems.
+This technical standard RECOMMENDS a single release workflow, whatever the release cadence. A release is prepared in a *version commit* on `dev`, which flows through the trunk lines like any other commit. Once the version commit has passed quality assurance, the release is cut: the version commit is tagged, `ready` is fast-forwarded to the tag, and the `release` trunk is fast-forwarded to `ready`. Every commit and every version tag originates on the development trunk, and flows downstream toward the release trunk.
 
-* A *release trunk* workflow supports continuous deployment.
-* A *release branch* workflow supports release trains and big bangs.
+Release branches are a special case, for releases that carry artifacts of their own that must not flow back onto the trunk lines. They are described at the end of this section.
 
-In both workflows, releases are cut from stable revisions on the `ready` trunk line. What differs is _how_ and _when_ those releases are made.
+=== Version commits
 
-=== Release trunks
+Each release is prepared in a single `version` commit on the `dev` trunk, made directly or via a temporary branch. The version commit does two things.
+
+* It promotes the changelog's `[Unreleased]` section to a heading for the new version and its release date, and starts a fresh, empty `[Unreleased]` section above it. The entries themselves are not written or edited here. They accumulate in the `[Unreleased]` section as changes land on `dev` (see xref:010.adoc[*TS-10: Releasing*]).
+* It bumps the version string in any version manifests, eg. `package.json` or `pyproject.toml`.
+
+The header carries the bare version number, with no `v` prefix: `version: 1.2.0`. The version number SHOULD be derived from the commits made since the pipeline's previous release tag, following the rules in xref:011.adoc[*TS-11: Versioning*].
+
+Because the version commit is an ordinary commit on `dev`, release metadata lives on the trunk lines. Every trunk's changelog holds the full release history, and nothing ever needs to merge back from a release. Release preparation does NOT block ongoing development either: while the version commit makes its way through `test`, `dev` continues to receive commits for the release after that. *Release-time code freezes are not needed*. (Operational freezes for other reasons, such as high-traffic commercial events or holiday windows, are still appropriate; see xref:010.adoc[*TS-10: Releasing*].)
+
+=== Release trunk
 
 ****
 * Naming convention: `release`
@@ -29,13 +37,29 @@ In both workflows, releases are cut from stable revisions on the `ready` trunk l
 * Requirement level: OPTIONAL
 ****
 
-A perpetual `release` trunk supports continuous deployment. Every change that passes automated verification on `ready` is automatically built, tested, and promoted to the `release` trunk for immediate deployment to production.
-
-The `release` trunk has the same chronology of commits as the other trunk lines, but is usually some steps behind the tip of the `ready` trunk.
+The `release` trunk marks the revision released to production. It has the same chronology of commits as the other trunk lines, but is usually some steps behind the tip of the `ready` trunk. Like `test` and `ready`, it only ever moves by fast-forward.
 
 image::009/branches/parallel-trunks-with-release-trunk.svg[opts=inline]
 
-The `release` trunk references compiled artifacts stored in an external artifact repository (registry, object storage, etc.), indexed by commit SHA or tag. The key constraint: you must be able to deploy the latest revision _immediately_, without waiting for builds to complete or tests to rerun. This enables rapid incident response — for example, rolling back to a previous revision in production by redeploying an older build from the artifact repository.
+The `release` trunk references compiled artifacts stored in an external artifact repository (registry, object storage, etc.), indexed by version tag or commit SHA. The key constraint: you must be able to deploy the latest revision _immediately_, without waiting for builds to complete or tests to rerun. This enables rapid incident response — for example, rolling back to a previous revision in production by redeploying an older build from the artifact repository.
+
+=== Cutting a release
+
+A release is cut once the version commit has passed quality assurance on `test`. The workflow follows these steps.
+
+1. Tag the version commit with an annotated tag, signed where commit signing is in use: `git tag -a v<version> <commit>`.
+2. Fast-forward `ready` to the tag: `git checkout ready && git merge --ff-only v<version>`. The `ready` trunk stops at the version commit, even where `test` has moved on. Later commits belong to the next release.
+3. Fast-forward `release` to `ready`: `git checkout release && git merge --ff-only ready`.
+4. Push the tag and the trunks: `git push origin v<version> ready release`. A plain `git push` does not transmit tags — annotated tags are local-only until pushed explicitly, whether by name (as here), with `git push --follow-tags` (pushes annotated tags reachable from the commits being pushed), or with `git push --tags` (pushes every tag in the local repository). Omitting the tag leaves the release tagged locally but absent from the remote, which breaks any automation or teammate workflow that resolves the release by tag.
+5. Build and store compiled artifacts in an external artifact repository (container registry, package repository, object storage, etc.), indexed by the version tag.
+
+The tag, `ready`, and `release` now mark the same commit. A pre-release, eg. `v1.3.0-rc.0`, is tagged the same way, but `ready` and `release` are left where they are, because a pre-release is not deployed to production.
+
+If release preparation fails — for example, tests fail, an artifact build is broken, or the wrong version number is committed — fix forward. Commit the fix, or a corrected version commit, to `dev`, and let it flow through the pipeline again. Tags are permanent (see xref:011.adoc[*TS-11: Versioning*]), so a release that was tagged and then botched takes a new version number.
+
+=== Release cadence
+
+The same workflow serves every release cadence. For release trains and big bang releases, changes accumulate on `ready`, and a version commit is made whenever a release is due. For continuous deployment, the promotion of `release` to `ready` MAY be automated, so that every revision that passes verification on `ready` is deployed immediately, with its artifacts indexed by commit SHA. Versioned releases are then tagged on top of that flow, at whatever cadence suits the software's consumers.
 
 === Release branches
 
@@ -48,29 +72,26 @@ The `release` trunk references compiled artifacts stored in an external artifact
 * Requirement level: OPTIONAL
 ****
 
-An alternative strategy is to cut temporary release branches, one per release, from various points along the `ready` trunk. The release branches are versioned — `release/<version>`. If the version number is not yet decided at the time the branch is cut (for example, when QA findings may reclassify the release as major rather than minor), a placeholder name such as `release/next` MAY be used. The eventual tag carries the final version.
+Release branches are a special case. They are for software in which each release carries *unique artifacts* — eg. release-specific configuration, feature flag states, or generated release notes that are true of that one release only. Committed to `dev`, such artifacts would flow downstream with every other commit, and carry over into every later release. A release branch keeps them off the mainline. Where a release has no artifacts of its own, use the release trunk workflow instead.
 
 image::009/branches/parallel-trunks-with-release-branches.svg[opts=inline]
 
-Release branches support release trains, big bang releases, and other discrete versioned releases. A release branch is created for each discrete release, eg. `release/1.2.0`, `release/2.0.0`. It is where that version is tagged, its changelog is defined, and any version-specific fixes are made.
-
-A key benefit of cutting release branches from `ready` is that release preparation does NOT block ongoing development. While the release branch is being stabilized and tagged, `dev` continues to receive commits for the release after that. *Release-time code freezes are not needed* — the trunk-based model decouples release preparation from continued development. (Operational freezes for other reasons, such as high-traffic commercial events or holiday windows, are still appropriate; see xref:010.adoc[TS-10].)
-
-Each release branch captures release metadata — including release notes, version tags, changelogs, and configuration (like secrets or feature flag states) — specific to that version. These do not need to merge back to the trunk lines. Ideally, the build system auto-generates this metadata in delivery pipelines, using source metadata from the `ready` branch (commit messages, git logs, source annotations).
-
-The release branch itself is temporary. It is created to prepare a release and is deleted after the version is tagged and released. However, the release tags are permanent — they remain in the repository to reference the source code at the point of each release. Compiled artifacts (binaries, packages, container images) are stored in external artifact repositories, indexed by version tag.
+The release is still prepared in a version commit on `dev`, which reaches `ready` like any other commit. The release branch is cut from `ready` at the version commit, and named for the version, eg. `release/1.2.0`. If the version number is not yet decided when the branch is cut (for example, when QA findings may reclassify the release as major rather than minor), a placeholder name such as `release/next` MAY be used. The eventual tag carries the final version.
 
 The release branch workflow follows these steps.
 
-1. Create a release branch from the current tip of the `ready` trunk. Name it with the version number: `git checkout -b release/<version> ready`
-2. Prepare release metadata on the release branch: update version numbers, generate or finalize release notes and changelogs, and configure any release-specific settings (feature flags, secrets, etc.).
-3. Verify the release through final validation: run the full test suite, build the release artifacts, and perform any final checks required before deployment.
-4. Once verified, tag the release with the version: `git tag -a v<version>` (or however your versioning scheme dictates), then push the tag to the remote: `git push origin v<version>`. Neither a plain `git push` nor the branch push in the next step transmits tags — annotated tags are local-only until pushed explicitly, whether by name (as above), with `git push --follow-tags` (pushes annotated tags reachable from the commits being pushed), or with `git push --tags` (pushes every tag in the local repository). Omitting this step leaves the release tagged locally but absent from the remote, which breaks any automation or teammate workflow that resolves the release by tag.
-5. Build and store compiled artifacts in an external artifact repository (container registry, package repository, object storage, etc.), indexed by the version tag.
-6. Delete the release branch: `git branch -D release/<version>` and `git push origin --delete release/<version>`. The version tag remains permanently in the repository.
-7. Development continues on the `ready` trunk for the next release. If there are additional fixes needed for the current version, they flow back through `dev` and are promoted to `ready` like any other changes.
+1. Fast-forward `ready` to the version commit: `git checkout ready && git merge --ff-only <commit>`.
+2. Cut the release branch from `ready`: `git checkout -b release/<version> ready`.
+3. Commit the release's unique artifacts to the release branch.
+4. Tag the tip of the release branch with an annotated tag, signed where commit signing is in use: `git tag -a v<version>`. Push the tag explicitly: `git push origin v<version>`.
+5. Build and store compiled artifacts in an external artifact repository, indexed by the version tag.
+6. Delete the release branch: `git branch -D release/<version>` and `git push origin --delete release/<version>`. The version tag remains permanently in the repository, and keeps the release branch's commits reachable.
 
-If release preparation fails — for example, tests fail, an artifact build is broken, or the wrong version number is committed — abandon the release branch and start over. Code or configuration fixes MUST NOT be committed to release branches. Release branches MUST contain only release-preparation commits (version bumps, changelog updates, release-specific configuration). Fixes flow through `dev` and `ready` like any other change, and once the underlying issue is resolved on the trunk, a fresh release branch is cut. This preserves the fix-forward discipline established for the trunk lines and keeps release branches focused on a single responsibility.
+A release branch MUST contain only commits that add the release's unique artifacts. Code and configuration fixes MUST NOT be committed to a release branch. They flow through `dev` and `ready` like any other change. If release preparation fails, abandon the release branch, fix forward on `dev`, and cut a fresh release branch once the fix reaches `ready`.
+
+A release branch SHOULD NOT be merged back into any trunk. Its artifacts belong to one release only, and merging them back would carry them into every later release, which is the very thing the release branch exists to prevent. Changes flow one way, from `dev` to the release branch, never the reverse. This is why the version commit, with its changelog and version manifest updates, is still made on `dev`: those changes do belong to every later release.
+
+Because its version tag marks a commit that is not on the trunk lines, a release branch takes the place of the `release` trunk for that release: the `release` trunk cannot be fast-forwarded to the tag, and production is deployed from the tag instead. For the same reason, tools that find the previous release by walking a trunk's history, such as `git describe`, do not see tags on release branches.
 
 == Artifact repositories
 
@@ -78,7 +99,7 @@ This standard distinguishes between two kinds of release artifacts.
 
 * *Compiled artifacts* — Binaries, packages, container images, and other build outputs. These MUST NOT be stored in version control.
 
-* *Release metadata* — Version tags, changelogs, release notes, configuration (secrets, feature flags). This can be stored in version control via release branches.
+* *Release metadata* — Version tags, changelogs, release notes, configuration (secrets, feature flags). Version tags and changelogs are stored in version control, prepared in version commits and tags on the trunk lines. Release notes and release-specific configuration are typically managed outside the repository, eg. in the hosting provider's releases feature and in the deployment environment. Where they must be kept in version control, they go on release branches, so that they do not flow back onto the trunk lines.
 
 Git is optimized for source code, not binaries. Storing compiled artifacts in Git repositories significantly slows clone operations, bloats the repository size, and complicates merges. For this reason, compiled artifacts MUST NOT be stored in version control.
 
